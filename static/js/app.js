@@ -8,7 +8,9 @@ const state = {
   month:        new Date().getMonth(),
   trades:       [],
   columns:      [],
-  showHeads:    {},
+  showHeads:    {},           // deprecated alias – do not use directly
+  showHeadsConsolidated: {},
+  showHeadsIndividual:   {},
   tableShowCols:{},
   tableSort:    { col: null, dir: 'asc' },
   colWidths:    {},
@@ -26,6 +28,7 @@ const state = {
   userColumns:  [],   // only these columns are deletable
   addTagColumnMode: false,
   brokerFilter: 'both', // both | zerodha | dhan
+  calendarView: 'month', // month | year
   shortcuts:    {},
   serverStateHash: '',
   syncIntervalMs: 10000
@@ -65,10 +68,25 @@ const DEFAULT_SHORTCUTS = {
   mergeSave: 'Ctrl+Shift+S',
   overlaySave: 'Ctrl+S'
 };
+const DASHBOARD_STATS = [
+  { key: 'overall', label: 'Overall P&L' },
+  { key: 'net', label: 'Net P&L' },
+  { key: 'trades', label: 'Total Trades' },
+  { key: 'charges', label: 'Charges' },
+  { key: 'brokerage', label: 'Brokerage' },
+  { key: 'winrate', label: 'Win %' },
+  { key: 'avg', label: 'Avg / Trade' },
+  { key: 'avgwin', label: 'Avg Win' },
+  { key: 'avgloss', label: 'Avg Loss' },
+  { key: 'best', label: 'Best Day' },
+  { key: 'worst', label: 'Worst Day' },
+  { key: 'dd', label: 'Max Drawdown' }
+];
 const IMAGE_TAG_COLUMN = 'Image Tags';
 const BROKER_COLUMN = 'Broker';
 const IMAGE_PERMANENT_TAGS = ['thumbnail'];
 const PERMANENT_COLUMNS = [BROKER_COLUMN, IMAGE_TAG_COLUMN];
+const COMPUTED_COLUMNS = ['Brokerage', 'Other Charges', 'Gross P/L', 'Net P/L'];
 const UNIFIED_STRUCTURED_COLUMNS = [
   'Instrument',
   BROKER_COLUMN,
@@ -88,8 +106,7 @@ async function init() {
   loadSettingsFromStorage();
   loadShortcutsFromStorage();
   populateSelects();
-  ensureBrokerFilterUI();
-  ensureCalendarBrokerFilterUI();
+  renderDashboardStatsMenu();
   bindEvents();
   await loadTrades();
   setInterval(() => {
@@ -101,46 +118,11 @@ async function init() {
   window.addEventListener('focus', () => syncFromServerIfChanged(true));
 }
 
-function ensureBrokerFilterUI() {
-  if (document.getElementById('broker-filter-btn')) return;
-  const actions = document.querySelector('.table-header-actions');
-  if (!actions) return;
-  const wrap = document.createElement('div');
-  wrap.className = 'dropdown-wrapper';
-  wrap.innerHTML = `
-    <button class="btn btn-outline" id="broker-filter-btn">Broker: Both &#9660;</button>
-    <div class="dropdown-menu" id="broker-filter-menu">
-      <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
-      <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
-      <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
-    </div>
-  `;
-  actions.insertBefore(wrap, actions.firstChild);
-}
-
-function ensureCalendarBrokerFilterUI() {
-  if (document.getElementById('broker-filter-btn-cal')) return;
-  const wrapper = document.querySelector('.show-heads-wrapper');
-  if (!wrapper) return;
-  const host = document.createElement('div');
-  host.className = 'dropdown-wrapper';
-  host.id = 'broker-filter-wrap-cal';
-  host.style.display = 'inline-block';
-  host.style.marginRight = '8px';
-  host.innerHTML = `
-    <button class="btn btn-outline" id="broker-filter-btn-cal">Broker: Both &#9660;</button>
-    <div class="dropdown-menu" id="broker-filter-menu-cal">
-      <button class="dropdown-item broker-filter-item-cal" data-broker="both">Both</button>
-      <button class="dropdown-item broker-filter-item-cal" data-broker="zerodha">Zerodha</button>
-      <button class="dropdown-item broker-filter-item-cal" data-broker="dhan">Dhan</button>
-    </div>
-  `;
-  wrapper.insertBefore(host, wrapper.firstChild);
-}
 
 function populateSelects() {
   const ms = document.getElementById('month-select');
   const ys = document.getElementById('year-select');
+  const vs = document.getElementById('view-select');
   MONTHS.forEach((m, i) => {
     const o = document.createElement('option');
     o.value = i; o.textContent = m; if (i === state.month) o.selected = true;
@@ -152,6 +134,7 @@ function populateSelects() {
     o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
     ys.appendChild(o);
   }
+  if (vs) vs.value = state.calendarView;
 }
 
 // â”€â”€ LOAD / SAVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -276,7 +259,8 @@ function isProtectedSystemColumn(colName) {
   const protectedSet = new Set([
     'instrument', 'tradetype', 'date', 'qty',
     'sell time', 'sell price', 'buy time', 'buy price', 'pt', 'rs',
-    'image tags', 'broker'
+    'image tags', 'broker',
+    'brokerage', 'other charges', 'gross p/l', 'net p/l'
   ]);
   return protectedSet.has(c);
 }
@@ -331,7 +315,53 @@ function normalizeStructuredTradeRow(trade) {
   out.imageTags = (trade && typeof trade.imageTags === 'object' && !Array.isArray(trade.imageTags)) ? { ...trade.imageTags } : {};
   // Preserve tag columns if present
   getTagColumns().forEach(col => { out[col] = Array.isArray(trade?.[col]) ? [...trade[col]] : []; });
+  // Preserve fill_count so computeTradeCharges can use it for accurate brokerage
+  if (trade && trade['fill_count']) out['fill_count'] = parseInt(trade['fill_count']) || 0;
+  computeTradeCharges(out);
   return out;
+}
+
+function computeTradeCharges(trade) {
+  const buy    = parseFloat(trade['Buy Price (Avg)'] ?? trade['Buy Price'] ?? '');
+  const sell   = parseFloat(trade['Sell Price (Avg)'] ?? trade['Sell Price'] ?? '');
+  const qty    = parseFloat(trade['Qty'] ?? '');
+  const broker = String(trade['Broker'] ?? '').toLowerCase().trim();
+  if (isNaN(buy) || isNaN(sell) || isNaN(qty) || qty === 0) return;
+
+  const buyTurn  = buy  * qty;
+  const sellTurn = sell * qty;
+  const total    = buyTurn + sellTurn;
+
+  // ── Common statutory charges (NSE Options) ────────────────────────
+  const stt   = sellTurn * 0.001;      // 0.1% on sell side (on premium)
+  const exch  = total    * 0.0003503;  // 0.03503% NSE options (on premium)
+  const sebi  = total    * 0.000001;   // ₹10 per crore
+  const stamp = buyTurn  * 0.00003;   // 0.003% on buy side
+
+  // fill_count = actual order executions tracked during CSV import (₹20 per fill)
+  const fillCount = Math.max(parseInt(trade['fill_count']) || 0, 2);
+
+  let brokerage, gst, otherCharges;
+
+  if (broker === 'dhan') {
+    brokerage    = fillCount * 20;
+    const ipft   = total * 0.000001;   // IPFT 0.0001% of total turnover
+    gst          = (brokerage + exch + sebi + ipft) * 0.18;
+    otherCharges = stt + exch + sebi + ipft + stamp + gst;
+  } else {
+    // Zerodha: ₹20 per fill (min 2 fills per round-trip)
+    brokerage    = fillCount * 20;
+    gst          = (brokerage + exch + sebi) * 0.18;
+    otherCharges = stt + exch + sebi + stamp + gst;
+  }
+
+  const grossPL = (sell - buy) * qty;
+  const netPL   = grossPL - (brokerage + otherCharges);
+
+  trade['Brokerage']     = Math.round(brokerage    * 100) / 100;
+  trade['Other Charges'] = Math.round(otherCharges * 100) / 100;
+  trade['Gross P/L']     = Math.round(grossPL      * 100) / 100;
+  trade['Net P/L']       = Math.round(netPL        * 100) / 100;
 }
 
 function normalizeNumForKey(v) {
@@ -358,15 +388,23 @@ function structuredTradeDedupKey(trade) {
 function mergeStructuredTrades(existingTrades, importedTrades) {
   const existing = Array.isArray(existingTrades) ? [...existingTrades] : [];
   const imported = Array.isArray(importedTrades) ? importedTrades : [];
-  const keySet = new Set(existing.map(structuredTradeDedupKey));
+  // Use a Map so we can update existing trades by key
+  const keyMap = new Map(existing.map((t, i) => [structuredTradeDedupKey(t), i]));
   let added = 0;
   imported.forEach(row => {
     const normalized = normalizeStructuredTradeRow(row);
     const key = structuredTradeDedupKey(normalized);
-    if (!keySet.has(key)) {
+    if (!keyMap.has(key)) {
       existing.push(normalized);
-      keySet.add(key);
+      keyMap.set(key, existing.length - 1);
       added += 1;
+    } else {
+      // Duplicate: update fill_count so brokerage stays accurate on re-import
+      const idx = keyMap.get(key);
+      if (normalized['fill_count']) {
+        existing[idx]['fill_count'] = normalized['fill_count'];
+        computeTradeCharges(existing[idx]);
+      }
     }
   });
   return { merged: existing, added };
@@ -378,7 +416,7 @@ function ensurePermanentColumns() {
     state.columns = state.columns.filter(c => c !== 'Thumbnail');
     changed = true;
   }
-  delete state.showHeads.Thumbnail;
+  delete state.showHeadsConsolidated.Thumbnail; delete state.showHeadsIndividual.Thumbnail;
   delete state.tableShowCols.Thumbnail;
   delete state.filterValues.Thumbnail;
   delete state.colWidths.Thumbnail;
@@ -387,7 +425,7 @@ function ensurePermanentColumns() {
     state.columns = state.columns.filter(c => c !== 'Observation');
     changed = true;
   }
-  delete state.showHeads.Observation;
+  delete state.showHeadsConsolidated.Observation; delete state.showHeadsIndividual.Observation;
   delete state.tableShowCols.Observation;
   delete state.filterValues.Observation;
   delete state.colWidths.Observation;
@@ -395,6 +433,10 @@ function ensurePermanentColumns() {
   PERMANENT_COLUMNS.forEach(col => {
     if (!state.columns.includes(col)) { state.columns.push(col); changed = true; }
   });
+  COMPUTED_COLUMNS.forEach(col => {
+    if (!state.columns.includes(col)) { state.columns.push(col); changed = true; }
+  });
+  state.trades.forEach(t => { computeTradeCharges(t); });
   state.userColumns = (state.userColumns || []).filter(c => !PERMANENT_COLUMNS.includes(c));
   state.trades.forEach(t => {
     if (typeof t.observation !== 'string' && typeof t['Observation'] === 'string') {
@@ -434,7 +476,7 @@ function normalizeStructuredDateColumns() {
       state.columns.splice(idx, 1);
       changed = true;
     }
-    delete state.showHeads[col];
+    delete state.showHeadsConsolidated[col]; delete state.showHeadsIndividual[col];
     delete state.tableShowCols[col];
     delete state.filterValues[col];
     delete state.colWidths[col];
@@ -734,9 +776,44 @@ function shortcutMatches(e, configured) {
 }
 
 // â”€â”€ SHOW HEADS (calendar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+/** Returns the showHeads object for the currently active calendar mode. */
+function getActiveShowHeads() {
+  return state.calendarMode === 'consolidated'
+    ? state.showHeadsConsolidated
+    : state.showHeadsIndividual;
+}
+
+/** True if a column should be on by default (P/L, RS type). */
+function isDefaultShowHeadCol(col) {
+  const l = col.toLowerCase();
+  return l === 'rs' || l === 'net p/l' || l === 'gross p/l' ||
+         l.includes('profit') || l.includes('p/l') || l.includes('p&l');
+}
+
+function saveShowHeads() {
+  try {
+    localStorage.setItem('tj_heads_consolidated', JSON.stringify(state.showHeadsConsolidated));
+    localStorage.setItem('tj_heads_individual',   JSON.stringify(state.showHeadsIndividual));
+  } catch(e) {}
+}
+
+function loadShowHeads() {
+  try {
+    const c = localStorage.getItem('tj_heads_consolidated');
+    const i = localStorage.getItem('tj_heads_individual');
+    if (c) state.showHeadsConsolidated = JSON.parse(c);
+    if (i) state.showHeadsIndividual   = JSON.parse(i);
+  } catch(e) {}
+}
+
 function initShowHeads() {
+  loadShowHeads();
   state.columns.forEach(col => {
-    if (col.toLowerCase() !== 'date' && !(col in state.showHeads)) state.showHeads[col] = true;
+    if (col.toLowerCase() === 'date') return;
+    const def = isDefaultShowHeadCol(col);
+    if (!(col in state.showHeadsConsolidated)) state.showHeadsConsolidated[col] = def;
+    if (!(col in state.showHeadsIndividual))   state.showHeadsIndividual[col]   = def;
   });
   renderShowHeads();
 }
@@ -747,7 +824,14 @@ function renderShowHeads() {
   const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
   if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
 
-  // Search + Select All/None
+  // Mode badge
+  const badge = document.createElement('div');
+  const isConsolidated = state.calendarMode === 'consolidated';
+  badge.style.cssText = 'font-size:0.72rem;font-weight:600;padding:4px 2px 6px 2px;color:' + (isConsolidated ? 'var(--blue)' : 'var(--green)');
+  badge.textContent = isConsolidated ? 'Consolidated Heads' : 'Individual Heads';
+  panel.appendChild(badge);
+
+  // Search + Select All/None/P/L
   const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
   const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
   searchRow.appendChild(searchInp); panel.appendChild(searchRow);
@@ -755,18 +839,22 @@ function renderShowHeads() {
   const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
   const btnAll  = document.createElement('button'); btnAll.className  = 'panel-act-btn'; btnAll.textContent  = 'All';
   const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
-  btnAll.addEventListener('click',  () => { cols.forEach(c => { state.showHeads[c] = true;  }); renderShowHeads(); renderCalendar(); });
-  btnNone.addEventListener('click', () => { cols.forEach(c => { state.showHeads[c] = false; }); renderShowHeads(); renderCalendar(); });
-  actRow.appendChild(btnAll); actRow.appendChild(btnNone); panel.appendChild(actRow);
+  const btnPL   = document.createElement('button'); btnPL.className   = 'panel-act-btn'; btnPL.textContent   = 'P/L Only';
+  const heads = getActiveShowHeads();
+  btnAll.addEventListener('click',  () => { cols.forEach(c => { heads[c] = true;  }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  btnPL.addEventListener('click',   () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
 
   const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
 
   const renderList = (q) => {
     list.innerHTML = '';
+    const activeHeads = getActiveShowHeads();
     cols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
       const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
-      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!state.showHeads[col];
-      chk.addEventListener('change', () => { state.showHeads[col] = chk.checked; renderCalendar(); });
+      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!activeHeads[col];
+      chk.addEventListener('change', () => { getActiveShowHeads()[col] = chk.checked; saveShowHeads(); renderCalendar(); });
       lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
       list.appendChild(lbl);
     });
@@ -823,13 +911,26 @@ function renderColVisPanel() {
 
   const renderList = (q) => {
     list.innerHTML = '';
-    allCols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
-      const lbl = document.createElement('label'); lbl.className = 'head-checkbox'; lbl.style.padding = '3px 0';
+    const ql = (q || '').toLowerCase();
+    const orderedCols = state.columns.filter(c => !ql || c.toLowerCase().includes(ql));
+    const includeImages = !ql || 'images'.includes(ql);
+
+    const buildRow = (col, draggable, isPermanent) => {
+      const row = document.createElement('div');
+      row.className = 'head-checkbox' + (draggable ? ' drag-row' : '');
+      row.style.padding = '3px 0';
+      row.dataset.col = col;
+
+      if (draggable) {
+        const handle = document.createElement('span');
+        handle.textContent = '⋮⋮';
+        handle.style.opacity = '0.6';
+        handle.style.marginRight = '8px';
+        row.appendChild(handle);
+        row.setAttribute('draggable', 'true');
+      }
+
       const chk = document.createElement('input'); chk.type = 'checkbox';
-      const lowerCol = String(col).toLowerCase();
-      const isPermanent =
-        lowerCol === String(IMAGE_TAG_COLUMN).toLowerCase() ||
-        lowerCol === String(BROKER_COLUMN).toLowerCase();
       chk.checked = isPermanent ? true : (state.tableShowCols[col] !== false);
       chk.disabled = isPermanent;
       chk.addEventListener('change', () => {
@@ -837,16 +938,96 @@ function renderColVisPanel() {
         state.tableShowCols[col] = chk.checked;
         renderTable();
       });
-      lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
-      list.appendChild(lbl);
+      row.appendChild(chk);
+      row.appendChild(document.createTextNode(col));
+
+      if (draggable) {
+        row.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', col);
+          row.style.opacity = '0.5';
+        });
+        row.addEventListener('dragend', () => { row.style.opacity = '1'; });
+        row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '1px dashed var(--border2)'; });
+        row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
+        row.addEventListener('drop', e => {
+          e.preventDefault();
+          row.style.borderTop = '';
+          const from = e.dataTransfer.getData('text/plain');
+          const to = col;
+          if (!from || from === to) return;
+          const order = state.columns.filter(c => c !== from);
+          const idx = order.indexOf(to);
+          order.splice(idx, 0, from);
+          state.columns = order;
+          saveTrades();
+          renderColVisPanel();
+          renderTable();
+        });
+      }
+
+      list.appendChild(row);
+    };
+
+    orderedCols.forEach(col => {
+      const lowerCol = String(col).toLowerCase();
+      const isPermanent =
+        lowerCol === String(IMAGE_TAG_COLUMN).toLowerCase() ||
+        lowerCol === String(BROKER_COLUMN).toLowerCase();
+      buildRow(col, true, isPermanent);
     });
+
+    if (includeImages) {
+      buildRow('Images', false, false);
+    }
   };
   renderList('');
   searchInp.addEventListener('input', () => renderList(searchInp.value));
+
+  // Freeze columns section
+  const freezeWrap = document.createElement('div');
+  freezeWrap.style.padding = '6px 10px 10px';
+  freezeWrap.style.borderTop = '1px solid var(--border)';
+  const freezeLabel = document.createElement('div');
+  freezeLabel.className = 'panel-manage-label';
+  freezeLabel.textContent = 'Freeze Columns';
+  freezeLabel.style.marginBottom = '6px';
+  freezeWrap.appendChild(freezeLabel);
+
+  const freezeList = document.createElement('div');
+  freezeList.className = 'panel-list';
+  freezeList.style.maxHeight = '180px';
+  const frozen = getFrozenCols();
+  state.columns.forEach(col => {
+    const row = document.createElement('label');
+    row.className = 'head-checkbox';
+    row.style.padding = '3px 0';
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = frozen.includes(col);
+    chk.addEventListener('change', () => {
+      const next = new Set(getFrozenCols());
+      if (chk.checked) next.add(col);
+      else next.delete(col);
+      saveFrozenCols(Array.from(next));
+      renderTable();
+    });
+    row.appendChild(chk);
+    row.appendChild(document.createTextNode(col));
+    freezeList.appendChild(row);
+  });
+  freezeWrap.appendChild(freezeList);
+  panel.appendChild(freezeWrap);
 }
 
 // â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function render() { renderCalendar(); renderTable(); renderTagFilterPanel(); updateCalendarModeButton(); updateBrokerFilterButton(); }
+function render() {
+  renderCalendar();
+  renderDashboard();
+  renderTable();
+  renderTagFilterPanel();
+  updateCalendarModeButton();
+  updateBrokerFilterButton();
+}
 
 function updateCalendarModeButton() {
   const btn = document.getElementById('calendar-mode-btn');
@@ -861,7 +1042,7 @@ function updateBrokerFilterButton() {
   const map = { both: 'Both', zerodha: 'Zerodha', dhan: 'Dhan' };
   const key = String(state.brokerFilter || 'both').toLowerCase();
   const labels = `Broker: ${map[key] || 'Both'} ▼`;
-  ['broker-filter-btn', 'broker-filter-btn-cal'].forEach(id => {
+  ['broker-filter-btn-top'].forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
     btn.textContent = labels;
@@ -870,12 +1051,389 @@ function updateBrokerFilterButton() {
   });
 }
 
+// ── DASHBOARD SUMMARY ──────────────────────────
+function parseNumber(val) {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'number' && !isNaN(val)) return val;
+  const s = String(val).replace(/,/g, '').trim();
+  if (!s) return null;
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+function sumByKeys(trades, keys) {
+  let sum = 0;
+  let found = false;
+  trades.forEach(t => {
+    for (const k of keys) {
+      if (!(k in t)) continue;
+      const n = parseNumber(t[k]);
+      if (n !== null) {
+        sum += n;
+        found = true;
+        return;
+      }
+    }
+  });
+  return found ? sum : null;
+}
+
+function getTradePnl(trade) {
+  const keys = ['Rs', 'rs', 'Profit', 'profit', 'P&L', 'Pnl', 'PnL', 'PL', 'pl'];
+  for (const k of keys) {
+    if (!(k in trade)) continue;
+    const n = parseNumber(trade[k]);
+    if (n !== null) return n;
+  }
+  return null;
+}
+
+function getTradesForMonth(year, monthIndex) {
+  return state.trades.filter(t => {
+    if (!tradeMatchesBrokerFilter(t)) return false;
+    const ds = normalizeDate(extractDateFromTrade(t));
+    if (!ds || !/^\d{4}-\d{2}-\d{2}$/.test(ds)) return false;
+    const d = new Date(ds + 'T00:00:00');
+    if (isNaN(d)) return false;
+    return d.getFullYear() === year && d.getMonth() === monthIndex;
+  });
+}
+
+function formatCurrency(n) {
+  if (n === null || n === undefined || isNaN(n)) return '₹ 0.00';
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n);
+  const out = abs.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${sign}₹ ${out}`;
+}
+
+function setDashValue(el, n, colorize = true) {
+  if (!el) return;
+  el.textContent = formatCurrency(n);
+  el.classList.remove('positive', 'negative');
+  if (colorize) {
+    if (n > 0) el.classList.add('positive');
+    if (n < 0) el.classList.add('negative');
+  }
+}
+
+function formatPercent(n) {
+  if (n === null || n === undefined || isNaN(n)) return '0%';
+  return `${n.toFixed(1)}%`;
+}
+
+function formatShortDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return dateStr;
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+}
+
+function renderDashboard() {
+  const subtitle = document.getElementById('dashboard-subtitle');
+  if (subtitle) subtitle.textContent = `for ${MONTHS[state.month]} ${state.year}`;
+  applyDashboardStatVisibility();
+  applyDashboardStatOrder();
+
+  const trades = getTradesForMonth(state.year, state.month);
+  const pnlList = trades.map(getTradePnl).filter(n => n !== null);
+  const overall = pnlList.reduce((a, b) => a + b, 0);
+  const charges = sumByKeys(trades, ['Other Charges', 'Charges', 'Charge', 'charges', 'charge', 'Transaction Charges', 'Charges (Total)', 'Total Charges']) || 0;
+  const brokerage = sumByKeys(trades, ['Brokerage', 'brokerage', 'Brokerage Charges', 'Brokerage (Total)']) || 0;
+  let net = sumByKeys(trades, ['Net P/L', 'Net P&L', 'Net Pnl', 'Net P&L (Total)', 'Net Profit', 'Net Profit/Loss']);
+  if (net === null) net = overall - charges - brokerage;
+
+  const wins = pnlList.filter(n => n > 0);
+  const losses = pnlList.filter(n => n < 0);
+  const winRate = pnlList.length ? (wins.length / pnlList.length) * 100 : 0;
+  const avg = pnlList.length ? (overall / pnlList.length) : 0;
+  const avgWin = wins.length ? (wins.reduce((a, b) => a + b, 0) / wins.length) : 0;
+  const avgLoss = losses.length ? (losses.reduce((a, b) => a + b, 0) / losses.length) : 0;
+
+  // Daily P&L aggregation for best/worst day + drawdown
+  const dailyMap = new Map();
+  trades.forEach(t => {
+    const ds = normalizeDate(extractDateFromTrade(t));
+    const pnl = getTradePnl(t);
+    if (!ds || pnl === null) return;
+    dailyMap.set(ds, (dailyMap.get(ds) || 0) + pnl);
+  });
+  const dailyEntries = Array.from(dailyMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  let best = { date: '', value: 0 };
+  let worst = { date: '', value: 0 };
+  if (dailyEntries.length) {
+    best = dailyEntries.reduce((acc, cur) => cur[1] > acc.value ? { date: cur[0], value: cur[1] } : acc, { date: dailyEntries[0][0], value: dailyEntries[0][1] });
+    worst = dailyEntries.reduce((acc, cur) => cur[1] < acc.value ? { date: cur[0], value: cur[1] } : acc, { date: dailyEntries[0][0], value: dailyEntries[0][1] });
+  }
+
+  // Max drawdown (month)
+  let equity = 0;
+  let peak = 0;
+  let maxDD = 0;
+  dailyEntries.forEach(([, v]) => {
+    equity += v;
+    if (equity > peak) peak = equity;
+    const dd = equity - peak;
+    if (dd < maxDD) maxDD = dd;
+  });
+
+  setDashValue(document.getElementById('dash-overall'), overall, true);
+  setDashValue(document.getElementById('dash-net'), net, true);
+  setDashValue(document.getElementById('dash-charges'), charges, false);
+  setDashValue(document.getElementById('dash-brokerage'), brokerage, false);
+  const tradeCount = document.getElementById('dash-trades');
+  if (tradeCount) {
+    const totalFills = trades.reduce((sum, t) => sum + (Math.max(parseInt(t['fill_count']) || 0, 2)), 0);
+    tradeCount.textContent = (totalFills || trades.length).toLocaleString('en-IN');
+  }
+
+  const winEl = document.getElementById('dash-winrate');
+  if (winEl) winEl.textContent = formatPercent(winRate);
+  setDashValue(document.getElementById('dash-avg'), avg, true);
+  setDashValue(document.getElementById('dash-avgwin'), avgWin, true);
+  setDashValue(document.getElementById('dash-avgloss'), avgLoss, true);
+  setDashValue(document.getElementById('dash-best'), best.value || 0, true);
+  setDashValue(document.getElementById('dash-worst'), worst.value || 0, true);
+  setDashValue(document.getElementById('dash-dd'), maxDD || 0, true);
+  const bestDate = document.getElementById('dash-best-date');
+  const worstDate = document.getElementById('dash-worst-date');
+  if (bestDate) bestDate.textContent = best.date ? formatShortDate(best.date) : '-';
+  if (worstDate) worstDate.textContent = worst.date ? formatShortDate(worst.date) : '-';
+}
+
+function getDashboardStatsState() {
+  try {
+    const raw = localStorage.getItem('dashboardStats');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  const all = {};
+  DASHBOARD_STATS.forEach(s => { all[s.key] = true; });
+  return all;
+}
+
+function getDashboardStatsOrder() {
+  try {
+    const raw = localStorage.getItem('dashboardStatsOrder');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length) {
+        const valid = arr.filter(k => DASHBOARD_STATS.some(s => s.key === k));
+        const missing = DASHBOARD_STATS.map(s => s.key).filter(k => !valid.includes(k));
+        return [...valid, ...missing];
+      }
+    }
+  } catch (e) {}
+  return DASHBOARD_STATS.map(s => s.key);
+}
+
+function saveDashboardStatsOrder(order) {
+  try { localStorage.setItem('dashboardStatsOrder', JSON.stringify(order)); } catch (e) {}
+}
+
+function saveDashboardStatsState(stateMap) {
+  try { localStorage.setItem('dashboardStats', JSON.stringify(stateMap)); } catch (e) {}
+}
+
+function applyDashboardStatVisibility() {
+  const map = getDashboardStatsState();
+  document.querySelectorAll('.dash-card[data-stat]').forEach(card => {
+    const key = card.getAttribute('data-stat');
+    card.style.display = map[key] === false ? 'none' : '';
+  });
+}
+
+function applyDashboardStatOrder() {
+  const grid = document.querySelector('.dashboard-grid');
+  if (!grid) return;
+  const order = getDashboardStatsOrder();
+  const cards = Array.from(grid.querySelectorAll('.dash-card[data-stat]'));
+  const byKey = new Map(cards.map(c => [c.getAttribute('data-stat'), c]));
+  order.forEach(k => {
+    const el = byKey.get(k);
+    if (el) grid.appendChild(el);
+  });
+  bindDashboardDragDrop();
+}
+
+function bindDashboardDragDrop() {
+  const grid = document.querySelector('.dashboard-grid');
+  if (!grid) return;
+  let dragSrc   = null;
+  let dropTarget = null;
+  let dropPos    = null; // 'before' | 'after'
+
+  const clearIndicators = () => {
+    grid.querySelectorAll('.drop-before, .drop-after')
+        .forEach(c => c.classList.remove('drop-before', 'drop-after'));
+  };
+
+  grid.querySelectorAll('.dash-card[data-stat]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+
+    card.addEventListener('dragstart', e => {
+      dragSrc = card;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      clearIndicators();
+      // Commit insertion at the last indicated position
+      if (dragSrc && dropTarget && dropTarget !== dragSrc) {
+        if (dropPos === 'before') grid.insertBefore(dragSrc, dropTarget);
+        else                      grid.insertBefore(dragSrc, dropTarget.nextSibling);
+        const newOrder = Array.from(grid.querySelectorAll('.dash-card[data-stat]'))
+          .map(c => c.getAttribute('data-stat'));
+        saveDashboardStatsOrder(newOrder);
+      }
+      dragSrc = null; dropTarget = null; dropPos = null;
+    });
+
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!dragSrc || card === dragSrc) return;
+      clearIndicators();
+      const rect = card.getBoundingClientRect();
+      dropPos    = e.clientX < rect.left + rect.width / 2 ? 'before' : 'after';
+      dropTarget = card;
+      card.classList.add(dropPos === 'before' ? 'drop-before' : 'drop-after');
+    });
+
+    card.addEventListener('drop', e => { e.preventDefault(); });
+  });
+}
+
+function renderDashboardStatsMenu() {
+  const menu = document.getElementById('dashboard-stats-menu');
+  if (!menu) return;
+  menu.innerHTML = '';
+
+  const map = getDashboardStatsState();
+  const order = getDashboardStatsOrder();
+
+  const searchRow = document.createElement('div');
+  searchRow.className = 'panel-search-row';
+  searchRow.style.padding = '8px 10px 0';
+  const searchInp = document.createElement('input');
+  searchInp.className = 'panel-search';
+  searchInp.placeholder = 'Search stats...';
+  searchRow.appendChild(searchInp);
+  menu.appendChild(searchRow);
+
+  const actRow = document.createElement('div');
+  actRow.className = 'panel-act-row';
+  actRow.style.padding = '8px 10px 6px';
+  const btnAll = document.createElement('button');
+  btnAll.className = 'panel-act-btn';
+  btnAll.textContent = 'All';
+  const btnNone = document.createElement('button');
+  btnNone.className = 'panel-act-btn';
+  btnNone.textContent = 'None';
+  btnAll.addEventListener('click', () => {
+    DASHBOARD_STATS.forEach(s => { map[s.key] = true; });
+    saveDashboardStatsState(map);
+    renderDashboardStatsMenu();
+    applyDashboardStatVisibility();
+  });
+  btnNone.addEventListener('click', () => {
+    DASHBOARD_STATS.forEach(s => { map[s.key] = false; });
+    saveDashboardStatsState(map);
+    renderDashboardStatsMenu();
+    applyDashboardStatVisibility();
+  });
+  actRow.appendChild(btnAll);
+  actRow.appendChild(btnNone);
+  menu.appendChild(actRow);
+
+  const list = document.createElement('div');
+  list.className = 'panel-list';
+  list.style.padding = '0 10px 8px';
+  menu.appendChild(list);
+
+  const renderList = (q) => {
+    list.innerHTML = '';
+    const ql = (q || '').toLowerCase();
+    const items = order
+      .map(k => DASHBOARD_STATS.find(s => s.key === k))
+      .filter(Boolean)
+      .filter(s => !ql || s.label.toLowerCase().includes(ql));
+
+    items.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'head-checkbox';
+      row.setAttribute('draggable', 'true');
+      row.dataset.stat = s.key;
+      row.style.padding = '4px 0';
+      row.style.cursor = 'grab';
+
+      const handle = document.createElement('span');
+      handle.textContent = '⋮⋮';
+      handle.style.marginRight = '8px';
+      handle.style.opacity = '0.6';
+      handle.style.userSelect = 'none';
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = map[s.key] !== false;
+      chk.addEventListener('change', () => {
+        map[s.key] = chk.checked;
+        saveDashboardStatsState(map);
+        applyDashboardStatVisibility();
+      });
+
+      const label = document.createElement('span');
+      label.textContent = s.label;
+
+      row.appendChild(handle);
+      row.appendChild(chk);
+      row.appendChild(label);
+
+      row.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', s.key);
+        row.style.opacity = '0.5';
+      });
+      row.addEventListener('dragend', () => { row.style.opacity = '1'; });
+      row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '1px dashed var(--border2)'; });
+      row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        row.style.borderTop = '';
+        const from = e.dataTransfer.getData('text/plain');
+        const to = s.key;
+        if (!from || from === to) return;
+        const newOrder = order.filter(k => k !== from);
+        const toIdx = newOrder.indexOf(to);
+        newOrder.splice(toIdx, 0, from);
+        saveDashboardStatsOrder(newOrder);
+        renderList(searchInp.value);
+        applyDashboardStatOrder();
+      });
+
+      list.appendChild(row);
+    });
+  };
+
+  renderList('');
+  searchInp.addEventListener('input', () => renderList(searchInp.value));
+}
+
 // â”€â”€ CALENDAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderCalendar() {
   syncAllTradeDates();
   if (state.calendarTagFocus && !getAllColumnTagKeys().includes(state.calendarTagFocus)) {
     state.calendarTagFocus = '';
   }
+  updateRangeLabel();
+  if (state.calendarView === 'year') {
+    renderYearlyView();
+    return;
+  }
+  const monthWrap = document.getElementById('calendar-month-view');
+  const yearWrap = document.getElementById('calendar-year-view');
+  if (monthWrap) monthWrap.classList.remove('hidden');
+  if (yearWrap) yearWrap.classList.add('hidden');
   const grid  = document.getElementById('calendar-grid');
   const weekdays = document.querySelector('.calendar-weekdays');
   const pos   = window._dayPos || 'top-left';
@@ -956,7 +1514,7 @@ function renderCalendar() {
     // Data
     if (dayTrades.length) {
       const dataDiv = document.createElement('div'); dataDiv.className = 'day-data';
-      const cols = state.columns.filter(col => state.showHeads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
+      const cols = state.columns.filter(col => getActiveShowHeads()[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
       if (state.calendarMode === 'individual') {
         dayTrades.forEach((tr, i) => {
           cols.forEach(col => {
@@ -1074,6 +1632,75 @@ function renderCalendar() {
     // Cell click -> gallery
     cell.addEventListener('click', () => openGalleryForDate(dateStr));
     grid.appendChild(cell);
+  }
+}
+
+function renderYearlyView() {
+  const monthWrap = document.getElementById('calendar-month-view');
+  const yearWrap = document.getElementById('calendar-year-view');
+  if (monthWrap) monthWrap.classList.add('hidden');
+  if (!yearWrap) return;
+  yearWrap.classList.remove('hidden');
+  yearWrap.innerHTML = '';
+
+  const year = state.year;
+  const pnlByDate = new Map();
+  state.trades.forEach(t => {
+    if (!tradeMatchesBrokerFilter(t)) return;
+    const ds = normalizeDate(extractDateFromTrade(t));
+    const pnl = getTradePnl(t);
+    if (!ds || pnl === null) return;
+    pnlByDate.set(ds, (pnlByDate.get(ds) || 0) + pnl);
+  });
+
+  for (let m = 0; m < 12; m++) {
+    const monthBox = document.createElement('div');
+    monthBox.className = 'year-month';
+    const title = document.createElement('div');
+    title.className = 'year-month-title';
+    title.textContent = MONTHS[m].slice(0, 3);
+    monthBox.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'year-grid';
+    const firstDay = new Date(year, m, 1).getDay();
+    const daysInMonth = new Date(year, m + 1, 0).getDate();
+    const toMonIndex = dow => (dow === 0 ? 6 : dow - 1);
+    const startOffset = toMonIndex(firstDay);
+
+    for (let i = 0; i < startOffset; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'year-cell';
+      blank.style.opacity = '0.25';
+      grid.appendChild(blank);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(m + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const val = pnlByDate.get(dateStr) || 0;
+      const cell = document.createElement('div');
+      cell.className = 'year-cell';
+      if (val > 0) cell.classList.add('pos');
+      else if (val < 0) cell.classList.add('neg');
+      else cell.classList.add('zero');
+      cell.title = `${dateStr} • ${formatCurrency(val)}`;
+      grid.appendChild(cell);
+    }
+
+    monthBox.appendChild(grid);
+    yearWrap.appendChild(monthBox);
+  }
+}
+
+function updateRangeLabel() {
+  const label = document.getElementById('month-range-label');
+  if (!label) return;
+  if (state.calendarView === 'year') {
+    label.textContent = `From ${MONTHS[0].slice(0,3)} ${state.year} to ${MONTHS[11].slice(0,3)} ${state.year}`;
+  } else {
+    const first = new Date(state.year, state.month, 1);
+    const last = new Date(state.year, state.month + 1, 0);
+    label.textContent = `${formatDate(first)} to ${formatDate(last)}`;
   }
 }
 
@@ -1372,6 +1999,23 @@ function renderTable() {
     bindColumnResizer(rz, col, idx);
     th.appendChild(rz);
 
+    // Hover delete button (only for deletable columns)
+    if (state.columns.includes(col) && canDeleteColumn(col)) {
+      const del = document.createElement('button');
+      del.className = 'col-del-btn';
+      del.title = 'Delete column';
+      del.type = 'button';
+      del.textContent = '×';
+      del.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (confirm(`Delete column "${col}"? This will remove data from all rows.`)) {
+          deleteColumn(col);
+        }
+      });
+      th.appendChild(del);
+    }
+
     headRow.appendChild(th);
   });
   headRow.appendChild(document.createElement('th'));
@@ -1391,12 +2035,65 @@ function renderTable() {
   filterRow.appendChild(document.createElement('td'));
 
   renderTableBody(visibleCols, allCols, body, footRow);
+  applyFrozenColumns(visibleCols);
   renderColVisPanel();
+}
+
+function getFrozenCols() {
+  try {
+    const raw = localStorage.getItem('frozenCols');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr.filter(c => state.columns.includes(c));
+    }
+  } catch (e) {}
+  return [];
+}
+
+function saveFrozenCols(cols) {
+  try { localStorage.setItem('frozenCols', JSON.stringify(cols || [])); } catch (e) {}
+}
+
+function applyFrozenColumns(visibleCols) {
+  const frozen = getFrozenCols().filter(c => visibleCols.includes(c));
+  if (!frozen.length) return;
+
+  const table = document.getElementById('trade-table');
+  if (!table) return;
+  const ths = Array.from(table.querySelectorAll('thead tr#table-head-row th'));
+  const rows = Array.from(table.querySelectorAll('thead tr, tbody tr, tfoot tr'));
+
+  const leftMap = new Map();
+  let left = 0;
+  frozen.forEach(col => {
+    const idx = visibleCols.indexOf(col);
+    if (idx === -1) return;
+    const th = ths[idx];
+    const width = th ? th.getBoundingClientRect().width : (state.colWidths[col] || 120);
+    leftMap.set(idx, left);
+    left += width;
+  });
+
+  rows.forEach(row => {
+    const cells = Array.from(row.children);
+    leftMap.forEach((l, idx) => {
+      const cell = cells[idx];
+      if (!cell) return;
+      cell.classList.add('frozen-col');
+      cell.style.left = `${l}px`;
+    });
+  });
 }
 
 function renderTableBody(visibleCols, allCols, body, footRow) {
   body.innerHTML = ''; footRow.innerHTML = '';
   const filtered = sortTrades(getFilteredTrades());
+
+  if (state.calendarMode === 'consolidated') {
+    renderTableBodyConsolidated(visibleCols, filtered, body, footRow);
+    return;
+  }
+
   let lastDateKey = null;
   let band = 0;
 
@@ -1461,6 +2158,147 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
         const total = nums.reduce((a,b) => a+b, 0);
         td.textContent = total % 1 === 0 ? total : total.toFixed(2);
         if (col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs') td.style.color = total >= 0 ? 'var(--green)' : 'var(--red)';
+      }
+    }
+    footRow.appendChild(td);
+  });
+  footRow.appendChild(document.createElement('td'));
+}
+
+function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
+  // Sort by date for grouping
+  const sortedByDate = [...filtered].sort((a, b) => {
+    const da = normalizeDate(a['trade_date'] || a['Date'] || a.date || '');
+    const db = normalizeDate(b['trade_date'] || b['Date'] || b.date || '');
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+
+  // Group by date
+  const dateOrder = [];
+  const dateGroups = new Map();
+  sortedByDate.forEach(trade => {
+    const dk = normalizeDate(trade['trade_date'] || trade['Date'] || trade.date || '');
+    if (!dateGroups.has(dk)) { dateGroups.set(dk, []); dateOrder.push(dk); }
+    dateGroups.get(dk).push(trade);
+  });
+
+  dateOrder.forEach((dateKey, groupIdx) => {
+    const dayTrades = dateGroups.get(dateKey);
+    const tr = document.createElement('tr');
+    tr.classList.add(groupIdx % 2 === 0 ? 'date-group-a' : 'date-group-b');
+
+    visibleCols.forEach(col => {
+      const td = document.createElement('td');
+      const colLower = col.toLowerCase();
+
+      if (colLower === 'images' || colLower === 'thumbnail') {
+        // Combine all images from all trades for this day
+        const allImages = dayTrades.reduce((arr, t) => arr.concat(t.images || []), []);
+        if (allImages.length) {
+          const w = document.createElement('div'); w.className = 'img-cell';
+          allImages.slice(0, 3).forEach((url) => {
+            const item = document.createElement('div'); item.className = 'img-thumb-wrap';
+            const img  = document.createElement('img');  img.className  = 'img-thumb'; img.src = url;
+            img.addEventListener('click', e => { e.stopPropagation(); openGalleryForDate(dateKey); });
+            item.appendChild(img);
+            w.appendChild(item);
+          });
+          if (allImages.length > 3) {
+            const b = document.createElement('span'); b.className = 'img-count-badge';
+            b.textContent = `+${allImages.length - 3}`;
+            b.addEventListener('click', () => openGalleryForDate(dateKey));
+            w.appendChild(b);
+          }
+          td.appendChild(w);
+        }
+
+      } else if (colLower === 'image tags') {
+        // Merge image tags from all trades
+        const seen = new Set();
+        const allImgTags = [];
+        dayTrades.forEach(t => getAllImageTagsForTrade(t).forEach(tag => {
+          if (!seen.has(tag)) { seen.add(tag); allImgTags.push(tag); }
+        }));
+        if (allImgTags.length) {
+          const wrap = document.createElement('div'); wrap.className = 'tag-cell';
+          allImgTags.forEach(tag => {
+            const c = tagColor(tag);
+            const chip = document.createElement('span'); chip.className = 'tag-chip';
+            chip.textContent = tag;
+            chip.style.cssText = `color:${c};background:${hexToRgba(c,0.15)};border-color:${hexToRgba(c,0.45)}`;
+            wrap.appendChild(chip);
+          });
+          td.appendChild(wrap);
+        }
+
+      } else if (isTagColumn(col)) {
+        // Merge tags from all trades in this day
+        const seen = new Set();
+        const allTags = [];
+        dayTrades.forEach(t => getTradeTagsForColumn(t, col).forEach(tag => {
+          if (!seen.has(tag)) { seen.add(tag); allTags.push(tag); }
+        }));
+        if (allTags.length) {
+          const wrap = document.createElement('div'); wrap.className = 'tag-cell';
+          allTags.forEach(tag => {
+            const c = tagColor(tag);
+            const chip = document.createElement('span'); chip.className = 'tag-chip';
+            chip.textContent = tag;
+            chip.style.cssText = `color:${c};background:${hexToRgba(c,0.15)};border-color:${hexToRgba(c,0.45)}`;
+            wrap.appendChild(chip);
+          });
+          td.appendChild(wrap);
+        }
+
+      } else {
+        const inp = document.createElement('input');
+        inp.className = 'cell-input';
+        inp.readOnly = true;
+
+        if (colLower === 'date' || colLower === 'trade_date') {
+          inp.value = dateKey;
+        } else {
+          // Detect numeric vs text column: numeric only if every non-empty value parses as float
+          const vals = dayTrades.map(t => t[col]).filter(v => v !== undefined && v !== null && String(v).trim() !== '');
+          if (vals.length) {
+            const nums = vals.map(v => parseFloat(v));
+            const allNumeric = nums.every(n => !isNaN(n));
+            if (allNumeric) {
+              const sum = nums.reduce((a, b) => a + b, 0);
+              inp.value = sum % 1 === 0 ? String(sum) : sum.toFixed(2);
+              if (colLower.includes('profit') || colLower === 'rs' || col === 'Gross P/L' || col === 'Net P/L') {
+                applyProfitColor(inp, inp.value);
+              }
+            } else {
+              // Text column: show unique non-empty values joined
+              const unique = [...new Set(vals.map(v => String(v).trim()).filter(Boolean))];
+              inp.value = unique.join(', ');
+            }
+          }
+        }
+        td.appendChild(inp);
+      }
+
+      tr.appendChild(td);
+    });
+
+    tr.appendChild(document.createElement('td')); // placeholder for delete col
+    body.appendChild(tr);
+  });
+
+  // Footer totals
+  visibleCols.forEach(col => {
+    const td = document.createElement('td');
+    const colLower = col.toLowerCase();
+    if (colLower === 'date' || colLower === 'trade_date') {
+      td.textContent = `Total (${filtered.length} trades, ${dateOrder.length} days)`;
+      td.style.color = 'var(--text2)';
+    } else if (!isTagColumn(col) && colLower !== 'images' && colLower !== 'thumbnail' && colLower !== 'image tags') {
+      const nums = filtered.map(t => parseFloat(t[col])).filter(n => !isNaN(n));
+      if (nums.length) {
+        const total = nums.reduce((a, b) => a + b, 0);
+        td.textContent = total % 1 === 0 ? total : total.toFixed(2);
+        if (colLower.includes('profit') || colLower === 'rs') td.style.color = total >= 0 ? 'var(--green)' : 'var(--red)';
       }
     }
     footRow.appendChild(td);
@@ -1805,7 +2643,10 @@ function addColumn(colName) {
     state.trades.forEach(t => { t[name] = ''; });
     state.tableShowCols[name] = true;
   }
-  state.showHeads[name]     = !asTagColumn;
+  const defHead = !asTagColumn && isDefaultShowHeadCol(name);
+  state.showHeadsConsolidated[name] = defHead;
+  state.showHeadsIndividual[name]   = defHead;
+  saveShowHeads();
   state.addTagColumnMode = false;
   saveTrades(); render(); renderShowHeads();
   showToast(`Column "${name}" added!`, 'success');
@@ -1842,10 +2683,9 @@ function renameColumn(oldName, newName) {
     if (to === 'Tags') t.tags = Array.isArray(t[to]) ? [...t[to]] : [];
   });
 
-  if (from in state.showHeads) {
-    state.showHeads[to] = state.showHeads[from];
-    delete state.showHeads[from];
-  }
+  if (from in state.showHeadsConsolidated) { state.showHeadsConsolidated[to] = state.showHeadsConsolidated[from]; delete state.showHeadsConsolidated[from]; }
+  if (from in state.showHeadsIndividual)   { state.showHeadsIndividual[to]   = state.showHeadsIndividual[from];   delete state.showHeadsIndividual[from];   }
+  saveShowHeads();
   if (from in state.tableShowCols) {
     state.tableShowCols[to] = state.tableShowCols[from];
     delete state.tableShowCols[from];
@@ -1886,7 +2726,7 @@ function deleteColumn(colName) {
     if (name === 'Tags') delete t.tags;
   });
 
-  delete state.showHeads[name];
+  delete state.showHeadsConsolidated[name]; delete state.showHeadsIndividual[name]; saveShowHeads();
   delete state.tableShowCols[name];
   delete state.filterValues[name];
   delete state.colWidths[name];
@@ -3013,13 +3853,41 @@ function closeAllDropdowns(except) {
 // â”€â”€ EVENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bindEvents() {
   // Calendar nav
-  document.getElementById('month-select').addEventListener('change', e => { state.month=parseInt(e.target.value); renderCalendar(); });
-  document.getElementById('year-select').addEventListener('change',  e => { state.year=parseInt(e.target.value);  renderCalendar(); });
+  document.getElementById('month-select').addEventListener('change', e => {
+    state.month = parseInt(e.target.value);
+    renderCalendar();
+    renderDashboard();
+  });
+  document.getElementById('view-select').addEventListener('change', e => {
+    state.calendarView = String(e.target.value || 'month');
+    renderCalendar();
+  });
+  document.getElementById('year-select').addEventListener('change',  e => {
+    state.year = parseInt(e.target.value);
+    renderCalendar();
+    renderDashboard();
+  });
   document.getElementById('prev-month').addEventListener('click', () => {
-    state.month--; if (state.month<0) { state.month=11; state.year--; } syncSelects(); renderCalendar();
+    if (state.calendarView === 'year') {
+      state.year--;
+    } else {
+      state.month--;
+      if (state.month < 0) { state.month = 11; state.year--; }
+    }
+    syncSelects();
+    renderCalendar();
+    renderDashboard();
   });
   document.getElementById('next-month').addEventListener('click', () => {
-    state.month++; if (state.month>11) { state.month=0; state.year++; } syncSelects(); renderCalendar();
+    if (state.calendarView === 'year') {
+      state.year++;
+    } else {
+      state.month++;
+      if (state.month > 11) { state.month = 0; state.year++; }
+    }
+    syncSelects();
+    renderCalendar();
+    renderDashboard();
   });
   document.getElementById('today-btn').addEventListener('click', () => {
     const now = new Date();
@@ -3027,11 +3895,14 @@ function bindEvents() {
     state.year  = now.getFullYear();
     syncSelects();
     renderCalendar();
+    renderDashboard();
   });
   document.getElementById('calendar-mode-btn').addEventListener('click', () => {
     state.calendarMode = state.calendarMode === 'consolidated' ? 'individual' : 'consolidated';
     updateCalendarModeButton();
+    renderShowHeads();
     renderCalendar();
+    renderTable();
   });
 
   // Show heads
@@ -3043,8 +3914,8 @@ function bindEvents() {
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
   setupDropdown('add-dropdown-btn',  'add-dropdown-menu');
   setupDropdown('col-vis-btn',       'col-vis-panel');
-  setupDropdown('broker-filter-btn', 'broker-filter-menu');
-  setupDropdown('broker-filter-btn-cal', 'broker-filter-menu-cal');
+  setupDropdown('broker-filter-btn-top', 'broker-filter-menu-top');
+  setupDropdown('dashboard-stats-btn', 'dashboard-stats-menu');
 
   // Close all on outside click
   document.addEventListener('click', () => {
@@ -3053,10 +3924,10 @@ function bindEvents() {
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
   document.getElementById('col-vis-panel').addEventListener('click', e => e.stopPropagation());
-  const brokerMenu = document.getElementById('broker-filter-menu');
-  if (brokerMenu) brokerMenu.addEventListener('click', e => e.stopPropagation());
-  const brokerMenuCal = document.getElementById('broker-filter-menu-cal');
-  if (brokerMenuCal) brokerMenuCal.addEventListener('click', e => e.stopPropagation());
+  const brokerMenuTop = document.getElementById('broker-filter-menu-top');
+  if (brokerMenuTop) brokerMenuTop.addEventListener('click', e => e.stopPropagation());
+  const dashStatsMenu = document.getElementById('dashboard-stats-menu');
+  if (dashStatsMenu) dashStatsMenu.addEventListener('click', e => e.stopPropagation());
 
   // Tag filter dropdown + tag picker
   setupDropdown('tag-filter-btn', 'tag-filter-panel');
@@ -3066,15 +3937,7 @@ function bindEvents() {
       updateBrokerFilterButton();
       renderTable();
       renderCalendar();
-      closeAllDropdowns('__none__');
-    });
-  });
-  document.querySelectorAll('.broker-filter-item-cal').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.brokerFilter = String(btn.dataset.broker || 'both').toLowerCase();
-      updateBrokerFilterButton();
-      renderTable();
-      renderCalendar();
+      renderDashboard();
       closeAllDropdowns('__none__');
     });
   });
@@ -3339,6 +4202,24 @@ function bindEvents() {
     document.getElementById('settings-overlay').classList.remove('open');
   });
 
+  // Show Heads defaults buttons in Settings
+  const _applyHeadsPreset = (mode, preset) => {
+    const obj = mode === 'consolidated' ? state.showHeadsConsolidated : state.showHeadsIndividual;
+    state.columns.filter(c => c.toLowerCase() !== 'date').forEach(col => {
+      obj[col] = preset === 'plonly' ? isDefaultShowHeadCol(col) : (preset === 'all');
+    });
+    saveShowHeads();
+    renderShowHeads();
+    renderCalendar();
+    showToast(`${mode === 'consolidated' ? 'Consolidated' : 'Individual'} heads updated`, 'success');
+  };
+  document.getElementById('s-heads-c-plonly').addEventListener('click', () => _applyHeadsPreset('consolidated', 'plonly'));
+  document.getElementById('s-heads-c-all').addEventListener('click',    () => _applyHeadsPreset('consolidated', 'all'));
+  document.getElementById('s-heads-c-none').addEventListener('click',   () => _applyHeadsPreset('consolidated', 'none'));
+  document.getElementById('s-heads-i-plonly').addEventListener('click', () => _applyHeadsPreset('individual', 'plonly'));
+  document.getElementById('s-heads-i-all').addEventListener('click',    () => _applyHeadsPreset('individual', 'all'));
+  document.getElementById('s-heads-i-none').addEventListener('click',   () => _applyHeadsPreset('individual', 'none'));
+
   // Keyboard
   document.addEventListener('keydown', e => {
     const galleryOpen = document.getElementById('gallery-modal').classList.contains('open');
@@ -3425,6 +4306,10 @@ function bindEvents() {
 function syncSelects() {
   document.getElementById('month-select').value = state.month;
   document.getElementById('year-select').value  = state.year;
+  const vs = document.getElementById('view-select');
+  if (vs) vs.value = state.calendarView;
+  const ms = document.getElementById('month-select');
+  if (ms) ms.disabled = state.calendarView === 'year';
 }
 
 // â”€â”€ START â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

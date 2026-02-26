@@ -119,6 +119,7 @@ def consolidate_raw_fills(raw_df):
             fill_time = row['Fill time']
             remaining_qty = float(row['Qty.'])
 
+            _exit_fill_counted = False
             while remaining_qty > 1e-12:
                 if cycle is None:
                     cycle = {
@@ -127,6 +128,7 @@ def consolidate_raw_fills(raw_df):
                         'entry_qty': remaining_qty,
                         'entry_notional': remaining_qty * price,
                         'entry_time': fill_time,
+                        'fill_count': 1,
                         'exit_qty': 0.0,
                         'exit_notional': 0.0,
                         'exit_time': None
@@ -136,12 +138,16 @@ def consolidate_raw_fills(raw_df):
 
                 # Same side as entry -> scale into entry leg
                 if side == cycle['entry_side']:
+                    cycle['fill_count'] += 1
                     cycle['entry_qty'] += remaining_qty
                     cycle['entry_notional'] += remaining_qty * price
                     remaining_qty = 0.0
                     continue
 
                 # Opposite side -> close existing position
+                if not _exit_fill_counted:
+                    cycle['fill_count'] += 1
+                    _exit_fill_counted = True
                 open_qty = cycle['entry_qty'] - cycle['exit_qty']
                 close_qty = min(open_qty, remaining_qty)
                 cycle['exit_qty'] += close_qty
@@ -179,11 +185,14 @@ def consolidate_raw_fills(raw_df):
                         'Buy Time': _time_to_str(buy_time),
                         'Buy Price': _format_float(buy_price, 6),
                         'Pt': _format_float(pt, 6),
-                        'Rs': _format_float(rs, 6)
+                        'Rs': _format_float(rs, 6),
+                        'fill_count': cycle['fill_count']
                     })
                     cycle = None
 
     result = pd.DataFrame(consolidated_rows, columns=STRUCTURED_COLUMNS)
+    if consolidated_rows:
+        result['fill_count'] = [r.get('fill_count', 2) for r in consolidated_rows]
     if not result.empty:
         result['_sell_dt'] = pd.to_datetime(
             result['Date'].astype(str) + ' ' + result['Sell Time'].astype(str),
@@ -244,6 +253,7 @@ def consolidate_zerodha_historical_csv(raw_df):
             exec_time = row['order_execution_time']
             row_trade_date = row.get('trade_date', '')
 
+            _exit_fill_counted = False
             while qty_left > 1e-12:
                 # Start new cycle with current fill
                 if cycle is None:
@@ -254,6 +264,7 @@ def consolidate_zerodha_historical_csv(raw_df):
                         'entry_notional': qty_left * price,
                         'entry_time_first': exec_time,
                         'entry_trade_date': row_trade_date if isinstance(row_trade_date, str) else exec_time.strftime('%Y-%m-%d'),
+                        'fill_count': 1,
                         'exit_qty': 0.0,
                         'exit_notional': 0.0,
                         'exit_time_last': None
@@ -263,12 +274,16 @@ def consolidate_zerodha_historical_csv(raw_df):
 
                 # Same side as entry => scale into entry leg
                 if side == cycle['entry_side']:
+                    cycle['fill_count'] += 1
                     cycle['entry_qty'] += qty_left
                     cycle['entry_notional'] += qty_left * price
                     qty_left = 0.0
                     continue
 
                 # Opposite side => close open quantity
+                if not _exit_fill_counted:
+                    cycle['fill_count'] += 1
+                    _exit_fill_counted = True
                 open_qty = cycle['entry_qty'] - cycle['exit_qty']
                 close_qty = min(open_qty, qty_left)
                 cycle['exit_qty'] += close_qty
@@ -309,11 +324,14 @@ def consolidate_zerodha_historical_csv(raw_df):
                         'Buy Price (Avg)': _format_float(buy_price, 6),
                         'Pt': _format_float(pt, 6),
                         'Rs': _format_float(rs, 6),
-                        'trade_date': cycle['entry_trade_date']
+                        'trade_date': cycle['entry_trade_date'],
+                        'fill_count': cycle['fill_count']
                     })
                     cycle = None
 
     out = pd.DataFrame(consolidated_rows, columns=HISTORICAL_STRUCTURED_COLUMNS)
+    if consolidated_rows:
+        out['fill_count'] = [r.get('fill_count', 2) for r in consolidated_rows]
     if not out.empty:
         out['_sell_time_sort'] = pd.to_datetime(out['Sell Time'], format='%H:%M:%S', errors='coerce')
         out = out.sort_values('_sell_time_sort', ascending=True).drop(columns=['_sell_time_sort'])
@@ -377,6 +395,7 @@ def consolidate_dhan_csv(raw_df):
             exec_time = row['_dt']
             trade_date = row['_date_only'] if isinstance(row['_date_only'], str) else exec_time.strftime('%Y-%m-%d')
 
+            _exit_fill_counted = False  # count each row's exit contribution once
             while qty_left > 1e-12:
                 if cycle is None:
                     cycle = {
@@ -386,6 +405,7 @@ def consolidate_dhan_csv(raw_df):
                         'entry_notional': qty_left * price,
                         'entry_time_first': exec_time,
                         'entry_trade_date': trade_date,
+                        'fill_count': 1,
                         'exit_qty': 0.0,
                         'exit_notional': 0.0,
                         'exit_time_last': None
@@ -395,12 +415,16 @@ def consolidate_dhan_csv(raw_df):
 
                 # Same side as entry => scale-in entry
                 if side == cycle['entry_side']:
+                    cycle['fill_count'] += 1
                     cycle['entry_qty'] += qty_left
                     cycle['entry_notional'] += qty_left * price
                     qty_left = 0.0
                     continue
 
-                # Opposite side => close open qty
+                # Opposite side => close open qty (count this row once as an exit fill)
+                if not _exit_fill_counted:
+                    cycle['fill_count'] += 1
+                    _exit_fill_counted = True
                 open_qty = cycle['entry_qty'] - cycle['exit_qty']
                 close_qty = min(open_qty, qty_left)
                 cycle['exit_qty'] += close_qty
@@ -438,11 +462,14 @@ def consolidate_dhan_csv(raw_df):
                         'Buy Price (Avg)': _format_float(buy_price, 6),
                         'Pt': _format_float(pt, 6),
                         'Rs': _format_float(rs, 6),
-                        'trade_date': cycle['entry_trade_date']
+                        'trade_date': cycle['entry_trade_date'],
+                        'fill_count': cycle['fill_count']
                     })
                     cycle = None
 
     out = pd.DataFrame(consolidated_rows, columns=HISTORICAL_STRUCTURED_COLUMNS)
+    if consolidated_rows:
+        out['fill_count'] = [r.get('fill_count', 2) for r in consolidated_rows]
     if not out.empty:
         out['_sell_time_sort'] = pd.to_datetime(out['Sell Time'], format='%H:%M:%S', errors='coerce')
         out = out.sort_values('_sell_time_sort', ascending=True).drop(columns=['_sell_time_sort'])
@@ -794,7 +821,7 @@ def export_structured_csv():
 if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')
     port = int(os.getenv('PORT', '5000'))
-    debug = str(os.getenv('FLASK_DEBUG', 'false')).strip().lower() in ('1', 'true', 'yes')
+    debug = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', 'yes')
     print("=" * 50)
     print("  Trading Journal - Starting Server")
     print(f"  Open: http://localhost:{port}")

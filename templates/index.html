@@ -15,6 +15,15 @@
       <span class="logo-text">Trading Journal</span>
     </div>
     <div class="header-actions">
+      <div class="dropdown-wrapper">
+        <button class="btn btn-outline" id="broker-filter-btn-top">Broker: Both &#9660;</button>
+        <div class="dropdown-menu" id="broker-filter-menu-top">
+          <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
+          <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
+          <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
+        </div>
+      </div>
+      <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
       <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
     </div>
   </header>
@@ -27,20 +36,16 @@
         <div class="calendar-nav">
           <button class="nav-arrow" id="prev-month">&#8249;</button>
           <select id="month-select" class="select-box"></select>
+          <select id="view-select" class="select-box">
+            <option value="month" selected>Month</option>
+            <option value="year">Year</option>
+          </select>
           <select id="year-select" class="select-box"></select>
           <button class="nav-arrow" id="next-month">&#8250;</button>
           <button class="btn btn-outline" id="today-btn">Today</button>
+          <span class="range-label" id="month-range-label"></span>
         </div>
         <div class="show-heads-wrapper">
-          <div class="dropdown-wrapper" id="broker-filter-wrap-cal" style="display:inline-block; margin-right:8px;">
-            <button class="btn btn-outline" id="broker-filter-btn-cal">Broker: Both &#9660;</button>
-            <div class="dropdown-menu" id="broker-filter-menu-cal">
-              <button class="dropdown-item broker-filter-item-cal" data-broker="both">Both</button>
-              <button class="dropdown-item broker-filter-item-cal" data-broker="zerodha">Zerodha</button>
-              <button class="dropdown-item broker-filter-item-cal" data-broker="dhan">Dhan</button>
-            </div>
-          </div>
-          <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
           <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
           <div class="show-heads-panel" id="show-heads-panel">
             <p class="panel-hint">Import Excel to see columns</p>
@@ -48,13 +53,82 @@
         </div>
       </div>
 
-      <div class="calendar-container">
+      <div class="calendar-container" id="calendar-month-view">
         <div class="calendar-weekdays">
           <div>Mon</div><div>Tue</div><div>Wed</div>
           <div>Thu</div><div>Fri</div>
           <div class="weekend">Sat</div><div class="weekend">Sun</div>
         </div>
         <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+      <div class="calendar-yearly hidden" id="calendar-year-view"></div>
+    </section>
+
+    <!-- ── DASHBOARD SUMMARY ─────────────────── -->
+    <section class="section dashboard-section">
+      <div class="section-header dashboard-header">
+        <div class="dashboard-title">
+          <div class="section-title">Monthly Summary</div>
+          <div class="dashboard-subtitle" id="dashboard-subtitle">for -</div>
+        </div>
+        <div class="dashboard-actions">
+          <div class="dropdown-wrapper">
+            <button class="btn btn-outline" id="dashboard-stats-btn">Stats &#9660;</button>
+            <div class="dropdown-menu" id="dashboard-stats-menu"></div>
+          </div>
+        </div>
+      </div>
+      <div class="dashboard-grid">
+        <div class="dash-card" data-stat="overall">
+          <div class="dash-label">Overall P&amp;L</div>
+          <div class="dash-value" id="dash-overall">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="net">
+          <div class="dash-label">Net P&amp;L</div>
+          <div class="dash-value" id="dash-net">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="trades">
+          <div class="dash-label">Total Trades</div>
+          <div class="dash-value dash-value-muted" id="dash-trades">0</div>
+        </div>
+        <div class="dash-card" data-stat="charges">
+          <div class="dash-label">Charges</div>
+          <div class="dash-value dash-value-muted" id="dash-charges">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="brokerage">
+          <div class="dash-label">Brokerage</div>
+          <div class="dash-value dash-value-muted" id="dash-brokerage">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="winrate">
+          <div class="dash-label">Win %</div>
+          <div class="dash-value dash-value-muted" id="dash-winrate">0%</div>
+        </div>
+        <div class="dash-card" data-stat="avg">
+          <div class="dash-label">Avg / Trade</div>
+          <div class="dash-value" id="dash-avg">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="avgwin">
+          <div class="dash-label">Avg Win</div>
+          <div class="dash-value" id="dash-avgwin">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="avgloss">
+          <div class="dash-label">Avg Loss</div>
+          <div class="dash-value" id="dash-avgloss">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="best">
+          <div class="dash-label">Best Day</div>
+          <div class="dash-value" id="dash-best">₹ 0.00</div>
+          <div class="dash-subvalue" id="dash-best-date">-</div>
+        </div>
+        <div class="dash-card" data-stat="worst">
+          <div class="dash-label">Worst Day</div>
+          <div class="dash-value" id="dash-worst">₹ 0.00</div>
+          <div class="dash-subvalue" id="dash-worst-date">-</div>
+        </div>
+        <div class="dash-card" data-stat="dd">
+          <div class="dash-label">Max Drawdown</div>
+          <div class="dash-value" id="dash-dd">₹ 0.00</div>
+        </div>
       </div>
     </section>
 
@@ -63,16 +137,6 @@
       <div class="section-header">
         <h2 class="section-title">Trade Table</h2>
         <div class="table-header-actions">
-
-          <!-- Broker Filter -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="broker-filter-btn">Broker: Both &#9660;</button>
-            <div class="dropdown-menu" id="broker-filter-menu">
-              <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
-              <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
-              <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
-            </div>
-          </div>
 
           <!-- Column Visibility -->
           <div class="dropdown-wrapper" id="col-vis-wrapper">
@@ -303,6 +367,26 @@
           <div class="settings-row">
             <label>Esc</label>
             <span class="settings-hint">Close active popup/modal</span>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Calendar &#8212; Show Heads Defaults</div>
+          <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <label style="font-size:0.82rem;color:var(--text2)">Consolidated Mode</label>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-outline" id="s-heads-c-plonly" style="font-size:0.74rem;padding:3px 9px">P/L Only</button>
+              <button class="btn btn-outline" id="s-heads-c-all"    style="font-size:0.74rem;padding:3px 9px">Show All</button>
+              <button class="btn btn-outline" id="s-heads-c-none"   style="font-size:0.74rem;padding:3px 9px">Hide All</button>
+            </div>
+          </div>
+          <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:8px">
+            <label style="font-size:0.82rem;color:var(--text2)">Individual Mode</label>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-outline" id="s-heads-i-plonly" style="font-size:0.74rem;padding:3px 9px">P/L Only</button>
+              <button class="btn btn-outline" id="s-heads-i-all"    style="font-size:0.74rem;padding:3px 9px">Show All</button>
+              <button class="btn btn-outline" id="s-heads-i-none"   style="font-size:0.74rem;padding:3px 9px">Hide All</button>
+            </div>
           </div>
         </div>
 

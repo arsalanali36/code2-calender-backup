@@ -94,6 +94,51 @@ body {
 }
 .section-title { font-size: 1rem; font-weight: 600; }
 
+/* ── DASHBOARD SUMMARY ───────────────────────── */
+.dashboard-section { overflow: hidden; }
+.dashboard-header { align-items: center; }
+.dashboard-title { display: flex; align-items: baseline; gap: 10px; }
+.dashboard-subtitle { color: var(--text2); font-size: 0.85rem; }
+.dashboard-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 12px 16px 16px;
+  background: linear-gradient(180deg, rgba(88,166,255,0.06), rgba(13,17,23,0));
+}
+.dash-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 12px 10px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  cursor: grab;
+  user-select: none;
+  transition: opacity 0.15s, box-shadow 0.12s;
+}
+.dash-card.dragging {
+  opacity: 0.3;
+  cursor: grabbing;
+}
+/* vertical insertion-line indicators */
+.dash-card.drop-before {
+  box-shadow: -4px 0 0 0 var(--blue), 0 0 8px -2px rgba(88,166,255,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+.dash-card.drop-after {
+  box-shadow: 4px 0 0 0 var(--blue), 0 0 8px -2px rgba(88,166,255,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+.dash-label { color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.dash-value { margin-top: 6px; font-size: 1.05rem; font-weight: 700; }
+.dash-subvalue { margin-top: 2px; font-size: 0.72rem; color: var(--text2); }
+.dash-value.positive { color: var(--green); }
+.dash-value.negative { color: var(--red); }
+.dash-value-muted { color: var(--text); }
+
+@media (max-width: 520px) {
+  .dashboard-title { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
+
 /* ── CALENDAR NAV ─────────────────────────────── */
 .calendar-nav { display: flex; align-items: center; gap: 8px; }
 .calendar-nav #today-btn { padding: 5px 10px; }
@@ -127,6 +172,16 @@ body {
 }
 .head-checkbox:hover { color: var(--text); }
 .head-checkbox input[type="checkbox"] { accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; }
+.head-checkbox.drag-row { cursor: grab; }
+.head-checkbox.drag-row:active { cursor: grabbing; }
+
+.frozen-col {
+  position: sticky;
+  background: var(--surface2);
+  z-index: 5;
+}
+.trade-table thead .frozen-col { z-index: 12; }
+.trade-table tfoot .frozen-col { z-index: 10; }
 
 /* Panel search + actions (shared by Show Heads & Columns panels) */
 .panel-search-row { margin-bottom: 6px; }
@@ -147,6 +202,46 @@ body {
 
 /* ── CALENDAR GRID — TRANSPARENT ─────────────── */
 .calendar-container { padding: 12px 16px 16px; }
+.range-label {
+  color: var(--text2);
+  font-size: 0.78rem;
+  padding-left: 4px;
+}
+
+/* ── YEARLY VIEW ─────────────────────────────── */
+.calendar-yearly {
+  padding: 14px 16px 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.year-month {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: var(--surface2);
+}
+.year-month-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--text2);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.year-cell {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+}
+.year-cell.pos { background: rgba(63,185,80,0.8); }
+.year-cell.neg { background: rgba(248,81,73,0.85); }
+.year-cell.zero { background: rgba(255,255,255,0.08); }
 
 .calendar-weekdays {
   display: grid; grid-template-columns: repeat(7, 1fr);
@@ -308,9 +403,38 @@ body {
   font-size: 0.72rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border2); white-space: nowrap;
+  position: relative;
 }
 .trade-table th.sortable-th { position: relative; user-select: none; cursor: pointer; padding-right: 18px; }
 .trade-table th .sort-ind { margin-left: 6px; font-size: 0.65rem; color: var(--blue); }
+.col-del-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: rgba(248,81,73,0.08);
+  color: var(--red);
+  font-size: 0.7rem;
+  line-height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, border-color 0.12s, background 0.12s;
+}
+.trade-table th:hover .col-del-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.col-del-btn:hover {
+  border-color: var(--red);
+  background: rgba(248,81,73,0.18);
+}
 .col-resizer {
   position: absolute;
   top: 0; right: 0;
