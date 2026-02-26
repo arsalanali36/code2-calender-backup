@@ -23,6 +23,13 @@
   --cal-data-size:   0.75rem;
   --cal-data-weight: 400;
   --cal-cell-height: 100px;
+  --table-row-height: 40px;
+  --table-head-height: 78px;
+  --table-foot-height: 42px;
+  --table-visible-rows: 5;
+  --date-group-a-bg: rgba(88,166,255,0.03);
+  --date-group-b-bg: rgba(255,255,255,0.01);
+  --date-group-sep: rgba(88,166,255,0.28);
 }
 
 html { font-size: 14px; }
@@ -287,7 +294,12 @@ body {
 /* ── TRADE TABLE ──────────────────────────────── */
 .table-header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-.table-wrapper { overflow-x: auto; max-height: 420px; overflow-y: auto; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(var(--table-head-height) + (var(--table-row-height) * var(--table-visible-rows)) + var(--table-foot-height));
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
 
 .trade-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .trade-table thead { position: sticky; top: 0; z-index: 10; background: var(--surface2); }
@@ -309,9 +321,15 @@ body {
 .trade-table td { padding: 7px 12px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
 .trade-table tbody tr:hover { background: rgba(255,255,255,0.02); }
 .trade-table tbody tr.row-drop-target { background: rgba(88,166,255,0.12); outline: 1px dashed var(--blue); }
+.trade-table tbody tr.date-group-a td { background: var(--date-group-a-bg); }
+.trade-table tbody tr.date-group-b td { background: var(--date-group-b-bg); }
+.trade-table tbody tr.date-group-start td { border-top: 1px solid var(--date-group-sep); }
 .trade-table tfoot td {
   padding: 7px 12px; border-top: 1px solid var(--border2);
   background: var(--surface2); font-weight: 600; color: var(--text2); font-size: 0.8rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 9;
 }
 
 /* Filter row */

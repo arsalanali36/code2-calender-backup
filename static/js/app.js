@@ -25,6 +25,7 @@ const state = {
   tagColumns:   [],   // explicit list of tag columns (rename-safe)
   userColumns:  [],   // only these columns are deletable
   addTagColumnMode: false,
+  brokerFilter: 'both', // both | zerodha | dhan
   shortcuts:    {},
   serverStateHash: '',
   syncIntervalMs: 10000
@@ -49,7 +50,11 @@ const HEIGHT_MAP = { compact:'70px', normal:'100px', spacious:'140px', roomy:'18
 
 const DEFAULT_SETTINGS = {
   daySize:'H3', dayBold:true, dayPos:'top-left',
-  dataSize:'H4', dataBold:false, showLabels:true, cellHeight:'normal'
+  dataSize:'H4', dataBold:false, showLabels:true, cellHeight:'normal',
+  satSunOff: false, tableRows: 5,
+  groupAColor: '#58a6ff',
+  groupBColor: '#ffffff',
+  groupSepColor: '#58a6ff'
 };
 
 const DEFAULT_SHORTCUTS = {
@@ -61,10 +66,12 @@ const DEFAULT_SHORTCUTS = {
   overlaySave: 'Ctrl+S'
 };
 const IMAGE_TAG_COLUMN = 'Image Tags';
+const BROKER_COLUMN = 'Broker';
 const IMAGE_PERMANENT_TAGS = ['thumbnail'];
-const PERMANENT_COLUMNS = [IMAGE_TAG_COLUMN];
+const PERMANENT_COLUMNS = [BROKER_COLUMN, IMAGE_TAG_COLUMN];
 const UNIFIED_STRUCTURED_COLUMNS = [
   'Instrument',
+  BROKER_COLUMN,
   'TradeType',
   'Qty',
   'Sell Time',
@@ -81,6 +88,8 @@ async function init() {
   loadSettingsFromStorage();
   loadShortcutsFromStorage();
   populateSelects();
+  ensureBrokerFilterUI();
+  ensureCalendarBrokerFilterUI();
   bindEvents();
   await loadTrades();
   setInterval(() => {
@@ -90,6 +99,43 @@ async function init() {
     if (!document.hidden) syncFromServerIfChanged(true);
   });
   window.addEventListener('focus', () => syncFromServerIfChanged(true));
+}
+
+function ensureBrokerFilterUI() {
+  if (document.getElementById('broker-filter-btn')) return;
+  const actions = document.querySelector('.table-header-actions');
+  if (!actions) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'dropdown-wrapper';
+  wrap.innerHTML = `
+    <button class="btn btn-outline" id="broker-filter-btn">Broker: Both &#9660;</button>
+    <div class="dropdown-menu" id="broker-filter-menu">
+      <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
+      <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
+      <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
+    </div>
+  `;
+  actions.insertBefore(wrap, actions.firstChild);
+}
+
+function ensureCalendarBrokerFilterUI() {
+  if (document.getElementById('broker-filter-btn-cal')) return;
+  const wrapper = document.querySelector('.show-heads-wrapper');
+  if (!wrapper) return;
+  const host = document.createElement('div');
+  host.className = 'dropdown-wrapper';
+  host.id = 'broker-filter-wrap-cal';
+  host.style.display = 'inline-block';
+  host.style.marginRight = '8px';
+  host.innerHTML = `
+    <button class="btn btn-outline" id="broker-filter-btn-cal">Broker: Both &#9660;</button>
+    <div class="dropdown-menu" id="broker-filter-menu-cal">
+      <button class="dropdown-item broker-filter-item-cal" data-broker="both">Both</button>
+      <button class="dropdown-item broker-filter-item-cal" data-broker="zerodha">Zerodha</button>
+      <button class="dropdown-item broker-filter-item-cal" data-broker="dhan">Dhan</button>
+    </div>
+  `;
+  wrapper.insertBefore(host, wrapper.firstChild);
 }
 
 function populateSelects() {
@@ -230,7 +276,7 @@ function isProtectedSystemColumn(colName) {
   const protectedSet = new Set([
     'instrument', 'tradetype', 'date', 'qty',
     'sell time', 'sell price', 'buy time', 'buy price', 'pt', 'rs',
-    'image tags'
+    'image tags', 'broker'
   ]);
   return protectedSet.has(c);
 }
@@ -268,6 +314,7 @@ function pickTradeField(trade, keys) {
 function normalizeStructuredTradeRow(trade) {
   const out = {
     'Instrument': pickTradeField(trade, ['Instrument', 'instrument', 'symbol']),
+    [BROKER_COLUMN]: String(pickTradeField(trade, [BROKER_COLUMN, 'broker', 'Source'])).toLowerCase(),
     'TradeType': String(pickTradeField(trade, ['TradeType', 'trade_type', 'Type'])).toLowerCase(),
     'Qty': pickTradeField(trade, ['Qty', 'quantity', 'Qty.']),
     'Sell Time': pickTradeField(trade, ['Sell Time']),
@@ -297,6 +344,7 @@ function structuredTradeDedupKey(trade) {
   const t = normalizeStructuredTradeRow(trade);
   return [
     String(t['Instrument']).trim(),
+    String(t[BROKER_COLUMN]).trim().toLowerCase(),
     String(t['TradeType']).trim().toLowerCase(),
     normalizeNumForKey(t['Qty']),
     String(t['trade_date']).trim(),
@@ -357,6 +405,7 @@ function ensurePermanentColumns() {
     PERMANENT_COLUMNS.forEach(col => {
       if (!(col in t)) { t[col] = ''; changed = true; }
     });
+    if (!t[BROKER_COLUMN]) t[BROKER_COLUMN] = 'zerodha';
     if (!t.imageTags || typeof t.imageTags !== 'object' || Array.isArray(t.imageTags)) {
       t.imageTags = {};
       changed = true;
@@ -371,19 +420,35 @@ function normalizeStructuredDateColumns() {
   if (!hasSellTime && !hasBuyTime) return;
 
   let changed = false;
-  if (!state.columns.includes('Date')) {
-    const qtyIdx = state.columns.indexOf('Qty');
-    if (qtyIdx >= 0) state.columns.splice(qtyIdx, 0, 'Date');
-    else state.columns.unshift('Date');
+
+  if (!state.columns.includes('trade_date')) {
+    const rsIdx = state.columns.indexOf('Rs');
+    if (rsIdx >= 0) state.columns.splice(rsIdx + 1, 0, 'trade_date');
+    else state.columns.push('trade_date');
     changed = true;
   }
+
+  ['Date', 'date'].forEach(col => {
+    const idx = state.columns.indexOf(col);
+    if (idx >= 0) {
+      state.columns.splice(idx, 1);
+      changed = true;
+    }
+    delete state.showHeads[col];
+    delete state.tableShowCols[col];
+    delete state.filterValues[col];
+    delete state.colWidths[col];
+    if (state.tableSort.col === col) state.tableSort.col = null;
+  });
 
   state.trades.forEach(t => {
     const sell = splitDateTime(t['Sell Time']);
     const buy  = splitDateTime(t['Buy Time']);
+    const derivedDate = normalizeDate(t['trade_date'] || t['Date'] || t.date || sell.date || buy.date);
 
-    if (!t['Date'] && sell.date) { t['Date'] = sell.date; changed = true; }
-    else if (!t['Date'] && buy.date) { t['Date'] = buy.date; changed = true; }
+    if (derivedDate && t['trade_date'] !== derivedDate) { t['trade_date'] = derivedDate; changed = true; }
+    if (derivedDate && t.date !== derivedDate) { t.date = derivedDate; changed = true; }
+    if ('Date' in t) { delete t['Date']; changed = true; }
 
     if (sell.time && sell.time !== t['Sell Time']) { t['Sell Time'] = sell.time; changed = true; }
     if (buy.time && buy.time !== t['Buy Time']) { t['Buy Time'] = buy.time; changed = true; }
@@ -560,7 +625,12 @@ function readSettingsFromPanel() {
     dataSize:   document.getElementById('s-data-size').value,
     dataBold:   document.getElementById('s-data-bold').checked,
     showLabels: document.getElementById('s-show-labels').checked,
-    cellHeight: document.getElementById('s-cell-height').value
+    cellHeight: document.getElementById('s-cell-height').value,
+    satSunOff:  document.getElementById('s-sat-sun-off').checked,
+    tableRows:  Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
+    groupAColor: document.getElementById('s-group-a-color').value || '#58a6ff',
+    groupBColor: document.getElementById('s-group-b-color').value || '#ffffff',
+    groupSepColor: document.getElementById('s-group-sep-color').value || '#58a6ff'
   };
 }
 
@@ -572,6 +642,11 @@ function populateSettingsPanel(s) {
   document.getElementById('s-data-bold').checked  = s.dataBold;
   document.getElementById('s-show-labels').checked= s.showLabels;
   document.getElementById('s-cell-height').value  = s.cellHeight;
+  document.getElementById('s-sat-sun-off').checked = !!s.satSunOff;
+  document.getElementById('s-table-rows').value = String(s.tableRows || 5);
+  document.getElementById('s-group-a-color').value = s.groupAColor || '#58a6ff';
+  document.getElementById('s-group-b-color').value = s.groupBColor || '#ffffff';
+  document.getElementById('s-group-sep-color').value = s.groupSepColor || '#58a6ff';
 }
 
 function applySettingsToDOM(s) {
@@ -581,8 +656,13 @@ function applySettingsToDOM(s) {
   root.style.setProperty('--cal-data-size',   SIZE_MAP[s.dataSize]  || SIZE_MAP.H4);
   root.style.setProperty('--cal-data-weight', s.dataBold ? '700' : '400');
   root.style.setProperty('--cal-cell-height', HEIGHT_MAP[s.cellHeight] || HEIGHT_MAP.normal);
+  root.style.setProperty('--table-visible-rows', String(Math.max(3, Math.min(25, parseInt(s.tableRows, 10) || 5))));
+  root.style.setProperty('--date-group-a-bg', hexToRgba(s.groupAColor || '#58a6ff', 0.10));
+  root.style.setProperty('--date-group-b-bg', hexToRgba(s.groupBColor || '#ffffff', 0.05));
+  root.style.setProperty('--date-group-sep', hexToRgba(s.groupSepColor || '#58a6ff', 0.35));
   window._showLabels = s.showLabels !== false;
   window._dayPos     = s.dayPos || 'top-left';
+  window._satSunOff  = !!s.satSunOff;
   // Apply position class to grid
   const grid = document.getElementById('calendar-grid');
   if (grid) {
@@ -708,6 +788,7 @@ function initTableShowCols() {
     if (!(col in state.tableShowCols)) state.tableShowCols[col] = true;
   });
   // Keep permanent columns visible
+  state.tableShowCols[BROKER_COLUMN] = true;
   state.tableShowCols[IMAGE_TAG_COLUMN] = true;
   renderColVisPanel();
 }
@@ -731,6 +812,7 @@ function renderColVisPanel() {
   btnAll.addEventListener('click',  () => { allCols.forEach(c => { state.tableShowCols[c] = true;  }); renderColVisPanel(); renderTable(); });
   btnNone.addEventListener('click', () => {
     allCols.forEach(c => { state.tableShowCols[c] = false; });
+    state.tableShowCols[BROKER_COLUMN] = true;
     state.tableShowCols[IMAGE_TAG_COLUMN] = true;
     renderColVisPanel();
     renderTable();
@@ -744,7 +826,10 @@ function renderColVisPanel() {
     allCols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
       const lbl = document.createElement('label'); lbl.className = 'head-checkbox'; lbl.style.padding = '3px 0';
       const chk = document.createElement('input'); chk.type = 'checkbox';
-      const isPermanent = (String(col).toLowerCase() === String(IMAGE_TAG_COLUMN).toLowerCase());
+      const lowerCol = String(col).toLowerCase();
+      const isPermanent =
+        lowerCol === String(IMAGE_TAG_COLUMN).toLowerCase() ||
+        lowerCol === String(BROKER_COLUMN).toLowerCase();
       chk.checked = isPermanent ? true : (state.tableShowCols[col] !== false);
       chk.disabled = isPermanent;
       chk.addEventListener('change', () => {
@@ -761,7 +846,7 @@ function renderColVisPanel() {
 }
 
 // â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function render() { renderCalendar(); renderTable(); renderTagFilterPanel(); updateCalendarModeButton(); }
+function render() { renderCalendar(); renderTable(); renderTagFilterPanel(); updateCalendarModeButton(); updateBrokerFilterButton(); }
 
 function updateCalendarModeButton() {
   const btn = document.getElementById('calendar-mode-btn');
@@ -772,6 +857,19 @@ function updateCalendarModeButton() {
   btn.style.color = consolidated ? 'var(--blue)' : '';
 }
 
+function updateBrokerFilterButton() {
+  const map = { both: 'Both', zerodha: 'Zerodha', dhan: 'Dhan' };
+  const key = String(state.brokerFilter || 'both').toLowerCase();
+  const labels = `Broker: ${map[key] || 'Both'} ▼`;
+  ['broker-filter-btn', 'broker-filter-btn-cal'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.textContent = labels;
+    btn.style.borderColor = key === 'both' ? '' : 'var(--blue)';
+    btn.style.color = key === 'both' ? '' : 'var(--blue)';
+  });
+}
+
 // â”€â”€ CALENDAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderCalendar() {
   syncAllTradeDates();
@@ -779,15 +877,40 @@ function renderCalendar() {
     state.calendarTagFocus = '';
   }
   const grid  = document.getElementById('calendar-grid');
+  const weekdays = document.querySelector('.calendar-weekdays');
   const pos   = window._dayPos || 'top-left';
+  const satSunOff = window._satSunOff === true;
+  const visibleDayCount = satSunOff ? 5 : 7;
   grid.className = `calendar-grid cal-pos-${pos}`;
   grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${visibleDayCount}, 1fr)`;
+  if (weekdays) {
+    weekdays.style.gridTemplateColumns = `repeat(${visibleDayCount}, 1fr)`;
+    weekdays.innerHTML = satSunOff
+      ? '<div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div>'
+      : '<div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="weekend">Sat</div><div class="weekend">Sun</div>';
+  }
 
   const firstDay    = new Date(state.year, state.month, 1).getDay();
-  const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
   const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
   const today       = new Date();
   const showLabels  = window._showLabels !== false;
+  const toMonIndex = dow => (dow === 0 ? 6 : dow - 1);
+
+  let startOffset;
+  if (!satSunOff) {
+    startOffset = toMonIndex(firstDay);
+  } else {
+    let firstVisibleDay = 1;
+    while (firstVisibleDay <= daysInMonth) {
+      const d0 = new Date(state.year, state.month, firstVisibleDay).getDay();
+      if (d0 !== 0 && d0 !== 6) break;
+      firstVisibleDay++;
+    }
+    startOffset = firstVisibleDay <= daysInMonth
+      ? toMonIndex(new Date(state.year, state.month, firstVisibleDay).getDay())
+      : 0;
+  }
 
   for (let i = 0; i < startOffset; i++) {
     const e = document.createElement('div'); e.className = 'day-cell empty';
@@ -796,11 +919,12 @@ function renderCalendar() {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const cellDate  = new Date(state.year, state.month, d);
-    const dateStr   = formatDate(cellDate);
-    const dayTrades = getTradesForDate(dateStr);
-    const trade     = dayTrades[0] || null;
     const dow       = cellDate.getDay();
     const isWeekend = dow === 0 || dow === 6;
+    if (satSunOff && isWeekend) continue;
+    const dateStr   = formatDate(cellDate);
+    const dayTrades = getTradesForDate(dateStr).filter(tradeMatchesBrokerFilter);
+    const trade     = dayTrades[0] || null;
     const isToday   = cellDate.toDateString() === today.toDateString();
 
     const cell = document.createElement('div'); cell.className = 'day-cell';
@@ -1166,8 +1290,16 @@ function getFilteredTrades() {
       return tv.includes(fv);
     });
     if (!colMatch) return false;
+    if (!tradeMatchesBrokerFilter(trade)) return false;
     return tradeMatchesTagFilter(trade);
   });
+}
+
+function tradeMatchesBrokerFilter(trade) {
+  const broker = String(trade?.[BROKER_COLUMN] || '').trim().toLowerCase();
+  if (state.brokerFilter === 'zerodha') return broker === 'zerodha';
+  if (state.brokerFilter === 'dhan') return broker === 'dhan';
+  return true;
 }
 
 function renderTable() {
@@ -1265,10 +1397,19 @@ function renderTable() {
 function renderTableBody(visibleCols, allCols, body, footRow) {
   body.innerHTML = ''; footRow.innerHTML = '';
   const filtered = sortTrades(getFilteredTrades());
+  let lastDateKey = null;
+  let band = 0;
 
   filtered.forEach((trade, displayIdx) => {
     const rowIdx = state.trades.indexOf(trade);
     const tr = document.createElement('tr');
+    const rowDateKey = normalizeDate(trade['trade_date'] || trade['Date'] || trade.date || '');
+    if (rowDateKey !== lastDateKey) {
+      band = band === 0 ? 1 : 0;
+      if (lastDateKey !== null) tr.classList.add('date-group-start');
+      lastDateKey = rowDateKey;
+    }
+    tr.classList.add(band === 1 ? 'date-group-a' : 'date-group-b');
 
     visibleCols.forEach(col => {
       const td = document.createElement('td');
@@ -1313,7 +1454,7 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
   // FOOTER totals
   visibleCols.forEach(col => {
     const td = document.createElement('td');
-    if (col.toLowerCase() === 'date') { td.textContent = `Total (${filtered.length})`; td.style.color = 'var(--text2)'; }
+    if (col.toLowerCase() === 'date' || col.toLowerCase() === 'trade_date') { td.textContent = `Total (${filtered.length})`; td.style.color = 'var(--text2)'; }
     else if (!isTagColumn(col) && col.toLowerCase() !== 'images' && col.toLowerCase() !== 'thumbnail' && col.toLowerCase() !== 'image tags') {
       const nums = filtered.map(t => parseFloat(t[col])).filter(n => !isNaN(n));
       if (nums.length) {
@@ -2678,7 +2819,11 @@ async function importRawCsv(file) {
     const res  = await fetch('/api/import-raw-csv', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
-    const imported = (data.trades || []).map(normalizeStructuredTradeRow);
+    const imported = (data.trades || []).map(t => {
+      const row = normalizeStructuredTradeRow(t);
+      row[BROKER_COLUMN] = 'zerodha';
+      return row;
+    });
     const mergedResult = mergeStructuredTrades(state.trades, imported);
     state.trades = mergedResult.merged;
     state.columns = Array.from(new Set([...(state.columns || []), ...UNIFIED_STRUCTURED_COLUMNS]));
@@ -2709,7 +2854,11 @@ async function importHistoricalCsv(file) {
     const res  = await fetch('/api/import-historical-csv', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
-    const imported = (data.trades || []).map(normalizeStructuredTradeRow);
+    const imported = (data.trades || []).map(t => {
+      const row = normalizeStructuredTradeRow(t);
+      row[BROKER_COLUMN] = 'zerodha';
+      return row;
+    });
     const mergedResult = mergeStructuredTrades(state.trades, imported);
     state.trades = mergedResult.merged;
     state.columns = Array.from(new Set([...(state.columns || []), ...UNIFIED_STRUCTURED_COLUMNS]));
@@ -2728,6 +2877,40 @@ async function importHistoricalCsv(file) {
     showToast(`Historical CSV merged: ${mergedResult.added} new trade(s)`, 'success');
   } catch(e) {
     showToast('Historical CSV import failed', 'error');
+  }
+}
+
+async function importDhanCsv(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    showToast('Consolidating Dhan CSV...', '');
+    const res  = await fetch('/api/import-dhan-csv', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { showToast(data.error, 'error'); return; }
+    const imported = (data.trades || []).map(t => {
+      const row = normalizeStructuredTradeRow(t);
+      row[BROKER_COLUMN] = 'dhan';
+      return row;
+    });
+    const mergedResult = mergeStructuredTrades(state.trades, imported);
+    state.trades = mergedResult.merged;
+    state.columns = Array.from(new Set([...(state.columns || []), ...UNIFIED_STRUCTURED_COLUMNS]));
+    state.allTags = data.allTags || state.allTags || [];
+    state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
+    state.userColumns = Array.isArray(state.userColumns) ? state.userColumns : [];
+    ensurePermanentColumns();
+    syncTagColumnRegistry();
+    syncImageTagColumnValues();
+    state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
+    migrateLegacyTagsData();
+    initShowHeads();
+    initTableShowCols();
+    await saveTrades();
+    render();
+    showToast(`Dhan CSV merged: ${mergedResult.added} new trade(s)`, 'success');
+  } catch(e) {
+    showToast('Dhan CSV import failed', 'error');
   }
 }
 
@@ -2860,6 +3043,8 @@ function bindEvents() {
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
   setupDropdown('add-dropdown-btn',  'add-dropdown-menu');
   setupDropdown('col-vis-btn',       'col-vis-panel');
+  setupDropdown('broker-filter-btn', 'broker-filter-menu');
+  setupDropdown('broker-filter-btn-cal', 'broker-filter-menu-cal');
 
   // Close all on outside click
   document.addEventListener('click', () => {
@@ -2868,9 +3053,31 @@ function bindEvents() {
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
   document.getElementById('col-vis-panel').addEventListener('click', e => e.stopPropagation());
+  const brokerMenu = document.getElementById('broker-filter-menu');
+  if (brokerMenu) brokerMenu.addEventListener('click', e => e.stopPropagation());
+  const brokerMenuCal = document.getElementById('broker-filter-menu-cal');
+  if (brokerMenuCal) brokerMenuCal.addEventListener('click', e => e.stopPropagation());
 
   // Tag filter dropdown + tag picker
   setupDropdown('tag-filter-btn', 'tag-filter-panel');
+  document.querySelectorAll('.broker-filter-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.brokerFilter = String(btn.dataset.broker || 'both').toLowerCase();
+      updateBrokerFilterButton();
+      renderTable();
+      renderCalendar();
+      closeAllDropdowns('__none__');
+    });
+  });
+  document.querySelectorAll('.broker-filter-item-cal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.brokerFilter = String(btn.dataset.broker || 'both').toLowerCase();
+      updateBrokerFilterButton();
+      renderTable();
+      renderCalendar();
+      closeAllDropdowns('__none__');
+    });
+  });
   document.getElementById('tag-filter-panel').addEventListener('click', e => e.stopPropagation());
   document.getElementById('tag-picker-inp').addEventListener('input', e => updateTagPickerList(e.target.value));
   document.getElementById('tag-picker-inp').addEventListener('keydown', e => {
@@ -2902,6 +3109,8 @@ function bindEvents() {
   document.getElementById('raw-csv-input').addEventListener('change', e => { if (e.target.files[0]) importRawCsv(e.target.files[0]); e.target.value=''; });
   document.getElementById('import-historical-csv-btn').addEventListener('click', () => document.getElementById('historical-csv-input').click());
   document.getElementById('historical-csv-input').addEventListener('change', e => { if (e.target.files[0]) importHistoricalCsv(e.target.files[0]); e.target.value=''; });
+  document.getElementById('import-dhan-csv-btn').addEventListener('click', () => document.getElementById('dhan-csv-input').click());
+  document.getElementById('dhan-csv-input').addEventListener('change', e => { if (e.target.files[0]) importDhanCsv(e.target.files[0]); e.target.value=''; });
   document.getElementById('export-btn').addEventListener('click', exportExcel);
   document.getElementById('export-structured-csv-btn').addEventListener('click', exportStructuredCsv);
   document.getElementById('backup-btn').addEventListener('click', backupJson);
@@ -2911,6 +3120,7 @@ function bindEvents() {
   // Add row
   document.getElementById('add-row-btn').addEventListener('click', () => {
     const row = { date:'', images:[] }; state.columns.forEach(col => { row[col]=''; });
+    row[BROKER_COLUMN] = row[BROKER_COLUMN] || 'zerodha';
     row.observation = '';
     state.trades.push(row); render(); saveTrades();
     closeAllDropdowns('__none__');
@@ -3110,9 +3320,11 @@ function bindEvents() {
       if (combo) inp.value = combo.replace(/\b\w/g, c => c.toUpperCase());
     });
   });
-  ['s-day-size','s-day-bold','s-day-pos','s-data-size','s-data-bold','s-show-labels','s-cell-height'].forEach(id => {
+  ['s-day-size','s-day-bold','s-day-pos','s-data-size','s-data-bold','s-show-labels','s-cell-height','s-sat-sun-off','s-table-rows','s-group-a-color','s-group-b-color','s-group-sep-color'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
-      const s = readSettingsFromPanel(); applySettingsToDOM(s);
+      const s = readSettingsFromPanel();
+      applySettingsToDOM(s);
+      renderCalendar();
     });
   });
   document.getElementById('s-apply').addEventListener('click', () => {

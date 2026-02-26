@@ -320,6 +320,135 @@ def consolidate_zerodha_historical_csv(raw_df):
     return out
 
 
+def consolidate_dhan_csv(raw_df):
+    """
+    Consolidate Dhan executed order-level CSV into completed position-level trades.
+
+    Expected columns:
+      Date, Time, Name, Buy/Sell, Quantity/Lot, Trade Price, Status, ...
+
+    Output columns (exact order):
+      Instrument, TradeType, Qty, Sell Time, Sell Price (Avg), Buy Time,
+      Buy Price (Avg), Pt, Rs, trade_date
+    """
+    required = [
+        'Date', 'Time', 'Name', 'Buy/Sell', 'Quantity/Lot', 'Trade Price'
+    ]
+    missing = [c for c in required if c not in raw_df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {', '.join(missing)}")
+
+    df = raw_df.copy()
+    df.columns = [str(c).strip() for c in df.columns]
+
+    # Keep only executed rows when Status exists
+    if 'Status' in df.columns:
+        status = df['Status'].astype(str).str.strip().str.lower()
+        executed_mask = status.str.contains('execut', na=False)
+        # If no explicit executed rows found, keep all to avoid dropping valid exports
+        if executed_mask.any():
+            df = df[executed_mask].copy()
+
+    df['Name'] = df['Name'].astype(str).str.strip()
+    df['Buy/Sell'] = df['Buy/Sell'].astype(str).str.strip().str.lower()
+    df = df[df['Buy/Sell'].isin(['buy', 'sell'])].copy()
+
+    df['Quantity/Lot'] = pd.to_numeric(df['Quantity/Lot'], errors='coerce')
+    df['Trade Price'] = pd.to_numeric(df['Trade Price'], errors='coerce')
+    dt_str = df['Date'].astype(str).str.strip() + ' ' + df['Time'].astype(str).str.strip()
+    df['_dt'] = pd.to_datetime(dt_str, errors='coerce', dayfirst=True)
+    df['_date_only'] = pd.to_datetime(df['Date'], errors='coerce', dayfirst=True).dt.strftime('%Y-%m-%d')
+
+    df = df.dropna(subset=['Name', 'Buy/Sell', 'Quantity/Lot', 'Trade Price', '_dt'])
+    df = df[df['Quantity/Lot'] > 0].copy()
+
+    # Required sort: Name + datetime ascending
+    df = df.sort_values(['Name', '_dt'], ascending=True)
+
+    consolidated_rows = []
+
+    for name, g in df.groupby('Name', sort=True):
+        cycle = None
+
+        for _, row in g.iterrows():
+            side = row['Buy/Sell']       # buy/sell
+            qty_left = float(row['Quantity/Lot'])
+            price = float(row['Trade Price'])
+            exec_time = row['_dt']
+            trade_date = row['_date_only'] if isinstance(row['_date_only'], str) else exec_time.strftime('%Y-%m-%d')
+
+            while qty_left > 1e-12:
+                if cycle is None:
+                    cycle = {
+                        'instrument': name,
+                        'entry_side': side,
+                        'entry_qty': qty_left,
+                        'entry_notional': qty_left * price,
+                        'entry_time_first': exec_time,
+                        'entry_trade_date': trade_date,
+                        'exit_qty': 0.0,
+                        'exit_notional': 0.0,
+                        'exit_time_last': None
+                    }
+                    qty_left = 0.0
+                    continue
+
+                # Same side as entry => scale-in entry
+                if side == cycle['entry_side']:
+                    cycle['entry_qty'] += qty_left
+                    cycle['entry_notional'] += qty_left * price
+                    qty_left = 0.0
+                    continue
+
+                # Opposite side => close open qty
+                open_qty = cycle['entry_qty'] - cycle['exit_qty']
+                close_qty = min(open_qty, qty_left)
+                cycle['exit_qty'] += close_qty
+                cycle['exit_notional'] += close_qty * price
+                cycle['exit_time_last'] = exec_time
+                qty_left -= close_qty
+
+                if abs(cycle['entry_qty'] - cycle['exit_qty']) <= 1e-9:
+                    qty = cycle['entry_qty']
+                    entry_avg = cycle['entry_notional'] / qty
+                    exit_avg = cycle['exit_notional'] / qty
+
+                    if cycle['entry_side'] == 'buy':   # long
+                        buy_time = cycle['entry_time_first']
+                        buy_price = entry_avg
+                        sell_time = cycle['exit_time_last']
+                        sell_price = exit_avg
+                    else:                               # short
+                        sell_time = cycle['entry_time_first']
+                        sell_price = entry_avg
+                        buy_time = cycle['exit_time_last']
+                        buy_price = exit_avg
+
+                    # As requested, both long/short Pt = Sell - Buy
+                    pt = sell_price - buy_price
+                    rs = pt * qty
+
+                    consolidated_rows.append({
+                        'Instrument': cycle['instrument'],
+                        'TradeType': cycle['entry_side'],
+                        'Qty': _format_float(qty, 6),
+                        'Sell Time': _time_to_str(sell_time),
+                        'Sell Price (Avg)': _format_float(sell_price, 6),
+                        'Buy Time': _time_to_str(buy_time),
+                        'Buy Price (Avg)': _format_float(buy_price, 6),
+                        'Pt': _format_float(pt, 6),
+                        'Rs': _format_float(rs, 6),
+                        'trade_date': cycle['entry_trade_date']
+                    })
+                    cycle = None
+
+    out = pd.DataFrame(consolidated_rows, columns=HISTORICAL_STRUCTURED_COLUMNS)
+    if not out.empty:
+        out['_sell_time_sort'] = pd.to_datetime(out['Sell Time'], format='%H:%M:%S', errors='coerce')
+        out = out.sort_values('_sell_time_sort', ascending=True).drop(columns=['_sell_time_sort'])
+    return out
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -486,6 +615,35 @@ def import_historical_csv():
         structured_df.to_csv(os.path.join(BASE_DIR, 'structured_trades.csv'), index=False)
     except Exception as e:
         return jsonify({'error': f'Historical CSV processing error: {str(e)}'}), 400
+
+    trades = []
+    for row in structured_df.to_dict(orient='records'):
+        trade = dict(row)
+        trade['date'] = str(trade.get('trade_date', ''))
+        trade['images'] = []
+        trades.append(trade)
+
+    return jsonify({
+        'trades': trades,
+        'columns': HISTORICAL_STRUCTURED_COLUMNS
+    })
+
+
+@app.route('/api/import-dhan-csv', methods=['POST'])
+def import_dhan_csv():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+
+    try:
+        df = pd.read_csv(file)
+        structured_df = consolidate_dhan_csv(df)
+        structured_df.to_csv(os.path.join(BASE_DIR, 'structured_trades.csv'), index=False)
+    except Exception as e:
+        return jsonify({'error': f'Dhan CSV processing error: {str(e)}'}), 400
 
     trades = []
     for row in structured_df.to_dict(orient='records'):
