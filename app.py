@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_file
+﻿from flask import Flask, request, jsonify, render_template, send_file, send_from_directory
 import pandas as pd
 import json
 import os
@@ -6,15 +6,17 @@ import io
 import uuid
 from datetime import datetime
 import re
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE = os.path.join(BASE_DIR, 'data', 'trades.json')
-UPLOADS_DIR = os.path.join(BASE_DIR, 'static', 'uploads')
+DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
+UPLOADS_DIR = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
 
-os.makedirs(os.path.join(BASE_DIR, 'data'), exist_ok=True)
+os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 STRUCTURED_COLUMNS = [
@@ -28,6 +30,19 @@ STRUCTURED_COLUMNS = [
     'Buy Price',
     'Pt',
     'Rs'
+]
+
+HISTORICAL_STRUCTURED_COLUMNS = [
+    'Instrument',
+    'TradeType',
+    'Qty',
+    'Sell Time',
+    'Sell Price (Avg)',
+    'Buy Time',
+    'Buy Price (Avg)',
+    'Pt',
+    'Rs',
+    'trade_date'
 ]
 
 
@@ -178,6 +193,133 @@ def consolidate_raw_fills(raw_df):
     return result
 
 
+def consolidate_zerodha_historical_csv(raw_df):
+    """
+    Consolidate raw Zerodha historical order fills into completed trade cycles.
+
+    Expected input columns:
+      symbol, trade_type, quantity, price, order_execution_time, trade_date, ...
+
+    Output columns (exact order):
+      Instrument, TradeType, Qty, Sell Time, Sell Price (Avg), Buy Time,
+      Buy Price (Avg), Pt, Rs, trade_date
+    """
+    required = [
+        'symbol', 'trade_type', 'quantity', 'price',
+        'order_execution_time', 'trade_date'
+    ]
+    missing = [c for c in required if c not in raw_df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {', '.join(missing)}")
+
+    df = raw_df.copy()
+    df.columns = [str(c).strip() for c in df.columns]
+    df['symbol'] = df['symbol'].astype(str).str.strip()
+    df['trade_type'] = df['trade_type'].astype(str).str.strip().str.lower()
+    df = df[df['trade_type'].isin(['buy', 'sell'])].copy()
+    df['quantity'] = pd.to_numeric(df['quantity'], errors='coerce')
+    df['price'] = pd.to_numeric(df['price'], errors='coerce')
+    df['order_execution_time'] = pd.to_datetime(df['order_execution_time'], errors='coerce')
+    df['trade_date'] = pd.to_datetime(df['trade_date'], errors='coerce').dt.strftime('%Y-%m-%d')
+    df = df.dropna(subset=['symbol', 'trade_type', 'quantity', 'price', 'order_execution_time'])
+    df = df[df['quantity'] > 0].copy()
+
+    # Sort as requested: symbol, then execution time ascending
+    sort_cols = ['symbol', 'order_execution_time']
+    if 'trade_id' in df.columns:
+        sort_cols.append('trade_id')
+    if 'order_id' in df.columns:
+        sort_cols.append('order_id')
+    df = df.sort_values(sort_cols, ascending=True)
+
+    consolidated_rows = []
+
+    for symbol, g in df.groupby('symbol', sort=True):
+        cycle = None
+
+        for _, row in g.iterrows():
+            side = row['trade_type']            # buy/sell
+            qty_left = float(row['quantity'])
+            price = float(row['price'])
+            exec_time = row['order_execution_time']
+            row_trade_date = row.get('trade_date', '')
+
+            while qty_left > 1e-12:
+                # Start new cycle with current fill
+                if cycle is None:
+                    cycle = {
+                        'symbol': symbol,
+                        'entry_side': side,
+                        'entry_qty': qty_left,
+                        'entry_notional': qty_left * price,
+                        'entry_time_first': exec_time,
+                        'entry_trade_date': row_trade_date if isinstance(row_trade_date, str) else exec_time.strftime('%Y-%m-%d'),
+                        'exit_qty': 0.0,
+                        'exit_notional': 0.0,
+                        'exit_time_last': None
+                    }
+                    qty_left = 0.0
+                    continue
+
+                # Same side as entry => scale into entry leg
+                if side == cycle['entry_side']:
+                    cycle['entry_qty'] += qty_left
+                    cycle['entry_notional'] += qty_left * price
+                    qty_left = 0.0
+                    continue
+
+                # Opposite side => close open quantity
+                open_qty = cycle['entry_qty'] - cycle['exit_qty']
+                close_qty = min(open_qty, qty_left)
+                cycle['exit_qty'] += close_qty
+                cycle['exit_notional'] += close_qty * price
+                cycle['exit_time_last'] = exec_time
+                qty_left -= close_qty
+
+                # Close cycle only when fully matched
+                if abs(cycle['entry_qty'] - cycle['exit_qty']) <= 1e-9:
+                    qty = cycle['entry_qty']
+                    entry_avg = cycle['entry_notional'] / qty
+                    exit_avg = cycle['exit_notional'] / qty
+
+                    # Map entry/exit legs to sell-buy columns
+                    if cycle['entry_side'] == 'sell':  # short
+                        sell_time = cycle['entry_time_first']
+                        sell_price = entry_avg
+                        buy_time = cycle['exit_time_last']
+                        buy_price = exit_avg
+                        pt = sell_price - buy_price
+                    else:                              # long
+                        buy_time = cycle['entry_time_first']
+                        buy_price = entry_avg
+                        sell_time = cycle['exit_time_last']
+                        sell_price = exit_avg
+                        # As requested in prompt
+                        pt = buy_price - sell_price
+
+                    rs = pt * qty
+
+                    consolidated_rows.append({
+                        'Instrument': cycle['symbol'],
+                        'TradeType': cycle['entry_side'],
+                        'Qty': _format_float(qty, 6),
+                        'Sell Time': _time_to_str(sell_time),            # HH:MM:SS only
+                        'Sell Price (Avg)': _format_float(sell_price, 6),
+                        'Buy Time': _time_to_str(buy_time),              # HH:MM:SS only
+                        'Buy Price (Avg)': _format_float(buy_price, 6),
+                        'Pt': _format_float(pt, 6),
+                        'Rs': _format_float(rs, 6),
+                        'trade_date': cycle['entry_trade_date']
+                    })
+                    cycle = None
+
+    out = pd.DataFrame(consolidated_rows, columns=HISTORICAL_STRUCTURED_COLUMNS)
+    if not out.empty:
+        out['_sell_time_sort'] = pd.to_datetime(out['Sell Time'], format='%H:%M:%S', errors='coerce')
+        out = out.sort_values('_sell_time_sort', ascending=True).drop(columns=['_sell_time_sort'])
+    return out
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -304,16 +446,57 @@ def import_raw_csv():
     except Exception as e:
         return jsonify({'error': f'CSV processing error: {str(e)}'}), 400
 
+    # Normalize "today" CSV output to same column format as historical output
+    structured_df = structured_df.rename(columns={
+        'Sell Price': 'Sell Price (Avg)',
+        'Buy Price': 'Buy Price (Avg)',
+        'Date': 'trade_date'
+    })
+    for col in HISTORICAL_STRUCTURED_COLUMNS:
+        if col not in structured_df.columns:
+            structured_df[col] = ''
+    structured_df = structured_df[HISTORICAL_STRUCTURED_COLUMNS]
+
     trades = []
     for row in structured_df.to_dict(orient='records'):
         trade = dict(row)
-        trade['date'] = str(trade.get('Date', ''))
+        trade['date'] = str(trade.get('trade_date', ''))
         trade['images'] = []
         trades.append(trade)
 
     return jsonify({
         'trades': trades,
-        'columns': STRUCTURED_COLUMNS
+        'columns': HISTORICAL_STRUCTURED_COLUMNS
+    })
+
+
+@app.route('/api/import-historical-csv', methods=['POST'])
+def import_historical_csv():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+
+    try:
+        df = pd.read_csv(file)
+        structured_df = consolidate_zerodha_historical_csv(df)
+        # Also export on server as requested
+        structured_df.to_csv(os.path.join(BASE_DIR, 'structured_trades.csv'), index=False)
+    except Exception as e:
+        return jsonify({'error': f'Historical CSV processing error: {str(e)}'}), 400
+
+    trades = []
+    for row in structured_df.to_dict(orient='records'):
+        trade = dict(row)
+        trade['date'] = str(trade.get('trade_date', ''))
+        trade['images'] = []
+        trades.append(trade)
+
+    return jsonify({
+        'trades': trades,
+        'columns': HISTORICAL_STRUCTURED_COLUMNS
     })
 
 
@@ -336,9 +519,14 @@ def upload_image():
     file.save(filepath)
 
     return jsonify({
-        'url': f'/static/uploads/{filename}',
+        'url': f'/uploads/{filename}',
         'filename': filename
     })
+
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(UPLOADS_DIR, filename)
 
 
 @app.route('/api/delete-image', methods=['POST'])
@@ -414,18 +602,24 @@ def export_excel():
 def export_structured_csv():
     data = request.json or {}
     trades = data.get('trades', [])
+    req_cols = data.get('columns', [])
 
     if not trades:
         return jsonify({'error': 'No data to export'}), 400
 
+    export_cols = STRUCTURED_COLUMNS
+    if isinstance(req_cols, list) and req_cols:
+        if all(c in req_cols for c in HISTORICAL_STRUCTURED_COLUMNS):
+            export_cols = HISTORICAL_STRUCTURED_COLUMNS
+
     rows = []
     for trade in trades:
         row = {}
-        for col in STRUCTURED_COLUMNS:
+        for col in export_cols:
             row[col] = trade.get(col, '')
         rows.append(row)
 
-    df = pd.DataFrame(rows, columns=STRUCTURED_COLUMNS)
+    df = pd.DataFrame(rows, columns=export_cols)
     output = io.StringIO()
     df.to_csv(output, index=False)
     mem = io.BytesIO(output.getvalue().encode('utf-8'))
@@ -440,8 +634,11 @@ def export_structured_csv():
 
 
 if __name__ == '__main__':
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', '5000'))
+    debug = str(os.getenv('FLASK_DEBUG', 'false')).strip().lower() in ('1', 'true', 'yes')
     print("=" * 50)
-    print("  Trading Journal — Starting Server")
-    print("  Open: http://localhost:5000")
+    print("  Trading Journal - Starting Server")
+    print(f"  Open: http://localhost:{port}")
     print("=" * 50)
-    app.run(debug=True, port=5000)
+    app.run(debug=debug, host=host, port=port)

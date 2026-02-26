@@ -60,7 +60,19 @@ const DEFAULT_SHORTCUTS = {
 };
 const IMAGE_TAG_COLUMN = 'Image Tags';
 const IMAGE_PERMANENT_TAGS = ['thumbnail'];
-const PERMANENT_COLUMNS = ['Thumbnail', IMAGE_TAG_COLUMN];
+const PERMANENT_COLUMNS = [IMAGE_TAG_COLUMN];
+const UNIFIED_STRUCTURED_COLUMNS = [
+  'Instrument',
+  'TradeType',
+  'Qty',
+  'Sell Time',
+  'Sell Price (Avg)',
+  'Buy Time',
+  'Buy Price (Avg)',
+  'Pt',
+  'Rs',
+  'trade_date'
+];
 
 // â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function init() {
@@ -151,7 +163,7 @@ function isProtectedSystemColumn(colName) {
   const protectedSet = new Set([
     'instrument', 'tradetype', 'date', 'qty',
     'sell time', 'sell price', 'buy time', 'buy price', 'pt', 'rs',
-    'thumbnail', 'image tags'
+    'image tags'
   ]);
   return protectedSet.has(c);
 }
@@ -179,8 +191,83 @@ function splitDateTime(value) {
   return { date: '', time: s };
 }
 
+function pickTradeField(trade, keys) {
+  for (const k of keys) {
+    if (trade && trade[k] !== undefined && trade[k] !== null && String(trade[k]).trim() !== '') return trade[k];
+  }
+  return '';
+}
+
+function normalizeStructuredTradeRow(trade) {
+  const out = {
+    'Instrument': pickTradeField(trade, ['Instrument', 'instrument', 'symbol']),
+    'TradeType': String(pickTradeField(trade, ['TradeType', 'trade_type', 'Type'])).toLowerCase(),
+    'Qty': pickTradeField(trade, ['Qty', 'quantity', 'Qty.']),
+    'Sell Time': pickTradeField(trade, ['Sell Time']),
+    'Sell Price (Avg)': pickTradeField(trade, ['Sell Price (Avg)', 'Sell Price']),
+    'Buy Time': pickTradeField(trade, ['Buy Time']),
+    'Buy Price (Avg)': pickTradeField(trade, ['Buy Price (Avg)', 'Buy Price']),
+    'Pt': pickTradeField(trade, ['Pt']),
+    'Rs': pickTradeField(trade, ['Rs']),
+    'trade_date': pickTradeField(trade, ['trade_date', 'Date', 'date'])
+  };
+  out.date = normalizeDate(out.trade_date || pickTradeField(trade, ['date']));
+  out.images = Array.isArray(trade?.images) ? [...trade.images] : [];
+  out.observation = typeof trade?.observation === 'string' ? trade.observation : '';
+  out.imageTags = (trade && typeof trade.imageTags === 'object' && !Array.isArray(trade.imageTags)) ? { ...trade.imageTags } : {};
+  // Preserve tag columns if present
+  getTagColumns().forEach(col => { out[col] = Array.isArray(trade?.[col]) ? [...trade[col]] : []; });
+  return out;
+}
+
+function normalizeNumForKey(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return String(v ?? '').trim();
+  return Number(n.toFixed(6)).toString();
+}
+
+function structuredTradeDedupKey(trade) {
+  const t = normalizeStructuredTradeRow(trade);
+  return [
+    String(t['Instrument']).trim(),
+    String(t['TradeType']).trim().toLowerCase(),
+    normalizeNumForKey(t['Qty']),
+    String(t['trade_date']).trim(),
+    String(t['Sell Time']).trim(),
+    normalizeNumForKey(t['Sell Price (Avg)']),
+    String(t['Buy Time']).trim(),
+    normalizeNumForKey(t['Buy Price (Avg)'])
+  ].join('|');
+}
+
+function mergeStructuredTrades(existingTrades, importedTrades) {
+  const existing = Array.isArray(existingTrades) ? [...existingTrades] : [];
+  const imported = Array.isArray(importedTrades) ? importedTrades : [];
+  const keySet = new Set(existing.map(structuredTradeDedupKey));
+  let added = 0;
+  imported.forEach(row => {
+    const normalized = normalizeStructuredTradeRow(row);
+    const key = structuredTradeDedupKey(normalized);
+    if (!keySet.has(key)) {
+      existing.push(normalized);
+      keySet.add(key);
+      added += 1;
+    }
+  });
+  return { merged: existing, added };
+}
+
 function ensurePermanentColumns() {
   let changed = false;
+  if (state.columns.includes('Thumbnail')) {
+    state.columns = state.columns.filter(c => c !== 'Thumbnail');
+    changed = true;
+  }
+  delete state.showHeads.Thumbnail;
+  delete state.tableShowCols.Thumbnail;
+  delete state.filterValues.Thumbnail;
+  delete state.colWidths.Thumbnail;
+  if (state.tableSort.col === 'Thumbnail') state.tableSort.col = null;
   if (state.columns.includes('Observation')) {
     state.columns = state.columns.filter(c => c !== 'Observation');
     changed = true;
@@ -554,7 +641,6 @@ function initTableShowCols() {
     if (!(col in state.tableShowCols)) state.tableShowCols[col] = true;
   });
   // Keep permanent columns visible
-  state.tableShowCols['Thumbnail'] = true;
   state.tableShowCols[IMAGE_TAG_COLUMN] = true;
   renderColVisPanel();
 }
@@ -578,7 +664,6 @@ function renderColVisPanel() {
   btnAll.addEventListener('click',  () => { allCols.forEach(c => { state.tableShowCols[c] = true;  }); renderColVisPanel(); renderTable(); });
   btnNone.addEventListener('click', () => {
     allCols.forEach(c => { state.tableShowCols[c] = false; });
-    state.tableShowCols['Thumbnail'] = true;
     state.tableShowCols[IMAGE_TAG_COLUMN] = true;
     renderColVisPanel();
     renderTable();
@@ -592,7 +677,7 @@ function renderColVisPanel() {
     allCols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
       const lbl = document.createElement('label'); lbl.className = 'head-checkbox'; lbl.style.padding = '3px 0';
       const chk = document.createElement('input'); chk.type = 'checkbox';
-      const isPermanent = (String(col).toLowerCase() === 'thumbnail' || String(col).toLowerCase() === String(IMAGE_TAG_COLUMN).toLowerCase());
+      const isPermanent = (String(col).toLowerCase() === String(IMAGE_TAG_COLUMN).toLowerCase());
       chk.checked = isPermanent ? true : (state.tableShowCols[col] !== false);
       chk.disabled = isPermanent;
       chk.addEventListener('change', () => {
@@ -2522,15 +2607,17 @@ async function importRawCsv(file) {
   const fd = new FormData();
   fd.append('file', file);
   try {
-    showToast('Consolidating raw fills...', '');
+    showToast('Consolidating Zerodha today CSV...', '');
     const res  = await fetch('/api/import-raw-csv', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
-    state.trades  = data.trades  || [];
-    state.columns = data.columns || [];
+    const imported = (data.trades || []).map(normalizeStructuredTradeRow);
+    const mergedResult = mergeStructuredTrades(state.trades, imported);
+    state.trades = mergedResult.merged;
+    state.columns = Array.from(new Set([...(state.columns || []), ...UNIFIED_STRUCTURED_COLUMNS]));
     state.allTags = data.allTags || state.allTags || [];
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
-    state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    state.userColumns = Array.isArray(state.userColumns) ? state.userColumns : [];
     ensurePermanentColumns();
     syncTagColumnRegistry();
     syncImageTagColumnValues();
@@ -2541,9 +2628,39 @@ async function importRawCsv(file) {
     initTableShowCols();
     await saveTrades();
     render();
-    showToast('Raw CSV consolidated successfully!', 'success');
+    showToast(`Zerodha Today CSV merged: ${mergedResult.added} new trade(s)`, 'success');
   } catch(e) {
-    showToast('Raw CSV import failed', 'error');
+    showToast('Zerodha Today CSV import failed', 'error');
+  }
+}
+
+async function importHistoricalCsv(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    showToast('Consolidating Zerodha historical CSV...', '');
+    const res  = await fetch('/api/import-historical-csv', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { showToast(data.error, 'error'); return; }
+    const imported = (data.trades || []).map(normalizeStructuredTradeRow);
+    const mergedResult = mergeStructuredTrades(state.trades, imported);
+    state.trades = mergedResult.merged;
+    state.columns = Array.from(new Set([...(state.columns || []), ...UNIFIED_STRUCTURED_COLUMNS]));
+    state.allTags = data.allTags || state.allTags || [];
+    state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
+    state.userColumns = Array.isArray(state.userColumns) ? state.userColumns : [];
+    ensurePermanentColumns();
+    syncTagColumnRegistry();
+    syncImageTagColumnValues();
+    state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
+    migrateLegacyTagsData();
+    initShowHeads();
+    initTableShowCols();
+    await saveTrades();
+    render();
+    showToast(`Historical CSV merged: ${mergedResult.added} new trade(s)`, 'success');
+  } catch(e) {
+    showToast('Historical CSV import failed', 'error');
   }
 }
 
@@ -2608,7 +2725,7 @@ async function exportStructuredCsv() {
     const res = await fetch('/api/export-structured-csv', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ trades: state.trades })
+      body: JSON.stringify({ trades: state.trades, columns: state.columns })
     });
     if (!res.ok) { showToast('Structured export failed', 'error'); return; }
     const blob = await res.blob();
@@ -2716,6 +2833,8 @@ function bindEvents() {
   document.getElementById('excel-input').addEventListener('change', e => { if (e.target.files[0]) importExcel(e.target.files[0]); e.target.value=''; });
   document.getElementById('import-raw-csv-btn').addEventListener('click', () => document.getElementById('raw-csv-input').click());
   document.getElementById('raw-csv-input').addEventListener('change', e => { if (e.target.files[0]) importRawCsv(e.target.files[0]); e.target.value=''; });
+  document.getElementById('import-historical-csv-btn').addEventListener('click', () => document.getElementById('historical-csv-input').click());
+  document.getElementById('historical-csv-input').addEventListener('change', e => { if (e.target.files[0]) importHistoricalCsv(e.target.files[0]); e.target.value=''; });
   document.getElementById('export-btn').addEventListener('click', exportExcel);
   document.getElementById('export-structured-csv-btn').addEventListener('click', exportStructuredCsv);
   document.getElementById('backup-btn').addEventListener('click', backupJson);
