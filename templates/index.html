@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Journal</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="logo">
+      <span class="logo-icon">&#9650;</span>
+      <span class="logo-text">Trading Journal</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- â”€â”€ CALENDAR SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <section class="section calendar-section">
+      <div class="section-header">
+        <div class="calendar-nav">
+          <button class="nav-arrow" id="prev-month">&#8249;</button>
+          <select id="month-select" class="select-box"></select>
+          <select id="year-select" class="select-box"></select>
+          <button class="nav-arrow" id="next-month">&#8250;</button>
+          <button class="btn btn-outline" id="today-btn">Today</button>
+        </div>
+        <div class="show-heads-wrapper">
+          <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
+          <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
+          <div class="show-heads-panel" id="show-heads-panel">
+            <p class="panel-hint">Import Excel to see columns</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="calendar-container">
+        <div class="calendar-weekdays">
+          <div>Mon</div><div>Tue</div><div>Wed</div>
+          <div>Thu</div><div>Fri</div>
+          <div class="weekend">Sat</div><div class="weekend">Sun</div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </section>
+
+    <!-- â”€â”€ TRADE TABLE SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <section class="section table-section">
+      <div class="section-header">
+        <h2 class="section-title">Trade Table</h2>
+        <div class="table-header-actions">
+
+          <!-- Column Visibility -->
+          <div class="dropdown-wrapper" id="col-vis-wrapper">
+            <button class="btn btn-outline" id="col-vis-btn">Columns &#9660;</button>
+            <div class="dropdown-menu col-vis-panel" id="col-vis-panel">
+              <p class="panel-hint" style="margin:8px">Import Excel first</p>
+            </div>
+          </div>
+
+          <!-- Tag Filter -->
+          <div class="dropdown-wrapper">
+            <button class="btn btn-outline" id="tag-filter-btn">&#127991; Tags &#9660;</button>
+            <div class="dropdown-menu tag-filter-panel" id="tag-filter-panel">
+              <p class="panel-hint" style="padding:10px 8px">No tags yet.<br>Add via Tags column.</p>
+            </div>
+          </div>
+
+          <!-- Filter toggle -->
+          <button class="btn btn-outline" id="filter-toggle-btn">&#9906; Filter</button>
+
+          <!-- Add dropdown -->
+          <div class="dropdown-wrapper">
+            <button class="btn btn-outline" id="add-dropdown-btn">+ Add &#9660;</button>
+            <div class="dropdown-menu" id="add-dropdown-menu">
+              <button class="dropdown-item" id="add-row-btn">+ Add Row</button>
+              <button class="dropdown-item" id="add-tag-col-btn">+ Add Tag Column</button>
+              <button class="dropdown-item" id="add-col-btn">+ Add Column</button>
+              <button class="dropdown-item" id="edit-col-btn">&#9998; Edit Column</button>
+            </div>
+          </div>
+
+          <!-- File dropdown -->
+          <div class="dropdown-wrapper">
+            <button class="btn btn-primary" id="file-dropdown-btn">&#128193; File &#9660;</button>
+            <div class="dropdown-menu" id="file-dropdown-menu">
+              <button class="dropdown-item" id="import-btn">&#8679; Import Excel</button>
+              <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" />
+              <button class="dropdown-item" id="import-raw-csv-btn">&#8679; Import Raw CSV (Consolidate)</button>
+              <input type="file" id="raw-csv-input" accept=".csv,text/csv" style="display:none" />
+              <button class="dropdown-item" id="export-btn">&#8681; Export Excel</button>
+              <button class="dropdown-item" id="export-structured-csv-btn">&#8681; Export Structured CSV</button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" id="backup-btn">&#128190; Backup JSON</button>
+              <button class="dropdown-item" id="restore-btn">&#8635; Restore from JSON</button>
+              <input type="file" id="json-input" accept=".json" style="display:none" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="trade-table" id="trade-table">
+          <colgroup id="table-colgroup"></colgroup>
+          <thead><tr id="table-head-row"></tr><tr id="filter-row" class="filter-row hidden"></tr></thead>
+          <tbody id="table-body"></tbody>
+          <tfoot><tr id="table-foot-row"></tr></tfoot>
+        </table>
+        <div class="table-empty" id="table-empty">Import an Excel file or add rows to get started</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- â”€â”€ SETTINGS PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="settings-overlay" id="settings-overlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <span class="settings-title">&#9881; Settings</span>
+        <button class="close-btn" id="settings-close">&#10005;</button>
+      </div>
+      <div class="settings-body">
+
+        <div class="settings-group">
+          <div class="settings-group-title">Calendar â€” Day Number</div>
+          <div class="settings-row">
+            <label>Size</label>
+            <select class="select-box" id="s-day-size">
+              <option value="H1">H1 â€” 1.4rem</option>
+              <option value="H2">H2 â€” 1.1rem</option>
+              <option value="H3" selected>H3 â€” 0.9rem</option>
+              <option value="H4">H4 â€” 0.75rem</option>
+              <option value="H5">H5 â€” 0.62rem</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Bold</label>
+            <input type="checkbox" id="s-day-bold" class="settings-chk" checked />
+          </div>
+          <div class="settings-row">
+            <label>Position</label>
+            <select class="select-box" id="s-day-pos">
+              <option value="top-left" selected>Top Left</option>
+              <option value="top-center">Top Center</option>
+              <option value="top-right">Top Right</option>
+              <option value="bottom-left">Bottom Left</option>
+              <option value="bottom-right">Bottom Right</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Calendar â€” Data Text</div>
+          <div class="settings-row">
+            <label>Size</label>
+            <select class="select-box" id="s-data-size">
+              <option value="H1">H1 â€” 1.4rem</option>
+              <option value="H2">H2 â€” 1.1rem</option>
+              <option value="H3">H3 â€” 0.9rem</option>
+              <option value="H4" selected>H4 â€” 0.75rem</option>
+              <option value="H5">H5 â€” 0.62rem</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Bold Values</label>
+            <input type="checkbox" id="s-data-bold" class="settings-chk" />
+          </div>
+          <div class="settings-row">
+            <label>Show Labels</label>
+            <input type="checkbox" id="s-show-labels" class="settings-chk" checked />
+            <span class="settings-hint">e.g. "Profit: 200"</span>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Calendar â€” Cell</div>
+          <div class="settings-row">
+            <label>Cell Height</label>
+            <select class="select-box" id="s-cell-height">
+              <option value="compact">Compact â€” 70px</option>
+              <option value="normal" selected>Normal â€” 100px</option>
+              <option value="spacious">Spacious â€” 140px</option>
+              <option value="roomy">Roomy â€” 180px</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Preview</div>
+          <div class="settings-preview">
+            <div class="preview-day-num" id="prev-day-num">25</div>
+            <div class="preview-data-item">Profit: +1,200</div>
+            <div class="preview-data-item">Trade: 3</div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Preview Shortcuts</div>
+          <div class="settings-row">
+            <label>Pen</label>
+            <input type="text" id="sc-pen" class="shortcut-input" />
+          </div>
+          <div class="settings-row">
+            <label>Image Import</label>
+            <input type="text" id="sc-image" class="shortcut-input" />
+          </div>
+          <div class="settings-row">
+            <label>Eraser</label>
+            <input type="text" id="sc-eraser" class="shortcut-input" />
+          </div>
+          <div class="settings-row">
+            <label>Date Picker</label>
+            <input type="text" id="sc-date" class="shortcut-input" />
+          </div>
+          <div class="settings-row">
+            <label>Merge &amp; Save</label>
+            <input type="text" id="sc-merge" class="shortcut-input" />
+          </div>
+          <div class="settings-row">
+            <label>Overlay Save</label>
+            <input type="text" id="sc-overlay" class="shortcut-input" />
+          </div>
+          <div class="settings-row">
+            <label>Shift + Left/Right</label>
+            <span class="settings-hint">Date backward/forward</span>
+          </div>
+          <div class="settings-row">
+            <label>Alt + T</label>
+            <span class="settings-hint">Open Image Tag menu</span>
+          </div>
+          <div class="settings-row">
+            <label>Left/Right</label>
+            <span class="settings-hint">Previous/next image</span>
+          </div>
+          <div class="settings-row">
+            <label>A</label>
+            <span class="settings-hint">Toggle annotation mode</span>
+          </div>
+          <div class="settings-row">
+            <label>R</label>
+            <span class="settings-hint">Reset image zoom</span>
+          </div>
+          <div class="settings-row">
+            <label>Esc</label>
+            <span class="settings-hint">Close active popup/modal</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary s-apply-btn" id="s-apply">Apply</button>
+        <button class="btn btn-outline s-apply-btn" id="s-reset">Reset to Default</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- â”€â”€ OBSERVATION MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="modal-overlay" id="obs-modal">
+    <div class="modal-content obs-modal-content">
+
+      <!-- Header: date + nav -->
+      <div class="modal-header obs-modal-header">
+        <div class="obs-date-nav">
+          <button class="gallery-date-arrow" id="obs-date-prev" title="Previous">&#8249;</button>
+          <span class="obs-modal-date" id="obs-modal-date"></span>
+          <button class="gallery-date-arrow" id="obs-date-next" title="Next">&#8250;</button>
+          <input type="date" id="obs-date-picker" class="gallery-date-picker" title="Jump to date" />
+          <label class="obs-nav-toggle" title="Navigate only dates that have data">
+            <input type="checkbox" id="obs-data-only" checked /> Data only
+          </label>
+        </div>
+        <button class="close-btn" id="obs-close">&#10005;</button>
+      </div>
+
+      <!-- Toolbar row 1: text formatting -->
+      <div class="obs-toolbar">
+        <button class="obs-tool" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button class="obs-tool" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button class="obs-tool" data-cmd="underline" title="Underline"><u>U</u></button>
+        <div class="obs-tool-sep"></div>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="h1" title="H1">H1</button>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="h2" title="H2">H2</button>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="h3" title="H3">H3</button>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="h4" title="H4">H4</button>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="h5" title="H5">H5</button>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="p" title="Normal">Â¶</button>
+        <div class="obs-tool-sep"></div>
+        <input type="number" id="obs-custom-size" class="obs-size-input" min="6" max="96" placeholder="px" title="Custom font size" />
+        <button class="obs-tool" id="obs-apply-size" title="Apply size">Aâ†•</button>
+        <div class="obs-tool-sep"></div>
+        <button class="obs-tool" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
+        <button class="obs-tool" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+        <div class="obs-tool-sep"></div>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#3fb950" title="Green" style="color:#3fb950">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#f85149" title="Red"   style="color:#f85149">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#58a6ff" title="Blue"  style="color:#58a6ff">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#d29922" title="Orange" style="color:#d29922">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#bc8cff" title="Purple" style="color:#bc8cff">&#9679;</button>
+        <div class="obs-tool-sep"></div>
+        <button class="obs-tool" id="obs-insert-img" title="Insert image">&#128247;</button>
+        <input type="file" id="obs-img-input" accept="image/*" style="display:none" />
+        <button class="obs-tool" id="obs-insert-link" title="Insert link">&#128279;</button>
+        <div class="obs-tool-sep"></div>
+        <button class="obs-tool" data-cmd="removeFormat" title="Clear formatting">&#10005; Clear</button>
+      </div>
+
+      <div class="obs-editor" id="obs-editor" contenteditable="true" spellcheck="false"></div>
+
+      <div class="obs-footer">
+        <button class="btn btn-outline" id="obs-cancel">Cancel</button>
+        <button class="btn btn-primary" id="obs-save">&#10003; Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- â”€â”€ ADD COLUMN MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="modal-overlay" id="add-col-modal">
+    <div class="modal-content" style="width:360px">
+      <div class="modal-header">
+        <span>Add New Column</span>
+        <button class="close-btn" id="add-col-close">&#10005;</button>
+      </div>
+      <div style="padding:16px">
+        <input type="text" id="new-col-name" class="col-name-input" placeholder="Column name (e.g. Setup, Notes, RR)" />
+      </div>
+      <div class="upload-actions">
+        <button class="btn btn-outline" id="add-col-cancel">Cancel</button>
+        <button class="btn btn-primary" id="add-col-confirm">Add Column</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EDIT COLUMN MODAL ────────────────────── -->
+  <div class="modal-overlay" id="edit-col-modal">
+    <div class="modal-content" style="width:380px">
+      <div class="modal-header">
+        <span>Edit Column Name</span>
+        <button class="close-btn" id="edit-col-close">&#10005;</button>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+        <select id="edit-col-select" class="select-box"></select>
+        <input type="text" id="edit-col-name" class="col-name-input" placeholder="New column name" />
+      </div>
+      <div class="upload-actions">
+        <button class="btn btn-outline" id="edit-col-delete">Delete Column</button>
+        <button class="btn btn-outline" id="edit-col-cancel">Cancel</button>
+        <button class="btn btn-primary" id="edit-col-confirm">Save Name</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- â”€â”€ IMAGE GALLERY MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="modal-overlay" id="gallery-modal">
+    <div class="modal-content gallery-modal-content">
+      <div class="modal-header gallery-modal-header">
+        <div class="gallery-date-nav">
+          <button class="gallery-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
+          <div class="gallery-date-info">
+            <span class="gallery-date" id="gallery-date"></span>
+            <input type="date" id="gallery-date-picker" class="gallery-date-picker" title="Jump to date" />
+          </div>
+          <button class="gallery-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
+        </div>
+        <div class="gallery-header-right">
+          <span class="zoom-hint">Scroll:zoom &nbsp;|&nbsp; Drag:pan &nbsp;|&nbsp; Dbl:reset</span>
+          <button class="btn btn-outline" id="gallery-tag-btn" title="Add tag to current image">&#127991; Img Tag</button>
+          <button class="btn btn-outline" id="gallery-upload-btn" title="Upload image to this date" style="display:none">&#43; Image</button>
+          <button class="btn btn-outline annot-toggle-btn" id="annot-toggle-btn" title="Annotate image">&#9998; Annotate</button>
+          <button class="close-btn" id="gallery-close">&#10005;</button>
+        </div>
+      </div>
+
+      <!-- â”€â”€ ANNOTATION TOOLBAR (hidden until active) â”€â”€ -->
+      <div class="annot-toolbar" id="annot-toolbar" style="display:none">
+        <button class="annot-tool active" id="annot-pen" title="Pen">&#9998; Pen</button>
+        <button class="annot-tool" id="annot-highlight" title="Highlight">&#9670; Highlight</button>
+        <button class="annot-tool" id="annot-eraser" title="Eraser">&#9003; Eraser</button>
+        <div class="annot-sep"></div>
+        <input type="color" id="annot-color" value="#f85149" class="annot-color-input" title="Color" />
+        <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range" title="Brush size" />
+        <span id="annot-size-label" class="annot-size-label">3px</span>
+        <div class="annot-sep"></div>
+        <button class="annot-tool" id="annot-undo" title="Undo last stroke">&#8617; Undo</button>
+        <button class="annot-tool" id="annot-clear" title="Clear all annotations">&#10005; Clear</button>
+        <div class="annot-sep"></div>
+        <button class="btn btn-outline annot-save-btn" id="annot-save-overlay" title="Save annotation as overlay (original untouched)">&#128190; Overlay</button>
+        <button class="btn btn-primary annot-save-btn" id="annot-save-merge" title="Merge annotation into image permanently">&#8681; Merge &amp; Save</button>
+      </div>
+
+      <div class="gallery-main" id="gallery-main">
+        <button class="gallery-nav-btn" id="gallery-prev">&#8249;</button>
+        <div class="gallery-img-wrapper" id="gallery-img-wrapper">
+          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
+          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
+        </div>
+        <button class="gallery-nav-btn" id="gallery-next">&#8250;</button>
+      </div>
+      <div class="gallery-footer">
+        <div class="gallery-counter" id="gallery-counter"></div>
+        <div class="gallery-image-tags" id="gallery-image-tags"></div>
+        <div class="gallery-thumbnails" id="gallery-thumbs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- â”€â”€ IMAGE UPLOAD MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="modal-overlay" id="upload-modal">
+    <div class="modal-content upload-modal-content">
+      <div class="modal-header">
+        <span id="upload-modal-title">Upload Images</span>
+        <button class="close-btn" id="upload-close">&#10005;</button>
+      </div>
+      <div class="upload-drop-zone" id="upload-drop-zone">
+        <div class="drop-icon">&#128247;</div>
+        <p>Drop images here or <span class="upload-label" id="upload-browse-label">browse</span></p>
+        <input type="file" id="image-file-input" multiple accept="image/*" style="display:none" />
+      </div>
+      <div class="upload-preview" id="upload-preview"></div>
+      <div class="upload-actions">
+        <button class="btn btn-outline" id="upload-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="upload-done-btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- â”€â”€ TAG PICKER MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="modal-overlay" id="tag-modal">
+    <div class="modal-content tag-modal-content">
+      <div class="modal-header">
+        <span id="tag-modal-title">Tags</span>
+        <button class="close-btn" id="tag-picker-close-x">&#10005;</button>
+      </div>
+      <input type="text" id="tag-picker-inp" class="tag-picker-inp" placeholder="Search or create tag..." />
+      <div id="tag-picker-list" class="tag-picker-list"></div>
+      <div class="tag-picker-footer">
+        <button class="btn btn-outline" id="tag-picker-close-btn" style="width:100%;font-size:0.78rem;padding:5px">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Tag Manager Modal -->
+  <div class="modal-overlay" id="img-tag-modal">
+    <div class="modal-content tag-modal-content">
+      <div class="modal-header">
+        <span>Image Tags</span>
+        <button class="close-btn" id="img-tag-close-x">&#10005;</button>
+      </div>
+      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+        <div class="panel-manage-label" style="margin-bottom:6px">Current Image</div>
+        <div id="img-tag-current-list" class="panel-list" style="max-height:180px"></div>
+      </div>
+      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+        <div class="panel-manage-label" style="margin-bottom:6px">Create Tag</div>
+        <div style="display:flex; gap:6px">
+          <input type="text" id="img-tag-new-name" class="tag-picker-inp" placeholder="New tag name..." style="border:1px solid var(--border2); border-radius:6px; padding:7px 9px" />
+          <button class="btn btn-primary" id="img-tag-add-btn" style="padding:6px 10px">Add</button>
+        </div>
+      </div>
+      <div style="padding:10px 12px">
+        <div class="panel-manage-label" style="margin-bottom:6px">Manage Tags</div>
+        <div id="img-tag-manage-list" class="panel-list" style="max-height:190px"></div>
+      </div>
+      <div class="tag-picker-footer">
+        <button class="btn btn-outline" id="img-tag-close-btn" style="width:100%;font-size:0.78rem;padding:5px">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+

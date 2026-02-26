@@ -1,0 +1,447 @@
+from flask import Flask, request, jsonify, render_template, send_file
+import pandas as pd
+import json
+import os
+import io
+import uuid
+from datetime import datetime
+import re
+
+app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, 'data', 'trades.json')
+UPLOADS_DIR = os.path.join(BASE_DIR, 'static', 'uploads')
+
+os.makedirs(os.path.join(BASE_DIR, 'data'), exist_ok=True)
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+STRUCTURED_COLUMNS = [
+    'Instrument',
+    'TradeType',
+    'Date',
+    'Qty',
+    'Sell Time',
+    'Sell Price',
+    'Buy Time',
+    'Buy Price',
+    'Pt',
+    'Rs'
+]
+
+
+def load_trades():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {'trades': [], 'columns': ['Date', 'Profit', 'Trade']}
+
+
+def save_trades_to_file(data):
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def _format_float(value, digits=6):
+    """Convert numeric values to clean JSON-friendly floats/ints."""
+    v = float(value)
+    return int(v) if v.is_integer() else round(v, digits)
+
+
+def _dt_to_str(dt_value):
+    return dt_value.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _date_to_str(dt_value):
+    return dt_value.strftime('%Y-%m-%d')
+
+
+def _time_to_str(dt_value):
+    return dt_value.strftime('%H:%M:%S')
+
+
+def consolidate_raw_fills(raw_df):
+    """
+    Consolidate split order fills into completed trades.
+
+    Rules implemented:
+    - Group by Instrument
+    - Sort by Fill time ascending
+    - Detect entry side from first fill in cycle (SELL short / BUY long)
+    - Use quantity matching to close only completed cycles
+    - Entry avg / Exit avg use weighted average by quantity
+    """
+    required = ['Trade ID', 'Fill time', 'Type', 'Instrument', 'Product', 'Qty.', 'Avg. Price']
+    missing = [c for c in required if c not in raw_df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {', '.join(missing)}")
+
+    df = raw_df.copy()
+    df.columns = [str(c).strip() for c in df.columns]
+    df['Type'] = df['Type'].astype(str).str.strip().str.upper()
+    df = df[df['Type'].isin(['BUY', 'SELL'])].copy()
+    df['Qty.'] = pd.to_numeric(df['Qty.'], errors='coerce')
+    df['Avg. Price'] = pd.to_numeric(df['Avg. Price'], errors='coerce')
+    df['Fill time'] = pd.to_datetime(df['Fill time'], errors='coerce')
+    df['Instrument'] = df['Instrument'].astype(str).str.strip()
+    df = df.dropna(subset=['Fill time', 'Qty.', 'Avg. Price', 'Instrument'])
+    df = df[df['Qty.'] > 0].copy()
+
+    sort_cols = ['Instrument', 'Fill time']
+    if 'Trade ID' in df.columns:
+        sort_cols.append('Trade ID')
+    df = df.sort_values(sort_cols, ascending=True)
+
+    consolidated_rows = []
+
+    for instrument, g in df.groupby('Instrument', sort=True):
+        cycle = None
+
+        for _, row in g.iterrows():
+            side = row['Type']
+            price = float(row['Avg. Price'])
+            fill_time = row['Fill time']
+            remaining_qty = float(row['Qty.'])
+
+            while remaining_qty > 1e-12:
+                if cycle is None:
+                    cycle = {
+                        'instrument': instrument,
+                        'entry_side': side,
+                        'entry_qty': remaining_qty,
+                        'entry_notional': remaining_qty * price,
+                        'entry_time': fill_time,
+                        'exit_qty': 0.0,
+                        'exit_notional': 0.0,
+                        'exit_time': None
+                    }
+                    remaining_qty = 0.0
+                    continue
+
+                # Same side as entry -> scale into entry leg
+                if side == cycle['entry_side']:
+                    cycle['entry_qty'] += remaining_qty
+                    cycle['entry_notional'] += remaining_qty * price
+                    remaining_qty = 0.0
+                    continue
+
+                # Opposite side -> close existing position
+                open_qty = cycle['entry_qty'] - cycle['exit_qty']
+                close_qty = min(open_qty, remaining_qty)
+                cycle['exit_qty'] += close_qty
+                cycle['exit_notional'] += close_qty * price
+                cycle['exit_time'] = fill_time
+                remaining_qty -= close_qty
+
+                # Completed cycle only when fully quantity-matched
+                if abs(cycle['entry_qty'] - cycle['exit_qty']) <= 1e-9:
+                    qty = cycle['entry_qty']
+                    entry_avg = cycle['entry_notional'] / qty
+                    exit_avg = cycle['exit_notional'] / qty
+
+                    if cycle['entry_side'] == 'SELL':
+                        sell_time = cycle['entry_time']
+                        sell_price = entry_avg
+                        buy_time = cycle['exit_time']
+                        buy_price = exit_avg
+                    else:
+                        buy_time = cycle['entry_time']
+                        buy_price = entry_avg
+                        sell_time = cycle['exit_time']
+                        sell_price = exit_avg
+
+                    pt = sell_price - buy_price
+                    rs = pt * qty
+
+                    consolidated_rows.append({
+                        'Instrument': cycle['instrument'],
+                        'TradeType': cycle['entry_side'],
+                        'Date': _date_to_str(sell_time),
+                        'Qty': _format_float(qty, 6),
+                        'Sell Time': _time_to_str(sell_time),
+                        'Sell Price': _format_float(sell_price, 6),
+                        'Buy Time': _time_to_str(buy_time),
+                        'Buy Price': _format_float(buy_price, 6),
+                        'Pt': _format_float(pt, 6),
+                        'Rs': _format_float(rs, 6)
+                    })
+                    cycle = None
+
+    result = pd.DataFrame(consolidated_rows, columns=STRUCTURED_COLUMNS)
+    if not result.empty:
+        result['_sell_dt'] = pd.to_datetime(
+            result['Date'].astype(str) + ' ' + result['Sell Time'].astype(str),
+            errors='coerce'
+        )
+        result = result.sort_values('_sell_dt').drop(columns=['_sell_dt'])
+    return result
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/api/trades', methods=['GET'])
+def get_trades():
+    return jsonify(load_trades())
+
+
+@app.route('/api/trades', methods=['POST'])
+def post_trades():
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data'}), 400
+    save_trades_to_file(data)
+    return jsonify({'success': True})
+
+
+@app.route('/api/import-excel', methods=['POST'])
+def import_excel():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+
+    try:
+        file_bytes = file.read()
+
+        # Try default read first
+        df = pd.read_excel(io.BytesIO(file_bytes), engine='openpyxl')
+
+        # Count unnamed columns
+        unnamed = sum(1 for c in df.columns if str(c).startswith('Unnamed:'))
+
+        # If most columns are unnamed, try skiprows=1
+        if unnamed > len(df.columns) / 2:
+            df2 = pd.read_excel(io.BytesIO(file_bytes), engine='openpyxl', skiprows=1)
+            unnamed2 = sum(1 for c in df2.columns if str(c).startswith('Unnamed:'))
+            if unnamed2 < unnamed:
+                df = df2
+
+        # Drop fully-unnamed columns (blank headers)
+        named_cols = [c for c in df.columns if not str(c).startswith('Unnamed:')]
+        df = df[named_cols]
+
+        # Drop completely empty rows
+        df = df.dropna(how='all')
+
+        # Clean column names
+        df.columns = [str(c).strip() for c in df.columns]
+
+    except Exception as e:
+        return jsonify({'error': f'Excel read error: {str(e)}'}), 400
+
+    # Preserve existing images
+    existing = load_trades()
+    existing_by_date = {t.get('date', ''): t for t in existing.get('trades', [])}
+
+    columns = list(df.columns)
+    trades = []
+
+    for _, row in df.iterrows():
+        trade = {}
+        for col in columns:
+            val = row[col]
+            if pd.isna(val):
+                trade[col] = ''
+            elif hasattr(val, 'strftime'):
+                trade[col] = val.strftime('%Y-%m-%d')
+            elif isinstance(val, float):
+                trade[col] = int(val) if val == int(val) else round(val, 6)
+            else:
+                trade[col] = val
+
+        # Find date key
+        date_key = ''
+        for col in columns:
+            if 'date' in col.lower():
+                date_key = str(trade.get(col, ''))
+                break
+
+        trade['date'] = date_key
+
+        if date_key in existing_by_date:
+            trade['images'] = existing_by_date[date_key].get('images', [])
+        else:
+            trade['images'] = []
+
+        trades.append(trade)
+
+    return jsonify({'trades': trades, 'columns': columns})
+
+
+@app.route('/api/import-json', methods=['POST'])
+def import_json():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    file = request.files['file']
+    try:
+        data = json.load(file)
+        if 'trades' not in data:
+            return jsonify({'error': 'Invalid backup file'}), 400
+        save_trades_to_file(data)
+        return jsonify({'success': True, 'trades': data.get('trades', []), 'columns': data.get('columns', [])})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@app.route('/api/import-raw-csv', methods=['POST'])
+def import_raw_csv():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+
+    try:
+        df = pd.read_csv(file)
+        structured_df = consolidate_raw_fills(df)
+    except Exception as e:
+        return jsonify({'error': f'CSV processing error: {str(e)}'}), 400
+
+    trades = []
+    for row in structured_df.to_dict(orient='records'):
+        trade = dict(row)
+        trade['date'] = str(trade.get('Date', ''))
+        trade['images'] = []
+        trades.append(trade)
+
+    return jsonify({
+        'trades': trades,
+        'columns': STRUCTURED_COLUMNS
+    })
+
+
+@app.route('/api/upload-image', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image'}), 400
+
+    file = request.files['image']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+
+    allowed = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed:
+        return jsonify({'error': f'Invalid file type: {ext}'}), 400
+
+    filename = f"{uuid.uuid4()}{ext}"
+    filepath = os.path.join(UPLOADS_DIR, filename)
+    file.save(filepath)
+
+    return jsonify({
+        'url': f'/static/uploads/{filename}',
+        'filename': filename
+    })
+
+
+@app.route('/api/delete-image', methods=['POST'])
+def delete_image():
+    data = request.json or {}
+    filename = os.path.basename(data.get('filename', ''))
+    if filename:
+        filepath = os.path.join(UPLOADS_DIR, filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    return jsonify({'success': True})
+
+
+@app.route('/api/backup', methods=['GET'])
+def backup():
+    if os.path.exists(DATA_FILE):
+        requested_name = str(request.args.get('name', '')).strip()
+        safe_name = re.sub(r'[^A-Za-z0-9_\- ]+', '', requested_name).strip()
+        if safe_name:
+            filename = safe_name if safe_name.lower().endswith('.json') else f'{safe_name}.json'
+        else:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'trading_journal_{timestamp}.json'
+        return send_file(
+            DATA_FILE,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/json'
+        )
+    return jsonify({'error': 'No data to backup'}), 404
+
+
+@app.route('/api/export-excel', methods=['POST'])
+def export_excel():
+    data = request.json or {}
+    trades  = data.get('trades', [])
+    columns = data.get('columns', [])
+
+    if not trades:
+        return jsonify({'error': 'No data to export'}), 400
+
+    rows = []
+    for trade in trades:
+        row = {}
+        for col in columns:
+            row[col] = trade.get(col, '')
+        rows.append(row)
+
+    df = pd.DataFrame(rows, columns=columns if columns else None)
+
+    # Style the Excel output
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Trades')
+        ws = writer.sheets['Trades']
+
+        # Auto-fit column widths
+        for col_cells in ws.columns:
+            max_len = max((len(str(c.value)) if c.value else 0) for c in col_cells)
+            ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 4, 40)
+
+    output.seek(0)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f'trading_journal_{timestamp}.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
+@app.route('/api/export-structured-csv', methods=['POST'])
+def export_structured_csv():
+    data = request.json or {}
+    trades = data.get('trades', [])
+
+    if not trades:
+        return jsonify({'error': 'No data to export'}), 400
+
+    rows = []
+    for trade in trades:
+        row = {}
+        for col in STRUCTURED_COLUMNS:
+            row[col] = trade.get(col, '')
+        rows.append(row)
+
+    df = pd.DataFrame(rows, columns=STRUCTURED_COLUMNS)
+    output = io.StringIO()
+    df.to_csv(output, index=False)
+    mem = io.BytesIO(output.getvalue().encode('utf-8'))
+    mem.seek(0)
+
+    return send_file(
+        mem,
+        as_attachment=True,
+        download_name='structured_trades.csv',
+        mimetype='text/csv'
+    )
+
+
+if __name__ == '__main__':
+    print("=" * 50)
+    print("  Trading Journal — Starting Server")
+    print("  Open: http://localhost:5000")
+    print("=" * 50)
+    app.run(debug=True, port=5000)

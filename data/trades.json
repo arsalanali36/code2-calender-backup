@@ -1,0 +1,221 @@
+{
+  "trades": [
+    {
+      "Buy Price": 127.75,
+      "Buy Time": "09:37:14",
+      "Date": "2026-02-26",
+      "ExitType": [
+        "Panic"
+      ],
+      "Image Tags": "",
+      "Instrument": "NIFTY2630225550PE",
+      "Pt": -0.05,
+      "Qty": 130,
+      "Rs": -6.5,
+      "Sell Price": 127.7,
+      "Sell Time": "09:36:40",
+      "Strategy": [
+        "Manual"
+      ],
+      "Thumbnail": "",
+      "TradeType": "SELL",
+      "date": "2026-02-26",
+      "imageTags": {},
+      "images": [],
+      "observation": "sadsadsaddsadsadsadsad"
+    },
+    {
+      "Buy Price": 110.35,
+      "Buy Time": "10:12:50",
+      "Date": "2026-02-26",
+      "ExitType": [
+        "Panic",
+        "Target",
+        "SL"
+      ],
+      "Image Tags": "chintu, chotu, dsd",
+      "Instrument": "NIFTY2630225550PE",
+      "Pt": 15.95,
+      "Qty": 130,
+      "Rs": 2073.5,
+      "Sell Price": 126.3,
+      "Sell Time": "10:03:10",
+      "Strategy": [
+        "Conti"
+      ],
+      "Thumbnail": "",
+      "TradeType": "SELL",
+      "date": "2026-02-26",
+      "imageTags": {
+        "/static/uploads/5fc6a0df-7266-45b3-a233-ed01f5dfebef.png": [
+          "dsd",
+          "chintu"
+        ],
+        "/static/uploads/d8ac69f8-3393-41fc-a3d8-9cd66c43657d.png": [
+          "dsd",
+          "chotu"
+        ]
+      },
+      "images": [
+        "/static/uploads/5fc6a0df-7266-45b3-a233-ed01f5dfebef.png",
+        "/static/uploads/d8ac69f8-3393-41fc-a3d8-9cd66c43657d.png"
+      ],
+      "observation": ""
+    },
+    {
+      "Buy Price": 119.5,
+      "Buy Time": "10:28:22",
+      "Date": "2026-02-26",
+      "ExitType": [],
+      "Image Tags": "",
+      "Instrument": "NIFTY2630225550PE",
+      "Pt": -5.05,
+      "Qty": 130,
+      "Rs": -656.5,
+      "Sell Price": 114.45,
+      "Sell Time": "10:27:32",
+      "Strategy": [
+        "Random"
+      ],
+      "Thumbnail": "",
+      "TradeType": "SELL",
+      "date": "2026-02-26",
+      "imageTags": {},
+      "images": [],
+      "observation": ""
+    },
+    {
+      "Buy Price": 130.55,
+      "Buy Time": "10:47:45",
+      "Date": "2026-02-26",
+      "ExitType": [],
+      "Image Tags": "thumbnail",
+      "Instrument": "NIFTY2630225550CE",
+      "Pt": -3.95,
+      "Qty": 130,
+      "Rs": -513.5,
+      "Sell Price": 126.6,
+      "Sell Time": "10:28:34",
+      "Strategy": [],
+      "Thumbnail": "",
+      "TradeType": "SELL",
+      "date": "2026-02-26",
+      "imageTags": {
+        "/static/uploads/e99d8cba-7704-4e49-a497-b7cf083797ff.png": [
+          "thumbnail"
+        ]
+      },
+      "images": [
+        "/static/uploads/e99d8cba-7704-4e49-a497-b7cf083797ff.png"
+      ],
+      "observation": ""
+    },
+    {
+      "Buy Price": 119.85,
+      "Buy Time": "10:51:54",
+      "Date": "2026-02-26",
+      "ExitType": [],
+      "Image Tags": "",
+      "Instrument": "NIFTY2630225550PE",
+      "Pt": -4.05,
+      "Qty": 130,
+      "Rs": -526.5,
+      "Sell Price": 115.8,
+      "Sell Time": "10:47:54",
+      "Strategy": [],
+      "Thumbnail": "",
+      "TradeType": "SELL",
+      "date": "2026-02-26",
+      "imageTags": {},
+      "images": [],
+      "observation": ""
+    },
+    {
+      "Buy Price": 122.95,
+      "Buy Time": "11:18:17",
+      "Date": "2026-02-26",
+      "ExitType": [],
+      "Image Tags": "",
+      "Instrument": "NIFTY2630225550CE",
+      "Pt": -0.05,
+      "Qty": 130,
+      "Rs": -6.5,
+      "Sell Price": 122.9,
+      "Sell Time": "10:52:42",
+      "Strategy": [
+        "Reversal"
+      ],
+      "Thumbnail": "",
+      "TradeType": "SELL",
+      "date": "2026-02-26",
+      "imageTags": {},
+      "images": [],
+      "observation": ""
+    },
+    {
+      "Buy Price": "",
+      "Buy Time": "",
+      "Date": "2026-02-25",
+      "ExitType": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price": "",
+      "Sell Time": "",
+      "Strategy": "",
+      "Thumbnail": "",
+      "TradeType": "",
+      "date": "2026-02-26",
+      "imageTags": {},
+      "images": [],
+      "observation": ""
+    }
+  ],
+  "columns": [
+    "Instrument",
+    "TradeType",
+    "Date",
+    "Qty",
+    "Sell Time",
+    "Sell Price",
+    "Buy Time",
+    "Buy Price",
+    "Pt",
+    "Rs",
+    "Strategy",
+    "ExitType",
+    "Thumbnail",
+    "Image Tags"
+  ],
+  "allTags": [
+    "car",
+    "rat",
+    "Bat",
+    "Nifty",
+    "dsads",
+    "pp",
+    "dog",
+    "bat",
+    "happ",
+    "Conti",
+    "Reversal",
+    "Panic",
+    "Target",
+    "SL",
+    "Manual",
+    "dasd",
+    "Random",
+    "thumbnail",
+    "rr",
+    "dsd",
+    "chotu",
+    "chintu"
+  ],
+  "tagColumns": [
+    "Strategy",
+    "ExitType"
+  ],
+  "userColumns": []
+}
