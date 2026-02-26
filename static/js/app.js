@@ -25,7 +25,9 @@ const state = {
   tagColumns:   [],   // explicit list of tag columns (rename-safe)
   userColumns:  [],   // only these columns are deletable
   addTagColumnMode: false,
-  shortcuts:    {}
+  shortcuts:    {},
+  serverStateHash: '',
+  syncIntervalMs: 10000
 };
 
 // â”€â”€ ANNOTATION STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -81,6 +83,13 @@ async function init() {
   populateSelects();
   bindEvents();
   await loadTrades();
+  setInterval(() => {
+    if (!document.hidden) syncFromServerIfChanged(false);
+  }, state.syncIntervalMs);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncFromServerIfChanged(true);
+  });
+  window.addEventListener('focus', () => syncFromServerIfChanged(true));
 }
 
 function populateSelects() {
@@ -118,6 +127,7 @@ async function loadTrades() {
     syncImageTagColumnValues();
     if (ensuredChanged || migrated) saveTrades();
     syncAllTradeDates();
+    state.serverStateHash = hashServerState(data);
     initShowHeads();
     initTableShowCols();
     render();
@@ -132,17 +142,74 @@ function syncImageTagColumnValues() {
 
 async function saveTrades() {
   try {
+    const payload = {
+      trades: state.trades,
+      columns: state.columns,
+      allTags: state.allTags,
+      tagColumns: state.tagColumns,
+      userColumns: state.userColumns
+    };
     await fetch('/api/trades', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        trades: state.trades,
-        columns: state.columns,
-        allTags: state.allTags,
-        tagColumns: state.tagColumns,
-        userColumns: state.userColumns
-      })
+      body: JSON.stringify(payload)
     });
+    state.serverStateHash = hashServerState(payload);
   } catch(e) { showToast('Save failed','error'); }
+}
+
+function hashServerState(data) {
+  try {
+    return JSON.stringify({
+      trades: data?.trades || [],
+      columns: data?.columns || [],
+      allTags: data?.allTags || [],
+      tagColumns: data?.tagColumns || [],
+      userColumns: data?.userColumns || []
+    });
+  } catch(e) {
+    return '';
+  }
+}
+
+function isUiBusyForSync() {
+  const ae = document.activeElement;
+  const typing = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
+  if (typing) return true;
+  if (annotState.active) return true;
+  if (document.getElementById('obs-modal')?.classList.contains('open')) return true;
+  if (document.getElementById('upload-modal')?.classList.contains('open')) return true;
+  if (document.getElementById('tag-modal')?.classList.contains('open')) return true;
+  if (document.getElementById('img-tag-modal')?.classList.contains('open')) return true;
+  return false;
+}
+
+async function syncFromServerIfChanged(force = false) {
+  if (!force && isUiBusyForSync()) return;
+  try {
+    const res = await fetch('/api/trades');
+    if (!res.ok) return;
+    const data = await res.json();
+    const incomingHash = hashServerState(data);
+    if (!incomingHash || incomingHash === state.serverStateHash) return;
+
+    state.trades = data.trades || [];
+    state.columns = data.columns || [];
+    state.allTags = data.allTags || [];
+    IMAGE_PERMANENT_TAGS.forEach(t => { if (!state.allTags.includes(t)) state.allTags.push(t); });
+    state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : [];
+    state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    ensurePermanentColumns();
+    normalizeStructuredDateColumns();
+    syncTagColumnRegistry();
+    syncImageTagColumnValues();
+    state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
+    migrateLegacyTagsData();
+    syncAllTradeDates();
+    initShowHeads();
+    initTableShowCols();
+    state.serverStateHash = incomingHash;
+    render();
+  } catch(e) {}
 }
 
 function syncTagColumnRegistry() {
