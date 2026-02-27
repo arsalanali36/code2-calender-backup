@@ -4,56 +4,80 @@
 
 // â”€â”€ STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const state = {
-  year:         new Date().getFullYear(),
-  month:        new Date().getMonth(),
-  trades:       [],
-  columns:      [],
-  showHeads:    {},           // deprecated alias – do not use directly
+  year: new Date().getFullYear(),
+  month: new Date().getMonth(),
+  trades: [],
+  columns: [],
+  showHeads: {},           // deprecated alias – do not use directly
   showHeadsConsolidated: {},
-  showHeadsIndividual:   {},
-  tableShowCols:{},
-  tableSort:    { col: null, dir: 'asc' },
-  colWidths:    {},
+  showHeadsIndividual: {},
+  dateRange: { from: '', to: '' },
+  tableShowCols: {},
+  tableSort: { col: null, dir: 'asc' },
+  colWidths: {},
   filterValues: {},
   filterVisible: false,
   calendarMode: 'consolidated',
-  gallery: { images: [], currentIndex: 0, date: '', sourceRow: null },
-  uploadRow:    null,
+  gallery: {
+    images: [], currentIndex: 0, date: '', sourceRow: null,
+    tagFilter: [], filterMode: 'or'
+  },  // V2: tagFilter = selected tag names
+  tagGroups: {},  // { groupName: [tagName, ...] } — user-defined groups
+  tagDeleteMode: false,
+  uploadRow: null,
   pendingFiles: [],
-  obsDate:      '',
-  allTags:      [],   // all defined tag names
-  tagFilter:    [],   // selected filters in form "Column::Tag"
+  obsDate: '',
+  allTags: [],   // all defined tag names
+  tagFilter: [],   // selected filters in form "Column::Tag"
   calendarTagFocus: '', // selected calendar tag bubble in form "Column::Tag"
-  tagColumns:   [],   // explicit list of tag columns (rename-safe)
-  userColumns:  [],   // only these columns are deletable
+  tagColumns: [],   // explicit list of tag columns (rename-safe)
+  userColumns: [],   // only these columns are deletable
   addTagColumnMode: false,
   brokerFilter: 'both', // both | zerodha | dhan
   calendarView: 'month', // month | year
-  shortcuts:    {},
+  shortcuts: {},
+  dayData: {},   // keyed by YYYY-MM-DD: { images: [], tags: { ColName: [tag,...] } }
+  _localOverlays: {}, // temporary per-image overlay cache until upload completes
   serverStateHash: '',
   syncIntervalMs: 10000
 };
 
 // â”€â”€ ANNOTATION STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const annotState = {
-  active:  false,
-  tool:    'pen',    // 'pen' | 'highlight' | 'eraser'
-  color:   '#f85149',
-  size:    3,
+  active: false,
+  tool: 'pen',    // 'pen' | 'highlight' | 'eraser' | 'text' | 'marquee'
+  color: '#f85149',
+  size: 3,
+  imageUrl: '',
+  date: '',
+  sourceRow: null,
+  dirty: false,
+  saving: false,
   history: [],       // ImageData snapshots for undo
   drawing: false,
-  lastX:   0, lastY: 0
+  textEditorActive: false,
+  marqueeBoxes: [],
+  selectedMarquee: -1,
+  marqueeStartX: 0,
+  marqueeStartY: 0,
+  marqueePreview: null,
+  marqueeRasterBase: null,
+  marqueeDragMode: '',
+  marqueeDragStartX: 0,
+  marqueeDragStartY: 0,
+  marqueeDragOrig: null,
+  lastX: 0, lastY: 0
 };
 
-const MONTHS = ['January','February','March','April','May','June',
-  'July','August','September','October','November','December'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
 
-const SIZE_MAP   = { H1:'1.4rem', H2:'1.1rem', H3:'0.9rem', H4:'0.75rem', H5:'0.62rem' };
-const HEIGHT_MAP = { compact:'70px', normal:'100px', spacious:'140px', roomy:'180px' };
+const SIZE_MAP = { H1: '1.4rem', H2: '1.1rem', H3: '0.9rem', H4: '0.75rem', H5: '0.62rem' };
+const HEIGHT_MAP = { compact: '70px', normal: '100px', spacious: '140px', roomy: '180px' };
 
 const DEFAULT_SETTINGS = {
-  daySize:'H3', dayBold:true, dayPos:'top-left',
-  dataSize:'H4', dataBold:false, showLabels:true, cellHeight:'normal',
+  daySize: 'H3', dayBold: true, dayPos: 'top-left',
+  dataSize: 'H4', dataBold: false, showLabels: true, cellHeight: 'normal',
   satSunOff: false, tableRows: 5,
   groupAColor: '#58a6ff',
   groupBColor: '#ffffff',
@@ -61,10 +85,10 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_SHORTCUTS = {
-  pen: 'P',
+  pen: 'B',
   imageImport: 'I',
   eraser: 'E',
-  datePicker: 'C',
+  datePicker: 'D',
   mergeSave: 'Ctrl+Shift+S',
   overlaySave: 'Ctrl+S'
 };
@@ -74,6 +98,7 @@ const DASHBOARD_STATS = [
   { key: 'trades', label: 'Total Trades' },
   { key: 'charges', label: 'Charges' },
   { key: 'brokerage', label: 'Brokerage' },
+  { key: 'totalfees', label: 'Total Fees' },
   { key: 'winrate', label: 'Win %' },
   { key: 'avg', label: 'Avg / Trade' },
   { key: 'avgwin', label: 'Avg Win' },
@@ -84,9 +109,12 @@ const DASHBOARD_STATS = [
 ];
 const IMAGE_TAG_COLUMN = 'Image Tags';
 const BROKER_COLUMN = 'Broker';
+const NOTE_COLUMN = 'Note';
+const VIDEO_COLUMN = 'Video';
+const TOTAL_FEES_COLUMN = 'Total Fees';
 const IMAGE_PERMANENT_TAGS = ['thumbnail'];
-const PERMANENT_COLUMNS = [BROKER_COLUMN, IMAGE_TAG_COLUMN];
-const COMPUTED_COLUMNS = ['Brokerage', 'Other Charges', 'Gross P/L', 'Net P/L'];
+const PERMANENT_COLUMNS = [BROKER_COLUMN, IMAGE_TAG_COLUMN, NOTE_COLUMN, VIDEO_COLUMN];
+const COMPUTED_COLUMNS = ['Brokerage', 'Other Charges', 'Gross P/L', 'Net P/L', TOTAL_FEES_COLUMN];
 const UNIFIED_STRUCTURED_COLUMNS = [
   'Instrument',
   BROKER_COLUMN,
@@ -102,9 +130,60 @@ const UNIFIED_STRUCTURED_COLUMNS = [
 ];
 
 // â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function getSectionOrder() {
+  try { const o = JSON.parse(localStorage.getItem('sectionOrder')); if (Array.isArray(o) && o.length === 3) return o; } catch (e) { }
+  return ['calendar', 'dashboard', 'table'];
+}
+function saveSectionOrder(order) { try { localStorage.setItem('sectionOrder', JSON.stringify(order)); } catch (e) { } }
+function applySectionOrder() {
+  const order = getSectionOrder();
+  const main = document.querySelector('.app-main');
+  const map = { calendar: '.calendar-section', dashboard: '.dashboard-section', table: '.table-section' };
+  order.forEach(key => { const el = main.querySelector(map[key]); if (el) main.appendChild(el); });
+  // Sync settings list order
+  const list = document.getElementById('section-order-list');
+  if (!list) return;
+  order.forEach(key => {
+    const item = list.querySelector(`[data-section="${key}"]`);
+    if (item) list.appendChild(item);
+  });
+}
+function bindSectionOrderDrag() {
+  const list = document.getElementById('section-order-list');
+  if (!list) return;
+  let srcItem = null, dropTarget2 = null, dropPos2 = null;
+  const clearInd = () => list.querySelectorAll('.so-drop-before,.so-drop-after').forEach(el => el.classList.remove('so-drop-before', 'so-drop-after'));
+  list.querySelectorAll('.section-order-item').forEach(item => {
+    item.addEventListener('dragstart', e => { srcItem = item; setTimeout(() => item.classList.add('so-dragging'), 0); e.dataTransfer.effectAllowed = 'move'; });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('so-dragging'); clearInd();
+      if (srcItem && dropTarget2 && dropTarget2 !== srcItem) {
+        if (dropPos2 === 'before') list.insertBefore(srcItem, dropTarget2);
+        else list.insertBefore(srcItem, dropTarget2.nextSibling);
+        const newOrder = Array.from(list.querySelectorAll('.section-order-item')).map(el => el.dataset.section);
+        saveSectionOrder(newOrder); applySectionOrder();
+      }
+      srcItem = null; dropTarget2 = null; dropPos2 = null;
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault(); if (!srcItem || item === srcItem) return;
+      clearInd();
+      const rect = item.getBoundingClientRect();
+      dropPos2 = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+      dropTarget2 = item;
+      item.classList.add(dropPos2 === 'before' ? 'so-drop-before' : 'so-drop-after');
+    });
+    item.addEventListener('drop', e => { e.preventDefault(); });
+  });
+}
+
 async function init() {
   loadSettingsFromStorage();
   loadShortcutsFromStorage();
+  loadColWidths();
+  loadTagGroups();
+  applySectionOrder();
+  bindSectionOrderDrag();
   populateSelects();
   renderDashboardStatsMenu();
   bindEvents();
@@ -140,14 +219,15 @@ function populateSelects() {
 // â”€â”€ LOAD / SAVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadTrades() {
   try {
-    const res  = await fetch('/api/trades');
+    const res = await fetch('/api/trades');
     const data = await res.json();
-    state.trades  = data.trades  || [];
+    state.trades = data.trades || [];
     state.columns = data.columns || [];
     state.allTags = data.allTags || [];
     IMAGE_PERMANENT_TAGS.forEach(t => { if (!state.allTags.includes(t)) state.allTags.push(t); });
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : [];
     state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    state.dayData = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -160,7 +240,7 @@ async function loadTrades() {
     initShowHeads();
     initTableShowCols();
     render();
-  } catch(e) { showToast('Failed to load data','error'); }
+  } catch (e) { showToast('Failed to load data', 'error'); }
 }
 
 function syncImageTagColumnValues() {
@@ -176,14 +256,15 @@ async function saveTrades() {
       columns: state.columns,
       allTags: state.allTags,
       tagColumns: state.tagColumns,
-      userColumns: state.userColumns
+      userColumns: state.userColumns,
+      dayData: state.dayData
     };
     await fetch('/api/trades', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     state.serverStateHash = hashServerState(payload);
-  } catch(e) { showToast('Save failed','error'); }
+  } catch (e) { showToast('Save failed', 'error'); }
 }
 
 function hashServerState(data) {
@@ -193,9 +274,10 @@ function hashServerState(data) {
       columns: data?.columns || [],
       allTags: data?.allTags || [],
       tagColumns: data?.tagColumns || [],
-      userColumns: data?.userColumns || []
+      userColumns: data?.userColumns || [],
+      dayData: data?.dayData || {}
     });
-  } catch(e) {
+  } catch (e) {
     return '';
   }
 }
@@ -238,7 +320,7 @@ async function syncFromServerIfChanged(force = false) {
     initTableShowCols();
     state.serverStateHash = incomingHash;
     render();
-  } catch(e) {}
+  } catch (e) { }
 }
 
 function syncTagColumnRegistry() {
@@ -281,8 +363,8 @@ function splitDateTime(value) {
   const d = Date.parse(s);
   if (!isNaN(d)) {
     const dt = new Date(d);
-    const date = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-    const time = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}:${String(dt.getSeconds()).padStart(2,'0')}`;
+    const date = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    const time = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:${String(dt.getSeconds()).padStart(2, '0')}`;
     return { date, time };
   }
   return { date: '', time: s };
@@ -322,21 +404,21 @@ function normalizeStructuredTradeRow(trade) {
 }
 
 function computeTradeCharges(trade) {
-  const buy    = parseFloat(trade['Buy Price (Avg)'] ?? trade['Buy Price'] ?? '');
-  const sell   = parseFloat(trade['Sell Price (Avg)'] ?? trade['Sell Price'] ?? '');
-  const qty    = parseFloat(trade['Qty'] ?? '');
+  const buy = parseFloat(trade['Buy Price (Avg)'] ?? trade['Buy Price'] ?? '');
+  const sell = parseFloat(trade['Sell Price (Avg)'] ?? trade['Sell Price'] ?? '');
+  const qty = parseFloat(trade['Qty'] ?? '');
   const broker = String(trade['Broker'] ?? '').toLowerCase().trim();
   if (isNaN(buy) || isNaN(sell) || isNaN(qty) || qty === 0) return;
 
-  const buyTurn  = buy  * qty;
+  const buyTurn = buy * qty;
   const sellTurn = sell * qty;
-  const total    = buyTurn + sellTurn;
+  const total = buyTurn + sellTurn;
 
   // ── Common statutory charges (NSE Options) ────────────────────────
-  const stt   = sellTurn * 0.001;      // 0.1% on sell side (on premium)
-  const exch  = total    * 0.0003503;  // 0.03503% NSE options (on premium)
-  const sebi  = total    * 0.000001;   // ₹10 per crore
-  const stamp = buyTurn  * 0.00003;   // 0.003% on buy side
+  const stt = sellTurn * 0.001;      // 0.1% on sell side (on premium)
+  const exch = total * 0.0003503;  // 0.03503% NSE options (on premium)
+  const sebi = total * 0.000001;   // ₹10 per crore
+  const stamp = buyTurn * 0.00003;   // 0.003% on buy side
 
   // fill_count = actual order executions tracked during CSV import (₹20 per fill)
   const fillCount = Math.max(parseInt(trade['fill_count']) || 0, 2);
@@ -344,24 +426,25 @@ function computeTradeCharges(trade) {
   let brokerage, gst, otherCharges;
 
   if (broker === 'dhan') {
-    brokerage    = fillCount * 20;
-    const ipft   = total * 0.000001;   // IPFT 0.0001% of total turnover
-    gst          = (brokerage + exch + sebi + ipft) * 0.18;
+    brokerage = fillCount * 20;
+    const ipft = total * 0.000001;   // IPFT 0.0001% of total turnover
+    gst = (brokerage + exch + sebi + ipft) * 0.18;
     otherCharges = stt + exch + sebi + ipft + stamp + gst;
   } else {
     // Zerodha: ₹20 per fill (min 2 fills per round-trip)
-    brokerage    = fillCount * 20;
-    gst          = (brokerage + exch + sebi) * 0.18;
+    brokerage = fillCount * 20;
+    gst = (brokerage + exch + sebi) * 0.18;
     otherCharges = stt + exch + sebi + stamp + gst;
   }
 
   const grossPL = (sell - buy) * qty;
-  const netPL   = grossPL - (brokerage + otherCharges);
+  const netPL = grossPL - (brokerage + otherCharges);
 
-  trade['Brokerage']     = Math.round(brokerage    * 100) / 100;
+  trade['Brokerage'] = Math.round(brokerage * 100) / 100;
   trade['Other Charges'] = Math.round(otherCharges * 100) / 100;
-  trade['Gross P/L']     = Math.round(grossPL      * 100) / 100;
-  trade['Net P/L']       = Math.round(netPL        * 100) / 100;
+  trade['Gross P/L'] = Math.round(grossPL * 100) / 100;
+  trade['Net P/L'] = Math.round(netPL * 100) / 100;
+  trade[TOTAL_FEES_COLUMN] = Math.round((brokerage + otherCharges) * 100) / 100;
 }
 
 function normalizeNumForKey(v) {
@@ -458,7 +541,7 @@ function ensurePermanentColumns() {
 
 function normalizeStructuredDateColumns() {
   const hasSellTime = state.columns.includes('Sell Time');
-  const hasBuyTime  = state.columns.includes('Buy Time');
+  const hasBuyTime = state.columns.includes('Buy Time');
   if (!hasSellTime && !hasBuyTime) return;
 
   let changed = false;
@@ -485,7 +568,7 @@ function normalizeStructuredDateColumns() {
 
   state.trades.forEach(t => {
     const sell = splitDateTime(t['Sell Time']);
-    const buy  = splitDateTime(t['Buy Time']);
+    const buy = splitDateTime(t['Buy Time']);
     const derivedDate = normalizeDate(t['trade_date'] || t['Date'] || t.date || sell.date || buy.date);
 
     if (derivedDate && t['trade_date'] !== derivedDate) { t['trade_date'] = derivedDate; changed = true; }
@@ -656,20 +739,20 @@ function loadSettingsFromStorage() {
     const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('tj_settings') || '{}') };
     applySettingsToDOM(s);
     populateSettingsPanel(s);
-  } catch(e) { applySettingsToDOM(DEFAULT_SETTINGS); }
+  } catch (e) { applySettingsToDOM(DEFAULT_SETTINGS); }
 }
 
 function readSettingsFromPanel() {
   return {
-    daySize:    document.getElementById('s-day-size').value,
-    dayBold:    document.getElementById('s-day-bold').checked,
-    dayPos:     document.getElementById('s-day-pos').value,
-    dataSize:   document.getElementById('s-data-size').value,
-    dataBold:   document.getElementById('s-data-bold').checked,
+    daySize: document.getElementById('s-day-size').value,
+    dayBold: document.getElementById('s-day-bold').checked,
+    dayPos: document.getElementById('s-day-pos').value,
+    dataSize: document.getElementById('s-data-size').value,
+    dataBold: document.getElementById('s-data-bold').checked,
     showLabels: document.getElementById('s-show-labels').checked,
     cellHeight: document.getElementById('s-cell-height').value,
-    satSunOff:  document.getElementById('s-sat-sun-off').checked,
-    tableRows:  Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
+    satSunOff: document.getElementById('s-sat-sun-off').checked,
+    tableRows: Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
     groupAColor: document.getElementById('s-group-a-color').value || '#58a6ff',
     groupBColor: document.getElementById('s-group-b-color').value || '#ffffff',
     groupSepColor: document.getElementById('s-group-sep-color').value || '#58a6ff'
@@ -677,13 +760,13 @@ function readSettingsFromPanel() {
 }
 
 function populateSettingsPanel(s) {
-  document.getElementById('s-day-size').value     = s.daySize;
-  document.getElementById('s-day-bold').checked   = s.dayBold;
-  document.getElementById('s-day-pos').value      = s.dayPos;
-  document.getElementById('s-data-size').value    = s.dataSize;
-  document.getElementById('s-data-bold').checked  = s.dataBold;
-  document.getElementById('s-show-labels').checked= s.showLabels;
-  document.getElementById('s-cell-height').value  = s.cellHeight;
+  document.getElementById('s-day-size').value = s.daySize;
+  document.getElementById('s-day-bold').checked = s.dayBold;
+  document.getElementById('s-day-pos').value = s.dayPos;
+  document.getElementById('s-data-size').value = s.dataSize;
+  document.getElementById('s-data-bold').checked = s.dataBold;
+  document.getElementById('s-show-labels').checked = s.showLabels;
+  document.getElementById('s-cell-height').value = s.cellHeight;
   document.getElementById('s-sat-sun-off').checked = !!s.satSunOff;
   document.getElementById('s-table-rows').value = String(s.tableRows || 5);
   document.getElementById('s-group-a-color').value = s.groupAColor || '#58a6ff';
@@ -693,9 +776,9 @@ function populateSettingsPanel(s) {
 
 function applySettingsToDOM(s) {
   const root = document.documentElement;
-  root.style.setProperty('--cal-day-size',    SIZE_MAP[s.daySize]   || SIZE_MAP.H3);
-  root.style.setProperty('--cal-day-weight',  s.dayBold  ? '700' : '400');
-  root.style.setProperty('--cal-data-size',   SIZE_MAP[s.dataSize]  || SIZE_MAP.H4);
+  root.style.setProperty('--cal-day-size', SIZE_MAP[s.daySize] || SIZE_MAP.H3);
+  root.style.setProperty('--cal-day-weight', s.dayBold ? '700' : '400');
+  root.style.setProperty('--cal-data-size', SIZE_MAP[s.dataSize] || SIZE_MAP.H4);
   root.style.setProperty('--cal-data-weight', s.dataBold ? '700' : '400');
   root.style.setProperty('--cal-cell-height', HEIGHT_MAP[s.cellHeight] || HEIGHT_MAP.normal);
   root.style.setProperty('--table-visible-rows', String(Math.max(3, Math.min(25, parseInt(s.tableRows, 10) || 5))));
@@ -703,8 +786,8 @@ function applySettingsToDOM(s) {
   root.style.setProperty('--date-group-b-bg', hexToRgba(s.groupBColor || '#ffffff', 0.05));
   root.style.setProperty('--date-group-sep', hexToRgba(s.groupSepColor || '#58a6ff', 0.35));
   window._showLabels = s.showLabels !== false;
-  window._dayPos     = s.dayPos || 'top-left';
-  window._satSunOff  = !!s.satSunOff;
+  window._dayPos = s.dayPos || 'top-left';
+  window._satSunOff = !!s.satSunOff;
   // Apply position class to grid
   const grid = document.getElementById('calendar-grid');
   if (grid) {
@@ -716,7 +799,7 @@ function saveSettings(s) {
   localStorage.setItem('tj_settings', JSON.stringify(s));
   applySettingsToDOM(s);
   renderCalendar();
-  showToast('Settings applied!','success');
+  showToast('Settings applied!', 'success');
 }
 
 function normalizeShortcutString(s) {
@@ -727,18 +810,18 @@ function loadShortcutsFromStorage() {
   try {
     const saved = JSON.parse(localStorage.getItem('tj_shortcuts') || '{}');
     state.shortcuts = { ...DEFAULT_SHORTCUTS, ...saved };
-  } catch(e) {
+  } catch (e) {
     state.shortcuts = { ...DEFAULT_SHORTCUTS };
   }
   populateShortcutPanel();
 }
 
 function populateShortcutPanel() {
-  document.getElementById('sc-pen').value     = state.shortcuts.pen;
-  document.getElementById('sc-image').value   = state.shortcuts.imageImport;
-  document.getElementById('sc-eraser').value  = state.shortcuts.eraser;
-  document.getElementById('sc-date').value    = state.shortcuts.datePicker;
-  document.getElementById('sc-merge').value   = state.shortcuts.mergeSave;
+  document.getElementById('sc-pen').value = state.shortcuts.pen;
+  document.getElementById('sc-image').value = state.shortcuts.imageImport;
+  document.getElementById('sc-eraser').value = state.shortcuts.eraser;
+  document.getElementById('sc-date').value = state.shortcuts.datePicker;
+  document.getElementById('sc-merge').value = state.shortcuts.mergeSave;
   document.getElementById('sc-overlay').value = state.shortcuts.overlaySave;
 }
 
@@ -761,11 +844,11 @@ function saveShortcuts(shortcuts) {
 
 function eventToShortcut(e) {
   const parts = [];
-  if (e.ctrlKey)  parts.push('ctrl');
+  if (e.ctrlKey) parts.push('ctrl');
   if (e.shiftKey) parts.push('shift');
-  if (e.altKey)   parts.push('alt');
+  if (e.altKey) parts.push('alt');
   const key = String(e.key || '').toLowerCase();
-  if (!['control','shift','alt','meta'].includes(key)) parts.push(key);
+  if (!['control', 'shift', 'alt', 'meta'].includes(key)) parts.push(key);
   return parts.join('+');
 }
 
@@ -788,14 +871,14 @@ function getActiveShowHeads() {
 function isDefaultShowHeadCol(col) {
   const l = col.toLowerCase();
   return l === 'rs' || l === 'net p/l' || l === 'gross p/l' ||
-         l.includes('profit') || l.includes('p/l') || l.includes('p&l');
+    l.includes('profit') || l.includes('p/l') || l.includes('p&l');
 }
 
 function saveShowHeads() {
   try {
     localStorage.setItem('tj_heads_consolidated', JSON.stringify(state.showHeadsConsolidated));
-    localStorage.setItem('tj_heads_individual',   JSON.stringify(state.showHeadsIndividual));
-  } catch(e) {}
+    localStorage.setItem('tj_heads_individual', JSON.stringify(state.showHeadsIndividual));
+  } catch (e) { }
 }
 
 function loadShowHeads() {
@@ -803,8 +886,8 @@ function loadShowHeads() {
     const c = localStorage.getItem('tj_heads_consolidated');
     const i = localStorage.getItem('tj_heads_individual');
     if (c) state.showHeadsConsolidated = JSON.parse(c);
-    if (i) state.showHeadsIndividual   = JSON.parse(i);
-  } catch(e) {}
+    if (i) state.showHeadsIndividual = JSON.parse(i);
+  } catch (e) { }
 }
 
 function initShowHeads() {
@@ -813,7 +896,7 @@ function initShowHeads() {
     if (col.toLowerCase() === 'date') return;
     const def = isDefaultShowHeadCol(col);
     if (!(col in state.showHeadsConsolidated)) state.showHeadsConsolidated[col] = def;
-    if (!(col in state.showHeadsIndividual))   state.showHeadsIndividual[col]   = def;
+    if (!(col in state.showHeadsIndividual)) state.showHeadsIndividual[col] = def;
   });
   renderShowHeads();
 }
@@ -837,13 +920,13 @@ function renderShowHeads() {
   searchRow.appendChild(searchInp); panel.appendChild(searchRow);
 
   const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
-  const btnAll  = document.createElement('button'); btnAll.className  = 'panel-act-btn'; btnAll.textContent  = 'All';
+  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
   const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
-  const btnPL   = document.createElement('button'); btnPL.className   = 'panel-act-btn'; btnPL.textContent   = 'P/L Only';
+  const btnPL = document.createElement('button'); btnPL.className = 'panel-act-btn'; btnPL.textContent = 'P/L Only';
   const heads = getActiveShowHeads();
-  btnAll.addEventListener('click',  () => { cols.forEach(c => { heads[c] = true;  }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  btnAll.addEventListener('click', () => { cols.forEach(c => { heads[c] = true; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
   btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  btnPL.addEventListener('click',   () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  btnPL.addEventListener('click', () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
   actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
 
   const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
@@ -895,9 +978,9 @@ function renderColVisPanel() {
   searchRow.appendChild(searchInp); panel.appendChild(searchRow);
 
   const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
-  const btnAll  = document.createElement('button'); btnAll.className  = 'panel-act-btn'; btnAll.textContent  = 'All';
+  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
   const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
-  btnAll.addEventListener('click',  () => { allCols.forEach(c => { state.tableShowCols[c] = true;  }); renderColVisPanel(); renderTable(); });
+  btnAll.addEventListener('click', () => { allCols.forEach(c => { state.tableShowCols[c] = true; }); renderColVisPanel(); renderTable(); });
   btnNone.addEventListener('click', () => {
     allCols.forEach(c => { state.tableShowCols[c] = false; });
     state.tableShowCols[BROKER_COLUMN] = true;
@@ -1021,12 +1104,14 @@ function renderColVisPanel() {
 
 // â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function render() {
+  const sx = window.scrollX, sy = window.scrollY;
   renderCalendar();
   renderDashboard();
   renderTable();
   renderTagFilterPanel();
   updateCalendarModeButton();
   updateBrokerFilterButton();
+  requestAnimationFrame(() => window.scrollTo(sx, sy));
 }
 
 function updateCalendarModeButton() {
@@ -1181,6 +1266,7 @@ function renderDashboard() {
   setDashValue(document.getElementById('dash-net'), net, true);
   setDashValue(document.getElementById('dash-charges'), charges, false);
   setDashValue(document.getElementById('dash-brokerage'), brokerage, false);
+  setDashValue(document.getElementById('dash-totalfees'), brokerage + charges, false);
   const tradeCount = document.getElementById('dash-trades');
   if (tradeCount) {
     const totalFills = trades.reduce((sum, t) => sum + (Math.max(parseInt(t['fill_count']) || 0, 2)), 0);
@@ -1205,7 +1291,7 @@ function getDashboardStatsState() {
   try {
     const raw = localStorage.getItem('dashboardStats');
     if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  } catch (e) { }
   const all = {};
   DASHBOARD_STATS.forEach(s => { all[s.key] = true; });
   return all;
@@ -1222,16 +1308,16 @@ function getDashboardStatsOrder() {
         return [...valid, ...missing];
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   return DASHBOARD_STATS.map(s => s.key);
 }
 
 function saveDashboardStatsOrder(order) {
-  try { localStorage.setItem('dashboardStatsOrder', JSON.stringify(order)); } catch (e) {}
+  try { localStorage.setItem('dashboardStatsOrder', JSON.stringify(order)); } catch (e) { }
 }
 
 function saveDashboardStatsState(stateMap) {
-  try { localStorage.setItem('dashboardStats', JSON.stringify(stateMap)); } catch (e) {}
+  try { localStorage.setItem('dashboardStats', JSON.stringify(stateMap)); } catch (e) { }
 }
 
 function applyDashboardStatVisibility() {
@@ -1258,13 +1344,13 @@ function applyDashboardStatOrder() {
 function bindDashboardDragDrop() {
   const grid = document.querySelector('.dashboard-grid');
   if (!grid) return;
-  let dragSrc   = null;
+  let dragSrc = null;
   let dropTarget = null;
-  let dropPos    = null; // 'before' | 'after'
+  let dropPos = null; // 'before' | 'after'
 
   const clearIndicators = () => {
     grid.querySelectorAll('.drop-before, .drop-after')
-        .forEach(c => c.classList.remove('drop-before', 'drop-after'));
+      .forEach(c => c.classList.remove('drop-before', 'drop-after'));
   };
 
   grid.querySelectorAll('.dash-card[data-stat]').forEach(card => {
@@ -1282,7 +1368,7 @@ function bindDashboardDragDrop() {
       // Commit insertion at the last indicated position
       if (dragSrc && dropTarget && dropTarget !== dragSrc) {
         if (dropPos === 'before') grid.insertBefore(dragSrc, dropTarget);
-        else                      grid.insertBefore(dragSrc, dropTarget.nextSibling);
+        else grid.insertBefore(dragSrc, dropTarget.nextSibling);
         const newOrder = Array.from(grid.querySelectorAll('.dash-card[data-stat]'))
           .map(c => c.getAttribute('data-stat'));
         saveDashboardStatsOrder(newOrder);
@@ -1296,7 +1382,7 @@ function bindDashboardDragDrop() {
       if (!dragSrc || card === dragSrc) return;
       clearIndicators();
       const rect = card.getBoundingClientRect();
-      dropPos    = e.clientX < rect.left + rect.width / 2 ? 'before' : 'after';
+      dropPos = e.clientX < rect.left + rect.width / 2 ? 'before' : 'after';
       dropTarget = card;
       card.classList.add(dropPos === 'before' ? 'drop-before' : 'drop-after');
     });
@@ -1434,9 +1520,9 @@ function renderCalendar() {
   const yearWrap = document.getElementById('calendar-year-view');
   if (monthWrap) monthWrap.classList.remove('hidden');
   if (yearWrap) yearWrap.classList.add('hidden');
-  const grid  = document.getElementById('calendar-grid');
+  const grid = document.getElementById('calendar-grid');
   const weekdays = document.querySelector('.calendar-weekdays');
-  const pos   = window._dayPos || 'top-left';
+  const pos = window._dayPos || 'top-left';
   const satSunOff = window._satSunOff === true;
   const visibleDayCount = satSunOff ? 5 : 7;
   grid.className = `calendar-grid cal-pos-${pos}`;
@@ -1449,10 +1535,10 @@ function renderCalendar() {
       : '<div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="weekend">Sat</div><div class="weekend">Sun</div>';
   }
 
-  const firstDay    = new Date(state.year, state.month, 1).getDay();
+  const firstDay = new Date(state.year, state.month, 1).getDay();
   const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
-  const today       = new Date();
-  const showLabels  = window._showLabels !== false;
+  const today = new Date();
+  const showLabels = window._showLabels !== false;
   const toMonIndex = dow => (dow === 0 ? 6 : dow - 1);
 
   let startOffset;
@@ -1476,18 +1562,18 @@ function renderCalendar() {
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const cellDate  = new Date(state.year, state.month, d);
-    const dow       = cellDate.getDay();
+    const cellDate = new Date(state.year, state.month, d);
+    const dow = cellDate.getDay();
     const isWeekend = dow === 0 || dow === 6;
     if (satSunOff && isWeekend) continue;
-    const dateStr   = formatDate(cellDate);
+    const dateStr = formatDate(cellDate);
     const dayTrades = getTradesForDate(dateStr).filter(tradeMatchesBrokerFilter);
-    const trade     = dayTrades[0] || null;
-    const isToday   = cellDate.toDateString() === today.toDateString();
+    const trade = dayTrades[0] || null;
+    const isToday = cellDate.toDateString() === today.toDateString();
 
     const cell = document.createElement('div'); cell.className = 'day-cell';
     if (isWeekend) cell.classList.add('weekend-day');
-    if (isToday)   cell.classList.add('today');
+    if (isToday) cell.classList.add('today');
 
     const hasObs = dayTrades.some(t => t && t.observation);
     if (hasObs) cell.classList.add('has-obs');
@@ -1616,7 +1702,7 @@ function renderCalendar() {
         }
       }
 
-      const imgs = dayTrades.flatMap(t => t.images || []);
+      const imgs = [...(state.dayData[dateStr]?.images || []), ...dayTrades.flatMap(t => t.images || [])];
       if (imgs.length > 0) {
         const badge = document.createElement('div'); badge.className = 'day-img-badge';
         badge.textContent = `Img ${imgs.length}`; cell.appendChild(badge);
@@ -1676,7 +1762,7 @@ function renderYearlyView() {
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${String(m + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dateStr = `${year}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const val = pnlByDate.get(dateStr) || 0;
       const cell = document.createElement('div');
       cell.className = 'year-cell';
@@ -1696,7 +1782,7 @@ function updateRangeLabel() {
   const label = document.getElementById('month-range-label');
   if (!label) return;
   if (state.calendarView === 'year') {
-    label.textContent = `From ${MONTHS[0].slice(0,3)} ${state.year} to ${MONTHS[11].slice(0,3)} ${state.year}`;
+    label.textContent = `From ${MONTHS[0].slice(0, 3)} ${state.year} to ${MONTHS[11].slice(0, 3)} ${state.year}`;
   } else {
     const first = new Date(state.year, state.month, 1);
     const last = new Date(state.year, state.month + 1, 0);
@@ -1766,7 +1852,7 @@ function normalizeDate(val) {
     const mm = parseInt(dmy[2], 10);
     const yy = parseInt(dmy[3], 10);
     if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12) {
-      return `${yy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+      return `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
     }
   }
   const d = new Date(s);
@@ -1775,14 +1861,14 @@ function normalizeDate(val) {
 }
 
 function formatDate(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function formatDisplayDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'T00:00:00');
   if (isNaN(d)) return dateStr;
-  return d.toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+  return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 // â”€â”€ OBSERVATION MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1792,20 +1878,141 @@ function openObsModal(dateStr) {
   document.getElementById('obs-date-picker').value = dateStr;
   const trade = getTradeForDate(dateStr);
   document.getElementById('obs-editor').innerHTML = (trade && trade.observation) ? trade.observation : '';
+  renderObsTradeNotes(dateStr);
   document.getElementById('obs-modal').classList.add('open');
   setTimeout(() => document.getElementById('obs-editor').focus(), 50);
 }
 
+function renderObsTradeNotes(dateStr) {
+  const container = document.getElementById('obs-trade-notes');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const trades = getTradesForDate(dateStr);
+  if (!trades.length) return;
+
+  const instrCol = state.columns.find(c => /instrument|symbol|scrip|stock/i.test(c)) || state.columns[0];
+
+  const hdr = document.createElement('div');
+  hdr.className = 'obs-trade-notes-hdr';
+  hdr.textContent = 'Per-Trade Notes';
+  container.appendChild(hdr);
+
+  let _noteItemDragFromHandle = false;
+
+  trades.forEach((trade, i) => {
+    const rowIdx = state.trades.indexOf(trade);
+    const label = (instrCol && trade[instrCol]) ? trade[instrCol] : `Trade ${i + 1}`;
+
+    const item = document.createElement('div');
+    item.className = 'obs-trade-note-item';
+    item.dataset.rowIdx = rowIdx;
+
+    // Drag handle
+    const handle = document.createElement('span');
+    handle.className = 'obs-note-drag-handle';
+    handle.textContent = '⠿';
+    handle.title = 'Drag to move note to another trade';
+    handle.addEventListener('mousedown', () => { _noteItemDragFromHandle = true; });
+
+    const lbl = document.createElement('div');
+    lbl.className = 'obs-trade-note-label';
+    lbl.textContent = label;
+
+    // Mini toolbar for formatting
+    const tb = document.createElement('div'); tb.className = 'obs-trade-note-toolbar';
+    [['B', 'bold'], ['I', 'italic'], ['U', 'underline']].forEach(([lbl2, cmd]) => {
+      const btn = document.createElement('button'); btn.className = 'note-popup-tool';
+      btn.innerHTML = `<${lbl2.toLowerCase()}>${lbl2}</${lbl2.toLowerCase()}>`;
+      btn.addEventListener('mousedown', e => { e.preventDefault(); document.execCommand(cmd); });
+      tb.appendChild(btn);
+    });
+
+    // Contenteditable editor
+    const editor = document.createElement('div');
+    editor.className = 'obs-trade-note-editor';
+    editor.contentEditable = 'true';
+    editor.spellcheck = false;
+    editor.dataset.rowIdx = rowIdx;
+    const stored = (rowIdx >= 0 && state.trades[rowIdx]) ? (state.trades[rowIdx][NOTE_COLUMN] || '') : '';
+    editor.innerHTML = stored || '<br>';
+
+    editor.addEventListener('blur', () => {
+      const ri = parseInt(editor.dataset.rowIdx, 10);
+      if (!isNaN(ri) && state.trades[ri]) {
+        const val = stripHtml(editor.innerHTML).trim() ? editor.innerHTML : '';
+        state.trades[ri][NOTE_COLUMN] = val;
+        saveTrades();
+        document.querySelectorAll(`[data-note-row="${ri}"]`).forEach(el => _refreshNoteCellDisplay(el, val));
+      }
+    });
+
+    // Click on label → focus this trade's note editor
+    lbl.style.cursor = 'pointer';
+    lbl.title = 'Click to focus note';
+    lbl.addEventListener('click', ev => { ev.preventDefault(); editor.focus(); });
+
+    // Drag: only from handle
+    item.setAttribute('draggable', 'true');
+    item.addEventListener('dragstart', e => {
+      if (!_noteItemDragFromHandle) { e.preventDefault(); return; }
+      _noteItemDragFromHandle = false;
+      const srcHtml = stripHtml(editor.innerHTML).trim() ? editor.innerHTML : '';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('tj-note', JSON.stringify({ rowIdx, html: srcHtml }));
+      item.classList.add('obs-note-dragging');
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('obs-note-dragging');
+      container.querySelectorAll('.obs-note-drop-target').forEach(el => el.classList.remove('obs-note-drop-target'));
+    });
+    item.addEventListener('dragover', e => {
+      if (!e.dataTransfer.types.includes('tj-note')) return;
+      e.preventDefault();
+      container.querySelectorAll('.obs-note-drop-target').forEach(el => el.classList.remove('obs-note-drop-target'));
+      item.classList.add('obs-note-drop-target');
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('obs-note-drop-target'));
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      item.classList.remove('obs-note-drop-target');
+      const raw = e.dataTransfer.getData('tj-note');
+      if (!raw) return;
+      const { rowIdx: srcIdx, html: srcHtml } = JSON.parse(raw);
+      const destIdx = parseInt(item.dataset.rowIdx, 10);
+      if (srcIdx === destIdx || isNaN(destIdx)) return;
+      // Move: paste into dest, clear source
+      state.trades[destIdx][NOTE_COLUMN] = srcHtml;
+      state.trades[srcIdx][NOTE_COLUMN] = '';
+      saveTrades();
+      renderObsTradeNotes(state.obsDate);
+    });
+
+    item.appendChild(handle);
+    item.appendChild(lbl);
+    item.appendChild(tb);
+    item.appendChild(editor);
+    container.appendChild(item);
+  });
+}
+
 function saveObservation(andClose = true) {
-  const html  = document.getElementById('obs-editor').innerHTML;
+  const html = document.getElementById('obs-editor').innerHTML;
   const trade = getOrCreateTrade(state.obsDate);
   trade.observation = html;
+  // Also persist any unsaved per-trade note editor values
+  document.querySelectorAll('#obs-trade-notes .obs-trade-note-editor').forEach(ed => {
+    const ri = parseInt(ed.dataset.rowIdx, 10);
+    if (!isNaN(ri) && state.trades[ri]) {
+      state.trades[ri][NOTE_COLUMN] = stripHtml(ed.innerHTML).trim() ? ed.innerHTML : '';
+    }
+  });
   saveTrades();
   renderCalendar();
   renderTable();
   if (andClose) {
     document.getElementById('obs-modal').classList.remove('open');
-    showToast('Observation saved!','success');
+    showToast('Observation saved!', 'success');
   }
 }
 
@@ -1819,7 +2026,7 @@ function navigateObsDate(dir) {
     dates = state.trades.filter(t => t.date).map(t => t.date).sort();
   } else {
     const dim = new Date(state.year, state.month + 1, 0).getDate();
-    dates = Array.from({length: dim}, (_, i) => formatDate(new Date(state.year, state.month, i + 1)));
+    dates = Array.from({ length: dim }, (_, i) => formatDate(new Date(state.year, state.month, i + 1)));
   }
 
   let idx = dates.indexOf(state.obsDate);
@@ -1852,7 +2059,7 @@ function bindObsToolbar() {
       // No selection â€” insert a sized span with zero-width-space, place cursor inside
       // New typing inherits the font size automatically
       const range = sel.getRangeAt(0);
-      const span  = document.createElement('span');
+      const span = document.createElement('span');
       span.style.fontSize = size + 'px';
       const zws = document.createTextNode('\u200B'); // zero-width space as placeholder
       span.appendChild(zws);
@@ -1862,10 +2069,10 @@ function bindObsToolbar() {
       sel.removeAllRanges(); sel.addRange(nr);
     } else {
       const range = sel.getRangeAt(0);
-      const span  = document.createElement('span');
+      const span = document.createElement('span');
       span.style.fontSize = size + 'px';
       try { range.surroundContents(span); }
-      catch(ex) { document.execCommand('insertHTML', false, `<span style="font-size:${size}px">${range.toString()}</span>`); }
+      catch (ex) { document.execCommand('insertHTML', false, `<span style="font-size:${size}px">${range.toString()}</span>`); }
     }
   });
 
@@ -1898,7 +2105,7 @@ function bindObsToolbar() {
     }
   });
 
-  // Tab key â†’ 4 spaces (no focus jump)
+  // Tab key â†' 4 spaces (no focus jump)
   document.getElementById('obs-editor').addEventListener('keydown', e => {
     if (e.key === 'Tab') {
       e.preventDefault(); e.stopPropagation();
@@ -1918,7 +2125,14 @@ function getFilteredTrades() {
     });
     if (!colMatch) return false;
     if (!tradeMatchesBrokerFilter(trade)) return false;
-    return tradeMatchesTagFilter(trade);
+    if (!tradeMatchesTagFilter(trade)) return false;
+    // Date range filter
+    if (state.dateRange.from || state.dateRange.to) {
+      const dk = normalizeDate(extractDateFromTrade(trade));
+      if (state.dateRange.from && dk < state.dateRange.from) return false;
+      if (state.dateRange.to && dk > state.dateRange.to) return false;
+    }
+    return true;
   });
 }
 
@@ -1934,14 +2148,14 @@ function renderTable() {
   syncImageTagColumnValues();
   const headRow = document.getElementById('table-head-row');
   const filterRow = document.getElementById('filter-row');
-  const body    = document.getElementById('table-body');
+  const body = document.getElementById('table-body');
   const footRow = document.getElementById('table-foot-row');
-  const empty   = document.getElementById('table-empty');
+  const empty = document.getElementById('table-empty');
   const colgroup = document.getElementById('table-colgroup');
 
   headRow.innerHTML = '';
   filterRow.innerHTML = '';
-  body.innerHTML    = '';
+  body.innerHTML = '';
   footRow.innerHTML = '';
   colgroup.innerHTML = '';
 
@@ -1949,18 +2163,21 @@ function renderTable() {
   empty.style.display = 'none';
 
   const allCols = [...state.columns];
-  if (!allCols.some(c => c.toLowerCase() === 'images'))    allCols.push('Images');
+  if (!allCols.some(c => c.toLowerCase() === 'images')) allCols.push('Images');
   const visibleCols = allCols.filter(col => state.tableShowCols[col] !== false);
 
   // COLGROUP (for column resize widths)
+  // Drag-handle + delete column (slightly wider)
+  const cgDrag = document.createElement('col'); cgDrag.style.width = '36px'; colgroup.appendChild(cgDrag);
   visibleCols.forEach(col => {
     const cg = document.createElement('col');
-    if (state.colWidths[col]) cg.style.width = state.colWidths[col] + 'px';
+    cg.style.width = (state.colWidths[col] || getDefaultColWidth(col)) + 'px';
     colgroup.appendChild(cg);
   });
-  colgroup.appendChild(document.createElement('col'));
 
-  // HEADER
+  // HEADER — drag handle th (leftmost)
+  const thDrag = document.createElement('th'); thDrag.className = 'row-drag-th'; headRow.appendChild(thDrag);
+
   visibleCols.forEach((col, idx) => {
     const th = document.createElement('th');
     th.className = 'sortable-th';
@@ -2016,12 +2233,18 @@ function renderTable() {
       th.appendChild(del);
     }
 
+    // Double-click header to rename column
+    th.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      openEditColumnModal(col);
+    });
+
     headRow.appendChild(th);
   });
-  headRow.appendChild(document.createElement('th'));
 
   // FILTER ROW
   filterRow.classList.toggle('hidden', !state.filterVisible);
+  filterRow.appendChild(document.createElement('td')); // drag handle column
   visibleCols.forEach(col => {
     const td = document.createElement('td');
     if (isTagColumn(col) || col.toLowerCase() === 'images' || col.toLowerCase() === 'thumbnail' || col.toLowerCase() === 'image tags') {
@@ -2032,7 +2255,6 @@ function renderTable() {
     inp.addEventListener('input', () => { state.filterValues[col] = inp.value; renderTableBody(visibleCols, allCols, body, footRow); });
     td.appendChild(inp); filterRow.appendChild(td);
   });
-  filterRow.appendChild(document.createElement('td'));
 
   renderTableBody(visibleCols, allCols, body, footRow);
   applyFrozenColumns(visibleCols);
@@ -2046,29 +2268,40 @@ function getFrozenCols() {
       const arr = JSON.parse(raw);
       if (Array.isArray(arr)) return arr.filter(c => state.columns.includes(c));
     }
-  } catch (e) {}
-  return [];
+  } catch (e) { }
+  // Default freeze order: trade_date → Images → Tags → Note → Net P/L
+  return ['trade_date', 'Images', 'Tags', NOTE_COLUMN, 'Net P/L'].filter(c => state.columns.includes(c));
 }
 
 function saveFrozenCols(cols) {
-  try { localStorage.setItem('frozenCols', JSON.stringify(cols || [])); } catch (e) {}
+  try { localStorage.setItem('frozenCols', JSON.stringify(cols || [])); } catch (e) { }
 }
 
 function applyFrozenColumns(visibleCols) {
   const frozen = getFrozenCols().filter(c => visibleCols.includes(c));
-  if (!frozen.length) return;
-
   const table = document.getElementById('trade-table');
   if (!table) return;
+
+  // Each row now has a 36px drag+delete column at index 0 before the visible columns.
+  // visibleCols[i] → DOM cell index (i + 1); ths[0] = drag-th, ths[i+1] = visibleCols[i].
+  const DRAG_W = 36;
   const ths = Array.from(table.querySelectorAll('thead tr#table-head-row th'));
   const rows = Array.from(table.querySelectorAll('thead tr, tbody tr, tfoot tr'));
 
-  const leftMap = new Map();
-  let left = 0;
+  // Always freeze the drag-handle column at left=0
+  rows.forEach(row => {
+    const first = row.children[0];
+    if (first) { first.classList.add('frozen-col'); first.style.left = '0px'; }
+  });
+
+  if (!frozen.length) return;
+
+  const leftMap = new Map(); // visibleCols index → left px
+  let left = DRAG_W; // start right after the drag-handle column
   frozen.forEach(col => {
     const idx = visibleCols.indexOf(col);
     if (idx === -1) return;
-    const th = ths[idx];
+    const th = ths[idx + 1]; // +1 because drag-th is ths[0]
     const width = th ? th.getBoundingClientRect().width : (state.colWidths[col] || 120);
     leftMap.set(idx, left);
     left += width;
@@ -2077,7 +2310,7 @@ function applyFrozenColumns(visibleCols) {
   rows.forEach(row => {
     const cells = Array.from(row.children);
     leftMap.forEach((l, idx) => {
-      const cell = cells[idx];
+      const cell = cells[idx + 1]; // +1 for drag-handle cell
       if (!cell) return;
       cell.classList.add('frozen-col');
       cell.style.left = `${l}px`;
@@ -2108,12 +2341,31 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
     }
     tr.classList.add(band === 1 ? 'date-group-a' : 'date-group-b');
 
+    // Drag handle + delete button — leftmost column
+    const tdHandle = document.createElement('td'); tdHandle.className = 'row-drag-td';
+    const delMini = document.createElement('button'); delMini.className = 'del-row-mini';
+    delMini.textContent = '✕'; delMini.title = 'Delete row';
+    delMini.addEventListener('click', () => { state.trades.splice(rowIdx, 1); saveTrades(); render(); });
+    const handle = document.createElement('span'); handle.className = 'row-drag-handle';
+    handle.textContent = '⠿'; handle.title = 'Drag to reorder';
+    handle.addEventListener('mousedown', () => { _rowDragFromHandle = true; });
+    tdHandle.appendChild(delMini);
+    tdHandle.appendChild(handle);
+    tr.appendChild(tdHandle);
+
     visibleCols.forEach(col => {
       const td = document.createElement('td');
       if (col.toLowerCase() === 'images' || col.toLowerCase() === 'thumbnail') {
         renderImagesCell(td, rowIdx, trade.images || []);
       } else if (col.toLowerCase() === 'image tags') {
         renderImageTagsCell(td, trade);
+      } else if (col === NOTE_COLUMN) {
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'note-cell';
+        noteDiv.setAttribute('data-note-row', rowIdx);
+        _refreshNoteCellDisplay(noteDiv, trade[NOTE_COLUMN] || '');
+        noteDiv.addEventListener('click', e => { e.stopPropagation(); openNotePopup(td, rowIdx); });
+        td.appendChild(noteDiv);
       } else if (isTagColumn(col)) {
         renderTagCell(td, rowIdx, col);
       } else {
@@ -2139,30 +2391,26 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
       tr.appendChild(td);
     });
 
-    const tdDel = document.createElement('td');
-    const btn   = document.createElement('button'); btn.className = 'delete-row-btn'; btn.textContent = 'âœ•'; btn.title = 'Delete row';
-    btn.addEventListener('click', () => { state.trades.splice(rowIdx, 1); saveTrades(); render(); });
-    tdDel.appendChild(btn);
-    tr.appendChild(tdDel);
     bindRowImageDrop(tr, rowIdx);
+    bindTableRowDrag(tr, rowIdx, body);
     body.appendChild(tr);
   });
 
   // FOOTER totals
+  footRow.appendChild(document.createElement('td')); // drag-handle column spacer
   visibleCols.forEach(col => {
     const td = document.createElement('td');
     if (col.toLowerCase() === 'date' || col.toLowerCase() === 'trade_date') { td.textContent = `Total (${filtered.length})`; td.style.color = 'var(--text2)'; }
     else if (!isTagColumn(col) && col.toLowerCase() !== 'images' && col.toLowerCase() !== 'thumbnail' && col.toLowerCase() !== 'image tags') {
       const nums = filtered.map(t => parseFloat(t[col])).filter(n => !isNaN(n));
       if (nums.length) {
-        const total = nums.reduce((a,b) => a+b, 0);
+        const total = nums.reduce((a, b) => a + b, 0);
         td.textContent = total % 1 === 0 ? total : total.toFixed(2);
         if (col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs') td.style.color = total >= 0 ? 'var(--green)' : 'var(--red)';
       }
     }
     footRow.appendChild(td);
   });
-  footRow.appendChild(document.createElement('td'));
 }
 
 function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
@@ -2186,31 +2434,43 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
     const dayTrades = dateGroups.get(dateKey);
     const tr = document.createElement('tr');
     tr.classList.add(groupIdx % 2 === 0 ? 'date-group-a' : 'date-group-b');
+    tr.appendChild(document.createElement('td')); // spacer for drag-handle column
 
     visibleCols.forEach(col => {
       const td = document.createElement('td');
       const colLower = col.toLowerCase();
 
       if (colLower === 'images' || colLower === 'thumbnail') {
-        // Combine all images from all trades for this day
-        const allImages = dayTrades.reduce((arr, t) => arr.concat(t.images || []), []);
-        if (allImages.length) {
-          const w = document.createElement('div'); w.className = 'img-cell';
-          allImages.slice(0, 3).forEach((url) => {
-            const item = document.createElement('div'); item.className = 'img-thumb-wrap';
-            const img  = document.createElement('img');  img.className  = 'img-thumb'; img.src = url;
-            img.addEventListener('click', e => { e.stopPropagation(); openGalleryForDate(dateKey); });
-            item.appendChild(img);
-            w.appendChild(item);
-          });
-          if (allImages.length > 3) {
-            const b = document.createElement('span'); b.className = 'img-count-badge';
-            b.textContent = `+${allImages.length - 3}`;
-            b.addEventListener('click', () => openGalleryForDate(dateKey));
-            w.appendChild(b);
-          }
-          td.appendChild(w);
+        // Day-level images first, then trade images
+        const dayImages = state.dayData[dateKey]?.images || [];
+        const tradeImages = dayTrades.reduce((arr, t) => arr.concat(t.images || []), []);
+        const allImages = [...dayImages, ...tradeImages];
+        const w = document.createElement('div'); w.className = 'img-cell img-cell-grid';
+        const maxConsShow = 6;
+        allImages.slice(0, maxConsShow).forEach((url) => {
+          const item = document.createElement('div'); item.className = 'img-thumb-wrap';
+          const img = document.createElement('img'); img.className = 'img-thumb'; img.src = url;
+          img.addEventListener('click', e => { e.stopPropagation(); openGalleryForDate(dateKey); });
+          item.appendChild(img);
+          w.appendChild(item);
+        });
+        if (allImages.length > maxConsShow) {
+          const b = document.createElement('span'); b.className = 'img-count-badge';
+          b.textContent = `+${allImages.length - maxConsShow}`;
+          b.addEventListener('click', () => openGalleryForDate(dateKey));
+          w.appendChild(b);
         }
+        // Upload button for day-level images
+        const uploadBtn = document.createElement('button');
+        uploadBtn.className = 'btn btn-outline day-img-upload-btn';
+        uploadBtn.title = 'Add image for this day';
+        uploadBtn.textContent = '+ IMG';
+        uploadBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          openDayUploadModal(dateKey);
+        });
+        w.appendChild(uploadBtn);
+        td.appendChild(w);
 
       } else if (colLower === 'image tags') {
         // Merge image tags from all trades
@@ -2225,38 +2485,95 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
             const c = tagColor(tag);
             const chip = document.createElement('span'); chip.className = 'tag-chip';
             chip.textContent = tag;
-            chip.style.cssText = `color:${c};background:${hexToRgba(c,0.15)};border-color:${hexToRgba(c,0.45)}`;
+            chip.style.cssText = `color:${c};background:${hexToRgba(c, 0.15)};border-color:${hexToRgba(c, 0.45)}`;
             wrap.appendChild(chip);
           });
           td.appendChild(wrap);
+        }
+
+      } else if (col === VIDEO_COLUMN) {
+        // Day-level video URL — stored in state.dayData[dateKey].video
+        if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
+        const curUrl = state.dayData[dateKey].video || '';
+        const vwrap = document.createElement('div'); vwrap.className = 'video-cell';
+        if (curUrl) {
+          const link = document.createElement('a'); link.href = curUrl; link.target = '_blank';
+          link.rel = 'noopener'; link.className = 'video-link-btn'; link.textContent = '▶';
+          link.title = 'Open video'; link.addEventListener('click', e => e.stopPropagation());
+          vwrap.appendChild(link);
+        }
+        const vinp = document.createElement('input'); vinp.type = 'url'; vinp.className = 'cell-input video-url-inp';
+        vinp.value = curUrl; vinp.placeholder = 'Video URL…';
+        vinp.addEventListener('change', () => {
+          if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
+          state.dayData[dateKey].video = vinp.value.trim();
+          saveTrades(); renderTable();
+        });
+        vwrap.appendChild(vinp);
+        td.appendChild(vwrap);
+
+      } else if (col === NOTE_COLUMN) {
+        // Merge per-trade notes: "[Instrument]: note | ..."
+        const instrCol = state.columns.find(c => /instrument|symbol|scrip|stock/i.test(c));
+        const parts = dayTrades
+          .filter(t => t[NOTE_COLUMN] && stripHtml(String(t[NOTE_COLUMN])).trim())
+          .map(t => {
+            const instr = instrCol && t[instrCol] ? `[${t[instrCol]}] ` : '';
+            return instr + stripHtml(String(t[NOTE_COLUMN])).trim();
+          });
+        if (parts.length) {
+          const noteDiv = document.createElement('div');
+          noteDiv.className = 'note-cell note-cell-merged';
+          const joined = parts.join(' | ');
+          noteDiv.textContent = joined.length > 80 ? joined.slice(0, 80) + '…' : joined;
+          noteDiv.title = parts.join('\n');
+          td.appendChild(noteDiv);
         }
 
       } else if (isTagColumn(col)) {
-        // Merge tags from all trades in this day
+        const wrap = document.createElement('div'); wrap.className = 'tag-cell';
+        // Trade-level merged tags (read-only chips)
         const seen = new Set();
-        const allTags = [];
         dayTrades.forEach(t => getTradeTagsForColumn(t, col).forEach(tag => {
-          if (!seen.has(tag)) { seen.add(tag); allTags.push(tag); }
-        }));
-        if (allTags.length) {
-          const wrap = document.createElement('div'); wrap.className = 'tag-cell';
-          allTags.forEach(tag => {
+          if (!seen.has(tag)) {
+            seen.add(tag);
             const c = tagColor(tag);
             const chip = document.createElement('span'); chip.className = 'tag-chip';
             chip.textContent = tag;
-            chip.style.cssText = `color:${c};background:${hexToRgba(c,0.15)};border-color:${hexToRgba(c,0.45)}`;
+            chip.style.cssText = `color:${c};background:${hexToRgba(c, 0.15)};border-color:${hexToRgba(c, 0.45)}`;
             wrap.appendChild(chip);
-          });
-          td.appendChild(wrap);
-        }
+          }
+        }));
+        // Day-level tags (with remove button)
+        _getDayLevelTags(dateKey, col).forEach(tag => {
+          if (!seen.has(tag)) {
+            seen.add(tag);
+            const c = tagColor(tag);
+            const chip = document.createElement('span'); chip.className = 'tag-chip tag-chip-day';
+            chip.textContent = tag;
+            chip.style.cssText = `color:${c};background:${hexToRgba(c, 0.15)};border-color:${hexToRgba(c, 0.45)}`;
+            chip.title = 'Day tag — click to remove';
+            chip.addEventListener('click', e => {
+              e.stopPropagation();
+              _setDayLevelTag(dateKey, col, tag, false);
+              saveTrades(); renderTable();
+            });
+            wrap.appendChild(chip);
+          }
+        });
+        // "+ Day Tag" button
+        const addBtn = document.createElement('button'); addBtn.className = 'tag-add-btn';
+        addBtn.textContent = '+ Day Tag';
+        addBtn.title = 'Add a tag for this whole day';
+        addBtn.addEventListener('click', e => { e.stopPropagation(); openTagPickerForDay(dateKey, col); });
+        wrap.appendChild(addBtn);
+        td.appendChild(wrap);
 
       } else {
-        const inp = document.createElement('input');
-        inp.className = 'cell-input';
-        inp.readOnly = true;
-
         if (colLower === 'date' || colLower === 'trade_date') {
+          const inp = document.createElement('input'); inp.className = 'cell-input'; inp.readOnly = true;
           inp.value = dateKey;
+          td.appendChild(inp);
         } else {
           // Detect numeric vs text column: numeric only if every non-empty value parses as float
           const vals = dayTrades.map(t => t[col]).filter(v => v !== undefined && v !== null && String(v).trim() !== '');
@@ -2264,29 +2581,31 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
             const nums = vals.map(v => parseFloat(v));
             const allNumeric = nums.every(n => !isNaN(n));
             if (allNumeric) {
+              const inp = document.createElement('input'); inp.className = 'cell-input'; inp.readOnly = true;
               const sum = nums.reduce((a, b) => a + b, 0);
               inp.value = sum % 1 === 0 ? String(sum) : sum.toFixed(2);
               if (colLower.includes('profit') || colLower === 'rs' || col === 'Gross P/L' || col === 'Net P/L') {
                 applyProfitColor(inp, inp.value);
               }
+              td.appendChild(inp);
             } else {
-              // Text column: show unique non-empty values joined
+              // Text column — use a wrapping div so instrument names etc. can wrap
               const unique = [...new Set(vals.map(v => String(v).trim()).filter(Boolean))];
-              inp.value = unique.join(', ');
+              const wrap = document.createElement('div'); wrap.className = 'cons-text-cell';
+              wrap.textContent = unique.join(' / ');
+              td.appendChild(wrap);
             }
           }
         }
-        td.appendChild(inp);
       }
 
       tr.appendChild(td);
     });
-
-    tr.appendChild(document.createElement('td')); // placeholder for delete col
     body.appendChild(tr);
   });
 
   // Footer totals
+  footRow.appendChild(document.createElement('td')); // drag-handle column spacer
   visibleCols.forEach(col => {
     const td = document.createElement('td');
     const colLower = col.toLowerCase();
@@ -2303,7 +2622,119 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
     }
     footRow.appendChild(td);
   });
-  footRow.appendChild(document.createElement('td'));
+}
+
+// ── NOTE HELPERS ──────────────────────────────────────────────────
+function stripHtml(html) {
+  if (!html) return '';
+  const d = document.createElement('div'); d.innerHTML = html;
+  return d.textContent || d.innerText || '';
+}
+
+// ── NOTE POPUP ────────────────────────────────────────────────────
+let _notePop = null, _notePopRowIdx = null, _notePopBackdrop = null;
+
+function openNotePopup(td, rowIdx) {
+  closeNotePopup(true); // save any open popup first
+  _notePopRowIdx = rowIdx;
+
+  // Backdrop
+  _notePopBackdrop = document.createElement('div');
+  _notePopBackdrop.className = 'note-popup-backdrop';
+  document.body.appendChild(_notePopBackdrop);
+
+  const pop = document.createElement('div');
+  pop.className = 'note-popup';
+
+  // Mini toolbar
+  const toolbar = document.createElement('div');
+  toolbar.className = 'note-popup-toolbar';
+  [['B', 'bold'], ['I', 'italic'], ['U', 'underline']].forEach(([label, cmd]) => {
+    const btn = document.createElement('button');
+    btn.className = 'note-popup-tool';
+    btn.innerHTML = `<${label.toLowerCase()}>${label}</${label.toLowerCase()}>`;
+    btn.title = cmd;
+    btn.addEventListener('mousedown', e => { e.preventDefault(); document.execCommand(cmd); editor.focus(); });
+    toolbar.appendChild(btn);
+  });
+  pop.appendChild(toolbar);
+
+  // Contenteditable editor
+  const editor = document.createElement('div');
+  editor.className = 'note-popup-editor';
+  editor.contentEditable = 'true';
+  editor.spellcheck = false;
+  editor.innerHTML = state.trades[rowIdx][NOTE_COLUMN] || '';
+  if (!editor.innerHTML) editor.innerHTML = '<br>';
+  pop.appendChild(editor);
+
+  document.body.appendChild(pop);
+
+  // Center on screen using fixed positioning
+  pop.style.position = 'fixed';
+  pop.style.top = '50%';
+  pop.style.left = '50%';
+  pop.style.transform = 'translate(-50%, -50%)';
+
+  editor.focus();
+  // Place cursor at end
+  const range = document.createRange(); range.selectNodeContents(editor); range.collapse(false);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  _notePop = pop;
+
+  editor.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeNotePopup(false); }
+  });
+
+  setTimeout(() => {
+    document.addEventListener('mousedown', _notePopOutsideHandler, { capture: true });
+  }, 0);
+}
+
+function _notePopOutsideHandler(e) {
+  if (_notePop && !_notePop.contains(e.target)) {
+    _saveNotePopupValue();
+  }
+}
+
+function _saveNotePopupValue() {
+  if (_notePopRowIdx === null || !_notePop) return;
+  const editor = _notePop.querySelector('.note-popup-editor');
+  const raw = editor ? editor.innerHTML : '';
+  const val = stripHtml(raw).trim() ? raw : '';
+  state.trades[_notePopRowIdx][NOTE_COLUMN] = val;
+  saveTrades();
+  const idx = _notePopRowIdx;
+  closeNotePopup(false);
+  document.querySelectorAll(`[data-note-row="${idx}"]`).forEach(el => {
+    _refreshNoteCellDisplay(el, val);
+  });
+}
+
+function _refreshNoteCellDisplay(noteDiv, val) {
+  noteDiv.innerHTML = '';
+  const plain = stripHtml(val).trim();
+  if (plain) {
+    // Show rendered HTML — CSS handles overflow/truncation
+    noteDiv.innerHTML = val;
+    noteDiv.title = plain;
+  } else {
+    const ph = document.createElement('span');
+    ph.className = 'note-cell-ph';
+    ph.textContent = '+ note';
+    noteDiv.appendChild(ph);
+    noteDiv.title = 'Click to add note';
+  }
+}
+
+function closeNotePopup(save = false) {
+  document.removeEventListener('mousedown', _notePopOutsideHandler, { capture: true });
+  if (_notePopBackdrop) { _notePopBackdrop.remove(); _notePopBackdrop = null; }
+  if (save && _notePop) _saveNotePopupValue();
+  else {
+    if (_notePop) { _notePop.remove(); _notePop = null; }
+    _notePopRowIdx = null;
+  }
 }
 
 function normalizeSortVal(v) {
@@ -2324,13 +2755,13 @@ function sortTrades(rows) {
     const av = isTagColumn(col)
       ? getTradeTagsForColumn(a, col).join(',')
       : (col.toLowerCase() === 'images'
-          ? (a.images || []).length
-          : (col.toLowerCase() === 'image tags' ? getAllImageTagsForTrade(a).join(',') : (a[col] ?? '')));
+        ? (a.images || []).length
+        : (col.toLowerCase() === 'image tags' ? getAllImageTagsForTrade(a).join(',') : (a[col] ?? '')));
     const bv = isTagColumn(col)
       ? getTradeTagsForColumn(b, col).join(',')
       : (col.toLowerCase() === 'images'
-          ? (b.images || []).length
-          : (col.toLowerCase() === 'image tags' ? getAllImageTagsForTrade(b).join(',') : (b[col] ?? '')));
+        ? (b.images || []).length
+        : (col.toLowerCase() === 'image tags' ? getAllImageTagsForTrade(b).join(',') : (b[col] ?? '')));
     const na = normalizeSortVal(av);
     const nb = normalizeSortVal(bv);
     if (na.t !== nb.t) return (na.t - nb.t) * dir;
@@ -2338,6 +2769,18 @@ function sortTrades(rows) {
     if (na.v > nb.v) return 1 * dir;
     return 0;
   });
+}
+
+function getDefaultColWidth(col) {
+  if (col === 'Images') return 160;
+  if (col === NOTE_COLUMN) return 130;
+  if (col === VIDEO_COLUMN) return 180;
+  if (col === IMAGE_TAG_COLUMN) return 150;
+  if (col === BROKER_COLUMN) return 110;
+  if (/net\s*p\/l|gross\s*p\/l|total\s*fees|brokerage|charges?/i.test(col)) return 95;
+  if (/date|time/i.test(col)) return 105;
+  if (/price|qty|quantity|lot|volume/i.test(col)) return 100;
+  return 110;
 }
 
 function bindColumnResizer(handle, colName, colIdx) {
@@ -2348,19 +2791,46 @@ function bindColumnResizer(handle, colName, colIdx) {
     const startX = e.clientX;
     const startW = th.getBoundingClientRect().width;
     const onMove = ev => {
-      const w = Math.max(70, Math.round(startW + (ev.clientX - startX)));
+      const w = Math.max(50, Math.round(startW + (ev.clientX - startX)));
       state.colWidths[colName] = w;
+      // colEls[0] = drag-handle col, so visible cols start at index 1
       const colEls = document.querySelectorAll('#table-colgroup col');
-      if (colEls[colIdx]) colEls[colIdx].style.width = w + 'px';
+      if (colEls[colIdx + 1]) colEls[colIdx + 1].style.width = w + 'px';
     };
     const onUp = () => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
-      renderTable();
+      try { localStorage.setItem('tj_colWidths', JSON.stringify(state.colWidths)); } catch (e) { }
     };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   });
+  // Double-click resizer → reset to default width
+  handle.addEventListener('dblclick', e => {
+    e.preventDefault(); e.stopPropagation();
+    delete state.colWidths[colName];
+    try { localStorage.setItem('tj_colWidths', JSON.stringify(state.colWidths)); } catch (e2) { }
+    renderTable();
+  });
+}
+
+function loadColWidths() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tj_colWidths') || '{}');
+    if (saved && typeof saved === 'object') {
+      Object.assign(state.colWidths, saved);
+    }
+  } catch (e) { }
+}
+
+function loadTagGroups() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tj_tagGroups') || '{}');
+    if (saved && typeof saved === 'object') state.tagGroups = saved;
+  } catch (e) { }
+}
+function saveTagGroups() {
+  try { localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); } catch (e) { }
 }
 
 function applyProfitColor(inp, val) {
@@ -2369,11 +2839,18 @@ function applyProfitColor(inp, val) {
 }
 
 function renderImagesCell(td, rowIdx, images) {
-  const w = document.createElement('div'); w.className = 'img-cell';
-  images.slice(0,3).forEach((url,i) => {
+  const w = document.createElement('div'); w.className = 'img-cell img-cell-grid';
+  const maxShow = 6;
+  images.slice(0, maxShow).forEach((url, i) => {
     const item = document.createElement('div'); item.className = 'img-thumb-wrap';
     const img = document.createElement('img'); img.className = 'img-thumb'; img.src = url;
+    img.setAttribute('draggable', 'true');
     img.addEventListener('click', e => { e.stopPropagation(); openGalleryDirect(images, i, rowIdx); });
+    img.addEventListener('dragstart', e => {
+      e.stopPropagation();
+      e.dataTransfer.setData('tj-img', JSON.stringify({ rowIdx, url }));
+      e.dataTransfer.effectAllowed = e.ctrlKey ? 'copy' : 'move';
+    });
     const del = document.createElement('button'); del.className = 'img-thumb-del'; del.textContent = '×'; del.title = 'Delete image';
     del.addEventListener('click', async e => {
       e.stopPropagation();
@@ -2383,9 +2860,9 @@ function renderImagesCell(td, rowIdx, images) {
     item.appendChild(del);
     w.appendChild(item);
   });
-  if (images.length > 3) {
-    const b = document.createElement('span'); b.className = 'img-count-badge'; b.textContent = `+${images.length-3}`;
-    b.addEventListener('click', () => openGalleryDirect(images, 3, rowIdx)); w.appendChild(b);
+  if (images.length > maxShow) {
+    const b = document.createElement('span'); b.className = 'img-count-badge'; b.textContent = `+${images.length - maxShow}`;
+    b.addEventListener('click', () => openGalleryDirect(images, maxShow, rowIdx)); w.appendChild(b);
   }
   const ub = document.createElement('button'); ub.className = 'img-upload-btn'; ub.textContent = '+ Upload';
   ub.addEventListener('click', e => { e.stopPropagation(); openUploadModal(rowIdx); });
@@ -2428,10 +2905,10 @@ async function deleteImageFromRow(rowIdx, imageUrl) {
     const filename = String(imageUrl || '').split('/').pop();
     await fetch('/api/delete-image', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filename })
     });
-  } catch(e) {}
+  } catch (e) { }
 
   await saveTrades();
   render();
@@ -2439,28 +2916,35 @@ async function deleteImageFromRow(rowIdx, imageUrl) {
 }
 
 // â”€â”€ TAGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const TAG_PALETTE = ['#3fb950','#58a6ff','#d29922','#bc8cff','#f85149','#79b8ff','#56d364','#ffa657'];
+const TAG_PALETTE = ['#3fb950', '#58a6ff', '#d29922', '#bc8cff', '#f85149', '#79b8ff', '#56d364', '#ffa657'];
 function tagColor(name) {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
   return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
 }
 function hexToRgba(hex, a) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${a})`;
 }
 
 function renderTagCell(td, rowIdx, colName) {
   const trade = state.trades[rowIdx];
-  const wrap  = document.createElement('div'); wrap.className = 'tag-cell';
+  const wrap = document.createElement('div'); wrap.className = 'tag-cell';
   getTradeTagsForColumn(trade, colName).forEach(tag => {
-    const c    = tagColor(tag);
+    const c = tagColor(tag);
     const chip = document.createElement('span'); chip.className = 'tag-chip';
     chip.textContent = tag;
-    chip.style.color      = c;
+    chip.style.color = c;
     chip.style.background = hexToRgba(c, 0.15);
-    chip.style.borderColor= hexToRgba(c, 0.45);
-    chip.title = 'Click to remove';
+    chip.style.borderColor = hexToRgba(c, 0.45);
+    chip.title = 'Click to remove \u2022 Drag to move \u2022 Ctrl+Drag to copy';
+    chip.setAttribute('draggable', 'true');
+    chip.addEventListener('dragstart', e => {
+      _tagDragIsCopy = e.ctrlKey;
+      e.dataTransfer.effectAllowed = e.ctrlKey ? 'copy' : 'move';
+      e.dataTransfer.setData('tj-tag', JSON.stringify({ rowIdx, tag, colName }));
+      e.stopPropagation(); // prevent row-drag from triggering
+    });
     chip.addEventListener('click', e => {
       e.stopPropagation();
       trade[colName] = getTradeTagsForColumn(trade, colName).filter(t => t !== tag);
@@ -2471,19 +2955,67 @@ function renderTagCell(td, rowIdx, colName) {
   });
   const addBtn = document.createElement('button'); addBtn.className = 'tag-add-btn'; addBtn.textContent = '+ Tag';
   addBtn.addEventListener('click', e => { e.stopPropagation(); openTagPicker(rowIdx, colName); });
-  wrap.appendChild(addBtn); td.appendChild(wrap);
+  wrap.appendChild(addBtn);
+
+  // Drop zone — accept tj-tag drops on same column
+  td.addEventListener('dragover', e => {
+    if (!e.dataTransfer.types.includes('tj-tag')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = _tagDragIsCopy ? 'copy' : 'move';
+    td.classList.add('tag-drop-hover');
+  });
+  td.addEventListener('dragleave', () => td.classList.remove('tag-drop-hover'));
+  td.addEventListener('drop', e => {
+    td.classList.remove('tag-drop-hover');
+    if (!e.dataTransfer.types.includes('tj-tag')) return;
+    e.preventDefault(); e.stopPropagation();
+    let payload; try { payload = JSON.parse(e.dataTransfer.getData('tj-tag')); } catch { return; }
+    const { rowIdx: srcRowIdx, tag: srcTag, colName: srcCol } = payload;
+    if (srcCol !== colName) return; // only same column
+    if (srcRowIdx === rowIdx) return; // same row — no-op
+    const tgtTrade = state.trades[rowIdx];
+    const tgtTags = getTradeTagsForColumn(tgtTrade, colName);
+    if (!tgtTags.includes(srcTag)) {
+      tgtTrade[colName] = [...tgtTags, srcTag];
+      if (colName === 'Tags') tgtTrade.tags = [...tgtTrade[colName]];
+    }
+    if (!_tagDragIsCopy) {
+      const srcTrade = state.trades[srcRowIdx];
+      srcTrade[colName] = getTradeTagsForColumn(srcTrade, colName).filter(t => t !== srcTag);
+      if (colName === 'Tags') srcTrade.tags = [...srcTrade[colName]];
+    }
+    saveTrades(); renderTable(); renderTagFilterPanel();
+  });
+
+  td.appendChild(wrap);
 }
 
 let _tagPickerRow = null;
 let _tagPickerCol = 'Tags';
+let _tagPickerDate = null; // non-null when editing day-level tags
+let _tagDragIsCopy = false; // true when Ctrl held during tag chip dragstart
+
 function openTagPicker(rowIdx, colName = 'Tags') {
   _tagPickerRow = rowIdx;
+  _tagPickerDate = null;
   _tagPickerCol = colName;
-  const modal  = document.getElementById('tag-modal');
-  const inp    = document.getElementById('tag-picker-inp');
-  const trade  = state.trades[rowIdx] || {};
-  const label  = trade.date || trade['Date'] || `Row ${rowIdx + 1}`;
+  const modal = document.getElementById('tag-modal');
+  const inp = document.getElementById('tag-picker-inp');
+  const trade = state.trades[rowIdx] || {};
+  const label = trade.date || trade['Date'] || `Row ${rowIdx + 1}`;
   document.getElementById('tag-modal-title').textContent = `${colName} - ${label}`;
+  inp.value = ''; updateTagPickerList('');
+  modal.classList.add('open');
+  inp.focus();
+}
+
+function openTagPickerForDay(dateKey, colName = 'Tags') {
+  _tagPickerRow = null;
+  _tagPickerDate = dateKey;
+  _tagPickerCol = colName;
+  const modal = document.getElementById('tag-modal');
+  const inp = document.getElementById('tag-picker-inp');
+  document.getElementById('tag-modal-title').textContent = `${colName} - ${dateKey} (day)`;
   inp.value = ''; updateTagPickerList('');
   modal.classList.add('open');
   inp.focus();
@@ -2492,29 +3024,57 @@ function openTagPicker(rowIdx, colName = 'Tags') {
 function closeTagPicker() {
   document.getElementById('tag-modal').classList.remove('open');
   _tagPickerRow = null;
+  _tagPickerDate = null;
   _tagPickerCol = 'Tags';
 }
 
+function _getDayLevelTags(dateKey, colName) {
+  return (state.dayData[dateKey]?.tags?.[colName]) || [];
+}
+function _setDayLevelTag(dateKey, colName, tag, add) {
+  if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
+  if (!state.dayData[dateKey].tags) state.dayData[dateKey].tags = {};
+  const arr = Array.isArray(state.dayData[dateKey].tags[colName]) ? state.dayData[dateKey].tags[colName] : [];
+  if (add) { if (!arr.includes(tag)) arr.push(tag); }
+  else { state.dayData[dateKey].tags[colName] = arr.filter(t => t !== tag); return; }
+  state.dayData[dateKey].tags[colName] = arr;
+}
+
 function updateTagPickerList(q) {
-  if (_tagPickerRow === null) return;
-  const trade     = state.trades[_tagPickerRow];
-  const tradeTags = trade ? getTradeTagsForColumn(trade, _tagPickerCol) : [];
-  const list      = document.getElementById('tag-picker-list');
-  list.innerHTML  = '';
+  if (_tagPickerRow === null && _tagPickerDate === null) return;
+  const isDayMode = _tagPickerDate !== null;
+
+  // Get currently selected tags
+  let currentTags;
+  if (isDayMode) {
+    currentTags = _getDayLevelTags(_tagPickerDate, _tagPickerCol);
+  } else {
+    const trade = state.trades[_tagPickerRow];
+    currentTags = trade ? getTradeTagsForColumn(trade, _tagPickerCol) : [];
+  }
+
+  const list = document.getElementById('tag-picker-list');
+  list.innerHTML = '';
 
   const columnTags = getUniqueTagsForColumn(_tagPickerCol);
   const filtered = q ? columnTags.filter(t => t.toLowerCase().includes(q.toLowerCase())) : columnTags;
   filtered.forEach(tag => {
     const item = document.createElement('label'); item.className = 'tag-picker-item';
-    const chk  = document.createElement('input'); chk.type = 'checkbox'; chk.checked = tradeTags.includes(tag);
-    const dot  = document.createElement('span'); dot.className = 'tag-dot'; dot.style.background = tagColor(tag);
+    const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = currentTags.includes(tag);
+    const dot = document.createElement('span'); dot.className = 'tag-dot'; dot.style.background = tagColor(tag);
     const nameSpan = document.createElement('span'); nameSpan.textContent = tag; nameSpan.style.color = tagColor(tag);
     chk.addEventListener('change', () => {
-      const arr = ensureTagArray(trade, _tagPickerCol);
-      if (chk.checked) { if (!arr.includes(tag)) arr.push(tag); }
-      else trade[_tagPickerCol] = arr.filter(t => t !== tag);
-      if (_tagPickerCol === 'Tags') trade.tags = [...ensureTagArray(trade, _tagPickerCol)];
-      saveTrades(); renderTable(); renderTagFilterPanel();
+      if (isDayMode) {
+        _setDayLevelTag(_tagPickerDate, _tagPickerCol, tag, chk.checked);
+        saveTrades(); renderTable();
+      } else {
+        const trade = state.trades[_tagPickerRow];
+        const arr = ensureTagArray(trade, _tagPickerCol);
+        if (chk.checked) { if (!arr.includes(tag)) arr.push(tag); }
+        else trade[_tagPickerCol] = arr.filter(t => t !== tag);
+        if (_tagPickerCol === 'Tags') trade.tags = [...ensureTagArray(trade, _tagPickerCol)];
+        saveTrades(); renderTable(); renderTagFilterPanel();
+      }
     });
     item.appendChild(chk); item.appendChild(dot); item.appendChild(nameSpan);
     list.appendChild(item);
@@ -2527,10 +3087,15 @@ function updateTagPickerList(q) {
     createItem.textContent = `+ Create "${trimQ}"`;
     createItem.addEventListener('click', () => {
       if (!state.allTags.some(t => t.toLowerCase() === trimQ.toLowerCase())) state.allTags.push(trimQ);
-      const arr = ensureTagArray(state.trades[_tagPickerRow], _tagPickerCol);
-      if (!arr.includes(trimQ)) arr.push(trimQ);
-      if (_tagPickerCol === 'Tags') state.trades[_tagPickerRow].tags = [...arr];
-      saveTrades(); renderTable(); renderTagFilterPanel();
+      if (isDayMode) {
+        _setDayLevelTag(_tagPickerDate, _tagPickerCol, trimQ, true);
+        saveTrades(); renderTable();
+      } else {
+        const arr = ensureTagArray(state.trades[_tagPickerRow], _tagPickerCol);
+        if (!arr.includes(trimQ)) arr.push(trimQ);
+        if (_tagPickerCol === 'Tags') state.trades[_tagPickerRow].tags = [...arr];
+        saveTrades(); renderTable(); renderTagFilterPanel();
+      }
       document.getElementById('tag-picker-inp').value = ''; updateTagPickerList('');
     });
     list.appendChild(createItem);
@@ -2553,9 +3118,9 @@ function renderTagFilterPanel() {
   }
 
   const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
-  const btnAll  = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
+  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
   const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
-  btnAll.addEventListener('click',  () => { state.tagFilter = [...keys]; renderTagFilterPanel(); applyTagFilter(); });
+  btnAll.addEventListener('click', () => { state.tagFilter = [...keys]; renderTagFilterPanel(); applyTagFilter(); });
   btnNone.addEventListener('click', () => { state.tagFilter = []; renderTagFilterPanel(); applyTagFilter(); });
   actRow.appendChild(btnAll); actRow.appendChild(btnNone); panel.appendChild(actRow);
 
@@ -2599,7 +3164,7 @@ function renderTagFilterPanel() {
       const row = document.createElement('div'); row.className = 'tag-manage-row';
       const dot = document.createElement('span'); dot.className = 'tag-dot'; dot.style.background = tagColor(tag);
       const name = document.createElement('span'); name.textContent = `${col}: ${tag}`; name.style.flex = '1';
-      const del  = document.createElement('button'); del.className = 'tag-del-btn'; del.textContent = 'x'; del.title = 'Delete in this column only';
+      const del = document.createElement('button'); del.className = 'tag-del-btn'; del.textContent = 'x'; del.title = 'Delete in this column only';
       del.addEventListener('click', () => {
         state.tagFilter = state.tagFilter.filter(t => t !== key);
         state.trades.forEach(t => {
@@ -2618,7 +3183,7 @@ function applyTagFilter() {
   renderTable(); renderCalendar();
   const btn = document.getElementById('tag-filter-btn');
   btn.style.borderColor = state.tagFilter.length ? 'var(--blue)' : '';
-  btn.style.color       = state.tagFilter.length ? 'var(--blue)' : '';
+  btn.style.color = state.tagFilter.length ? 'var(--blue)' : '';
 }
 
 // â”€â”€ ADD COLUMN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -2630,7 +3195,7 @@ function addColumn(colName) {
     showToast('This is a permanent column', 'error');
     return;
   }
-  if (state.columns.includes(name)) { state.addTagColumnMode = false; showToast('Column already exists','error'); return; }
+  if (state.columns.includes(name)) { state.addTagColumnMode = false; showToast('Column already exists', 'error'); return; }
   const asTagColumn = state.addTagColumnMode || isTagColumn(name);
   state.columns.push(name);
   if (!state.userColumns.includes(name)) state.userColumns.push(name);
@@ -2645,7 +3210,7 @@ function addColumn(colName) {
   }
   const defHead = !asTagColumn && isDefaultShowHeadCol(name);
   state.showHeadsConsolidated[name] = defHead;
-  state.showHeadsIndividual[name]   = defHead;
+  state.showHeadsIndividual[name] = defHead;
   saveShowHeads();
   state.addTagColumnMode = false;
   saveTrades(); render(); renderShowHeads();
@@ -2684,7 +3249,7 @@ function renameColumn(oldName, newName) {
   });
 
   if (from in state.showHeadsConsolidated) { state.showHeadsConsolidated[to] = state.showHeadsConsolidated[from]; delete state.showHeadsConsolidated[from]; }
-  if (from in state.showHeadsIndividual)   { state.showHeadsIndividual[to]   = state.showHeadsIndividual[from];   delete state.showHeadsIndividual[from];   }
+  if (from in state.showHeadsIndividual) { state.showHeadsIndividual[to] = state.showHeadsIndividual[from]; delete state.showHeadsIndividual[from]; }
   saveShowHeads();
   if (from in state.tableShowCols) {
     state.tableShowCols[to] = state.tableShowCols[from];
@@ -2773,88 +3338,143 @@ function openEditColumnModal(defaultCol = '') {
 function openGalleryForDate(dateStr) {
   const images = getImagesForDate(dateStr);
   if (!images.length) return;
-  state.gallery = { images, currentIndex: 0, date: dateStr, sourceRow: null };
-  renderGallery(); updateGalleryDateArrows();
+  state.gallery.images = images; state.gallery.currentIndex = 0;
+  state.gallery.date = dateStr; state.gallery.sourceRow = null;
   document.getElementById('gallery-modal').classList.add('open');
+  renderGallery(); updateGalleryDateArrows();
+  renderGalleryTagCloud(); renderGalleryTagsTray();
 }
 
 function openGalleryDirect(images, startIndex, sourceRow = null) {
-  state.gallery = { images, currentIndex: startIndex, date: '', sourceRow };
-  renderGallery(); updateGalleryDateArrows();
+  state.gallery.images = images; state.gallery.currentIndex = startIndex;
+  state.gallery.date = ''; state.gallery.sourceRow = sourceRow;
   document.getElementById('gallery-modal').classList.add('open');
+  renderGallery(); updateGalleryDateArrows();
+  renderGalleryTagCloud(); renderGalleryTagsTray();
 }
 
 function renderGallery() {
   const { images, currentIndex, date } = state.gallery;
+  const currentImageUrl = images[currentIndex] || '';
+  if (annotState.active && annotState.imageUrl && annotState.imageUrl !== currentImageUrl) {
+    // Carry annotation mode/tool across image switches.
+    state._carryAnnotTool = annotState.tool;
+    stopAnnotation();
+  }
   document.getElementById('gallery-date').textContent = date ? formatDisplayDate(date) : `${images.length} image(s)`;
   if (date) document.getElementById('gallery-date-picker').value = date;
 
-  // Show/hide upload button based on whether we have a date
+  // Upload button — show only when date available
   const uploadBtn = document.getElementById('gallery-upload-btn');
-  if (uploadBtn) uploadBtn.style.display = date ? 'inline-flex' : 'none';
+  if (uploadBtn) uploadBtn.style.display = date ? '' : 'none';
+
+  // Obs button
+  const obsBtn = document.getElementById('gv2-obs-btn');
+  if (obsBtn) obsBtn.style.display = date ? '' : 'none';
 
   const img = document.getElementById('gallery-img');
-  // Hide canvas while new image loads
   if (!annotState.active) document.getElementById('annot-canvas').style.display = 'none';
-  img.src = images[currentIndex] || ''; img.classList.remove('zoomed','dragging'); resetZoom();
-  // Load overlay once image is ready
-  img.addEventListener('load', loadOverlayForCurrentImage, { once: true });
-  if (img.complete && img.naturalWidth) loadOverlayForCurrentImage();
+  img.src = images[currentIndex] || ''; img.classList.remove('zoomed', 'dragging'); resetZoom();
+  const afterImageReady = () => {
+    loadOverlayForCurrentImage();
+    if (state._carryAnnotTool) {
+      annotState.tool = state._carryAnnotTool;
+      state._carryAnnotTool = '';
+      startAnnotation();
+    }
+  };
+  img.addEventListener('load', afterImageReady, { once: true });
+  if (img.complete && img.naturalWidth) afterImageReady();
 
-  document.getElementById('gallery-counter').textContent = `${currentIndex+1} / ${images.length}`;
+  document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
   document.getElementById('gallery-prev').disabled = currentIndex === 0;
   document.getElementById('gallery-next').disabled = currentIndex === images.length - 1;
   renderGalleryImageTags();
-  if (document.getElementById('img-tag-modal')?.classList.contains('open')) {
-    renderImageTagModal();
-  }
+  if (document.getElementById('img-tag-modal')?.classList.contains('open')) renderImageTagModal();
 
+  // ── Thumbnail Tray ──
   const thumbs = document.getElementById('gallery-thumbs'); thumbs.innerHTML = '';
+  // When tag filter active, show filtered images from all dates; else current date/images
+  const thumbImages = _getGalleryThumbImages();
   let dragFromIndex = -1;
-  images.forEach((url, i) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'gallery-thumb-wrap';
-    wrap.draggable = true;
+  thumbImages.forEach(({ url, globalIdx, isCurrentDate }) => {
+    const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = true;
+    const t = document.createElement('img'); t.src = url; t.className = 'gv2-thumb' + (globalIdx === currentIndex && isCurrentDate ? ' active' : '');
+    t.addEventListener('click', () => { state.gallery.currentIndex = globalIdx; renderGallery(); });
 
-    const t = document.createElement('img'); t.src = url;
-    t.className = 'gallery-thumb' + (i === currentIndex ? ' active' : '');
-    t.addEventListener('click', () => { state.gallery.currentIndex = i; renderGallery(); });
-    wrap.addEventListener('dragstart', e => {
-      dragFromIndex = i;
-      wrap.classList.add('dragging');
-      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-    });
-    wrap.addEventListener('dragend', () => {
-      dragFromIndex = -1;
-      wrap.classList.remove('dragging');
-      thumbs.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-    wrap.addEventListener('dragover', e => {
-      e.preventDefault();
-      if (dragFromIndex !== i) wrap.classList.add('drag-over');
-    });
-    wrap.addEventListener('dragleave', () => wrap.classList.remove('drag-over'));
-    wrap.addEventListener('drop', async e => {
-      e.preventDefault();
-      wrap.classList.remove('drag-over');
-      if (dragFromIndex < 0 || dragFromIndex === i) return;
-      await reorderGalleryImages(dragFromIndex, i);
-    });
+    // Drag reorder (only within current date's images)
+    if (isCurrentDate) {
+      wrap.addEventListener('dragstart', e => {
+        dragFromIndex = globalIdx; wrap.classList.add('dragging');
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      });
+      wrap.addEventListener('dragend', () => {
+        dragFromIndex = -1; wrap.classList.remove('dragging');
+        thumbs.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      });
+      wrap.addEventListener('dragover', e => {
+        e.preventDefault();
+        if (dragFromIndex !== globalIdx) wrap.classList.add('drag-over');
+      });
+      wrap.addEventListener('dragleave', () => wrap.classList.remove('drag-over'));
+      wrap.addEventListener('drop', async e => {
+        e.preventDefault(); wrap.classList.remove('drag-over');
+        if (dragFromIndex < 0 || dragFromIndex === globalIdx) return;
+        await reorderGalleryImages(dragFromIndex, globalIdx);
+      });
+    }
 
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'gallery-thumb-del';
-    del.textContent = 'x';
-    del.title = 'Remove image';
-    del.addEventListener('click', async e => {
-      e.stopPropagation();
-      await removeGalleryImageAt(i);
-    });
+    const del = document.createElement('button'); del.type = 'button';
+    del.className = 'gv2-thumb-del'; del.textContent = '×'; del.title = 'Remove image';
+    del.addEventListener('click', async e => { e.stopPropagation(); await removeGalleryImageAt(globalIdx); });
 
-    wrap.appendChild(t);
-    wrap.appendChild(del);
-    thumbs.appendChild(wrap);
+    // Video icon on first thumb if day has video
+    if (globalIdx === 0 && date) {
+      const videoUrl = state.dayData[date]?.video;
+      if (videoUrl) {
+        const vi = document.createElement('span'); vi.className = 'gv2-thumb-video-icon'; vi.textContent = '▶';
+        vi.style.pointerEvents = 'auto'; vi.style.cursor = 'pointer';
+        vi.addEventListener('click', e => { e.stopPropagation(); window.open(videoUrl, '_blank'); });
+        wrap.appendChild(vi);
+      }
+    }
+
+    wrap.appendChild(t); wrap.appendChild(del); thumbs.appendChild(wrap);
   });
+}
+
+// Returns items for thumbnail tray: filtered or current date
+function _getGalleryThumbImages() {
+  const { images, currentIndex, date, tagFilter, filterMode } = state.gallery;
+  if (!tagFilter || !tagFilter.length) {
+    // No filter — show current images
+    return images.map((url, i) => ({ url, globalIdx: i, isCurrentDate: true }));
+  }
+  // Filter active — collect all images from all dates that have the selected tags
+  const result = [];
+  const allDates = getDatesWithImages();
+  allDates.forEach(d => {
+    const imgs = getImagesForDate(d);
+    imgs.forEach((url, i) => {
+      const imgTags = _getTagsForImageUrl(url);
+      const matches = filterMode === 'and'
+        ? tagFilter.every(t => imgTags.includes(t))
+        : tagFilter.some(t => imgTags.includes(t));
+      if (matches) result.push({ url, globalIdx: i, isCurrentDate: d === date, date: d });
+    });
+  });
+  return result;
+}
+
+// Get tags assigned to a specific image URL
+function _getTagsForImageUrl(url) {
+  const tags = [];
+  state.trades.forEach(trade => {
+    if (!(trade.images || []).includes(url)) return;
+    const imgTagMap = trade._imageTags || {};
+    Object.values(imgTagMap).forEach(arr => tags.push(...(arr || [])));
+  });
+  return tags;
 }
 
 function getOwnerTradeForImageUrl(imageUrl) {
@@ -2865,6 +3485,8 @@ function getOwnerTradeForImageUrl(imageUrl) {
   if (state.gallery.date) {
     const row = getTradesForDate(state.gallery.date).find(t => (t.images || []).includes(imageUrl));
     if (row) return row;
+    // Not in any trade — might be a day-level image; return null (handled separately)
+    return null;
   }
   return state.trades.find(t => (t.images || []).includes(imageUrl)) || null;
 }
@@ -2878,7 +3500,14 @@ function syncGalleryImageOrderToTrades() {
     return;
   }
   if (state.gallery.date) {
-    const dayTrades = getTradesForDate(state.gallery.date);
+    // Sync day-level images
+    const dk = state.gallery.date;
+    if (state.dayData[dk]?.images) {
+      const dayOwn = new Set(state.dayData[dk].images);
+      state.dayData[dk].images = ordered.filter(u => dayOwn.has(u));
+    }
+    // Sync trade-level images for this date
+    const dayTrades = getTradesForDate(dk);
     dayTrades.forEach(t => {
       const own = new Set(t.images || []);
       t.images = ordered.filter(u => own.has(u));
@@ -2909,13 +3538,24 @@ async function removeGalleryImageAt(idx) {
   const arr = state.gallery.images || [];
   if (idx < 0 || idx >= arr.length) return;
   const imageUrl = arr[idx];
+  if (state._localOverlays?.[imageUrl]) delete state._localOverlays[imageUrl];
   const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
   if (ownerTrade) {
     ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
     if (ownerTrade.overlays && ownerTrade.overlays[imageUrl]) delete ownerTrade.overlays[imageUrl];
+    if (ownerTrade.marqueeBoxes && ownerTrade.marqueeBoxes[imageUrl]) delete ownerTrade.marqueeBoxes[imageUrl];
     const store = ensureImageTagStore(ownerTrade);
     if (store[imageUrl]) delete store[imageUrl];
     cleanupImageTagStore(ownerTrade);
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.images) {
+    // Day-level image
+    state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
+    if (state.dayData[state.gallery.date]?.overlays?.[imageUrl]) {
+      delete state.dayData[state.gallery.date].overlays[imageUrl];
+    }
+    if (state.dayData[state.gallery.date]?.marqueeBoxes?.[imageUrl]) {
+      delete state.dayData[state.gallery.date].marqueeBoxes[imageUrl];
+    }
   }
   arr.splice(idx, 1);
   if (state.gallery.currentIndex >= arr.length) state.gallery.currentIndex = Math.max(0, arr.length - 1);
@@ -2923,10 +3563,10 @@ async function removeGalleryImageAt(idx) {
     const filename = String(imageUrl || '').split('/').pop();
     await fetch('/api/delete-image', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filename })
     });
-  } catch(e) {}
+  } catch (e) { }
   if (!arr.length) {
     await saveTrades();
     renderTable();
@@ -2945,45 +3585,58 @@ async function removeGalleryImageAt(idx) {
 
 function loadOverlayForCurrentImage() {
   if (annotState.active) return; // annotation mode handles its own canvas
-  const imgs    = state.gallery.images || [];
-  const imgUrl  = imgs[state.gallery.currentIndex];
-  const trade   = getOwnerTradeForGalleryImage();
-  const canvas  = document.getElementById('annot-canvas');
-  const img     = document.getElementById('gallery-img');
+  const imgs = state.gallery.images || [];
+  const imgUrl = imgs[state.gallery.currentIndex];
+  const overlayUrl = state._localOverlays?.[imgUrl] || getOverlayUrlForImage(imgUrl, state.gallery.date || '');
+  const canvas = document.getElementById('annot-canvas');
+  const ctx = canvas.getContext('2d');
+  const img = document.getElementById('gallery-img');
   const wrapper = document.getElementById('gallery-img-wrapper');
 
-  if (!trade || !trade.overlays || !trade.overlays[imgUrl]) {
-    canvas.style.display = 'none'; return;
+  if (!overlayUrl) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.style.display = 'none';
+    return;
   }
 
   // Position canvas exactly over the rendered image
   const wRect = wrapper.getBoundingClientRect();
   const iRect = img.getBoundingClientRect();
-  const left  = iRect.left - wRect.left;
-  const top   = iRect.top  - wRect.top;
-  const w     = Math.round(iRect.width);
-  const h     = Math.round(iRect.height);
+  const left = iRect.left - wRect.left;
+  const top = iRect.top - wRect.top;
+  const w = Math.round(iRect.width);
+  const h = Math.round(iRect.height);
 
-  canvas.style.left          = left + 'px';
-  canvas.style.top           = top  + 'px';
-  canvas.style.width         = w + 'px';
-  canvas.style.height        = h + 'px';
-  canvas.width               = w;
-  canvas.height              = h;
+  canvas.style.left = left + 'px';
+  canvas.style.top = top + 'px';
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w;
+  canvas.height = h;
   canvas.style.pointerEvents = 'none'; // view-only, no drawing
-  canvas.style.display       = 'block';
+  canvas.style.display = 'block';
 
   const ovImg = new Image();
-  ovImg.onload = () => canvas.getContext('2d').drawImage(ovImg, 0, 0, w, h);
-  ovImg.src = trade.overlays[imgUrl];
+  ovImg.onload = () => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(ovImg, 0, 0, w, h);
+  };
+  ovImg.onerror = () => {
+    ctx.clearRect(0, 0, w, h);
+    canvas.style.display = 'none';
+  };
+  ovImg.src = overlayUrl;
 }
 
 function navigateGallery(dir) {
-  const { images, currentIndex } = state.gallery;
+  const { images, currentIndex, date } = state.gallery;
   const next = currentIndex + dir;
-  if (next < 0 || next >= images.length) return;
-  if (annotState.active) stopAnnotation();
-  state.gallery.currentIndex = next; renderGallery();
+  if (next >= 0 && next < images.length) {
+    state.gallery.currentIndex = next; renderGallery();
+  } else if (date) {
+    // At boundary — auto-jump to adjacent date
+    navigateGalleryDate(dir);
+  }
 }
 
 function navigateGalleryDate(dir) {
@@ -2999,10 +3652,10 @@ function navigateGalleryDate(dir) {
   const nextDate = datesWithImages[nextIdx];
   const images = getImagesForDate(nextDate);
   if (images.length) {
-    state.gallery.images       = images;
+    state.gallery.images = images;
     state.gallery.currentIndex = 0;
-    state.gallery.date         = nextDate;
-    state.gallery.sourceRow    = null;
+    state.gallery.date = nextDate;
+    state.gallery.sourceRow = null;
     renderGallery(); updateGalleryDateArrows();
   }
 }
@@ -3014,8 +3667,231 @@ function updateGalleryDateArrows() {
   document.getElementById('gallery-date-next').disabled = idx === -1 || idx >= datesWithImages.length - 1;
 }
 
+// ── GALLERY V2: TAG CLOUD ────────────────────────────────────
+function renderGalleryTagCloud() {
+  const chips = document.getElementById('gv2-tag-cloud-chips');
+  const modeBtn = document.getElementById('gv2-tc-mode-btn');
+  const clearBtn = document.getElementById('gv2-tc-clear-btn');
+  if (!chips) return;
+  chips.innerHTML = '';
+
+  const allTagNames = state.allTags || [];
+  const selected = state.gallery.tagFilter || [];
+
+  allTagNames.forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'gv2-tc-chip' + (selected.includes(tag) ? ' selected' : '');
+    chip.textContent = tag;
+    chip.addEventListener('click', () => {
+      const idx = state.gallery.tagFilter.indexOf(tag);
+      if (idx === -1) state.gallery.tagFilter.push(tag);
+      else state.gallery.tagFilter.splice(idx, 1);
+      renderGalleryTagCloud();
+      renderGallery(); // refresh thumbnails
+    });
+    chips.appendChild(chip);
+  });
+
+  const hasFilter = selected.length > 0;
+  if (modeBtn) {
+    const isAnd = state.gallery.filterMode === 'and';
+    modeBtn.textContent = isAnd ? 'AND' : 'OR';
+    modeBtn.classList.toggle('and-mode', isAnd);
+  }
+  if (clearBtn) clearBtn.style.display = hasFilter ? '' : 'none';
+}
+
+// ── GALLERY V2: TAGS TRAY ─────────────────────────────────────
+function renderGalleryTagsTray() {
+  const body = document.getElementById('gv2-tags-tray-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  const allTags = state.allTags || [];
+  refreshMarqueeTagSuggestions();
+  const groups = state.tagGroups || {};
+  const groupNames = Object.keys(groups);
+  const deleteMode = !!state.tagDeleteMode;
+  const delBtn = document.getElementById('gv2-del-tag-btn');
+  if (delBtn) delBtn.classList.toggle('active', deleteMode);
+  let draggingTag = '';
+
+  const normalizeGroups = () => {
+    const valid = new Set(allTags);
+    Object.keys(state.tagGroups).forEach(g => {
+      state.tagGroups[g] = Array.from(new Set((state.tagGroups[g] || []).filter(t => valid.has(t))));
+    });
+  };
+
+  const toggleTagFilter = (tag) => {
+    const idx = state.gallery.tagFilter.indexOf(tag);
+    if (idx === -1) state.gallery.tagFilter.push(tag);
+    else state.gallery.tagFilter.splice(idx, 1);
+    renderGalleryTagCloud();
+    renderGallery();
+  };
+
+  const moveTagToGroup = (tag, targetGroup = '') => {
+    Object.keys(state.tagGroups).forEach(g => {
+      state.tagGroups[g] = (state.tagGroups[g] || []).filter(t => t !== tag);
+    });
+    if (targetGroup) {
+      if (!state.tagGroups[targetGroup]) state.tagGroups[targetGroup] = [];
+      if (!state.tagGroups[targetGroup].includes(tag)) state.tagGroups[targetGroup].push(tag);
+    }
+    saveTagGroups();
+    renderGalleryTagsTray();
+  };
+
+  const groupColor = (grpName) => {
+    if (!grpName) return '';
+    const palette = ['#58a6ff', '#2ea043', '#e3a22a', '#f78166', '#a371f7', '#ff7b72', '#56d4dd'];
+    const h = String(grpName).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    return palette[h % palette.length];
+  };
+
+  const createTagChip = (tag, grpName = '') => {
+    const chip = document.createElement('span');
+    chip.className = 'gv2-tt-tag-chip';
+    chip.textContent = tag;
+    const gc = groupColor(grpName);
+    if (gc) {
+      chip.style.borderColor = gc + '88';
+      chip.style.color = gc;
+      chip.style.background = gc + '1A';
+    }
+    chip.setAttribute('draggable', 'true');
+    chip.addEventListener('click', async () => {
+      if (state.tagDeleteMode) {
+        deleteImageTagGlobal(tag);
+        Object.keys(state.tagGroups).forEach(g => {
+          state.tagGroups[g] = (state.tagGroups[g] || []).filter(t => t !== tag);
+        });
+        saveTagGroups();
+        await saveTrades();
+        renderGalleryTagCloud();
+        renderGalleryTagsTray();
+        renderTable();
+        renderCalendar();
+        return;
+      }
+      if (addTagToSelectedMarqueeBox(tag)) {
+        const mqInp = document.getElementById('gv2-mq-tag-input');
+        if (mqInp) mqInp.value = '';
+        renderGalleryTagsTray();
+        showToast(`Added "${tag}" to marquee`, 'success');
+        return;
+      }
+      toggleTagFilter(tag);
+    });
+    chip.addEventListener('dragstart', e => {
+      draggingTag = tag;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', tag);
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragend', () => {
+      draggingTag = '';
+      chip.classList.remove('dragging');
+    });
+    return chip;
+  };
+
+  const bindDropTarget = (el, targetGroup = '') => {
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      el.classList.add('drop-hover');
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drop-hover'));
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('drop-hover');
+      const tag = draggingTag || e.dataTransfer.getData('text/plain');
+      if (!tag || !allTags.includes(tag)) return;
+      moveTagToGroup(tag, targetGroup);
+    });
+  };
+
+  normalizeGroups();
+
+  // Grouped sections
+  groupNames.forEach(grpName => {
+    const grp = document.createElement('div');
+    grp.className = 'gv2-tt-group';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'gv2-tt-grp-hdr';
+    const lbl = document.createElement('span');
+    lbl.textContent = grpName;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'gv2-tt-grp-del';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Delete group';
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (confirm(`Delete group "${grpName}"? Tags will become ungrouped.`)) {
+        delete state.tagGroups[grpName];
+        saveTagGroups();
+        renderGalleryTagsTray();
+      }
+    });
+    hdr.appendChild(lbl);
+    hdr.appendChild(delBtn);
+
+    const tagWrap = document.createElement('div');
+    tagWrap.className = 'gv2-tt-grp-tags';
+    bindDropTarget(grp, grpName);
+    bindDropTarget(tagWrap, grpName);
+
+    const tags = (groups[grpName] || []).filter(t => allTags.includes(t));
+    tags.forEach(tag => tagWrap.appendChild(createTagChip(tag, grpName)));
+    if (!tags.length) {
+      const hint = document.createElement('div');
+      hint.className = 'gv2-tt-drop-hint';
+      hint.textContent = 'Drop tags here';
+      tagWrap.appendChild(hint);
+    }
+
+    grp.appendChild(hdr);
+    grp.appendChild(tagWrap);
+    body.appendChild(grp);
+  });
+
+  // Ungrouped section (always visible)
+  const groupedTags = new Set(Object.values(state.tagGroups).flat());
+  const ungroupedTags = allTags.filter(t => !groupedTags.has(t));
+  const sec = document.createElement('div');
+  sec.className = 'gv2-tt-unassigned';
+  const lbl = document.createElement('div');
+  lbl.className = 'gv2-tt-unassigned-lbl';
+  lbl.textContent = 'Ungrouped';
+  const wrap = document.createElement('div');
+  wrap.className = 'gv2-tt-grp-tags';
+  bindDropTarget(sec, '');
+  bindDropTarget(wrap, '');
+  ungroupedTags.forEach(tag => wrap.appendChild(createTagChip(tag)));
+  if (!ungroupedTags.length) {
+    const hint = document.createElement('div');
+    hint.className = 'gv2-tt-drop-hint';
+    hint.textContent = 'Drop tags here';
+    wrap.appendChild(hint);
+  }
+  sec.appendChild(lbl);
+  sec.appendChild(wrap);
+  body.appendChild(sec);
+
+  if (!allTags.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--text3);font-size:0.78rem;padding:8px';
+    empty.textContent = 'No tags created yet.';
+    body.appendChild(empty);
+  }
+}
+
 function getImagesForDate(dateStr) {
   const out = [];
+  // Day-level images first
+  (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
   getTradesForDate(dateStr).forEach(t => {
     (t.images || []).forEach(url => out.push(url));
   });
@@ -3027,12 +3903,14 @@ function getTradeForDateByImage(dateStr, imageUrl) {
 }
 
 function getDatesWithImages() {
-  return Array.from(new Set(
-    state.trades
-      .filter(t => (t.images || []).length > 0)
-      .map(t => normalizeDate(extractDateFromTrade(t)))
-      .filter(Boolean)
-  )).sort();
+  const tradeDates = state.trades
+    .filter(t => (t.images || []).length > 0)
+    .map(t => normalizeDate(extractDateFromTrade(t)))
+    .filter(Boolean);
+  const dayDates = Object.entries(state.dayData)
+    .filter(([, v]) => v?.images?.length > 0)
+    .map(([k]) => k);
+  return Array.from(new Set([...tradeDates, ...dayDates])).sort();
 }
 
 function getOwnerTradeForGalleryImage() {
@@ -3046,7 +3924,7 @@ function getOwnerTradeForGalleryImage() {
       t.images.includes(imgUrl)
     );
     if (idx >= 0) return state.trades[idx];
-    return getTradeForDate(state.gallery.date);
+    return null; // day-level image
   }
 
   if (state.gallery.sourceRow !== null && state.trades[state.gallery.sourceRow]) {
@@ -3054,6 +3932,251 @@ function getOwnerTradeForGalleryImage() {
   }
 
   return state.trades.find(t => Array.isArray(t.images) && t.images.includes(imgUrl)) || null;
+}
+
+function getOverlayUrlForImage(imageUrl, dateHint = '') {
+  if (!imageUrl) return '';
+  if (dateHint) {
+    const dayTrades = getTradesForDate(dateHint);
+    for (const t of dayTrades) {
+      if (t?.overlays && t.overlays[imageUrl]) return t.overlays[imageUrl];
+    }
+    const dayOverlays = state.dayData[dateHint]?.overlays;
+    if (dayOverlays && dayOverlays[imageUrl]) return dayOverlays[imageUrl];
+  }
+  for (const t of state.trades) {
+    if (t?.overlays && t.overlays[imageUrl]) return t.overlays[imageUrl];
+  }
+  for (const d of Object.values(state.dayData || {})) {
+    if (d?.overlays && d.overlays[imageUrl]) return d.overlays[imageUrl];
+  }
+  return '';
+}
+
+function setOverlayUrlForCurrentGalleryImage(overlayUrl) {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl || !overlayUrl) return false;
+
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!trade.overlays) trade.overlays = {};
+    trade.overlays[imgUrl] = overlayUrl;
+    return true;
+  }
+
+  if (state.gallery.date) {
+    if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+    if (!state.dayData[state.gallery.date].overlays) state.dayData[state.gallery.date].overlays = {};
+    state.dayData[state.gallery.date].overlays[imgUrl] = overlayUrl;
+    return true;
+  }
+
+  return false;
+}
+
+function setOverlayUrlForImage(imageUrl, overlayUrl, dateHint = '', sourceRow = null) {
+  if (!imageUrl || !overlayUrl) return false;
+  if (sourceRow !== null && state.trades[sourceRow] && (state.trades[sourceRow].images || []).includes(imageUrl)) {
+    const t = state.trades[sourceRow];
+    if (!t.overlays) t.overlays = {};
+    t.overlays[imageUrl] = overlayUrl;
+    return true;
+  }
+  if (dateHint) {
+    const row = getTradesForDate(dateHint).find(t => (t.images || []).includes(imageUrl));
+    if (row) {
+      if (!row.overlays) row.overlays = {};
+      row.overlays[imageUrl] = overlayUrl;
+      return true;
+    }
+    if (!state.dayData[dateHint]) state.dayData[dateHint] = {};
+    if (!state.dayData[dateHint].overlays) state.dayData[dateHint].overlays = {};
+    state.dayData[dateHint].overlays[imageUrl] = overlayUrl;
+    return true;
+  }
+  const owner = state.trades.find(t => (t.images || []).includes(imageUrl));
+  if (owner) {
+    if (!owner.overlays) owner.overlays = {};
+    owner.overlays[imageUrl] = overlayUrl;
+    return true;
+  }
+  return false;
+}
+
+function getMarqueeBoxesForImage(imageUrl, dateHint = '', sourceRow = null) {
+  if (!imageUrl) return [];
+  if (sourceRow !== null && state.trades[sourceRow]?.marqueeBoxes?.[imageUrl]) {
+    return JSON.parse(JSON.stringify(state.trades[sourceRow].marqueeBoxes[imageUrl]));
+  }
+  if (dateHint) {
+    const row = getTradesForDate(dateHint).find(t => (t.images || []).includes(imageUrl) && t?.marqueeBoxes?.[imageUrl]);
+    if (row?.marqueeBoxes?.[imageUrl]) return JSON.parse(JSON.stringify(row.marqueeBoxes[imageUrl]));
+    const day = state.dayData[dateHint];
+    if (day?.marqueeBoxes?.[imageUrl]) return JSON.parse(JSON.stringify(day.marqueeBoxes[imageUrl]));
+  }
+  const owner = state.trades.find(t => (t.images || []).includes(imageUrl) && t?.marqueeBoxes?.[imageUrl]);
+  if (owner?.marqueeBoxes?.[imageUrl]) return JSON.parse(JSON.stringify(owner.marqueeBoxes[imageUrl]));
+  return [];
+}
+
+function setMarqueeBoxesForImage(imageUrl, boxes, dateHint = '', sourceRow = null) {
+  if (!imageUrl) return false;
+  const safe = Array.isArray(boxes) ? JSON.parse(JSON.stringify(boxes)) : [];
+  if (sourceRow !== null && state.trades[sourceRow] && (state.trades[sourceRow].images || []).includes(imageUrl)) {
+    const t = state.trades[sourceRow];
+    if (!t.marqueeBoxes) t.marqueeBoxes = {};
+    t.marqueeBoxes[imageUrl] = safe;
+    return true;
+  }
+  if (dateHint) {
+    const row = getTradesForDate(dateHint).find(t => (t.images || []).includes(imageUrl));
+    if (row) {
+      if (!row.marqueeBoxes) row.marqueeBoxes = {};
+      row.marqueeBoxes[imageUrl] = safe;
+      return true;
+    }
+    if (!state.dayData[dateHint]) state.dayData[dateHint] = {};
+    if (!state.dayData[dateHint].marqueeBoxes) state.dayData[dateHint].marqueeBoxes = {};
+    state.dayData[dateHint].marqueeBoxes[imageUrl] = safe;
+    return true;
+  }
+  const owner = state.trades.find(t => (t.images || []).includes(imageUrl));
+  if (owner) {
+    if (!owner.marqueeBoxes) owner.marqueeBoxes = {};
+    owner.marqueeBoxes[imageUrl] = safe;
+    return true;
+  }
+  return false;
+}
+
+function packMarqueeBoxes(boxes, canvasW, canvasH) {
+  const w = Math.max(1, Number(canvasW) || 1);
+  const h = Math.max(1, Number(canvasH) || 1);
+  return (Array.isArray(boxes) ? boxes : []).map(b => ({
+    rx: Math.max(0, Math.min(1, (Number(b.x) || 0) / w)),
+    ry: Math.max(0, Math.min(1, (Number(b.y) || 0) / h)),
+    rw: Math.max(0, Math.min(1, (Number(b.w) || 0) / w)),
+    rh: Math.max(0, Math.min(1, (Number(b.h) || 0) / h)),
+    tags: Array.isArray(b.tags) ? [...b.tags] : []
+  }));
+}
+
+function unpackMarqueeBoxes(stored, canvasW, canvasH) {
+  const w = Math.max(1, Number(canvasW) || 1);
+  const h = Math.max(1, Number(canvasH) || 1);
+  const out = (Array.isArray(stored) ? stored : []).map(b => {
+    if (b && typeof b === 'object' && 'rx' in b && 'ry' in b && 'rw' in b && 'rh' in b) {
+      return {
+        x: Math.max(0, (Number(b.rx) || 0) * w),
+        y: Math.max(0, (Number(b.ry) || 0) * h),
+        w: Math.max(8, (Number(b.rw) || 0) * w),
+        h: Math.max(8, (Number(b.rh) || 0) * h),
+        tags: Array.isArray(b.tags) ? [...b.tags] : []
+      };
+    }
+    // Backward compatibility: previously stored as absolute px
+    return {
+      x: Math.max(0, Number(b?.x) || 0),
+      y: Math.max(0, Number(b?.y) || 0),
+      w: Math.max(8, Number(b?.w) || 8),
+      h: Math.max(8, Number(b?.h) || 8),
+      tags: Array.isArray(b?.tags) ? [...b.tags] : []
+    };
+  });
+
+  // Legacy absolute px migration: if boxes overflow current canvas a lot, scale them in.
+  if (out.length) {
+    const maxX = Math.max(...out.map(b => b.x + b.w));
+    const maxY = Math.max(...out.map(b => b.y + b.h));
+    if (maxX > w * 1.08 || maxY > h * 1.08) {
+      const sx = w / Math.max(maxX, 1);
+      const sy = h / Math.max(maxY, 1);
+      out.forEach(b => {
+        b.x *= sx; b.w *= sx;
+        b.y *= sy; b.h *= sy;
+        b.w = Math.max(8, b.w);
+        b.h = Math.max(8, b.h);
+      });
+    }
+  }
+  return out;
+}
+
+function removeOverlayForImage(imageUrl, dateHint = '', sourceRow = null) {
+  if (!imageUrl) return false;
+  let changed = false;
+  if (sourceRow !== null && state.trades[sourceRow]?.overlays?.[imageUrl]) {
+    delete state.trades[sourceRow].overlays[imageUrl];
+    changed = true;
+  }
+  if (dateHint) {
+    getTradesForDate(dateHint).forEach(t => {
+      if (t?.overlays?.[imageUrl]) {
+        delete t.overlays[imageUrl];
+        changed = true;
+      }
+    });
+    if (state.dayData[dateHint]?.overlays?.[imageUrl]) {
+      delete state.dayData[dateHint].overlays[imageUrl];
+      changed = true;
+    }
+  } else {
+    state.trades.forEach(t => {
+      if (t?.overlays?.[imageUrl]) {
+        delete t.overlays[imageUrl];
+        changed = true;
+      }
+    });
+    Object.values(state.dayData || {}).forEach(d => {
+      if (d?.overlays?.[imageUrl]) {
+        delete d.overlays[imageUrl];
+        changed = true;
+      }
+    });
+  }
+  return changed;
+}
+
+function canvasHasVisibleInk(canvas) {
+  if (!canvas || !canvas.width || !canvas.height) return false;
+  const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] !== 0) return true;
+  }
+  return false;
+}
+
+function autoSaveAnnotationSession(session) {
+  if (!session || !session.imageUrl || !session.dirty || annotState.saving) return;
+  annotState.saving = true;
+  const { canvas, imageUrl, date, sourceRow } = session;
+  const hasInk = canvasHasVisibleInk(canvas);
+
+  if (!hasInk) {
+    if (state._localOverlays?.[imageUrl]) delete state._localOverlays[imageUrl];
+    const removed = removeOverlayForImage(imageUrl, date, sourceRow);
+    if (removed) saveTrades();
+    annotState.saving = false;
+    return;
+  }
+
+  state._localOverlays[imageUrl] = canvas.toDataURL('image/png');
+
+  canvas.toBlob(async blob => {
+    if (!blob) { annotState.saving = false; return; }
+    const fd = new FormData();
+    fd.append('image', blob, 'overlay.png');
+    try {
+      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!data.url) throw new Error();
+      if (setOverlayUrlForImage(imageUrl, data.url, date, sourceRow)) {
+        if (state._localOverlays?.[imageUrl]) delete state._localOverlays[imageUrl];
+        await saveTrades();
+      }
+    } catch (e) { }
+    annotState.saving = false;
+  }, 'image/png');
 }
 
 function renderGalleryImageTags() {
@@ -3268,8 +4391,24 @@ async function addImageTagFromModal() {
 
 // â”€â”€ IMAGE ANNOTATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toggleAnnotation() {
+  // If currently in text mode, one click should switch back to drawing tools.
+  if (annotState.active && annotState.tool === 'text') {
+    commitActiveCanvasTextEditor();
+    const textBar = document.getElementById('gv2-text-bar');
+    if (textBar) textBar.style.display = 'none';
+    document.getElementById('gv2-text-btn').classList.remove('active');
+    const annotBar = document.getElementById('gv2-annot-bar');
+    if (annotBar) annotBar.style.display = 'flex';
+    document.getElementById('gv2-annotate-btn').classList.add('active');
+    setAnnotTool('pen');
+    return;
+  }
+
   if (annotState.active) stopAnnotation();
-  else startAnnotation();
+  else {
+    annotState.tool = 'pen';
+    startAnnotation();
+  }
 }
 
 function setAnnotTool(tool) {
@@ -3277,60 +4416,482 @@ function setAnnotTool(tool) {
   document.querySelectorAll('.annot-tool').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('annot-' + tool);
   if (btn) btn.classList.add('active');
+  if (!annotState.active) return;
+  const textBar = document.getElementById('gv2-text-bar');
+  const mqBar = document.getElementById('gv2-marquee-bar');
+  if (textBar) textBar.style.display = tool === 'text' ? 'flex' : 'none';
+  if (mqBar) mqBar.style.display = tool === 'marquee' ? 'flex' : 'none';
+  const canvas = document.getElementById('annot-canvas');
+  const brushCursor = ensureAnnotBrushCursor();
+  if (canvas) canvas.style.cursor = shouldUseBrushCursor() ? 'none' : 'crosshair';
+  if (brushCursor) brushCursor.style.display = shouldUseBrushCursor() ? 'block' : 'none';
+  updateAnnotBrushCursorVisual();
+  if (tool === 'marquee') {
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      // Always refresh base from current canvas so switching from brush preserves latest strokes.
+      annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      renderMarqueeScene(ctx);
+    }
+  }
+}
+
+function updateAnnotToolIcons() {
+  const marker = document.getElementById('annot-highlight');
+  if (marker) marker.innerHTML = '&#9670;';
+}
+
+function adjustAnnotSize(delta) {
+  const inp = document.getElementById('annot-size');
+  if (!inp) return;
+  const min = parseInt(inp.min || '1', 10);
+  const max = parseInt(inp.max || '30', 10);
+  const next = Math.max(min, Math.min(max, (parseInt(inp.value, 10) || annotState.size || 3) + delta));
+  inp.value = String(next);
+  annotState.size = next;
+  const lbl = document.getElementById('annot-size-label');
+  if (lbl) lbl.textContent = next + 'px';
+  updateAnnotToolIcons();
+  updateAnnotBrushCursorVisual();
+}
+
+function ensureAnnotBrushCursor() {
+  const wrapper = document.getElementById('gallery-img-wrapper');
+  if (!wrapper) return null;
+  let el = document.getElementById('annot-brush-cursor');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'annot-brush-cursor';
+    el.className = 'annot-brush-cursor';
+    wrapper.appendChild(el);
+  }
+  return el;
+}
+
+function updateAnnotBrushCursorVisual() {
+  const el = ensureAnnotBrushCursor();
+  if (!el) return;
+  const s = Math.max(10, Math.min(80, (annotState.size || 3) * 4));
+  el.style.width = s + 'px';
+  el.style.height = s + 'px';
+}
+
+function shouldUseBrushCursor() {
+  return annotState.active && (annotState.tool === 'pen' || annotState.tool === 'eraser');
+}
+
+function commitActiveCanvasTextEditor() {
+  const editor = document.querySelector('#gallery-img-wrapper .canvas-text-editor');
+  if (editor) editor.blur();
+}
+
+function drawMarqueeBox(ctx, box, selected = false) {
+  if (!box) return;
+  const x = Math.round(box.x), y = Math.round(box.y), w = Math.round(box.w), h = Math.round(box.h);
+  if (w < 4 || h < 4) return;
+  const baseColor = box.color || '#2ea043';
+  ctx.save();
+  ctx.setLineDash([8, 6]);
+  ctx.lineWidth = selected ? 2.5 : 2;
+  ctx.strokeStyle = baseColor;
+  ctx.fillStyle = selected ? (baseColor + '33') : (baseColor + '1A');
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeRect(x, y, w, h);
+  if (selected) {
+    const hs = 8;
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillRect(x + w - hs / 2, y + h - hs / 2, hs, hs);
+    const dx = x + w - 2;
+    const dy = y - 2;
+    ctx.fillStyle = 'rgba(190,26,48,0.95)';
+    ctx.beginPath();
+    ctx.arc(dx, dy, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(dx - 4, dy - 4);
+    ctx.lineTo(dx + 4, dy + 4);
+    ctx.moveTo(dx + 4, dy - 4);
+    ctx.lineTo(dx - 4, dy + 4);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const tags = Array.isArray(box.tags) ? box.tags : [];
+  if (!tags.length) return;
+  const label = tags.join(', ');
+  ctx.save();
+  ctx.font = '12px Arial';
+  ctx.textBaseline = 'top';
+  const padX = 6, padY = 3, lineH = 14;
+  const maxW = Math.max(64, Math.min(ctx.canvas.width - x - 4, w));
+  const words = label.split(',').map(s => s.trim()).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  words.forEach(part => {
+    const candidate = cur ? `${cur}, ${part}` : part;
+    if (ctx.measureText(candidate).width + padX * 2 <= maxW) cur = candidate;
+    else {
+      if (cur) lines.push(cur);
+      cur = part;
+    }
+  });
+  if (cur) lines.push(cur);
+  const safeLines = lines.slice(0, 3);
+  if (lines.length > 3) safeLines[2] = safeLines[2] + '...';
+  const tw = safeLines.length ? Math.max(...safeLines.map(s => Math.ceil(ctx.measureText(s).width))) : 0;
+  const lw = Math.min(maxW, tw + padX * 2);
+  const lh = safeLines.length * lineH + padY * 2;
+  const lx = Math.max(2, Math.min(x, ctx.canvas.width - lw - 2));
+  let ly = y + h + 4;
+  if (ly + lh > ctx.canvas.height - 2) ly = Math.max(2, y - lh - 4);
+  ctx.fillStyle = 'rgba(15,23,35,0.88)';
+  ctx.fillRect(lx, ly, lw, lh);
+  ctx.fillStyle = '#dbe7ff';
+  safeLines.forEach((line, i) => ctx.fillText(line, lx + padX, ly + padY + i * lineH));
+  ctx.restore();
+}
+
+function hitTestMarquee(x, y) {
+  for (let i = annotState.marqueeBoxes.length - 1; i >= 0; i--) {
+    const b = annotState.marqueeBoxes[i];
+    if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return i;
+  }
+  return -1;
+}
+
+function hitTestMarqueeResizeHandle(box, x, y) {
+  if (!box) return false;
+  const hs = 12;
+  const hx = box.x + box.w;
+  const hy = box.y + box.h;
+  return Math.abs(x - hx) <= hs && Math.abs(y - hy) <= hs;
+}
+
+function hitTestMarqueeDeleteHandle(box, x, y) {
+  if (!box) return false;
+  const dx = box.x + box.w - 2;
+  const dy = box.y - 2;
+  return ((x - dx) * (x - dx) + (y - dy) * (y - dy)) <= 11 * 11;
+}
+
+function renderMarqueeScene(ctx, previewBox = null) {
+  if (annotState.marqueeRasterBase) ctx.putImageData(annotState.marqueeRasterBase, 0, 0);
+  annotState.marqueeBoxes.forEach((b, i) => drawMarqueeBox(ctx, b, i === annotState.selectedMarquee));
+  if (previewBox) drawMarqueeBox(ctx, previewBox, true);
+}
+
+function refreshMarqueeTagSuggestions() {
+  const dl = document.getElementById('gv2-mq-tag-suggestions');
+  if (!dl) return;
+  const tags = Array.from(new Set((state.allTags || []).map(t => String(t || '').trim()).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b));
+  dl.innerHTML = '';
+  tags.forEach(tag => {
+    const o = document.createElement('option');
+    o.value = tag;
+    dl.appendChild(o);
+  });
+}
+
+function addTagToSelectedMarqueeBox(rawTag) {
+  const idx = annotState.selectedMarquee;
+  const tag = String(rawTag || '').trim();
+  if (!annotState.active || annotState.tool !== 'marquee' || idx < 0 || !tag) return false;
+  const canvas = document.getElementById('annot-canvas');
+  if (!canvas) return false;
+  const box = annotState.marqueeBoxes[idx];
+  if (!box) return false;
+  if (!box.tags) box.tags = [];
+  if (!box.tags.includes(tag)) box.tags.push(tag);
+  const ctx = canvas.getContext('2d');
+  if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  renderMarqueeScene(ctx);
+  annotState.dirty = true;
+  if (!state._marqueeBoxes) state._marqueeBoxes = {};
+  state._marqueeBoxes[annotState.imageUrl] = JSON.parse(JSON.stringify(annotState.marqueeBoxes));
+  if (!state.allTags.includes(tag)) {
+    state.allTags.push(tag);
+    refreshMarqueeTagSuggestions();
+  }
+  renderGalleryTagCloud();
+  return true;
 }
 
 function startAnnotation() {
-  const img     = document.getElementById('gallery-img');
+  const img = document.getElementById('gallery-img');
   const wrapper = document.getElementById('gallery-img-wrapper');
-  const canvas  = document.getElementById('annot-canvas');
-  const toolbar = document.getElementById('annot-toolbar');
+  const canvas = document.getElementById('annot-canvas');
+  const toolbar = document.getElementById('gv2-annot-bar'); // V2: floating bar
 
   // Size canvas to match current rendered image
   const wRect = wrapper.getBoundingClientRect();
   const iRect = img.getBoundingClientRect();
-  const left  = iRect.left - wRect.left;
-  const top   = iRect.top  - wRect.top;
-  const w     = Math.round(iRect.width);
-  const h     = Math.round(iRect.height);
+  const left = iRect.left - wRect.left;
+  const top = iRect.top - wRect.top;
+  const w = Math.round(iRect.width);
+  const h = Math.round(iRect.height);
 
-  canvas.style.left    = left + 'px';
-  canvas.style.top     = top  + 'px';
-  canvas.style.width   = w + 'px';
-  canvas.style.height  = h + 'px';
-  canvas.width  = w;
+  canvas.style.left = left + 'px';
+  canvas.style.top = top + 'px';
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w;
   canvas.height = h;
   canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
 
   // Load existing overlay for this image if any
   const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-  const trade  = getOwnerTradeForGalleryImage();
-  if (trade && trade.overlays && trade.overlays[imgUrl]) {
+  annotState.imageUrl = imgUrl || '';
+  annotState.date = state.gallery.date || '';
+  annotState.sourceRow = state.gallery.sourceRow;
+  annotState.dirty = false;
+  if (!state._marqueeBoxes) state._marqueeBoxes = {};
+  const persistedBoxes = getMarqueeBoxesForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
+  annotState.marqueeBoxes = persistedBoxes.length
+    ? unpackMarqueeBoxes(persistedBoxes, canvas.width, canvas.height)
+    : (Array.isArray(state._marqueeBoxes[annotState.imageUrl])
+      ? JSON.parse(JSON.stringify(state._marqueeBoxes[annotState.imageUrl]))
+      : []);
+  annotState.selectedMarquee = -1;
+  annotState.marqueePreview = null;
+  annotState.marqueeRasterBase = null;
+  annotState.marqueeDragMode = '';
+  annotState.marqueeDragOrig = null;
+  const hasLegacy = persistedBoxes.some(b => !(b && typeof b === 'object' && 'rx' in b && 'ry' in b && 'rw' in b && 'rh' in b));
+  if (hasLegacy && annotState.imageUrl) {
+    const packedNow = packMarqueeBoxes(annotState.marqueeBoxes, canvas.width, canvas.height);
+    setMarqueeBoxesForImage(annotState.imageUrl, packedNow, annotState.date, annotState.sourceRow);
+    saveTrades();
+  }
+  const overlayUrl = getOverlayUrlForImage(imgUrl, state.gallery.date || '');
+  if (overlayUrl) {
     const ovImg = new Image();
-    ovImg.onload = () => canvas.getContext('2d').drawImage(ovImg, 0, 0, w, h);
-    ovImg.src = trade.overlays[imgUrl];
+    ovImg.onload = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(ovImg, 0, 0, w, h);
+      if (annotState.marqueeBoxes.length) {
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        renderMarqueeScene(ctx);
+      }
+    };
+    ovImg.src = overlayUrl;
+  } else if (annotState.marqueeBoxes.length) {
+    annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
   }
 
-  annotState.active  = true;
+  annotState.active = true;
   annotState.history = [];
-  toolbar.style.display = 'flex';
-  document.getElementById('annot-toggle-btn').classList.add('active');
+
+  // Show annotation bar or text bar based on tool
+  if (annotState.tool === 'text') {
+    const annotBar = document.getElementById('gv2-annot-bar');
+    if (annotBar) annotBar.style.display = 'none';
+    document.getElementById('gv2-annotate-btn').classList.remove('active');
+    const textBar = document.getElementById('gv2-text-bar');
+    if (textBar) textBar.style.display = 'flex';
+    document.getElementById('gv2-text-btn').classList.add('active');
+  } else {
+    const textBar = document.getElementById('gv2-text-bar');
+    if (textBar) textBar.style.display = 'none';
+    document.getElementById('gv2-text-btn').classList.remove('active');
+    // Show annotation bar (new V2 floating bar)
+    const annotBar = document.getElementById('gv2-annot-bar');
+    if (annotBar) annotBar.style.display = 'flex';
+    document.getElementById('gv2-annotate-btn').classList.add('active');
+    // Always start with brush (pen) when opening annotation from the button.
+    setAnnotTool('pen');
+  }
+  const mqBar = document.getElementById('gv2-marquee-bar');
+  if (mqBar) mqBar.style.display = annotState.tool === 'marquee' ? 'flex' : 'none';
 
   // Enable drawing on canvas, disable zoom/pan on image
   canvas.style.pointerEvents = 'auto';
+  canvas.style.cursor = shouldUseBrushCursor() ? 'none' : 'crosshair';
+  const brushCursor = ensureAnnotBrushCursor();
+  if (brushCursor) brushCursor.style.display = shouldUseBrushCursor() ? 'block' : 'none';
+  updateAnnotBrushCursorVisual();
   document.getElementById('gallery-img').style.pointerEvents = 'none';
 }
 
 function stopAnnotation() {
-  document.getElementById('annot-canvas').style.display  = 'none';
-  document.getElementById('annot-toolbar').style.display = 'none';
-  document.getElementById('annot-toggle-btn').classList.remove('active');
+  const _bc = document.getElementById('annot-brush-cursor');
+  if (_bc) _bc.style.display = 'none';
+  const _m = document.getElementById('mq-context-menu');
+  if (_m) _m.style.display = 'none';
+  commitActiveCanvasTextEditor();
+  const canvas = document.getElementById('annot-canvas');
+  const session = {
+    canvas,
+    imageUrl: annotState.imageUrl,
+    date: annotState.date,
+    sourceRow: annotState.sourceRow,
+    dirty: !!annotState.dirty
+  };
+  autoSaveAnnotationSession(session);
+  const annotBar = document.getElementById('gv2-annot-bar');
+  if (annotBar) annotBar.style.display = 'none';
+  const textBar = document.getElementById('gv2-text-bar');
+  if (textBar) textBar.style.display = 'none';
+  const mqBar = document.getElementById('gv2-marquee-bar');
+  if (mqBar) mqBar.style.display = 'none';
+
+  document.getElementById('gv2-annotate-btn').classList.remove('active');
+  document.getElementById('gv2-text-btn').classList.remove('active');
   document.getElementById('gallery-img').style.pointerEvents = '';
-  annotState.active  = false;
+  annotState.textEditorActive = false;
+  if (!state._marqueeBoxes) state._marqueeBoxes = {};
+  if (annotState.imageUrl) {
+    state._marqueeBoxes[annotState.imageUrl] = JSON.parse(JSON.stringify(annotState.marqueeBoxes || []));
+    const packed = packMarqueeBoxes(annotState.marqueeBoxes || [], canvas?.width || 1, canvas?.height || 1);
+    setMarqueeBoxesForImage(annotState.imageUrl, packed, annotState.date, annotState.sourceRow);
+    if (session.dirty) saveTrades();
+  }
+  annotState.imageUrl = '';
+  annotState.date = '';
+  annotState.sourceRow = null;
+  annotState.dirty = false;
+  annotState.marqueeBoxes = [];
+  annotState.selectedMarquee = -1;
+  annotState.marqueePreview = null;
+  annotState.marqueeRasterBase = null;
+  annotState.marqueeDragMode = '';
+  annotState.marqueeDragOrig = null;
+  annotState.active = false;
   annotState.history = [];
+  loadOverlayForCurrentImage();
 }
 
 function bindAnnotationCanvas() {
   const canvas = document.getElementById('annot-canvas');
+  const wrapper = document.getElementById('gallery-img-wrapper');
+  let mqCtxMenu = null;
+  let mqCtxIdx = -1;
+
+  function persistMarqueeBoxesToState() {
+    if (!state._marqueeBoxes) state._marqueeBoxes = {};
+    state._marqueeBoxes[annotState.imageUrl] = JSON.parse(JSON.stringify(annotState.marqueeBoxes || []));
+  }
+
+  function hideMarqueeContextMenu() {
+    if (mqCtxMenu) mqCtxMenu.style.display = 'none';
+    mqCtxIdx = -1;
+  }
+
+  function ensureMarqueeContextMenu() {
+    if (mqCtxMenu) return mqCtxMenu;
+    mqCtxMenu = document.createElement('div');
+    mqCtxMenu.id = 'mq-context-menu';
+    mqCtxMenu.style.position = 'fixed';
+    mqCtxMenu.style.zIndex = '99999';
+    mqCtxMenu.style.minWidth = '160px';
+    mqCtxMenu.style.background = 'var(--surface)';
+    mqCtxMenu.style.border = '1px solid var(--border2)';
+    mqCtxMenu.style.borderRadius = '8px';
+    mqCtxMenu.style.boxShadow = '0 8px 30px rgba(0,0,0,0.45)';
+    mqCtxMenu.style.padding = '8px';
+    mqCtxMenu.style.display = 'none';
+    mqCtxMenu.innerHTML = `
+      <button type="button" id="mq-ctx-del" class="gv2-ab-btn" style="width:100%;justify-content:flex-start">Delete Marquee</button>
+      <button type="button" id="mq-ctx-dup" class="gv2-ab-btn" style="width:100%;justify-content:flex-start">Duplicate</button>
+      <button type="button" id="mq-ctx-rebind" class="gv2-ab-btn" style="width:100%;justify-content:flex-start">Rebind</button>
+      <div style="font-size:0.68rem;color:var(--text3);margin:8px 2px 4px">Marquee Color</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button type="button" class="mq-ctx-color" data-color="#2ea043" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#2ea043;cursor:pointer"></button>
+        <button type="button" class="mq-ctx-color" data-color="#58a6ff" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#58a6ff;cursor:pointer"></button>
+        <button type="button" class="mq-ctx-color" data-color="#f85149" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#f85149;cursor:pointer"></button>
+      </div>
+      <button type="button" id="mq-ctx-close-tool" class="gv2-ab-btn" style="width:100%;justify-content:flex-start">Close Tool</button>
+    `;
+    document.body.appendChild(mqCtxMenu);
+
+    mqCtxMenu.querySelector('#mq-ctx-del').addEventListener('click', () => {
+      if (mqCtxIdx < 0 || mqCtxIdx >= annotState.marqueeBoxes.length) return;
+      annotState.marqueeBoxes.splice(mqCtxIdx, 1);
+      annotState.selectedMarquee = Math.min(mqCtxIdx, annotState.marqueeBoxes.length - 1);
+      const ctx = canvas.getContext('2d');
+      if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      renderMarqueeScene(ctx);
+      annotState.dirty = true;
+      persistMarqueeBoxesToState();
+      hideMarqueeContextMenu();
+    });
+
+    mqCtxMenu.querySelector('#mq-ctx-dup').addEventListener('click', () => {
+      if (mqCtxIdx < 0 || mqCtxIdx >= annotState.marqueeBoxes.length) return;
+      const src = annotState.marqueeBoxes[mqCtxIdx];
+      const copy = {
+        ...JSON.parse(JSON.stringify(src)),
+        x: Math.max(0, Math.min(canvas.width - src.w, src.x + 16)),
+        y: Math.max(0, Math.min(canvas.height - src.h, src.y + 16))
+      };
+      annotState.marqueeBoxes.push(copy);
+      annotState.selectedMarquee = annotState.marqueeBoxes.length - 1;
+      const ctx = canvas.getContext('2d');
+      if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      renderMarqueeScene(ctx);
+      annotState.dirty = true;
+      persistMarqueeBoxesToState();
+      hideMarqueeContextMenu();
+    });
+
+    mqCtxMenu.querySelector('#mq-ctx-rebind').addEventListener('click', async () => {
+      if (!annotState.active || !annotState.imageUrl) return;
+      const ctx = canvas.getContext('2d');
+      const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
+      if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
+      // Preserve current drawn pixels; only detach legacy persisted overlay mapping.
+      annotState.marqueeRasterBase = annotState.marqueeRasterBase || ctx.getImageData(0, 0, canvas.width, canvas.height);
+      renderMarqueeScene(ctx);
+      annotState.dirty = true;
+      if (removed) await saveTrades();
+      showToast('Legacy frozen overlay removed for this image', 'success');
+      hideMarqueeContextMenu();
+    });
+
+    mqCtxMenu.querySelectorAll('.mq-ctx-color').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (mqCtxIdx < 0 || mqCtxIdx >= annotState.marqueeBoxes.length) return;
+        annotState.marqueeBoxes[mqCtxIdx].color = btn.dataset.color;
+        const ctx = canvas.getContext('2d');
+        if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        renderMarqueeScene(ctx);
+        annotState.dirty = true;
+        persistMarqueeBoxesToState();
+        hideMarqueeContextMenu();
+      });
+    });
+
+    mqCtxMenu.querySelector('#mq-ctx-close-tool').addEventListener('click', () => {
+      setAnnotTool('pen');
+      hideMarqueeContextMenu();
+    });
+
+    document.addEventListener('click', e => {
+      if (!mqCtxMenu || mqCtxMenu.style.display === 'none') return;
+      if (!mqCtxMenu.contains(e.target)) hideMarqueeContextMenu();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') hideMarqueeContextMenu();
+    });
+
+    return mqCtxMenu;
+  }
+
+  function showMarqueeContextMenu(clientX, clientY, idx) {
+    const menu = ensureMarqueeContextMenu();
+    mqCtxIdx = idx;
+    menu.style.display = 'block';
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const rect = menu.getBoundingClientRect();
+    menu.style.left = Math.max(6, Math.min(clientX, vw - rect.width - 6)) + 'px';
+    menu.style.top = Math.max(6, Math.min(clientY, vh - rect.height - 6)) + 'px';
+  }
 
   function getPos(e) {
     const r = canvas.getBoundingClientRect();
@@ -3338,9 +4899,135 @@ function bindAnnotationCanvas() {
     return { x: src.clientX - r.left, y: src.clientY - r.top };
   }
 
+  function createTextEditor(e) {
+    if (annotState.textEditorActive) return;
+    annotState.textEditorActive = true;
+
+    const ctx = canvas.getContext('2d');
+    annotState.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    if (annotState.history.length > 40) annotState.history.shift();
+
+    const pos = getPos(e);
+    const textarea = document.createElement('textarea');
+    textarea.className = 'canvas-text-editor';
+    const alignBtn = document.getElementById('gv2-tb-align');
+    let align = 'left';
+    if (alignBtn.classList.contains('align-center')) align = 'center';
+    else if (alignBtn.classList.contains('align-right')) align = 'right';
+
+    // Remove zoom so sizing works exactly as expected
+    const scale = zoom.scale || 1;
+
+    textarea.style.position = 'absolute';
+    textarea.style.left = pos.x + 'px';
+    textarea.style.top = pos.y + 'px';
+    textarea.style.color = document.getElementById('gv2-tb-color').value;
+    textarea.style.fontSize = document.getElementById('gv2-tb-size').value + 'px';
+    textarea.style.fontFamily = document.getElementById('gv2-tb-font').value;
+    textarea.style.fontWeight = document.getElementById('gv2-tb-bold').classList.contains('active') ? 'bold' : 'normal';
+    textarea.style.fontStyle = document.getElementById('gv2-tb-italic').classList.contains('active') ? 'italic' : 'normal';
+    textarea.style.textAlign = align;
+    textarea.style.background = 'transparent';
+    textarea.style.border = '1px dashed #ccc';
+    textarea.style.outline = 'none';
+    textarea.style.padding = '0';
+    textarea.style.margin = '0';
+    textarea.style.overflow = 'hidden';
+    textarea.style.resize = 'none';
+    textarea.style.zIndex = '1000';
+    textarea.rows = 1;
+    textarea.style.minWidth = '50px';
+    textarea.style.lineHeight = '1.2';
+    // Match transform origin and scale if image is zoomed
+    textarea.style.transform = `scale(${1 / scale})`;
+    textarea.style.transformOrigin = 'top left';
+
+    textarea.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+      this.style.width = Math.max(50, this.scrollWidth) + 'px';
+    });
+
+    textarea.addEventListener('blur', function () {
+      const text = this.value;
+      if (text.trim()) {
+        annotState.dirty = true;
+        ctx.textBaseline = 'top';
+        ctx.textAlign = align;
+        ctx.fillStyle = this.style.color;
+        ctx.font = `${this.style.fontStyle} ${this.style.fontWeight} ${this.style.fontSize} ${this.style.fontFamily}`;
+
+        const lines = text.split('\n');
+        const lineHeight = parseInt(this.style.fontSize) * 1.2;
+        let startX = pos.x;
+        if (align === 'center') startX += this.clientWidth / 2;
+        else if (align === 'right') startX += this.clientWidth;
+
+        lines.forEach((line, i) => {
+          ctx.fillText(line, startX, pos.y + (i * lineHeight));
+        });
+      } else {
+        annotState.history.pop();
+      }
+      this.remove();
+      setTimeout(() => annotState.textEditorActive = false, 100);
+    });
+
+    textarea.addEventListener('keydown', function (evt) {
+      if (evt.key === 'Escape') this.blur();
+    });
+
+    document.getElementById('gallery-img-wrapper').appendChild(textarea);
+    setTimeout(() => { textarea.focus(); }, 10);
+  }
+
   function startDraw(e) {
     if (!annotState.active) return;
+    if (e.target.tagName !== 'CANVAS') return;
     e.preventDefault();
+
+    if (annotState.tool === 'text') {
+      createTextEditor(e);
+      return;
+    }
+
+    if (annotState.tool === 'marquee') {
+      const ctx = canvas.getContext('2d');
+      const pos = getPos(e);
+      if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const picked = hitTestMarquee(pos.x, pos.y);
+      if (picked >= 0) {
+        annotState.selectedMarquee = picked;
+        const pickedBox = annotState.marqueeBoxes[picked];
+        if (hitTestMarqueeDeleteHandle(pickedBox, pos.x, pos.y)) {
+          annotState.marqueeBoxes.splice(picked, 1);
+          annotState.selectedMarquee = Math.min(picked, annotState.marqueeBoxes.length - 1);
+          renderMarqueeScene(ctx);
+          annotState.dirty = true;
+          if (!state._marqueeBoxes) state._marqueeBoxes = {};
+          state._marqueeBoxes[annotState.imageUrl] = JSON.parse(JSON.stringify(annotState.marqueeBoxes));
+          return;
+        }
+        annotState.drawing = true;
+        annotState.marqueeDragStartX = pos.x;
+        annotState.marqueeDragStartY = pos.y;
+        annotState.marqueeDragOrig = { ...pickedBox };
+        annotState.marqueeDragMode = hitTestMarqueeResizeHandle(pickedBox, pos.x, pos.y) ? 'resize' : 'move';
+        canvas.style.cursor = annotState.marqueeDragMode === 'move' ? 'grabbing' : 'nwse-resize';
+        renderMarqueeScene(ctx);
+        return;
+      }
+      annotState.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (annotState.history.length > 40) annotState.history.shift();
+      annotState.drawing = true;
+      annotState.marqueeDragMode = 'create';
+      canvas.style.cursor = 'crosshair';
+      annotState.marqueeStartX = pos.x;
+      annotState.marqueeStartY = pos.y;
+      renderMarqueeScene(ctx);
+      return;
+    }
+
     const ctx = canvas.getContext('2d');
     // Save undo snapshot
     annotState.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
@@ -3348,8 +5035,8 @@ function bindAnnotationCanvas() {
 
     const pos = getPos(e);
     annotState.drawing = true;
-    annotState.lastX   = pos.x;
-    annotState.lastY   = pos.y;
+    annotState.lastX = pos.x;
+    annotState.lastY = pos.y;
 
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
@@ -3361,8 +5048,34 @@ function bindAnnotationCanvas() {
     const ctx = canvas.getContext('2d');
     const pos = getPos(e);
 
-    ctx.lineCap    = 'round';
-    ctx.lineJoin   = 'round';
+    if (annotState.tool === 'marquee') {
+      const mode = annotState.marqueeDragMode || 'create';
+      if (mode === 'move' && annotState.selectedMarquee >= 0 && annotState.marqueeDragOrig) {
+        const box = annotState.marqueeBoxes[annotState.selectedMarquee];
+        const dx = pos.x - annotState.marqueeDragStartX;
+        const dy = pos.y - annotState.marqueeDragStartY;
+        box.x = Math.max(0, Math.min(canvas.width - box.w, annotState.marqueeDragOrig.x + dx));
+        box.y = Math.max(0, Math.min(canvas.height - box.h, annotState.marqueeDragOrig.y + dy));
+        renderMarqueeScene(ctx);
+        return;
+      }
+      if (mode === 'resize' && annotState.selectedMarquee >= 0 && annotState.marqueeDragOrig) {
+        const box = annotState.marqueeBoxes[annotState.selectedMarquee];
+        box.w = Math.max(8, Math.min(canvas.width - box.x, annotState.marqueeDragOrig.w + (pos.x - annotState.marqueeDragStartX)));
+        box.h = Math.max(8, Math.min(canvas.height - box.y, annotState.marqueeDragOrig.h + (pos.y - annotState.marqueeDragStartY)));
+        renderMarqueeScene(ctx);
+        return;
+      }
+      const x = Math.min(annotState.marqueeStartX, pos.x);
+      const y = Math.min(annotState.marqueeStartY, pos.y);
+      const w = Math.abs(pos.x - annotState.marqueeStartX);
+      const h = Math.abs(pos.y - annotState.marqueeStartY);
+      renderMarqueeScene(ctx, { x, y, w, h, tags: [] });
+      return;
+    }
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     if (annotState.tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
@@ -3375,7 +5088,7 @@ function bindAnnotationCanvas() {
       ctx.strokeStyle = hex + '55'; // ~33% opacity
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.lineWidth  = annotState.size;
+      ctx.lineWidth = annotState.size;
       ctx.strokeStyle = annotState.color;
     }
 
@@ -3383,6 +5096,7 @@ function bindAnnotationCanvas() {
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
+    annotState.dirty = true;
 
     annotState.lastX = pos.x;
     annotState.lastY = pos.y;
@@ -3390,22 +5104,93 @@ function bindAnnotationCanvas() {
 
   function endDraw(e) {
     if (!annotState.drawing) return;
+    if (annotState.tool === 'marquee') {
+      const ctx = canvas.getContext('2d');
+      const pos = getPos(e);
+      const mode = annotState.marqueeDragMode || 'create';
+      annotState.drawing = false;
+      annotState.marqueePreview = null;
+      annotState.marqueeDragMode = '';
+      annotState.marqueeDragOrig = null;
+      if (mode === 'create') {
+        const x = Math.min(annotState.marqueeStartX, pos.x);
+        const y = Math.min(annotState.marqueeStartY, pos.y);
+        const w = Math.abs(pos.x - annotState.marqueeStartX);
+        const h = Math.abs(pos.y - annotState.marqueeStartY);
+        if (w >= 8 && h >= 8) {
+          const box = { x, y, w, h, tags: [] };
+          annotState.marqueeBoxes.push(box);
+          annotState.selectedMarquee = annotState.marqueeBoxes.length - 1;
+          annotState.dirty = true;
+        }
+      } else if (mode === 'move' || mode === 'resize') {
+        annotState.dirty = true;
+      }
+      renderMarqueeScene(ctx);
+      if (!state._marqueeBoxes) state._marqueeBoxes = {};
+      state._marqueeBoxes[annotState.imageUrl] = JSON.parse(JSON.stringify(annotState.marqueeBoxes));
+      canvas.style.cursor = 'crosshair';
+      return;
+    }
     annotState.drawing = false;
     canvas.getContext('2d').globalCompositeOperation = 'source-over';
   }
 
-  canvas.addEventListener('mousedown',  startDraw);
-  canvas.addEventListener('mousemove',  doDraw);
-  canvas.addEventListener('mouseup',    endDraw);
+  function updateMarqueeCursor(e) {
+    if (!annotState.active || annotState.tool !== 'marquee' || annotState.drawing) return;
+    const pos = getPos(e);
+    const idx = hitTestMarquee(pos.x, pos.y);
+    if (idx >= 0) {
+      const b = annotState.marqueeBoxes[idx];
+      if (hitTestMarqueeDeleteHandle(b, pos.x, pos.y)) canvas.style.cursor = 'pointer';
+      else if (hitTestMarqueeResizeHandle(b, pos.x, pos.y)) canvas.style.cursor = 'nwse-resize';
+      else canvas.style.cursor = 'grab';
+      return;
+    }
+    canvas.style.cursor = 'crosshair';
+  }
+
+  function updateBrushCursorPos(e) {
+    const el = document.getElementById('annot-brush-cursor');
+    if (!el) return;
+    if (!shouldUseBrushCursor()) { el.style.display = 'none'; return; }
+    const src = e.touches ? e.touches[0] : e;
+    const wr = wrapper.getBoundingClientRect();
+    el.style.left = (src.clientX - wr.left) + 'px';
+    el.style.top = (src.clientY - wr.top) + 'px';
+    el.style.display = 'block';
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', doDraw);
+  canvas.addEventListener('mousemove', updateBrushCursorPos);
+  canvas.addEventListener('mousemove', updateMarqueeCursor);
+  canvas.addEventListener('contextmenu', e => {
+    if (!annotState.active || annotState.tool !== 'marquee') return;
+    const pos = getPos(e);
+    const idx = hitTestMarquee(pos.x, pos.y);
+    if (idx < 0) { hideMarqueeContextMenu(); return; }
+    e.preventDefault();
+    const ctx = canvas.getContext('2d');
+    annotState.selectedMarquee = idx;
+    if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
+    showMarqueeContextMenu(e.clientX, e.clientY, idx);
+  });
+  canvas.addEventListener('mouseup', endDraw);
   canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('mouseleave', () => {
+    const el = document.getElementById('annot-brush-cursor');
+    if (el) el.style.display = 'none';
+  });
   canvas.addEventListener('touchstart', startDraw, { passive: false });
-  canvas.addEventListener('touchmove',  doDraw,    { passive: false });
-  canvas.addEventListener('touchend',   endDraw);
+  canvas.addEventListener('touchmove', doDraw, { passive: false });
+  canvas.addEventListener('touchend', endDraw);
 
   // Annotation toolbar controls
-  document.getElementById('annot-toggle-btn').addEventListener('click', toggleAnnotation);
+  document.getElementById('gv2-annotate-btn').addEventListener('click', toggleAnnotation);
 
-  ['pen','highlight','eraser'].forEach(tool => {
+  ['pen', 'highlight', 'eraser', 'marquee'].forEach(tool => {
     document.getElementById('annot-' + tool).addEventListener('click', () => {
       setAnnotTool(tool);
     });
@@ -3418,55 +5203,124 @@ function bindAnnotationCanvas() {
   document.getElementById('annot-size').addEventListener('input', e => {
     annotState.size = parseInt(e.target.value);
     document.getElementById('annot-size-label').textContent = e.target.value + 'px';
+    updateAnnotToolIcons();
   });
 
   document.getElementById('annot-undo').addEventListener('click', () => {
     const ctx = canvas.getContext('2d');
     if (!annotState.history.length) return;
     ctx.putImageData(annotState.history.pop(), 0, 0);
+    annotState.dirty = true;
   });
 
   document.getElementById('annot-clear').addEventListener('click', () => {
     const ctx = canvas.getContext('2d');
     annotState.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    annotState.marqueeBoxes = [];
+    annotState.selectedMarquee = -1;
+    annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    if (!state._marqueeBoxes) state._marqueeBoxes = {};
+    state._marqueeBoxes[annotState.imageUrl] = [];
+    annotState.dirty = true;
   });
 
   document.getElementById('annot-save-overlay').addEventListener('click', saveAnnotOverlay);
   document.getElementById('annot-save-merge').addEventListener('click', saveAnnotMerge);
+
+  const mqInp = document.getElementById('gv2-mq-tag-input');
+  const mqAdd = document.getElementById('gv2-mq-add');
+  const mqRebind = document.getElementById('gv2-mq-rebind');
+  const mqDel = document.getElementById('gv2-mq-del');
+  const addTagFromInput = () => {
+    const tag = String(mqInp?.value || '').trim();
+    if (!addTagToSelectedMarqueeBox(tag)) return;
+    if (mqInp) mqInp.value = '';
+    renderGalleryTagsTray();
+  };
+  if (mqAdd) mqAdd.addEventListener('click', addTagFromInput);
+  if (mqInp) mqInp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTagFromInput();
+  });
+  if (mqRebind) mqRebind.addEventListener('click', async () => {
+    if (!annotState.active || !annotState.imageUrl) return;
+    const ctx = canvas.getContext('2d');
+    // Remove persisted flattened overlay for current image.
+    const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
+    if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
+    // Preserve current drawn pixels; only detach legacy persisted overlay mapping.
+    annotState.marqueeRasterBase = annotState.marqueeRasterBase || ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
+    annotState.dirty = true;
+    if (removed) await saveTrades();
+    showToast('Legacy frozen overlay removed for this image', 'success');
+  });
+  if (mqDel) mqDel.addEventListener('click', () => {
+    // Close marquee sub-mode (top delete icon on selected box handles deletion)
+    if (!annotState.active) return;
+    setAnnotTool('pen');
+  });
+
+  updateAnnotToolIcons();
+
+  // Text Bar Events
+  const tbBold = document.getElementById('gv2-tb-bold');
+  if (tbBold) tbBold.addEventListener('click', () => tbBold.classList.toggle('active'));
+
+  const tbItalic = document.getElementById('gv2-tb-italic');
+  if (tbItalic) tbItalic.addEventListener('click', () => tbItalic.classList.toggle('active'));
+
+  const tbAlign = document.getElementById('gv2-tb-align');
+  if (tbAlign) {
+    tbAlign.addEventListener('click', () => {
+      if (tbAlign.classList.contains('align-center')) {
+        tbAlign.classList.remove('align-center');
+        tbAlign.classList.add('align-right');
+        tbAlign.innerHTML = '&#8649;'; // Right indent
+      } else if (tbAlign.classList.contains('align-right')) {
+        tbAlign.classList.remove('align-right');
+        tbAlign.innerHTML = '&#8801;'; // Left indent (default)
+      } else {
+        tbAlign.classList.add('align-center');
+        tbAlign.innerHTML = '&#8644;'; // Center indent
+      }
+    });
+  }
 }
 
 async function saveAnnotOverlay() {
-  const canvas  = document.getElementById('annot-canvas');
-  const imgUrl  = (state.gallery.images || [])[state.gallery.currentIndex];
-  const trade   = getOwnerTradeForGalleryImage();
-  if (!trade) { showToast('No trade date for this image', 'error'); return; }
+  const canvas = document.getElementById('annot-canvas');
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl) { showToast('No image selected', 'error'); return; }
 
   // Upload overlay PNG to server
   canvas.toBlob(async blob => {
     const fd = new FormData();
     fd.append('image', blob, 'overlay.png');
     try {
-      const res  = await fetch('/api/upload-image', { method: 'POST', body: fd });
+      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
       const data = await res.json();
       if (!data.url) throw new Error();
-      if (!trade.overlays) trade.overlays = {};
-      trade.overlays[imgUrl] = data.url;
+      if (!setOverlayUrlForCurrentGalleryImage(data.url)) {
+        showToast('Unable to map overlay to this image', 'error');
+        return;
+      }
       await saveTrades();
+      annotState.dirty = false;
       stopAnnotation();
       showToast('Overlay saved!', 'success');
-    } catch(e) { showToast('Overlay save failed', 'error'); }
+    } catch (e) { showToast('Overlay save failed', 'error'); }
   }, 'image/png');
 }
 
 async function saveAnnotMerge() {
-  const canvas  = document.getElementById('annot-canvas');
-  const img     = document.getElementById('gallery-img');
-  const trade   = getOwnerTradeForGalleryImage();
+  const canvas = document.getElementById('annot-canvas');
+  const img = document.getElementById('gallery-img');
+  const trade = getOwnerTradeForGalleryImage();
 
   // Merge annotation onto original image at full resolution
   const out = document.createElement('canvas');
-  out.width  = img.naturalWidth;
+  out.width = img.naturalWidth;
   out.height = img.naturalHeight;
   const ctx = out.getContext('2d');
 
@@ -3478,7 +5332,7 @@ async function saveAnnotMerge() {
     const fd = new FormData();
     fd.append('image', blob, 'merged.png');
     try {
-      const res  = await fetch('/api/upload-image', { method: 'POST', body: fd });
+      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
       const data = await res.json();
       if (!data.url) throw new Error();
       // Add merged image as NEW entry (keep original intact)
@@ -3491,72 +5345,83 @@ async function saveAnnotMerge() {
       state.gallery.currentIndex = imgs.length - 1; // jump to the new image
       await saveTrades();
       renderGallery();
+      annotState.dirty = false;
       stopAnnotation();
       showToast('Merged image added to gallery!', 'success');
-    } catch(e) { showToast('Merge save failed', 'error'); }
+    } catch (e) { showToast('Merge save failed', 'error'); }
   }, 'image/png');
 }
 
 // â”€â”€ ZOOM / PAN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const zoom = { scale:1, x:0, y:0 };
-const drag = { active:false, startX:0, startY:0, originX:0, originY:0 };
+const zoom = { scale: 1, x: 0, y: 0 };
+const drag = { active: false, startX: 0, startY: 0, originX: 0, originY: 0 };
 
-function resetZoom() { zoom.scale=1; zoom.x=0; zoom.y=0; applyZoom(); }
+function resetZoom() { zoom.scale = 1; zoom.x = 0; zoom.y = 0; applyZoom(); }
 
 function applyZoom() {
   const img = document.getElementById('gallery-img');
   img.style.transform = `scale(${zoom.scale}) translate(${zoom.x}px, ${zoom.y}px)`;
   if (zoom.scale > 1) { img.classList.add('zoomed'); img.classList.remove('dragging'); }
-  else { img.classList.remove('zoomed','dragging'); }
+  else { img.classList.remove('zoomed', 'dragging'); }
 }
 
 function bindZoomPan() {
   const wrapper = document.getElementById('gallery-img-wrapper');
-  const img     = document.getElementById('gallery-img');
+  const img = document.getElementById('gallery-img');
 
   wrapper.addEventListener('wheel', e => {
     e.preventDefault();
-    zoom.scale = Math.min(Math.max(zoom.scale * (e.deltaY < 0 ? 1.15 : 1/1.15), 1), 8);
-    if (zoom.scale <= 1) { zoom.scale=1; zoom.x=0; zoom.y=0; }
+    zoom.scale = Math.min(Math.max(zoom.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15), 1), 8);
+    if (zoom.scale <= 1) { zoom.scale = 1; zoom.x = 0; zoom.y = 0; }
     applyZoom();
-  }, { passive:false });
+  }, { passive: false });
 
   wrapper.addEventListener('dblclick', () => resetZoom());
 
   img.addEventListener('mousedown', e => {
     if (zoom.scale <= 1) return;
-    drag.active=true; drag.startX=e.clientX; drag.startY=e.clientY;
-    drag.originX=zoom.x; drag.originY=zoom.y;
+    drag.active = true; drag.startX = e.clientX; drag.startY = e.clientY;
+    drag.originX = zoom.x; drag.originY = zoom.y;
     img.classList.add('dragging'); e.preventDefault();
   });
   document.addEventListener('mousemove', e => {
     if (!drag.active) return;
-    zoom.x = drag.originX + (e.clientX-drag.startX)/zoom.scale;
-    zoom.y = drag.originY + (e.clientY-drag.startY)/zoom.scale;
+    zoom.x = drag.originX + (e.clientX - drag.startX) / zoom.scale;
+    zoom.y = drag.originY + (e.clientY - drag.startY) / zoom.scale;
     applyZoom();
   });
   document.addEventListener('mouseup', () => {
-    if (drag.active) { drag.active=false; document.getElementById('gallery-img').classList.remove('dragging'); }
+    if (drag.active) { drag.active = false; document.getElementById('gallery-img').classList.remove('dragging'); }
   });
 
   let lastDist = 0;
   wrapper.addEventListener('touchstart', e => {
-    if (e.touches.length===2) lastDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-  }, {passive:true});
+    if (e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  }, { passive: true });
   wrapper.addEventListener('touchmove', e => {
-    if (e.touches.length!==2) return; e.preventDefault();
-    const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-    zoom.scale = Math.min(Math.max(zoom.scale*(dist/lastDist), 1), 8);
+    if (e.touches.length !== 2) return; e.preventDefault();
+    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    zoom.scale = Math.min(Math.max(zoom.scale * (dist / lastDist), 1), 8);
     lastDist = dist; applyZoom();
-  }, {passive:false});
+  }, { passive: false });
 }
 
 // â”€â”€ UPLOAD MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openUploadModal(rowIdx) {
   syncTradeDateField(state.trades[rowIdx]);
-  state.uploadRow    = rowIdx;
-  state.pendingFiles = [...(state.trades[rowIdx].images||[])];
-  document.getElementById('upload-modal-title').textContent = `Images â€” ${state.trades[rowIdx].date||`Row ${rowIdx+1}`}`;
+  state.uploadRow = rowIdx;
+  state._dayUploadKey = null;
+  state.pendingFiles = [...(state.trades[rowIdx].images || [])];
+  document.getElementById('upload-modal-title').textContent = `Images â€” ${state.trades[rowIdx].date || `Row ${rowIdx + 1}`}`;
+  renderUploadPreview();
+  document.getElementById('upload-modal').classList.add('open');
+}
+
+function openDayUploadModal(dateKey) {
+  state.uploadRow = null;
+  state._dayUploadKey = dateKey;
+  state.pendingFiles = [...((state.dayData[dateKey] || {}).images || [])];
+  document.getElementById('upload-modal-title').textContent = `Images â€” ${dateKey}`;
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
 }
@@ -3565,9 +5430,9 @@ function renderUploadPreview() {
   const c = document.getElementById('upload-preview'); c.innerHTML = '';
   state.pendingFiles.forEach((url, i) => {
     const item = document.createElement('div'); item.className = 'preview-item';
-    const img  = document.createElement('img'); img.src = url;
-    const del  = document.createElement('button'); del.className = 'remove-preview'; del.textContent = 'âœ•';
-    del.addEventListener('click', () => { state.pendingFiles.splice(i,1); renderUploadPreview(); });
+    const img = document.createElement('img'); img.src = url;
+    const del = document.createElement('button'); del.className = 'remove-preview'; del.textContent = 'âœ•';
+    del.addEventListener('click', () => { state.pendingFiles.splice(i, 1); renderUploadPreview(); });
     item.appendChild(img); item.appendChild(del); c.appendChild(item);
   });
 }
@@ -3576,10 +5441,10 @@ async function handleImageFiles(files) {
   for (const file of files) {
     try {
       const fd = new FormData(); fd.append('image', file);
-      const res  = await fetch('/api/upload-image', { method:'POST', body:fd });
+      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
       const data = await res.json();
       if (data.url) { state.pendingFiles.push(data.url); renderUploadPreview(); }
-    } catch(e) { showToast('Image upload failed','error'); }
+    } catch (e) { showToast('Image upload failed', 'error'); }
   }
 }
 
@@ -3601,7 +5466,7 @@ async function uploadImagesToRow(rowIdx, files) {
         trade.images.push(data.url);
         added++;
       }
-    } catch(e) {}
+    } catch (e) { }
   }
   if (added > 0) {
     await saveTrades();
@@ -3610,32 +5475,121 @@ async function uploadImagesToRow(rowIdx, files) {
   }
 }
 
+async function uploadImagesToDayData(dateKey, files) {
+  if (!Array.isArray(files) || !files.length) return;
+  if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
+  if (!state.dayData[dateKey].images) state.dayData[dateKey].images = [];
+  let added = 0;
+  for (const file of files) {
+    if (!file || !String(file.type || '').startsWith('image/')) continue;
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.url) { state.dayData[dateKey].images.push(data.url); added++; }
+    } catch (e) { }
+  }
+  if (added > 0) { await saveTrades(); render(); showToast(`${added} image added`, 'success'); }
+}
+
 function bindRowImageDrop(rowEl, rowIdx) {
   rowEl.addEventListener('dragover', e => {
     const hasFiles = e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
-    if (!hasFiles) return;
+    const hasImg = e.dataTransfer && e.dataTransfer.types.includes('tj-img');
+    if (!hasFiles && !hasImg) return;
     e.preventDefault();
     rowEl.classList.add('row-drop-target');
   });
   rowEl.addEventListener('dragleave', () => rowEl.classList.remove('row-drop-target'));
   rowEl.addEventListener('drop', async e => {
+    rowEl.classList.remove('row-drop-target');
+    // Internal image drag (move/copy between rows)
+    const internal = e.dataTransfer.getData('tj-img');
+    if (internal) {
+      e.preventDefault();
+      try {
+        const { rowIdx: srcIdx, url } = JSON.parse(internal);
+        if (srcIdx !== rowIdx) {
+          if (!state.trades[rowIdx].images) state.trades[rowIdx].images = [];
+          state.trades[rowIdx].images.push(url);
+          if (e.dataTransfer.effectAllowed !== 'copy')
+            state.trades[srcIdx].images = (state.trades[srcIdx].images || []).filter(u => u !== url);
+          await saveTrades(); render();
+          showToast(e.dataTransfer.effectAllowed === 'copy' ? 'Image copied' : 'Image moved', 'success');
+        }
+      } catch (err) { }
+      return;
+    }
+    // External file drop
     const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
     if (!files.length) return;
     e.preventDefault();
-    rowEl.classList.remove('row-drop-target');
     await uploadImagesToRow(rowIdx, files);
   });
+}
+
+// Row drag handles: reorder state.trades
+let _rowDragSrcIdx = null;
+let _rowDropTarget = null;
+let _rowDropPos = null; // 'before' | 'after'
+let _rowDragFromHandle = false; // true only when drag started from the ⠿ handle
+document.addEventListener('mouseup', () => { _rowDragFromHandle = false; }, true);
+
+function bindTableRowDrag(tr, rowIdx, body) {
+  tr.setAttribute('draggable', 'true');
+  tr.addEventListener('dragstart', e => {
+    // Only proceed if the drag originated from the handle span
+    if (!_rowDragFromHandle) { e.preventDefault(); return; }
+    _rowDragFromHandle = false;
+    _rowDragSrcIdx = rowIdx;
+    setTimeout(() => tr.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('tj-row', String(rowIdx));
+  });
+  tr.addEventListener('dragend', () => {
+    tr.classList.remove('dragging');
+    body.querySelectorAll('.row-drop-before, .row-drop-after').forEach(r => r.classList.remove('row-drop-before', 'row-drop-after'));
+    if (_rowDragSrcIdx !== null && _rowDropTarget !== null) {
+      // Find actual current indices
+      const srcTrade = state.trades[_rowDragSrcIdx];
+      const tgtTrade = _rowDropTarget.__tradeRef;
+      if (srcTrade && tgtTrade && srcTrade !== tgtTrade) {
+        const srcI = state.trades.indexOf(srcTrade);
+        let tgtI = state.trades.indexOf(tgtTrade);
+        if (srcI !== -1 && tgtI !== -1) {
+          state.trades.splice(srcI, 1);
+          tgtI = state.trades.indexOf(tgtTrade);
+          if (_rowDropPos === 'after') tgtI += 1;
+          state.trades.splice(tgtI, 0, srcTrade);
+          saveTrades(); render();
+        }
+      }
+    }
+    _rowDragSrcIdx = null; _rowDropTarget = null; _rowDropPos = null;
+  });
+  tr.__tradeRef = state.trades[rowIdx];
+  tr.addEventListener('dragover', e => {
+    if (!e.dataTransfer.types.includes('tj-row')) return;
+    e.preventDefault();
+    body.querySelectorAll('.row-drop-before, .row-drop-after').forEach(r => r.classList.remove('row-drop-before', 'row-drop-after'));
+    const rect = tr.getBoundingClientRect();
+    _rowDropPos = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    _rowDropTarget = tr;
+    tr.classList.add(_rowDropPos === 'before' ? 'row-drop-before' : 'row-drop-after');
+  });
+  tr.addEventListener('drop', e => { e.preventDefault(); });
 }
 
 // â”€â”€ EXCEL IMPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function importExcel(file) {
   const fd = new FormData(); fd.append('file', file);
   try {
-    showToast('Importing Excel...','');
-    const res  = await fetch('/api/import-excel', { method:'POST', body:fd });
+    showToast('Importing Excel...', '');
+    const res = await fetch('/api/import-excel', { method: 'POST', body: fd });
     const data = await res.json();
-    if (data.error) { showToast(data.error,'error'); return; }
-    state.trades  = data.trades;
+    if (data.error) { showToast(data.error, 'error'); return; }
+    state.trades = data.trades;
     state.columns = data.columns;
     state.allTags = data.allTags || state.allTags || [];
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
@@ -3647,8 +5601,8 @@ async function importExcel(file) {
     migrateLegacyTagsData();
     initShowHeads(); initTableShowCols();
     await saveTrades(); render();
-    showToast('Excel imported!','success');
-  } catch(e) { showToast('Import failed','error'); }
+    showToast('Excel imported!', 'success');
+  } catch (e) { showToast('Import failed', 'error'); }
 }
 
 async function importRawCsv(file) {
@@ -3656,7 +5610,7 @@ async function importRawCsv(file) {
   fd.append('file', file);
   try {
     showToast('Consolidating Zerodha today CSV...', '');
-    const res  = await fetch('/api/import-raw-csv', { method: 'POST', body: fd });
+    const res = await fetch('/api/import-raw-csv', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
@@ -3681,7 +5635,7 @@ async function importRawCsv(file) {
     await saveTrades();
     render();
     showToast(`Zerodha Today CSV merged: ${mergedResult.added} new trade(s)`, 'success');
-  } catch(e) {
+  } catch (e) {
     showToast('Zerodha Today CSV import failed', 'error');
   }
 }
@@ -3691,7 +5645,7 @@ async function importHistoricalCsv(file) {
   fd.append('file', file);
   try {
     showToast('Consolidating Zerodha historical CSV...', '');
-    const res  = await fetch('/api/import-historical-csv', { method: 'POST', body: fd });
+    const res = await fetch('/api/import-historical-csv', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
@@ -3715,7 +5669,7 @@ async function importHistoricalCsv(file) {
     await saveTrades();
     render();
     showToast(`Historical CSV merged: ${mergedResult.added} new trade(s)`, 'success');
-  } catch(e) {
+  } catch (e) {
     showToast('Historical CSV import failed', 'error');
   }
 }
@@ -3725,7 +5679,7 @@ async function importDhanCsv(file) {
   fd.append('file', file);
   try {
     showToast('Consolidating Dhan CSV...', '');
-    const res  = await fetch('/api/import-dhan-csv', { method: 'POST', body: fd });
+    const res = await fetch('/api/import-dhan-csv', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
@@ -3749,7 +5703,7 @@ async function importDhanCsv(file) {
     await saveTrades();
     render();
     showToast(`Dhan CSV merged: ${mergedResult.added} new trade(s)`, 'success');
-  } catch(e) {
+  } catch (e) {
     showToast('Dhan CSV import failed', 'error');
   }
 }
@@ -3758,11 +5712,11 @@ async function importDhanCsv(file) {
 async function importJson(file) {
   const fd = new FormData(); fd.append('file', file);
   try {
-    showToast('Restoring backup...','');
-    const res  = await fetch('/api/import-json', { method:'POST', body: fd });
+    showToast('Restoring backup...', '');
+    const res = await fetch('/api/import-json', { method: 'POST', body: fd });
     const data = await res.json();
-    if (data.error) { showToast(data.error,'error'); return; }
-    state.trades  = data.trades;
+    if (data.error) { showToast(data.error, 'error'); return; }
+    state.trades = data.trades;
     state.columns = data.columns;
     state.allTags = data.allTags || state.allTags || [];
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
@@ -3775,8 +5729,8 @@ async function importJson(file) {
     migrateLegacyTagsData();
     initShowHeads(); initTableShowCols();
     render();
-    showToast('Backup restored!','success');
-  } catch(e) { showToast('Restore failed','error'); }
+    showToast('Backup restored!', 'success');
+  } catch (e) { showToast('Restore failed', 'error'); }
 }
 
 function backupJson() {
@@ -3790,21 +5744,21 @@ function backupJson() {
 
 // â”€â”€ EXCEL EXPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function exportExcel() {
-  if (!state.trades.length) { showToast('No data to export','error'); return; }
+  if (!state.trades.length) { showToast('No data to export', 'error'); return; }
   try {
-    showToast('Preparing export...','');
-    const res  = await fetch('/api/export-excel', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+    showToast('Preparing export...', '');
+    const res = await fetch('/api/export-excel', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trades: state.trades, columns: state.columns })
     });
-    if (!res.ok) { showToast('Export failed','error'); return; }
+    if (!res.ok) { showToast('Export failed', 'error'); return; }
     const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a'); a.href=url;
-    a.download = `trading_journal_${new Date().toISOString().slice(0,10)}.xlsx`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `trading_journal_${new Date().toISOString().slice(0, 10)}.xlsx`;
     a.click(); URL.revokeObjectURL(url);
-    showToast('Excel exported!','success');
-  } catch(e) { showToast('Export failed','error'); }
+    showToast('Excel exported!', 'success');
+  } catch (e) { showToast('Export failed', 'error'); }
 }
 
 async function exportStructuredCsv() {
@@ -3814,33 +5768,33 @@ async function exportStructuredCsv() {
     showToast('Preparing structured CSV...', '');
     const res = await fetch('/api/export-structured-csv', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trades: state.trades, columns: state.columns })
     });
     if (!res.ok) { showToast('Structured export failed', 'error'); return; }
     const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url;
     a.download = 'structured_trades.csv';
     a.click();
     URL.revokeObjectURL(url);
     showToast('Structured CSV exported!', 'success');
-  } catch(e) {
+  } catch (e) {
     showToast('Structured export failed', 'error');
   }
 }
 
 // â”€â”€ TOAST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let toastTimer = null;
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast'); t.textContent=msg; t.className=`toast ${type} show`;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className='toast'; }, 3000);
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
 }
 
 // â”€â”€ DROPDOWN HELPER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function setupDropdown(btnId, menuId) {
-  const btn  = document.getElementById(btnId);
+  const btn = document.getElementById(btnId);
   const menu = document.getElementById(menuId);
   if (!btn || !menu) return;
   btn.addEventListener('click', e => { e.stopPropagation(); closeAllDropdowns(menuId); menu.classList.toggle('open'); });
@@ -3862,7 +5816,7 @@ function bindEvents() {
     state.calendarView = String(e.target.value || 'month');
     renderCalendar();
   });
-  document.getElementById('year-select').addEventListener('change',  e => {
+  document.getElementById('year-select').addEventListener('change', e => {
     state.year = parseInt(e.target.value);
     renderCalendar();
     renderDashboard();
@@ -3892,7 +5846,7 @@ function bindEvents() {
   document.getElementById('today-btn').addEventListener('click', () => {
     const now = new Date();
     state.month = now.getMonth();
-    state.year  = now.getFullYear();
+    state.year = now.getFullYear();
     syncSelects();
     renderCalendar();
     renderDashboard();
@@ -3912,8 +5866,8 @@ function bindEvents() {
 
   // Dropdowns
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
-  setupDropdown('add-dropdown-btn',  'add-dropdown-menu');
-  setupDropdown('col-vis-btn',       'col-vis-panel');
+  setupDropdown('add-dropdown-btn', 'add-dropdown-menu');
+  setupDropdown('col-vis-btn', 'col-vis-panel');
   setupDropdown('broker-filter-btn-top', 'broker-filter-menu-top');
   setupDropdown('dashboard-stats-btn', 'dashboard-stats-menu');
 
@@ -3967,22 +5921,24 @@ function bindEvents() {
 
   // File actions
   document.getElementById('import-btn').addEventListener('click', () => document.getElementById('excel-input').click());
-  document.getElementById('excel-input').addEventListener('change', e => { if (e.target.files[0]) importExcel(e.target.files[0]); e.target.value=''; });
+  document.getElementById('excel-input').addEventListener('change', e => { if (e.target.files[0]) importExcel(e.target.files[0]); e.target.value = ''; });
   document.getElementById('import-raw-csv-btn').addEventListener('click', () => document.getElementById('raw-csv-input').click());
-  document.getElementById('raw-csv-input').addEventListener('change', e => { if (e.target.files[0]) importRawCsv(e.target.files[0]); e.target.value=''; });
+  document.getElementById('raw-csv-input').addEventListener('change', e => { if (e.target.files[0]) importRawCsv(e.target.files[0]); e.target.value = ''; });
   document.getElementById('import-historical-csv-btn').addEventListener('click', () => document.getElementById('historical-csv-input').click());
-  document.getElementById('historical-csv-input').addEventListener('change', e => { if (e.target.files[0]) importHistoricalCsv(e.target.files[0]); e.target.value=''; });
+  document.getElementById('historical-csv-input').addEventListener('change', e => { if (e.target.files[0]) importHistoricalCsv(e.target.files[0]); e.target.value = ''; });
   document.getElementById('import-dhan-csv-btn').addEventListener('click', () => document.getElementById('dhan-csv-input').click());
-  document.getElementById('dhan-csv-input').addEventListener('change', e => { if (e.target.files[0]) importDhanCsv(e.target.files[0]); e.target.value=''; });
+  document.getElementById('dhan-csv-input').addEventListener('change', e => { if (e.target.files[0]) importDhanCsv(e.target.files[0]); e.target.value = ''; });
   document.getElementById('export-btn').addEventListener('click', exportExcel);
   document.getElementById('export-structured-csv-btn').addEventListener('click', exportStructuredCsv);
   document.getElementById('backup-btn').addEventListener('click', backupJson);
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
-  document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value=''; });
+  document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
 
   // Add row
   document.getElementById('add-row-btn').addEventListener('click', () => {
-    const row = { date:'', images:[] }; state.columns.forEach(col => { row[col]=''; });
+    const today = new Date().toISOString().slice(0, 10);
+    const row = { date: today, trade_date: today, images: [] };
+    state.columns.forEach(col => { row[col] = ''; });
     row[BROKER_COLUMN] = row[BROKER_COLUMN] || 'zerodha';
     row.observation = '';
     state.trades.push(row); render(); saveTrades();
@@ -4014,7 +5970,7 @@ function bindEvents() {
   document.getElementById('new-col-name').addEventListener('keydown', e => {
     if (e.key === 'Enter') { addColumn(e.target.value); document.getElementById('add-col-modal').classList.remove('open'); }
   });
-  ['add-col-close','add-col-cancel'].forEach(id => {
+  ['add-col-close', 'add-col-cancel'].forEach(id => {
     document.getElementById(id).addEventListener('click', () => {
       state.addTagColumnMode = false;
       document.getElementById('add-col-modal').classList.remove('open');
@@ -4050,7 +6006,7 @@ function bindEvents() {
       document.getElementById('edit-col-modal').classList.remove('open');
     }
   });
-  ['edit-col-close','edit-col-cancel'].forEach(id => {
+  ['edit-col-close', 'edit-col-cancel'].forEach(id => {
     document.getElementById(id).addEventListener('click', () => document.getElementById('edit-col-modal').classList.remove('open'));
   });
 
@@ -4059,9 +6015,55 @@ function bindEvents() {
     state.filterVisible = !state.filterVisible;
     const btn = document.getElementById('filter-toggle-btn');
     btn.style.borderColor = state.filterVisible ? 'var(--blue)' : '';
-    btn.style.color       = state.filterVisible ? 'var(--blue)' : '';
+    btn.style.color = state.filterVisible ? 'var(--blue)' : '';
     renderTable();
   });
+
+  // Note column quick toggle
+  const _noteToggleBtn = document.getElementById('note-col-toggle-btn');
+  function _updateNoteToggleBtn() {
+    if (!_noteToggleBtn) return;
+    const on = state.tableShowCols[NOTE_COLUMN] !== false;
+    _noteToggleBtn.style.borderColor = on ? 'var(--blue)' : '';
+    _noteToggleBtn.style.color = on ? 'var(--blue)' : '';
+  }
+  if (_noteToggleBtn) {
+    _noteToggleBtn.addEventListener('click', () => {
+      const wasOn = state.tableShowCols[NOTE_COLUMN] !== false;
+      state.tableShowCols[NOTE_COLUMN] = !wasOn;
+      try { localStorage.setItem('tj_tableShowCols', JSON.stringify(state.tableShowCols)); } catch (e) { }
+      _updateNoteToggleBtn();
+      renderTable();
+    });
+    _updateNoteToggleBtn();
+  }
+
+  // Date range filter
+  const _drFrom = document.getElementById('date-range-from');
+  const _drTo = document.getElementById('date-range-to');
+  const _drClear = document.getElementById('date-range-clear');
+  const _loadDateRange = () => {
+    try { const r = JSON.parse(localStorage.getItem('tj_dateRange') || '{}'); state.dateRange = { from: r.from || '', to: r.to || '' }; } catch (e) { }
+    if (_drFrom) _drFrom.value = state.dateRange.from;
+    if (_drTo) _drTo.value = state.dateRange.to;
+    _updateDateRangeUI();
+  };
+  const _saveDateRange = () => { try { localStorage.setItem('tj_dateRange', JSON.stringify(state.dateRange)); } catch (e) { } };
+  const _updateDateRangeUI = () => {
+    const active = !!(state.dateRange.from || state.dateRange.to);
+    if (_drFrom) _drFrom.style.borderColor = active ? 'var(--blue)' : '';
+    if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
+    if (_drClear) _drClear.style.display = active ? '' : 'none';
+  };
+  if (_drFrom) _drFrom.addEventListener('change', () => { state.dateRange.from = _drFrom.value; _saveDateRange(); _updateDateRangeUI(); renderTable(); });
+  if (_drTo) _drTo.addEventListener('change', () => { state.dateRange.to = _drTo.value; _saveDateRange(); _updateDateRangeUI(); renderTable(); });
+  if (_drClear) _drClear.addEventListener('click', () => {
+    state.dateRange = { from: '', to: '' };
+    if (_drFrom) _drFrom.value = '';
+    if (_drTo) _drTo.value = '';
+    _saveDateRange(); _updateDateRangeUI(); renderTable();
+  });
+  _loadDateRange();
 
   // Gallery nav
   document.getElementById('gallery-prev').addEventListener('click', () => navigateGallery(-1));
@@ -4072,9 +6074,9 @@ function bindEvents() {
     const dateStr = e.target.value;
     const images = getImagesForDate(dateStr);
     if (images.length) {
-      state.gallery.images = images; state.gallery.currentIndex=0; state.gallery.date=dateStr; state.gallery.sourceRow = null;
+      state.gallery.images = images; state.gallery.currentIndex = 0; state.gallery.date = dateStr; state.gallery.sourceRow = null;
       renderGallery(); updateGalleryDateArrows();
-    } else { showToast('No images for this date',''); }
+    } else { showToast('No images for this date', ''); }
   });
   // Gallery upload button â€” opens upload modal for current gallery date
   document.getElementById('gallery-upload-btn').addEventListener('click', () => {
@@ -4115,12 +6117,79 @@ function bindEvents() {
     closeGalleryImageTagManager();
     document.getElementById('gallery-modal').classList.remove('open');
   });
-  document.getElementById('gallery-modal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) {
-      if (annotState.active) stopAnnotation();
-      closeGalleryImageTagManager();
-      document.getElementById('gallery-modal').classList.remove('open');
+  // V2: no click-on-overlay-to-close (it's fullscreen now)
+
+  // V2: Tags tray toggle (T key also handled in keydown)
+  document.getElementById('gv2-tags-btn').addEventListener('click', () => {
+    const tray = document.getElementById('gv2-tags-tray');
+    const btn = document.getElementById('gv2-tags-btn');
+    const open = tray.style.display === 'none' || !tray.style.display;
+    tray.style.display = open ? 'flex' : 'none';
+    btn.classList.toggle('active', open);
+    if (open) renderGalleryTagsTray();
+  });
+
+  // V2: Text bar toggle
+  document.getElementById('gv2-text-btn').addEventListener('click', () => {
+    const bar = document.getElementById('gv2-text-bar');
+    const mqBar = document.getElementById('gv2-marquee-bar');
+    const btn = document.getElementById('gv2-text-btn');
+    const isTextModeOpen = annotState.active && annotState.tool === 'text' && bar.style.display === 'flex';
+
+    if (!isTextModeOpen) {
+      commitActiveCanvasTextEditor();
+      if (annotState.active && annotState.tool !== 'text') {
+        // Switch active annotation session from drawing -> text
+        const annotBar = document.getElementById('gv2-annot-bar');
+        if (annotBar) annotBar.style.display = 'none';
+        document.getElementById('gv2-annotate-btn').classList.remove('active');
+        annotState.tool = 'text';
+      } else if (!annotState.active) {
+        annotState.tool = 'text';
+        startAnnotation();
+      }
+      if (mqBar) mqBar.style.display = 'none';
+      bar.style.display = 'flex';
+      btn.classList.add('active');
+    } else {
+      if (annotState.tool === 'text') {
+        stopAnnotation();
+      }
+      bar.style.display = 'none';
+      btn.classList.remove('active');
     }
+  });
+
+  // V2: Tag cloud filter mode toggle (OR / AND)
+  document.getElementById('gv2-tc-mode-btn').addEventListener('click', () => {
+    state.gallery.filterMode = state.gallery.filterMode === 'or' ? 'and' : 'or';
+    renderGalleryTagCloud(); renderGallery();
+  });
+
+  // V2: Clear tag filter
+  document.getElementById('gv2-tc-clear-btn').addEventListener('click', () => {
+    state.gallery.tagFilter = [];
+    renderGalleryTagCloud(); renderGallery();
+  });
+
+  // V2: Observation button
+  document.getElementById('gv2-obs-btn').addEventListener('click', () => {
+    const d = state.gallery.date;
+    if (d) { document.getElementById('gallery-modal').classList.remove('open'); openObsModal(d); }
+  });
+
+  // V2: Add tag group
+  document.getElementById('gv2-add-grp-btn').addEventListener('click', () => {
+    const name = prompt('New group name:');
+    if (!name || !name.trim()) return;
+    const g = name.trim();
+    if (!state.tagGroups[g]) state.tagGroups[g] = [];
+    saveTagGroups(); renderGalleryTagsTray();
+  });
+  const delTagBtn = document.getElementById('gv2-del-tag-btn');
+  if (delTagBtn) delTagBtn.addEventListener('click', () => {
+    state.tagDeleteMode = !state.tagDeleteMode;
+    renderGalleryTagsTray();
   });
 
   // Observation modal
@@ -4131,8 +6200,14 @@ function bindEvents() {
     document.getElementById('obs-modal').classList.remove('open');
   });
   document.getElementById('obs-close').addEventListener('click', () => saveObservation(true));
+  // Only close when BOTH mousedown and click land on the backdrop (not when text-select drags outside)
+  let _obsMousedownOnBg = false;
+  document.getElementById('obs-modal').addEventListener('mousedown', e => {
+    _obsMousedownOnBg = e.target === e.currentTarget;
+  });
   document.getElementById('obs-modal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) saveObservation(true); // outside click â†’ auto-save
+    if (e.target === e.currentTarget && _obsMousedownOnBg) saveObservation(true);
+    _obsMousedownOnBg = false;
   });
   // Obs date navigation
   document.getElementById('obs-date-prev').addEventListener('click', () => navigateObsDate(-1));
@@ -4142,7 +6217,7 @@ function bindEvents() {
   });
 
   // Upload modal â€” browse button fix (prevent double-trigger)
-  document.getElementById('image-file-input').addEventListener('change', async e => { await handleImageFiles(Array.from(e.target.files)); e.target.value=''; });
+  document.getElementById('image-file-input').addEventListener('change', async e => { await handleImageFiles(Array.from(e.target.files)); e.target.value = ''; });
   const dz = document.getElementById('upload-drop-zone');
   dz.addEventListener('click', e => {
     if (e.target.id === 'upload-browse-label') return; // label handles it directly
@@ -4155,21 +6230,34 @@ function bindEvents() {
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
   dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
   dz.addEventListener('drop', async e => { e.preventDefault(); dz.classList.remove('drag-over'); await handleImageFiles(Array.from(e.dataTransfer.files)); });
-  document.getElementById('upload-done-btn').addEventListener('click', () => {
-    if (state.uploadRow!==null) {
-      state.trades[state.uploadRow].images=[...state.pendingFiles];
+  document.getElementById('upload-done-btn').addEventListener('click', async () => {
+    if (state._dayUploadKey) {
+      if (!state.dayData[state._dayUploadKey]) state.dayData[state._dayUploadKey] = {};
+      state.dayData[state._dayUploadKey].images = [...state.pendingFiles];
+      await saveTrades(); render();
+      showToast('Images saved!', 'success');
+      state._dayUploadKey = null;
+    } else if (state.uploadRow !== null) {
+      state.trades[state.uploadRow].images = [...state.pendingFiles];
       cleanupImageTagStore(state.trades[state.uploadRow]);
       syncTradeDateField(state.trades[state.uploadRow]);
       saveTrades();
       render();
-      showToast('Images saved!','success');
+      showToast('Images saved!', 'success');
     }
     document.getElementById('upload-modal').classList.remove('open');
     // Refresh gallery if it was opened from there
     if (state._galleryUploadCallback) { state._galleryUploadCallback(); state._galleryUploadCallback = null; }
   });
-  ['upload-cancel-btn','upload-close'].forEach(id => document.getElementById(id).addEventListener('click', () => document.getElementById('upload-modal').classList.remove('open')));
-  document.getElementById('upload-modal').addEventListener('click', e => { if (e.target===e.currentTarget) document.getElementById('upload-modal').classList.remove('open'); });
+  ['upload-cancel-btn', 'upload-close'].forEach(id => document.getElementById(id).addEventListener('click', () => document.getElementById('upload-modal').classList.remove('open')));
+  document.getElementById('upload-modal').addEventListener('click', e => { if (e.target === e.currentTarget) document.getElementById('upload-modal').classList.remove('open'); });
+  // Clipboard paste support in upload modal
+  document.getElementById('upload-modal').addEventListener('paste', async e => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imgFiles = Array.from(items).filter(it => it.type.startsWith('image/')).map(it => it.getAsFile()).filter(Boolean);
+    if (imgFiles.length) { e.preventDefault(); await handleImageFiles(imgFiles); showToast('Image pasted from clipboard', 'success'); }
+  });
 
   // Settings
   document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-overlay').classList.toggle('open'));
@@ -4180,10 +6268,14 @@ function bindEvents() {
       e.preventDefault();
       if (e.key === 'Escape') return;
       const combo = eventToShortcut(e);
-      if (combo) inp.value = combo.replace(/\b\w/g, c => c.toUpperCase());
+      if (combo) {
+        inp.value = combo.replace(/\b\w/g, c => c.toUpperCase());
+        // Live-save: update state immediately so new shortcut works right away
+        saveShortcuts(readShortcutsFromPanel());
+      }
     });
   });
-  ['s-day-size','s-day-bold','s-day-pos','s-data-size','s-data-bold','s-show-labels','s-cell-height','s-sat-sun-off','s-table-rows','s-group-a-color','s-group-b-color','s-group-sep-color'].forEach(id => {
+  ['s-day-size', 's-day-bold', 's-day-pos', 's-data-size', 's-data-bold', 's-show-labels', 's-cell-height', 's-sat-sun-off', 's-table-rows', 's-group-a-color', 's-group-b-color', 's-group-sep-color'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
       const s = readSettingsFromPanel();
       applySettingsToDOM(s);
@@ -4214,11 +6306,11 @@ function bindEvents() {
     showToast(`${mode === 'consolidated' ? 'Consolidated' : 'Individual'} heads updated`, 'success');
   };
   document.getElementById('s-heads-c-plonly').addEventListener('click', () => _applyHeadsPreset('consolidated', 'plonly'));
-  document.getElementById('s-heads-c-all').addEventListener('click',    () => _applyHeadsPreset('consolidated', 'all'));
-  document.getElementById('s-heads-c-none').addEventListener('click',   () => _applyHeadsPreset('consolidated', 'none'));
+  document.getElementById('s-heads-c-all').addEventListener('click', () => _applyHeadsPreset('consolidated', 'all'));
+  document.getElementById('s-heads-c-none').addEventListener('click', () => _applyHeadsPreset('consolidated', 'none'));
   document.getElementById('s-heads-i-plonly').addEventListener('click', () => _applyHeadsPreset('individual', 'plonly'));
-  document.getElementById('s-heads-i-all').addEventListener('click',    () => _applyHeadsPreset('individual', 'all'));
-  document.getElementById('s-heads-i-none').addEventListener('click',   () => _applyHeadsPreset('individual', 'none'));
+  document.getElementById('s-heads-i-all').addEventListener('click', () => _applyHeadsPreset('individual', 'all'));
+  document.getElementById('s-heads-i-none').addEventListener('click', () => _applyHeadsPreset('individual', 'none'));
 
   // Keyboard
   document.addEventListener('keydown', e => {
@@ -4235,10 +6327,18 @@ function bindEvents() {
       return;
     }
 
+    // D — date picker: obs-modal gets obs-date-picker, gallery gets gallery-date-picker
+    const obsModalOpen = document.getElementById('obs-modal').classList.contains('open');
+    if (obsModalOpen && !galleryOpen && !typingInField && (e.key === 'd' || e.key === 'D') && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      const dp = document.getElementById('obs-date-picker');
+      dp.focus(); if (typeof dp.showPicker === 'function') dp.showPicker();
+    }
+
     if (galleryOpen) {
       if (typingInField && e.key !== 'Escape') return;
-      if (e.shiftKey && !e.ctrlKey && !e.altKey && e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
-      if (e.shiftKey && !e.ctrlKey && !e.altKey && e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
+      if (e.shiftKey && !e.ctrlKey && !e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); navigateGalleryDate(-1); return; }
+      if (e.shiftKey && !e.ctrlKey && !e.altKey && e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1); return; }
 
       if (shortcutMatches(e, state.shortcuts.mergeSave)) {
         e.preventDefault();
@@ -4256,6 +6356,12 @@ function bindEvents() {
         setAnnotTool('pen');
         return;
       }
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        if (!annotState.active) startAnnotation();
+        setAnnotTool('pen');
+        return;
+      }
       if (shortcutMatches(e, state.shortcuts.eraser)) {
         e.preventDefault();
         if (!annotState.active) startAnnotation();
@@ -4268,7 +6374,7 @@ function bindEvents() {
         else showToast('Open date-based gallery first', '');
         return;
       }
-      if (shortcutMatches(e, state.shortcuts.datePicker)) {
+      if (shortcutMatches(e, state.shortcuts.datePicker) || (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'd' || e.key === 'D'))) {
         e.preventDefault();
         const dp = document.getElementById('gallery-date-picker');
         dp.focus();
@@ -4280,22 +6386,97 @@ function bindEvents() {
         openGalleryImageTagManager();
         return;
       }
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'm' || e.key === 'M')) {
+        e.preventDefault();
+        if (!annotState.active) startAnnotation();
+        setAnnotTool('marquee');
+        return;
+      }
+      if (!e.ctrlKey && !e.altKey && !typingInField && e.key === ']') {
+        e.preventDefault();
+        if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(+1);
+        return;
+      }
+      if (!e.ctrlKey && !e.altKey && !typingInField && e.key === '[') {
+        e.preventDefault();
+        if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(-1);
+        return;
+      }
 
-      if (e.key==='ArrowLeft')  navigateGallery(-1);
-      if (e.key==='ArrowRight') navigateGallery(1);
-      if (e.key==='r'||e.key==='R') resetZoom();
-      if (e.key==='a'||e.key==='A') { e.preventDefault(); toggleAnnotation(); }
-      if (e.key==='Escape') document.getElementById('gallery-modal').classList.remove('open');
+      if (e.key === 'ArrowLeft') navigateGallery(-1);
+      if (e.key === 'ArrowRight') navigateGallery(1);
+      if (e.key === 'r' || e.key === 'R') resetZoom();
+      if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
+      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+        e.preventDefault();
+        document.getElementById('gv2-tags-btn').click();
+        return;
+      }
+      if (e.key === 'Escape') {
+        if (annotState.active) { stopAnnotation(); return; }
+        document.getElementById('gallery-modal').classList.remove('open');
+      }
     }
-    if (e.key==='Escape') {
+    // C = Consolidated, Shift+C = Individual (only when not typing, no modal open)
+    const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal']
+      .some(id => document.getElementById(id)?.classList.contains('open'));
+    if (!typingInField && !galleryOpen && !anyModalOpen && !e.ctrlKey && !e.altKey) {
+      if (e.key === 'f' && !e.shiftKey) {
+        // F — toggle calendar full-screen view
+        e.preventDefault();
+        document.body.classList.toggle('calendar-full');
+        document.body.classList.remove('table-full');
+      } else if ((e.key === 'F' || (e.key === 'f' && e.shiftKey)) && !e.ctrlKey) {
+        // Shift+F — toggle table full-screen view
+        e.preventDefault();
+        const _enteringFull = !document.body.classList.contains('table-full');
+        document.body.classList.toggle('table-full');
+        document.body.classList.remove('calendar-full');
+        // Expand rows to 20 when entering full-screen; restore on exit
+        if (_enteringFull) {
+          document.documentElement.style.setProperty('--table-visible-rows', '20');
+        } else {
+          const _saved = JSON.parse(localStorage.getItem('tj_settings') || '{}');
+          const _rows = Math.max(3, Math.min(25, parseInt(_saved.tableRows, 10) || 5));
+          document.documentElement.style.setProperty('--table-visible-rows', String(_rows));
+        }
+      } else if (e.key === 'c' && !e.shiftKey) {
+        e.preventDefault();
+        state.calendarMode = 'consolidated';
+        updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
+      } else if ((e.key === 'C' || e.key === 'c') && e.shiftKey) {
+        e.preventDefault();
+        state.calendarMode = 'individual';
+        updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
+      } else if (e.key === 'n' && !e.shiftKey) {
+        // N — open observation modal for the most recent trade date
+        e.preventDefault();
+        const tradeDates = state.trades
+          .map(t => normalizeDate(extractDateFromTrade(t)))
+          .filter(Boolean).sort();
+        const target = tradeDates.length
+          ? tradeDates[tradeDates.length - 1]
+          : new Date().toISOString().slice(0, 10);
+        openObsModal(target);
+      } else if (e.key === 'i' && !e.shiftKey) {
+        // I — open image gallery for the latest date that has images
+        e.preventDefault();
+        const datesWImg = getDatesWithImages();
+        if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);
+      }
+    }
+
+    if (e.key === 'Escape') {
+      document.body.classList.remove('calendar-full', 'table-full');
       document.getElementById('settings-overlay').classList.remove('open');
-      // Escape on obs modal â†’ auto-save (same as clicking X)
+      // Escape on obs modal â†' auto-save (same as clicking X)
       if (document.getElementById('obs-modal').classList.contains('open')) saveObservation(true);
       state.addTagColumnMode = false;
       document.getElementById('add-col-modal').classList.remove('open');
       document.getElementById('edit-col-modal').classList.remove('open');
       if (document.getElementById('tag-modal').classList.contains('open')) closeTagPicker();
       if (document.getElementById('img-tag-modal').classList.contains('open')) closeGalleryImageTagManager();
+      if (_notePop) closeNotePopup(true);
     }
   });
 
@@ -4305,7 +6486,7 @@ function bindEvents() {
 
 function syncSelects() {
   document.getElementById('month-select').value = state.month;
-  document.getElementById('year-select').value  = state.year;
+  document.getElementById('year-select').value = state.year;
   const vs = document.getElementById('view-select');
   if (vs) vs.value = state.calendarView;
   const ms = document.getElementById('month-select');
@@ -4314,4 +6495,3 @@ function syncSelects() {
 
 // â”€â”€ START â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 init();
-

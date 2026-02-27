@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -30,7 +30,7 @@
 
   <main class="app-main">
 
-    <!-- â”€â”€ CALENDAR SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── CALENDAR SECTION ─────────────────── -->
     <section class="section calendar-section">
       <div class="section-header">
         <div class="calendar-nav">
@@ -99,6 +99,10 @@
           <div class="dash-label">Brokerage</div>
           <div class="dash-value dash-value-muted" id="dash-brokerage">₹ 0.00</div>
         </div>
+        <div class="dash-card" data-stat="totalfees">
+          <div class="dash-label">Total Fees</div>
+          <div class="dash-value dash-value-muted" id="dash-totalfees">₹ 0.00</div>
+        </div>
         <div class="dash-card" data-stat="winrate">
           <div class="dash-label">Win %</div>
           <div class="dash-value dash-value-muted" id="dash-winrate">0%</div>
@@ -132,11 +136,22 @@
       </div>
     </section>
 
-    <!-- â”€â”€ TRADE TABLE SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── TRADE TABLE SECTION ─────────────── -->
     <section class="section table-section">
       <div class="section-header">
         <h2 class="section-title">Trade Table</h2>
         <div class="table-header-actions">
+
+          <!-- Date Range Filter -->
+          <div class="date-range-filter">
+            <input type="date" id="date-range-from" class="select-box date-range-input" title="From date" />
+            <span class="date-range-sep">&#8212;</span>
+            <input type="date" id="date-range-to" class="select-box date-range-input" title="To date" />
+            <button class="btn btn-outline date-range-clear" id="date-range-clear" title="Clear date filter">&#10005;</button>
+          </div>
+
+          <!-- Note column quick toggle -->
+          <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
 
           <!-- Column Visibility -->
           <div class="dropdown-wrapper" id="col-vis-wrapper">
@@ -205,7 +220,7 @@
 
   </main>
 
-  <!-- â”€â”€ SETTINGS PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- ── SETTINGS PANEL ───────────────────── -->
   <div class="settings-overlay" id="settings-overlay">
     <div class="settings-panel">
       <div class="settings-header">
@@ -215,15 +230,15 @@
       <div class="settings-body">
 
         <div class="settings-group">
-          <div class="settings-group-title">Calendar â€” Day Number</div>
+          <div class="settings-group-title">Calendar — Day Number</div>
           <div class="settings-row">
             <label>Size</label>
             <select class="select-box" id="s-day-size">
-              <option value="H1">H1 â€” 1.4rem</option>
-              <option value="H2">H2 â€” 1.1rem</option>
-              <option value="H3" selected>H3 â€” 0.9rem</option>
-              <option value="H4">H4 â€” 0.75rem</option>
-              <option value="H5">H5 â€” 0.62rem</option>
+              <option value="H1">H1 — 1.4rem</option>
+              <option value="H2">H2 — 1.1rem</option>
+              <option value="H3" selected>H3 — 0.9rem</option>
+              <option value="H4">H4 — 0.75rem</option>
+              <option value="H5">H5 — 0.62rem</option>
             </select>
           </div>
           <div class="settings-row">
@@ -243,15 +258,15 @@
         </div>
 
         <div class="settings-group">
-          <div class="settings-group-title">Calendar â€” Data Text</div>
+          <div class="settings-group-title">Calendar — Data Text</div>
           <div class="settings-row">
             <label>Size</label>
             <select class="select-box" id="s-data-size">
-              <option value="H1">H1 â€” 1.4rem</option>
-              <option value="H2">H2 â€” 1.1rem</option>
-              <option value="H3">H3 â€” 0.9rem</option>
-              <option value="H4" selected>H4 â€” 0.75rem</option>
-              <option value="H5">H5 â€” 0.62rem</option>
+              <option value="H1">H1 — 1.4rem</option>
+              <option value="H2">H2 — 1.1rem</option>
+              <option value="H3">H3 — 0.9rem</option>
+              <option value="H4" selected>H4 — 0.75rem</option>
+              <option value="H5">H5 — 0.62rem</option>
             </select>
           </div>
           <div class="settings-row">
@@ -266,14 +281,14 @@
         </div>
 
         <div class="settings-group">
-          <div class="settings-group-title">Calendar â€” Cell</div>
+          <div class="settings-group-title">Calendar — Cell</div>
           <div class="settings-row">
             <label>Cell Height</label>
             <select class="select-box" id="s-cell-height">
-              <option value="compact">Compact â€” 70px</option>
-              <option value="normal" selected>Normal â€” 100px</option>
-              <option value="spacious">Spacious â€” 140px</option>
-              <option value="roomy">Roomy â€” 180px</option>
+              <option value="compact">Compact — 70px</option>
+              <option value="normal" selected>Normal — 100px</option>
+              <option value="spacious">Spacious — 140px</option>
+              <option value="roomy">Roomy — 180px</option>
             </select>
           </div>
           <div class="settings-row">
@@ -371,7 +386,65 @@
         </div>
 
         <div class="settings-group">
-          <div class="settings-group-title">Calendar &#8212; Show Heads Defaults</div>
+          <div class="settings-group-title">Global Shortcuts</div>
+          <div class="settings-row">
+            <label>F</label>
+            <span class="settings-hint">Calendar full-screen (Esc to exit)</span>
+          </div>
+          <div class="settings-row">
+            <label>Shift + F</label>
+            <span class="settings-hint">Trade table full-screen (Esc to exit)</span>
+          </div>
+          <div class="settings-row">
+            <label>N</label>
+            <span class="settings-hint">Open observation for latest trade date</span>
+          </div>
+          <div class="settings-row">
+            <label>I</label>
+            <span class="settings-hint">Open image gallery for latest date with images</span>
+          </div>
+          <div class="settings-row">
+            <label>C</label>
+            <span class="settings-hint">Switch to Consolidated calendar mode</span>
+          </div>
+          <div class="settings-row">
+            <label>Shift + C</label>
+            <span class="settings-hint">Switch to Individual calendar mode</span>
+          </div>
+          <div class="settings-row">
+            <label>Drag tag chip</label>
+            <span class="settings-hint">Move tag to another row (same column)</span>
+          </div>
+          <div class="settings-row">
+            <label>Ctrl + Drag tag chip</label>
+            <span class="settings-hint">Copy tag to another row (same column)</span>
+          </div>
+          <div class="settings-row">
+            <label>Drag image thumb</label>
+            <span class="settings-hint">Move image to another row</span>
+          </div>
+          <div class="settings-row">
+            <label>Ctrl + Drag image</label>
+            <span class="settings-hint">Copy image to another row</span>
+          </div>
+          <div class="settings-row">
+            <label>Esc</label>
+            <span class="settings-hint">Close any open modal / popup</span>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Page Layout</div>
+          <div class="settings-hint" style="padding:2px 0 8px">Drag to reorder sections on the page</div>
+          <div id="section-order-list" class="section-order-list">
+            <div class="section-order-item" data-section="calendar" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Calendar</div>
+            <div class="section-order-item" data-section="dashboard" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Monthly Summary</div>
+            <div class="section-order-item" data-section="table" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Trade Table</div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Calendar — Show Heads Defaults</div>
           <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px">
             <label style="font-size:0.82rem;color:var(--text2)">Consolidated Mode</label>
             <div style="display:flex;gap:6px">
@@ -396,7 +469,7 @@
     </div>
   </div>
 
-  <!-- â”€â”€ OBSERVATION MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- ── OBSERVATION MODAL ───────────────────── -->
   <div class="modal-overlay" id="obs-modal">
     <div class="modal-content obs-modal-content">
 
@@ -425,10 +498,10 @@
         <button class="obs-tool" data-cmd="formatBlock" data-val="h3" title="H3">H3</button>
         <button class="obs-tool" data-cmd="formatBlock" data-val="h4" title="H4">H4</button>
         <button class="obs-tool" data-cmd="formatBlock" data-val="h5" title="H5">H5</button>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="p" title="Normal">Â¶</button>
+        <button class="obs-tool" data-cmd="formatBlock" data-val="p" title="Normal">¶</button>
         <div class="obs-tool-sep"></div>
         <input type="number" id="obs-custom-size" class="obs-size-input" min="6" max="96" placeholder="px" title="Custom font size" />
-        <button class="obs-tool" id="obs-apply-size" title="Apply size">Aâ†•</button>
+        <button class="obs-tool" id="obs-apply-size" title="Apply size">A↕</button>
         <div class="obs-tool-sep"></div>
         <button class="obs-tool" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
         <button class="obs-tool" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
@@ -448,6 +521,9 @@
 
       <div class="obs-editor" id="obs-editor" contenteditable="true" spellcheck="false"></div>
 
+      <!-- Per-trade notes (auto-populated from Note column) -->
+      <div id="obs-trade-notes" class="obs-trade-notes-wrap"></div>
+
       <div class="obs-footer">
         <button class="btn btn-outline" id="obs-cancel">Cancel</button>
         <button class="btn btn-primary" id="obs-save">&#10003; Save</button>
@@ -455,7 +531,7 @@
     </div>
   </div>
 
-  <!-- â”€â”€ ADD COLUMN MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- ── ADD COLUMN MODAL ────────────────────── -->
   <div class="modal-overlay" id="add-col-modal">
     <div class="modal-content" style="width:360px">
       <div class="modal-header">
@@ -491,61 +567,118 @@
     </div>
   </div>
 
-  <!-- â”€â”€ IMAGE GALLERY MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-  <div class="modal-overlay" id="gallery-modal">
-    <div class="modal-content gallery-modal-content">
-      <div class="modal-header gallery-modal-header">
-        <div class="gallery-date-nav">
-          <button class="gallery-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
-          <div class="gallery-date-info">
-            <span class="gallery-date" id="gallery-date"></span>
-            <input type="date" id="gallery-date-picker" class="gallery-date-picker" title="Jump to date" />
-          </div>
-          <button class="gallery-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
-        </div>
-        <div class="gallery-header-right">
-          <span class="zoom-hint">Scroll:zoom &nbsp;|&nbsp; Drag:pan &nbsp;|&nbsp; Dbl:reset</span>
-          <button class="btn btn-outline" id="gallery-tag-btn" title="Add tag to current image">&#127991; Img Tag</button>
-          <button class="btn btn-outline" id="gallery-upload-btn" title="Upload image to this date" style="display:none">&#43; Image</button>
-          <button class="btn btn-outline annot-toggle-btn" id="annot-toggle-btn" title="Annotate image">&#9998; Annotate</button>
-          <button class="close-btn" id="gallery-close">&#10005;</button>
-        </div>
-      </div>
+  <!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
+  <div class="modal-overlay gv2-modal" id="gallery-modal">
 
-      <!-- â”€â”€ ANNOTATION TOOLBAR (hidden until active) â”€â”€ -->
-      <div class="annot-toolbar" id="annot-toolbar" style="display:none">
-        <button class="annot-tool active" id="annot-pen" title="Pen">&#9998; Pen</button>
-        <button class="annot-tool" id="annot-highlight" title="Highlight">&#9670; Highlight</button>
-        <button class="annot-tool" id="annot-eraser" title="Eraser">&#9003; Eraser</button>
-        <div class="annot-sep"></div>
-        <input type="color" id="annot-color" value="#f85149" class="annot-color-input" title="Color" />
-        <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range" title="Brush size" />
-        <span id="annot-size-label" class="annot-size-label">3px</span>
-        <div class="annot-sep"></div>
-        <button class="annot-tool" id="annot-undo" title="Undo last stroke">&#8617; Undo</button>
-        <button class="annot-tool" id="annot-clear" title="Clear all annotations">&#10005; Clear</button>
-        <div class="annot-sep"></div>
-        <button class="btn btn-outline annot-save-btn" id="annot-save-overlay" title="Save annotation as overlay (original untouched)">&#128190; Overlay</button>
-        <button class="btn btn-primary annot-save-btn" id="annot-save-merge" title="Merge annotation into image permanently">&#8681; Merge &amp; Save</button>
+    <!-- ① Global Button Tray (top, fixed) -->
+    <div class="gv2-tray">
+      <div class="gv2-tray-left">
+        <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
+        <span class="gv2-date-label" id="gallery-date"></span>
+        <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
+        <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
       </div>
-
-      <div class="gallery-main" id="gallery-main">
-        <button class="gallery-nav-btn" id="gallery-prev">&#8249;</button>
-        <div class="gallery-img-wrapper" id="gallery-img-wrapper">
-          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
-          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
-        </div>
-        <button class="gallery-nav-btn" id="gallery-next">&#8250;</button>
+      <div class="gv2-tray-btns">
+        <button class="gv2-tray-btn" id="gallery-upload-btn">&#11014; Upload</button>
+        <button class="gv2-tray-btn" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-btn" title="Annotation bar (A)">&#9998; Annotate</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-text-btn" title="Text bar">T Text</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags tray (T)">&#127991; Tags</button>
+        <button class="gv2-tray-btn" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
       </div>
-      <div class="gallery-footer">
-        <div class="gallery-counter" id="gallery-counter"></div>
-        <div class="gallery-image-tags" id="gallery-image-tags"></div>
-        <div class="gallery-thumbnails" id="gallery-thumbs"></div>
+      <div class="gv2-tray-right">
+        <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
+        <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
       </div>
     </div>
-  </div>
 
-  <!-- â”€â”€ IMAGE UPLOAD MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ② Body -->
+    <div class="gv2-body">
+
+      <!-- Annotation Bar (floating left, toggled by A / gv2-annotate-btn) -->
+      <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
+        <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pencil">&#9998;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-highlight" title="Marker">&#9670;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Circle / Eraser">&#9711;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-marquee" title="Marquee">&#9633;</button>
+        <div class="gv2-ab-sep"></div>
+        <input type="color" id="annot-color" class="annot-color-input gv2-ab-color" value="#f85149" title="Color" />
+        <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range gv2-ab-range" title="Size" />
+        <span id="annot-size-label" class="annot-size-label gv2-ab-size-lbl">3</span>
+        <div class="gv2-ab-sep"></div>
+        <button class="annot-tool gv2-ab-btn" id="annot-undo" title="Undo">&#8617;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-clear" title="Clear">&#10005;</button>
+        <div class="gv2-ab-sep"></div>
+        <button class="gv2-ab-btn gv2-ab-save" id="annot-save-overlay" title="Save as overlay">&#128190;</button>
+        <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
+      </div>
+
+      <!-- Center column: image + tag cloud + thumbnails -->
+      <div class="gv2-center">
+
+        <!-- Main image area -->
+        <div class="gv2-img-area" id="gallery-img-wrapper">
+          <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
+          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
+          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
+          <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
+          <div class="gv2-img-counter" id="gallery-counter"></div>
+          <div class="gv2-img-tags" id="gallery-image-tags"></div>
+
+          <!-- Text Bar -->
+          <div class="gv2-text-bar" id="gv2-text-bar" style="display:none">
+            <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#ffffff" title="Text Color" />
+            <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
+            <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family" style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
+              <option value="Arial" selected>Arial</option>
+              <option value="Courier New">Courier</option>
+              <option value="Times New Roman">Times</option>
+              <option value="Impact">Impact</option>
+            </select>
+            <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
+            <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
+            <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
+          </div>
+          <div class="gv2-marquee-bar" id="gv2-marquee-bar" style="display:none">
+            <input type="text" id="gv2-mq-tag-input" class="gv2-mq-input" list="gv2-mq-tag-suggestions" placeholder="Tag for selected box..." />
+            <datalist id="gv2-mq-tag-suggestions"></datalist>
+            <button id="gv2-mq-add" class="gv2-ab-btn" title="Add tag to selected marquee">+ Tag</button>
+            <button id="gv2-mq-rebind" class="gv2-ab-btn" title="Remove frozen legacy overlay and keep editable marquee">Rebind</button>
+            <button id="gv2-mq-del" class="gv2-ab-btn" title="Close marquee tool">&#10005;</button>
+          </div>
+        </div>
+
+        <!-- Tag Cloud (always visible) -->
+        <div class="gv2-tag-cloud" id="gv2-tag-cloud">
+          <span class="gv2-tc-label">Filter:</span>
+          <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
+          <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
+          <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005; Clear</button>
+        </div>
+
+        <!-- Thumbnail Tray -->
+        <div class="gv2-thumb-tray">
+          <div class="gv2-thumbs" id="gallery-thumbs"></div>
+        </div>
+
+      </div><!-- /gv2-center -->
+
+      <!-- Tags Tray (right panel, toggled by T) -->
+      <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
+        <div class="gv2-tt-hdr">
+          <span class="gv2-tt-title">Tags</span>
+          <div style="display:flex;gap:6px">
+            <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
+            <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
+          </div>
+        </div>
+        <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
+      </div>
+
+    </div><!-- /gv2-body -->
+  </div><!-- /gallery-modal -->
+
+  <!-- ── IMAGE UPLOAD MODAL ───────────────────── -->
   <div class="modal-overlay" id="upload-modal">
     <div class="modal-content upload-modal-content">
       <div class="modal-header">
@@ -555,6 +688,7 @@
       <div class="upload-drop-zone" id="upload-drop-zone">
         <div class="drop-icon">&#128247;</div>
         <p>Drop images here or <span class="upload-label" id="upload-browse-label">browse</span></p>
+        <p class="upload-paste-hint">&#128203; Ctrl+V to paste an image from clipboard</p>
         <input type="file" id="image-file-input" multiple accept="image/*" style="display:none" />
       </div>
       <div class="upload-preview" id="upload-preview"></div>
@@ -565,7 +699,7 @@
     </div>
   </div>
 
-  <!-- â”€â”€ TAG PICKER MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <!-- ── TAG PICKER MODAL ─────────────── -->
   <div class="modal-overlay" id="tag-modal">
     <div class="modal-content tag-modal-content">
       <div class="modal-header">
@@ -612,4 +746,3 @@
   <script src="/static/js/app.js"></script>
 </body>
 </html>
-
