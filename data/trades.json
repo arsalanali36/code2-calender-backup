@@ -460,7 +460,12 @@
       "Video": "",
       "date": "2026-02-23",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/064d8c2a-5b31-4410-a04f-cb9d93668ae3.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/064d8c2a-5b31-4410-a04f-cb9d93668ae3.png": []
+      },
       "tags": [],
       "trade_date": "2026-02-23"
     },
@@ -470,7 +475,7 @@
       "Buy Price (Avg)": 159.25,
       "Buy Time": "10:11:25",
       "Gross P/L": -2158,
-      "Image Tags": "",
+      "Image Tags": "Panic",
       "Instrument": "NIFTY26FEB25850PE",
       "Net P/L": -2240.63,
       "Note": "",
@@ -486,8 +491,20 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
-      "imageTags": {},
-      "images": [],
+      "imageTags": {
+        "/uploads/89f72757-b02b-467d-92b3-e857bf8f6506.png": [
+          "Panic"
+        ]
+      },
+      "images": [
+        "/uploads/89f72757-b02b-467d-92b3-e857bf8f6506.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/89f72757-b02b-467d-92b3-e857bf8f6506.png": []
+      },
+      "overlays": {
+        "/uploads/89f72757-b02b-467d-92b3-e857bf8f6506.png": "/uploads/63fe9de5-0f35-4d77-b279-e7a5cadc802b.png"
+      },
       "tags": [],
       "trade_date": "2026-02-19"
     },
@@ -551,7 +568,7 @@
       "Buy Price (Avg)": 117.65,
       "Buy Time": "10:40:28",
       "Gross P/L": 1764.75,
-      "Image Tags": "",
+      "Image Tags": "Panic",
       "Instrument": "NIFTY26FEB25750CE",
       "Net P/L": 1686.62,
       "Note": "",
@@ -567,8 +584,20 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
-      "imageTags": {},
-      "images": [],
+      "imageTags": {
+        "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": [
+          "Panic"
+        ]
+      },
+      "images": [
+        "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": []
+      },
+      "overlays": {
+        "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": "/uploads/ed30d59e-2116-4c12-acf7-d9be9d041799.png"
+      },
       "tags": [],
       "trade_date": "2026-02-19"
     },
@@ -1472,6 +1501,9 @@
       "images": [
         "/uploads/8bce6a18-e1a7-4ee0-b5b3-133e78700c74.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/8bce6a18-e1a7-4ee0-b5b3-133e78700c74.png": []
+      },
       "observation": "<h2>sadsadads</h2><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div>",
       "tags": [],
       "trade_date": "2026-02-26"
@@ -1519,7 +1551,9 @@
       "Rs": -656.5,
       "Sell Price (Avg)": 114.45,
       "Sell Time": "10:27:32",
-      "Tags": [],
+      "Tags": [
+        "bina zone"
+      ],
       "Total Fees": 75.15,
       "TradeType": "sell",
       "Video": "",
@@ -1527,7 +1561,9 @@
       "imageTags": {},
       "images": [],
       "observation": "",
-      "tags": [],
+      "tags": [
+        "bina zone"
+      ],
       "trade_date": "2026-02-26"
     },
     {
@@ -1590,7 +1626,7 @@
       "Buy Price (Avg)": 122.95,
       "Buy Time": "11:18:17",
       "Gross P/L": -6.5,
-      "Image Tags": "",
+      "Image Tags": "chotu, Panic, Premium, Reversal",
       "Instrument": "NIFTY2630225550CE",
       "Net P/L": -83.41,
       "Note": "",
@@ -1605,7 +1641,16 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
-      "imageTags": {},
+      "imageTags": {
+        "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [
+          "Panic"
+        ],
+        "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": [
+          "chotu",
+          "Reversal",
+          "Premium"
+        ]
+      },
       "images": [
         "/uploads/71e34ae5-0394-400c-be54-61d10e4848ce.png",
         "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png",
@@ -1616,65 +1661,66 @@
         "/uploads/29fcafcd-4834-40d6-8621-6f1deec26df9.png"
       ],
       "marqueeBoxes": {
+        "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [],
+        "/uploads/29fcafcd-4834-40d6-8621-6f1deec26df9.png": [],
+        "/uploads/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png": [],
+        "/uploads/38cfdc96-8005-4edc-8ef0-2f2e1f4626df.png": [],
+        "/uploads/71e34ae5-0394-400c-be54-61d10e4848ce.png": [],
+        "/uploads/a10243be-2b31-4d26-a32c-50873a5bf77b.png": [],
         "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": [
           {
-            "h": 113,
+            "rh": 0.18585526315789475,
+            "rw": 0.09748172217709179,
+            "rx": 0.30270896519088974,
+            "ry": 0.22345789473684208,
             "tags": [
               "Premium",
               "panic",
               "Full View"
-            ],
-            "w": 120,
-            "x": 187.88750076293945,
-            "y": 274
+            ]
           },
           {
-            "h": 153,
-            "tags": [],
-            "w": 128,
-            "x": 423.88750076293945,
-            "y": 269
+            "rh": 0.25164473684210525,
+            "rw": 0.10398050365556459,
+            "rx": 0.1437121183319033,
+            "ry": 0.44723421052631573,
+            "tags": []
           },
           {
-            "h": 145,
-            "tags": [],
-            "w": 97,
-            "x": 674.8875007629395,
-            "y": 204
+            "rh": 0.23848684210526316,
+            "rw": 0.07879772542648253,
+            "rx": 0.5877377695254641,
+            "ry": 0.34672631578947366,
+            "tags": []
           },
           {
-            "h": 96,
-            "tags": [],
-            "w": 80,
-            "x": 579.8875007629395,
-            "y": 151
+            "rh": 0.15789473684210525,
+            "rw": 0.06498781478472786,
+            "rx": 0.4710702686945081,
+            "ry": 0.24835526315789475,
+            "tags": []
           },
           {
-            "h": 26,
-            "tags": [],
-            "w": 57,
-            "x": 475.88750076293945,
-            "y": 509
+            "rh": 0.04276315789473684,
+            "rw": 0.0463038180341186,
+            "rx": 0.38658610947436184,
+            "ry": 0.837171052631579,
+            "tags": []
           },
           {
-            "h": 61,
-            "tags": [],
-            "w": 69,
-            "x": 240.88750076293945,
-            "y": 468
-          },
-          {
-            "h": 212,
-            "tags": [],
-            "w": 157,
-            "x": 869.8875007629395,
-            "y": 264
+            "rh": 0.10032894736842106,
+            "rw": 0.05605199025182779,
+            "rx": 0.19568440354422376,
+            "ry": 0.7697368421052632,
+            "tags": []
           }
         ]
       },
       "observation": "",
       "overlays": {
-        "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": "/uploads/582221fc-8c15-4bf0-8768-5cd8e64bfff6.png"
+        "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": "/uploads/c7b2a67d-37d6-462f-9976-4a987773724f.png",
+        "/uploads/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png": "/uploads/79c8fecd-c3fa-4058-b8a7-1ed822f7630b.png",
+        "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": "/uploads/bc5e9c63-a9ce-4dfd-be18-9a2bc9bc458f.png"
       },
       "tags": [],
       "trade_date": "2026-02-26"
@@ -1685,7 +1731,7 @@
       "Buy Price (Avg)": 159.85,
       "Buy Time": "09:30:10",
       "Gross P/L": 78,
-      "Image Tags": "thumbnail",
+      "Image Tags": "Reversal, thumbnail",
       "Instrument": "NIFTY 24 FEB 25700 CALL",
       "Net P/L": 11.35,
       "Note": "<b>t3sadsada ye sahi hai kaam kar raha</b><div><b><br></b></div><div><b><u>sadasda</u></b></div>",
@@ -1703,12 +1749,16 @@
       "fill_count": 2,
       "imageTags": {
         "/uploads/4f939a2e-9f5e-4a32-8e05-5676185417aa.png": [
-          "thumbnail"
+          "thumbnail",
+          "Reversal"
         ]
       },
       "images": [
         "/uploads/4f939a2e-9f5e-4a32-8e05-5676185417aa.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/4f939a2e-9f5e-4a32-8e05-5676185417aa.png": []
+      },
       "observation": "",
       "tags": [],
       "trade_date": "2026-02-18"
@@ -2724,7 +2774,7 @@
       "Buy Price (Avg)": 108.175,
       "Buy Time": "09:24:37",
       "Gross P/L": 328.25,
-      "Image Tags": "",
+      "Image Tags": "dsd, Full View, panic, Panic, Random, Target",
       "Instrument": "NIFTY2630225400PE",
       "Net P/L": 254.44,
       "Note": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">itni badi red candle, though PDC aur previous day support pe aa gaay tha&nbsp;</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">himmat nahi ho rahi thi, kuch glat lag raha tha&nbsp;</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">zone bhi nahi bana tha&nbsp;</font></font></div><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">jaldbazi me trade liya tha</font></font></div></div>",
@@ -2742,7 +2792,22 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-27",
-      "imageTags": {},
+      "imageTags": {
+        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
+          "Panic",
+          "panic"
+        ],
+        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
+          "Panic",
+          "Random",
+          "Full View"
+        ],
+        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
+          "Panic",
+          "Target",
+          "dsd"
+        ]
+      },
       "images": [
         "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png",
         "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png",
@@ -2751,97 +2816,75 @@
       "marqueeBoxes": {
         "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
           {
-            "rx": 0.16355456656346748,
-            "ry": 0.41776315789473684,
-            "rw": 0.05495356037151703,
-            "rh": 0.1611842105263158,
+            "rh": 0.26300368496993753,
+            "rw": 0.06982423820441729,
+            "rx": 0.06825354086469662,
+            "ry": 0.2139184988061834,
             "tags": [
               "thumbnail",
               "Manual"
             ]
           },
           {
-            "rx": 0.3748548761609907,
-            "ry": 0.21875,
-            "rw": 0.06346749226006192,
-            "rh": 0.2894736842105263,
+            "rh": 0.3289725147902638,
+            "rw": 0.05053262866097748,
+            "rx": 0.37794339707597485,
+            "ry": 0.19673995831340788,
             "tags": [
               "panic"
             ]
-          },
-          {
-            "rx": 0.4855359907120742,
-            "ry": 0.3996710526315789,
-            "rw": 0.08204334365325079,
-            "rh": 0.2779605263157895,
-            "tags": []
-          },
-          {
-            "rx": 0.3384771671826625,
-            "ry": 0.618421052631579,
-            "rw": 0.037925696594427245,
-            "rh": 0.09210526315789473,
-            "tags": []
-          },
-          {
-            "rx": 0.2200561145510836,
-            "ry": 0.3401315588700144,
-            "rw": 0.03343654195590654,
-            "rh": 0.033223704287880344,
-            "tags": []
-          },
-          {
-            "rx": 0.25225426169002757,
-            "ry": 0.5467105664704975,
-            "rw": 0.05758513459480215,
-            "rh": 0.23947364405581825,
-            "tags": []
-          },
-          {
-            "rx": 0.6364647832817337,
-            "ry": 0.21875,
-            "rw": 0.011609907120743035,
-            "rh": 0.07894736842105263,
-            "tags": []
-          },
-          {
-            "rx": 0.7101490032562161,
-            "ry": 0.5624999999999999,
-            "rw": 0.08808048590787054,
-            "rh": 0.19901315789473684,
-            "tags": []
-          },
-          {
-            "rx": 0.33305921052631576,
-            "ry": 0.30756578947368424,
-            "rw": 0.01780185758513932,
-            "rh": 0.06743421052631579,
-            "tags": []
           }
         ],
         "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
           {
-            "rh": 0.40131578947368424,
-            "rw": 0.17128027681660898,
-            "rx": 0.3551903034988984,
-            "ry": 0.39144736842105265,
+            "rh": 0.19795758051846032,
+            "rw": 0.24978861832789453,
+            "rx": 0.6328863960789773,
+            "ry": 0.383665553809898,
             "tags": []
           },
           {
-            "rh": 0.11677631578947369,
-            "rw": 0.2309688581314879,
-            "rx": 0.058477500730732324,
-            "ry": 0.5180921052631579,
+            "rh": 0.25,
+            "rw": 0.1323529411764706,
+            "rx": 0.3590695216691051,
+            "ry": 0.10837321949643675,
+            "tags": []
+          },
+          {
+            "rh": 0.2032,
+            "rw": 0.05214465937762826,
+            "rx": 0.49705634987384356,
+            "ry": 0.5744,
             "tags": []
           }
         ],
-        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": []
+        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
+          {
+            "rh": 0.17434210526315788,
+            "rw": 0.05352798053527981,
+            "rx": 0.4509555952215016,
+            "ry": 0.3970443833464257,
+            "tags": [
+              "bat"
+            ]
+          },
+          {
+            "rh": 0.24342105263157895,
+            "rw": 0.0786699107866991,
+            "rx": 0.09640105372024375,
+            "ry": 0.23355263157894737,
+            "tags": [
+              "dasd",
+              "Nifty"
+            ]
+          }
+        ]
       },
       "observation": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">aakhri me market paagal ho gayii!!!!</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">gffg</font></font></div>",
       "overlays": {
-        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": "/uploads/0fec9e6f-3a1c-46da-9244-4cc659b3a52f.png",
-        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": "/uploads/32707e2f-4c35-4115-96ae-bea5afc43d8c.png",
-        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": "/uploads/0eb5c1f0-0fe5-4729-8e9f-78f848194927.png"
+        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": "/uploads/1565a728-dab7-4c50-98da-2b186c30de5c.png",
+        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": "/uploads/36758f2b-4ae2-40c3-9798-970f951b919a.png",
+        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": "/uploads/4eacb5cd-70cb-4f07-9bde-558e555afede.png"
       },
       "tags": [
         "panic",
@@ -2878,20 +2921,43 @@
         "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png"
       ],
       "marqueeBoxes": {
-        "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": [],
+        "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": [
+          {
+            "rh": 0.22203947368421054,
+            "rw": 0.06326034063260341,
+            "rx": 0.3516313042006343,
+            "ry": 0.18168205027494105,
+            "tags": [
+              "Trade1"
+            ]
+          },
+          {
+            "rh": 0.11019736842105263,
+            "rw": 0.030008110300081103,
+            "rx": 0.5608770462930918,
+            "ry": 0.4103004713275727,
+            "tags": [
+              "rr",
+              "dsd"
+            ]
+          }
+        ],
         "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png": [
           {
-            "h": 55,
-            "tags": [],
-            "w": 83,
-            "x": 651.3125,
-            "y": 372
+            "rh": 0.21217105263157895,
+            "rw": 0.06578947368421052,
+            "rx": 0.26846269390653316,
+            "ry": 0.27729772191673213,
+            "tags": [
+              "Random"
+            ]
           }
         ]
       },
       "observation": "",
       "overlays": {
-        "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png": "/uploads/f6d7fbcb-321b-4b01-abf8-d679cec0614b.png"
+        "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": "/uploads/95b4e1bc-d381-4710-beb3-c00775a081e2.png",
+        "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png": "/uploads/e01f4786-d82a-41aa-b437-9391734806fb.png"
       },
       "tags": [
         "bina zone"
@@ -2924,7 +2990,6 @@
       "date": "2026-02-27",
       "imageTags": {},
       "images": [
-        "/uploads/a7f86d41-364a-4f0b-9395-5df05df01cbe.png",
         "/uploads/ad4ea4d8-7200-4a12-9c32-ceedd8fbe128.png"
       ],
       "marqueeBoxes": {
@@ -2932,8 +2997,8 @@
           {
             "rh": 0.4177631578947368,
             "rw": 0.050283860502838604,
-            "rx": 0.2561739653179728,
-            "ry": 0.3305921052631579,
+            "rx": 0.5724756684809899,
+            "ry": 0.29769736842105265,
             "tags": [
               "target"
             ]
@@ -2941,9 +3006,7 @@
         ]
       },
       "observation": "",
-      "overlays": {
-        "/uploads/ad4ea4d8-7200-4a12-9c32-ceedd8fbe128.png": "/uploads/8347abe1-f9c9-4e60-979f-4befe6d314ab.png"
-      },
+      "overlays": {},
       "tags": [
         "bina zone",
         "panic"
@@ -2982,7 +3045,7 @@
           {
             "rh": 0.06414473684210527,
             "rw": 0.0479285134037368,
-            "rx": 0.4052701062249711,
+            "rx": 0.40527010622497117,
             "ry": 0.28618421052631576,
             "tags": [
               "chotu",
@@ -2990,28 +3053,19 @@
             ]
           },
           {
-            "rh": 0.07236842105263158,
-            "rw": 0.04955320877335499,
-            "rx": 0.5230605205222902,
-            "ry": 0.22203947368421054,
-            "tags": [
-              "panic"
-            ]
-          },
-          {
             "rh": 0.08881578947368421,
             "rw": 0.06904955320877336,
-            "rx": 0.10226441979117747,
-            "ry": 0.19736842105263158,
+            "rx": 0.07545694619247723,
+            "ry": 0.42598684210526316,
             "tags": [
               "Reversal"
             ]
           },
           {
-            "rh": 0.10032894736842106,
-            "rw": 0.06823720552396426,
-            "rx": 0.1347583271835414,
-            "ry": 0.4967105263157895,
+            "rh": 0.2631578947368421,
+            "rw": 0.07148659626320066,
+            "rx": 0.30128960256940657,
+            "ry": 0.4901315789473684,
             "tags": [
               "Panic"
             ]
@@ -3019,27 +3073,18 @@
           {
             "rh": 0.1924342105263158,
             "rw": 0.09179528838342811,
-            "rx": 0.5726137292956454,
-            "ry": 0.2911184210526316,
+            "rx": 0.5116010281818436,
+            "ry": 0.4470315789473685,
             "tags": []
           }
         ],
         "/uploads/49c7d21f-809d-4b53-9268-a1ed98eb3399.png": [],
         "/uploads/c6d50359-11f6-4318-88e6-aed1912603bd.png": [
           {
-            "rh": 0.29276315789473684,
-            "rw": 0.09597523219814241,
-            "rx": 0.07531927244582043,
-            "ry": 0.1299342105263158,
-            "tags": [
-              "chotu"
-            ]
-          },
-          {
             "rh": 0.28289473684210525,
             "rw": 0.048761609907120744,
-            "rx": 0.599313080495356,
-            "ry": 0.37993421052631576,
+            "rx": 0.38956075851393185,
+            "ry": 0.2946763157894736,
             "tags": [
               "dsd"
             ]
@@ -3048,8 +3093,7 @@
       },
       "observation": "",
       "overlays": {
-        "/uploads/24cc1a4a-96d4-48eb-982f-4bcf31df541c.png": "/uploads/56727005-2f86-4d72-b11a-4fe05905419e.png",
-        "/uploads/c6d50359-11f6-4318-88e6-aed1912603bd.png": "/uploads/3aac7848-7c99-4fcb-bb25-9a2a7b2c210b.png"
+        "/uploads/c6d50359-11f6-4318-88e6-aed1912603bd.png": "/uploads/309cf73f-b8fe-4801-97e1-fb981f09e184.png"
       },
       "tags": [],
       "trade_date": "2026-02-27"
@@ -3118,174 +3162,260 @@
   ],
   "dayData": {
     "": {},
-    "2026-02-02": {},
+    "2026-02-02": {
+      "imageTags": {}
+    },
     "2026-02-03": {
-      "video": "https://youtu.be/b2T_q2edvI0?si=E-SXQypuYMUiRLhl"
+      "video": "https://youtu.be/b2T_q2edvI0?si=E-SXQypuYMUiRLhl",
+      "imageTags": {}
     },
     "2026-02-04": {
-      "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE"
+      "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE",
+      "imageTags": {}
     },
     "2026-02-05": {
-      "video": "https://youtu.be/6l-b6zPihQY?si=Tak1R32Zar3a6Ec3"
+      "video": "https://youtu.be/6l-b6zPihQY?si=Tak1R32Zar3a6Ec3",
+      "imageTags": {}
     },
     "2026-02-06": {
-      "video": "https://youtu.be/puTVLWO12oE?si=njeL4CZrk9A5dxS9"
+      "video": "https://youtu.be/puTVLWO12oE?si=njeL4CZrk9A5dxS9",
+      "imageTags": {}
     },
     "2026-02-09": {
-      "video": "https://youtu.be/IfbQOR8B2n0?si=cCt8rscFyKdVLLDF"
+      "video": "https://youtu.be/IfbQOR8B2n0?si=cCt8rscFyKdVLLDF",
+      "imageTags": {}
     },
     "2026-02-10": {
+      "imageTags": {
+        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [
+          "Panic",
+          "Random",
+          "rr",
+          "Manual"
+        ]
+      },
       "images": [
-        "/uploads/850b63d7-4cf1-48f6-93c9-366d5df77300.png",
         "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": []
+      },
+      "overlays": {
+        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": "/uploads/286b5df0-5c7c-4c70-b329-b25c5280820b.png"
+      },
       "video": "https://youtu.be/bdu8J9ttEWA?si=lDo2eXiTArnM2ksf"
     },
     "2026-02-11": {
+      "imageTags": {
+        "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [
+          "Panic",
+          "Random"
+        ],
+        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": [
+          "Panic",
+          "Random",
+          "Full View"
+        ]
+      },
       "images": [
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png",
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [],
+        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": []
+      },
+      "overlays": {
+        "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": "/uploads/2a8926e8-0839-40f5-87ba-a0dcf6a960ef.png",
+        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": "/uploads/7803be50-06f5-4ef9-925c-471b794aa2f3.png"
+      },
       "video": "https://youtu.be/YH9hBE8b16c?si=pxTcOfNUrnXxQw8y"
     },
     "2026-02-12": {
+      "imageTags": {
+        "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": [
+          "Panic"
+        ]
+      },
       "images": [
         "/uploads/8b9296b7-1434-4cb7-9175-1afe3cce727f.png",
         "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/8b9296b7-1434-4cb7-9175-1afe3cce727f.png": [],
+        "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": []
+      },
+      "overlays": {
+        "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": "/uploads/bcecb785-6aad-4501-8563-ec1ad069e073.png"
+      },
       "video": "https://youtu.be/Yo1GfsC_p8I?si=ZQaGfgNuJP_2iKjg"
     },
     "2026-02-13": {
+      "imageTags": {},
       "images": [
         "/uploads/ceb46629-974d-4fa6-96da-5f81881ad09c.png",
         "/uploads/a4500dd7-b69d-4d83-a84f-ec0e9c127ce5.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/a4500dd7-b69d-4d83-a84f-ec0e9c127ce5.png": [],
+        "/uploads/ceb46629-974d-4fa6-96da-5f81881ad09c.png": []
+      },
       "video": "https://youtu.be/czV-uKlT5XE?si=rXQE9pK_CXFmPIsy"
     },
     "2026-02-16": {
-      "video": "https://youtu.be/jLgwsF93jlI?si=2N_7WlAJ1dTft1Nx"
+      "video": "https://youtu.be/jLgwsF93jlI?si=2N_7WlAJ1dTft1Nx",
+      "imageTags": {}
     },
     "2026-02-17": {
-      "video": "https://youtu.be/z8-DMCKP2NU?si=YxV3eluO_Xk3K4Fh"
+      "video": "https://youtu.be/z8-DMCKP2NU?si=YxV3eluO_Xk3K4Fh",
+      "imageTags": {}
     },
     "2026-02-18": {
+      "imageTags": {},
       "video": "https://youtu.be/d_hHomkq7a0?si=Iu1Lx1uzhpn84GfO"
     },
     "2026-02-19": {
+      "imageTags": {
+        "/uploads/6c58404a-f566-426d-99be-96ced2a8b36a.png": [
+          "Panic",
+          "Random"
+        ]
+      },
       "images": [
         "/uploads/6c58404a-f566-426d-99be-96ced2a8b36a.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/6c58404a-f566-426d-99be-96ced2a8b36a.png": []
+      },
+      "overlays": {
+        "/uploads/6c58404a-f566-426d-99be-96ced2a8b36a.png": "/uploads/96abc7da-5ee5-4e06-9c66-da1b7ba14cd3.png"
+      },
       "video": "https://youtu.be/8jeM--wfWWI?si=tDjkofWHPtOG4krS"
     },
     "2026-02-20": {
-      "video": "https://youtu.be/95DgYF2elZs?si=JxysMClAtl_gbD3F"
+      "video": "https://youtu.be/95DgYF2elZs?si=JxysMClAtl_gbD3F",
+      "imageTags": {}
     },
     "2026-02-23": {
-      "video": "https://youtu.be/Qkvz6mbTp_Q?si=lXN5Mc3leKDDle83"
+      "video": "https://youtu.be/Qkvz6mbTp_Q?si=lXN5Mc3leKDDle83",
+      "imageTags": {}
     },
     "2026-02-24": {
+      "imageTags": {
+        "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": [
+          "Panic"
+        ],
+        "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": [
+          "Panic"
+        ]
+      },
+      "images": [
+        "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png",
+        "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png",
+        "/uploads/d7fa3298-cb75-4e73-aa88-79cf098f2860.png",
+        "/uploads/62565683-03fb-4c3d-971a-9f586e4f69a8.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": [],
+        "/uploads/62565683-03fb-4c3d-971a-9f586e4f69a8.png": [],
+        "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": [],
+        "/uploads/d7fa3298-cb75-4e73-aa88-79cf098f2860.png": []
+      },
+      "overlays": {
+        "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": "/uploads/1518a19d-2158-49cc-97ae-c255d7794313.png",
+        "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": "/uploads/6330a538-c2a4-4501-b4f7-7b69b095ec4f.png"
+      },
+      "tags": {
+        "Tags": [
+          "bina zone"
+        ]
+      },
       "video": "https://youtu.be/sQe00rCxL44?si=-UyWbUH4ONhWVmmZ"
     },
     "2026-02-25": {
-      "video": "https://youtu.be/__VCVg5RWyc?si=pPZxxQrbtNe_yZL2"
+      "video": "https://youtu.be/__VCVg5RWyc?si=pPZxxQrbtNe_yZL2",
+      "imageTags": {}
     },
     "2026-02-26": {
+      "imageTags": {},
       "video": "https://youtu.be/-nimfxpVbtU?si=eVHMvbXBsI7Z9EBJ"
     },
     "2026-02-27": {
+      "imageTags": {
+        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
+          "Panic"
+        ]
+      },
       "images": [
         "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png"
       ],
       "marqueeBoxes": {
         "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
           {
-            "rx": 0.7392733484815974,
-            "ry": 0.5421052230031866,
-            "rw": 0.12283737024221453,
-            "rh": 0.4194078947368421,
-            "tags": [
-              "dasd"
-            ]
-          },
-          {
-            "rx": 0.7392733484815974,
-            "ry": 0.02631578947368421,
-            "rw": 0.14965397923875431,
-            "rh": 0.05921052631578947,
+            "rh": 0.06559256122476723,
+            "rw": 0.07279849842488433,
+            "rx": 0.16763771049486512,
+            "ry": 0.22261393272015798,
             "tags": []
           },
           {
-            "rx": 0.07750864259924443,
-            "ry": 0.0756578947368421,
-            "rw": 0.12975778546712802,
-            "rh": 0.08388157894736842,
+            "rh": 0.1885786135212058,
+            "rw": 0.16131485446423233,
+            "rx": 0.3909610191944337,
+            "ry": 0.06149302614821928,
             "tags": []
           },
           {
-            "rx": 0.47802767374111294,
-            "ry": 0.3157894736842105,
-            "rw": 0.04757785467128028,
-            "rh": 0.06578947368421052,
+            "rh": 0.1342597737569454,
+            "rw": 0.1530422978250409,
+            "rx": 0.822746403568943,
+            "ry": 0.5956321830257676,
             "tags": []
           },
           {
-            "rx": 0.15882352149197798,
-            "ry": 0.4144736842105263,
-            "rw": 0.01124567474048443,
-            "rh": 0.19901315789473684,
+            "rh": 0.10351326068283578,
+            "rw": 0.0909981230311054,
+            "rx": 0.751602416471897,
+            "ry": 0.5392635757232334,
             "tags": []
           },
           {
-            "rx": 0.6730103410239038,
-            "ry": 0.41842099239951686,
-            "rw": 0.06920415224913495,
-            "rh": 0.07072368421052631,
+            "rh": 0.02610486254587673,
+            "rw": 0.02421129860601614,
+            "rx": 0.9757887013939838,
+            "ry": 0.5602062713497417,
             "tags": []
           },
           {
-            "rx": 0.6657439367168915,
-            "ry": 0.32730263157894735,
-            "rw": 0.07612456747404844,
-            "rh": 0.10526315789473684,
+            "rh": 0.27010804321728693,
+            "rw": 0.02194680470263286,
+            "rx": 0.9757887013939838,
+            "ry": 0.7298919567827131,
             "tags": []
           },
           {
-            "rx": 0.0930795768552998,
-            "ry": 0.46710526315789475,
-            "rw": 0.05363321799307959,
-            "rh": 0.08717105263157894,
-            "tags": []
-          },
-          {
-            "rx": 0.2461937637065108,
-            "ry": 0.6595394736842105,
-            "rw": 0.04065743944636678,
-            "rh": 0.07236842105263158,
-            "tags": [
-              "pp"
-            ]
-          },
-          {
-            "rx": 0.17612455955426173,
-            "ry": 0.4457236842105263,
-            "rw": 0.06747404844290658,
-            "rh": 0.1924342105263158,
-            "tags": [
-              "Nifty"
-            ]
-          },
-          {
-            "rx": 0.5437716183777912,
-            "ry": 0.5427631578947368,
-            "rw": 0.03806228373702422,
-            "rh": 0.125,
+            "rh": 0.17172223026881808,
+            "rw": 0.05505071123408821,
+            "rx": 0.4174238937735307,
+            "ry": 0.38633621310517957,
             "tags": []
           }
         ]
       },
       "overlays": {
-        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": "/uploads/e3ffceeb-bbe3-4c85-9c69-c44b977855ea.png"
+        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": "/uploads/2fa911b2-ed8c-4216-a5a3-5d40b5c13116.png"
       }
     }
+  },
+  "tagGroups": {
+    "GRP1": [],
+    "GRP3": [
+      "Trade1",
+      "bat"
+    ],
+    "grp2": [
+      "Nifty",
+      "dasd"
+    ]
   }
 }

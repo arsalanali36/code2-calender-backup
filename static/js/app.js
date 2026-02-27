@@ -66,6 +66,12 @@ const annotState = {
   marqueeDragStartX: 0,
   marqueeDragStartY: 0,
   marqueeDragOrig: null,
+  multiSelectMode: false,
+  selectedMarquees: [],
+  marqueeSelectStartX: 0,
+  marqueeSelectStartY: 0,
+  marqueeSelectRect: null,
+  marqueeDragGroupOrig: [],
   lastX: 0, lastY: 0
 };
 
@@ -228,6 +234,7 @@ async function loadTrades() {
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : [];
     state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
     state.dayData = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
+    state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -235,6 +242,7 @@ async function loadTrades() {
     const migrated = migrateLegacyTagsData();
     syncImageTagColumnValues();
     if (ensuredChanged || migrated) saveTrades();
+    saveTagGroups();
     syncAllTradeDates();
     state.serverStateHash = hashServerState(data);
     initShowHeads();
@@ -245,7 +253,7 @@ async function loadTrades() {
 
 function syncImageTagColumnValues() {
   state.trades.forEach(t => {
-    t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
+    t[IMAGE_TAG_COLUMN] = getMergedImageTagsForTradeRow(t).join(', ');
   });
 }
 
@@ -257,7 +265,8 @@ async function saveTrades() {
       allTags: state.allTags,
       tagColumns: state.tagColumns,
       userColumns: state.userColumns,
-      dayData: state.dayData
+      dayData: state.dayData,
+      tagGroups: state.tagGroups
     };
     await fetch('/api/trades', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -275,7 +284,8 @@ function hashServerState(data) {
       allTags: data?.allTags || [],
       tagColumns: data?.tagColumns || [],
       userColumns: data?.userColumns || [],
-      dayData: data?.dayData || {}
+      dayData: data?.dayData || {},
+      tagGroups: data?.tagGroups || {}
     });
   } catch (e) {
     return '';
@@ -309,12 +319,14 @@ async function syncFromServerIfChanged(force = false) {
     IMAGE_PERMANENT_TAGS.forEach(t => { if (!state.allTags.includes(t)) state.allTags.push(t); });
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : [];
     state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
     ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
     syncImageTagColumnValues();
     state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
     migrateLegacyTagsData();
+    saveTagGroups();
     syncAllTradeDates();
     initShowHeads();
     initTableShowCols();
@@ -699,12 +711,64 @@ function getAllImageTagsForTrade(trade) {
   return Array.from(tags).sort((a, b) => a.localeCompare(b));
 }
 
+function ensureDayImageTagStore(dateKey) {
+  if (!dateKey) return {};
+  if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
+  if (!state.dayData[dateKey].imageTags || typeof state.dayData[dateKey].imageTags !== 'object' || Array.isArray(state.dayData[dateKey].imageTags)) {
+    state.dayData[dateKey].imageTags = {};
+  }
+  return state.dayData[dateKey].imageTags;
+}
+
+function getDayImageTagsForUrl(dateKey, imageUrl) {
+  if (!dateKey || !imageUrl) return [];
+  const store = ensureDayImageTagStore(dateKey);
+  const v = store[imageUrl];
+  return Array.isArray(v) ? Array.from(new Set(v.map(x => String(x).trim()).filter(Boolean))) : [];
+}
+
+function setDayImageTagsForUrl(dateKey, imageUrl, tags) {
+  if (!dateKey || !imageUrl) return;
+  const store = ensureDayImageTagStore(dateKey);
+  const clean = Array.from(new Set((tags || []).map(x => String(x).trim()).filter(Boolean)));
+  if (clean.length) store[imageUrl] = clean;
+  else delete store[imageUrl];
+}
+
+function getAllImageTagsForDay(dateKey) {
+  if (!dateKey || !state.dayData[dateKey]) return [];
+  const tags = new Set();
+  const imgs = Array.isArray(state.dayData[dateKey].images) ? state.dayData[dateKey].images : [];
+  imgs.forEach(url => getDayImageTagsForUrl(dateKey, url).forEach(t => tags.add(t)));
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+}
+
+function getMergedImageTagsForDate(dateKey) {
+  const dk = normalizeDate(dateKey || '');
+  if (!dk) return [];
+  const tags = new Set();
+  getAllImageTagsForDay(dk).forEach(t => tags.add(t));
+  getTradesForDate(dk).forEach(t => getAllImageTagsForTrade(t).forEach(tag => tags.add(tag)));
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+}
+
+function getMergedImageTagsForTradeRow(trade) {
+  if (!trade) return [];
+  const dk = normalizeDate(extractDateFromTrade(trade));
+  const tags = new Set(getAllImageTagsForTrade(trade));
+  getAllImageTagsForDay(dk).forEach(t => tags.add(t));
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+}
+
 function normalizeAllTagsFromTrades() {
   const set = new Set((state.allTags || []).map(t => String(t)));
   IMAGE_PERMANENT_TAGS.forEach(t => set.add(t));
   state.trades.forEach(t => {
     getAllTradeTags(t).forEach(tag => set.add(String(tag)));
     getAllImageTagsForTrade(t).forEach(tag => set.add(String(tag)));
+  });
+  Object.keys(state.dayData || {}).forEach(d => {
+    getAllImageTagsForDay(d).forEach(tag => set.add(String(tag)));
   });
   state.allTags = Array.from(set);
 }
@@ -2120,8 +2184,17 @@ function getFilteredTrades() {
     const colMatch = state.columns.every(col => {
       const fv = (state.filterValues[col] || '').toLowerCase().trim();
       if (!fv) return true;
-      const tv = String(trade[col] ?? '').toLowerCase();
-      return tv.includes(fv);
+      const isImageTags = String(col || '').toLowerCase() === 'image tags';
+      const tv = isImageTags
+        ? getMergedImageTagsForTradeRow(trade).join(',').toLowerCase()
+        : String(trade[col] ?? '').toLowerCase();
+      if (!isImageTags) return tv.includes(fv);
+
+      // Multi-tag filter for IMAGE TAGS:
+      // "panic,random" => row must contain BOTH tags
+      const terms = fv.split(',').map(x => x.trim()).filter(Boolean);
+      if (!terms.length) return true;
+      return terms.every(term => tv.includes(term));
     });
     if (!colMatch) return false;
     if (!tradeMatchesBrokerFilter(trade)) return false;
@@ -2247,7 +2320,7 @@ function renderTable() {
   filterRow.appendChild(document.createElement('td')); // drag handle column
   visibleCols.forEach(col => {
     const td = document.createElement('td');
-    if (isTagColumn(col) || col.toLowerCase() === 'images' || col.toLowerCase() === 'thumbnail' || col.toLowerCase() === 'image tags') {
+    if (isTagColumn(col) || col.toLowerCase() === 'images' || col.toLowerCase() === 'thumbnail') {
       filterRow.appendChild(td); return;
     }
     const inp = document.createElement('input'); inp.className = 'filter-input';
@@ -2473,19 +2546,21 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
         td.appendChild(w);
 
       } else if (colLower === 'image tags') {
-        // Merge image tags from all trades
-        const seen = new Set();
-        const allImgTags = [];
-        dayTrades.forEach(t => getAllImageTagsForTrade(t).forEach(tag => {
-          if (!seen.has(tag)) { seen.add(tag); allImgTags.push(tag); }
-        }));
+        const allImgTags = getMergedImageTagsForDate(dateKey);
         if (allImgTags.length) {
           const wrap = document.createElement('div'); wrap.className = 'tag-cell';
           allImgTags.forEach(tag => {
             const c = tagColor(tag);
-            const chip = document.createElement('span'); chip.className = 'tag-chip';
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'tag-chip';
             chip.textContent = tag;
             chip.style.cssText = `color:${c};background:${hexToRgba(c, 0.15)};border-color:${hexToRgba(c, 0.45)}`;
+            chip.title = 'Open gallery filtered by this tag';
+            chip.addEventListener('click', e => {
+              e.stopPropagation();
+              openGalleryForDateWithTagFilter(dateKey, [tag]);
+            });
             wrap.appendChild(chip);
           });
           td.appendChild(wrap);
@@ -2756,12 +2831,12 @@ function sortTrades(rows) {
       ? getTradeTagsForColumn(a, col).join(',')
       : (col.toLowerCase() === 'images'
         ? (a.images || []).length
-        : (col.toLowerCase() === 'image tags' ? getAllImageTagsForTrade(a).join(',') : (a[col] ?? '')));
+        : (col.toLowerCase() === 'image tags' ? getMergedImageTagsForTradeRow(a).join(',') : (a[col] ?? '')));
     const bv = isTagColumn(col)
       ? getTradeTagsForColumn(b, col).join(',')
       : (col.toLowerCase() === 'images'
         ? (b.images || []).length
-        : (col.toLowerCase() === 'image tags' ? getAllImageTagsForTrade(b).join(',') : (b[col] ?? '')));
+        : (col.toLowerCase() === 'image tags' ? getMergedImageTagsForTradeRow(b).join(',') : (b[col] ?? '')));
     const na = normalizeSortVal(av);
     const nb = normalizeSortVal(bv);
     if (na.t !== nb.t) return (na.t - nb.t) * dir;
@@ -2872,7 +2947,8 @@ function renderImagesCell(td, rowIdx, images) {
 function renderImageTagsCell(td, trade) {
   const wrap = document.createElement('div');
   wrap.className = 'tag-cell';
-  const tags = getAllImageTagsForTrade(trade);
+  const tags = getMergedImageTagsForTradeRow(trade);
+  const dateKey = normalizeDate(extractDateFromTrade(trade));
   if (!tags.length) {
     const empty = document.createElement('span');
     empty.style.color = 'var(--text2)';
@@ -2883,12 +2959,19 @@ function renderImageTagsCell(td, trade) {
   }
   tags.forEach(tag => {
     const c = tagColor(tag);
-    const chip = document.createElement('span');
+    const chip = document.createElement('button');
+    chip.type = 'button';
     chip.className = 'tag-chip';
     chip.textContent = tag;
     chip.style.color = c;
     chip.style.background = hexToRgba(c, 0.15);
     chip.style.borderColor = hexToRgba(c, 0.45);
+    chip.title = 'Open gallery filtered by this tag';
+    chip.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!dateKey) return;
+      openGalleryForDateWithTagFilter(dateKey, [tag]);
+    });
     wrap.appendChild(chip);
   });
   td.appendChild(wrap);
@@ -3340,6 +3423,9 @@ function openGalleryForDate(dateStr) {
   if (!images.length) return;
   state.gallery.images = images; state.gallery.currentIndex = 0;
   state.gallery.date = dateStr; state.gallery.sourceRow = null;
+  state.gallery._baseImages = [...images];
+  state.gallery._baseDate = dateStr;
+  state.gallery._baseSourceRow = null;
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray();
@@ -3348,12 +3434,36 @@ function openGalleryForDate(dateStr) {
 function openGalleryDirect(images, startIndex, sourceRow = null) {
   state.gallery.images = images; state.gallery.currentIndex = startIndex;
   state.gallery.date = ''; state.gallery.sourceRow = sourceRow;
+  state.gallery._baseImages = [...images];
+  state.gallery._baseDate = '';
+  state.gallery._baseSourceRow = sourceRow;
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray();
 }
 
+function openGalleryForDateWithTagFilter(dateStr, tags = []) {
+  const cleanTags = Array.from(new Set((tags || []).map(t => String(t || '').trim()).filter(Boolean)));
+  openGalleryForDate(dateStr);
+  state.gallery.tagFilter = cleanTags;
+  const keep = {
+    url: (state.gallery.images || [])[state.gallery.currentIndex] || '',
+    date: normalizeDate(dateStr || ''),
+    sourceRow: null
+  };
+  if (cleanTags.length) applyGalleryImageScopeByTagFilter(keep);
+  renderGalleryTagCloud();
+  renderGallery();
+  updateGalleryDateArrows();
+}
+
 function renderGallery() {
+  if (state.gallery._skipFilterRescopeOnce) {
+    state.gallery._skipFilterRescopeOnce = false;
+  } else if (state.gallery.tagFilter?.length) {
+    const before = getCurrentGalleryPreserveContext();
+    applyGalleryImageScopeByTagFilter(before);
+  }
   const { images, currentIndex, date } = state.gallery;
   const currentImageUrl = images[currentIndex] || '';
   if (annotState.active && annotState.imageUrl && annotState.imageUrl !== currentImageUrl) {
@@ -3390,6 +3500,9 @@ function renderGallery() {
   document.getElementById('gallery-prev').disabled = currentIndex === 0;
   document.getElementById('gallery-next').disabled = currentIndex === images.length - 1;
   renderGalleryImageTags();
+  renderGalleryTagCloud();
+  const tray = document.getElementById('gv2-tags-tray');
+  if (tray && tray.style.display !== 'none') renderGalleryTagsTray();
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) renderImageTagModal();
 
   // ── Thumbnail Tray ──
@@ -3399,7 +3512,9 @@ function renderGallery() {
   let dragFromIndex = -1;
   thumbImages.forEach(({ url, globalIdx, isCurrentDate }) => {
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = true;
-    const t = document.createElement('img'); t.src = url; t.className = 'gv2-thumb' + (globalIdx === currentIndex && isCurrentDate ? ' active' : '');
+    const t = document.createElement('img');
+    t.src = url;
+    t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '');
     t.addEventListener('click', () => { state.gallery.currentIndex = globalIdx; renderGallery(); });
 
     // Drag reorder (only within current date's images)
@@ -3445,36 +3560,150 @@ function renderGallery() {
 
 // Returns items for thumbnail tray: filtered or current date
 function _getGalleryThumbImages() {
-  const { images, currentIndex, date, tagFilter, filterMode } = state.gallery;
-  if (!tagFilter || !tagFilter.length) {
-    // No filter — show current images
-    return images.map((url, i) => ({ url, globalIdx: i, isCurrentDate: true }));
-  }
-  // Filter active — collect all images from all dates that have the selected tags
-  const result = [];
-  const allDates = getDatesWithImages();
-  allDates.forEach(d => {
-    const imgs = getImagesForDate(d);
-    imgs.forEach((url, i) => {
-      const imgTags = _getTagsForImageUrl(url);
-      const matches = filterMode === 'and'
-        ? tagFilter.every(t => imgTags.includes(t))
-        : tagFilter.some(t => imgTags.includes(t));
-      if (matches) result.push({ url, globalIdx: i, isCurrentDate: d === date, date: d });
-    });
-  });
-  return result;
+  const { images, tagFilter } = state.gallery;
+  const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
+  return (images || []).map((url, i) => ({
+    url,
+    globalIdx: i,
+    isCurrentDate: !filteredMode,
+    date: filteredMode ? '' : state.gallery.date
+  }));
 }
 
 // Get tags assigned to a specific image URL
 function _getTagsForImageUrl(url) {
-  const tags = [];
+  const tags = new Set();
   state.trades.forEach(trade => {
     if (!(trade.images || []).includes(url)) return;
-    const imgTagMap = trade._imageTags || {};
-    Object.values(imgTagMap).forEach(arr => tags.push(...(arr || [])));
+    getImageTagsForUrl(trade, url).forEach(t => tags.add(t));
   });
-  return tags;
+  getMarqueeTagsForImage(url, '', null).forEach(t => tags.add(t));
+  return Array.from(tags);
+}
+
+function getImageTagsForGalleryItem(item) {
+  const tags = new Set();
+  if (!item || !item.url) return [];
+  if (item.sourceRow !== null && state.trades[item.sourceRow]) {
+    getImageTagsForUrl(state.trades[item.sourceRow], item.url).forEach(t => tags.add(t));
+  } else if (item.date) {
+    getDayImageTagsForUrl(item.date, item.url).forEach(t => tags.add(t));
+  }
+  getMarqueeTagsForImage(item.url, item.date || '', item.sourceRow).forEach(t => tags.add(t));
+  return Array.from(tags);
+}
+
+function getAllGalleryImagesAcrossDates() {
+  const out = [];
+  getDatesWithImages().forEach(d => {
+    (state.dayData[d]?.images || []).forEach(url => {
+      out.push({ url, date: d, sourceRow: null });
+    });
+    for (let i = 0; i < state.trades.length; i++) {
+      const t = state.trades[i];
+      if (normalizeDate(extractDateFromTrade(t)) !== d) continue;
+      (t.images || []).forEach(url => out.push({ url, date: d, sourceRow: i }));
+    }
+  });
+  return out;
+}
+
+function getFilteredGalleryImagesByTagSelection() {
+  const tagFilter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+  if (!tagFilter.length) return [];
+  const mode = state.gallery.filterMode === 'and' ? 'and' : 'or';
+  return getAllGalleryImagesAcrossDates().filter(item => {
+    const arr = getImageTagsForGalleryItem(item);
+    return mode === 'and'
+      ? tagFilter.every(t => arr.includes(t))
+      : tagFilter.some(t => arr.includes(t));
+  });
+}
+
+function findGalleryContextByImageUrl(imageUrl) {
+  if (!imageUrl) return { date: '', sourceRow: null };
+  if (state.gallery._baseDate) {
+    const baseRowIdx = state.trades.findIndex(t =>
+      normalizeDate(extractDateFromTrade(t)) === state.gallery._baseDate &&
+      Array.isArray(t.images) &&
+      t.images.includes(imageUrl)
+    );
+    if (baseRowIdx >= 0) return { date: state.gallery._baseDate, sourceRow: baseRowIdx };
+  }
+  for (let i = 0; i < state.trades.length; i++) {
+    const t = state.trades[i];
+    if (Array.isArray(t.images) && t.images.includes(imageUrl)) {
+      return { date: normalizeDate(extractDateFromTrade(t)), sourceRow: i };
+    }
+  }
+  for (const [d, v] of Object.entries(state.dayData || {})) {
+    if ((v?.images || []).includes(imageUrl)) return { date: d, sourceRow: null };
+  }
+  return { date: '', sourceRow: null };
+}
+
+function applyGalleryImageScopeByTagFilter(preserveUrl = '') {
+  const preserve = (typeof preserveUrl === 'object' && preserveUrl)
+    ? preserveUrl
+    : { url: preserveUrl || '' };
+  const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+  let nextImages;
+  let nextMeta = null;
+  if (filterActive) {
+    nextMeta = getFilteredGalleryImagesByTagSelection();
+    nextImages = nextMeta.map(x => x.url);
+  } else if (Array.isArray(state.gallery._baseImages) && state.gallery._baseImages.length) {
+    nextImages = [...state.gallery._baseImages];
+    state.gallery.date = state.gallery._baseDate || '';
+    state.gallery.sourceRow = state.gallery._baseSourceRow ?? null;
+  } else {
+    nextImages = [...(state.gallery.images || [])];
+  }
+
+  state.gallery.images = nextImages;
+  state.gallery._filteredMeta = nextMeta;
+  if (!nextImages.length) {
+    state.gallery.currentIndex = 0;
+    return;
+  }
+
+  const keepUrl = preserve.url || '';
+  let idx = -1;
+  if (keepUrl && nextMeta && (preserve.date || preserve.sourceRow !== undefined)) {
+    idx = nextMeta.findIndex(m =>
+      m.url === keepUrl &&
+      normalizeDate(m.date || '') === normalizeDate(preserve.date || '') &&
+      (m.sourceRow ?? null) === (preserve.sourceRow ?? null)
+    );
+  }
+  if (idx < 0 && keepUrl) idx = nextImages.indexOf(keepUrl);
+  state.gallery.currentIndex = idx >= 0 ? idx : 0;
+
+  const currentUrl = nextImages[state.gallery.currentIndex] || '';
+  const ctx = (state.gallery._filteredMeta && state.gallery._filteredMeta[state.gallery.currentIndex])
+    ? {
+      date: state.gallery._filteredMeta[state.gallery.currentIndex].date || '',
+      sourceRow: state.gallery._filteredMeta[state.gallery.currentIndex].sourceRow ?? null
+    }
+    : findGalleryContextByImageUrl(currentUrl);
+  state.gallery.date = ctx.date || '';
+  state.gallery.sourceRow = ctx.sourceRow;
+}
+
+function getCurrentGalleryPreserveContext() {
+  const idx = Math.max(0, Math.min((state.gallery.images || []).length - 1, state.gallery.currentIndex || 0));
+  const url = (state.gallery.images || [])[idx] || '';
+  if (!url) return { url: '' };
+  const meta = state.gallery._filteredMeta && state.gallery._filteredMeta[idx];
+  if (meta && meta.url === url) {
+    return {
+      url,
+      date: normalizeDate(meta.date || ''),
+      sourceRow: meta.sourceRow ?? null
+    };
+  }
+  const ctx = findGalleryContextByImageUrl(url);
+  return { url, date: normalizeDate(ctx.date || ''), sourceRow: ctx.sourceRow ?? null };
 }
 
 function getOwnerTradeForImageUrl(imageUrl) {
@@ -3588,24 +3817,22 @@ function loadOverlayForCurrentImage() {
   const imgs = state.gallery.images || [];
   const imgUrl = imgs[state.gallery.currentIndex];
   const overlayUrl = state._localOverlays?.[imgUrl] || getOverlayUrlForImage(imgUrl, state.gallery.date || '');
+  const packedBoxes = getMarqueeBoxesForImage(imgUrl, state.gallery.date || '', state.gallery.sourceRow);
   const canvas = document.getElementById('annot-canvas');
   const ctx = canvas.getContext('2d');
   const img = document.getElementById('gallery-img');
   const wrapper = document.getElementById('gallery-img-wrapper');
+  if (!wrapper) return;
 
-  if (!overlayUrl) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Position canvas exactly over the rendered image
+  const left = img.offsetLeft;
+  const top = img.offsetTop;
+  const w = Math.round(img.clientWidth || img.naturalWidth || 0);
+  const h = Math.round(img.clientHeight || img.naturalHeight || 0);
+  if (w <= 0 || h <= 0) {
     canvas.style.display = 'none';
     return;
   }
-
-  // Position canvas exactly over the rendered image
-  const wRect = wrapper.getBoundingClientRect();
-  const iRect = img.getBoundingClientRect();
-  const left = iRect.left - wRect.left;
-  const top = iRect.top - wRect.top;
-  const w = Math.round(iRect.width);
-  const h = Math.round(iRect.height);
 
   canvas.style.left = left + 'px';
   canvas.style.top = top + 'px';
@@ -3616,16 +3843,37 @@ function loadOverlayForCurrentImage() {
   canvas.style.pointerEvents = 'none'; // view-only, no drawing
   canvas.style.display = 'block';
 
-  const ovImg = new Image();
-  ovImg.onload = () => {
-    ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(ovImg, 0, 0, w, h);
+  const boxes = unpackMarqueeBoxes(packedBoxes, w, h);
+  const drawBoxes = () => {
+    boxes.forEach(b => drawMarqueeBox(ctx, b, false));
   };
-  ovImg.onerror = () => {
-    ctx.clearRect(0, 0, w, h);
+
+  // If nothing to show, hide canvas.
+  if (!overlayUrl && !boxes.length) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     canvas.style.display = 'none';
-  };
-  ovImg.src = overlayUrl;
+    return;
+  }
+
+  if (overlayUrl) {
+    const ovImg = new Image();
+    ovImg.onload = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(ovImg, 0, 0, w, h);
+      drawBoxes();
+    };
+    ovImg.onerror = () => {
+      ctx.clearRect(0, 0, w, h);
+      if (boxes.length) drawBoxes();
+      else canvas.style.display = 'none';
+    };
+    ovImg.src = overlayUrl;
+  } else {
+    ctx.clearRect(0, 0, w, h);
+    drawBoxes();
+  }
+
+  applyZoom();
 }
 
 function navigateGallery(dir) {
@@ -3639,15 +3887,85 @@ function navigateGallery(dir) {
   }
 }
 
+function getGalleryDateScopeForFilter() {
+  const imageDates = (state.gallery.images || []).map((url, idx) => {
+    const meta = state.gallery._filteredMeta && state.gallery._filteredMeta[idx];
+    if (meta && meta.url === url) return normalizeDate(meta.date || '');
+    const ctx = findGalleryContextByImageUrl(url);
+    return normalizeDate(ctx.date || '');
+  });
+  const byDate = new Map();
+  imageDates.forEach((d, idx) => {
+    if (!d) return;
+    if (!byDate.has(d)) byDate.set(d, []);
+    byDate.get(d).push(idx);
+  });
+  const dates = Array.from(byDate.keys()).sort();
+  const curIdx = Math.max(0, Math.min((state.gallery.images || []).length - 1, state.gallery.currentIndex || 0));
+  let currentDate = imageDates[curIdx] || '';
+  if (!currentDate && dates.includes(state.gallery.date)) currentDate = state.gallery.date;
+  if (!currentDate) currentDate = dates[0] || '';
+  return { dates, byDate, currentDate, imageDates, currentIndex: curIdx };
+}
+
 function navigateGalleryDate(dir) {
+  const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+  if (filterActive) {
+    const scope = getGalleryDateScopeForFilter();
+    const total = (state.gallery.images || []).length;
+    if (!total) return;
+    let targetIndex = -1;
+    // Prefer next image that belongs to a different date block.
+    for (let i = scope.currentIndex + dir; i >= 0 && i < total; i += dir) {
+      const d = scope.imageDates[i] || '';
+      if (d && d !== scope.currentDate) { targetIndex = i; break; }
+    }
+    // If no different-date image exists, still move to next/prev image.
+    if (targetIndex < 0) {
+      const fallback = scope.currentIndex + dir;
+      if (fallback >= 0 && fallback < total) targetIndex = fallback;
+    }
+    if (targetIndex >= 0) {
+      state.gallery.currentIndex = targetIndex;
+      const targetUrl = state.gallery.images[targetIndex] || '';
+      const meta = state.gallery._filteredMeta && state.gallery._filteredMeta[targetIndex];
+      if (meta && meta.url === targetUrl) {
+        state.gallery.date = normalizeDate(meta.date || '');
+        state.gallery.sourceRow = meta.sourceRow ?? null;
+      } else {
+        const ctx = findGalleryContextByImageUrl(targetUrl);
+        state.gallery.date = normalizeDate(ctx.date || '');
+        state.gallery.sourceRow = ctx.sourceRow ?? null;
+      }
+      state.gallery._skipFilterRescopeOnce = true;
+      renderGallery(); updateGalleryDateArrows();
+    }
+    return;
+  }
+
   const datesWithImages = getDatesWithImages();
-  if (!datesWithImages.length) return;
+  if (!datesWithImages.length) {
+    const idxOnly = (state.gallery.currentIndex || 0) + dir;
+    if (idxOnly >= 0 && idxOnly < (state.gallery.images || []).length) {
+      state.gallery.currentIndex = idxOnly;
+      renderGallery();
+    }
+    return;
+  }
 
   const curDate = state.gallery.date;
   let idx = datesWithImages.indexOf(curDate);
   if (idx === -1) idx = dir > 0 ? -1 : datesWithImages.length;
   const nextIdx = idx + dir;
-  if (nextIdx < 0 || nextIdx >= datesWithImages.length) return;
+  if (nextIdx < 0 || nextIdx >= datesWithImages.length) {
+    // No adjacent date: fallback to image movement within same date/gallery list.
+    const nextImageIdx = (state.gallery.currentIndex || 0) + dir;
+    if (nextImageIdx >= 0 && nextImageIdx < (state.gallery.images || []).length) {
+      state.gallery.currentIndex = nextImageIdx;
+      renderGallery();
+    }
+    return;
+  }
 
   const nextDate = datesWithImages[nextIdx];
   const images = getImagesForDate(nextDate);
@@ -3661,10 +3979,24 @@ function navigateGalleryDate(dir) {
 }
 
 function updateGalleryDateArrows() {
+  const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+  if (filterActive) {
+    const total = (state.gallery.images || []).length;
+    const idx = Math.max(0, Math.min(total - 1, state.gallery.currentIndex || 0));
+    document.getElementById('gallery-date-prev').disabled = total <= 1 || idx <= 0;
+    document.getElementById('gallery-date-next').disabled = total <= 1 || idx >= total - 1;
+    return;
+  }
   const datesWithImages = getDatesWithImages();
   const idx = datesWithImages.indexOf(state.gallery.date);
-  document.getElementById('gallery-date-prev').disabled = idx <= 0;
-  document.getElementById('gallery-date-next').disabled = idx === -1 || idx >= datesWithImages.length - 1;
+  const imgTotal = (state.gallery.images || []).length;
+  const imgIdx = Math.max(0, Math.min(imgTotal - 1, state.gallery.currentIndex || 0));
+  const hasPrevImage = imgTotal > 1 && imgIdx > 0;
+  const hasNextImage = imgTotal > 1 && imgIdx < imgTotal - 1;
+  const hasPrevDate = idx > 0;
+  const hasNextDate = idx !== -1 && idx < datesWithImages.length - 1;
+  document.getElementById('gallery-date-prev').disabled = !(hasPrevDate || hasPrevImage);
+  document.getElementById('gallery-date-next').disabled = !(hasNextDate || hasNextImage);
 }
 
 // ── GALLERY V2: TAG CLOUD ────────────────────────────────────
@@ -3675,24 +4007,53 @@ function renderGalleryTagCloud() {
   if (!chips) return;
   chips.innerHTML = '';
 
-  const allTagNames = state.allTags || [];
+  const info = getCurrentGalleryImageTagInfo();
+  const availableSet = new Set(info.all);
+  const allTagNames = info.all;
   const selected = state.gallery.tagFilter || [];
+  state.gallery.tagFilter = selected.filter(t => availableSet.has(t));
+  const grouped = state.tagGroups || {};
 
-  allTagNames.forEach(tag => {
+  const renderChip = (tag) => {
     const chip = document.createElement('span');
-    chip.className = 'gv2-tc-chip' + (selected.includes(tag) ? ' selected' : '');
+    chip.className = 'gv2-tc-chip' + (state.gallery.tagFilter.includes(tag) ? ' selected' : '');
     chip.textContent = tag;
     chip.addEventListener('click', () => {
       const idx = state.gallery.tagFilter.indexOf(tag);
       if (idx === -1) state.gallery.tagFilter.push(tag);
       else state.gallery.tagFilter.splice(idx, 1);
       renderGalleryTagCloud();
-      renderGallery(); // refresh thumbnails
+      renderGallery();
     });
     chips.appendChild(chip);
-  });
+  };
 
-  const hasFilter = selected.length > 0;
+  Object.keys(grouped).forEach(g => {
+    const tags = (grouped[g] || []).filter(t => availableSet.has(t));
+    if (!tags.length) return;
+    const lbl = document.createElement('span');
+    lbl.className = 'gv2-tc-group';
+    lbl.textContent = g;
+    chips.appendChild(lbl);
+    tags.forEach(renderChip);
+  });
+  const groupedTags = new Set(Object.values(grouped).flat());
+  const ungrouped = allTagNames.filter(t => !groupedTags.has(t));
+  if (ungrouped.length) {
+    const lbl = document.createElement('span');
+    lbl.className = 'gv2-tc-group';
+    lbl.textContent = 'Ungrouped';
+    chips.appendChild(lbl);
+    ungrouped.forEach(renderChip);
+  }
+  if (!allTagNames.length) {
+    const hint = document.createElement('span');
+    hint.className = 'gv2-tc-group';
+    hint.textContent = 'No tags on this image';
+    chips.appendChild(hint);
+  }
+
+  const hasFilter = (state.gallery.tagFilter || []).length > 0;
   if (modeBtn) {
     const isAnd = state.gallery.filterMode === 'and';
     modeBtn.textContent = isAnd ? 'AND' : 'OR';
@@ -3708,6 +4069,11 @@ function renderGalleryTagsTray() {
   body.innerHTML = '';
 
   const allTags = state.allTags || [];
+  const imgInfo = getCurrentGalleryImageTagInfo();
+  const imageAssignedSet = new Set(imgInfo.imageTags);
+  const selectedMarqueeTagSet = getSelectedMarqueeTagSet();
+  const marqueeMode = isMarqueeSelectionActive() && selectedMarqueeTagSet.size > 0;
+  const currentImageTagSet = marqueeMode ? selectedMarqueeTagSet : new Set(imgInfo.all);
   refreshMarqueeTagSuggestions();
   const groups = state.tagGroups || {};
   const groupNames = Object.keys(groups);
@@ -3715,6 +4081,30 @@ function renderGalleryTagsTray() {
   const delBtn = document.getElementById('gv2-del-tag-btn');
   if (delBtn) delBtn.classList.toggle('active', deleteMode);
   let draggingTag = '';
+  const tagUsageCount = new Map();
+  const bumpTagCount = (tag) => {
+    const t = String(tag || '').trim();
+    if (!t) return;
+    tagUsageCount.set(t, (tagUsageCount.get(t) || 0) + 1);
+  };
+  state.trades.forEach((tr, rowIdx) => {
+    const dateKey = normalizeDate(extractDateFromTrade(tr));
+    (tr.images || []).forEach(url => {
+      getImageTagsForUrl(tr, url).forEach(bumpTagCount);
+      const boxes = tr?.marqueeBoxes?.[url];
+      (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
+      // Defensive fallback for legacy placements.
+      if (!boxes) getMarqueeTagsForImage(url, dateKey, rowIdx).forEach(bumpTagCount);
+    });
+  });
+  Object.entries(state.dayData || {}).forEach(([dateKey, day]) => {
+    (day?.images || []).forEach(url => {
+      getDayImageTagsForUrl(dateKey, url).forEach(bumpTagCount);
+      const boxes = day?.marqueeBoxes?.[url];
+      (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
+      if (!boxes) getMarqueeTagsForImage(url, dateKey, null).forEach(bumpTagCount);
+    });
+  });
 
   const normalizeGroups = () => {
     const valid = new Set(allTags);
@@ -3753,13 +4143,25 @@ function renderGalleryTagsTray() {
   const createTagChip = (tag, grpName = '') => {
     const chip = document.createElement('span');
     chip.className = 'gv2-tt-tag-chip';
-    chip.textContent = tag;
+    const lbl = document.createElement('span');
+    lbl.textContent = tag;
+    const cnt = document.createElement('span');
+    cnt.className = 'gv2-tt-tag-count';
+    cnt.textContent = String(tagUsageCount.get(tag) || 0);
+    chip.appendChild(lbl);
+    chip.appendChild(cnt);
     const gc = groupColor(grpName);
     if (gc) {
       chip.style.borderColor = gc + '88';
       chip.style.color = gc;
       chip.style.background = gc + '1A';
     }
+    if (currentImageTagSet.has(tag)) chip.classList.add('selected-on-image');
+    if (marqueeMode) {
+      if (currentImageTagSet.has(tag)) chip.title = 'Tag on selected marquee';
+      else chip.title = 'Add to selected marquee';
+    } else if (imageAssignedSet.has(tag)) chip.title = 'Image tag assigned';
+    else if (currentImageTagSet.has(tag)) chip.title = 'Marquee tag present on this image';
     chip.setAttribute('draggable', 'true');
     chip.addEventListener('click', async () => {
       if (state.tagDeleteMode) {
@@ -3775,14 +4177,33 @@ function renderGalleryTagsTray() {
         renderCalendar();
         return;
       }
-      if (addTagToSelectedMarqueeBox(tag)) {
-        const mqInp = document.getElementById('gv2-mq-tag-input');
-        if (mqInp) mqInp.value = '';
+      if (marqueeMode) {
+        if (!toggleTagOnSelectedMarquees(tag)) return;
+        renderGalleryImageTags();
+        renderGalleryTagCloud();
         renderGalleryTagsTray();
-        showToast(`Added "${tag}" to marquee`, 'success');
         return;
       }
-      toggleTagFilter(tag);
+      if (!imgInfo.imgUrl) {
+        showToast('No image row found to assign tag', 'error');
+        return;
+      }
+      const next = imageAssignedSet.has(tag)
+        ? imgInfo.imageTags.filter(t => t !== tag)
+        : [...imgInfo.imageTags, tag];
+      if (imgInfo.ownerType === 'trade' && imgInfo.trade) setImageTagsForUrl(imgInfo.trade, imgInfo.imgUrl, next);
+      else if (imgInfo.ownerType === 'day' && imgInfo.dateKey) setDayImageTagsForUrl(imgInfo.dateKey, imgInfo.imgUrl, next);
+      else {
+        showToast('No image row found to assign tag', 'error');
+        return;
+      }
+      normalizeAllTagsFromTrades();
+      await saveTrades();
+      renderGalleryImageTags();
+      renderGalleryTagCloud();
+      renderGalleryTagsTray();
+      renderTable();
+      renderCalendar();
     });
     chip.addEventListener('dragstart', e => {
       draggingTag = tag;
@@ -3932,6 +4353,46 @@ function getOwnerTradeForGalleryImage() {
   }
 
   return state.trades.find(t => Array.isArray(t.images) && t.images.includes(imgUrl)) || null;
+}
+
+function getMarqueeTagsForImage(imageUrl, dateHint = '', sourceRow = null) {
+  if (!imageUrl) return [];
+  const boxes = getMarqueeBoxesForImage(imageUrl, dateHint, sourceRow);
+  const tags = new Set();
+  (Array.isArray(boxes) ? boxes : []).forEach(b => {
+    (Array.isArray(b?.tags) ? b.tags : []).forEach(t => {
+      const x = String(t || '').trim();
+      if (x) tags.add(x);
+    });
+  });
+  return Array.from(tags);
+}
+
+function getCurrentGalleryImageTagInfo() {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  const trade = getOwnerTradeForGalleryImage();
+  let ownerType = 'trade';
+  let dateKey = '';
+  let imageTags = getImageTagsForUrl(trade, imgUrl);
+  if (!trade && imgUrl) {
+    dateKey = normalizeDate(state.gallery.date || '');
+    if (!dateKey || !(state.dayData[dateKey]?.images || []).includes(imgUrl)) {
+      const fromMeta = state.gallery._filteredMeta && state.gallery._filteredMeta[state.gallery.currentIndex];
+      dateKey = normalizeDate(fromMeta?.date || dateKey || '');
+    }
+    if (!dateKey) {
+      for (const [d, v] of Object.entries(state.dayData || {})) {
+        if ((v?.images || []).includes(imgUrl)) { dateKey = d; break; }
+      }
+    }
+    if (dateKey) {
+      ownerType = 'day';
+      imageTags = getDayImageTagsForUrl(dateKey, imgUrl);
+    }
+  }
+  const marqueeTags = getMarqueeTagsForImage(imgUrl, state.gallery.date || '', state.gallery.sourceRow);
+  const all = Array.from(new Set([...imageTags, ...marqueeTags]));
+  return { imgUrl, trade, ownerType, dateKey, imageTags, marqueeTags, all };
 }
 
 function getOverlayUrlForImage(imageUrl, dateHint = '') {
@@ -4185,41 +4646,70 @@ function renderGalleryImageTags() {
   box.innerHTML = '';
 
   const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-  const trade = getOwnerTradeForGalleryImage();
-  const tags = getImageTagsForUrl(trade, imgUrl);
+  const info = getCurrentGalleryImageTagInfo();
+  const tags = info.imageTags || [];
+  const marqueeTags = info.marqueeTags || [];
 
-  if (!tags.length) {
+  if (!tags.length && !marqueeTags.length) {
     const hint = document.createElement('span');
     hint.className = 'gallery-tag-empty';
-    hint.textContent = 'No image tags';
+    hint.textContent = 'No image/marquee tags';
     box.appendChild(hint);
     return;
   }
 
-  tags.forEach(tag => {
-    const c = tagColor(tag);
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'gallery-img-tag-chip';
-    chip.textContent = `${tag} x`;
-    chip.style.color = c;
-    chip.style.borderColor = hexToRgba(c, 0.45);
-    chip.style.background = hexToRgba(c, 0.16);
-    chip.title = 'Remove tag from this image';
-    chip.addEventListener('click', async () => {
-      setImageTagsForUrl(trade, imgUrl, tags.filter(t => t !== tag));
-      await saveTrades();
-      renderGalleryImageTags();
-      renderTable();
-      renderCalendar();
+  if (tags.length) {
+    const imgLbl = document.createElement('span');
+    imgLbl.className = 'gallery-tag-empty';
+    imgLbl.textContent = 'Image:';
+    box.appendChild(imgLbl);
+    tags.forEach(tag => {
+      const c = tagColor(tag);
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'gallery-img-tag-chip';
+      chip.textContent = `${tag} x`;
+      chip.style.color = c;
+      chip.style.borderColor = hexToRgba(c, 0.45);
+      chip.style.background = hexToRgba(c, 0.16);
+      chip.title = 'Remove tag from this image';
+      chip.addEventListener('click', async () => {
+        const next = tags.filter(t => t !== tag);
+        if (info.ownerType === 'trade' && info.trade) setImageTagsForUrl(info.trade, imgUrl, next);
+        else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
+        await saveTrades();
+        renderGalleryImageTags();
+        renderTable();
+        renderCalendar();
+      });
+      box.appendChild(chip);
     });
-    box.appendChild(chip);
-  });
+  }
+
+  if (marqueeTags.length) {
+    if (tags.length) box.appendChild(document.createTextNode(' '));
+    const mqLbl = document.createElement('span');
+    mqLbl.className = 'gallery-tag-empty';
+    mqLbl.textContent = 'Marquee:';
+    box.appendChild(mqLbl);
+    marqueeTags.forEach(tag => {
+      const c = tagColor(tag);
+      const chip = document.createElement('span');
+      chip.className = 'gallery-img-tag-chip';
+      chip.textContent = tag;
+      chip.style.color = c;
+      chip.style.borderColor = hexToRgba(c, 0.45);
+      chip.style.background = hexToRgba(c, 0.12);
+      chip.style.opacity = '0.9';
+      box.appendChild(chip);
+    });
+  }
 }
 
 function getAllImageTagsGlobal() {
   const set = new Set();
   state.trades.forEach(t => getAllImageTagsForTrade(t).forEach(tag => set.add(tag)));
+  Object.keys(state.dayData || {}).forEach(d => getAllImageTagsForDay(d).forEach(tag => set.add(tag)));
   IMAGE_PERMANENT_TAGS.forEach(t => set.add(t));
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
@@ -4240,6 +4730,15 @@ function renameImageTagGlobal(oldTag, newTag) {
     });
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
   });
+  Object.keys(state.dayData || {}).forEach(d => {
+    const store = ensureDayImageTagStore(d);
+    Object.keys(store).forEach(url => {
+      const arr = Array.isArray(store[url]) ? store[url] : [];
+      const next = arr.map(x => (x === oldTag ? newTag : x));
+      store[url] = Array.from(new Set(next.filter(Boolean)));
+      if (!store[url].length) delete store[url];
+    });
+  });
 }
 
 function deleteImageTagGlobal(tagToDelete) {
@@ -4253,12 +4752,21 @@ function deleteImageTagGlobal(tagToDelete) {
     });
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
   });
+  Object.keys(state.dayData || {}).forEach(d => {
+    const store = ensureDayImageTagStore(d);
+    Object.keys(store).forEach(url => {
+      const arr = Array.isArray(store[url]) ? store[url] : [];
+      const next = arr.filter(x => x !== tagToDelete);
+      if (next.length) store[url] = next;
+      else delete store[url];
+    });
+  });
 }
 
 function openGalleryImageTagManager() {
   const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-  const trade = getOwnerTradeForGalleryImage();
-  if (!trade || !imgUrl) {
+  const info = getCurrentGalleryImageTagInfo();
+  if (!imgUrl || (info.ownerType === 'trade' && !info.trade) || (info.ownerType === 'day' && !info.dateKey && !info.trade)) {
     showToast('Open an image first', 'error');
     return;
   }
@@ -4278,10 +4786,11 @@ function renderImageTagModal() {
   currentWrap.innerHTML = '';
   manageWrap.innerHTML = '';
 
-  const trade = getOwnerTradeForGalleryImage();
-  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  const info = getCurrentGalleryImageTagInfo();
+  const trade = info.trade;
+  const imgUrl = info.imgUrl;
   const all = getAllImageTagsGlobal();
-  const assigned = getImageTagsForUrl(trade, imgUrl);
+  const assigned = info.imageTags || [];
 
   all.forEach(tag => {
     const row = document.createElement('label');
@@ -4295,7 +4804,8 @@ function renderImageTagModal() {
     const txt = document.createTextNode(tag);
     chk.addEventListener('change', async () => {
       const next = chk.checked ? [...assigned, tag] : assigned.filter(t => t !== tag);
-      setImageTagsForUrl(trade, imgUrl, next);
+      if (info.ownerType === 'trade' && trade) setImageTagsForUrl(trade, imgUrl, next);
+      else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
       normalizeAllTagsFromTrades();
       await saveTrades();
       renderGalleryImageTags();
@@ -4372,12 +4882,15 @@ async function addImageTagFromModal() {
   const inp = document.getElementById('img-tag-new-name');
   const tag = String(inp?.value || '').trim();
   if (!tag) return;
-  const trade = getOwnerTradeForGalleryImage();
-  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-  if (!trade || !imgUrl) return;
-  const existing = getImageTagsForUrl(trade, imgUrl);
+  const info = getCurrentGalleryImageTagInfo();
+  const trade = info.trade;
+  const imgUrl = info.imgUrl;
+  if (!imgUrl) return;
+  const existing = Array.isArray(info.imageTags) ? [...info.imageTags] : [];
   if (!existing.includes(tag)) existing.push(tag);
-  setImageTagsForUrl(trade, imgUrl, existing);
+  if (info.ownerType === 'trade' && trade) setImageTagsForUrl(trade, imgUrl, existing);
+  else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, existing);
+  else return;
   if (!state.allTags.includes(tag)) state.allTags.push(tag);
   normalizeAllTagsFromTrades();
   await saveTrades();
@@ -4413,6 +4926,11 @@ function toggleAnnotation() {
 
 function setAnnotTool(tool) {
   annotState.tool = tool;
+  if (tool !== 'marquee') {
+    annotState.multiSelectMode = false;
+    annotState.selectedMarquees = [];
+    annotState.marqueeSelectRect = null;
+  }
   document.querySelectorAll('.annot-tool').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('annot-' + tool);
   if (btn) btn.classList.add('active');
@@ -4434,6 +4952,28 @@ function setAnnotTool(tool) {
       renderMarqueeScene(ctx);
     }
   }
+  updateMarqueeMultiSelectButton();
+}
+
+function updateMarqueeMultiSelectButton() {
+  const btn = document.getElementById('annot-vselect');
+  if (!btn) return;
+  const active = annotState.tool === 'marquee' && annotState.multiSelectMode;
+  btn.classList.toggle('active', active);
+}
+
+function toggleMarqueeGroupSelect(forceState = null) {
+  if (!annotState.active) startAnnotation();
+  setAnnotTool('marquee');
+  annotState.multiSelectMode = typeof forceState === 'boolean' ? forceState : !annotState.multiSelectMode;
+  if (!annotState.multiSelectMode) annotState.marqueeSelectRect = null;
+  updateMarqueeMultiSelectButton();
+  const canvas = document.getElementById('annot-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (ctx && annotState.active && annotState.tool === 'marquee') renderMarqueeScene(ctx);
+  }
+  showToast(annotState.multiSelectMode ? 'Marquee group select ON (drag to select)' : 'Marquee group select OFF', 'success');
 }
 
 function updateAnnotToolIcons() {
@@ -4576,10 +5116,117 @@ function hitTestMarqueeDeleteHandle(box, x, y) {
   return ((x - dx) * (x - dx) + (y - dy) * (y - dy)) <= 11 * 11;
 }
 
-function renderMarqueeScene(ctx, previewBox = null) {
+function getSelectedMarqueeIndexes() {
+  const len = annotState.marqueeBoxes.length;
+  const set = new Set((annotState.selectedMarquees || []).filter(i => Number.isInteger(i) && i >= 0 && i < len));
+  if (annotState.selectedMarquee >= 0 && annotState.selectedMarquee < len) set.add(annotState.selectedMarquee);
+  return Array.from(set).sort((a, b) => a - b);
+}
+
+function getSelectedMarqueeTagSet() {
+  const tags = new Set();
+  const idxs = getSelectedMarqueeIndexes();
+  idxs.forEach(i => {
+    const box = annotState.marqueeBoxes[i];
+    (Array.isArray(box?.tags) ? box.tags : []).forEach(t => {
+      const x = String(t || '').trim();
+      if (x) tags.add(x);
+    });
+  });
+  return tags;
+}
+
+function isMarqueeSelectionActive() {
+  return !!(annotState.active && annotState.tool === 'marquee' && getSelectedMarqueeIndexes().length);
+}
+
+function syncMarqueeBoxesShadow() {
+  if (!state._marqueeBoxes) state._marqueeBoxes = {};
+  state._marqueeBoxes[annotState.imageUrl] = JSON.parse(JSON.stringify(annotState.marqueeBoxes || []));
+}
+
+function refreshGalleryTagsTrayIfVisible() {
+  const tray = document.getElementById('gv2-tags-tray');
+  if (tray && tray.style.display !== 'none') renderGalleryTagsTray();
+}
+
+function toggleTagOnSelectedMarquees(tag) {
+  const t = String(tag || '').trim();
+  if (!t || !isMarqueeSelectionActive()) return false;
+  const idxs = getSelectedMarqueeIndexes();
+  const selectedTagSet = getSelectedMarqueeTagSet();
+  const shouldAdd = !selectedTagSet.has(t);
+  idxs.forEach(i => {
+    const box = annotState.marqueeBoxes[i];
+    if (!box) return;
+    const arr = Array.isArray(box.tags) ? box.tags.slice() : [];
+    const set = new Set(arr.map(x => String(x || '').trim()).filter(Boolean));
+    if (shouldAdd) set.add(t); else set.delete(t);
+    box.tags = Array.from(set);
+  });
+  annotState.dirty = true;
+  syncMarqueeBoxesShadow();
+  const canvas = document.getElementById('annot-canvas');
+  const ctx = canvas?.getContext('2d');
+  if (ctx && annotState.active && annotState.tool === 'marquee') renderMarqueeScene(ctx);
+  refreshMarqueeTagSuggestions();
+  return true;
+}
+
+function setSingleMarqueeSelection(idx) {
+  if (idx < 0 || idx >= annotState.marqueeBoxes.length) {
+    annotState.selectedMarquee = -1;
+    annotState.selectedMarquees = [];
+    refreshGalleryTagsTrayIfVisible();
+    return;
+  }
+  annotState.selectedMarquee = idx;
+  annotState.selectedMarquees = [idx];
+  refreshGalleryTagsTrayIfVisible();
+}
+
+function rectsIntersect(a, b) {
+  return a.x < (b.x + b.w) && (a.x + a.w) > b.x && a.y < (b.y + b.h) && (a.y + a.h) > b.y;
+}
+
+function renderMarqueeScene(ctx, previewBox = null, selectRect = null) {
   if (annotState.marqueeRasterBase) ctx.putImageData(annotState.marqueeRasterBase, 0, 0);
-  annotState.marqueeBoxes.forEach((b, i) => drawMarqueeBox(ctx, b, i === annotState.selectedMarquee));
+  const selectedSet = new Set(getSelectedMarqueeIndexes());
+  annotState.marqueeBoxes.forEach((b, i) => drawMarqueeBox(ctx, b, selectedSet.has(i)));
   if (previewBox) drawMarqueeBox(ctx, previewBox, true);
+  if (selectRect && selectRect.w >= 2 && selectRect.h >= 2) {
+    ctx.save();
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#58a6ff';
+    ctx.fillStyle = 'rgba(88,166,255,0.12)';
+    ctx.fillRect(selectRect.x, selectRect.y, selectRect.w, selectRect.h);
+    ctx.strokeRect(selectRect.x, selectRect.y, selectRect.w, selectRect.h);
+    ctx.restore();
+  }
+}
+
+async function rebindCurrentImageOverlayToMarquee(ctx, canvas) {
+  if (!annotState.active || !annotState.imageUrl || !ctx || !canvas) return false;
+
+  const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
+  if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
+
+  // Detach flattened overlay and keep only editable marquee layer.
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  renderMarqueeScene(ctx);
+
+  // Prevent old flattened pixels from autosaving back.
+  annotState.dirty = false;
+
+  if (removed) {
+    await saveTrades();
+    showToast('Overlay rebind complete: editable marquee active', 'success');
+  } else {
+    showToast('No frozen overlay found. Marquee is already editable', 'success');
+  }
+  return removed;
 }
 
 function refreshMarqueeTagSuggestions() {
@@ -4626,12 +5273,11 @@ function startAnnotation() {
   const toolbar = document.getElementById('gv2-annot-bar'); // V2: floating bar
 
   // Size canvas to match current rendered image
-  const wRect = wrapper.getBoundingClientRect();
-  const iRect = img.getBoundingClientRect();
-  const left = iRect.left - wRect.left;
-  const top = iRect.top - wRect.top;
-  const w = Math.round(iRect.width);
-  const h = Math.round(iRect.height);
+  const left = img.offsetLeft;
+  const top = img.offsetTop;
+  const w = Math.round(img.clientWidth || img.naturalWidth || 0);
+  const h = Math.round(img.clientHeight || img.naturalHeight || 0);
+  if (w <= 0 || h <= 0) return;
 
   canvas.style.left = left + 'px';
   canvas.style.top = top + 'px';
@@ -4657,10 +5303,14 @@ function startAnnotation() {
       ? JSON.parse(JSON.stringify(state._marqueeBoxes[annotState.imageUrl]))
       : []);
   annotState.selectedMarquee = -1;
+  annotState.selectedMarquees = [];
+  annotState.multiSelectMode = false;
   annotState.marqueePreview = null;
   annotState.marqueeRasterBase = null;
   annotState.marqueeDragMode = '';
   annotState.marqueeDragOrig = null;
+  annotState.marqueeSelectRect = null;
+  annotState.marqueeDragGroupOrig = [];
   const hasLegacy = persistedBoxes.some(b => !(b && typeof b === 'object' && 'rx' in b && 'ry' in b && 'rw' in b && 'rh' in b));
   if (hasLegacy && annotState.imageUrl) {
     const packedNow = packMarqueeBoxes(annotState.marqueeBoxes, canvas.width, canvas.height);
@@ -4703,15 +5353,18 @@ function startAnnotation() {
     const annotBar = document.getElementById('gv2-annot-bar');
     if (annotBar) annotBar.style.display = 'flex';
     document.getElementById('gv2-annotate-btn').classList.add('active');
-    // Always start with brush (pen) when opening annotation from the button.
-    setAnnotTool('pen');
+    // Preserve active tool after reopen; prefer marquee when marquee boxes exist.
+    const preferredTool = annotState.marqueeBoxes.length ? 'marquee' : (annotState.tool || 'pen');
+    setAnnotTool(preferredTool);
   }
   const mqBar = document.getElementById('gv2-marquee-bar');
   if (mqBar) mqBar.style.display = annotState.tool === 'marquee' ? 'flex' : 'none';
+  updateMarqueeMultiSelectButton();
 
   // Enable drawing on canvas, disable zoom/pan on image
   canvas.style.pointerEvents = 'auto';
   canvas.style.cursor = shouldUseBrushCursor() ? 'none' : 'crosshair';
+  applyZoom();
   const brushCursor = ensureAnnotBrushCursor();
   if (brushCursor) brushCursor.style.display = shouldUseBrushCursor() ? 'block' : 'none';
   updateAnnotBrushCursorVisual();
@@ -4757,12 +5410,17 @@ function stopAnnotation() {
   annotState.dirty = false;
   annotState.marqueeBoxes = [];
   annotState.selectedMarquee = -1;
+  annotState.selectedMarquees = [];
+  annotState.multiSelectMode = false;
   annotState.marqueePreview = null;
   annotState.marqueeRasterBase = null;
   annotState.marqueeDragMode = '';
   annotState.marqueeDragOrig = null;
+  annotState.marqueeSelectRect = null;
+  annotState.marqueeDragGroupOrig = [];
   annotState.active = false;
   annotState.history = [];
+  updateMarqueeMultiSelectButton();
   loadOverlayForCurrentImage();
 }
 
@@ -4810,8 +5468,12 @@ function bindAnnotationCanvas() {
     document.body.appendChild(mqCtxMenu);
 
     mqCtxMenu.querySelector('#mq-ctx-del').addEventListener('click', () => {
-      if (mqCtxIdx < 0 || mqCtxIdx >= annotState.marqueeBoxes.length) return;
-      annotState.marqueeBoxes.splice(mqCtxIdx, 1);
+      const targets = getSelectedMarqueeIndexes().includes(mqCtxIdx) ? getSelectedMarqueeIndexes() : [mqCtxIdx];
+      if (!targets.length) return;
+      [...targets].sort((a, b) => b - a).forEach(i => {
+        if (i >= 0 && i < annotState.marqueeBoxes.length) annotState.marqueeBoxes.splice(i, 1);
+      });
+      annotState.selectedMarquees = [];
       annotState.selectedMarquee = Math.min(mqCtxIdx, annotState.marqueeBoxes.length - 1);
       const ctx = canvas.getContext('2d');
       if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -4822,15 +5484,22 @@ function bindAnnotationCanvas() {
     });
 
     mqCtxMenu.querySelector('#mq-ctx-dup').addEventListener('click', () => {
-      if (mqCtxIdx < 0 || mqCtxIdx >= annotState.marqueeBoxes.length) return;
-      const src = annotState.marqueeBoxes[mqCtxIdx];
-      const copy = {
-        ...JSON.parse(JSON.stringify(src)),
-        x: Math.max(0, Math.min(canvas.width - src.w, src.x + 16)),
-        y: Math.max(0, Math.min(canvas.height - src.h, src.y + 16))
-      };
-      annotState.marqueeBoxes.push(copy);
-      annotState.selectedMarquee = annotState.marqueeBoxes.length - 1;
+      const targets = getSelectedMarqueeIndexes().includes(mqCtxIdx) ? getSelectedMarqueeIndexes() : [mqCtxIdx];
+      if (!targets.length) return;
+      const newIndexes = [];
+      targets.forEach(i => {
+        const src = annotState.marqueeBoxes[i];
+        if (!src) return;
+        const copy = {
+          ...JSON.parse(JSON.stringify(src)),
+          x: Math.max(0, Math.min(canvas.width - src.w, src.x + 16)),
+          y: Math.max(0, Math.min(canvas.height - src.h, src.y + 16))
+        };
+        annotState.marqueeBoxes.push(copy);
+        newIndexes.push(annotState.marqueeBoxes.length - 1);
+      });
+      annotState.selectedMarquees = newIndexes;
+      annotState.selectedMarquee = newIndexes.length ? newIndexes[newIndexes.length - 1] : -1;
       const ctx = canvas.getContext('2d');
       if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
       renderMarqueeScene(ctx);
@@ -4840,23 +5509,18 @@ function bindAnnotationCanvas() {
     });
 
     mqCtxMenu.querySelector('#mq-ctx-rebind').addEventListener('click', async () => {
-      if (!annotState.active || !annotState.imageUrl) return;
       const ctx = canvas.getContext('2d');
-      const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
-      if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
-      // Preserve current drawn pixels; only detach legacy persisted overlay mapping.
-      annotState.marqueeRasterBase = annotState.marqueeRasterBase || ctx.getImageData(0, 0, canvas.width, canvas.height);
-      renderMarqueeScene(ctx);
-      annotState.dirty = true;
-      if (removed) await saveTrades();
-      showToast('Legacy frozen overlay removed for this image', 'success');
+      await rebindCurrentImageOverlayToMarquee(ctx, canvas);
       hideMarqueeContextMenu();
     });
 
     mqCtxMenu.querySelectorAll('.mq-ctx-color').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (mqCtxIdx < 0 || mqCtxIdx >= annotState.marqueeBoxes.length) return;
-        annotState.marqueeBoxes[mqCtxIdx].color = btn.dataset.color;
+        const targets = getSelectedMarqueeIndexes().includes(mqCtxIdx) ? getSelectedMarqueeIndexes() : [mqCtxIdx];
+        if (!targets.length) return;
+        targets.forEach(i => {
+          if (i >= 0 && i < annotState.marqueeBoxes.length) annotState.marqueeBoxes[i].color = btn.dataset.color;
+        });
         const ctx = canvas.getContext('2d');
         if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
         renderMarqueeScene(ctx);
@@ -4896,7 +5560,12 @@ function bindAnnotationCanvas() {
   function getPos(e) {
     const r = canvas.getBoundingClientRect();
     const src = e.touches ? e.touches[0] : e;
-    return { x: src.clientX - r.left, y: src.clientY - r.top };
+    const sx = canvas.width / Math.max(1, r.width);
+    const sy = canvas.height / Math.max(1, r.height);
+    return {
+      x: (src.clientX - r.left) * sx,
+      y: (src.clientY - r.top) * sy
+    };
   }
 
   function createTextEditor(e) {
@@ -4996,12 +5665,36 @@ function bindAnnotationCanvas() {
       const pos = getPos(e);
       if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const picked = hitTestMarquee(pos.x, pos.y);
+      const selectedBefore = getSelectedMarqueeIndexes();
+
+      if (annotState.multiSelectMode) {
+        // In V mode: drag-select by default. Only move when clicking inside already selected group.
+        if (picked >= 0 && selectedBefore.includes(picked)) {
+          annotState.drawing = true;
+          annotState.marqueeDragStartX = pos.x;
+          annotState.marqueeDragStartY = pos.y;
+          annotState.marqueeDragMode = 'move-group';
+          annotState.marqueeDragGroupOrig = selectedBefore.map(i => ({ i, x: annotState.marqueeBoxes[i].x, y: annotState.marqueeBoxes[i].y }));
+          annotState.marqueeDragOrig = null;
+          canvas.style.cursor = 'grabbing';
+          renderMarqueeScene(ctx);
+          return;
+        }
+        annotState.drawing = true;
+        annotState.marqueeDragMode = 'select';
+        annotState.marqueeSelectStartX = pos.x;
+        annotState.marqueeSelectStartY = pos.y;
+        annotState.marqueeSelectRect = { x: pos.x, y: pos.y, w: 0, h: 0 };
+        renderMarqueeScene(ctx, null, annotState.marqueeSelectRect);
+        return;
+      }
+
       if (picked >= 0) {
-        annotState.selectedMarquee = picked;
+        setSingleMarqueeSelection(picked);
         const pickedBox = annotState.marqueeBoxes[picked];
         if (hitTestMarqueeDeleteHandle(pickedBox, pos.x, pos.y)) {
           annotState.marqueeBoxes.splice(picked, 1);
-          annotState.selectedMarquee = Math.min(picked, annotState.marqueeBoxes.length - 1);
+          setSingleMarqueeSelection(Math.min(picked, annotState.marqueeBoxes.length - 1));
           renderMarqueeScene(ctx);
           annotState.dirty = true;
           if (!state._marqueeBoxes) state._marqueeBoxes = {};
@@ -5011,9 +5704,16 @@ function bindAnnotationCanvas() {
         annotState.drawing = true;
         annotState.marqueeDragStartX = pos.x;
         annotState.marqueeDragStartY = pos.y;
-        annotState.marqueeDragOrig = { ...pickedBox };
-        annotState.marqueeDragMode = hitTestMarqueeResizeHandle(pickedBox, pos.x, pos.y) ? 'resize' : 'move';
-        canvas.style.cursor = annotState.marqueeDragMode === 'move' ? 'grabbing' : 'nwse-resize';
+        if (!hitTestMarqueeResizeHandle(pickedBox, pos.x, pos.y) && getSelectedMarqueeIndexes().length > 1) {
+          annotState.marqueeDragMode = 'move-group';
+          annotState.marqueeDragGroupOrig = getSelectedMarqueeIndexes().map(i => ({ i, x: annotState.marqueeBoxes[i].x, y: annotState.marqueeBoxes[i].y }));
+          annotState.marqueeDragOrig = null;
+        } else {
+          annotState.marqueeDragOrig = { ...pickedBox };
+          annotState.marqueeDragMode = hitTestMarqueeResizeHandle(pickedBox, pos.x, pos.y) ? 'resize' : 'move';
+          annotState.marqueeDragGroupOrig = [];
+        }
+        canvas.style.cursor = (annotState.marqueeDragMode === 'move' || annotState.marqueeDragMode === 'move-group') ? 'grabbing' : 'nwse-resize';
         renderMarqueeScene(ctx);
         return;
       }
@@ -5050,6 +5750,18 @@ function bindAnnotationCanvas() {
 
     if (annotState.tool === 'marquee') {
       const mode = annotState.marqueeDragMode || 'create';
+      if (mode === 'move-group' && annotState.marqueeDragGroupOrig.length) {
+        const dx = pos.x - annotState.marqueeDragStartX;
+        const dy = pos.y - annotState.marqueeDragStartY;
+        annotState.marqueeDragGroupOrig.forEach(({ i, x, y }) => {
+          const box = annotState.marqueeBoxes[i];
+          if (!box) return;
+          box.x = Math.max(0, Math.min(canvas.width - box.w, x + dx));
+          box.y = Math.max(0, Math.min(canvas.height - box.h, y + dy));
+        });
+        renderMarqueeScene(ctx);
+        return;
+      }
       if (mode === 'move' && annotState.selectedMarquee >= 0 && annotState.marqueeDragOrig) {
         const box = annotState.marqueeBoxes[annotState.selectedMarquee];
         const dx = pos.x - annotState.marqueeDragStartX;
@@ -5064,6 +5776,15 @@ function bindAnnotationCanvas() {
         box.w = Math.max(8, Math.min(canvas.width - box.x, annotState.marqueeDragOrig.w + (pos.x - annotState.marqueeDragStartX)));
         box.h = Math.max(8, Math.min(canvas.height - box.y, annotState.marqueeDragOrig.h + (pos.y - annotState.marqueeDragStartY)));
         renderMarqueeScene(ctx);
+        return;
+      }
+      if (mode === 'select') {
+        const x = Math.min(annotState.marqueeSelectStartX, pos.x);
+        const y = Math.min(annotState.marqueeSelectStartY, pos.y);
+        const w = Math.abs(pos.x - annotState.marqueeSelectStartX);
+        const h = Math.abs(pos.y - annotState.marqueeSelectStartY);
+        annotState.marqueeSelectRect = { x, y, w, h };
+        renderMarqueeScene(ctx, null, annotState.marqueeSelectRect);
         return;
       }
       const x = Math.min(annotState.marqueeStartX, pos.x);
@@ -5112,6 +5833,7 @@ function bindAnnotationCanvas() {
       annotState.marqueePreview = null;
       annotState.marqueeDragMode = '';
       annotState.marqueeDragOrig = null;
+      annotState.marqueeDragGroupOrig = [];
       if (mode === 'create') {
         const x = Math.min(annotState.marqueeStartX, pos.x);
         const y = Math.min(annotState.marqueeStartY, pos.y);
@@ -5120,10 +5842,24 @@ function bindAnnotationCanvas() {
         if (w >= 8 && h >= 8) {
           const box = { x, y, w, h, tags: [] };
           annotState.marqueeBoxes.push(box);
-          annotState.selectedMarquee = annotState.marqueeBoxes.length - 1;
+          setSingleMarqueeSelection(annotState.marqueeBoxes.length - 1);
           annotState.dirty = true;
         }
+      } else if (mode === 'select') {
+        const sel = annotState.marqueeSelectRect;
+        annotState.marqueeSelectRect = null;
+        if (sel && sel.w >= 4 && sel.h >= 4) {
+          const selected = [];
+          annotState.marqueeBoxes.forEach((b, i) => {
+            if (rectsIntersect(sel, b)) selected.push(i);
+          });
+          annotState.selectedMarquees = selected;
+          annotState.selectedMarquee = selected.length ? selected[selected.length - 1] : -1;
+          refreshGalleryTagsTrayIfVisible();
+        }
       } else if (mode === 'move' || mode === 'resize') {
+        annotState.dirty = true;
+      } else if (mode === 'move-group') {
         annotState.dirty = true;
       }
       renderMarqueeScene(ctx);
@@ -5138,6 +5874,7 @@ function bindAnnotationCanvas() {
 
   function updateMarqueeCursor(e) {
     if (!annotState.active || annotState.tool !== 'marquee' || annotState.drawing) return;
+    if (annotState.multiSelectMode) { canvas.style.cursor = 'crosshair'; return; }
     const pos = getPos(e);
     const idx = hitTestMarquee(pos.x, pos.y);
     if (idx >= 0) {
@@ -5172,7 +5909,8 @@ function bindAnnotationCanvas() {
     if (idx < 0) { hideMarqueeContextMenu(); return; }
     e.preventDefault();
     const ctx = canvas.getContext('2d');
-    annotState.selectedMarquee = idx;
+    const selected = getSelectedMarqueeIndexes();
+    if (!selected.includes(idx)) setSingleMarqueeSelection(idx);
     if (!annotState.marqueeRasterBase) annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
     renderMarqueeScene(ctx);
     showMarqueeContextMenu(e.clientX, e.clientY, idx);
@@ -5195,6 +5933,8 @@ function bindAnnotationCanvas() {
       setAnnotTool(tool);
     });
   });
+  const vBtn = document.getElementById('annot-vselect');
+  if (vBtn) vBtn.addEventListener('click', () => toggleMarqueeGroupSelect());
 
   document.getElementById('annot-color').addEventListener('input', e => {
     annotState.color = e.target.value;
@@ -5219,6 +5959,7 @@ function bindAnnotationCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     annotState.marqueeBoxes = [];
     annotState.selectedMarquee = -1;
+    annotState.selectedMarquees = [];
     annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (!state._marqueeBoxes) state._marqueeBoxes = {};
     state._marqueeBoxes[annotState.imageUrl] = [];
@@ -5243,17 +5984,8 @@ function bindAnnotationCanvas() {
     if (e.key === 'Enter') addTagFromInput();
   });
   if (mqRebind) mqRebind.addEventListener('click', async () => {
-    if (!annotState.active || !annotState.imageUrl) return;
     const ctx = canvas.getContext('2d');
-    // Remove persisted flattened overlay for current image.
-    const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
-    if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
-    // Preserve current drawn pixels; only detach legacy persisted overlay mapping.
-    annotState.marqueeRasterBase = annotState.marqueeRasterBase || ctx.getImageData(0, 0, canvas.width, canvas.height);
-    renderMarqueeScene(ctx);
-    annotState.dirty = true;
-    if (removed) await saveTrades();
-    showToast('Legacy frozen overlay removed for this image', 'success');
+    await rebindCurrentImageOverlayToMarquee(ctx, canvas);
   });
   if (mqDel) mqDel.addEventListener('click', () => {
     // Close marquee sub-mode (top delete icon on selected box handles deletion)
@@ -5360,7 +6092,15 @@ function resetZoom() { zoom.scale = 1; zoom.x = 0; zoom.y = 0; applyZoom(); }
 
 function applyZoom() {
   const img = document.getElementById('gallery-img');
-  img.style.transform = `scale(${zoom.scale}) translate(${zoom.x}px, ${zoom.y}px)`;
+  const tf = `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`;
+  img.style.transform = tf;
+  img.style.transformOrigin = 'top left';
+  const canvas = document.getElementById('annot-canvas');
+  if (canvas) {
+    canvas.style.transform = tf;
+    canvas.style.transformOrigin = 'top left';
+    canvas.classList.toggle('dragging', !!drag.active);
+  }
   if (zoom.scale > 1) { img.classList.add('zoomed'); img.classList.remove('dragging'); }
   else { img.classList.remove('zoomed', 'dragging'); }
 }
@@ -5378,20 +6118,32 @@ function bindZoomPan() {
 
   wrapper.addEventListener('dblclick', () => resetZoom());
 
-  img.addEventListener('mousedown', e => {
+  wrapper.addEventListener('mousedown', e => {
     if (zoom.scale <= 1) return;
+    if (annotState.active) return; // annotation mode handles its own drag interactions
+    const t = e.target;
+    if (!(t && (t.id === 'gallery-img' || t.id === 'annot-canvas' || t.id === 'gallery-img-wrapper'))) return;
     drag.active = true; drag.startX = e.clientX; drag.startY = e.clientY;
     drag.originX = zoom.x; drag.originY = zoom.y;
-    img.classList.add('dragging'); e.preventDefault();
+    img.classList.add('dragging');
+    const canvas = document.getElementById('annot-canvas');
+    if (canvas) canvas.classList.add('dragging');
+    e.preventDefault();
   });
   document.addEventListener('mousemove', e => {
     if (!drag.active) return;
-    zoom.x = drag.originX + (e.clientX - drag.startX) / zoom.scale;
-    zoom.y = drag.originY + (e.clientY - drag.startY) / zoom.scale;
+    zoom.x = drag.originX + (e.clientX - drag.startX);
+    zoom.y = drag.originY + (e.clientY - drag.startY);
     applyZoom();
   });
   document.addEventListener('mouseup', () => {
-    if (drag.active) { drag.active = false; document.getElementById('gallery-img').classList.remove('dragging'); }
+    if (drag.active) {
+      drag.active = false;
+      document.getElementById('gallery-img').classList.remove('dragging');
+      const canvas = document.getElementById('annot-canvas');
+      if (canvas) canvas.classList.remove('dragging');
+      applyZoom();
+    }
   });
 
   let lastDist = 0;
@@ -6075,6 +6827,10 @@ function bindEvents() {
     const images = getImagesForDate(dateStr);
     if (images.length) {
       state.gallery.images = images; state.gallery.currentIndex = 0; state.gallery.date = dateStr; state.gallery.sourceRow = null;
+      state.gallery._baseImages = [...images];
+      state.gallery._baseDate = dateStr;
+      state.gallery._baseSourceRow = null;
+      if (state.gallery.tagFilter?.length) applyGalleryImageScopeByTagFilter(images[0] || '');
       renderGallery(); updateGalleryDateArrows();
     } else { showToast('No images for this date', ''); }
   });
@@ -6163,12 +6919,14 @@ function bindEvents() {
   // V2: Tag cloud filter mode toggle (OR / AND)
   document.getElementById('gv2-tc-mode-btn').addEventListener('click', () => {
     state.gallery.filterMode = state.gallery.filterMode === 'or' ? 'and' : 'or';
+    applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
     renderGalleryTagCloud(); renderGallery();
   });
 
   // V2: Clear tag filter
   document.getElementById('gv2-tc-clear-btn').addEventListener('click', () => {
     state.gallery.tagFilter = [];
+    applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
     renderGalleryTagCloud(); renderGallery();
   });
 
@@ -6350,6 +7108,12 @@ function bindEvents() {
         if (annotState.active) saveAnnotOverlay();
         return;
       }
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (e.repeat) return;
+        toggleMarqueeGroupSelect();
+        return;
+      }
       if (shortcutMatches(e, state.shortcuts.pen)) {
         e.preventDefault();
         if (!annotState.active) startAnnotation();
@@ -6413,6 +7177,14 @@ function bindEvents() {
         return;
       }
       if (e.key === 'Escape') {
+        if (state.gallery.tagFilter?.length) {
+          e.preventDefault();
+          state.gallery.tagFilter = [];
+          applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
+          renderGalleryTagCloud();
+          renderGallery();
+          return;
+        }
         if (annotState.active) { stopAnnotation(); return; }
         document.getElementById('gallery-modal').classList.remove('open');
       }

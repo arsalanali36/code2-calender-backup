@@ -50,7 +50,15 @@ def load_trades():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
-    return {'trades': [], 'columns': ['Date', 'Profit', 'Trade']}
+    return {
+        'trades': [],
+        'columns': ['Date', 'Profit', 'Trade'],
+        'allTags': [],
+        'tagColumns': [],
+        'userColumns': [],
+        'dayData': {},
+        'tagGroups': {}
+    }
 
 
 def save_trades_to_file(data):
