@@ -315,15 +315,16 @@ function renderImageTagsCell(td, trade) {
     td.appendChild(wrap);
     return;
   }
+  const isRed = tags.length > 5;
   tags.forEach(tag => {
-    const c = tagColor(tag);
+    const c = isRed ? '#ff6b6b' : tagColor(tag);
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'tag-chip';
     chip.textContent = tag;
     chip.style.color = c;
-    chip.style.background = hexToRgba(c, 0.15);
-    chip.style.borderColor = hexToRgba(c, 0.45);
+    chip.style.background = isRed ? 'rgba(255, 107, 107, 0.15)' : hexToRgba(c, 0.15);
+    chip.style.borderColor = isRed ? 'rgba(255, 107, 107, 0.45)' : hexToRgba(c, 0.45);
     chip.title = 'Open gallery filtered by this tag';
     chip.addEventListener('click', e => {
       e.stopPropagation();

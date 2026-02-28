@@ -177,6 +177,7 @@ body.modal-open {
   cursor: pointer; color: var(--text2); font-size: 0.875rem; user-select: none;
 }
 .head-checkbox:hover { color: var(--text); }
+.head-checkbox.active-filter-item { background: var(--hover); outline: 1px solid var(--blue); border-radius: 4px; }
 .head-checkbox input[type="checkbox"] { accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; }
 .head-checkbox.drag-row { cursor: grab; }
 .head-checkbox.drag-row:active { cursor: grabbing; }

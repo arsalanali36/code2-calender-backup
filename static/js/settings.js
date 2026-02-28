@@ -163,46 +163,49 @@ function initShowHeads() {
 }
 
 function renderShowHeads() {
-  const panel = document.getElementById('show-heads-panel');
-  panel.innerHTML = '';
-  const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
-  if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
+  ['show-heads-panel', 'gallery-show-heads-panel'].forEach(panelId => {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    panel.innerHTML = '';
+    const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+    if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
 
-  const badge = document.createElement('div');
-  const isConsolidated = state.calendarMode === 'consolidated';
-  badge.style.cssText = 'font-size:0.72rem;font-weight:600;padding:4px 2px 6px 2px;color:' + (isConsolidated ? 'var(--blue)' : 'var(--green)');
-  badge.textContent = isConsolidated ? 'Consolidated Heads' : 'Individual Heads';
-  panel.appendChild(badge);
+    const badge = document.createElement('div');
+    const isConsolidated = state.calendarMode === 'consolidated';
+    badge.style.cssText = 'font-size:0.72rem;font-weight:600;padding:4px 2px 6px 2px;color:' + (isConsolidated ? 'var(--blue)' : 'var(--green)');
+    badge.textContent = isConsolidated ? 'Consolidated Heads' : 'Individual Heads';
+    panel.appendChild(badge);
 
-  const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
-  const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
-  searchRow.appendChild(searchInp); panel.appendChild(searchRow);
+    const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
+    const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
+    searchRow.appendChild(searchInp); panel.appendChild(searchRow);
 
-  const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
-  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
-  const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
-  const btnPL = document.createElement('button'); btnPL.className = 'panel-act-btn'; btnPL.textContent = 'P/L Only';
-  const heads = getActiveShowHeads();
-  btnAll.addEventListener('click', () => { cols.forEach(c => { heads[c] = true; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  btnPL.addEventListener('click', () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
+    const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
+    const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
+    const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
+    const btnPL = document.createElement('button'); btnPL.className = 'panel-act-btn'; btnPL.textContent = 'P/L Only';
+    const heads = getActiveShowHeads();
+    btnAll.addEventListener('click', () => { cols.forEach(c => { heads[c] = true; }); saveShowHeads(); renderShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+    btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+    btnPL.addEventListener('click', () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+    actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
 
-  const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
+    const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
 
-  const renderList = (q) => {
-    list.innerHTML = '';
-    const activeHeads = getActiveShowHeads();
-    cols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
-      const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
-      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!activeHeads[col];
-      chk.addEventListener('change', () => { getActiveShowHeads()[col] = chk.checked; saveShowHeads(); renderCalendar(); });
-      lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
-      list.appendChild(lbl);
-    });
-  };
-  renderList('');
-  searchInp.addEventListener('input', () => renderList(searchInp.value));
+    const renderList = (q) => {
+      list.innerHTML = '';
+      const activeHeads = getActiveShowHeads();
+      cols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
+        const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
+        const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!activeHeads[col];
+        chk.addEventListener('change', () => { getActiveShowHeads()[col] = chk.checked; saveShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+        lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
+        list.appendChild(lbl);
+      });
+    };
+    renderList('');
+    searchInp.addEventListener('input', () => renderList(searchInp.value));
+  });
 }
 
 function initTableShowCols() {
@@ -251,6 +254,37 @@ function deleteView(name) {
   renderViewsPanel();
 }
 
+function renameView(oldName, newName) {
+  newName = newName.trim();
+  if (!newName || newName === oldName) { renderViewsPanel(); return; }
+  const views = getSavedViews();
+  if (!views[oldName]) return;
+  if (views[newName]) { showToast(`"${newName}" already exists`, 'error'); renderViewsPanel(); return; }
+  views[newName] = views[oldName];
+  delete views[oldName];
+  localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
+  renderViewsPanel();
+  showToast(`Renamed to "${newName}"`, 'success');
+}
+
+function startViewRename(name, loadBtn, row) {
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = name;
+  inp.style.cssText = 'flex:1;font-size:inherit;padding:2px 6px;border:1px solid #555;background:#1e2330;color:#ddd;border-radius:3px;outline:none;';
+  row.replaceChild(inp, loadBtn);
+  inp.focus();
+  inp.select();
+  let done = false;
+  const commit = () => { if (done) return; done = true; renameView(name, inp.value); };
+  const cancel = () => { if (done) return; done = true; renderViewsPanel(); };
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+  });
+  inp.addEventListener('blur', commit);
+}
+
 function renderViewsPanel() {
   const list = document.getElementById('saved-views-list');
   if (!list) return;
@@ -272,8 +306,31 @@ function renderViewsPanel() {
     loadBtn.className = 'dropdown-item';
     loadBtn.style.cssText = 'flex:1;text-align:left;';
     loadBtn.textContent = name;
-    loadBtn.title = 'Load this view';
+    loadBtn.title = 'Load this view (right-click to rename)';
     loadBtn.addEventListener('click', () => { loadView(name); closeAllDropdowns('__none__'); });
+    loadBtn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.querySelectorAll('.view-ctx-menu').forEach(el => el.remove());
+      const menu = document.createElement('div');
+      menu.className = 'view-ctx-menu';
+      menu.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:#252836;border:1px solid #444;border-radius:4px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
+      const renameItem = document.createElement('div');
+      renameItem.textContent = '✏ Rename';
+      renameItem.style.cssText = 'padding:6px 14px;cursor:pointer;color:#ddd;font-size:0.85em;white-space:nowrap;';
+      renameItem.addEventListener('mouseenter', () => renameItem.style.background = '#333a4d');
+      renameItem.addEventListener('mouseleave', () => renameItem.style.background = '');
+      menu.appendChild(renameItem);
+      document.body.appendChild(menu);
+      const dismiss = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('mousedown', dismiss); } };
+      renameItem.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        menu.remove();
+        document.removeEventListener('mousedown', dismiss);
+        startViewRename(name, loadBtn, row);
+      });
+      setTimeout(() => document.addEventListener('mousedown', dismiss), 0);
+    });
     const delBtn = document.createElement('button');
     delBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#c00;font-size:1em;padding:2px 4px;';
     delBtn.textContent = '✕';

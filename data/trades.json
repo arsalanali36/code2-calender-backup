@@ -786,7 +786,7 @@
       "Buy Price (Avg)": 144.3,
       "Buy Time": "11:16:23",
       "Gross P/L": 208,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY2621725950CE",
       "Net P/L": 143.07,
       "Note": "1 min pe sell profit fir at me hit&nbsp;",
@@ -1056,7 +1056,7 @@
       "Buy Price (Avg)": 112.3,
       "Buy Time": "11:58:09",
       "Gross P/L": -117,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY2621726000CE",
       "Net P/L": -177.6,
       "Note": "",
@@ -1110,7 +1110,7 @@
       "Buy Price (Avg)": 129.4,
       "Buy Time": "11:59:54",
       "Gross P/L": -91,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY2621726000PE",
       "Net P/L": -153.71,
       "Note": "",
@@ -1137,7 +1137,7 @@
       "Buy Price (Avg)": 110.25,
       "Buy Time": "12:13:15",
       "Gross P/L": -256.75,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY2621726000CE",
       "Net P/L": -316.91,
       "Note": "",
@@ -1164,7 +1164,7 @@
       "Buy Price (Avg)": 36.6,
       "Buy Time": "12:18:23",
       "Gross P/L": 0,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY2621025950CE",
       "Net P/L": -51.62,
       "Note": "",
@@ -1180,12 +1180,129 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-10",
-      "imageTags": {
-        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [
-          "Full View"
+      "imageTags": {},
+      "images": [
+        "/uploads/4f16e719-75b0-4344-90d5-3f19770dbcfa.png",
+        "/uploads/f44472cb-e9b0-4a8c-80e0-8a91e7361792.png",
+        "/uploads/d07d80d1-d410-4244-b284-1cd36941cca6.png",
+        "/uploads/4e8dd79d-b463-4869-91b9-0aa53502a184.png",
+        "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png",
+        "/uploads/8f0f734c-e51f-4e45-bd29-a693d33604d1.png",
+        "/uploads/3159065d-bedc-4670-ad81-5bc619cf3621.png",
+        "/uploads/62768460-7a9d-40da-a4fb-795d6b3d30e5.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/0874fa06-c7a9-4690-8248-d9d3fa15825d.png": [
+          {
+            "rh": 0.1257995735607676,
+            "rw": 0.07560975609756097,
+            "rx": 0.2780487804878049,
+            "ry": 0.3624733475479744,
+            "tags": [
+              "idea"
+            ]
+          }
+        ],
+        "/uploads/124507c0-0e06-4342-b514-9b6beb390083.png": [
+          {
+            "rh": 0.1513859275053305,
+            "rw": 0.05917159763313609,
+            "rx": 0.4378698224852071,
+            "ry": 0.3049040511727079,
+            "tags": [
+              "idea"
+            ]
+          }
+        ],
+        "/uploads/3159065d-bedc-4670-ad81-5bc619cf3621.png": [
+          {
+            "rh": 0.11513859275053305,
+            "rw": 0.0550122249388753,
+            "rx": 0.21271393643031786,
+            "ry": 0.17697228144989338,
+            "tags": [
+              "RuleBased",
+              "new"
+            ]
+          }
+        ],
+        "/uploads/4e8dd79d-b463-4869-91b9-0aa53502a184.png": [
+          {
+            "rh": 0.1300639658848614,
+            "rw": 0.14437869822485208,
+            "rx": 0.15739644970414202,
+            "ry": 0.18336886993603413,
+            "tags": [
+              "idea",
+              "RuleBased",
+              "Conti",
+              "darr"
+            ]
+          }
+        ],
+        "/uploads/4f16e719-75b0-4344-90d5-3f19770dbcfa.png": [],
+        "/uploads/62768460-7a9d-40da-a4fb-795d6b3d30e5.png": [
+          {
+            "rh": 0.13432835820895522,
+            "rw": 0.1288056206088993,
+            "rx": 0.5971896955503513,
+            "ry": 0.3390191897654584,
+            "tags": [
+              "expiryDay",
+              "RuleBased"
+            ]
+          }
+        ],
+        "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png": [
+          {
+            "rh": 0.16844349680170576,
+            "rw": 0.1378048780487805,
+            "rx": 0.1524390243902439,
+            "ry": 0.36673773987206826,
+            "tags": [
+              "idea",
+              "Manual",
+              "CloseButNotExactRule"
+            ]
+          }
+        ],
+        "/uploads/8f0f734c-e51f-4e45-bd29-a693d33604d1.png": [
+          {
+            "rh": 0.15991471215351813,
+            "rw": 0.11151079136690648,
+            "rx": 0.24100719424460432,
+            "ry": 0.2025586353944563,
+            "tags": [
+              "RuleBased",
+              "idea",
+              "new",
+              "Palat Gaya"
+            ]
+          }
+        ],
+        "/uploads/d07d80d1-d410-4244-b284-1cd36941cca6.png": [
+          {
+            "rh": 0.14925373134328357,
+            "rw": 0.06610576923076923,
+            "rx": 0.17908653846153846,
+            "ry": 0.13859275053304904,
+            "tags": [
+              "idea"
+            ]
+          }
         ]
       },
-      "images": [],
+      "observation": "sselling ki power dekhi",
+      "overlays": {
+        "/uploads/0874fa06-c7a9-4690-8248-d9d3fa15825d.png": "/uploads/6c821e52-1721-4378-b60c-b3babacde7e1.png",
+        "/uploads/124507c0-0e06-4342-b514-9b6beb390083.png": "/uploads/f84ccf35-6cd2-44c0-9c73-9718a9c7d884.png",
+        "/uploads/3159065d-bedc-4670-ad81-5bc619cf3621.png": "/uploads/8e093403-0732-40d2-b463-038451c70ddf.png",
+        "/uploads/4e8dd79d-b463-4869-91b9-0aa53502a184.png": "/uploads/086e8511-c784-438f-9c60-ec2052f6e981.png",
+        "/uploads/62768460-7a9d-40da-a4fb-795d6b3d30e5.png": "/uploads/078e28d7-aa83-4750-b8e6-01664f0e8e37.png",
+        "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png": "/uploads/170b0694-d8b2-4289-80b0-aac7018508a8.png",
+        "/uploads/8f0f734c-e51f-4e45-bd29-a693d33604d1.png": "/uploads/cf12352e-5743-4c08-96e2-875692cf4e59.png",
+        "/uploads/d07d80d1-d410-4244-b284-1cd36941cca6.png": "/uploads/e0b7acd8-6e83-4576-ae46-9a6e5627f767.png"
+      },
       "tags": [],
       "trade_date": "2026-02-10"
     },
@@ -1195,7 +1312,7 @@
       "Buy Price (Avg)": 91.95,
       "Buy Time": "12:42:45",
       "Gross P/L": 737.75,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY2621726000CE",
       "Net P/L": 678.4,
       "Note": "",
@@ -1222,7 +1339,7 @@
       "Buy Price (Avg)": 54.3,
       "Buy Time": "12:22:07",
       "Gross P/L": -178.75,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY2621026000PE",
       "Net P/L": -232.26,
       "Note": "",
@@ -1249,7 +1366,7 @@
       "Buy Price (Avg)": 71.8,
       "Buy Time": "12:45:57",
       "Gross P/L": -279.5,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY2621025900CE",
       "Net P/L": -334.98,
       "Note": "",
@@ -1303,7 +1420,7 @@
       "Buy Price (Avg)": 32.15,
       "Buy Time": "13:32:23",
       "Gross P/L": 2450.5,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY2621025900CE",
       "Net P/L": 2395.95,
       "Note": "",
@@ -1330,7 +1447,7 @@
       "Buy Price (Avg)": 119.4,
       "Buy Time": "13:42:53",
       "Gross P/L": 1374.75,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY2621726000PE",
       "Net P/L": 1311.18,
       "Note": "",
@@ -1492,7 +1609,7 @@
       "Buy Price (Avg)": 127.75,
       "Buy Time": "09:37:14",
       "Gross P/L": -6.5,
-      "Image Tags": "thumbnail",
+      "Image Tags": "",
       "Instrument": "NIFTY2630225550PE",
       "Net P/L": -84.57,
       "Note": "<b>T1\nsadsada</b><div><b><u>asdsad</u></b></div><div><b><u>dsasad</u></b></div><div><b><u>adsaddas</u></b></div>",
@@ -1507,11 +1624,7 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
-      "imageTags": {
-        "/uploads/8bce6a18-e1a7-4ee0-b5b3-133e78700c74.png": [
-          "thumbnail"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "/uploads/8bce6a18-e1a7-4ee0-b5b3-133e78700c74.png"
       ],
@@ -1640,7 +1753,7 @@
       "Buy Price (Avg)": 122.95,
       "Buy Time": "11:18:17",
       "Gross P/L": -6.5,
-      "Image Tags": "Panicyy, Premium, Reversal",
+      "Image Tags": "Panicyy, Reversal",
       "Instrument": "NIFTY2630225550CE",
       "Net P/L": -83.41,
       "Note": "",
@@ -1660,8 +1773,7 @@
           "Panicyy"
         ],
         "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": [
-          "Reversal",
-          "Premium"
+          "Reversal"
         ]
       },
       "images": [
@@ -1685,7 +1797,7 @@
             "rh": 0.18585526315789475,
             "rw": 0.09748172217709179,
             "rx": 0.30270896519088974,
-            "ry": 0.22345789473684208,
+            "ry": 0.22345789473684205,
             "tags": [
               "Premium",
               "panic",
@@ -1700,27 +1812,6 @@
             "tags": []
           },
           {
-            "rh": 0.23848684210526316,
-            "rw": 0.07879772542648253,
-            "rx": 0.5877377695254641,
-            "ry": 0.34672631578947366,
-            "tags": []
-          },
-          {
-            "rh": 0.15789473684210525,
-            "rw": 0.06498781478472786,
-            "rx": 0.4710702686945081,
-            "ry": 0.24835526315789475,
-            "tags": []
-          },
-          {
-            "rh": 0.04276315789473684,
-            "rw": 0.0463038180341186,
-            "rx": 0.38658610947436184,
-            "ry": 0.837171052631579,
-            "tags": []
-          },
-          {
             "rh": 0.10032894736842106,
             "rw": 0.05605199025182779,
             "rx": 0.19568440354422376,
@@ -1732,8 +1823,7 @@
       "observation": "",
       "overlays": {
         "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": "/uploads/c7b2a67d-37d6-462f-9976-4a987773724f.png",
-        "/uploads/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png": "/uploads/79c8fecd-c3fa-4058-b8a7-1ed822f7630b.png",
-        "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": "/uploads/bc5e9c63-a9ce-4dfd-be18-9a2bc9bc458f.png"
+        "/uploads/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png": "/uploads/79c8fecd-c3fa-4058-b8a7-1ed822f7630b.png"
       },
       "tags": [],
       "trade_date": "2026-02-26"
@@ -1744,7 +1834,7 @@
       "Buy Price (Avg)": 159.85,
       "Buy Time": "09:30:10",
       "Gross P/L": 78,
-      "Image Tags": "Reversal, thumbnail",
+      "Image Tags": "Reversal",
       "Instrument": "NIFTY 24 FEB 25700 CALL",
       "Net P/L": 11.35,
       "Note": "<b>t3sadsada ye sahi hai kaam kar raha</b><div><b><br></b></div><div><b><u>sadasda</u></b></div>",
@@ -1762,7 +1852,6 @@
       "fill_count": 2,
       "imageTags": {
         "/uploads/4f939a2e-9f5e-4a32-8e05-5676185417aa.png": [
-          "thumbnail",
           "Reversal"
         ]
       },
@@ -1785,7 +1874,7 @@
       "Buy Price (Avg)": 44.4,
       "Buy Time": "09:48:03",
       "Gross P/L": 0,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 10 FEB 25950 PUT",
       "Net P/L": -52.57,
       "Note": "",
@@ -1841,7 +1930,7 @@
       "Buy Price (Avg)": 44.3,
       "Buy Time": "10:00:06",
       "Gross P/L": -19.5,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 10 FEB 25950 CALL",
       "Net P/L": -82.75,
       "Note": "",
@@ -1897,7 +1986,7 @@
       "Buy Price (Avg)": 168.7,
       "Buy Time": "10:21:27",
       "Gross P/L": -32.5,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 17 FEB 25950 CALL",
       "Net P/L": -100.07,
       "Note": "",
@@ -1925,7 +2014,7 @@
       "Buy Price (Avg)": 196.8,
       "Buy Time": "10:03:51",
       "Gross P/L": 87.75,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 17 FEB 25900 CALL",
       "Net P/L": 16.61,
       "Note": "",
@@ -2093,7 +2182,7 @@
       "Buy Price (Avg)": 237.2,
       "Buy Time": "10:50:26",
       "Gross P/L": -71.5,
-      "Image Tags": "bach gaye, Distracted",
+      "Image Tags": "Distracted",
       "Instrument": "NIFTY 10 FEB 25800 PUT",
       "Net P/L": -147.3,
       "Note": "",
@@ -2110,9 +2199,6 @@
       "date": "2026-02-03",
       "fill_count": 2,
       "imageTags": {
-        "/uploads/19607feb-2db8-45ea-9f88-de2ecba59985.png": [
-          "bach gaye"
-        ],
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
           "Distracted"
         ]
@@ -2123,26 +2209,26 @@
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png",
         "/uploads/cd9dee16-dbb1-4386-8b52-3824b42c707c.png",
         "/uploads/d44ce0fd-445e-489e-8c6b-2619c8404ee0.png",
-        "/uploads/731da900-ae77-4681-881a-c75c321378e2.png",
-        "/uploads/19607feb-2db8-45ea-9f88-de2ecba59985.png"
+        "/uploads/731da900-ae77-4681-881a-c75c321378e2.png"
       ],
       "marqueeBoxes": {
-        "/uploads/19607feb-2db8-45ea-9f88-de2ecba59985.png": [
+        "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [
           {
-            "rh": 0.28489483747609945,
-            "rw": 0.07965451055662189,
-            "rx": 0.30230326295585414,
-            "ry": 0.4646271510516252,
-            "tags": []
+            "rh": 0.14498933901918976,
+            "rw": 0.06354916067146282,
+            "rx": 0.21822541966426856,
+            "ry": 0.34754797441364604,
+            "tags": [
+              "desperate"
+            ]
           }
         ],
-        "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [],
         "/uploads/36231e0a-8344-4d09-9e3c-192ff2d63cc4.png": [
           {
             "rh": 0.15789473684210525,
             "rw": 0.059123343527013254,
-            "rx": 0.4485219164118247,
-            "ry": 0.35753176043557167,
+            "rx": 0.4437314972501481,
+            "ry": 0.34687077962533713,
             "tags": [
               "Bach Gaye",
               "bach gaye"
@@ -2153,8 +2239,8 @@
           {
             "rh": 0.09618874773139746,
             "rw": 0.06673407482305359,
-            "rx": 0.6309403437815976,
-            "ry": 0.5081669691470054,
+            "rx": 0.6226268045891985,
+            "ry": 0.40155716104466,
             "tags": [
               "Palat Gaya"
             ]
@@ -2188,21 +2274,31 @@
           {
             "rh": 0.15789473684210525,
             "rw": 0.04964539007092199,
-            "rx": 0.2563323201621074,
-            "ry": 0.3139745916515426,
-            "tags": []
+            "rx": 0.24442755825734547,
+            "ry": 0.2990492185172143,
+            "tags": [
+              "Distracted"
+            ]
+          },
+          {
+            "rh": 0.16228070175438597,
+            "rw": 0.09570552147239264,
+            "rx": 0.5730061349693252,
+            "ry": 0.5109649122807017,
+            "tags": [
+              "sdadssdsd"
+            ]
           }
         ]
       },
       "observation": "hindi me isko satta bolte hain!!<div>stt tax</div><div>us trade deal done</div><div>4% ka gapup</div><div>kal pura din screen ke samne baithey, entry materialise nahi huii</div><div>tumhare paas dikhne ke liye kya hai!!</div><h1>jo mai bana raha wo mere liye hai na ki duniya ke liye!!!</h1><div>quick -ve cheez ke darwaaze khol deta</div><div>2 lot ur fir 1</div><div><br></div>",
       "overlays": {
-        "/uploads/19607feb-2db8-45ea-9f88-de2ecba59985.png": "/uploads/e75b4bfb-60c3-40cf-a106-f111ce53c6a2.png",
-        "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": "/uploads/e21e23ff-5bf6-42c3-ab62-50036e7d5ab8.png",
-        "/uploads/36231e0a-8344-4d09-9e3c-192ff2d63cc4.png": "/uploads/b5de2b91-a22b-42ad-a798-5a63ba13fcdb.png",
-        "/uploads/731da900-ae77-4681-881a-c75c321378e2.png": "/uploads/e424bc62-e9c7-433f-b803-7c7590caba80.png",
+        "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": "/uploads/6aa957ce-f463-4cde-89ae-d69db00ceb53.png",
+        "/uploads/36231e0a-8344-4d09-9e3c-192ff2d63cc4.png": "/uploads/b2fa38a0-0538-4b01-8a65-3e7223af611a.png",
+        "/uploads/731da900-ae77-4681-881a-c75c321378e2.png": "/uploads/a6c6e270-9279-47a2-a9fd-a32b81be45f9.png",
         "/uploads/cd9dee16-dbb1-4386-8b52-3824b42c707c.png": "/uploads/910fd545-0a60-472f-b65d-ef935d299249.png",
         "/uploads/d44ce0fd-445e-489e-8c6b-2619c8404ee0.png": "/uploads/3191b6e6-af5e-4def-b1f5-74bea7524482.png",
-        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "/uploads/e4c6dafa-71b8-4aac-8131-b5520c664b51.png"
+        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "/uploads/9504da46-875f-4266-8dd9-7ab3104f4010.png"
       },
       "tags": [],
       "trade_date": "2026-02-03"
@@ -2325,7 +2421,7 @@
       "Buy Price (Avg)": 137.25,
       "Buy Time": "11:25:15",
       "Gross P/L": -292.5,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 17 FEB 25950 PUT",
       "Net P/L": -355.89,
       "Note": "",
@@ -2353,7 +2449,7 @@
       "Buy Price (Avg)": 29.85,
       "Buy Time": "11:55:04",
       "Gross P/L": 3.25,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 10 FEB 25950 PUT",
       "Net P/L": -47.57,
       "Note": "",
@@ -2465,7 +2561,7 @@
       "Buy Price (Avg)": 135.35,
       "Buy Time": "12:24:33",
       "Gross P/L": 2115.75,
-      "Image Tags": "Full View, Panicyy, Random",
+      "Image Tags": "Panicyy, Random",
       "Instrument": "NIFTY 17 FEB 26000 PUT",
       "Net P/L": 1992.83,
       "Note": "",
@@ -2493,7 +2589,7 @@
       "Buy Price (Avg)": 130.25,
       "Buy Time": "12:24:03",
       "Gross P/L": -721.5,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 17 FEB 25950 PUT",
       "Net P/L": -814.96,
       "Note": "",
@@ -2661,7 +2757,7 @@
       "Buy Price (Avg)": 130,
       "Buy Time": "13:21:03",
       "Gross P/L": 1482,
-      "Image Tags": "Manual, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY 17 FEB 25950 PUT",
       "Net P/L": 1361.91,
       "Note": "",
@@ -2882,7 +2978,7 @@
       "Buy Price (Avg)": 108.175,
       "Buy Time": "09:24:37",
       "Gross P/L": 328.25,
-      "Image Tags": "Full View, panic, Panicyy, Random",
+      "Image Tags": "",
       "Instrument": "NIFTY2630225400PE",
       "Net P/L": 254.44,
       "Note": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">itni badi red candle, though PDC aur previous day support pe aa gaay tha&nbsp;</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">himmat nahi ho rahi thi, kuch glat lag raha tha&nbsp;</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">zone bhi nahi bana tha&nbsp;</font></font></div><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">jaldbazi me trade liya tha</font></font></div></div>",
@@ -2907,19 +3003,14 @@
         ],
         "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
           "Panicyy",
-          "Random",
-          "Full View"
+          "Random"
         ],
         "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
           "Panicyy",
           "panic"
         ]
       },
-      "images": [
-        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png",
-        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png",
-        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
         "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
           {
@@ -2935,8 +3026,8 @@
           {
             "rh": 0.3289725147902638,
             "rw": 0.050532628660977484,
-            "rx": 0.37794339707597485,
-            "ry": 0.19673995831340788,
+            "rx": 0.6783952043048904,
+            "ry": 0.2559399583134079,
             "tags": [
               "panic"
             ]
@@ -2944,24 +3035,31 @@
         ],
         "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
           {
-            "rh": 0.19795758051846032,
-            "rw": 0.24978861832789453,
-            "rx": 0.6328863960789773,
-            "ry": 0.383665553809898,
+            "rh": 0.0848,
+            "rw": 0.05298570227081581,
+            "rx": 0.5092574850011344,
+            "ry": 0.5620529945553538,
             "tags": []
           },
           {
-            "rh": 0.25,
-            "rw": 0.1323529411764706,
-            "rx": 0.3590695216691051,
-            "ry": 0.10837321949643675,
+            "rh": 0.0224,
+            "rw": 0.09083263246425567,
+            "rx": 0.248107653490328,
+            "ry": 0.5104,
             "tags": []
           },
           {
-            "rh": 0.2032,
-            "rw": 0.05214465937762826,
-            "rx": 0.49705634987384356,
-            "ry": 0.5744,
+            "rh": 0.0998185117967332,
+            "rw": 0.13822688274547187,
+            "rx": 0.38322211630123926,
+            "ry": 0.14882032667876588,
+            "tags": []
+          },
+          {
+            "rh": 0.13236258156539432,
+            "rw": 0.08565200478278755,
+            "rx": 0.42314292068870596,
+            "ry": 0.7125043631609049,
             "tags": []
           }
         ],
@@ -2969,43 +3067,49 @@
           {
             "rh": 0.24342105263157895,
             "rw": 0.0786699107866991,
-            "rx": 0.09640105372024375,
-            "ry": 0.23355263157894737,
+            "rx": 0.2430915725037858,
+            "ry": 0.268035390199637,
             "tags": [
               "dasd",
               "Nifty"
             ]
           },
           {
-            "rh": 0.21415607985480944,
-            "rw": 0.061717352415026835,
-            "rx": 0.45348837209302323,
-            "ry": 0.38656987295825773,
-            "tags": []
-          },
-          {
-            "rh": 0.2395644283121597,
-            "rw": 0.0778175313059034,
-            "rx": 0.26475849731663686,
-            "ry": 0.52994555353902,
-            "tags": []
-          },
-          {
             "rh": 0.19056261343012704,
-            "rw": 0.061717352415026835,
+            "rw": 0.06171735241502685,
             "rx": 0.34615384615384615,
             "ry": 0.3647912885662432,
             "tags": [
-              "time"
+              "time",
+              "bina zone"
+            ]
+          },
+          {
+            "rh": 0.19782214156079855,
+            "rw": 0.06440071556350627,
+            "rx": 0.6431127012522362,
+            "ry": 0.6388384754990926,
+            "tags": [
+              "car",
+              "thumbnail"
+            ]
+          },
+          {
+            "rh": 0.2014519056261343,
+            "rw": 0.059033989266547404,
+            "rx": 0.4660107334525939,
+            "ry": 0.3793103448275862,
+            "tags": [
+              "EntryMiss"
             ]
           }
         ]
       },
       "observation": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">aakhri me market paagal ho gayii!!!!</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">gffgdasda</font></font></div>",
       "overlays": {
-        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": "/uploads/1565a728-dab7-4c50-98da-2b186c30de5c.png",
-        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": "/uploads/36758f2b-4ae2-40c3-9798-970f951b919a.png",
-        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": "/uploads/90885ad1-475a-49da-a677-d78660aefea2.png"
+        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": "/uploads/e9f84908-0771-4ce4-a5ba-40fff56edb10.png",
+        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": "/uploads/a41d047d-3ba3-43f4-979f-7f255b87e42a.png",
+        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": "/uploads/9e812081-30f9-4d82-bf59-ccef56f40d94.png"
       },
       "tags": [
         "panic",
@@ -3019,7 +3123,7 @@
       "Buy Price (Avg)": 118.7,
       "Buy Time": "09:37:00",
       "Gross P/L": 975,
-      "Image Tags": "Panicyy",
+      "Image Tags": "",
       "Instrument": "NIFTY2630225350CE",
       "Net P/L": 897.73,
       "Note": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">ye trade me aaj last day hai, profit me close karna yahi darr lag raha tha,&nbsp;</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">aur ye continuation me liya tha though trade sahi tha, par himmat nahi ho rahi thi</font></font></div>",
@@ -3037,29 +3141,28 @@
       "Video": "",
       "date": "2026-02-27",
       "imageTags": {},
-      "images": [
-        "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png",
-        "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
         "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": [
           {
             "rh": 0.22203947368421054,
             "rw": 0.06326034063260341,
-            "rx": 0.3516313042006343,
-            "ry": 0.18168205027494105,
+            "rx": 0.3480534866693284,
+            "ry": 0.19257134247094831,
             "tags": [
-              "Trade1"
+              "Trade1",
+              "Full View"
             ]
           },
           {
             "rh": 0.11019736842105263,
             "rw": 0.030008110300081103,
-            "rx": 0.5608770462930918,
-            "ry": 0.4103004713275727,
+            "rx": 0.5403045954880829,
+            "ry": 0.40304094319690126,
             "tags": [
               "rr",
-              "dsd"
+              "dsd",
+              "time"
             ]
           }
         ],
@@ -3067,18 +3170,53 @@
           {
             "rh": 0.21217105263157895,
             "rw": 0.06578947368421052,
-            "rx": 0.26846269390653316,
-            "ry": 0.27729772191673213,
+            "rx": 0.030510886677617515,
+            "ry": 0.2564977219167321,
             "tags": [
               "Random"
             ]
+          },
+          {
+            "rh": 0.2016,
+            "rw": 0.07981927710843373,
+            "rx": 0.32981927710843384,
+            "ry": 0.312,
+            "tags": []
+          },
+          {
+            "rh": 0.0416,
+            "rw": 0.06626506024096386,
+            "rx": 0.907379518072289,
+            "ry": 0.3984,
+            "tags": []
+          },
+          {
+            "rh": 0.0784,
+            "rw": 0.030120481927710847,
+            "rx": 0.5843373493975904,
+            "ry": 0.6512,
+            "tags": []
+          },
+          {
+            "rh": 0.1712,
+            "rw": 0.1905120481927711,
+            "rx": 0.4743975903614457,
+            "ry": 0.2432,
+            "tags": []
+          },
+          {
+            "rh": 0.3408,
+            "rw": 0.09337349397590361,
+            "rx": 0.22439759036144577,
+            "ry": 0.5424,
+            "tags": []
           }
         ]
       },
       "observation": "",
       "overlays": {
-        "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": "/uploads/95b4e1bc-d381-4710-beb3-c00775a081e2.png",
-        "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png": "/uploads/e01f4786-d82a-41aa-b437-9391734806fb.png"
+        "/uploads/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": "/uploads/b87fb451-f2d2-4933-9e26-0dee74685fe9.png",
+        "/uploads/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png": "/uploads/c05807ee-abd1-4d89-bb8a-b948722e65dd.png"
       },
       "tags": [
         "bina zone"
@@ -3091,7 +3229,7 @@
       "Buy Price (Avg)": 137.25,
       "Buy Time": "10:19:20",
       "Gross P/L": -2804.75,
-      "Image Tags": "Panicyy",
+      "Image Tags": "",
       "Instrument": "NIFTY2630225350PE",
       "Net P/L": -2881.15,
       "Note": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">bilkul vehmo guman me nahi tha ye trade itna galat ho jaye ga</font></font><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">sl bhi nahi lagaya tha</font></font></div><div><font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">yahan pe breakout ka intezaar karna chaiye tha&nbsp;</font></font></div><div><br></div>",
@@ -3110,24 +3248,31 @@
       "Video": "",
       "date": "2026-02-27",
       "imageTags": {},
-      "images": [
-        "/uploads/ad4ea4d8-7200-4a12-9c32-ceedd8fbe128.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
         "/uploads/ad4ea4d8-7200-4a12-9c32-ceedd8fbe128.png": [
           {
-            "rh": 0.4177631578947368,
+            "rh": 0.4177631578947367,
             "rw": 0.050283860502838604,
             "rx": 0.5724756684809899,
             "ry": 0.29769736842105265,
             "tags": [
               "target"
             ]
+          },
+          {
+            "rh": 0.3568,
+            "rw": 0.15141955835962145,
+            "rx": 0.08832807570977919,
+            "ry": 0.2176,
+            "tags": []
           }
         ]
       },
       "observation": "",
-      "overlays": {},
+      "overlays": {
+        "/uploads/ad4ea4d8-7200-4a12-9c32-ceedd8fbe128.png": "/uploads/ebf5c689-78c7-4ccc-97ef-d8211c0fb4fd.png"
+      },
       "tags": [
         "bina zone",
         "panic"
@@ -3140,7 +3285,7 @@
       "Buy Price (Avg)": 121.9,
       "Buy Time": "10:26:31",
       "Gross P/L": 1670.5,
-      "Image Tags": "Panicyy",
+      "Image Tags": "",
       "Instrument": "NIFTY2630225350PE",
       "Net P/L": 1591.48,
       "Note": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">bahut hi zyada dar ke saaye me tha!!</font></font>",
@@ -3156,11 +3301,7 @@
       "Video": "",
       "date": "2026-02-27",
       "imageTags": {},
-      "images": [
-        "/uploads/24cc1a4a-96d4-48eb-982f-4bcf31df541c.png",
-        "/uploads/c6d50359-11f6-4318-88e6-aed1912603bd.png",
-        "/uploads/49c7d21f-809d-4b53-9268-a1ed98eb3399.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
         "/uploads/24cc1a4a-96d4-48eb-982f-4bcf31df541c.png": [
           {
@@ -3273,23 +3414,32 @@
     "Panicyy",
     "Manual",
     "Random",
-    "thumbnail",
     "panic",
-    "Premium",
-    "Full View",
-    "target",
-    "bina zone",
     "darr",
     "EntryMiss",
     "Late",
-    "bach gaye",
     "Distracted",
     "Conti",
     "RuleBased",
     "Mann Nahi",
     "Partial Exit",
     "Palat Gaya",
-    "time"
+    "idea",
+    "desperate",
+    "expiryDay",
+    "CloseButNotExactRule",
+    "new",
+    "Bach Gaye",
+    "bach gaye",
+    "Full View",
+    "thumbnail",
+    "bina zone",
+    "Premium",
+    "sdadssdsd",
+    "news",
+    "nafsPeKabu",
+    "halkeMeLerahe",
+    "Realisation"
   ],
   "tagColumns": [
     "Tags"
@@ -3304,10 +3454,218 @@
     },
     "2026-02-03": {
       "imageTags": {},
+      "images": [],
+      "marqueeBoxes": {
+        "/uploads/19607feb-2db8-45ea-9f88-de2ecba59985.png": [
+          {
+            "rh": 0.28489483747609945,
+            "rw": 0.07965451055662189,
+            "rx": 0.43920165867777927,
+            "ry": 0.306844635060154,
+            "tags": []
+          }
+        ],
+        "/uploads/40b8baae-d755-478e-aa85-b42fe529ffcf.png": [
+          {
+            "rh": 0.17697228144989338,
+            "rw": 0.06601466992665037,
+            "rx": 0.10024449877750612,
+            "ry": 0.255863539445629,
+            "tags": [
+              "RuleBased"
+            ]
+          },
+          {
+            "rh": 0.17484008528784648,
+            "rw": 0.06723716381418093,
+            "rx": 0.6332518337408313,
+            "ry": 0.21961620469083157,
+            "tags": [
+              "idea"
+            ]
+          }
+        ],
+        "/uploads/4f16e719-75b0-4344-90d5-3f19770dbcfa.png": [
+          {
+            "rh": 0.08315565031982942,
+            "rw": 0.03395784543325527,
+            "rx": 0.7283372365339579,
+            "ry": 0.32196162046908317,
+            "tags": [
+              "expiryDay"
+            ]
+          },
+          {
+            "rh": 0.10874200426439233,
+            "rw": 0.03981264637002342,
+            "rx": 0.5117096018735363,
+            "ry": 0.31769722814498935,
+            "tags": [
+              "RuleBased"
+            ]
+          }
+        ],
+        "/uploads/be7fbba0-47f3-4611-9d58-2f7533bdc229.png": [
+          {
+            "rh": 0.1300639658848614,
+            "rw": 0.04196642685851319,
+            "rx": 0.4712230215827338,
+            "ry": 0.31982942430703626,
+            "tags": [
+              "RuleBased"
+            ]
+          },
+          {
+            "rh": 0.14712153518123666,
+            "rw": 0.047961630695443645,
+            "rx": 0.564748201438849,
+            "ry": 0.3070362473347548,
+            "tags": [
+              "Palat Gaya"
+            ]
+          }
+        ]
+      },
+      "overlays": {
+        "/uploads/40b8baae-d755-478e-aa85-b42fe529ffcf.png": "/uploads/0672432e-0661-441e-a4d0-e19fb7d1e2e5.png",
+        "/uploads/4f16e719-75b0-4344-90d5-3f19770dbcfa.png": "/uploads/f995610d-6384-468a-b372-ed1930b7892d.png",
+        "/uploads/be7fbba0-47f3-4611-9d58-2f7533bdc229.png": "/uploads/c6dc1e6b-540d-43ee-bf22-8e34bef63403.png"
+      },
       "video": "https://youtu.be/b2T_q2edvI0?si=E-SXQypuYMUiRLhl"
     },
     "2026-02-04": {
       "imageTags": {},
+      "images": [
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png",
+        "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png",
+        "/uploads/57c87743-e865-4e7c-bde0-1d53ea83698d.png",
+        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png",
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png",
+        "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png",
+        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": [
+          {
+            "rh": 0.15778251599147122,
+            "rw": 0.16199376947040497,
+            "rx": 0.1806853582554517,
+            "ry": 0.279317697228145,
+            "tags": [
+              "news"
+            ]
+          }
+        ],
+        "/uploads/57c87743-e865-4e7c-bde0-1d53ea83698d.png": [
+          {
+            "rh": 0.11777777777777777,
+            "rw": 0.18650306748466258,
+            "rx": 0.5558282208588957,
+            "ry": 0.66,
+            "tags": [
+              "nafsPeKabu"
+            ]
+          }
+        ],
+        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": [
+          {
+            "rh": 0.3624733475479744,
+            "rw": 0.19047619047619047,
+            "rx": 0.7667887667887668,
+            "ry": 0.5863539445628998,
+            "tags": [
+              "idea",
+              "Realisation"
+            ]
+          }
+        ],
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": [
+          {
+            "rh": 0.14444444444444443,
+            "rw": 0.09735576923076923,
+            "rx": 0.4014423076923077,
+            "ry": 0.3288888888888889,
+            "tags": [
+              "news"
+            ]
+          }
+        ],
+        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": [
+          {
+            "rh": 0.12875536480686695,
+            "rw": 0.054086538461538464,
+            "rx": 0.5456730769230769,
+            "ry": 0.22746781115879827,
+            "tags": [
+              "idea",
+              "new"
+            ]
+          }
+        ],
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [
+          {
+            "rx": 0.3619631901840491,
+            "ry": 0.23580786026200873,
+            "rw": 0.02822085889570552,
+            "rh": 0.11353711790393013,
+            "tags": [
+              "idea"
+            ]
+          },
+          {
+            "rx": 0.43990384615384615,
+            "ry": 0.4188034188034188,
+            "rw": 0.06850961538461539,
+            "rh": 0.1794871794871795,
+            "tags": []
+          },
+          {
+            "rx": 0.5985576923076923,
+            "ry": 0.3504273504273504,
+            "rw": 0.0673076923076923,
+            "rh": 0.1987179487179487,
+            "tags": [
+              "CloseButNotExactRule"
+            ]
+          },
+          {
+            "rx": 0.3581730769230769,
+            "ry": 0.6495726495726496,
+            "rw": 0.08653846153846154,
+            "rh": 0.17307692307692307,
+            "tags": []
+          }
+        ],
+        "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": [
+          {
+            "rh": 0.1513859275053305,
+            "rw": 0.1346153846153846,
+            "rx": 0.59375,
+            "ry": 0.10660980810234541,
+            "tags": [
+              "halkeMeLerahe"
+            ]
+          },
+          {
+            "rh": 0.14925373134328357,
+            "rw": 0.08653846153846154,
+            "rx": 0.3629807692307692,
+            "ry": 0.697228144989339,
+            "tags": [
+              "Realisation"
+            ]
+          }
+        ]
+      },
+      "overlays": {
+        "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": "/uploads/5c4af92c-4b8f-403a-b692-c9a43c65a525.png",
+        "/uploads/57c87743-e865-4e7c-bde0-1d53ea83698d.png": "/uploads/6396efcf-02c0-406e-918c-7adda8a9682b.png",
+        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/5c8be4a9-41dd-4439-89ee-1d0a5f9dc128.png",
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/eafbef9f-dfe4-4077-8012-cfe36060ce50.png",
+        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": "/uploads/7a67bfbf-b497-4bdf-8c02-3fe7ef65c092.png",
+        "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": "/uploads/712bce25-0daa-424b-96c7-16c2c5f31f49.png",
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/a73a742d-6c23-4032-a239-b9ef94b7d603.png"
+      },
       "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE"
     },
     "2026-02-05": {
@@ -3330,14 +3688,53 @@
           "Manual"
         ]
       },
-      "images": [
-        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
-        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": []
+        "/uploads/31b56795-b1ae-4b70-940d-4156400b461a.png": [],
+        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [],
+        "/uploads/40b8baae-d755-478e-aa85-b42fe529ffcf.png": [
+          {
+            "rh": 0.21748400852878466,
+            "rw": 0.07334963325183375,
+            "rx": 0.10757946210268948,
+            "ry": 0.27292110874200426,
+            "tags": [
+              "RuleBased"
+            ]
+          }
+        ],
+        "/uploads/5b2816ab-bc6c-4185-a636-677e173a0230.png": [],
+        "/uploads/5c8cb01a-105f-4553-8d0d-8fe754d2af8f.png": [],
+        "/uploads/682a702e-4e04-423b-90d9-618b96be6c7a.png": [
+          {
+            "rh": 0.1535181236673774,
+            "rw": 0.09735576923076923,
+            "rx": 0.17668269230769232,
+            "ry": 0.2068230277185501,
+            "tags": [
+              "idea"
+            ]
+          }
+        ],
+        "/uploads/7c4f559b-5050-4d8c-a220-8d2b3ccf62a7.png": [],
+        "/uploads/b3b2a8b2-799e-4562-9fc5-464a697aa16e.png": [],
+        "/uploads/be7fbba0-47f3-4611-9d58-2f7533bdc229.png": [
+          {
+            "rh": 0.14925373134328357,
+            "rw": 0.08633093525179857,
+            "rx": 0.46642685851318944,
+            "ry": 0.326226012793177,
+            "tags": [
+              "RuleBased"
+            ]
+          }
+        ]
       },
       "overlays": {
-        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": "/uploads/286b5df0-5c7c-4c70-b329-b25c5280820b.png"
+        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": "/uploads/286b5df0-5c7c-4c70-b329-b25c5280820b.png",
+        "/uploads/40b8baae-d755-478e-aa85-b42fe529ffcf.png": "/uploads/30cb34c1-176e-4bd9-9e3b-259795139850.png",
+        "/uploads/682a702e-4e04-423b-90d9-618b96be6c7a.png": "/uploads/5a1d00b3-e36c-4206-83b6-2b78b9f392a3.png",
+        "/uploads/be7fbba0-47f3-4611-9d58-2f7533bdc229.png": "/uploads/95ac6017-55f4-4bda-b6ca-f3fb613c25a2.png"
       },
       "video": "https://youtu.be/bdu8J9ttEWA?si=lDo2eXiTArnM2ksf"
     },
@@ -3349,8 +3746,7 @@
         ],
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": [
           "Panicyy",
-          "Random",
-          "Full View"
+          "Random"
         ]
       },
       "images": [
@@ -3458,6 +3854,7 @@
         "/uploads/d7fa3298-cb75-4e73-aa88-79cf098f2860.png": []
       },
       "overlays": {
+        "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": "/uploads/45b8cc5c-52fc-46d8-a1e5-f0693e7f4f4d.png",
         "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": "/uploads/6330a538-c2a4-4501-b4f7-7b69b095ec4f.png"
       },
       "tags": {
@@ -3478,13 +3875,23 @@
     "2026-02-27": {
       "imageTags": {
         "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
-          "Panicyy"
+          "Panicyy",
+          "Partial Exit"
         ]
       },
-      "images": [
-        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
+        "/uploads/68d16e14-1fa1-46a7-9316-55a9227157ce.png": [
+          {
+            "rh": 0.19056261343012704,
+            "rw": 0.09069212410501191,
+            "rx": 0.2458233890214797,
+            "ry": 0.3938294010889292,
+            "tags": [
+              "RuleBased"
+            ]
+          }
+        ],
         "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
           {
             "rh": 0.06559256122476723,
@@ -3496,9 +3903,11 @@
           {
             "rh": 0.1885786135212058,
             "rw": 0.16131485446423233,
-            "rx": 0.46413175090175074,
-            "ry": 0.40549302614821925,
-            "tags": []
+            "rx": 0.137906526189361,
+            "ry": 0.5511365833170034,
+            "tags": [
+              "time"
+            ]
           },
           {
             "rh": 0.1342597737569454,
@@ -3510,9 +3919,11 @@
           {
             "rh": 0.10351326068283578,
             "rw": 0.0909981230311054,
-            "rx": 0.751602416471897,
-            "ry": 0.5392635757232334,
-            "tags": []
+            "rx": 0.4684756290553097,
+            "ry": 0.4194813615671535,
+            "tags": [
+              "Premium"
+            ]
           },
           {
             "rh": 0.02610486254587673,
@@ -3531,24 +3942,76 @@
           {
             "rh": 0.17172223026881808,
             "rw": 0.05505071123408821,
-            "rx": 0.4355536647658971,
-            "ry": 0.3264451060271396,
+            "rx": 0.34499122434644997,
+            "ry": 0.18488430747904525,
+            "tags": [
+              "thumbnail"
+            ]
+          },
+          {
+            "rh": 0.0496,
+            "rw": 0.031959629941127,
+            "rx": 0.5592935239697224,
+            "ry": 0.5712,
+            "tags": []
+          },
+          {
+            "rh": 0.041742286751361164,
+            "rw": 0.18303145853193517,
+            "rx": 0.28026692087702576,
+            "ry": 0.7840290381125227,
+            "tags": [
+              "target"
+            ]
+          }
+        ],
+        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": [],
+        "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": [
+          {
+            "rh": 0.18585526315789475,
+            "rw": 0.09748172217709179,
+            "rx": 0.30270896519088974,
+            "ry": 0.22345789473684202,
+            "tags": [
+              "Premium",
+              "panic",
+              "Full View"
+            ]
+          },
+          {
+            "rh": 0.25164473684210525,
+            "rw": 0.10398050365556459,
+            "rx": 0.1437121183319033,
+            "ry": 0.44723421052631573,
+            "tags": []
+          },
+          {
+            "rh": 0.10032894736842106,
+            "rw": 0.05605199025182779,
+            "rx": 0.19568440354422376,
+            "ry": 0.7697368421052632,
             "tags": []
           }
         ]
       },
       "overlays": {
-        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": "/uploads/29de1697-e051-4448-8574-aa24a87bdf47.png"
+        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": "/uploads/c5999502-6d3b-4e3e-9bb7-be661cda17f5.png"
       }
     },
-    "2026-02-28": {}
+    "2026-02-28": {
+      "imageTags": {}
+    }
   },
   "tagGroups": {
     "Emotions": [
       "darr",
       "Mann Nahi",
       "panic",
-      "Panicyy"
+      "Panicyy",
+      "desperate",
+      "halkeMeLerahe",
+      "sdadssdsd",
+      "nafsPeKabu"
     ],
     "Entry Type": [
       "EntryMiss",
@@ -3556,21 +4019,29 @@
       "Distracted"
     ],
     "Exit Type": [
-      "bach gaye",
-      "Partial Exit"
+      "Partial Exit",
+      "Bach Gaye",
+      "bach gaye"
+    ],
+    "Idea/New": [
+      "idea",
+      "new",
+      "news",
+      "Realisation"
     ],
     "Rule": [
-      "RuleBased"
+      "RuleBased",
+      "CloseButNotExactRule"
     ],
     "Strategy": [
       "Conti",
       "Reversal",
       "Manual",
-      "Random"
+      "Random",
+      "expiryDay"
     ],
     "TargetType": [
-      "Palat Gaya",
-      "target"
+      "Palat Gaya"
     ]
   }
 }

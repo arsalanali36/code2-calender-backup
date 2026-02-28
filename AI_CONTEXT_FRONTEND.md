@@ -6,12 +6,14 @@ This file contains the consolidated code context for the project to be used with
 ```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trading Journal</title>
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
+
 <body>
 
   <!-- HEADER -->
@@ -61,9 +63,13 @@ This file contains the consolidated code context for the project to be used with
 
       <div class="calendar-container" id="calendar-month-view">
         <div class="calendar-weekdays">
-          <div>Mon</div><div>Tue</div><div>Wed</div>
-          <div>Thu</div><div>Fri</div>
-          <div class="weekend">Sat</div><div class="weekend">Sun</div>
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div class="weekend">Sat</div>
+          <div class="weekend">Sun</div>
         </div>
         <div class="calendar-grid" id="calendar-grid"></div>
       </div>
@@ -153,7 +159,8 @@ This file contains the consolidated code context for the project to be used with
             <input type="date" id="date-range-from" class="select-box date-range-input" title="From date" />
             <span class="date-range-sep">&#8212;</span>
             <input type="date" id="date-range-to" class="select-box date-range-input" title="To date" />
-            <button class="btn btn-outline date-range-clear" id="date-range-clear" title="Clear date filter">&#10005;</button>
+            <button class="btn btn-outline date-range-clear" id="date-range-clear"
+              title="Clear date filter">&#10005;</button>
           </div>
 
           <!-- Note column quick toggle -->
@@ -226,9 +233,14 @@ This file contains the consolidated code context for the project to be used with
       <div class="table-wrapper">
         <table class="trade-table" id="trade-table">
           <colgroup id="table-colgroup"></colgroup>
-          <thead><tr id="table-head-row"></tr><tr id="filter-row" class="filter-row hidden"></tr></thead>
+          <thead>
+            <tr id="table-head-row"></tr>
+            <tr id="filter-row" class="filter-row hidden"></tr>
+          </thead>
           <tbody id="table-body"></tbody>
-          <tfoot><tr id="table-foot-row"></tr></tfoot>
+          <tfoot>
+            <tr id="table-foot-row"></tr>
+          </tfoot>
         </table>
         <div class="table-empty" id="table-empty">Import an Excel file or add rows to get started</div>
       </div>
@@ -236,6 +248,248 @@ This file contains the consolidated code context for the project to be used with
 
   </main>
 
+  {% include 'modals.html' %}
+  {% include 'gallery.html' %}
+
+  <div class="toast" id="toast"></div>
+  <script src="/static/js/state.js"></script>
+  <script src="/static/js/data.js"></script>
+  <script src="/static/js/settings.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+  <script src="/static/js/calendar.js"></script>
+  <script src="/static/js/table-render.js"></script>
+  <script src="/static/js/table-cols.js"></script>
+  <script src="/static/js/gallery-core.js"></script>
+  <script src="/static/js/gallery-tags.js"></script>
+  <script src="/static/js/gallery-data.js"></script>
+  <script src="/static/js/annotate.js"></script>
+  <script src="/static/js/io.js"></script>
+  <script src="/static/js/events.js"></script>
+</body>
+
+</html>
+```
+
+## File: `templates\gallery.html`
+```html
+  <!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
+  <div class="modal-overlay gv2-modal" id="gallery-modal">
+
+    <!-- ① Global Button Tray (top, fixed) -->
+    <div class="gv2-tray">
+      <div class="gv2-tray-left">
+        <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
+        <span class="gv2-date-label" id="gallery-date"></span>
+        <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
+        <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
+      </div>
+      <div class="gv2-tray-btns">
+        <button class="gv2-tray-btn" id="gallery-upload-btn">&#11014; Upload</button>
+        <button class="gv2-tray-btn" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-btn" title="Annotation bar (A)">&#9998;
+          Annotate</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-text-btn" title="Text bar">T Text</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-marquee-btn" title="Marquee mode (M)">&#9633;
+          Marquee</button>
+        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags tray">&#127991; Tags</button>
+        <button class="gv2-tray-btn" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
+      </div>
+      <div class="gv2-tray-right">
+        <!-- Gallery Show Heads Dropdown -->
+        <div class="dropdown-wrapper">
+          <button class="btn btn-outline" id="gallery-show-heads-btn"
+            style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Show
+            Heads &#9660;</button>
+          <div class="dropdown-menu show-heads-panel" id="gallery-show-heads-panel"
+            style="right: 0px; left: auto; min-width: 220px; max-height: 400px; overflow-y: auto;">
+          </div>
+        </div>
+        <!-- Gallery Tag Filter Dropdown -->
+        <div class="dropdown-wrapper">
+          <button class="btn btn-outline" id="gallery-img-tag-filter-btn" title="Filter Tags (T)"
+            style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">&#127991;
+            Filter Tags (T) &#9660;</button>
+          <div class="dropdown-menu tag-filter-panel" id="gallery-img-tag-filter-panel"
+            style="right: 0px; left: auto; max-width: 280px; max-height: 400px; overflow-y: auto;">
+            <p class="panel-hint" style="padding:10px 8px">No tags available.</p>
+          </div>
+        </div>
+
+        <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
+        <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
+      </div>
+    </div>
+
+    <!-- ② Body -->
+    <div class="gv2-body">
+
+      <!-- Annotation Bar (floating left, toggled by A / gv2-annotate-btn) -->
+      <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
+        <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pencil">&#9998;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-highlight" title="Marker">&#9670;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Circle / Eraser">&#9711;</button>
+        <div class="gv2-ab-sep"></div>
+        <input type="color" id="annot-color" class="annot-color-input gv2-ab-color" value="#f85149" title="Color" />
+        <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range gv2-ab-range" title="Size" />
+        <span id="annot-size-label" class="annot-size-label gv2-ab-size-lbl">3</span>
+        <div class="gv2-ab-sep"></div>
+        <button class="annot-tool gv2-ab-btn" id="annot-undo" title="Undo">&#8617;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-clear" title="Clear">&#10005;</button>
+        <div class="gv2-ab-sep"></div>
+        <button class="gv2-ab-btn gv2-ab-save" id="annot-save-overlay" title="Save as overlay">&#128190;</button>
+        <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
+      </div>
+
+      <!-- Center column: image + tag cloud + thumbnails -->
+      <div class="gv2-center">
+
+        <!-- Main image area -->
+        <div class="gv2-img-area" id="gallery-img-wrapper">
+          <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
+          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
+          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
+          <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
+          <div class="gv2-img-counter" id="gallery-counter"></div>
+          <div class="gv2-img-tags" id="gallery-image-tags"></div>
+
+          <!-- Heads Display -->
+          <div id="gallery-heads-display" class="gallery-heads-display"
+            style="position: absolute; top: 12px; left: 12px; z-index: 40; background: rgba(30, 35, 48, 0.85); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); font-size: 0.85rem; pointer-events: none; display: none; flex-direction: column; gap: 4px; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+          </div>
+
+          <!-- Text Bar -->
+          <div class="gv2-text-bar" id="gv2-text-bar" style="display:none">
+            <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#ffffff" title="Text Color" />
+            <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
+            <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family"
+              style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
+              <option value="Arial" selected>Arial</option>
+              <option value="Courier New">Courier</option>
+              <option value="Times New Roman">Times</option>
+              <option value="Impact">Impact</option>
+            </select>
+            <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
+            <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
+            <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
+          </div>
+          <div class="gv2-marquee-bar" id="gv2-marquee-bar" style="display:none">
+            <input type="text" id="gv2-mq-tag-input" class="gv2-mq-input" list="gv2-mq-tag-suggestions"
+              placeholder="Tag for selected box..." />
+            <datalist id="gv2-mq-tag-suggestions"></datalist>
+            <button id="gv2-mq-add" class="gv2-ab-btn" title="Add tag to selected marquee">+ Tag</button>
+            <button class="gv2-ab-btn annot-tool" id="annot-vselect" title="Group Select (V)">V</button>
+            <button id="gv2-mq-rebind" class="gv2-ab-btn"
+              title="Remove frozen legacy overlay and keep editable marquee">Rebind</button>
+            <button id="gv2-mq-del" class="gv2-ab-btn" title="Close marquee tool">&#10005;</button>
+          </div>
+        </div>
+
+        <!-- Tag Cloud (always visible) -->
+        <div class="gv2-tag-cloud" id="gv2-tag-cloud">
+          <span class="gv2-tc-label">Filter:</span>
+          <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
+          <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
+          <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005;
+            Clear</button>
+        </div>
+
+        <!-- Thumbnail Tray -->
+        <div class="gv2-thumb-tray">
+          <div class="gv2-thumbs" id="gallery-thumbs"></div>
+        </div>
+
+      </div><!-- /gv2-center -->
+
+      <!-- Tags Tray (right panel, toggled by T) -->
+      <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
+        <div class="gv2-tray-resize-handle" id="gv2-tray-resize-handle"></div>
+        <div class="gv2-tt-hdr">
+          <span class="gv2-tt-title">Tags</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="gv2-tt-sz-btn" id="gv2-tag-sz-minus" title="Tag size kam karo">A-</button>
+            <button class="gv2-tt-sz-btn" id="gv2-tag-sz-plus" title="Tag size badhao">A+</button>
+            <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
+            <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
+          </div>
+        </div>
+        <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
+      </div>
+
+    </div><!-- /gv2-body -->
+  </div><!-- /gallery-modal -->
+
+  <!-- ── IMAGE UPLOAD MODAL ───────────────────── -->
+  <div class="modal-overlay" id="upload-modal">
+    <div class="modal-content upload-modal-content">
+      <div class="modal-header">
+        <span id="upload-modal-title">Upload Images</span>
+        <button class="close-btn" id="upload-close">&#10005;</button>
+      </div>
+      <div class="upload-drop-zone" id="upload-drop-zone">
+        <div class="drop-icon">&#128247;</div>
+        <p>Drop images here or <span class="upload-label" id="upload-browse-label">browse</span></p>
+        <p class="upload-paste-hint">&#128203; Ctrl+V to paste an image from clipboard</p>
+        <input type="file" id="image-file-input" multiple accept="image/*" style="display:none" />
+      </div>
+      <div class="upload-preview" id="upload-preview"></div>
+      <div class="upload-actions">
+        <button class="btn btn-outline" id="upload-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="upload-done-btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAG PICKER MODAL ─────────────── -->
+  <div class="modal-overlay" id="tag-modal">
+    <div class="modal-content tag-modal-content">
+      <div class="modal-header">
+        <span id="tag-modal-title">Tags</span>
+        <button class="close-btn" id="tag-picker-close-x">&#10005;</button>
+      </div>
+      <input type="text" id="tag-picker-inp" class="tag-picker-inp" placeholder="Search or create tag..." />
+      <div id="tag-picker-list" class="tag-picker-list"></div>
+      <div class="tag-picker-footer">
+        <button class="btn btn-outline" id="tag-picker-close-btn"
+          style="width:100%;font-size:0.78rem;padding:5px">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Tag Manager Modal -->
+  <div class="modal-overlay" id="img-tag-modal">
+    <div class="modal-content tag-modal-content">
+      <div class="modal-header">
+        <span>Image Tags</span>
+        <button class="close-btn" id="img-tag-close-x">&#10005;</button>
+      </div>
+      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+        <div class="panel-manage-label" style="margin-bottom:6px">Current Image</div>
+        <div id="img-tag-current-list" class="panel-list" style="max-height:180px"></div>
+      </div>
+      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+        <div class="panel-manage-label" style="margin-bottom:6px">Create Tag</div>
+        <div style="display:flex; gap:6px">
+          <input type="text" id="img-tag-new-name" class="tag-picker-inp" placeholder="New tag name..."
+            style="border:1px solid var(--border2); border-radius:6px; padding:7px 9px" />
+          <button class="btn btn-primary" id="img-tag-add-btn" style="padding:6px 10px">Add</button>
+        </div>
+      </div>
+      <div style="padding:10px 12px">
+        <div class="panel-manage-label" style="margin-bottom:6px">Manage Tags</div>
+        <div id="img-tag-manage-list" class="panel-list" style="max-height:190px"></div>
+      </div>
+      <div class="tag-picker-footer">
+        <button class="btn btn-outline" id="img-tag-close-btn"
+          style="width:100%;font-size:0.78rem;padding:5px">Done</button>
+      </div>
+    </div>
+  </div>
+
+
+```
+
+## File: `templates\modals.html`
+```html
   <!-- ── SETTINGS PANEL ───────────────────── -->
   <div class="settings-overlay" id="settings-overlay">
     <div class="settings-panel">
@@ -310,7 +564,7 @@ This file contains the consolidated code context for the project to be used with
           </div>
           <div class="settings-row">
             <label>Sat/Sun Off</label>
-            <input type="checkbox" id="s-sat-sun-off" class="settings-chk" />
+            <input type="checkbox" id="s-sat-sun-off" class="settings-chk" checked />
             <span class="settings-hint">True = hide weekend columns in calendar</span>
           </div>
         </div>
@@ -330,7 +584,8 @@ This file contains the consolidated code context for the project to be used with
           <div class="settings-row">
             <label>Row Height</label>
             <button class="s-sz-btn" id="s-row-h-minus">&#9660;</button>
-            <span class="s-sz-val" id="s-row-h-val">40</span><span style="font-size:0.75rem;color:var(--text2)">px</span>
+            <span class="s-sz-val" id="s-row-h-val">40</span><span
+              style="font-size:0.75rem;color:var(--text2)">px</span>
             <button class="s-sz-btn" id="s-row-h-plus">&#9650;</button>
           </div>
           <div class="settings-row">
@@ -470,9 +725,12 @@ This file contains the consolidated code context for the project to be used with
           <div class="settings-group-title">Page Layout</div>
           <div class="settings-hint" style="padding:2px 0 8px">Drag to reorder sections on the page</div>
           <div id="section-order-list" class="section-order-list">
-            <div class="section-order-item" data-section="calendar" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Calendar</div>
-            <div class="section-order-item" data-section="dashboard" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Monthly Summary</div>
-            <div class="section-order-item" data-section="table" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Trade Table</div>
+            <div class="section-order-item" data-section="calendar" draggable="true"><span
+                class="section-order-handle">&#8942;&#8942;</span> Calendar</div>
+            <div class="section-order-item" data-section="dashboard" draggable="true"><span
+                class="section-order-handle">&#8942;&#8942;</span> Monthly Summary</div>
+            <div class="section-order-item" data-section="table" draggable="true"><span
+                class="section-order-handle">&#8942;&#8942;</span> Trade Table</div>
           </div>
         </div>
 
@@ -481,17 +739,23 @@ This file contains the consolidated code context for the project to be used with
           <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px">
             <label style="font-size:0.82rem;color:var(--text2)">Consolidated Mode</label>
             <div style="display:flex;gap:6px">
-              <button class="btn btn-outline" id="s-heads-c-plonly" style="font-size:0.74rem;padding:3px 9px">P/L Only</button>
-              <button class="btn btn-outline" id="s-heads-c-all"    style="font-size:0.74rem;padding:3px 9px">Show All</button>
-              <button class="btn btn-outline" id="s-heads-c-none"   style="font-size:0.74rem;padding:3px 9px">Hide All</button>
+              <button class="btn btn-outline" id="s-heads-c-plonly" style="font-size:0.74rem;padding:3px 9px">P/L
+                Only</button>
+              <button class="btn btn-outline" id="s-heads-c-all" style="font-size:0.74rem;padding:3px 9px">Show
+                All</button>
+              <button class="btn btn-outline" id="s-heads-c-none" style="font-size:0.74rem;padding:3px 9px">Hide
+                All</button>
             </div>
           </div>
           <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:8px">
             <label style="font-size:0.82rem;color:var(--text2)">Individual Mode</label>
             <div style="display:flex;gap:6px">
-              <button class="btn btn-outline" id="s-heads-i-plonly" style="font-size:0.74rem;padding:3px 9px">P/L Only</button>
-              <button class="btn btn-outline" id="s-heads-i-all"    style="font-size:0.74rem;padding:3px 9px">Show All</button>
-              <button class="btn btn-outline" id="s-heads-i-none"   style="font-size:0.74rem;padding:3px 9px">Hide All</button>
+              <button class="btn btn-outline" id="s-heads-i-plonly" style="font-size:0.74rem;padding:3px 9px">P/L
+                Only</button>
+              <button class="btn btn-outline" id="s-heads-i-all" style="font-size:0.74rem;padding:3px 9px">Show
+                All</button>
+              <button class="btn btn-outline" id="s-heads-i-none" style="font-size:0.74rem;padding:3px 9px">Hide
+                All</button>
             </div>
           </div>
         </div>
@@ -533,17 +797,23 @@ This file contains the consolidated code context for the project to be used with
         <button class="obs-tool" data-cmd="formatBlock" data-val="h5" title="H5">H5</button>
         <button class="obs-tool" data-cmd="formatBlock" data-val="p" title="Normal">¶</button>
         <div class="obs-tool-sep"></div>
-        <input type="number" id="obs-custom-size" class="obs-size-input" min="6" max="96" placeholder="px" title="Custom font size" />
+        <input type="number" id="obs-custom-size" class="obs-size-input" min="6" max="96" placeholder="px"
+          title="Custom font size" />
         <button class="obs-tool" id="obs-apply-size" title="Apply size">A↕</button>
         <div class="obs-tool-sep"></div>
         <button class="obs-tool" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
         <button class="obs-tool" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
         <div class="obs-tool-sep"></div>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#3fb950" title="Green" style="color:#3fb950">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#f85149" title="Red"   style="color:#f85149">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#58a6ff" title="Blue"  style="color:#58a6ff">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#d29922" title="Orange" style="color:#d29922">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#bc8cff" title="Purple" style="color:#bc8cff">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#3fb950" title="Green"
+          style="color:#3fb950">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#f85149" title="Red"
+          style="color:#f85149">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#58a6ff" title="Blue"
+          style="color:#58a6ff">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#d29922" title="Orange"
+          style="color:#d29922">&#9679;</button>
+        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#bc8cff" title="Purple"
+          style="color:#bc8cff">&#9679;</button>
         <div class="obs-tool-sep"></div>
         <button class="obs-tool" id="obs-insert-img" title="Insert image">&#128247;</button>
         <input type="file" id="obs-img-input" accept="image/*" style="display:none" />
@@ -600,189 +870,6 @@ This file contains the consolidated code context for the project to be used with
     </div>
   </div>
 
-  <!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
-  <div class="modal-overlay gv2-modal" id="gallery-modal">
-
-    <!-- ① Global Button Tray (top, fixed) -->
-    <div class="gv2-tray">
-      <div class="gv2-tray-left">
-        <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
-        <span class="gv2-date-label" id="gallery-date"></span>
-        <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
-        <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
-      </div>
-      <div class="gv2-tray-btns">
-        <button class="gv2-tray-btn" id="gallery-upload-btn">&#11014; Upload</button>
-        <button class="gv2-tray-btn" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
-        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-btn" title="Annotation bar (A)">&#9998; Annotate</button>
-        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-text-btn" title="Text bar">T Text</button>
-        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags tray (T)">&#127991; Tags</button>
-        <button class="gv2-tray-btn" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
-      </div>
-      <div class="gv2-tray-right">
-        <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
-        <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
-      </div>
-    </div>
-
-    <!-- ② Body -->
-    <div class="gv2-body">
-
-      <!-- Annotation Bar (floating left, toggled by A / gv2-annotate-btn) -->
-      <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
-        <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pencil">&#9998;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-highlight" title="Marker">&#9670;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Circle / Eraser">&#9711;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-marquee" title="Marquee">&#9633;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-vselect" title="Group Select (V)">V</button>
-        <div class="gv2-ab-sep"></div>
-        <input type="color" id="annot-color" class="annot-color-input gv2-ab-color" value="#f85149" title="Color" />
-        <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range gv2-ab-range" title="Size" />
-        <span id="annot-size-label" class="annot-size-label gv2-ab-size-lbl">3</span>
-        <div class="gv2-ab-sep"></div>
-        <button class="annot-tool gv2-ab-btn" id="annot-undo" title="Undo">&#8617;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-clear" title="Clear">&#10005;</button>
-        <div class="gv2-ab-sep"></div>
-        <button class="gv2-ab-btn gv2-ab-save" id="annot-save-overlay" title="Save as overlay">&#128190;</button>
-        <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
-      </div>
-
-      <!-- Center column: image + tag cloud + thumbnails -->
-      <div class="gv2-center">
-
-        <!-- Main image area -->
-        <div class="gv2-img-area" id="gallery-img-wrapper">
-          <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
-          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
-          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
-          <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
-          <div class="gv2-img-counter" id="gallery-counter"></div>
-          <div class="gv2-img-tags" id="gallery-image-tags"></div>
-
-          <!-- Text Bar -->
-          <div class="gv2-text-bar" id="gv2-text-bar" style="display:none">
-            <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#ffffff" title="Text Color" />
-            <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
-            <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family" style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
-              <option value="Arial" selected>Arial</option>
-              <option value="Courier New">Courier</option>
-              <option value="Times New Roman">Times</option>
-              <option value="Impact">Impact</option>
-            </select>
-            <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
-            <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
-            <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
-          </div>
-          <div class="gv2-marquee-bar" id="gv2-marquee-bar" style="display:none">
-            <input type="text" id="gv2-mq-tag-input" class="gv2-mq-input" list="gv2-mq-tag-suggestions" placeholder="Tag for selected box..." />
-            <datalist id="gv2-mq-tag-suggestions"></datalist>
-            <button id="gv2-mq-add" class="gv2-ab-btn" title="Add tag to selected marquee">+ Tag</button>
-            <button id="gv2-mq-rebind" class="gv2-ab-btn" title="Remove frozen legacy overlay and keep editable marquee">Rebind</button>
-            <button id="gv2-mq-del" class="gv2-ab-btn" title="Close marquee tool">&#10005;</button>
-          </div>
-        </div>
-
-        <!-- Tag Cloud (always visible) -->
-        <div class="gv2-tag-cloud" id="gv2-tag-cloud">
-          <span class="gv2-tc-label">Filter:</span>
-          <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
-          <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
-          <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005; Clear</button>
-        </div>
-
-        <!-- Thumbnail Tray -->
-        <div class="gv2-thumb-tray">
-          <div class="gv2-thumbs" id="gallery-thumbs"></div>
-        </div>
-
-      </div><!-- /gv2-center -->
-
-      <!-- Tags Tray (right panel, toggled by T) -->
-      <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
-        <div class="gv2-tray-resize-handle" id="gv2-tray-resize-handle"></div>
-        <div class="gv2-tt-hdr">
-          <span class="gv2-tt-title">Tags</span>
-          <div style="display:flex;gap:4px;align-items:center;">
-            <button class="gv2-tt-sz-btn" id="gv2-tag-sz-minus" title="Tag size kam karo">A-</button>
-            <button class="gv2-tt-sz-btn" id="gv2-tag-sz-plus" title="Tag size badhao">A+</button>
-            <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
-            <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
-          </div>
-        </div>
-        <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
-      </div>
-
-    </div><!-- /gv2-body -->
-  </div><!-- /gallery-modal -->
-
-  <!-- ── IMAGE UPLOAD MODAL ───────────────────── -->
-  <div class="modal-overlay" id="upload-modal">
-    <div class="modal-content upload-modal-content">
-      <div class="modal-header">
-        <span id="upload-modal-title">Upload Images</span>
-        <button class="close-btn" id="upload-close">&#10005;</button>
-      </div>
-      <div class="upload-drop-zone" id="upload-drop-zone">
-        <div class="drop-icon">&#128247;</div>
-        <p>Drop images here or <span class="upload-label" id="upload-browse-label">browse</span></p>
-        <p class="upload-paste-hint">&#128203; Ctrl+V to paste an image from clipboard</p>
-        <input type="file" id="image-file-input" multiple accept="image/*" style="display:none" />
-      </div>
-      <div class="upload-preview" id="upload-preview"></div>
-      <div class="upload-actions">
-        <button class="btn btn-outline" id="upload-cancel-btn">Cancel</button>
-        <button class="btn btn-primary" id="upload-done-btn">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── TAG PICKER MODAL ─────────────── -->
-  <div class="modal-overlay" id="tag-modal">
-    <div class="modal-content tag-modal-content">
-      <div class="modal-header">
-        <span id="tag-modal-title">Tags</span>
-        <button class="close-btn" id="tag-picker-close-x">&#10005;</button>
-      </div>
-      <input type="text" id="tag-picker-inp" class="tag-picker-inp" placeholder="Search or create tag..." />
-      <div id="tag-picker-list" class="tag-picker-list"></div>
-      <div class="tag-picker-footer">
-        <button class="btn btn-outline" id="tag-picker-close-btn" style="width:100%;font-size:0.78rem;padding:5px">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Image Tag Manager Modal -->
-  <div class="modal-overlay" id="img-tag-modal">
-    <div class="modal-content tag-modal-content">
-      <div class="modal-header">
-        <span>Image Tags</span>
-        <button class="close-btn" id="img-tag-close-x">&#10005;</button>
-      </div>
-      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
-        <div class="panel-manage-label" style="margin-bottom:6px">Current Image</div>
-        <div id="img-tag-current-list" class="panel-list" style="max-height:180px"></div>
-      </div>
-      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
-        <div class="panel-manage-label" style="margin-bottom:6px">Create Tag</div>
-        <div style="display:flex; gap:6px">
-          <input type="text" id="img-tag-new-name" class="tag-picker-inp" placeholder="New tag name..." style="border:1px solid var(--border2); border-radius:6px; padding:7px 9px" />
-          <button class="btn btn-primary" id="img-tag-add-btn" style="padding:6px 10px">Add</button>
-        </div>
-      </div>
-      <div style="padding:10px 12px">
-        <div class="panel-manage-label" style="margin-bottom:6px">Manage Tags</div>
-        <div id="img-tag-manage-list" class="panel-list" style="max-height:190px"></div>
-      </div>
-      <div class="tag-picker-footer">
-        <button class="btn btn-outline" id="img-tag-close-btn" style="width:100%;font-size:0.78rem;padding:5px">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-  <script src="/static/js/app.js"></script>
-</body>
-</html>
 
 ```
 
@@ -967,6 +1054,7 @@ body.modal-open {
   cursor: pointer; color: var(--text2); font-size: 0.875rem; user-select: none;
 }
 .head-checkbox:hover { color: var(--text); }
+.head-checkbox.active-filter-item { background: var(--hover); outline: 1px solid var(--blue); border-radius: 4px; }
 .head-checkbox input[type="checkbox"] { accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; }
 .head-checkbox.drag-row { cursor: grab; }
 .head-checkbox.drag-row:active { cursor: grabbing; }
@@ -2304,13 +2392,12 @@ body.table-full .table-wrapper { flex: 1; max-height: none !important; overflow:
 
 ```
 
-## File: `static\js\app.js`
+## File: `static\js\state.js`
 ```js
 ﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Trading Journal â€” app.js
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-// â”€â”€ STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const state = {
   year: new Date().getFullYear(),
   month: new Date().getMonth(),
@@ -2350,7 +2437,6 @@ const state = {
   syncIntervalMs: 10000
 };
 
-// â”€â”€ ANNOTATION STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const annotState = {
   active: false,
   tool: 'pen',    // 'pen' | 'highlight' | 'eraser' | 'text' | 'marquee'
@@ -2392,7 +2478,7 @@ const HEIGHT_MAP = { compact: '70px', normal: '100px', spacious: '140px', roomy:
 const DEFAULT_SETTINGS = {
   daySize: 'H3', dayBold: true, dayPos: 'top-left',
   dataSize: 'H4', dataBold: false, showLabels: true, cellHeight: 'normal',
-  satSunOff: false, tableRows: 5,
+  satSunOff: true, tableRows: 5,
   groupAColor: '#58a6ff',
   groupBColor: '#ffffff',
   groupSepColor: '#58a6ff'
@@ -2444,7 +2530,6 @@ const UNIFIED_STRUCTURED_COLUMNS = [
 ];
 const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
-// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getSectionOrder() {
   try { const o = JSON.parse(localStorage.getItem('sectionOrder')); if (Array.isArray(o) && o.length === 3) return o; } catch (e) { }
   return ['calendar', 'dashboard', 'table'];
@@ -2455,7 +2540,6 @@ function applySectionOrder() {
   const main = document.querySelector('.app-main');
   const map = { calendar: '.calendar-section', dashboard: '.dashboard-section', table: '.table-section' };
   order.forEach(key => { const el = main.querySelector(map[key]); if (el) main.appendChild(el); });
-  // Sync settings list order
   const list = document.getElementById('section-order-list');
   if (!list) return;
   order.forEach(key => {
@@ -2492,6 +2576,11 @@ function bindSectionOrderDrag() {
   });
 }
 
+
+```
+
+## File: `static\js\data.js`
+```js
 async function init() {
   loadSettingsFromStorage();
   loadShortcutsFromStorage();
@@ -2512,7 +2601,6 @@ async function init() {
   window.addEventListener('focus', () => syncFromServerIfChanged(true));
 }
 
-
 function populateSelects() {
   const ms = document.getElementById('month-select');
   const ys = document.getElementById('year-select');
@@ -2531,7 +2619,6 @@ function populateSelects() {
   if (vs) vs.value = state.calendarView;
 }
 
-// â”€â”€ LOAD / SAVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadTrades() {
   try {
     const res = await fetch('/api/trades');
@@ -2671,8 +2758,6 @@ function isProtectedSystemColumn(colName) {
 function canDeleteColumn(colName) {
   if (!state.columns.includes(colName)) return false;
   if (state.userColumns.includes(colName)) return true;
-  // Legacy fallback: allow deleting non-system columns even if they were created
-  // before userColumns tracking was introduced.
   return !isProtectedSystemColumn(colName);
 }
 
@@ -2716,9 +2801,7 @@ function normalizeStructuredTradeRow(trade) {
   out.images = Array.isArray(trade?.images) ? [...trade.images] : [];
   out.observation = typeof trade?.observation === 'string' ? trade.observation : '';
   out.imageTags = (trade && typeof trade.imageTags === 'object' && !Array.isArray(trade.imageTags)) ? { ...trade.imageTags } : {};
-  // Preserve tag columns if present
   getTagColumns().forEach(col => { out[col] = Array.isArray(trade?.[col]) ? [...trade[col]] : []; });
-  // Preserve fill_count so computeTradeCharges can use it for accurate brokerage
   if (trade && trade['fill_count']) out['fill_count'] = parseInt(trade['fill_count']) || 0;
   computeTradeCharges(out);
   return out;
@@ -2735,13 +2818,11 @@ function computeTradeCharges(trade) {
   const sellTurn = sell * qty;
   const total = buyTurn + sellTurn;
 
-  // ── Common statutory charges (NSE Options) ────────────────────────
   const stt = sellTurn * 0.001;      // 0.1% on sell side (on premium)
   const exch = total * 0.0003503;  // 0.03503% NSE options (on premium)
   const sebi = total * 0.000001;   // ₹10 per crore
   const stamp = buyTurn * 0.00003;   // 0.003% on buy side
 
-  // fill_count = actual order executions tracked during CSV import (₹20 per fill)
   const fillCount = Math.max(parseInt(trade['fill_count']) || 0, 2);
 
   let brokerage, gst, otherCharges;
@@ -2752,7 +2833,6 @@ function computeTradeCharges(trade) {
     gst = (brokerage + exch + sebi + ipft) * 0.18;
     otherCharges = stt + exch + sebi + ipft + stamp + gst;
   } else {
-    // Zerodha: ₹20 per fill (min 2 fills per round-trip)
     brokerage = fillCount * 20;
     gst = (brokerage + exch + sebi) * 0.18;
     otherCharges = stt + exch + sebi + stamp + gst;
@@ -2792,7 +2872,6 @@ function structuredTradeDedupKey(trade) {
 function mergeStructuredTrades(existingTrades, importedTrades) {
   const existing = Array.isArray(existingTrades) ? [...existingTrades] : [];
   const imported = Array.isArray(importedTrades) ? importedTrades : [];
-  // Use a Map so we can update existing trades by key
   const keyMap = new Map(existing.map((t, i) => [structuredTradeDedupKey(t), i]));
   let added = 0;
   imported.forEach(row => {
@@ -2803,7 +2882,6 @@ function mergeStructuredTrades(existingTrades, importedTrades) {
       keyMap.set(key, existing.length - 1);
       added += 1;
     } else {
-      // Duplicate: update fill_count so brokerage stays accurate on re-import
       const idx = keyMap.get(key);
       if (normalized['fill_count']) {
         existing[idx]['fill_count'] = normalized['fill_count'];
@@ -2959,7 +3037,6 @@ function tradeMatchesTagFilter(trade) {
   return state.tagFilter.some(k => {
     const parsed = parseTagFilterKey(k);
     if (!parsed.col) {
-      // Backward compatibility for old plain-tag filters
       return getAllTradeTags(trade).includes(parsed.tag);
     }
     return getTradeTagsForColumn(trade, parsed.col).includes(parsed.tag);
@@ -3106,7 +3183,11 @@ function migrateLegacyTagsData() {
   return changed;
 }
 
-// â”€â”€ SETTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+```
+
+## File: `static\js\settings.js`
+```js
 function loadSettingsFromStorage() {
   try {
     const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('tj_settings') || '{}') };
@@ -3161,7 +3242,6 @@ function applySettingsToDOM(s) {
   window._showLabels = s.showLabels !== false;
   window._dayPos = s.dayPos || 'top-left';
   window._satSunOff = !!s.satSunOff;
-  // Apply position class to grid
   const grid = document.getElementById('calendar-grid');
   if (grid) {
     grid.className = `calendar-grid cal-pos-${window._dayPos}`;
@@ -3231,8 +3311,6 @@ function shortcutMatches(e, configured) {
   return eventToShortcut(e) === rhs;
 }
 
-// â”€â”€ SHOW HEADS (calendar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 /** Returns the showHeads object for the currently active calendar mode. */
 function getActiveShowHeads() {
   return state.calendarMode === 'consolidated'
@@ -3275,51 +3353,51 @@ function initShowHeads() {
 }
 
 function renderShowHeads() {
-  const panel = document.getElementById('show-heads-panel');
-  panel.innerHTML = '';
-  const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
-  if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
+  ['show-heads-panel', 'gallery-show-heads-panel'].forEach(panelId => {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    panel.innerHTML = '';
+    const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+    if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
 
-  // Mode badge
-  const badge = document.createElement('div');
-  const isConsolidated = state.calendarMode === 'consolidated';
-  badge.style.cssText = 'font-size:0.72rem;font-weight:600;padding:4px 2px 6px 2px;color:' + (isConsolidated ? 'var(--blue)' : 'var(--green)');
-  badge.textContent = isConsolidated ? 'Consolidated Heads' : 'Individual Heads';
-  panel.appendChild(badge);
+    const badge = document.createElement('div');
+    const isConsolidated = state.calendarMode === 'consolidated';
+    badge.style.cssText = 'font-size:0.72rem;font-weight:600;padding:4px 2px 6px 2px;color:' + (isConsolidated ? 'var(--blue)' : 'var(--green)');
+    badge.textContent = isConsolidated ? 'Consolidated Heads' : 'Individual Heads';
+    panel.appendChild(badge);
 
-  // Search + Select All/None/P/L
-  const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
-  const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
-  searchRow.appendChild(searchInp); panel.appendChild(searchRow);
+    const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
+    const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
+    searchRow.appendChild(searchInp); panel.appendChild(searchRow);
 
-  const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
-  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
-  const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
-  const btnPL = document.createElement('button'); btnPL.className = 'panel-act-btn'; btnPL.textContent = 'P/L Only';
-  const heads = getActiveShowHeads();
-  btnAll.addEventListener('click', () => { cols.forEach(c => { heads[c] = true; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  btnPL.addEventListener('click', () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
-  actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
+    const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
+    const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
+    const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
+    const btnPL = document.createElement('button'); btnPL.className = 'panel-act-btn'; btnPL.textContent = 'P/L Only';
+    const heads = getActiveShowHeads();
+    btnAll.addEventListener('click', () => { cols.forEach(c => { heads[c] = true; }); saveShowHeads(); renderShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+    btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+    btnPL.addEventListener('click', () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+    actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
 
-  const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
+    const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
 
-  const renderList = (q) => {
-    list.innerHTML = '';
-    const activeHeads = getActiveShowHeads();
-    cols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
-      const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
-      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!activeHeads[col];
-      chk.addEventListener('change', () => { getActiveShowHeads()[col] = chk.checked; saveShowHeads(); renderCalendar(); });
-      lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
-      list.appendChild(lbl);
-    });
-  };
-  renderList('');
-  searchInp.addEventListener('input', () => renderList(searchInp.value));
+    const renderList = (q) => {
+      list.innerHTML = '';
+      const activeHeads = getActiveShowHeads();
+      cols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
+        const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
+        const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!activeHeads[col];
+        chk.addEventListener('change', () => { getActiveShowHeads()[col] = chk.checked; saveShowHeads(); renderCalendar(); if (typeof renderGalleryStats === 'function') renderGalleryStats(); });
+        lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
+        list.appendChild(lbl);
+      });
+    };
+    renderList('');
+    searchInp.addEventListener('input', () => renderList(searchInp.value));
+  });
 }
 
-// â”€â”€ TABLE COLUMN VISIBILITY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initTableShowCols() {
   const allCols = [...state.columns];
   if (!allCols.some(c => c.toLowerCase() === 'thumbnail') && !allCols.some(c => c.toLowerCase() === 'images')) {
@@ -3331,13 +3409,11 @@ function initTableShowCols() {
   getTagColumns().forEach(col => {
     if (!(col in state.tableShowCols)) state.tableShowCols[col] = true;
   });
-  // Keep permanent columns visible
   state.tableShowCols[BROKER_COLUMN] = true;
   state.tableShowCols[IMAGE_TAG_COLUMN] = true;
   renderColVisPanel();
 }
 
-// ── Saved Views ──────────────────────────────────────────────
 const VIEWS_KEY = 'tj_savedViews';
 
 function getSavedViews() {
@@ -3368,6 +3444,37 @@ function deleteView(name) {
   renderViewsPanel();
 }
 
+function renameView(oldName, newName) {
+  newName = newName.trim();
+  if (!newName || newName === oldName) { renderViewsPanel(); return; }
+  const views = getSavedViews();
+  if (!views[oldName]) return;
+  if (views[newName]) { showToast(`"${newName}" already exists`, 'error'); renderViewsPanel(); return; }
+  views[newName] = views[oldName];
+  delete views[oldName];
+  localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
+  renderViewsPanel();
+  showToast(`Renamed to "${newName}"`, 'success');
+}
+
+function startViewRename(name, loadBtn, row) {
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = name;
+  inp.style.cssText = 'flex:1;font-size:inherit;padding:2px 6px;border:1px solid #555;background:#1e2330;color:#ddd;border-radius:3px;outline:none;';
+  row.replaceChild(inp, loadBtn);
+  inp.focus();
+  inp.select();
+  let done = false;
+  const commit = () => { if (done) return; done = true; renameView(name, inp.value); };
+  const cancel = () => { if (done) return; done = true; renderViewsPanel(); };
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+  });
+  inp.addEventListener('blur', commit);
+}
+
 function renderViewsPanel() {
   const list = document.getElementById('saved-views-list');
   if (!list) return;
@@ -3389,8 +3496,31 @@ function renderViewsPanel() {
     loadBtn.className = 'dropdown-item';
     loadBtn.style.cssText = 'flex:1;text-align:left;';
     loadBtn.textContent = name;
-    loadBtn.title = 'Load this view';
+    loadBtn.title = 'Load this view (right-click to rename)';
     loadBtn.addEventListener('click', () => { loadView(name); closeAllDropdowns('__none__'); });
+    loadBtn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.querySelectorAll('.view-ctx-menu').forEach(el => el.remove());
+      const menu = document.createElement('div');
+      menu.className = 'view-ctx-menu';
+      menu.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:#252836;border:1px solid #444;border-radius:4px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
+      const renameItem = document.createElement('div');
+      renameItem.textContent = '✏ Rename';
+      renameItem.style.cssText = 'padding:6px 14px;cursor:pointer;color:#ddd;font-size:0.85em;white-space:nowrap;';
+      renameItem.addEventListener('mouseenter', () => renameItem.style.background = '#333a4d');
+      renameItem.addEventListener('mouseleave', () => renameItem.style.background = '');
+      menu.appendChild(renameItem);
+      document.body.appendChild(menu);
+      const dismiss = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('mousedown', dismiss); } };
+      renameItem.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        menu.remove();
+        document.removeEventListener('mousedown', dismiss);
+        startViewRename(name, loadBtn, row);
+      });
+      setTimeout(() => document.addEventListener('mousedown', dismiss), 0);
+    });
     const delBtn = document.createElement('button');
     delBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#c00;font-size:1em;padding:2px 4px;';
     delBtn.textContent = '✕';
@@ -3401,7 +3531,6 @@ function renderViewsPanel() {
     list.appendChild(row);
   });
 }
-// ─────────────────────────────────────────────────────────────
 
 function renderColVisPanel() {
   const panel = document.getElementById('col-vis-panel');
@@ -3411,7 +3540,6 @@ function renderColVisPanel() {
     panel.innerHTML = '<p class="panel-hint" style="margin:8px">Import Excel first</p>'; return;
   }
 
-  // Search + Select All/None
   const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
   const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
   searchRow.appendChild(searchInp); panel.appendChild(searchRow);
@@ -3505,7 +3633,6 @@ function renderColVisPanel() {
   renderList('');
   searchInp.addEventListener('input', () => renderList(searchInp.value));
 
-  // Freeze columns section
   const freezeWrap = document.createElement('div');
   freezeWrap.style.padding = '6px 10px 10px';
   freezeWrap.style.borderTop = '1px solid var(--border)';
@@ -3541,7 +3668,11 @@ function renderColVisPanel() {
   panel.appendChild(freezeWrap);
 }
 
-// â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+```
+
+## File: `static\js\dashboard.js`
+```js
 function render() {
   const sx = window.scrollX, sy = window.scrollY;
   renderCalendar();
@@ -3575,7 +3706,6 @@ function updateBrokerFilterButton() {
   });
 }
 
-// ── DASHBOARD SUMMARY ──────────────────────────
 function parseNumber(val) {
   if (val === null || val === undefined) return null;
   if (typeof val === 'number' && !isNaN(val)) return val;
@@ -3674,7 +3804,6 @@ function renderDashboard() {
   const avgWin = wins.length ? (wins.reduce((a, b) => a + b, 0) / wins.length) : 0;
   const avgLoss = losses.length ? (losses.reduce((a, b) => a + b, 0) / losses.length) : 0;
 
-  // Daily P&L aggregation for best/worst day + drawdown
   const dailyMap = new Map();
   trades.forEach(t => {
     const ds = normalizeDate(extractDateFromTrade(t));
@@ -3690,7 +3819,6 @@ function renderDashboard() {
     worst = dailyEntries.reduce((acc, cur) => cur[1] < acc.value ? { date: cur[0], value: cur[1] } : acc, { date: dailyEntries[0][0], value: dailyEntries[0][1] });
   }
 
-  // Max drawdown (month)
   let equity = 0;
   let peak = 0;
   let maxDD = 0;
@@ -3804,7 +3932,6 @@ function bindDashboardDragDrop() {
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
       clearIndicators();
-      // Commit insertion at the last indicated position
       if (dragSrc && dropTarget && dropTarget !== dragSrc) {
         if (dropPos === 'before') grid.insertBefore(dragSrc, dropTarget);
         else grid.insertBefore(dragSrc, dropTarget.nextSibling);
@@ -3944,7 +4071,11 @@ function renderDashboardStatsMenu() {
   searchInp.addEventListener('input', () => renderList(searchInp.value));
 }
 
-// â”€â”€ CALENDAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+```
+
+## File: `static\js\calendar.js`
+```js
 function renderCalendar() {
   syncAllTradeDates();
   if (state.calendarTagFocus && !getAllColumnTagKeys().includes(state.calendarTagFocus)) {
@@ -4022,7 +4153,6 @@ function renderCalendar() {
       if (!isNaN(p) && p !== 0) cell.classList.add(p > 0 ? 'has-profit' : 'has-loss');
     }
 
-    // Tag filter
     if (state.tagFilter.length > 0 && !dayTrades.some(tradeMatchesTagFilter)) {
       cell.classList.add('tag-filtered-out');
     }
@@ -4032,11 +4162,9 @@ function renderCalendar() {
       cell.classList.add(dayMatchesFocus ? 'calendar-tag-match' : 'calendar-tag-dim');
     }
 
-    // Day number
     const numDiv = document.createElement('div'); numDiv.className = 'day-num';
     numDiv.textContent = d; cell.appendChild(numDiv);
 
-    // Data
     if (dayTrades.length) {
       const dataDiv = document.createElement('div'); dataDiv.className = 'day-data';
       const cols = state.columns.filter(col => getActiveShowHeads()[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
@@ -4118,7 +4246,6 @@ function renderCalendar() {
         dataDiv.appendChild(tagWrap);
       }
 
-      // Observation indicator only (no long text)
       if (hasObs) {
         const note = document.createElement('span');
         note.className = 'day-note-indicator';
@@ -4148,13 +4275,11 @@ function renderCalendar() {
       }
     }
 
-    // Pencil button
     const pencil = document.createElement('button'); pencil.className = 'day-pencil';
     pencil.title = 'Add observation'; pencil.textContent = 'Note';
     pencil.addEventListener('click', e => { e.stopPropagation(); openObsModal(dateStr); });
     cell.appendChild(pencil);
 
-    // Cell click -> gallery
     cell.addEventListener('click', () => openGalleryForDate(dateStr));
     grid.appendChild(cell);
   }
@@ -4229,7 +4354,6 @@ function updateRangeLabel() {
   }
 }
 
-// â”€â”€ DATE HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getTradeForDate(dateStr) {
   return state.trades.find(t => normalizeDate(extractDateFromTrade(t)) === dateStr) || null;
 }
@@ -4310,7 +4434,6 @@ function formatDisplayDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// â”€â”€ OBSERVATION MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openObsModal(dateStr) {
   state.obsDate = dateStr;
   document.getElementById('obs-modal-date').textContent = formatDisplayDate(dateStr);
@@ -4347,7 +4470,6 @@ function renderObsTradeNotes(dateStr) {
     item.className = 'obs-trade-note-item';
     item.dataset.rowIdx = rowIdx;
 
-    // Drag handle
     const handle = document.createElement('span');
     handle.className = 'obs-note-drag-handle';
     handle.textContent = '⠿';
@@ -4358,7 +4480,6 @@ function renderObsTradeNotes(dateStr) {
     lbl.className = 'obs-trade-note-label';
     lbl.textContent = label;
 
-    // Mini toolbar for formatting
     const tb = document.createElement('div'); tb.className = 'obs-trade-note-toolbar';
     [['B', 'bold'], ['I', 'italic'], ['U', 'underline']].forEach(([lbl2, cmd]) => {
       const btn = document.createElement('button'); btn.className = 'note-popup-tool';
@@ -4367,7 +4488,6 @@ function renderObsTradeNotes(dateStr) {
       tb.appendChild(btn);
     });
 
-    // Contenteditable editor
     const editor = document.createElement('div');
     editor.className = 'obs-trade-note-editor';
     editor.contentEditable = 'true';
@@ -4386,12 +4506,10 @@ function renderObsTradeNotes(dateStr) {
       }
     });
 
-    // Click on label → focus this trade's note editor
     lbl.style.cursor = 'pointer';
     lbl.title = 'Click to focus note';
     lbl.addEventListener('click', ev => { ev.preventDefault(); editor.focus(); });
 
-    // Drag: only from handle
     item.setAttribute('draggable', 'true');
     item.addEventListener('dragstart', e => {
       if (!_noteItemDragFromHandle) { e.preventDefault(); return; }
@@ -4420,7 +4538,6 @@ function renderObsTradeNotes(dateStr) {
       const { rowIdx: srcIdx, html: srcHtml } = JSON.parse(raw);
       const destIdx = parseInt(item.dataset.rowIdx, 10);
       if (srcIdx === destIdx || isNaN(destIdx)) return;
-      // Move: paste into dest, clear source
       state.trades[destIdx][NOTE_COLUMN] = srcHtml;
       state.trades[srcIdx][NOTE_COLUMN] = '';
       saveTrades();
@@ -4439,7 +4556,6 @@ function saveObservation(andClose = true) {
   const html = document.getElementById('obs-editor').innerHTML;
   const trade = getOrCreateTrade(state.obsDate);
   trade.observation = html;
-  // Also persist any unsaved per-trade note editor values
   document.querySelectorAll('#obs-trade-notes .obs-trade-note-editor').forEach(ed => {
     const ri = parseInt(ed.dataset.rowIdx, 10);
     if (!isNaN(ri) && state.trades[ri]) {
@@ -4456,7 +4572,6 @@ function saveObservation(andClose = true) {
 }
 
 function navigateObsDate(dir) {
-  // Save current before navigating
   saveObservation(false);
 
   const dataOnly = document.getElementById('obs-data-only').checked;
@@ -4476,7 +4591,6 @@ function navigateObsDate(dir) {
 }
 
 function bindObsToolbar() {
-  // Standard commands
   document.querySelectorAll('.obs-tool[data-cmd]').forEach(btn => {
     btn.addEventListener('mousedown', e => {
       e.preventDefault();
@@ -4485,7 +4599,6 @@ function bindObsToolbar() {
     });
   });
 
-  // Custom font size â€” works with selection OR just cursor (Google-Sheets style)
   document.getElementById('obs-apply-size').addEventListener('mousedown', e => {
     e.preventDefault();
     const size = document.getElementById('obs-custom-size').value;
@@ -4495,8 +4608,6 @@ function bindObsToolbar() {
     const sel = window.getSelection();
     if (!sel) return;
     if (sel.isCollapsed) {
-      // No selection â€” insert a sized span with zero-width-space, place cursor inside
-      // New typing inherits the font size automatically
       const range = sel.getRangeAt(0);
       const span = document.createElement('span');
       span.style.fontSize = size + 'px';
@@ -4515,7 +4626,6 @@ function bindObsToolbar() {
     }
   });
 
-  // Image insert (base64)
   document.getElementById('obs-insert-img').addEventListener('click', () => {
     document.getElementById('obs-img-input').click();
   });
@@ -4531,7 +4641,6 @@ function bindObsToolbar() {
     e.target.value = '';
   });
 
-  // Link insert
   document.getElementById('obs-insert-link').addEventListener('click', () => {
     const url = prompt('Enter URL (e.g. https://example.com):');
     if (!url) return;
@@ -4544,7 +4653,6 @@ function bindObsToolbar() {
     }
   });
 
-  // Tab key â†' 4 spaces (no focus jump)
   document.getElementById('obs-editor').addEventListener('keydown', e => {
     if (e.key === 'Tab') {
       e.preventDefault(); e.stopPropagation();
@@ -4553,7 +4661,11 @@ function bindObsToolbar() {
   });
 }
 
-// â”€â”€ TRADE TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+```
+
+## File: `static\js\table-render.js`
+```js
 function getFilteredTrades() {
   return state.trades.filter(trade => {
     const colMatch = state.columns.every(col => {
@@ -4565,8 +4677,6 @@ function getFilteredTrades() {
         : String(trade[col] ?? '').toLowerCase();
       if (!isImageTags) return tv.includes(fv);
 
-      // Multi-tag filter for IMAGE TAGS:
-      // "panic,random" => row must contain BOTH tags
       const terms = fv.split(',').map(x => x.trim()).filter(Boolean);
       if (!terms.length) return true;
       return terms.every(term => tv.includes(term));
@@ -4574,7 +4684,6 @@ function getFilteredTrades() {
     if (!colMatch) return false;
     if (!tradeMatchesBrokerFilter(trade)) return false;
     if (!tradeMatchesTagFilter(trade)) return false;
-    // Date range filter
     if (state.dateRange.from || state.dateRange.to) {
       const dk = normalizeDate(extractDateFromTrade(trade));
       if (state.dateRange.from && dk < state.dateRange.from) return false;
@@ -4614,8 +4723,6 @@ function renderTable() {
   if (!allCols.some(c => c.toLowerCase() === 'images')) allCols.push('Images');
   const visibleCols = allCols.filter(col => state.tableShowCols[col] !== false);
 
-  // COLGROUP (for column resize widths)
-  // Drag-handle + delete column (slightly wider)
   const cgDrag = document.createElement('col'); cgDrag.style.width = '36px'; colgroup.appendChild(cgDrag);
   visibleCols.forEach(col => {
     const cg = document.createElement('col');
@@ -4623,7 +4730,6 @@ function renderTable() {
     colgroup.appendChild(cg);
   });
 
-  // HEADER — drag handle th (leftmost)
   const thDrag = document.createElement('th'); thDrag.className = 'row-drag-th'; headRow.appendChild(thDrag);
 
   visibleCols.forEach((col, idx) => {
@@ -4664,7 +4770,6 @@ function renderTable() {
     bindColumnResizer(rz, col, idx);
     th.appendChild(rz);
 
-    // Hover delete button (only for deletable columns)
     if (state.columns.includes(col) && canDeleteColumn(col)) {
       const del = document.createElement('button');
       del.className = 'col-del-btn';
@@ -4681,13 +4786,11 @@ function renderTable() {
       th.appendChild(del);
     }
 
-    // Double-click header to rename column
     th.addEventListener('dblclick', e => {
       e.stopPropagation();
       openEditColumnModal(col);
     });
 
-    // Drag-to-reorder column
     th.draggable = true;
     th.addEventListener('dragstart', e => {
       if (e.target.classList.contains('col-resizer') || e.target.classList.contains('col-del-btn')) {
@@ -4728,7 +4831,6 @@ function renderTable() {
     headRow.appendChild(th);
   });
 
-  // FILTER ROW
   filterRow.classList.toggle('hidden', !state.filterVisible);
   filterRow.appendChild(document.createElement('td')); // drag handle column
   visibleCols.forEach(col => {
@@ -4755,7 +4857,6 @@ function getFrozenCols() {
       if (Array.isArray(arr)) return arr.filter(c => state.columns.includes(c));
     }
   } catch (e) { }
-  // Default freeze order: trade_date → Images → Tags → Note → Net P/L
   return ['trade_date', 'Images', 'Tags', NOTE_COLUMN, 'Net P/L'].filter(c => state.columns.includes(c));
 }
 
@@ -4768,13 +4869,10 @@ function applyFrozenColumns(visibleCols) {
   const table = document.getElementById('trade-table');
   if (!table) return;
 
-  // Each row now has a 36px drag+delete column at index 0 before the visible columns.
-  // visibleCols[i] → DOM cell index (i + 1); ths[0] = drag-th, ths[i+1] = visibleCols[i].
   const DRAG_W = 36;
   const ths = Array.from(table.querySelectorAll('thead tr#table-head-row th'));
   const rows = Array.from(table.querySelectorAll('thead tr, tbody tr, tfoot tr'));
 
-  // Always freeze the drag-handle column at left=0
   rows.forEach(row => {
     const first = row.children[0];
     if (first) { first.classList.add('frozen-col'); first.style.left = '0px'; }
@@ -4827,7 +4925,6 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
     }
     tr.classList.add(band === 1 ? 'date-group-a' : 'date-group-b');
 
-    // Drag handle + delete button — leftmost column
     const tdHandle = document.createElement('td'); tdHandle.className = 'row-drag-td';
     const delMini = document.createElement('button'); delMini.className = 'del-row-mini';
     delMini.textContent = '✕'; delMini.title = 'Delete row';
@@ -4882,7 +4979,6 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
     body.appendChild(tr);
   });
 
-  // FOOTER totals
   footRow.appendChild(document.createElement('td')); // drag-handle column spacer
   visibleCols.forEach(col => {
     const td = document.createElement('td');
@@ -4900,14 +4996,12 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
 }
 
 function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
-  // Sort by date for grouping
   const sortedByDate = [...filtered].sort((a, b) => {
     const da = normalizeDate(a['trade_date'] || a['Date'] || a.date || '');
     const db = normalizeDate(b['trade_date'] || b['Date'] || b.date || '');
     return da < db ? -1 : da > db ? 1 : 0;
   });
 
-  // Group by date
   const dateOrder = [];
   const dateGroups = new Map();
   sortedByDate.forEach(trade => {
@@ -4927,7 +5021,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
       const colLower = col.toLowerCase();
 
       if (colLower === 'images' || colLower === 'thumbnail') {
-        // Day-level images first, then trade images
         const dayImages = state.dayData[dateKey]?.images || [];
         const tradeImages = dayTrades.reduce((arr, t) => arr.concat(t.images || []), []);
         const allImages = [...dayImages, ...tradeImages];
@@ -4946,7 +5039,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
           b.addEventListener('click', () => openGalleryForDate(dateKey));
           w.appendChild(b);
         }
-        // Upload button for day-level images
         const uploadBtn = document.createElement('button');
         uploadBtn.className = 'btn btn-outline day-img-upload-btn';
         uploadBtn.title = 'Add image for this day';
@@ -4980,7 +5072,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
         }
 
       } else if (col === VIDEO_COLUMN) {
-        // Day-level video URL — stored in state.dayData[dateKey].video
         if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
         const curUrl = state.dayData[dateKey].video || '';
         const vwrap = document.createElement('div'); vwrap.className = 'video-cell';
@@ -5001,7 +5092,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
         td.appendChild(vwrap);
 
       } else if (col === NOTE_COLUMN) {
-        // Merge per-trade notes: "[Instrument]: note | ..."
         const instrCol = state.columns.find(c => /instrument|symbol|scrip|stock/i.test(c));
         const parts = dayTrades
           .filter(t => t[NOTE_COLUMN] && stripHtml(String(t[NOTE_COLUMN])).trim())
@@ -5020,7 +5110,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
 
       } else if (isTagColumn(col)) {
         const wrap = document.createElement('div'); wrap.className = 'tag-cell';
-        // Trade-level merged tags (read-only chips)
         const seen = new Set();
         dayTrades.forEach(t => getTradeTagsForColumn(t, col).forEach(tag => {
           if (!seen.has(tag)) {
@@ -5032,7 +5121,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
             wrap.appendChild(chip);
           }
         }));
-        // Day-level tags (with remove button)
         _getDayLevelTags(dateKey, col).forEach(tag => {
           if (!seen.has(tag)) {
             seen.add(tag);
@@ -5049,7 +5137,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
             wrap.appendChild(chip);
           }
         });
-        // "+ Day Tag" button
         const addBtn = document.createElement('button'); addBtn.className = 'tag-add-btn';
         addBtn.textContent = '+ Day Tag';
         addBtn.title = 'Add a tag for this whole day';
@@ -5063,7 +5150,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
           inp.value = dateKey;
           td.appendChild(inp);
         } else {
-          // Detect numeric vs text column: numeric only if every non-empty value parses as float
           const vals = dayTrades.map(t => t[col]).filter(v => v !== undefined && v !== null && String(v).trim() !== '');
           if (vals.length) {
             const nums = vals.map(v => parseFloat(v));
@@ -5077,7 +5163,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
               }
               td.appendChild(inp);
             } else {
-              // Text column — use a wrapping div so instrument names etc. can wrap
               const unique = [...new Set(vals.map(v => String(v).trim()).filter(Boolean))];
               const wrap = document.createElement('div'); wrap.className = 'cons-text-cell';
               wrap.textContent = unique.join(' / ');
@@ -5092,7 +5177,6 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
     body.appendChild(tr);
   });
 
-  // Footer totals
   footRow.appendChild(document.createElement('td')); // drag-handle column spacer
   visibleCols.forEach(col => {
     const td = document.createElement('td');
@@ -5112,21 +5196,23 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
   });
 }
 
-// ── NOTE HELPERS ──────────────────────────────────────────────────
+
+```
+
+## File: `static\js\table-cols.js`
+```js
 function stripHtml(html) {
   if (!html) return '';
   const d = document.createElement('div'); d.innerHTML = html;
   return d.textContent || d.innerText || '';
 }
 
-// ── NOTE POPUP ────────────────────────────────────────────────────
 let _notePop = null, _notePopRowIdx = null, _notePopBackdrop = null;
 
 function openNotePopup(td, rowIdx) {
   closeNotePopup(true); // save any open popup first
   _notePopRowIdx = rowIdx;
 
-  // Backdrop
   _notePopBackdrop = document.createElement('div');
   _notePopBackdrop.className = 'note-popup-backdrop';
   document.body.appendChild(_notePopBackdrop);
@@ -5134,7 +5220,6 @@ function openNotePopup(td, rowIdx) {
   const pop = document.createElement('div');
   pop.className = 'note-popup';
 
-  // Mini toolbar
   const toolbar = document.createElement('div');
   toolbar.className = 'note-popup-toolbar';
   [['B', 'bold'], ['I', 'italic'], ['U', 'underline']].forEach(([label, cmd]) => {
@@ -5147,7 +5232,6 @@ function openNotePopup(td, rowIdx) {
   });
   pop.appendChild(toolbar);
 
-  // Contenteditable editor
   const editor = document.createElement('div');
   editor.className = 'note-popup-editor';
   editor.contentEditable = 'true';
@@ -5158,14 +5242,12 @@ function openNotePopup(td, rowIdx) {
 
   document.body.appendChild(pop);
 
-  // Center on screen using fixed positioning
   pop.style.position = 'fixed';
   pop.style.top = '50%';
   pop.style.left = '50%';
   pop.style.transform = 'translate(-50%, -50%)';
 
   editor.focus();
-  // Place cursor at end
   const range = document.createRange(); range.selectNodeContents(editor); range.collapse(false);
   const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
   _notePop = pop;
@@ -5203,7 +5285,6 @@ function _refreshNoteCellDisplay(noteDiv, val) {
   noteDiv.innerHTML = '';
   const plain = stripHtml(val).trim();
   if (plain) {
-    // Show rendered HTML — CSS handles overflow/truncation
     noteDiv.innerHTML = val;
     noteDiv.title = plain;
   } else {
@@ -5281,7 +5362,6 @@ function bindColumnResizer(handle, colName, colIdx) {
     const onMove = ev => {
       const w = Math.max(50, Math.round(startW + (ev.clientX - startX)));
       state.colWidths[colName] = w;
-      // colEls[0] = drag-handle col, so visible cols start at index 1
       const colEls = document.querySelectorAll('#table-colgroup col');
       if (colEls[colIdx + 1]) colEls[colIdx + 1].style.width = w + 'px';
     };
@@ -5293,7 +5373,6 @@ function bindColumnResizer(handle, colName, colIdx) {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   });
-  // Double-click resizer → reset to default width
   handle.addEventListener('dblclick', e => {
     e.preventDefault(); e.stopPropagation();
     delete state.colWidths[colName];
@@ -5321,7 +5400,6 @@ function saveTagGroups() {
   try { localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); } catch (e) { }
 }
 
-// Context menu helper
 function showCtxMenu(e, items) {
   e.preventDefault();
   e.stopPropagation();
@@ -5358,7 +5436,6 @@ function showCtxMenu(e, items) {
   setTimeout(() => document.addEventListener('mousedown', close), 0);
 }
 
-// Rename a tag everywhere in state (trades, dayData, groups, allTags, in-memory annotations)
 async function renameTagEverywhere(oldTag, newTag) {
   const n = newTag.trim();
   if (!n || n === oldTag) return;
@@ -5441,15 +5518,16 @@ function renderImageTagsCell(td, trade) {
     td.appendChild(wrap);
     return;
   }
+  const isRed = tags.length > 5;
   tags.forEach(tag => {
-    const c = tagColor(tag);
+    const c = isRed ? '#ff6b6b' : tagColor(tag);
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'tag-chip';
     chip.textContent = tag;
     chip.style.color = c;
-    chip.style.background = hexToRgba(c, 0.15);
-    chip.style.borderColor = hexToRgba(c, 0.45);
+    chip.style.background = isRed ? 'rgba(255, 107, 107, 0.15)' : hexToRgba(c, 0.15);
+    chip.style.borderColor = isRed ? 'rgba(255, 107, 107, 0.45)' : hexToRgba(c, 0.45);
     chip.title = 'Open gallery filtered by this tag';
     chip.addEventListener('click', e => {
       e.stopPropagation();
@@ -5482,7 +5560,6 @@ async function deleteImageFromRow(rowIdx, imageUrl) {
   showToast('Image deleted', 'success');
 }
 
-// â”€â”€ TAGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TAG_PALETTE = ['#3fb950', '#58a6ff', '#d29922', '#bc8cff', '#f85149', '#79b8ff', '#56d364', '#ffa657'];
 function tagColor(name) {
   let h = 0;
@@ -5524,7 +5601,6 @@ function renderTagCell(td, rowIdx, colName) {
   addBtn.addEventListener('click', e => { e.stopPropagation(); openTagPicker(rowIdx, colName); });
   wrap.appendChild(addBtn);
 
-  // Drop zone — accept tj-tag drops on same column
   td.addEventListener('dragover', e => {
     if (!e.dataTransfer.types.includes('tj-tag')) return;
     e.preventDefault();
@@ -5611,7 +5687,6 @@ function updateTagPickerList(q) {
   if (_tagPickerRow === null && _tagPickerDate === null) return;
   const isDayMode = _tagPickerDate !== null;
 
-  // Get currently selected tags
   let currentTags;
   if (isDayMode) {
     currentTags = _getDayLevelTags(_tagPickerDate, _tagPickerCol);
@@ -5647,7 +5722,6 @@ function updateTagPickerList(q) {
     list.appendChild(item);
   });
 
-  // "Create new" option if search string is new
   const trimQ = q.trim();
   if (trimQ && !columnTags.some(t => t.toLowerCase() === trimQ.toLowerCase())) {
     const createItem = document.createElement('div'); createItem.className = 'tag-picker-create';
@@ -5719,7 +5793,6 @@ function renderTagFilterPanel() {
     panel.appendChild(list);
   });
 
-  // Manage section — delete tags per column
   const sep = document.createElement('div'); sep.style.cssText = 'height:1px;background:var(--border);margin:8px 0';
   panel.appendChild(sep);
   const mLabel = document.createElement('div'); mLabel.className = 'panel-manage-label'; mLabel.textContent = 'Delete Tags (Column-wise)';
@@ -5753,7 +5826,6 @@ function applyTagFilter() {
   btn.style.color = state.tagFilter.length ? 'var(--blue)' : '';
 }
 
-// â”€â”€ ADD COLUMN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function addColumn(colName) {
   if (!colName || !colName.trim()) { state.addTagColumnMode = false; return; }
   const name = colName.trim();
@@ -5901,7 +5973,11 @@ function openEditColumnModal(defaultCol = '') {
   setTimeout(() => inp.focus(), 20);
 }
 
-// â”€â”€ GALLERY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+```
+
+## File: `static\js\gallery-core.js`
+```js
 function openGalleryForDate(dateStr) {
   const images = getImagesForDate(dateStr);
   if (!images.length) return;
@@ -5913,7 +5989,11 @@ function openGalleryForDate(dateStr) {
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
-  renderGalleryTagCloud(); renderGalleryTagsTray();
+  renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
+  const tray1 = document.getElementById('gv2-tags-tray');
+  const btn1 = document.getElementById('gv2-tags-btn');
+  if (tray1) tray1.style.display = 'flex';
+  if (btn1) btn1.classList.add('active');
 }
 
 function openGalleryDirect(images, startIndex, sourceRow = null) {
@@ -5925,7 +6005,11 @@ function openGalleryDirect(images, startIndex, sourceRow = null) {
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
-  renderGalleryTagCloud(); renderGalleryTagsTray();
+  renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
+  const tray2 = document.getElementById('gv2-tags-tray');
+  const btn2 = document.getElementById('gv2-tags-btn');
+  if (tray2) tray2.style.display = 'flex';
+  if (btn2) btn2.classList.add('active');
 }
 
 function lockBodyScroll() {
@@ -5962,18 +6046,15 @@ function renderGallery() {
   const { images, currentIndex, date } = state.gallery;
   const currentImageUrl = images[currentIndex] || '';
   if (annotState.active && annotState.imageUrl && annotState.imageUrl !== currentImageUrl) {
-    // Carry annotation mode/tool across image switches.
     state._carryAnnotTool = annotState.tool;
     stopAnnotation();
   }
   document.getElementById('gallery-date').textContent = date ? formatDisplayDate(date) : `${images.length} image(s)`;
   if (date) document.getElementById('gallery-date-picker').value = date;
 
-  // Upload button — show only when date available
   const uploadBtn = document.getElementById('gallery-upload-btn');
   if (uploadBtn) uploadBtn.style.display = date ? '' : 'none';
 
-  // Obs button
   const obsBtn = document.getElementById('gv2-obs-btn');
   if (obsBtn) obsBtn.style.display = date ? '' : 'none';
 
@@ -6000,9 +6081,9 @@ function renderGallery() {
   if (tray && tray.style.display !== 'none') renderGalleryTagsTray();
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) renderImageTagModal();
 
-  // ── Thumbnail Tray ──
+  if (typeof renderGalleryStats === 'function') renderGalleryStats();
+
   const thumbs = document.getElementById('gallery-thumbs'); thumbs.innerHTML = '';
-  // When tag filter active, show filtered images from all dates; else current date/images
   const thumbImages = _getGalleryThumbImages();
   let dragFromIndex = -1;
   thumbImages.forEach(({ url, globalIdx, isCurrentDate }) => {
@@ -6011,6 +6092,49 @@ function renderGallery() {
     t.src = url;
     t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '');
     t.addEventListener('click', () => { state.gallery.currentIndex = globalIdx; renderGallery(); });
+    t.addEventListener('contextmenu', async e => {
+      e.preventDefault();
+      const dateInp = document.createElement('input');
+      dateInp.type = 'date';
+      dateInp.style.position = 'absolute';
+      dateInp.style.opacity = '0';
+      dateInp.style.pointerEvents = 'none';
+      dateInp.style.left = e.clientX + 'px';
+      dateInp.style.top = e.clientY + 'px';
+
+      const onPickerChange = async () => {
+        const rawDate = dateInp.value;
+        if (document.body.contains(dateInp)) document.body.removeChild(dateInp);
+        if (!rawDate) return;
+        const targetDate = normalizeDate(rawDate);
+        if (confirm(`Move image to ${targetDate}?`)) {
+          await moveGalleryImageToDate(globalIdx, targetDate);
+        }
+      };
+
+      dateInp.addEventListener('change', onPickerChange);
+
+      const removeInp = () => { if (document.body.contains(dateInp)) document.body.removeChild(dateInp); };
+      dateInp.addEventListener('blur', removeInp);
+
+      document.body.appendChild(dateInp);
+
+      try {
+        dateInp.showPicker();
+      } catch (err) {
+        removeInp();
+        const rawDate = prompt('Enter date (YYYY-MM-DD) to move this image to its consolidated row:');
+        if (!rawDate) return;
+        const targetDate = normalizeDate(rawDate);
+        if (!targetDate || !targetDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          showToast('Invalid date format', 'error'); return;
+        }
+        if (confirm(`Move image to ${targetDate}?`)) {
+          await moveGalleryImageToDate(globalIdx, targetDate);
+        }
+      }
+    });
+
     t.addEventListener('touchend', e => {
       if (IS_TOUCH_DEVICE) {
         e.preventDefault();
@@ -6019,7 +6143,6 @@ function renderGallery() {
       }
     }, { passive: false });
 
-    // Drag reorder (only within current date's images)
     if (isCurrentDate) {
       wrap.addEventListener('dragstart', e => {
         dragFromIndex = globalIdx; wrap.classList.add('dragging');
@@ -6045,7 +6168,6 @@ function renderGallery() {
     del.className = 'gv2-thumb-del'; del.textContent = '×'; del.title = 'Remove image';
     del.addEventListener('click', async e => { e.stopPropagation(); await removeGalleryImageAt(globalIdx); });
 
-    // Video icon on first thumb if day has video
     if (globalIdx === 0 && date) {
       const videoUrl = state.dayData[date]?.video;
       if (videoUrl) {
@@ -6060,7 +6182,104 @@ function renderGallery() {
   });
 }
 
-// Returns items for thumbnail tray: filtered or current date
+function renderGalleryStats() {
+  const display = document.getElementById('gallery-heads-display');
+  if (!display) return;
+  const heads = getActiveShowHeads();
+  const cols = state.columns.filter(col => heads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
+  if (cols.length === 0) {
+    display.style.display = 'none';
+    return;
+  }
+
+  const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex] || '';
+  const ctx = getCurrentGalleryPreserveContext();
+  let dateToUse = state.gallery.date || ctx.date;
+
+  let trades = [];
+  if (state.calendarMode === 'consolidated') {
+    if (dateToUse) {
+      trades = getTradesForDate(dateToUse);
+    } else {
+      const owner = getOwnerTradeForImageUrl(activeUrl);
+      if (owner) trades = [owner];
+    }
+  } else {
+    const owner = getOwnerTradeForImageUrl(activeUrl);
+    if (owner) trades = [owner];
+  }
+
+  if (trades.length === 0) {
+    display.style.display = 'none';
+    return;
+  }
+
+  display.style.display = 'flex';
+  display.innerHTML = '';
+
+  const isConsolidated = state.calendarMode === 'consolidated' && trades.length > 1;
+
+  if (isConsolidated) {
+    const title = document.createElement('div');
+    title.style.fontWeight = 'bold';
+    title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
+    title.style.marginBottom = '2px';
+    title.style.paddingBottom = '2px';
+    title.textContent = 'Consolidated Stats';
+    display.appendChild(title);
+
+    cols.forEach(col => {
+      const lower = col.toLowerCase();
+      if (lower === 'thumbnail' || lower === 'sell time' || lower === 'buy time') return;
+      const vals = trades.map(t => t[col]).filter(v => v !== '' && v != null);
+      if (!vals.length) return;
+      const item = document.createElement('div');
+      const nums = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
+      if (nums.length === vals.length) {
+        let outNum;
+        if (lower === 'sell price' || lower === 'buy price') outNum = nums.reduce((a, b) => a + b, 0) / nums.length;
+        else outNum = nums.reduce((a, b) => a + b, 0);
+        const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
+        item.textContent = `${col}: ${out}`;
+        if (lower.includes('profit') || lower === 'rs') item.style.color = outNum >= 0 ? 'var(--green)' : 'var(--red)';
+      } else {
+        const first = String(vals[0]);
+        const same = vals.every(v => String(v) === first);
+        item.textContent = same ? `${col}: ${first}` : `${col}: ${vals.length} entries`;
+      }
+      display.appendChild(item);
+    });
+  } else {
+    trades.forEach((tr, i) => {
+      const title = document.createElement('div');
+      title.style.fontWeight = 'bold';
+      title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
+      title.style.marginBottom = '2px';
+      title.style.paddingBottom = '2px';
+      title.textContent = document.getElementById('gallery-date-picker')?.value === dateToUse && trades.length === 1 ? 'Trade Stats' : 'Individual Stats';
+      display.appendChild(title);
+
+      cols.forEach(col => {
+        if (col.toLowerCase() === 'thumbnail') return;
+        const val = tr[col];
+        if (val === '' || val == null) return;
+        const item = document.createElement('div');
+        const isProfit = col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs';
+        if (isProfit) {
+          const num = parseFloat(val);
+          if (!isNaN(num)) {
+            item.textContent = `${col}: ${num > 0 ? '+' : ''}${num}`;
+            item.style.color = num >= 0 ? 'var(--green)' : 'var(--red)';
+          } else { item.textContent = `${col}: ${val}`; }
+        } else {
+          item.textContent = `${col}: ${val}`;
+        }
+        display.appendChild(item);
+      });
+    });
+  }
+}
+
 function _getGalleryThumbImages() {
   const { images, tagFilter } = state.gallery;
   const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
@@ -6072,7 +6291,6 @@ function _getGalleryThumbImages() {
   }));
 }
 
-// Get tags assigned to a specific image URL
 function _getTagsForImageUrl(url) {
   const tags = new Set();
   state.trades.forEach(trade => {
@@ -6115,10 +6333,10 @@ function getFilteredGalleryImagesByTagSelection() {
   if (!tagFilter.length) return [];
   const mode = state.gallery.filterMode === 'and' ? 'and' : 'or';
   return getAllGalleryImagesAcrossDates().filter(item => {
-    const arr = getImageTagsForGalleryItem(item);
+    const arr = getImageTagsForGalleryItem(item).map(t => typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim());
     return mode === 'and'
-      ? tagFilter.every(t => arr.includes(t))
-      : tagFilter.some(t => arr.includes(t));
+      ? tagFilter.every(t => arr.includes(typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim()))
+      : tagFilter.some(t => arr.includes(typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim()));
   });
 }
 
@@ -6216,7 +6434,6 @@ function getOwnerTradeForImageUrl(imageUrl) {
   if (state.gallery.date) {
     const row = getTradesForDate(state.gallery.date).find(t => (t.images || []).includes(imageUrl));
     if (row) return row;
-    // Not in any trade — might be a day-level image; return null (handled separately)
     return null;
   }
   return state.trades.find(t => (t.images || []).includes(imageUrl)) || null;
@@ -6231,13 +6448,11 @@ function syncGalleryImageOrderToTrades() {
     return;
   }
   if (state.gallery.date) {
-    // Sync day-level images
     const dk = state.gallery.date;
     if (state.dayData[dk]?.images) {
       const dayOwn = new Set(state.dayData[dk].images);
       state.dayData[dk].images = ordered.filter(u => dayOwn.has(u));
     }
-    // Sync trade-level images for this date
     const dayTrades = getTradesForDate(dk);
     dayTrades.forEach(t => {
       const own = new Set(t.images || []);
@@ -6265,6 +6480,45 @@ async function reorderGalleryImages(fromIdx, toIdx) {
   renderTable();
 }
 
+async function moveGalleryImageToDate(globalIdx, targetDate) {
+  const arr = state.gallery.images || [];
+  if (globalIdx < 0 || globalIdx >= arr.length) return;
+  const imageUrl = arr[globalIdx];
+
+  const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
+  if (ownerTrade) {
+    ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.images) {
+    state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
+  }
+
+  let targetTrade = getTradeForDate(targetDate);
+  if (!targetTrade) {
+    targetTrade = getOrCreateTrade(targetDate);
+  }
+  if (!targetTrade.images) targetTrade.images = [];
+  targetTrade.images.push(imageUrl);
+
+  arr.splice(globalIdx, 1);
+  if (state.gallery.currentIndex >= arr.length) state.gallery.currentIndex = Math.max(0, arr.length - 1);
+
+  if (!arr.length) {
+    await saveTrades();
+    renderTable();
+    renderCalendar();
+    document.getElementById('gallery-modal').classList.remove('open');
+    unlockBodyScroll();
+    showToast(`Image moved to ${targetDate}`, 'success');
+    return;
+  }
+  syncGalleryImageOrderToTrades();
+  await saveTrades();
+  renderGallery();
+  renderTable();
+  renderCalendar();
+  showToast(`Image moved to ${targetDate}`, 'success');
+}
+
 async function removeGalleryImageAt(idx) {
   const arr = state.gallery.images || [];
   if (idx < 0 || idx >= arr.length) return;
@@ -6279,7 +6533,6 @@ async function removeGalleryImageAt(idx) {
     if (store[imageUrl]) delete store[imageUrl];
     cleanupImageTagStore(ownerTrade);
   } else if (state.gallery.date && state.dayData[state.gallery.date]?.images) {
-    // Day-level image
     state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
     if (state.dayData[state.gallery.date]?.overlays?.[imageUrl]) {
       delete state.dayData[state.gallery.date].overlays[imageUrl];
@@ -6327,13 +6580,11 @@ function loadOverlayForCurrentImage() {
   const wrapper = document.getElementById('gallery-img-wrapper');
   if (!wrapper) return;
 
-  // Position canvas exactly over the rendered image
   const left = img.offsetLeft;
   const top = img.offsetTop;
   const w = Math.round(img.clientWidth || img.naturalWidth || 0);
   const h = Math.round(img.clientHeight || img.naturalHeight || 0);
   if (w <= 0 || h <= 0) {
-    // Don't hide — image may just not be laid out yet; try again next frame
     requestAnimationFrame(() => {
       if (!annotState.active) loadOverlayForCurrentImage();
     });
@@ -6345,8 +6596,6 @@ function loadOverlayForCurrentImage() {
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
 
-  // Only reset canvas pixel buffer when size actually changes.
-  // Setting canvas.width/height always wipes the canvas — avoid it when unnecessary.
   if (canvas.width !== w || canvas.height !== h) {
     canvas.width = w;
     canvas.height = h;
@@ -6360,7 +6609,6 @@ function loadOverlayForCurrentImage() {
     boxes.forEach(b => drawMarqueeBox(ctx, b, false));
   };
 
-  // If nothing to show, hide canvas.
   if (!overlayUrl && !boxes.length) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     canvas.style.display = 'none';
@@ -6370,7 +6618,6 @@ function loadOverlayForCurrentImage() {
   if (overlayUrl) {
     const ovImg = new Image();
     ovImg.onload = () => {
-      // Guard: skip if the gallery moved to a different image while we were loading
       const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex];
       if (activeUrl !== imgUrl || annotState.active) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -6380,7 +6627,6 @@ function loadOverlayForCurrentImage() {
     ovImg.onerror = () => {
       const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex];
       if (activeUrl !== imgUrl || annotState.active) return;
-      // Server URL failed — try falling back to local data URL if still present
       const localUrl = state._localOverlays?.[imgUrl];
       if (localUrl && localUrl !== overlayUrl) {
         const retryImg = new Image();
@@ -6410,7 +6656,6 @@ function navigateGallery(dir) {
   if (next >= 0 && next < images.length) {
     state.gallery.currentIndex = next; renderGallery();
   } else if (date) {
-    // At boundary — auto-jump to adjacent date
     navigateGalleryDate(dir);
   }
 }
@@ -6443,12 +6688,10 @@ function navigateGalleryDate(dir) {
     const total = (state.gallery.images || []).length;
     if (!total) return;
     let targetIndex = -1;
-    // Prefer next image that belongs to a different date block.
     for (let i = scope.currentIndex + dir; i >= 0 && i < total; i += dir) {
       const d = scope.imageDates[i] || '';
       if (d && d !== scope.currentDate) { targetIndex = i; break; }
     }
-    // If no different-date image exists, still move to next/prev image.
     if (targetIndex < 0) {
       const fallback = scope.currentIndex + dir;
       if (fallback >= 0 && fallback < total) targetIndex = fallback;
@@ -6486,7 +6729,6 @@ function navigateGalleryDate(dir) {
   if (idx === -1) idx = dir > 0 ? -1 : datesWithImages.length;
   const nextIdx = idx + dir;
   if (nextIdx < 0 || nextIdx >= datesWithImages.length) {
-    // No adjacent date: fallback to image movement within same date/gallery list.
     const nextImageIdx = (state.gallery.currentIndex || 0) + dir;
     if (nextImageIdx >= 0 && nextImageIdx < (state.gallery.images || []).length) {
       state.gallery.currentIndex = nextImageIdx;
@@ -6527,7 +6769,11 @@ function updateGalleryDateArrows() {
   document.getElementById('gallery-date-next').disabled = !(hasNextDate || hasNextImage);
 }
 
-// ── GALLERY V2: TAG CLOUD ────────────────────────────────────
+
+```
+
+## File: `static\js\gallery-tags.js`
+```js
 function renderGalleryTagCloud() {
   const chips = document.getElementById('gv2-tag-cloud-chips');
   const modeBtn = document.getElementById('gv2-tc-mode-btn');
@@ -6590,7 +6836,6 @@ function renderGalleryTagCloud() {
   if (clearBtn) clearBtn.style.display = hasFilter ? '' : 'none';
 }
 
-// ── GALLERY V2: TAGS TRAY ─────────────────────────────────────
 function renderGalleryTagsTray() {
   const body = document.getElementById('gv2-tags-tray-body');
   if (!body) return;
@@ -6600,7 +6845,7 @@ function renderGalleryTagsTray() {
   const imgInfo = getCurrentGalleryImageTagInfo();
   const imageAssignedSet = new Set(imgInfo.imageTags);
   const selectedMarqueeTagSet = getSelectedMarqueeTagSet();
-  const marqueeMode = isMarqueeSelectionActive() && selectedMarqueeTagSet.size > 0;
+  const marqueeMode = isMarqueeSelectionActive();
   const currentImageTagSet = marqueeMode ? selectedMarqueeTagSet : new Set(imgInfo.all);
   refreshMarqueeTagSuggestions();
   const groups = state.tagGroups || {};
@@ -6621,7 +6866,6 @@ function renderGalleryTagsTray() {
       getImageTagsForUrl(tr, url).forEach(bumpTagCount);
       const boxes = tr?.marqueeBoxes?.[url];
       (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
-      // Defensive fallback for legacy placements.
       if (!boxes) getMarqueeTagsForImage(url, dateKey, rowIdx).forEach(bumpTagCount);
     });
   });
@@ -6632,6 +6876,10 @@ function renderGalleryTagsTray() {
       (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
       if (!boxes) getMarqueeTagsForImage(url, dateKey, null).forEach(bumpTagCount);
     });
+  });
+
+  Array.from(tagUsageCount.keys()).forEach(t => {
+    if (!state.allTags.includes(t)) state.allTags.push(t);
   });
 
   const normalizeGroups = () => {
@@ -6661,29 +6909,20 @@ function renderGalleryTagsTray() {
     renderGalleryTagsTray();
   };
 
-  const groupColor = (grpName) => {
-    if (!grpName) return '';
-    const palette = ['#58a6ff', '#2ea043', '#e3a22a', '#f78166', '#a371f7', '#ff7b72', '#56d4dd'];
-    const h = String(grpName).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return palette[h % palette.length];
-  };
-
   const createTagChip = (tag, grpName = '') => {
     const chip = document.createElement('span');
     chip.className = 'gv2-tt-tag-chip';
+    const countVal = tagUsageCount.get(tag) || 0;
+    const isFreq = countVal > 5;
     const lbl = document.createElement('span');
     lbl.textContent = tag;
+    if (isFreq) lbl.style.color = '#ff6b6b';
     const cnt = document.createElement('span');
     cnt.className = 'gv2-tt-tag-count';
-    cnt.textContent = String(tagUsageCount.get(tag) || 0);
+    cnt.textContent = String(countVal);
+    if (isFreq) cnt.style.color = '#ff6b6b';
     chip.appendChild(lbl);
     chip.appendChild(cnt);
-    const gc = groupColor(grpName);
-    if (gc) {
-      chip.style.borderColor = gc + '88';
-      chip.style.color = gc;
-      chip.style.background = gc + '1A';
-    }
     if (currentImageTagSet.has(tag)) chip.classList.add('selected-on-image');
     if (marqueeMode) {
       if (currentImageTagSet.has(tag)) chip.title = 'Tag on selected marquee';
@@ -6748,10 +6987,31 @@ function renderGalleryTagsTray() {
       const availableGroups = Object.keys(state.tagGroups).filter(g => !(state.tagGroups[g] || []).includes(tag));
       const inGroups = Object.keys(state.tagGroups).filter(g => (state.tagGroups[g] || []).includes(tag));
       const items = [
-        { label: '✏ Rename tag', action: () => {
-          const newTag = prompt('Rename tag:', tag);
-          if (newTag && newTag.trim() && newTag.trim() !== tag) renameTagEverywhere(tag, newTag.trim());
-        }}
+        {
+          label: '✏ Rename tag', action: () => {
+            const newTag = prompt('Rename tag:', tag);
+            if (newTag && newTag.trim() && newTag.trim() !== tag) renameTagEverywhere(tag, newTag.trim());
+          }
+        },
+        {
+          label: '🗑 Delete globally', action: async () => {
+            if (confirm(`Delete tag "${tag}" globally from all images and records?`)) {
+              if (typeof deleteImageTagGlobal === 'function') {
+                deleteImageTagGlobal(tag);
+                state.allTags = (state.allTags || []).filter(t => t !== tag);
+                Object.keys(state.tagGroups).forEach(g => {
+                  state.tagGroups[g] = (state.tagGroups[g] || []).filter(t => t !== tag);
+                });
+                saveTagGroups();
+                await saveTrades();
+                renderGalleryTagCloud();
+                renderGalleryTagsTray();
+                renderTable();
+                renderCalendar();
+              }
+            }
+          }
+        }
       ];
       if (availableGroups.length) {
         items.push('sep');
@@ -6784,7 +7044,6 @@ function renderGalleryTagsTray() {
 
   normalizeGroups();
 
-  // Grouped sections
   groupNames.forEach(grpName => {
     const grp = document.createElement('div');
     grp.className = 'gv2-tt-group';
@@ -6795,6 +7054,8 @@ function renderGalleryTagsTray() {
     lbl.textContent = grpName;
     lbl.title = 'Right-click to rename';
     lbl.style.cursor = 'pointer';
+    lbl.style.color = '#58a6ff';
+    lbl.style.fontWeight = 'bold';
     lbl.addEventListener('contextmenu', e => {
       showCtxMenu(e, [{
         label: '✏ Rename group', action: () => {
@@ -6843,7 +7104,6 @@ function renderGalleryTagsTray() {
     body.appendChild(grp);
   });
 
-  // Ungrouped section (always visible)
   const groupedTags = new Set(Object.values(state.tagGroups).flat());
   const ungroupedTags = allTags.filter(t => !groupedTags.has(t));
   const sec = document.createElement('div');
@@ -6874,9 +7134,186 @@ function renderGalleryTagsTray() {
   }
 }
 
+function renderGalleryTagFilterPanel() {
+  const panel = document.getElementById('gallery-img-tag-filter-panel');
+  if (!panel) return;
+  panel.innerHTML = '';
+
+  const allTags = state.allTags || [];
+  if (!allTags.length) {
+    panel.innerHTML = '<p class="panel-hint" style="padding:10px 8px">No tags yet.</p>';
+    const btn = document.getElementById('gallery-img-tag-filter-btn');
+    if (btn) {
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+    return;
+  }
+
+  const searchRow = document.createElement('div');
+  searchRow.className = 'panel-search-row';
+  const searchInp = document.createElement('input');
+  searchInp.className = 'panel-search';
+  searchInp.placeholder = 'Search tags...';
+  searchRow.appendChild(searchInp);
+  panel.appendChild(searchRow);
+
+  const actRow = document.createElement('div');
+  actRow.className = 'panel-act-row';
+  const btnNone = document.createElement('button');
+  btnNone.className = 'panel-act-btn';
+  btnNone.textContent = 'Clear Filter';
+  btnNone.addEventListener('click', () => {
+    state.gallery.tagFilter = [];
+    applyGalleryImageScopeByTagFilter();
+    renderGallery();
+    renderGalleryTagCloud();
+    renderGalleryTagFilterPanel(); // Re-render to clear checkboxes
+  });
+  actRow.appendChild(btnNone);
+  panel.appendChild(actRow);
+
+  const list = document.createElement('div');
+  list.className = 'panel-list';
+
+  // Extract render logic to handle searching
+  const renderFilterList = (query) => {
+    list.innerHTML = '';
+    const ql = (query || '').toLowerCase();
+
+    // Group tags logic similar to tray, but plain list for filter
+    const groups = state.tagGroups || {};
+    const groupNames = Object.keys(groups);
+
+    // Flatten an ordered list of tags by groups + ungrouped
+    const renderedTags = new Set();
+
+    const renderListTag = (tag) => {
+      if (ql && !tag.toLowerCase().includes(ql)) return;
+      if (renderedTags.has(tag)) return;
+      renderedTags.add(tag);
+      const lbl = document.createElement('label');
+      lbl.className = 'head-checkbox';
+
+      // Tag Color
+      function _tagColor(name) {
+        const TAG_PALETTE = ['#3fb950', '#58a6ff', '#d29922', '#bc8cff', '#f85149', '#79b8ff', '#56d364', '#ffa657'];
+        let h = 0;
+        for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+        return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
+      }
+
+      const dot = document.createElement('span');
+      dot.className = 'tag-dot';
+      dot.style.background = _tagColor(tag);
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.includes(tag);
+      chk.addEventListener('change', () => {
+        let filter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+        if (chk.checked) {
+          if (!filter.includes(tag)) filter.push(tag);
+        } else {
+          filter = filter.filter(t => t !== tag);
+        }
+        state.gallery.tagFilter = filter;
+        applyGalleryImageScopeByTagFilter();
+        renderGallery();
+        renderGalleryTagCloud();
+        _updateFilterBtnColor();
+      });
+
+      lbl.appendChild(chk);
+      lbl.appendChild(dot);
+      lbl.appendChild(document.createTextNode(tag));
+      list.appendChild(lbl);
+    };
+
+    groupNames.forEach(grpName => {
+      const tags = (groups[grpName] || []).filter(t => allTags.includes(t));
+      const filteredTags = ql ? tags.filter(t => t.toLowerCase().includes(ql)) : tags;
+      if (filteredTags.length) {
+        const gLbl = document.createElement('div');
+        gLbl.className = 'panel-manage-label';
+        gLbl.style.marginTop = '6px';
+        gLbl.textContent = grpName;
+        list.appendChild(gLbl);
+        filteredTags.forEach(renderListTag);
+      }
+    });
+
+    const ungroupedTags = allTags.filter(t => !renderedTags.has(t));
+    const filteredUngrouped = ql ? ungroupedTags.filter(t => t.toLowerCase().includes(ql)) : ungroupedTags;
+    if (filteredUngrouped.length) {
+      if (groupNames.length) {
+        const gLbl = document.createElement('div');
+        gLbl.className = 'panel-manage-label';
+        gLbl.style.marginTop = '6px';
+        gLbl.textContent = 'Ungrouped';
+        list.appendChild(gLbl);
+      }
+      filteredUngrouped.forEach(renderListTag);
+    }
+  };
+
+  renderFilterList('');
+  searchInp.addEventListener('input', () => {
+    renderFilterList(searchInp.value);
+  });
+
+  searchInp.addEventListener('keydown', e => {
+    const items = Array.from(list.querySelectorAll('.head-checkbox'));
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      let activeIdx = items.findIndex(item => item.classList.contains('active-filter-item'));
+
+      if (activeIdx >= 0) items[activeIdx].classList.remove('active-filter-item');
+
+      if (e.key === 'ArrowDown') {
+        activeIdx = activeIdx < items.length - 1 ? activeIdx + 1 : 0;
+      } else {
+        activeIdx = activeIdx > 0 ? activeIdx - 1 : items.length - 1;
+      }
+
+      items[activeIdx].classList.add('active-filter-item');
+      items[activeIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const activeItem = list.querySelector('.head-checkbox.active-filter-item') || items[0];
+      if (activeItem) {
+        const chk = activeItem.querySelector('input[type="checkbox"]');
+        if (chk) {
+          chk.checked = !chk.checked;
+          chk.dispatchEvent(new Event('change'));
+        }
+      }
+    }
+  });
+
+  panel.appendChild(list);
+  _updateFilterBtnColor();
+
+  function _updateFilterBtnColor() {
+    const btn = document.getElementById('gallery-img-tag-filter-btn');
+    if (btn) {
+      const hasFilter = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+      btn.style.borderColor = hasFilter ? 'var(--blue)' : 'var(--border)';
+      btn.style.color = hasFilter ? 'var(--blue)' : '';
+    }
+  }
+}
+
+
+
+```
+
+## File: `static\js\gallery-data.js`
+```js
 function getImagesForDate(dateStr) {
   const out = [];
-  // Day-level images first
   (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
   getTradesForDate(dateStr).forEach(t => {
     (t.images || []).forEach(url => out.push(url));
@@ -7100,7 +7537,6 @@ function unpackMarqueeBoxes(stored, canvasW, canvasH) {
         tags: Array.isArray(b.tags) ? [...b.tags] : []
       };
     }
-    // Backward compatibility: previously stored as absolute px
     return {
       x: Math.max(0, Number(b?.x) || 0),
       y: Math.max(0, Number(b?.y) || 0),
@@ -7110,7 +7546,6 @@ function unpackMarqueeBoxes(stored, canvasW, canvasH) {
     };
   });
 
-  // Legacy absolute px migration: if boxes overflow current canvas a lot, scale them in.
   if (out.length) {
     const maxX = Math.max(...out.map(b => b.x + b.w));
     const maxY = Math.max(...out.map(b => b.y + b.h));
@@ -7229,16 +7664,18 @@ function renderGalleryImageTags() {
     imgLbl.textContent = 'Image:';
     box.appendChild(imgLbl);
     tags.forEach(tag => {
-      const c = tagColor(tag);
+      const isRed = tags.length > 5;
+      const c = isRed ? '#ff6b6b' : tagColor(tag);
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'gallery-img-tag-chip';
       chip.textContent = `${tag} x`;
       chip.style.color = c;
       chip.style.borderColor = hexToRgba(c, 0.45);
-      chip.style.background = hexToRgba(c, 0.16);
+      chip.style.background = isRed ? 'rgba(255, 107, 107, 0.16)' : hexToRgba(c, 0.16);
       chip.title = 'Remove tag from this image';
       chip.addEventListener('click', async () => {
+        window._lastDeletedImageTag = { tag, imgUrl, ownerType: info.ownerType, trade: info.trade, dateKey: info.dateKey, origTags: [...tags] };
         const next = tags.filter(t => t !== tag);
         if (info.ownerType === 'trade' && info.trade) setImageTagsForUrl(info.trade, imgUrl, next);
         else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
@@ -7285,46 +7722,124 @@ function isPermanentImageTag(tag) {
 }
 
 function renameImageTagGlobal(oldTag, newTag) {
+  const oTagLow = String(oldTag).toLowerCase();
   state.trades.forEach(t => {
     const store = ensureImageTagStore(t);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.map(x => (x === oldTag ? newTag : x));
+      const next = arr.map(x => (String(x).toLowerCase() === oTagLow ? newTag : x));
       store[url] = Array.from(new Set(next.filter(Boolean)));
       if (!store[url].length) delete store[url];
     });
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
+
+    state.tagColumns.forEach(c => {
+      if (typeof t[c] === 'string') {
+        let arr = t[c].split(',').map(x => x.trim()).filter(Boolean);
+        if (arr.some(x => x.toLowerCase() === oTagLow)) {
+          t[c] = arr.map(x => x.toLowerCase() === oTagLow ? newTag : x).join(',');
+        }
+      } else if (Array.isArray(t[c])) {
+        t[c] = t[c].map(x => String(x).toLowerCase() === oTagLow ? newTag : x);
+      }
+    });
+
   });
   Object.keys(state.dayData || {}).forEach(d => {
     const store = ensureDayImageTagStore(d);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.map(x => (x === oldTag ? newTag : x));
+      const next = arr.map(x => (String(x).toLowerCase() === oTagLow ? newTag : x));
       store[url] = Array.from(new Set(next.filter(Boolean)));
       if (!store[url].length) delete store[url];
     });
+
+    const day = state.dayData[d];
+    if (day && day.tags) {
+      Object.keys(day.tags).forEach(c => {
+        if (typeof day.tags[c] === 'string') {
+          let arr = day.tags[c].split(',').map(x => x.trim()).filter(Boolean);
+          if (arr.some(x => x.toLowerCase() === oTagLow)) {
+            day.tags[c] = arr.map(x => x.toLowerCase() === oTagLow ? newTag : x).join(',');
+          }
+        } else if (Array.isArray(day.tags[c])) {
+          day.tags[c] = day.tags[c].map(x => String(x).toLowerCase() === oTagLow ? newTag : x);
+        }
+      });
+    }
+
   });
 }
 
 function deleteImageTagGlobal(tagToDelete) {
+  const tLow = String(tagToDelete).toLowerCase();
+  window._lastDeletedGlobalTag = {
+    tag: tagToDelete,
+    trades: JSON.parse(JSON.stringify(state.trades)),
+    dayData: JSON.parse(JSON.stringify(state.dayData || {})),
+    allTags: [...state.allTags],
+    tagGroups: JSON.parse(JSON.stringify(state.tagGroups || {}))
+  };
   state.trades.forEach(t => {
     const store = ensureImageTagStore(t);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.filter(x => x !== tagToDelete);
+      const next = arr.filter(x => String(x).toLowerCase() !== tLow);
       if (next.length) store[url] = next;
       else delete store[url];
     });
+    const mb = ensureMarqueeBoxes(t);
+    Object.keys(mb).forEach(url => {
+      mb[url].forEach(box => {
+        if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+          box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+        }
+      });
+    });
+
+    state.tagColumns.forEach(c => {
+      if (typeof t[c] === 'string') {
+        const arr = t[c].split(',').map(x => x.trim()).filter(Boolean);
+        if (arr.some(x => String(x).toLowerCase() === tLow)) {
+          t[c] = arr.filter(x => String(x).toLowerCase() !== tLow).join(',');
+        }
+      } else if (Array.isArray(t[c])) {
+        t[c] = t[c].filter(x => String(x).toLowerCase() !== tLow);
+      }
+    });
+
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
   });
   Object.keys(state.dayData || {}).forEach(d => {
     const store = ensureDayImageTagStore(d);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.filter(x => x !== tagToDelete);
+      const next = arr.filter(x => String(x).toLowerCase() !== tLow);
       if (next.length) store[url] = next;
       else delete store[url];
     });
+    const mb = ensureDayMarqueeBoxes(d);
+    Object.keys(mb).forEach(url => {
+      mb[url].forEach(box => {
+        if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+          box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+        }
+      });
+    });
+
+    const day = state.dayData[d];
+    if (day && day.tags) {
+      Object.keys(day.tags).forEach(c => {
+        if (typeof day.tags[c] === 'string') {
+          const arr = day.tags[c].split(',').map(x => x.trim()).filter(Boolean);
+          if (arr.some(x => String(x).toLowerCase() === tLow)) {
+            day.tags[c] = arr.filter(x => String(x).toLowerCase() !== tLow).join(',');
+          }
+        } else if (Array.isArray(day.tags[c])) {
+          day.tags[c] = day.tags[c].filter(x => String(x).toLowerCase() !== tLow);
+        }
+      });
+    }
   });
 }
 
@@ -7374,6 +7889,7 @@ function renderImageTagModal() {
       normalizeAllTagsFromTrades();
       await saveTrades();
       renderGalleryImageTags();
+      renderTagFilterPanel();
       renderTable();
       renderCalendar();
       renderImageTagModal();
@@ -7390,6 +7906,8 @@ function renderImageTagModal() {
     hint.textContent = 'No tags yet';
     currentWrap.appendChild(hint);
   }
+
+
 
   all.forEach(tag => {
     const row = document.createElement('div');
@@ -7467,9 +7985,64 @@ async function addImageTagFromModal() {
   renderImageTagModal();
 }
 
-// â”€â”€ IMAGE ANNOTATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+document.addEventListener('keydown', e => {
+  const isTyping = document.activeElement &&
+    (document.activeElement.tagName === 'INPUT' ||
+      document.activeElement.tagName === 'TEXTAREA' ||
+      document.activeElement.isContentEditable);
+
+  // Global Ctrl+Z to undo deleted image tags
+  if (!isTyping && (e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) {
+    if (!annotState.active) {
+      if (window._lastDeletedImageTag) {
+        e.preventDefault();
+        const p = window._lastDeletedImageTag;
+        if (p.ownerType === 'trade' && p.trade) setImageTagsForUrl(p.trade, p.imgUrl, p.origTags);
+        else if (p.ownerType === 'day' && p.dateKey) setDayImageTagsForUrl(p.dateKey, p.imgUrl, p.origTags);
+        if (!state.allTags.includes(p.tag)) state.allTags.push(p.tag);
+        normalizeAllTagsFromTrades();
+        window._lastDeletedImageTag = null;
+        saveTrades().then(() => {
+          if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+          if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          renderTable();
+          renderCalendar();
+          showToast(`Tag '${p.tag}' restored on image`, 'success');
+        });
+        return;
+      } else if (window._lastDeletedGlobalTag) {
+        e.preventDefault();
+        const g = window._lastDeletedGlobalTag;
+        state.trades = g.trades;
+        state.dayData = g.dayData;
+        state.allTags = g.allTags;
+        state.tagGroups = g.tagGroups;
+        window._lastDeletedGlobalTag = null;
+        saveTrades().then(() => {
+          if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+          if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          if (typeof renderImageTagModal === 'function') {
+            const modal = document.getElementById('img-tag-modal');
+            if (modal && modal.classList.contains('open')) renderImageTagModal();
+          }
+          renderTable();
+          renderCalendar();
+          showToast(`Global tag '${g.tag}' restored`, 'success');
+        });
+        return;
+      }
+    }
+  }
+});
+
+
+```
+
+## File: `static\js\annotate.js`
+```js
 function toggleAnnotation() {
-  // If currently in text mode, one click should switch back to drawing tools.
   if (annotState.active && annotState.tool === 'text') {
     commitActiveCanvasTextEditor();
     const textBar = document.getElementById('gv2-text-bar');
@@ -7482,14 +8055,49 @@ function toggleAnnotation() {
     return;
   }
 
-  if (annotState.active) stopAnnotation();
-  else {
+  if (annotState.active) {
+    if (annotState.tool === 'marquee') {
+      const mqBar = document.getElementById('gv2-marquee-bar');
+      if (mqBar) mqBar.style.display = 'none';
+      document.getElementById('gv2-marquee-btn').classList.remove('active');
+    }
+    stopAnnotation();
+  } else {
     annotState.tool = 'pen';
     startAnnotation();
   }
 }
 
+function toggleMarquee() {
+  if (annotState.active && annotState.tool === 'marquee') {
+    stopAnnotation();
+    return;
+  }
+
+  if (!annotState.active) {
+    annotState.tool = 'marquee';
+    startAnnotation();
+  } else {
+    setAnnotTool('marquee');
+  }
+
+  const mqBar = document.getElementById('gv2-marquee-bar');
+  if (mqBar) mqBar.style.display = 'flex';
+  const annotBar = document.getElementById('gv2-annot-bar');
+  if (annotBar) annotBar.style.display = 'none';
+  const tb = document.getElementById('gv2-text-bar');
+  if (tb) tb.style.display = 'none';
+
+  document.getElementById('gv2-marquee-btn').classList.add('active');
+  document.getElementById('gv2-annotate-btn').classList.remove('active');
+  document.getElementById('gv2-text-btn').classList.remove('active');
+
+  const inp = document.getElementById('gv2-mq-tag-input');
+  if (inp) setTimeout(() => inp.focus(), 50);
+}
+
 function setAnnotTool(tool) {
+  const _prevTool = annotState.tool;
   annotState.tool = tool;
   if (tool !== 'marquee') {
     annotState.multiSelectMode = false;
@@ -7499,6 +8107,8 @@ function setAnnotTool(tool) {
   document.querySelectorAll('.annot-tool').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('annot-' + tool);
   if (btn) btn.classList.add('active');
+  const mqBtn = document.getElementById('gv2-marquee-btn');
+  if (mqBtn) mqBtn.classList.toggle('active', tool === 'marquee');
   if (!annotState.active) return;
   const textBar = document.getElementById('gv2-text-bar');
   const mqBar = document.getElementById('gv2-marquee-bar');
@@ -7512,8 +8122,15 @@ function setAnnotTool(tool) {
   if (tool === 'marquee') {
     if (canvas) {
       const ctx = canvas.getContext('2d');
-      // Always refresh base from current canvas so switching from brush preserves latest strokes.
-      annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      if (_prevTool !== 'marquee') {
+        // Switching FROM pen/eraser/text TO marquee — always re-capture current canvas.
+        // This preserves any pen strokes drawn while in the other tool mode.
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      } else if (!annotState.marqueeRasterBase) {
+        // Already in marquee mode but rasterBase was cleared — capture fresh.
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      }
+      // If _prevTool === 'marquee' and rasterBase exists: keep it (no re-capture).
       renderMarqueeScene(ctx);
     }
   }
@@ -7774,16 +8391,41 @@ function renderMarqueeScene(ctx, previewBox = null, selectRect = null) {
 async function rebindCurrentImageOverlayToMarquee(ctx, canvas) {
   if (!annotState.active || !annotState.imageUrl || !ctx || !canvas) return false;
 
+  const hadLocalOverlay = !!(state._localOverlays?.[annotState.imageUrl]);
+  const penOnlyUrl = state._penOnlyOverlays?.[annotState.imageUrl];
   const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
   if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
 
-  // Detach flattened overlay and keep only editable marquee layer.
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  renderMarqueeScene(ctx);
+  if (!removed && !hadLocalOverlay && annotState.marqueeRasterBase) {
+    // No overlay existed — restore in-memory pen strokes directly
+    ctx.putImageData(annotState.marqueeRasterBase, 0, 0);
+    annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
+  } else if (penOnlyUrl) {
+    // Overlay existed (flat baked image) — restore pen-only layer saved at stopAnnotation
+    await new Promise(resolve => {
+      const _pi = new Image();
+      _pi.onload = () => {
+        ctx.drawImage(_pi, 0, 0, canvas.width, canvas.height);
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        renderMarqueeScene(ctx);
+        resolve();
+      };
+      _pi.onerror = () => {
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        renderMarqueeScene(ctx);
+        resolve();
+      };
+      _pi.src = penOnlyUrl;
+    });
+  } else {
+    // No pen strokes to restore — just show clean editable boxes
+    annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
+  }
 
-  // Prevent old flattened pixels from autosaving back.
-  annotState.dirty = false;
+  annotState.dirty = canvasHasVisibleInk(canvas) || annotState.marqueeBoxes.length > 0;
 
   if (removed) {
     await saveTrades();
@@ -7837,7 +8479,6 @@ function startAnnotation() {
   const canvas = document.getElementById('annot-canvas');
   const toolbar = document.getElementById('gv2-annot-bar'); // V2: floating bar
 
-  // Size canvas to match current rendered image
   const left = img.offsetLeft;
   const top = img.offsetTop;
   const w = Math.round(img.clientWidth || img.naturalWidth || 0);
@@ -7854,7 +8495,6 @@ function startAnnotation() {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, w, h);
 
-  // Load existing overlay for this image if any
   const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
   annotState.imageUrl = imgUrl || '';
   annotState.date = state.gallery.date || '';
@@ -7889,8 +8529,25 @@ function startAnnotation() {
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(ovImg, 0, 0, w, h);
       if (annotState.marqueeBoxes.length) {
-        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        renderMarqueeScene(ctx);
+        const _penUrl = state._penOnlyOverlays?.[imgUrl];
+        if (_penUrl) {
+          const _penImg = new Image();
+          _penImg.onload = () => {
+            const _tc = document.createElement('canvas');
+            _tc.width = canvas.width; _tc.height = canvas.height;
+            _tc.getContext('2d').drawImage(_penImg, 0, 0, _tc.width, _tc.height);
+            annotState.marqueeRasterBase = _tc.getContext('2d').getImageData(0, 0, _tc.width, _tc.height);
+            renderMarqueeScene(ctx);
+          };
+          _penImg.onerror = () => {
+            annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            renderMarqueeScene(ctx);
+          };
+          _penImg.src = _penUrl;
+        } else {
+          annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          renderMarqueeScene(ctx);
+        }
       }
     };
     ovImg.src = overlayUrl;
@@ -7902,7 +8559,6 @@ function startAnnotation() {
   annotState.active = true;
   annotState.history = [];
 
-  // Show annotation bar or text bar based on tool
   if (annotState.tool === 'text') {
     const annotBar = document.getElementById('gv2-annot-bar');
     if (annotBar) annotBar.style.display = 'none';
@@ -7910,23 +8566,27 @@ function startAnnotation() {
     const textBar = document.getElementById('gv2-text-bar');
     if (textBar) textBar.style.display = 'flex';
     document.getElementById('gv2-text-btn').classList.add('active');
+  } else if (annotState.tool === 'marquee') {
+    const annotBar = document.getElementById('gv2-annot-bar');
+    if (annotBar) annotBar.style.display = 'none';
+    document.getElementById('gv2-annotate-btn').classList.remove('active');
+    const textBar = document.getElementById('gv2-text-bar');
+    if (textBar) textBar.style.display = 'none';
+    document.getElementById('gv2-text-btn').classList.remove('active');
+    const jqBar = document.getElementById('gv2-marquee-bar');
+    if (jqBar) jqBar.style.display = 'flex';
+    document.getElementById('gv2-marquee-btn').classList.add('active');
   } else {
     const textBar = document.getElementById('gv2-text-bar');
     if (textBar) textBar.style.display = 'none';
     document.getElementById('gv2-text-btn').classList.remove('active');
-    // Show annotation bar (new V2 floating bar)
     const annotBar = document.getElementById('gv2-annot-bar');
     if (annotBar) annotBar.style.display = 'flex';
     document.getElementById('gv2-annotate-btn').classList.add('active');
-    // Preserve active tool after reopen; prefer marquee when marquee boxes exist.
-    const preferredTool = annotState.marqueeBoxes.length ? 'marquee' : (annotState.tool || 'pen');
     setAnnotTool(preferredTool);
   }
-  const mqBar = document.getElementById('gv2-marquee-bar');
-  if (mqBar) mqBar.style.display = annotState.tool === 'marquee' ? 'flex' : 'none';
   updateMarqueeMultiSelectButton();
 
-  // Enable drawing on canvas, disable zoom/pan on image
   canvas.style.pointerEvents = 'auto';
   canvas.style.cursor = shouldUseBrushCursor() ? 'none' : 'crosshair';
   applyZoom();
@@ -7960,6 +8620,7 @@ function stopAnnotation() {
 
   document.getElementById('gv2-annotate-btn').classList.remove('active');
   document.getElementById('gv2-text-btn').classList.remove('active');
+  document.getElementById('gv2-marquee-btn').classList.remove('active');
   document.getElementById('gallery-img').style.pointerEvents = '';
   annotState.textEditorActive = false;
   if (!state._marqueeBoxes) state._marqueeBoxes = {};
@@ -7968,6 +8629,17 @@ function stopAnnotation() {
     const packed = packMarqueeBoxes(annotState.marqueeBoxes || [], canvas?.width || 1, canvas?.height || 1);
     setMarqueeBoxesForImage(annotState.imageUrl, packed, annotState.date, annotState.sourceRow);
     if (session.dirty) saveTrades();
+    // Save pen-only raster (before box renders) so Rebind can restore it after navigation
+    if (annotState.marqueeBoxes.length && annotState.marqueeRasterBase) {
+      try {
+        const _poc = document.createElement('canvas');
+        _poc.width = canvas?.width || 1;
+        _poc.height = canvas?.height || 1;
+        _poc.getContext('2d').putImageData(annotState.marqueeRasterBase, 0, 0);
+        if (!state._penOnlyOverlays) state._penOnlyOverlays = {};
+        state._penOnlyOverlays[annotState.imageUrl] = _poc.toDataURL('image/png');
+      } catch (_e) { }
+    }
   }
   annotState.imageUrl = '';
   annotState.date = '';
@@ -8028,6 +8700,8 @@ function bindAnnotationCanvas() {
         <button type="button" class="mq-ctx-color" data-color="#58a6ff" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#58a6ff;cursor:pointer"></button>
         <button type="button" class="mq-ctx-color" data-color="#f85149" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#f85149;cursor:pointer"></button>
       </div>
+      <div style="font-size:0.68rem;color:var(--text3);margin:8px 2px 4px">Add Tag (Enter to apply)</div>
+      <input type="text" id="mq-ctx-tag-inp" autocomplete="off" style="width:100%;box-sizing:border-box;padding:6px;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;margin-bottom:8px;" placeholder="Type tag..." />
       <button type="button" id="mq-ctx-close-tool" class="gv2-ab-btn" style="width:100%;justify-content:flex-start">Close Tool</button>
     `;
     document.body.appendChild(mqCtxMenu);
@@ -8108,6 +8782,42 @@ function bindAnnotationCanvas() {
       if (e.key === 'Escape') hideMarqueeContextMenu();
     });
 
+    const mqInp = mqCtxMenu.querySelector('#mq-ctx-tag-inp');
+    mqInp.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = mqInp.value.trim();
+        if (val) {
+          const targets = getSelectedMarqueeIndexes().includes(mqCtxIdx) ? getSelectedMarqueeIndexes() : [mqCtxIdx];
+          targets.forEach(i => {
+            const b = annotState.marqueeBoxes[i];
+            if (b) {
+              b.tags = b.tags || [];
+              if (!b.tags.includes(val)) b.tags.push(val);
+            }
+          });
+          if (!state.allTags.includes(val)) state.allTags.push(val);
+          if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
+          annotState.dirty = true;
+          persistMarqueeBoxesToState();
+          const ctx = canvas.getContext('2d');
+          renderMarqueeScene(ctx);
+          if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+          if (typeof renderGalleryTagCloud === 'function') renderGalleryTagCloud();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          if (typeof renderTable === 'function') renderTable();
+        }
+        mqInp.value = '';
+        hideMarqueeContextMenu();
+        canvas.focus();
+      } else if (e.key === 'Escape') {
+        mqInp.value = '';
+        hideMarqueeContextMenu();
+        canvas.focus();
+      }
+    });
+
     return mqCtxMenu;
   }
 
@@ -8115,6 +8825,10 @@ function bindAnnotationCanvas() {
     const menu = ensureMarqueeContextMenu();
     mqCtxIdx = idx;
     menu.style.display = 'block';
+
+    const inp = menu.querySelector('#mq-ctx-tag-inp');
+    if (inp) inp.value = '';
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const rect = menu.getBoundingClientRect();
@@ -8149,7 +8863,6 @@ function bindAnnotationCanvas() {
     if (alignBtn.classList.contains('align-center')) align = 'center';
     else if (alignBtn.classList.contains('align-right')) align = 'right';
 
-    // Remove zoom so sizing works exactly as expected
     const scale = zoom.scale || 1;
 
     textarea.style.position = 'absolute';
@@ -8172,7 +8885,6 @@ function bindAnnotationCanvas() {
     textarea.rows = 1;
     textarea.style.minWidth = '50px';
     textarea.style.lineHeight = '1.2';
-    // Match transform origin and scale if image is zoomed
     textarea.style.transform = `scale(${1 / scale})`;
     textarea.style.transformOrigin = 'top left';
 
@@ -8233,7 +8945,6 @@ function bindAnnotationCanvas() {
       const selectedBefore = getSelectedMarqueeIndexes();
 
       if (annotState.multiSelectMode) {
-        // In V mode: drag-select by default. Only move when clicking inside already selected group.
         if (picked >= 0 && selectedBefore.includes(picked)) {
           annotState.drawing = true;
           annotState.marqueeDragStartX = pos.x;
@@ -8294,7 +9005,6 @@ function bindAnnotationCanvas() {
     }
 
     const ctx = canvas.getContext('2d');
-    // Save undo snapshot
     annotState.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     if (annotState.history.length > 40) annotState.history.shift();
 
@@ -8490,10 +9200,11 @@ function bindAnnotationCanvas() {
   canvas.addEventListener('touchmove', doDraw, { passive: false });
   canvas.addEventListener('touchend', endDraw);
 
-  // Annotation toolbar controls
   document.getElementById('gv2-annotate-btn').addEventListener('click', toggleAnnotation);
+  const mqTopBtn = document.getElementById('gv2-marquee-btn');
+  if (mqTopBtn) mqTopBtn.addEventListener('click', toggleMarquee);
 
-  ['pen', 'highlight', 'eraser', 'marquee'].forEach(tool => {
+  ['pen', 'highlight', 'eraser'].forEach(tool => {
     document.getElementById('annot-' + tool).addEventListener('click', () => {
       setAnnotTool(tool);
     });
@@ -8528,6 +9239,7 @@ function bindAnnotationCanvas() {
     annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (!state._marqueeBoxes) state._marqueeBoxes = {};
     state._marqueeBoxes[annotState.imageUrl] = [];
+    if (state._penOnlyOverlays) delete state._penOnlyOverlays[annotState.imageUrl];
     annotState.dirty = true;
   });
 
@@ -8553,14 +9265,12 @@ function bindAnnotationCanvas() {
     await rebindCurrentImageOverlayToMarquee(ctx, canvas);
   });
   if (mqDel) mqDel.addEventListener('click', () => {
-    // Close marquee sub-mode (top delete icon on selected box handles deletion)
     if (!annotState.active) return;
-    setAnnotTool('pen');
+    toggleMarquee();
   });
 
   updateAnnotToolIcons();
 
-  // Text Bar Events
   const tbBold = document.getElementById('gv2-tb-bold');
   if (tbBold) tbBold.addEventListener('click', () => tbBold.classList.toggle('active'));
 
@@ -8590,7 +9300,6 @@ async function saveAnnotOverlay() {
   const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
   if (!imgUrl) { showToast('No image selected', 'error'); return; }
 
-  // Upload overlay PNG to server
   canvas.toBlob(async blob => {
     const fd = new FormData();
     fd.append('image', blob, 'overlay.png');
@@ -8615,14 +9324,12 @@ async function saveAnnotMerge() {
   const img = document.getElementById('gallery-img');
   const trade = getOwnerTradeForGalleryImage();
 
-  // Merge annotation onto original image at full resolution
   const out = document.createElement('canvas');
   out.width = img.naturalWidth;
   out.height = img.naturalHeight;
   const ctx = out.getContext('2d');
 
   ctx.drawImage(img, 0, 0, out.width, out.height);
-  // Scale annotation canvas to original resolution
   ctx.drawImage(canvas, 0, 0, out.width, out.height);
 
   out.toBlob(async blob => {
@@ -8632,7 +9339,6 @@ async function saveAnnotMerge() {
       const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
       const data = await res.json();
       if (!data.url) throw new Error();
-      // Add merged image as NEW entry (keep original intact)
       const imgs = state.gallery.images;
       imgs.push(data.url);
       if (trade) {
@@ -8649,7 +9355,6 @@ async function saveAnnotMerge() {
   }, 'image/png');
 }
 
-// â”€â”€ ZOOM / PAN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const zoom = { scale: 1, x: 0, y: 0 };
 const drag = { active: false, startX: 0, startY: 0, originX: 0, originY: 0 };
 
@@ -8684,10 +9389,8 @@ function bindZoomPan() {
       const wRect = wrapper.getBoundingClientRect();
       const mouseX = e.clientX - wRect.left;
       const mouseY = e.clientY - wRect.top;
-      // Image-space point under cursor (with transformOrigin: top left)
       const imgX = (mouseX - zoom.x) / zoom.scale;
       const imgY = (mouseY - zoom.y) / zoom.scale;
-      // New offset: keep that point fixed under the cursor
       zoom.x = mouseX - imgX * newScale;
       zoom.y = mouseY - imgY * newScale;
       zoom.scale = newScale;
@@ -8777,12 +9480,16 @@ function bindZoomPan() {
   }, { passive: true });
 }
 
-// â”€â”€ UPLOAD MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+```
+
+## File: `static\js\io.js`
+```js
+
 function openUploadModal(rowIdx) {
   syncTradeDateField(state.trades[rowIdx]);
   state.uploadRow = rowIdx;
   state._dayUploadKey = null;
-  state.pendingFiles = [...(state.trades[rowIdx].images || [])];
+  state.pendingFiles = []; // Start empty instead of existing images
   document.getElementById('upload-modal-title').textContent = `Images â€” ${state.trades[rowIdx].date || `Row ${rowIdx + 1}`}`;
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
@@ -8791,7 +9498,7 @@ function openUploadModal(rowIdx) {
 function openDayUploadModal(dateKey) {
   state.uploadRow = null;
   state._dayUploadKey = dateKey;
-  state.pendingFiles = [...((state.dayData[dateKey] || {}).images || [])];
+  state.pendingFiles = []; // Start empty instead of existing images
   document.getElementById('upload-modal-title').textContent = `Images â€” ${dateKey}`;
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
@@ -8875,7 +9582,6 @@ function bindRowImageDrop(rowEl, rowIdx) {
   rowEl.addEventListener('dragleave', () => rowEl.classList.remove('row-drop-target'));
   rowEl.addEventListener('drop', async e => {
     rowEl.classList.remove('row-drop-target');
-    // Internal image drag (move/copy between rows)
     const internal = e.dataTransfer.getData('tj-img');
     if (internal) {
       e.preventDefault();
@@ -8892,7 +9598,6 @@ function bindRowImageDrop(rowEl, rowIdx) {
       } catch (err) { }
       return;
     }
-    // External file drop
     const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
     if (!files.length) return;
     e.preventDefault();
@@ -8900,7 +9605,6 @@ function bindRowImageDrop(rowEl, rowIdx) {
   });
 }
 
-// Row drag handles: reorder state.trades
 let _rowDragSrcIdx = null;
 let _rowDropTarget = null;
 let _rowDropPos = null; // 'before' | 'after'
@@ -8910,7 +9614,6 @@ document.addEventListener('mouseup', () => { _rowDragFromHandle = false; }, true
 function bindTableRowDrag(tr, rowIdx, body) {
   tr.setAttribute('draggable', 'true');
   tr.addEventListener('dragstart', e => {
-    // Only proceed if the drag originated from the handle span
     if (!_rowDragFromHandle) { e.preventDefault(); return; }
     _rowDragFromHandle = false;
     _rowDragSrcIdx = rowIdx;
@@ -8922,7 +9625,6 @@ function bindTableRowDrag(tr, rowIdx, body) {
     tr.classList.remove('dragging');
     body.querySelectorAll('.row-drop-before, .row-drop-after').forEach(r => r.classList.remove('row-drop-before', 'row-drop-after'));
     if (_rowDragSrcIdx !== null && _rowDropTarget !== null) {
-      // Find actual current indices
       const srcTrade = state.trades[_rowDragSrcIdx];
       const tgtTrade = _rowDropTarget.__tradeRef;
       if (srcTrade && tgtTrade && srcTrade !== tgtTrade) {
@@ -8952,7 +9654,6 @@ function bindTableRowDrag(tr, rowIdx, body) {
   tr.addEventListener('drop', e => { e.preventDefault(); });
 }
 
-// â”€â”€ EXCEL IMPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function importExcel(file) {
   const fd = new FormData(); fd.append('file', file);
   try {
@@ -9079,7 +9780,6 @@ async function importDhanCsv(file) {
   }
 }
 
-// â”€â”€ JSON IMPORT (Restore) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function importJson(file) {
   const fd = new FormData(); fd.append('file', file);
   try {
@@ -9113,7 +9813,6 @@ function backupJson() {
   window.location.href = url;
 }
 
-// â”€â”€ EXCEL EXPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function exportExcel() {
   if (!state.trades.length) { showToast('No data to export', 'error'); return; }
   try {
@@ -9156,14 +9855,12 @@ async function exportStructuredCsv() {
   }
 }
 
-// â”€â”€ TOAST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let toastTimer = null;
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
 }
 
-// â”€â”€ DROPDOWN HELPER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function setupDropdown(btnId, menuId) {
   const btn = document.getElementById(btnId);
   const menu = document.getElementById(menuId);
@@ -9175,9 +9872,12 @@ function closeAllDropdowns(except) {
   document.querySelectorAll('.dropdown-menu.open').forEach(m => { if (m.id !== except) m.classList.remove('open'); });
 }
 
-// â”€â”€ EVENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+```
+
+## File: `static\js\events.js`
+```js
 function bindEvents() {
-  // Calendar nav
   document.getElementById('month-select').addEventListener('change', e => {
     state.month = parseInt(e.target.value);
     renderCalendar();
@@ -9230,12 +9930,10 @@ function bindEvents() {
     renderTable();
   });
 
-  // Show heads
   document.getElementById('show-heads-btn').addEventListener('click', e => {
     e.stopPropagation(); document.getElementById('show-heads-panel').classList.toggle('open');
   });
 
-  // Dropdowns
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
   setupDropdown('add-dropdown-btn', 'add-dropdown-menu');
   setupDropdown('col-vis-btn', 'col-vis-panel');
@@ -9243,7 +9941,6 @@ function bindEvents() {
   setupDropdown('broker-filter-btn-top', 'broker-filter-menu-top');
   setupDropdown('dashboard-stats-btn', 'dashboard-stats-menu');
 
-  // Close all on outside click
   document.addEventListener('click', () => {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
@@ -9256,7 +9953,6 @@ function bindEvents() {
   const dashStatsMenu = document.getElementById('dashboard-stats-menu');
   if (dashStatsMenu) dashStatsMenu.addEventListener('click', e => e.stopPropagation());
 
-  // Tag filter dropdown + tag picker
   setupDropdown('tag-filter-btn', 'tag-filter-panel');
   document.querySelectorAll('.broker-filter-item').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -9292,7 +9988,6 @@ function bindEvents() {
     if (e.target === e.currentTarget) closeTagPicker();
   });
 
-  // File actions
   document.getElementById('import-btn').addEventListener('click', () => document.getElementById('excel-input').click());
   document.getElementById('excel-input').addEventListener('change', e => { if (e.target.files[0]) importExcel(e.target.files[0]); e.target.value = ''; });
   document.getElementById('import-raw-csv-btn').addEventListener('click', () => document.getElementById('raw-csv-input').click());
@@ -9307,7 +10002,6 @@ function bindEvents() {
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
   document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
 
-  // Saved Views
   document.getElementById('save-view-btn').addEventListener('click', () => {
     const name = prompt('View ka naam likhein:');
     if (name && name.trim()) {
@@ -9317,7 +10011,6 @@ function bindEvents() {
   });
   renderViewsPanel();
 
-  // Add row
   document.getElementById('add-row-btn').addEventListener('click', () => {
     const today = new Date().toISOString().slice(0, 10);
     const row = { date: today, trade_date: today, images: [] };
@@ -9328,7 +10021,6 @@ function bindEvents() {
     closeAllDropdowns('__none__');
   });
 
-  // Add tag column (same popup flow as Add Column, prefilled as "Tags")
   document.getElementById('add-tag-col-btn').addEventListener('click', () => {
     state.addTagColumnMode = true;
     document.getElementById('add-col-modal').classList.add('open');
@@ -9338,7 +10030,6 @@ function bindEvents() {
     closeAllDropdowns('__none__');
   });
 
-  // Add column modal
   document.getElementById('add-col-btn').addEventListener('click', () => {
     state.addTagColumnMode = false;
     document.getElementById('add-col-modal').classList.add('open');
@@ -9360,7 +10051,6 @@ function bindEvents() {
     });
   });
 
-  // Edit column modal
   document.getElementById('edit-col-btn').addEventListener('click', () => {
     openEditColumnModal();
     closeAllDropdowns('__none__');
@@ -9393,7 +10083,6 @@ function bindEvents() {
     document.getElementById(id).addEventListener('click', () => document.getElementById('edit-col-modal').classList.remove('open'));
   });
 
-  // Filter toggle
   document.getElementById('filter-toggle-btn').addEventListener('click', () => {
     state.filterVisible = !state.filterVisible;
     const btn = document.getElementById('filter-toggle-btn');
@@ -9402,7 +10091,6 @@ function bindEvents() {
     renderTable();
   });
 
-  // Note column quick toggle
   const _noteToggleBtn = document.getElementById('note-col-toggle-btn');
   function _updateNoteToggleBtn() {
     if (!_noteToggleBtn) return;
@@ -9421,7 +10109,6 @@ function bindEvents() {
     _updateNoteToggleBtn();
   }
 
-  // Date range filter
   const _drFrom = document.getElementById('date-range-from');
   const _drTo = document.getElementById('date-range-to');
   const _drClear = document.getElementById('date-range-clear');
@@ -9448,7 +10135,14 @@ function bindEvents() {
   });
   _loadDateRange();
 
-  // Gallery nav
+  setupDropdown('gallery-show-heads-btn', 'gallery-show-heads-panel');
+  const galleryHeadsPanel = document.getElementById('gallery-show-heads-panel');
+  if (galleryHeadsPanel) galleryHeadsPanel.addEventListener('click', e => e.stopPropagation());
+
+  setupDropdown('gallery-img-tag-filter-btn', 'gallery-img-tag-filter-panel');
+  const galleryFilterPanel = document.getElementById('gallery-img-tag-filter-panel');
+  if (galleryFilterPanel) galleryFilterPanel.addEventListener('click', e => e.stopPropagation());
+
   document.getElementById('gallery-prev').addEventListener('click', () => navigateGallery(-1));
   document.getElementById('gallery-next').addEventListener('click', () => navigateGallery(1));
   document.getElementById('gallery-date-prev').addEventListener('click', () => navigateGalleryDate(-1));
@@ -9465,7 +10159,6 @@ function bindEvents() {
       renderGallery(); updateGalleryDateArrows();
     } else { showToast('No images for this date', ''); }
   });
-  // Gallery upload button â€” opens upload modal for current gallery date
   document.getElementById('gallery-upload-btn').addEventListener('click', () => {
     if (!state.gallery.date) return;
     let rowIdx = state.trades.findIndex(t => normalizeDate(extractDateFromTrade(t)) === state.gallery.date);
@@ -9474,7 +10167,6 @@ function bindEvents() {
       rowIdx = state.trades.indexOf(trade);
       saveTrades();
     }
-    // After upload-done, refresh gallery
     state._galleryUploadCallback = () => {
       state.gallery.images = getImagesForDate(state.gallery.date);
       renderGallery();
@@ -9505,9 +10197,7 @@ function bindEvents() {
     document.getElementById('gallery-modal').classList.remove('open');
     unlockBodyScroll();
   });
-  // V2: no click-on-overlay-to-close (it's fullscreen now)
 
-  // V2: Tags tray toggle (T key also handled in keydown)
   document.getElementById('gv2-tags-btn').addEventListener('click', () => {
     const tray = document.getElementById('gv2-tags-tray');
     const btn = document.getElementById('gv2-tags-btn');
@@ -9517,7 +10207,6 @@ function bindEvents() {
     if (open) renderGalleryTagsTray();
   });
 
-  // V2: Text bar toggle
   document.getElementById('gv2-text-btn').addEventListener('click', () => {
     const bar = document.getElementById('gv2-text-bar');
     const mqBar = document.getElementById('gv2-marquee-bar');
@@ -9527,7 +10216,6 @@ function bindEvents() {
     if (!isTextModeOpen) {
       commitActiveCanvasTextEditor();
       if (annotState.active && annotState.tool !== 'text') {
-        // Switch active annotation session from drawing -> text
         const annotBar = document.getElementById('gv2-annot-bar');
         if (annotBar) annotBar.style.display = 'none';
         document.getElementById('gv2-annotate-btn').classList.remove('active');
@@ -9548,21 +10236,18 @@ function bindEvents() {
     }
   });
 
-  // V2: Tag cloud filter mode toggle (OR / AND)
   document.getElementById('gv2-tc-mode-btn').addEventListener('click', () => {
     state.gallery.filterMode = state.gallery.filterMode === 'or' ? 'and' : 'or';
     applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
     renderGalleryTagCloud(); renderGallery();
   });
 
-  // V2: Clear tag filter
   document.getElementById('gv2-tc-clear-btn').addEventListener('click', () => {
     state.gallery.tagFilter = [];
     applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
     renderGalleryTagCloud(); renderGallery();
   });
 
-  // V2: Observation button
   document.getElementById('gv2-obs-btn').addEventListener('click', () => {
     const d = state.gallery.date;
     if (d) {
@@ -9572,7 +10257,6 @@ function bindEvents() {
     }
   });
 
-  // V2: Add tag group
   document.getElementById('gv2-add-grp-btn').addEventListener('click', () => {
     const name = prompt('New group name:');
     if (!name || !name.trim()) return;
@@ -9586,7 +10270,6 @@ function bindEvents() {
     renderGalleryTagsTray();
   });
 
-  // Tag chip size +/-
   const TAG_SZ_KEY = 'tj_tagChipSize';
   const TAG_SZ_MIN = 0.55, TAG_SZ_MAX = 1.2, TAG_SZ_STEP = 0.07;
   function applyTagChipSize(sz) {
@@ -9605,7 +10288,6 @@ function bindEvents() {
   if (szPlus) szPlus.addEventListener('click', () => applyTagChipSize(getTagChipSize() + TAG_SZ_STEP));
   if (szMinus) szMinus.addEventListener('click', () => applyTagChipSize(getTagChipSize() - TAG_SZ_STEP));
 
-  // Table font size (select dropdown)
   const TBL_FONT_KEY = 'tj_tblFontSize';
   const TBL_FONT_OPTS = [0.72, 0.78, 0.85, 0.95, 1.05];
   function applyTblFontSize(sz) {
@@ -9614,7 +10296,6 @@ function bindEvents() {
     document.documentElement.style.setProperty('--table-font-size', sz + 'rem');
     const sel = document.getElementById('s-tbl-font-size');
     if (sel) {
-      // snap to nearest option
       const nearest = TBL_FONT_OPTS.reduce((a, b) => Math.abs(b - sz) < Math.abs(a - sz) ? b : a);
       sel.value = String(nearest);
     }
@@ -9624,7 +10305,6 @@ function bindEvents() {
   const tblFontSel = document.getElementById('s-tbl-font-size');
   if (tblFontSel) tblFontSel.addEventListener('change', () => applyTblFontSize(parseFloat(tblFontSel.value)));
 
-  // Table row height +/-
   const ROW_H_KEY = 'tj_rowHeight';
   const ROW_H_MIN = 24, ROW_H_MAX = 80, ROW_H_STEP = 4;
   function applyRowHeight(h) {
@@ -9641,8 +10321,7 @@ function bindEvents() {
   if (rowHPlus) rowHPlus.addEventListener('click', () => applyRowHeight(getRowHeight() + ROW_H_STEP));
   if (rowHMinus) rowHMinus.addEventListener('click', () => applyRowHeight(getRowHeight() - ROW_H_STEP));
 
-  // Settings panel drag-to-resize
-  (function() {
+  (function () {
     const handle = document.getElementById('settings-resize-handle');
     const panel = document.querySelector('.settings-panel');
     if (!handle || !panel) return;
@@ -9668,8 +10347,7 @@ function bindEvents() {
     });
   })();
 
-  // Tags tray drag-to-resize
-  (function() {
+  (function () {
     const handle = document.getElementById('gv2-tray-resize-handle');
     const tray = document.getElementById('gv2-tags-tray');
     if (!handle || !tray) return;
@@ -9693,22 +10371,18 @@ function bindEvents() {
       _resizing = false;
       handle.classList.remove('dragging');
       localStorage.setItem(TRAY_W_KEY, String(parseInt(tray.style.width, 10) || 220));
-      // Re-render overlay so marquee boxes reposition to the new image display size
       requestAnimationFrame(() => {
         if (typeof loadOverlayForCurrentImage === 'function') loadOverlayForCurrentImage();
       });
     });
   })();
 
-  // Observation modal
   bindObsToolbar();
   document.getElementById('obs-save').addEventListener('click', () => saveObservation(true));
-  // Cancel = discard (explicit user action), everything else auto-saves
   document.getElementById('obs-cancel').addEventListener('click', () => {
     document.getElementById('obs-modal').classList.remove('open');
   });
   document.getElementById('obs-close').addEventListener('click', () => saveObservation(true));
-  // Only close when BOTH mousedown and click land on the backdrop (not when text-select drags outside)
   let _obsMousedownOnBg = false;
   document.getElementById('obs-modal').addEventListener('mousedown', e => {
     _obsMousedownOnBg = e.target === e.currentTarget;
@@ -9717,14 +10391,12 @@ function bindEvents() {
     if (e.target === e.currentTarget && _obsMousedownOnBg) saveObservation(true);
     _obsMousedownOnBg = false;
   });
-  // Obs date navigation
   document.getElementById('obs-date-prev').addEventListener('click', () => navigateObsDate(-1));
   document.getElementById('obs-date-next').addEventListener('click', () => navigateObsDate(1));
   document.getElementById('obs-date-picker').addEventListener('change', e => {
     if (e.target.value) { saveObservation(false); openObsModal(e.target.value); }
   });
 
-  // Upload modal â€” browse button fix (prevent double-trigger)
   document.getElementById('image-file-input').addEventListener('change', async e => { await handleImageFiles(Array.from(e.target.files)); e.target.value = ''; });
   const dz = document.getElementById('upload-drop-zone');
   dz.addEventListener('click', e => {
@@ -9741,12 +10413,14 @@ function bindEvents() {
   document.getElementById('upload-done-btn').addEventListener('click', async () => {
     if (state._dayUploadKey) {
       if (!state.dayData[state._dayUploadKey]) state.dayData[state._dayUploadKey] = {};
-      state.dayData[state._dayUploadKey].images = [...state.pendingFiles];
+      if (!state.dayData[state._dayUploadKey].images) state.dayData[state._dayUploadKey].images = [];
+      state.dayData[state._dayUploadKey].images.push(...state.pendingFiles);
       await saveTrades(); render();
       showToast('Images saved!', 'success');
       state._dayUploadKey = null;
     } else if (state.uploadRow !== null) {
-      state.trades[state.uploadRow].images = [...state.pendingFiles];
+      if (!state.trades[state.uploadRow].images) state.trades[state.uploadRow].images = [];
+      state.trades[state.uploadRow].images.push(...state.pendingFiles);
       cleanupImageTagStore(state.trades[state.uploadRow]);
       syncTradeDateField(state.trades[state.uploadRow]);
       saveTrades();
@@ -9754,12 +10428,10 @@ function bindEvents() {
       showToast('Images saved!', 'success');
     }
     document.getElementById('upload-modal').classList.remove('open');
-    // Refresh gallery if it was opened from there
     if (state._galleryUploadCallback) { state._galleryUploadCallback(); state._galleryUploadCallback = null; }
   });
   ['upload-cancel-btn', 'upload-close'].forEach(id => document.getElementById(id).addEventListener('click', () => document.getElementById('upload-modal').classList.remove('open')));
   document.getElementById('upload-modal').addEventListener('click', e => { if (e.target === e.currentTarget) document.getElementById('upload-modal').classList.remove('open'); });
-  // Clipboard paste support in upload modal
   document.getElementById('upload-modal').addEventListener('paste', async e => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -9767,7 +10439,6 @@ function bindEvents() {
     if (imgFiles.length) { e.preventDefault(); await handleImageFiles(imgFiles); showToast('Image pasted from clipboard', 'success'); }
   });
 
-  // Settings
   document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-overlay').classList.toggle('open'));
   document.getElementById('settings-close').addEventListener('click', () => document.getElementById('settings-overlay').classList.remove('open'));
   document.querySelectorAll('.shortcut-input').forEach(inp => {
@@ -9778,7 +10449,6 @@ function bindEvents() {
       const combo = eventToShortcut(e);
       if (combo) {
         inp.value = combo.replace(/\b\w/g, c => c.toUpperCase());
-        // Live-save: update state immediately so new shortcut works right away
         saveShortcuts(readShortcutsFromPanel());
       }
     });
@@ -9802,7 +10472,6 @@ function bindEvents() {
     document.getElementById('settings-overlay').classList.remove('open');
   });
 
-  // Show Heads defaults buttons in Settings
   const _applyHeadsPreset = (mode, preset) => {
     const obj = mode === 'consolidated' ? state.showHeadsConsolidated : state.showHeadsIndividual;
     state.columns.filter(c => c.toLowerCase() !== 'date').forEach(col => {
@@ -9820,7 +10489,6 @@ function bindEvents() {
   document.getElementById('s-heads-i-all').addEventListener('click', () => _applyHeadsPreset('individual', 'all'));
   document.getElementById('s-heads-i-none').addEventListener('click', () => _applyHeadsPreset('individual', 'none'));
 
-  // Keyboard
   document.addEventListener('keydown', e => {
     const galleryOpen = document.getElementById('gallery-modal').classList.contains('open');
     const imgTagModalOpen = document.getElementById('img-tag-modal')?.classList.contains('open');
@@ -9835,7 +10503,6 @@ function bindEvents() {
       return;
     }
 
-    // D — date picker: obs-modal gets obs-date-picker, gallery gets gallery-date-picker
     const obsModalOpen = document.getElementById('obs-modal').classList.contains('open');
     if (obsModalOpen && !galleryOpen && !typingInField && (e.key === 'd' || e.key === 'D') && !e.ctrlKey && !e.altKey) {
       e.preventDefault();
@@ -9900,12 +10567,6 @@ function bindEvents() {
         openGalleryImageTagManager();
         return;
       }
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'm' || e.key === 'M')) {
-        e.preventDefault();
-        if (!annotState.active) startAnnotation();
-        setAnnotTool('marquee');
-        return;
-      }
       if (!e.ctrlKey && !e.altKey && !typingInField && e.key === ']') {
         e.preventDefault();
         if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(+1);
@@ -9921,12 +10582,79 @@ function bindEvents() {
       if (e.key === 'ArrowRight') navigateGallery(1);
       if (e.key === 'r' || e.key === 'R') resetZoom();
       if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
-      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+
+      if (annotState.active) {
+        if (annotState.tool === 'marquee' && !typingInField && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          // Let the marquee typing handler in annotate.js process this.
+          return;
+        }
+      }
+
+      if (e.key === 'h' || e.key === 'H') {
+        if (annotState.active) return;
         e.preventDefault();
-        document.getElementById('gv2-tags-btn').click();
+        const toggleBtn = document.getElementById('gallery-show-heads-btn');
+        if (toggleBtn) toggleBtn.click();
+        return;
+      }
+      if ((e.key === 'i' || e.key === 'I') && !e.altKey && !e.ctrlKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        const btn = document.getElementById('gallery-upload-btn');
+        if (btn && btn.style.display !== 'none') btn.click();
+        return;
+      }
+      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        const toggleBtn = document.getElementById('gallery-img-tag-filter-btn');
+        if (toggleBtn) {
+          toggleBtn.click();
+          setTimeout(() => {
+            const panel = document.getElementById('gallery-img-tag-filter-panel');
+            if (panel && panel.classList.contains('open')) {
+              const inp = panel.querySelector('.panel-search');
+              if (inp) {
+                inp.focus();
+                inp.select();
+              }
+            }
+          }, 100);
+        }
+        return;
+      }
+      if ((e.key === 'm' || e.key === 'M') && !e.altKey && !e.ctrlKey) {
+        if (annotState.active && annotState.tool !== 'marquee') return;
+        e.preventDefault();
+        const mqBtn = document.getElementById('gv2-marquee-btn');
+        if (mqBtn) mqBtn.click();
+        return;
+      }
+      if (e.key === 'c' && !e.shiftKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        state.calendarMode = 'consolidated';
+        updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
+        if (typeof renderGalleryStats === 'function') renderGalleryStats();
+        showToast('Consolidated Mode', 'success');
+        return;
+      }
+      if ((e.key === 'C' || e.key === 'c') && e.shiftKey) {
+        e.preventDefault();
+        state.calendarMode = 'individual';
+        updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
+        if (typeof renderGalleryStats === 'function') renderGalleryStats();
+        showToast('Individual Mode', 'success');
         return;
       }
       if (e.key === 'Escape') {
+        const filterPanel = document.getElementById('gallery-img-tag-filter-panel');
+        if (filterPanel && filterPanel.classList.contains('open')) {
+          e.preventDefault();
+          const btn = document.getElementById('gallery-img-tag-filter-btn');
+          if (btn) btn.click();
+          return;
+        }
         if (state.gallery.tagFilter?.length) {
           e.preventDefault();
           state.gallery.tagFilter = [];
@@ -9936,26 +10664,26 @@ function bindEvents() {
           return;
         }
         if (annotState.active) { stopAnnotation(); return; }
+        if (document.getElementById('upload-modal')?.classList.contains('open')) {
+          document.getElementById('upload-modal').classList.remove('open');
+          return;
+        }
         document.getElementById('gallery-modal').classList.remove('open');
         unlockBodyScroll();
       }
     }
-    // C = Consolidated, Shift+C = Individual (only when not typing, no modal open)
     const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal']
       .some(id => document.getElementById(id)?.classList.contains('open'));
     if (!typingInField && !galleryOpen && !anyModalOpen && !e.ctrlKey && !e.altKey) {
       if (e.key === 'f' && !e.shiftKey) {
-        // F — toggle calendar full-screen view
         e.preventDefault();
         document.body.classList.toggle('calendar-full');
         document.body.classList.remove('table-full');
       } else if ((e.key === 'F' || (e.key === 'f' && e.shiftKey)) && !e.ctrlKey) {
-        // Shift+F — toggle table full-screen view
         e.preventDefault();
         const _enteringFull = !document.body.classList.contains('table-full');
         document.body.classList.toggle('table-full');
         document.body.classList.remove('calendar-full');
-        // Expand rows to 20 when entering full-screen; restore on exit
         if (_enteringFull) {
           document.documentElement.style.setProperty('--table-visible-rows', '20');
         } else {
@@ -9972,7 +10700,6 @@ function bindEvents() {
         state.calendarMode = 'individual';
         updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
       } else if (e.key === 'n' && !e.shiftKey) {
-        // N — open observation modal for the most recent trade date
         e.preventDefault();
         const tradeDates = state.trades
           .map(t => normalizeDate(extractDateFromTrade(t)))
@@ -9982,7 +10709,6 @@ function bindEvents() {
           : new Date().toISOString().slice(0, 10);
         openObsModal(target);
       } else if (e.key === 'i' && !e.shiftKey) {
-        // I — open image gallery for the latest date that has images
         e.preventDefault();
         const datesWImg = getDatesWithImages();
         if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);
@@ -9992,7 +10718,6 @@ function bindEvents() {
     if (e.key === 'Escape') {
       document.body.classList.remove('calendar-full', 'table-full');
       document.getElementById('settings-overlay').classList.remove('open');
-      // Escape on obs modal â†' auto-save (same as clicking X)
       if (document.getElementById('obs-modal').classList.contains('open')) saveObservation(true);
       state.addTagColumnMode = false;
       document.getElementById('add-col-modal').classList.remove('open');
@@ -10000,6 +10725,59 @@ function bindEvents() {
       if (document.getElementById('tag-modal').classList.contains('open')) closeTagPicker();
       if (document.getElementById('img-tag-modal').classList.contains('open')) closeGalleryImageTagManager();
       if (_notePop) closeNotePopup(true);
+    }
+  });
+
+  document.addEventListener('paste', async e => {
+    const galleryOpen = document.getElementById('gallery-modal').classList.contains('open');
+    if (!galleryOpen) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imgFiles = Array.from(items).filter(it => it.type.startsWith('image/')).map(it => it.getAsFile()).filter(Boolean);
+    if (!imgFiles.length) return;
+
+    e.preventDefault();
+    const ctx = getCurrentGalleryPreserveContext();
+    const targetDate = state.gallery.date || ctx.date;
+
+    if (!targetDate) {
+      showToast('Need a date context to paste image here', 'error');
+      return;
+    }
+
+    showToast('Uploading pasted image...', '');
+    let added = 0;
+
+    if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+    if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
+
+    for (const file of imgFiles) {
+      try {
+        const fd = new FormData();
+        fd.append('image', file);
+        const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.url) {
+          state.dayData[targetDate].images.push(data.url);
+          added++;
+          // Add to current gallery view directly so it shows up instantly
+          if (!state.gallery.images) state.gallery.images = [];
+          state.gallery.images.push(data.url);
+          if (state.gallery._baseImages) state.gallery._baseImages.push(data.url);
+          state.gallery.currentIndex = state.gallery.images.length - 1;
+        }
+      } catch (err) { }
+    }
+
+    if (added > 0) {
+      await saveTrades();
+      render();
+      renderGallery();
+      updateGalleryDateArrows();
+      showToast(`${added} image(s) pasted directly to ${targetDate}`, 'success');
     }
   });
 
@@ -10016,753 +10794,6 @@ function syncSelects() {
   if (ms) ms.disabled = state.calendarView === 'year';
 }
 
-// â”€â”€ START â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 init();
-
-```
-
-## File: `src.js`
-```js
-const fs = require('fs');
-
-const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trading Journal</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
-</head>
-<body>
-
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="logo">
-      <span class="logo-icon">&#9650;</span>
-      <span class="logo-text">Trading Journal</span>
-    </div>
-    <div class="header-actions">
-      <div class="dropdown-wrapper">
-        <button class="btn btn-outline" id="broker-filter-btn-top">Broker: Both &#9660;</button>
-        <div class="dropdown-menu" id="broker-filter-menu-top">
-          <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
-          <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
-          <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
-        </div>
-      </div>
-      <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
-      <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
-    </div>
-  </header>
-
-  <main class="app-main">
-
-    <!-- ── CALENDAR SECTION ─────────────────── -->
-    <section class="section calendar-section">
-      <div class="section-header">
-        <div class="calendar-nav">
-          <button class="nav-arrow" id="prev-month">&#8249;</button>
-          <select id="month-select" class="select-box"></select>
-          <select id="view-select" class="select-box">
-            <option value="month" selected>Month</option>
-            <option value="year">Year</option>
-          </select>
-          <select id="year-select" class="select-box"></select>
-          <button class="nav-arrow" id="next-month">&#8250;</button>
-          <button class="btn btn-outline" id="today-btn">Today</button>
-          <span class="range-label" id="month-range-label"></span>
-        </div>
-        <div class="show-heads-wrapper">
-          <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
-          <div class="show-heads-panel" id="show-heads-panel">
-            <p class="panel-hint">Import Excel to see columns</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="calendar-container" id="calendar-month-view">
-        <div class="calendar-weekdays">
-          <div>Mon</div><div>Tue</div><div>Wed</div>
-          <div>Thu</div><div>Fri</div>
-          <div class="weekend">Sat</div><div class="weekend">Sun</div>
-        </div>
-        <div class="calendar-grid" id="calendar-grid"></div>
-      </div>
-      <div class="calendar-yearly hidden" id="calendar-year-view"></div>
-    </section>
-
-    <!-- ── DASHBOARD SUMMARY ─────────────────── -->
-    <section class="section dashboard-section">
-      <div class="section-header dashboard-header">
-        <div class="dashboard-title">
-          <div class="section-title">Monthly Summary</div>
-          <div class="dashboard-subtitle" id="dashboard-subtitle">for -</div>
-        </div>
-        <div class="dashboard-actions">
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="dashboard-stats-btn">Stats &#9660;</button>
-            <div class="dropdown-menu" id="dashboard-stats-menu"></div>
-          </div>
-        </div>
-      </div>
-      <div class="dashboard-grid">
-        <div class="dash-card" data-stat="overall">
-          <div class="dash-label">Overall P&amp;L</div>
-          <div class="dash-value" id="dash-overall">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="net">
-          <div class="dash-label">Net P&amp;L</div>
-          <div class="dash-value" id="dash-net">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="trades">
-          <div class="dash-label">Total Trades</div>
-          <div class="dash-value dash-value-muted" id="dash-trades">0</div>
-        </div>
-        <div class="dash-card" data-stat="charges">
-          <div class="dash-label">Charges</div>
-          <div class="dash-value dash-value-muted" id="dash-charges">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="brokerage">
-          <div class="dash-label">Brokerage</div>
-          <div class="dash-value dash-value-muted" id="dash-brokerage">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="totalfees">
-          <div class="dash-label">Total Fees</div>
-          <div class="dash-value dash-value-muted" id="dash-totalfees">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="winrate">
-          <div class="dash-label">Win %</div>
-          <div class="dash-value dash-value-muted" id="dash-winrate">0%</div>
-        </div>
-        <div class="dash-card" data-stat="avg">
-          <div class="dash-label">Avg / Trade</div>
-          <div class="dash-value" id="dash-avg">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="avgwin">
-          <div class="dash-label">Avg Win</div>
-          <div class="dash-value" id="dash-avgwin">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="avgloss">
-          <div class="dash-label">Avg Loss</div>
-          <div class="dash-value" id="dash-avgloss">₹ 0.00</div>
-        </div>
-        <div class="dash-card" data-stat="best">
-          <div class="dash-label">Best Day</div>
-          <div class="dash-value" id="dash-best">₹ 0.00</div>
-          <div class="dash-subvalue" id="dash-best-date">-</div>
-        </div>
-        <div class="dash-card" data-stat="worst">
-          <div class="dash-label">Worst Day</div>
-          <div class="dash-value" id="dash-worst">₹ 0.00</div>
-          <div class="dash-subvalue" id="dash-worst-date">-</div>
-        </div>
-        <div class="dash-card" data-stat="dd">
-          <div class="dash-label">Max Drawdown</div>
-          <div class="dash-value" id="dash-dd">₹ 0.00</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── TRADE TABLE SECTION ─────────────── -->
-    <section class="section table-section">
-      <div class="section-header">
-        <h2 class="section-title">Trade Table</h2>
-        <div class="table-header-actions">
-
-          <!-- Date Range Filter -->
-          <div class="date-range-filter">
-            <input type="date" id="date-range-from" class="select-box date-range-input" title="From date" />
-            <span class="date-range-sep">&#8212;</span>
-            <input type="date" id="date-range-to" class="select-box date-range-input" title="To date" />
-            <button class="btn btn-outline date-range-clear" id="date-range-clear" title="Clear date filter">&#10005;</button>
-          </div>
-
-          <!-- Note column quick toggle -->
-          <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
-
-          <!-- Column Visibility -->
-          <div class="dropdown-wrapper" id="col-vis-wrapper">
-            <button class="btn btn-outline" id="col-vis-btn">Columns &#9660;</button>
-            <div class="dropdown-menu col-vis-panel" id="col-vis-panel">
-              <p class="panel-hint" style="margin:8px">Import Excel first</p>
-            </div>
-          </div>
-
-          <!-- Tag Filter -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="tag-filter-btn">&#127991; Tags &#9660;</button>
-            <div class="dropdown-menu tag-filter-panel" id="tag-filter-panel">
-              <p class="panel-hint" style="padding:10px 8px">No tags yet.<br>Add via Tags column.</p>
-            </div>
-          </div>
-
-          <!-- Filter toggle -->
-          <button class="btn btn-outline" id="filter-toggle-btn">&#9906; Filter</button>
-
-          <!-- Add dropdown -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="add-dropdown-btn">+ Add &#9660;</button>
-            <div class="dropdown-menu" id="add-dropdown-menu">
-              <button class="dropdown-item" id="add-row-btn">+ Add Row</button>
-              <button class="dropdown-item" id="add-tag-col-btn">+ Add Tag Column</button>
-              <button class="dropdown-item" id="add-col-btn">+ Add Column</button>
-              <button class="dropdown-item" id="edit-col-btn">&#9998; Edit Column</button>
-            </div>
-          </div>
-
-          <!-- File dropdown -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-primary" id="file-dropdown-btn">&#128193; File &#9660;</button>
-            <div class="dropdown-menu" id="file-dropdown-menu">
-              <button class="dropdown-item" id="import-btn">&#8679; Import Excel</button>
-              <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" />
-              <button class="dropdown-item" id="import-raw-csv-btn">&#8679; Zerodha Today CSV</button>
-              <input type="file" id="raw-csv-input" accept=".csv,text/csv" style="display:none" />
-              <button class="dropdown-item" id="import-historical-csv-btn">&#8679; Zerodha Historical CSV</button>
-              <input type="file" id="historical-csv-input" accept=".csv,text/csv" style="display:none" />
-              <button class="dropdown-item" id="import-dhan-csv-btn">&#8679; Dhan CSV</button>
-              <input type="file" id="dhan-csv-input" accept=".csv,text/csv" style="display:none" />
-              <button class="dropdown-item" id="export-btn">&#8681; Export Excel</button>
-              <button class="dropdown-item" id="export-structured-csv-btn">&#8681; Export Structured CSV</button>
-              <div class="dropdown-divider"></div>
-              <button class="dropdown-item" id="backup-btn">&#128190; Backup JSON</button>
-              <button class="dropdown-item" id="restore-btn">&#8635; Restore from JSON</button>
-              <input type="file" id="json-input" accept=".json" style="display:none" />
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="table-wrapper">
-        <table class="trade-table" id="trade-table">
-          <colgroup id="table-colgroup"></colgroup>
-          <thead><tr id="table-head-row"></tr><tr id="filter-row" class="filter-row hidden"></tr></thead>
-          <tbody id="table-body"></tbody>
-          <tfoot><tr id="table-foot-row"></tr></tfoot>
-        </table>
-        <div class="table-empty" id="table-empty">Import an Excel file or add rows to get started</div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ── SETTINGS PANEL ───────────────────── -->
-  <div class="settings-overlay" id="settings-overlay">
-    <div class="settings-panel">
-      <div class="settings-header">
-        <span class="settings-title">&#9881; Settings</span>
-        <button class="close-btn" id="settings-close">&#10005;</button>
-      </div>
-      <div class="settings-body">
-
-        <div class="settings-group">
-          <div class="settings-group-title">Calendar — Day Number</div>
-          <div class="settings-row">
-            <label>Size</label>
-            <select class="select-box" id="s-day-size">
-              <option value="H1">H1 — 1.4rem</option>
-              <option value="H2">H2 — 1.1rem</option>
-              <option value="H3" selected>H3 — 0.9rem</option>
-              <option value="H4">H4 — 0.75rem</option>
-              <option value="H5">H5 — 0.62rem</option>
-            </select>
-          </div>
-          <div class="settings-row">
-            <label>Bold</label>
-            <input type="checkbox" id="s-day-bold" class="settings-chk" checked />
-          </div>
-          <div class="settings-row">
-            <label>Position</label>
-            <select class="select-box" id="s-day-pos">
-              <option value="top-left" selected>Top Left</option>
-              <option value="top-center">Top Center</option>
-              <option value="top-right">Top Right</option>
-              <option value="bottom-left">Bottom Left</option>
-              <option value="bottom-right">Bottom Right</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Calendar — Data Text</div>
-          <div class="settings-row">
-            <label>Size</label>
-            <select class="select-box" id="s-data-size">
-              <option value="H1">H1 — 1.4rem</option>
-              <option value="H2">H2 — 1.1rem</option>
-              <option value="H3">H3 — 0.9rem</option>
-              <option value="H4" selected>H4 — 0.75rem</option>
-              <option value="H5">H5 — 0.62rem</option>
-            </select>
-          </div>
-          <div class="settings-row">
-            <label>Bold Values</label>
-            <input type="checkbox" id="s-data-bold" class="settings-chk" />
-          </div>
-          <div class="settings-row">
-            <label>Show Labels</label>
-            <input type="checkbox" id="s-show-labels" class="settings-chk" checked />
-            <span class="settings-hint">e.g. "Profit: 200"</span>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Calendar — Cell</div>
-          <div class="settings-row">
-            <label>Cell Height</label>
-            <select class="select-box" id="s-cell-height">
-              <option value="compact">Compact — 70px</option>
-              <option value="normal" selected>Normal — 100px</option>
-              <option value="spacious">Spacious — 140px</option>
-              <option value="roomy">Roomy — 180px</option>
-            </select>
-          </div>
-          <div class="settings-row">
-            <label>Sat/Sun Off</label>
-            <input type="checkbox" id="s-sat-sun-off" class="settings-chk" />
-            <span class="settings-hint">True = hide weekend columns in calendar</span>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Table</div>
-          <div class="settings-row">
-            <label>Visible Rows</label>
-            <select class="select-box" id="s-table-rows">
-              <option value="5" selected>5 rows</option>
-              <option value="8">8 rows</option>
-              <option value="10">10 rows</option>
-              <option value="12">12 rows</option>
-              <option value="15">15 rows</option>
-            </select>
-          </div>
-          <div class="settings-row">
-            <label>Group A Color</label>
-            <input type="color" id="s-group-a-color" class="settings-chk" value="#58a6ff" />
-          </div>
-          <div class="settings-row">
-            <label>Group B Color</label>
-            <input type="color" id="s-group-b-color" class="settings-chk" value="#ffffff" />
-          </div>
-          <div class="settings-row">
-            <label>Separator Color</label>
-            <input type="color" id="s-group-sep-color" class="settings-chk" value="#58a6ff" />
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Preview</div>
-          <div class="settings-preview">
-            <div class="preview-day-num" id="prev-day-num">25</div>
-            <div class="preview-data-item">Profit: +1,200</div>
-            <div class="preview-data-item">Trade: 3</div>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Preview Shortcuts</div>
-          <div class="settings-row">
-            <label>Pen</label>
-            <input type="text" id="sc-pen" class="shortcut-input" />
-          </div>
-          <div class="settings-row">
-            <label>Image Import</label>
-            <input type="text" id="sc-image" class="shortcut-input" />
-          </div>
-          <div class="settings-row">
-            <label>Eraser</label>
-            <input type="text" id="sc-eraser" class="shortcut-input" />
-          </div>
-          <div class="settings-row">
-            <label>Date Picker</label>
-            <input type="text" id="sc-date" class="shortcut-input" />
-          </div>
-          <div class="settings-row">
-            <label>Merge &amp; Save</label>
-            <input type="text" id="sc-merge" class="shortcut-input" />
-          </div>
-          <div class="settings-row">
-            <label>Overlay Save</label>
-            <input type="text" id="sc-overlay" class="shortcut-input" />
-          </div>
-          <div class="settings-row">
-            <label>Shift + Left/Right</label>
-            <span class="settings-hint">Date backward/forward</span>
-          </div>
-          <div class="settings-row">
-            <label>Alt + T</label>
-            <span class="settings-hint">Open Image Tag menu</span>
-          </div>
-          <div class="settings-row">
-            <label>Left/Right</label>
-            <span class="settings-hint">Previous/next image</span>
-          </div>
-          <div class="settings-row">
-            <label>A</label>
-            <span class="settings-hint">Toggle annotation mode</span>
-          </div>
-          <div class="settings-row">
-            <label>R</label>
-            <span class="settings-hint">Reset image zoom</span>
-          </div>
-          <div class="settings-row">
-            <label>Esc</label>
-            <span class="settings-hint">Close active popup/modal</span>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Global Shortcuts</div>
-          <div class="settings-row">
-            <label>F</label>
-            <span class="settings-hint">Calendar full-screen (Esc to exit)</span>
-          </div>
-          <div class="settings-row">
-            <label>Shift + F</label>
-            <span class="settings-hint">Trade table full-screen (Esc to exit)</span>
-          </div>
-          <div class="settings-row">
-            <label>N</label>
-            <span class="settings-hint">Open observation for latest trade date</span>
-          </div>
-          <div class="settings-row">
-            <label>I</label>
-            <span class="settings-hint">Open image gallery for latest date with images</span>
-          </div>
-          <div class="settings-row">
-            <label>C</label>
-            <span class="settings-hint">Switch to Consolidated calendar mode</span>
-          </div>
-          <div class="settings-row">
-            <label>Shift + C</label>
-            <span class="settings-hint">Switch to Individual calendar mode</span>
-          </div>
-          <div class="settings-row">
-            <label>Drag tag chip</label>
-            <span class="settings-hint">Move tag to another row (same column)</span>
-          </div>
-          <div class="settings-row">
-            <label>Ctrl + Drag tag chip</label>
-            <span class="settings-hint">Copy tag to another row (same column)</span>
-          </div>
-          <div class="settings-row">
-            <label>Drag image thumb</label>
-            <span class="settings-hint">Move image to another row</span>
-          </div>
-          <div class="settings-row">
-            <label>Ctrl + Drag image</label>
-            <span class="settings-hint">Copy image to another row</span>
-          </div>
-          <div class="settings-row">
-            <label>Esc</label>
-            <span class="settings-hint">Close any open modal / popup</span>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Page Layout</div>
-          <div class="settings-hint" style="padding:2px 0 8px">Drag to reorder sections on the page</div>
-          <div id="section-order-list" class="section-order-list">
-            <div class="section-order-item" data-section="calendar" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Calendar</div>
-            <div class="section-order-item" data-section="dashboard" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Monthly Summary</div>
-            <div class="section-order-item" data-section="table" draggable="true"><span class="section-order-handle">&#8942;&#8942;</span> Trade Table</div>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-title">Calendar — Show Heads Defaults</div>
-          <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-            <label style="font-size:0.82rem;color:var(--text2)">Consolidated Mode</label>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-outline" id="s-heads-c-plonly" style="font-size:0.74rem;padding:3px 9px">P/L Only</button>
-              <button class="btn btn-outline" id="s-heads-c-all"    style="font-size:0.74rem;padding:3px 9px">Show All</button>
-              <button class="btn btn-outline" id="s-heads-c-none"   style="font-size:0.74rem;padding:3px 9px">Hide All</button>
-            </div>
-          </div>
-          <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:8px">
-            <label style="font-size:0.82rem;color:var(--text2)">Individual Mode</label>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-outline" id="s-heads-i-plonly" style="font-size:0.74rem;padding:3px 9px">P/L Only</button>
-              <button class="btn btn-outline" id="s-heads-i-all"    style="font-size:0.74rem;padding:3px 9px">Show All</button>
-              <button class="btn btn-outline" id="s-heads-i-none"   style="font-size:0.74rem;padding:3px 9px">Hide All</button>
-            </div>
-          </div>
-        </div>
-
-        <button class="btn btn-primary s-apply-btn" id="s-apply">Apply</button>
-        <button class="btn btn-outline s-apply-btn" id="s-reset">Reset to Default</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── OBSERVATION MODAL ───────────────────── -->
-  <div class="modal-overlay" id="obs-modal">
-    <div class="modal-content obs-modal-content">
-
-      <!-- Header: date + nav -->
-      <div class="modal-header obs-modal-header">
-        <div class="obs-date-nav">
-          <button class="gallery-date-arrow" id="obs-date-prev" title="Previous">&#8249;</button>
-          <span class="obs-modal-date" id="obs-modal-date"></span>
-          <button class="gallery-date-arrow" id="obs-date-next" title="Next">&#8250;</button>
-          <input type="date" id="obs-date-picker" class="gallery-date-picker" title="Jump to date" />
-          <label class="obs-nav-toggle" title="Navigate only dates that have data">
-            <input type="checkbox" id="obs-data-only" checked /> Data only
-          </label>
-        </div>
-        <button class="close-btn" id="obs-close">&#10005;</button>
-      </div>
-
-      <!-- Toolbar row 1: text formatting -->
-      <div class="obs-toolbar">
-        <button class="obs-tool" data-cmd="bold" title="Bold"><b>B</b></button>
-        <button class="obs-tool" data-cmd="italic" title="Italic"><i>I</i></button>
-        <button class="obs-tool" data-cmd="underline" title="Underline"><u>U</u></button>
-        <div class="obs-tool-sep"></div>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="h1" title="H1">H1</button>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="h2" title="H2">H2</button>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="h3" title="H3">H3</button>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="h4" title="H4">H4</button>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="h5" title="H5">H5</button>
-        <button class="obs-tool" data-cmd="formatBlock" data-val="p" title="Normal">¶</button>
-        <div class="obs-tool-sep"></div>
-        <input type="number" id="obs-custom-size" class="obs-size-input" min="6" max="96" placeholder="px" title="Custom font size" />
-        <button class="obs-tool" id="obs-apply-size" title="Apply size">A↕</button>
-        <div class="obs-tool-sep"></div>
-        <button class="obs-tool" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
-        <button class="obs-tool" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
-        <div class="obs-tool-sep"></div>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#3fb950" title="Green" style="color:#3fb950">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#f85149" title="Red"   style="color:#f85149">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#58a6ff" title="Blue"  style="color:#58a6ff">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#d29922" title="Orange" style="color:#d29922">&#9679;</button>
-        <button class="obs-tool obs-color" data-cmd="foreColor" data-val="#bc8cff" title="Purple" style="color:#bc8cff">&#9679;</button>
-        <div class="obs-tool-sep"></div>
-        <button class="obs-tool" id="obs-insert-img" title="Insert image">&#128247;</button>
-        <input type="file" id="obs-img-input" accept="image/*" style="display:none" />
-        <button class="obs-tool" id="obs-insert-link" title="Insert link">&#128279;</button>
-        <div class="obs-tool-sep"></div>
-        <button class="obs-tool" data-cmd="removeFormat" title="Clear formatting">&#10005; Clear</button>
-      </div>
-
-      <div class="obs-editor" id="obs-editor" contenteditable="true" spellcheck="false"></div>
-
-      <!-- Per-trade notes (auto-populated from Note column) -->
-      <div id="obs-trade-notes" class="obs-trade-notes-wrap"></div>
-
-      <div class="obs-footer">
-        <button class="btn btn-outline" id="obs-cancel">Cancel</button>
-        <button class="btn btn-primary" id="obs-save">&#10003; Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ADD COLUMN MODAL ────────────────────── -->
-  <div class="modal-overlay" id="add-col-modal">
-    <div class="modal-content" style="width:360px">
-      <div class="modal-header">
-        <span>Add New Column</span>
-        <button class="close-btn" id="add-col-close">&#10005;</button>
-      </div>
-      <div style="padding:16px">
-        <input type="text" id="new-col-name" class="col-name-input" placeholder="Column name (e.g. Setup, Notes, RR)" />
-      </div>
-      <div class="upload-actions">
-        <button class="btn btn-outline" id="add-col-cancel">Cancel</button>
-        <button class="btn btn-primary" id="add-col-confirm">Add Column</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── EDIT COLUMN MODAL ────────────────────── -->
-  <div class="modal-overlay" id="edit-col-modal">
-    <div class="modal-content" style="width:380px">
-      <div class="modal-header">
-        <span>Edit Column Name</span>
-        <button class="close-btn" id="edit-col-close">&#10005;</button>
-      </div>
-      <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
-        <select id="edit-col-select" class="select-box"></select>
-        <input type="text" id="edit-col-name" class="col-name-input" placeholder="New column name" />
-      </div>
-      <div class="upload-actions">
-        <button class="btn btn-outline" id="edit-col-delete">Delete Column</button>
-        <button class="btn btn-outline" id="edit-col-cancel">Cancel</button>
-        <button class="btn btn-primary" id="edit-col-confirm">Save Name</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
-  <div class="modal-overlay gv2-modal" id="gallery-modal">
-
-    <!-- ① Global Button Tray (top, fixed) -->
-    <div class="gv2-tray">
-      <div class="gv2-tray-left">
-        <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
-        <span class="gv2-date-label" id="gallery-date"></span>
-        <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
-        <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
-      </div>
-      <div class="gv2-tray-btns">
-        <button class="gv2-tray-btn" id="gallery-upload-btn">&#11014; Upload</button>
-        <button class="gv2-tray-btn" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
-        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-btn" title="Annotation bar (A)">&#9998; Annotate</button>
-        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-text-btn" title="Text bar">T Text</button>
-        <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags tray (T)">&#127991; Tags</button>
-        <button class="gv2-tray-btn" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
-      </div>
-      <div class="gv2-tray-right">
-        <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
-        <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
-      </div>
-    </div>
-
-    <!-- ② Body -->
-    <div class="gv2-body">
-
-      <!-- Annotation Bar (floating left, toggled by A / gv2-annotate-btn) -->
-      <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
-        <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pen">&#9998;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-highlight" title="Highlight">&#9670;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Eraser">&#9003;</button>
-        <div class="gv2-ab-sep"></div>
-        <input type="color" id="annot-color" class="annot-color-input gv2-ab-color" value="#f85149" title="Color" />
-        <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range gv2-ab-range" title="Size" />
-        <span id="annot-size-label" class="annot-size-label gv2-ab-size-lbl">3</span>
-        <div class="gv2-ab-sep"></div>
-        <button class="annot-tool gv2-ab-btn" id="annot-undo" title="Undo">&#8617;</button>
-        <button class="annot-tool gv2-ab-btn" id="annot-clear" title="Clear">&#10005;</button>
-        <div class="gv2-ab-sep"></div>
-        <button class="gv2-ab-btn gv2-ab-save" id="annot-save-overlay" title="Save as overlay">&#128190;</button>
-        <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
-      </div>
-
-      <!-- Center column: image + tag cloud + thumbnails -->
-      <div class="gv2-center">
-
-        <!-- Main image area -->
-        <div class="gv2-img-area" id="gallery-img-wrapper">
-          <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
-          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
-          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
-          <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
-          <div class="gv2-img-counter" id="gallery-counter"></div>
-          <div class="gv2-img-tags" id="gallery-image-tags"></div>
-
-          <!-- Text Bar -->
-          <div class="gv2-text-bar" id="gv2-text-bar" style="display:none">
-            <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#ffffff" title="Text Color" />
-            <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
-            <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family" style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
-              <option value="Arial" selected>Arial</option>
-              <option value="Courier New">Courier</option>
-              <option value="Times New Roman">Times</option>
-              <option value="Impact">Impact</option>
-            </select>
-            <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
-            <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
-            <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
-          </div>
-        </div>
-
-        <!-- Tag Cloud (always visible) -->
-        <div class="gv2-tag-cloud" id="gv2-tag-cloud">
-          <span class="gv2-tc-label">Filter:</span>
-          <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
-          <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
-          <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005; Clear</button>
-        </div>
-
-        <!-- Thumbnail Tray -->
-        <div class="gv2-thumb-tray">
-          <div class="gv2-thumbs" id="gallery-thumbs"></div>
-        </div>
-
-      </div><!-- /gv2-center -->
-
-      <!-- Tags Tray (right panel, toggled by T) -->
-      <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
-        <div class="gv2-tt-hdr">
-          <span class="gv2-tt-title">Tags</span>
-          <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
-        </div>
-        <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
-      </div>
-
-    </div><!-- /gv2-body -->
-  </div><!-- /gallery-modal -->
-
-  <!-- ── IMAGE UPLOAD MODAL ───────────────────── -->
-  <div class="modal-overlay" id="upload-modal">
-    <div class="modal-content upload-modal-content">
-      <div class="modal-header">
-        <span id="upload-modal-title">Upload Images</span>
-        <button class="close-btn" id="upload-close">&#10005;</button>
-      </div>
-      <div class="upload-drop-zone" id="upload-drop-zone">
-        <div class="drop-icon">&#128247;</div>
-        <p>Drop images here or <span class="upload-label" id="upload-browse-label">browse</span></p>
-        <p class="upload-paste-hint">&#128203; Ctrl+V to paste an image from clipboard</p>
-        <input type="file" id="image-file-input" multiple accept="image/*" style="display:none" />
-      </div>
-      <div class="upload-preview" id="upload-preview"></div>
-      <div class="upload-actions">
-        <button class="btn btn-outline" id="upload-cancel-btn">Cancel</button>
-        <button class="btn btn-primary" id="upload-done-btn">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── TAG PICKER MODAL ─────────────── -->
-  <div class="modal-overlay" id="tag-modal">
-    <div class="modal-content tag-modal-content">
-      <div class="modal-header">
-        <span id="tag-modal-title">Tags</span>
-        <button class="close-btn" id="tag-picker-close-x">&#10005;</button>
-      </div>
-      <input type="text" id="tag-picker-inp" class="tag-picker-inp" placeholder="Search or create tag..." />
-      <div id="tag-picker-list" class="tag-picker-list"></div>
-      <div class="tag-picker-footer">
-        <button class="btn btn-outline" id="tag-picker-close-btn" style="width:100%;font-size:0.78rem;padding:5px">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Image Tag Manager Modal -->
-  <div class="modal-overlay" id="img-tag-modal">
-    <div class="modal-content tag-modal-content">
-      <div class="modal-header">
-        <span>Image Tags</span>
-        <button class="close-btn" id="img-tag-close-x">&#10005;</button>
-      </div>
-      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
-        <div class="panel-manage-label" style="margin-bottom:6px">Current Image</div>
-        <div id="img-tag-current-list" class="panel-list" style="max-height:180px"></div>
-      </div>
-      <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
-        <div class="panel-manage-label" style="margin-bottom:6px">Create Tag</div>
-        <div style="display:flex; gap:6px">
-          <input type="text" id="img-tag-new-name" class="tag-picker-inp" placeholder="New tag name..." style="border:1px solid var(--border2); border-radius:6px; padding:7px 9px" />
-          <button class="btn btn-primary" id="img-tag-add-btn" style="padding:6px 10px">Add</button>
-        </div>
-      </div>
-      <div style="padding:10px 12px">
-        <div class="panel-manage-label" style="margin-bottom:6px">Manage Tags</div>
-        <div id="img-tag-manage-list" class="panel-list" style="max-height:190px"></div>
-      </div>
-      <div class="tag-picker-footer">
-        <button class="btn btn-outline" id="img-tag-close-btn" style="width:100%;font-size:0.78rem;padding:5px">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-  <script src="/static/js/app.js"></script>
-</body>
-</html>`;
-
-fs.writeFileSync('templates/index.html', html, 'utf8');
 
 ```

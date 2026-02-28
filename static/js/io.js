@@ -3,7 +3,7 @@ function openUploadModal(rowIdx) {
   syncTradeDateField(state.trades[rowIdx]);
   state.uploadRow = rowIdx;
   state._dayUploadKey = null;
-  state.pendingFiles = [...(state.trades[rowIdx].images || [])];
+  state.pendingFiles = []; // Start empty instead of existing images
   document.getElementById('upload-modal-title').textContent = `Images â€” ${state.trades[rowIdx].date || `Row ${rowIdx + 1}`}`;
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
@@ -12,7 +12,7 @@ function openUploadModal(rowIdx) {
 function openDayUploadModal(dateKey) {
   state.uploadRow = null;
   state._dayUploadKey = dateKey;
-  state.pendingFiles = [...((state.dayData[dateKey] || {}).images || [])];
+  state.pendingFiles = []; // Start empty instead of existing images
   document.getElementById('upload-modal-title').textContent = `Images â€” ${dateKey}`;
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');

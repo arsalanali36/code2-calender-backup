@@ -11,14 +11,49 @@ function toggleAnnotation() {
     return;
   }
 
-  if (annotState.active) stopAnnotation();
-  else {
+  if (annotState.active) {
+    if (annotState.tool === 'marquee') {
+      const mqBar = document.getElementById('gv2-marquee-bar');
+      if (mqBar) mqBar.style.display = 'none';
+      document.getElementById('gv2-marquee-btn').classList.remove('active');
+    }
+    stopAnnotation();
+  } else {
     annotState.tool = 'pen';
     startAnnotation();
   }
 }
 
+function toggleMarquee() {
+  if (annotState.active && annotState.tool === 'marquee') {
+    stopAnnotation();
+    return;
+  }
+
+  if (!annotState.active) {
+    annotState.tool = 'marquee';
+    startAnnotation();
+  } else {
+    setAnnotTool('marquee');
+  }
+
+  const mqBar = document.getElementById('gv2-marquee-bar');
+  if (mqBar) mqBar.style.display = 'flex';
+  const annotBar = document.getElementById('gv2-annot-bar');
+  if (annotBar) annotBar.style.display = 'none';
+  const tb = document.getElementById('gv2-text-bar');
+  if (tb) tb.style.display = 'none';
+
+  document.getElementById('gv2-marquee-btn').classList.add('active');
+  document.getElementById('gv2-annotate-btn').classList.remove('active');
+  document.getElementById('gv2-text-btn').classList.remove('active');
+
+  const inp = document.getElementById('gv2-mq-tag-input');
+  if (inp) setTimeout(() => inp.focus(), 50);
+}
+
 function setAnnotTool(tool) {
+  const _prevTool = annotState.tool;
   annotState.tool = tool;
   if (tool !== 'marquee') {
     annotState.multiSelectMode = false;
@@ -28,6 +63,8 @@ function setAnnotTool(tool) {
   document.querySelectorAll('.annot-tool').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('annot-' + tool);
   if (btn) btn.classList.add('active');
+  const mqBtn = document.getElementById('gv2-marquee-btn');
+  if (mqBtn) mqBtn.classList.toggle('active', tool === 'marquee');
   if (!annotState.active) return;
   const textBar = document.getElementById('gv2-text-bar');
   const mqBar = document.getElementById('gv2-marquee-bar');
@@ -41,7 +78,15 @@ function setAnnotTool(tool) {
   if (tool === 'marquee') {
     if (canvas) {
       const ctx = canvas.getContext('2d');
-      annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      if (_prevTool !== 'marquee') {
+        // Switching FROM pen/eraser/text TO marquee — always re-capture current canvas.
+        // This preserves any pen strokes drawn while in the other tool mode.
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      } else if (!annotState.marqueeRasterBase) {
+        // Already in marquee mode but rasterBase was cleared — capture fresh.
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      }
+      // If _prevTool === 'marquee' and rasterBase exists: keep it (no re-capture).
       renderMarqueeScene(ctx);
     }
   }
@@ -302,14 +347,41 @@ function renderMarqueeScene(ctx, previewBox = null, selectRect = null) {
 async function rebindCurrentImageOverlayToMarquee(ctx, canvas) {
   if (!annotState.active || !annotState.imageUrl || !ctx || !canvas) return false;
 
+  const hadLocalOverlay = !!(state._localOverlays?.[annotState.imageUrl]);
+  const penOnlyUrl = state._penOnlyOverlays?.[annotState.imageUrl];
   const removed = removeOverlayForImage(annotState.imageUrl, annotState.date, annotState.sourceRow);
   if (state._localOverlays?.[annotState.imageUrl]) delete state._localOverlays[annotState.imageUrl];
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  renderMarqueeScene(ctx);
+  if (!removed && !hadLocalOverlay && annotState.marqueeRasterBase) {
+    // No overlay existed — restore in-memory pen strokes directly
+    ctx.putImageData(annotState.marqueeRasterBase, 0, 0);
+    annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
+  } else if (penOnlyUrl) {
+    // Overlay existed (flat baked image) — restore pen-only layer saved at stopAnnotation
+    await new Promise(resolve => {
+      const _pi = new Image();
+      _pi.onload = () => {
+        ctx.drawImage(_pi, 0, 0, canvas.width, canvas.height);
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        renderMarqueeScene(ctx);
+        resolve();
+      };
+      _pi.onerror = () => {
+        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        renderMarqueeScene(ctx);
+        resolve();
+      };
+      _pi.src = penOnlyUrl;
+    });
+  } else {
+    // No pen strokes to restore — just show clean editable boxes
+    annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    renderMarqueeScene(ctx);
+  }
 
-  annotState.dirty = false;
+  annotState.dirty = canvasHasVisibleInk(canvas) || annotState.marqueeBoxes.length > 0;
 
   if (removed) {
     await saveTrades();
@@ -413,8 +485,25 @@ function startAnnotation() {
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(ovImg, 0, 0, w, h);
       if (annotState.marqueeBoxes.length) {
-        annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        renderMarqueeScene(ctx);
+        const _penUrl = state._penOnlyOverlays?.[imgUrl];
+        if (_penUrl) {
+          const _penImg = new Image();
+          _penImg.onload = () => {
+            const _tc = document.createElement('canvas');
+            _tc.width = canvas.width; _tc.height = canvas.height;
+            _tc.getContext('2d').drawImage(_penImg, 0, 0, _tc.width, _tc.height);
+            annotState.marqueeRasterBase = _tc.getContext('2d').getImageData(0, 0, _tc.width, _tc.height);
+            renderMarqueeScene(ctx);
+          };
+          _penImg.onerror = () => {
+            annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            renderMarqueeScene(ctx);
+          };
+          _penImg.src = _penUrl;
+        } else {
+          annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          renderMarqueeScene(ctx);
+        }
       }
     };
     ovImg.src = overlayUrl;
@@ -433,6 +522,16 @@ function startAnnotation() {
     const textBar = document.getElementById('gv2-text-bar');
     if (textBar) textBar.style.display = 'flex';
     document.getElementById('gv2-text-btn').classList.add('active');
+  } else if (annotState.tool === 'marquee') {
+    const annotBar = document.getElementById('gv2-annot-bar');
+    if (annotBar) annotBar.style.display = 'none';
+    document.getElementById('gv2-annotate-btn').classList.remove('active');
+    const textBar = document.getElementById('gv2-text-bar');
+    if (textBar) textBar.style.display = 'none';
+    document.getElementById('gv2-text-btn').classList.remove('active');
+    const jqBar = document.getElementById('gv2-marquee-bar');
+    if (jqBar) jqBar.style.display = 'flex';
+    document.getElementById('gv2-marquee-btn').classList.add('active');
   } else {
     const textBar = document.getElementById('gv2-text-bar');
     if (textBar) textBar.style.display = 'none';
@@ -440,11 +539,8 @@ function startAnnotation() {
     const annotBar = document.getElementById('gv2-annot-bar');
     if (annotBar) annotBar.style.display = 'flex';
     document.getElementById('gv2-annotate-btn').classList.add('active');
-    const preferredTool = annotState.marqueeBoxes.length ? 'marquee' : (annotState.tool || 'pen');
     setAnnotTool(preferredTool);
   }
-  const mqBar = document.getElementById('gv2-marquee-bar');
-  if (mqBar) mqBar.style.display = annotState.tool === 'marquee' ? 'flex' : 'none';
   updateMarqueeMultiSelectButton();
 
   canvas.style.pointerEvents = 'auto';
@@ -480,6 +576,7 @@ function stopAnnotation() {
 
   document.getElementById('gv2-annotate-btn').classList.remove('active');
   document.getElementById('gv2-text-btn').classList.remove('active');
+  document.getElementById('gv2-marquee-btn').classList.remove('active');
   document.getElementById('gallery-img').style.pointerEvents = '';
   annotState.textEditorActive = false;
   if (!state._marqueeBoxes) state._marqueeBoxes = {};
@@ -488,6 +585,17 @@ function stopAnnotation() {
     const packed = packMarqueeBoxes(annotState.marqueeBoxes || [], canvas?.width || 1, canvas?.height || 1);
     setMarqueeBoxesForImage(annotState.imageUrl, packed, annotState.date, annotState.sourceRow);
     if (session.dirty) saveTrades();
+    // Save pen-only raster (before box renders) so Rebind can restore it after navigation
+    if (annotState.marqueeBoxes.length && annotState.marqueeRasterBase) {
+      try {
+        const _poc = document.createElement('canvas');
+        _poc.width = canvas?.width || 1;
+        _poc.height = canvas?.height || 1;
+        _poc.getContext('2d').putImageData(annotState.marqueeRasterBase, 0, 0);
+        if (!state._penOnlyOverlays) state._penOnlyOverlays = {};
+        state._penOnlyOverlays[annotState.imageUrl] = _poc.toDataURL('image/png');
+      } catch (_e) { }
+    }
   }
   annotState.imageUrl = '';
   annotState.date = '';
@@ -548,6 +656,8 @@ function bindAnnotationCanvas() {
         <button type="button" class="mq-ctx-color" data-color="#58a6ff" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#58a6ff;cursor:pointer"></button>
         <button type="button" class="mq-ctx-color" data-color="#f85149" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:#f85149;cursor:pointer"></button>
       </div>
+      <div style="font-size:0.68rem;color:var(--text3);margin:8px 2px 4px">Add Tag (Enter to apply)</div>
+      <input type="text" id="mq-ctx-tag-inp" autocomplete="off" style="width:100%;box-sizing:border-box;padding:6px;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;margin-bottom:8px;" placeholder="Type tag..." />
       <button type="button" id="mq-ctx-close-tool" class="gv2-ab-btn" style="width:100%;justify-content:flex-start">Close Tool</button>
     `;
     document.body.appendChild(mqCtxMenu);
@@ -628,6 +738,42 @@ function bindAnnotationCanvas() {
       if (e.key === 'Escape') hideMarqueeContextMenu();
     });
 
+    const mqInp = mqCtxMenu.querySelector('#mq-ctx-tag-inp');
+    mqInp.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = mqInp.value.trim();
+        if (val) {
+          const targets = getSelectedMarqueeIndexes().includes(mqCtxIdx) ? getSelectedMarqueeIndexes() : [mqCtxIdx];
+          targets.forEach(i => {
+            const b = annotState.marqueeBoxes[i];
+            if (b) {
+              b.tags = b.tags || [];
+              if (!b.tags.includes(val)) b.tags.push(val);
+            }
+          });
+          if (!state.allTags.includes(val)) state.allTags.push(val);
+          if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
+          annotState.dirty = true;
+          persistMarqueeBoxesToState();
+          const ctx = canvas.getContext('2d');
+          renderMarqueeScene(ctx);
+          if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+          if (typeof renderGalleryTagCloud === 'function') renderGalleryTagCloud();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          if (typeof renderTable === 'function') renderTable();
+        }
+        mqInp.value = '';
+        hideMarqueeContextMenu();
+        canvas.focus();
+      } else if (e.key === 'Escape') {
+        mqInp.value = '';
+        hideMarqueeContextMenu();
+        canvas.focus();
+      }
+    });
+
     return mqCtxMenu;
   }
 
@@ -635,6 +781,10 @@ function bindAnnotationCanvas() {
     const menu = ensureMarqueeContextMenu();
     mqCtxIdx = idx;
     menu.style.display = 'block';
+
+    const inp = menu.querySelector('#mq-ctx-tag-inp');
+    if (inp) inp.value = '';
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const rect = menu.getBoundingClientRect();
@@ -1007,8 +1157,10 @@ function bindAnnotationCanvas() {
   canvas.addEventListener('touchend', endDraw);
 
   document.getElementById('gv2-annotate-btn').addEventListener('click', toggleAnnotation);
+  const mqTopBtn = document.getElementById('gv2-marquee-btn');
+  if (mqTopBtn) mqTopBtn.addEventListener('click', toggleMarquee);
 
-  ['pen', 'highlight', 'eraser', 'marquee'].forEach(tool => {
+  ['pen', 'highlight', 'eraser'].forEach(tool => {
     document.getElementById('annot-' + tool).addEventListener('click', () => {
       setAnnotTool(tool);
     });
@@ -1043,6 +1195,7 @@ function bindAnnotationCanvas() {
     annotState.marqueeRasterBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (!state._marqueeBoxes) state._marqueeBoxes = {};
     state._marqueeBoxes[annotState.imageUrl] = [];
+    if (state._penOnlyOverlays) delete state._penOnlyOverlays[annotState.imageUrl];
     annotState.dirty = true;
   });
 
@@ -1069,7 +1222,7 @@ function bindAnnotationCanvas() {
   });
   if (mqDel) mqDel.addEventListener('click', () => {
     if (!annotState.active) return;
-    setAnnotTool('pen');
+    toggleMarquee();
   });
 
   updateAnnotToolIcons();

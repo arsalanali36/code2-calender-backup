@@ -15,6 +15,17 @@ Opens at `http://localhost:5000`
 
 ---
 
+## Template Structure (`templates/`)
+| File | Lines | Responsibility |
+|------|-------|---------------|
+| `index.html` | ~263 | Main layout, calendar, dashboard, trade table |
+| `modals.html` | ~380 | All modal dialogs (settings, obs, upload, etc.) |
+| `gallery.html` | ~213 | Gallery overlay, canvas, annotation toolbar |
+
+Included via Jinja2 `{% include %}` in `index.html`.
+
+---
+
 ## JS Module Structure (`static/js/`)
 The original `app.js` (7712 lines) has been split into 13 focused modules loaded in this order:
 
@@ -22,17 +33,17 @@ The original `app.js` (7712 lines) has been split into 13 focused modules loaded
 |------|-------|---------------|
 | `state.js` | ~182 | `state`, `annotState`, constants |
 | `data.js` | ~602 | `init`, `loadTrades`, `saveTrades`, sync, trade normalization |
-| `settings.js` | ~423 | Settings panel, shortcuts, column visibility, saved views |
+| `settings.js` | ~480 | Settings panel, shortcuts, column visibility, saved views |
 | `dashboard.js` | ~398 | Dashboard stats, drag-drop stat order |
 | `calendar.js` | ~585 | Calendar render, yearly view, obs modal |
 | `table-render.js` | ~530 | `renderTable`, `renderTableBody`, frozen cols |
-| `table-cols.js` | ~771 | Column add/rename/delete, tag picker, tag filter, context menu |
-| `gallery-core.js` | ~601 | Open/render gallery, navigate, overlay loading |
-| `gallery-tags.js` | ~342 | Tag cloud, tags tray (drag-to-resize) |
-| `gallery-data.js` | ~590 | Image/overlay data helpers, marquee box storage |
-| `annotate.js` | ~1284 | Annotation tools (brush/text/marquee), zoom/pan, save |
+| `table-cols.js` | ~772 | Column add/rename/delete, tag picker, tag filter, context menu |
+| `gallery-core.js` | ~791 | Open/render gallery, navigate, overlay loading |
+| `gallery-tags.js` | ~533 | Tag cloud, tags tray (drag-to-resize) |
+| `gallery-data.js` | ~725 | Image/overlay data helpers, marquee box storage |
+| `annotate.js` | ~1437 | Annotation tools (brush/text/marquee), zoom/pan, save |
 | `io.js` | ~388 | Upload modal, import (JSON/ZIP), export, backup |
-| `events.js` | ~790 | `bindEvents()` + `init()` call at bottom |
+| `events.js` | ~918 | `bindEvents()` + `init()` call at bottom |
 
 All functions are in **global scope** (no ES modules) — each file can call functions from any other file.
 
@@ -107,3 +118,10 @@ renameTagEverywhere(oldTag, newTag)  // updates all trades/dayData/boxes
 - When fixing a bug, check which module file it belongs to before reading
 - `annotState.active` gates annotation mode — always check this before modifying the canvas
 - `canvas.width = w` clears canvas even if value is same — use `if (canvas.width !== w)` guard
+
+---
+
+## 🌅 Custom Commands / EOD Routine
+If the user ever says **"Aap EOD dekh lijye"** or asks you to **"do the EOD routine"**, it means you must:
+1. Immediately read the contents of `EOD_AI_PROMPT.md` located in the root directory.
+2. Execute the exact End of Day Optimization, Refactoring, Context updating, and Git Push routine documented inside that file.

@@ -69,7 +69,7 @@ function renderGalleryTagsTray() {
   const imgInfo = getCurrentGalleryImageTagInfo();
   const imageAssignedSet = new Set(imgInfo.imageTags);
   const selectedMarqueeTagSet = getSelectedMarqueeTagSet();
-  const marqueeMode = isMarqueeSelectionActive() && selectedMarqueeTagSet.size > 0;
+  const marqueeMode = isMarqueeSelectionActive();
   const currentImageTagSet = marqueeMode ? selectedMarqueeTagSet : new Set(imgInfo.all);
   refreshMarqueeTagSuggestions();
   const groups = state.tagGroups || {};
@@ -102,6 +102,10 @@ function renderGalleryTagsTray() {
     });
   });
 
+  Array.from(tagUsageCount.keys()).forEach(t => {
+    if (!state.allTags.includes(t)) state.allTags.push(t);
+  });
+
   const normalizeGroups = () => {
     const valid = new Set(allTags);
     Object.keys(state.tagGroups).forEach(g => {
@@ -129,29 +133,20 @@ function renderGalleryTagsTray() {
     renderGalleryTagsTray();
   };
 
-  const groupColor = (grpName) => {
-    if (!grpName) return '';
-    const palette = ['#58a6ff', '#2ea043', '#e3a22a', '#f78166', '#a371f7', '#ff7b72', '#56d4dd'];
-    const h = String(grpName).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return palette[h % palette.length];
-  };
-
   const createTagChip = (tag, grpName = '') => {
     const chip = document.createElement('span');
     chip.className = 'gv2-tt-tag-chip';
+    const countVal = tagUsageCount.get(tag) || 0;
+    const isFreq = countVal > 5;
     const lbl = document.createElement('span');
     lbl.textContent = tag;
+    if (isFreq) lbl.style.color = '#ff6b6b';
     const cnt = document.createElement('span');
     cnt.className = 'gv2-tt-tag-count';
-    cnt.textContent = String(tagUsageCount.get(tag) || 0);
+    cnt.textContent = String(countVal);
+    if (isFreq) cnt.style.color = '#ff6b6b';
     chip.appendChild(lbl);
     chip.appendChild(cnt);
-    const gc = groupColor(grpName);
-    if (gc) {
-      chip.style.borderColor = gc + '88';
-      chip.style.color = gc;
-      chip.style.background = gc + '1A';
-    }
     if (currentImageTagSet.has(tag)) chip.classList.add('selected-on-image');
     if (marqueeMode) {
       if (currentImageTagSet.has(tag)) chip.title = 'Tag on selected marquee';
@@ -216,10 +211,31 @@ function renderGalleryTagsTray() {
       const availableGroups = Object.keys(state.tagGroups).filter(g => !(state.tagGroups[g] || []).includes(tag));
       const inGroups = Object.keys(state.tagGroups).filter(g => (state.tagGroups[g] || []).includes(tag));
       const items = [
-        { label: '✏ Rename tag', action: () => {
-          const newTag = prompt('Rename tag:', tag);
-          if (newTag && newTag.trim() && newTag.trim() !== tag) renameTagEverywhere(tag, newTag.trim());
-        }}
+        {
+          label: '✏ Rename tag', action: () => {
+            const newTag = prompt('Rename tag:', tag);
+            if (newTag && newTag.trim() && newTag.trim() !== tag) renameTagEverywhere(tag, newTag.trim());
+          }
+        },
+        {
+          label: '🗑 Delete globally', action: async () => {
+            if (confirm(`Delete tag "${tag}" globally from all images and records?`)) {
+              if (typeof deleteImageTagGlobal === 'function') {
+                deleteImageTagGlobal(tag);
+                state.allTags = (state.allTags || []).filter(t => t !== tag);
+                Object.keys(state.tagGroups).forEach(g => {
+                  state.tagGroups[g] = (state.tagGroups[g] || []).filter(t => t !== tag);
+                });
+                saveTagGroups();
+                await saveTrades();
+                renderGalleryTagCloud();
+                renderGalleryTagsTray();
+                renderTable();
+                renderCalendar();
+              }
+            }
+          }
+        }
       ];
       if (availableGroups.length) {
         items.push('sep');
@@ -262,6 +278,8 @@ function renderGalleryTagsTray() {
     lbl.textContent = grpName;
     lbl.title = 'Right-click to rename';
     lbl.style.cursor = 'pointer';
+    lbl.style.color = '#58a6ff';
+    lbl.style.fontWeight = 'bold';
     lbl.addEventListener('contextmenu', e => {
       showCtxMenu(e, [{
         label: '✏ Rename group', action: () => {
@@ -339,4 +357,177 @@ function renderGalleryTagsTray() {
     body.appendChild(empty);
   }
 }
+
+function renderGalleryTagFilterPanel() {
+  const panel = document.getElementById('gallery-img-tag-filter-panel');
+  if (!panel) return;
+  panel.innerHTML = '';
+
+  const allTags = state.allTags || [];
+  if (!allTags.length) {
+    panel.innerHTML = '<p class="panel-hint" style="padding:10px 8px">No tags yet.</p>';
+    const btn = document.getElementById('gallery-img-tag-filter-btn');
+    if (btn) {
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+    return;
+  }
+
+  const searchRow = document.createElement('div');
+  searchRow.className = 'panel-search-row';
+  const searchInp = document.createElement('input');
+  searchInp.className = 'panel-search';
+  searchInp.placeholder = 'Search tags...';
+  searchRow.appendChild(searchInp);
+  panel.appendChild(searchRow);
+
+  const actRow = document.createElement('div');
+  actRow.className = 'panel-act-row';
+  const btnNone = document.createElement('button');
+  btnNone.className = 'panel-act-btn';
+  btnNone.textContent = 'Clear Filter';
+  btnNone.addEventListener('click', () => {
+    state.gallery.tagFilter = [];
+    applyGalleryImageScopeByTagFilter();
+    renderGallery();
+    renderGalleryTagCloud();
+    renderGalleryTagFilterPanel(); // Re-render to clear checkboxes
+  });
+  actRow.appendChild(btnNone);
+  panel.appendChild(actRow);
+
+  const list = document.createElement('div');
+  list.className = 'panel-list';
+
+  // Extract render logic to handle searching
+  const renderFilterList = (query) => {
+    list.innerHTML = '';
+    const ql = (query || '').toLowerCase();
+
+    // Group tags logic similar to tray, but plain list for filter
+    const groups = state.tagGroups || {};
+    const groupNames = Object.keys(groups);
+
+    // Flatten an ordered list of tags by groups + ungrouped
+    const renderedTags = new Set();
+
+    const renderListTag = (tag) => {
+      if (ql && !tag.toLowerCase().includes(ql)) return;
+      if (renderedTags.has(tag)) return;
+      renderedTags.add(tag);
+      const lbl = document.createElement('label');
+      lbl.className = 'head-checkbox';
+
+      // Tag Color
+      function _tagColor(name) {
+        const TAG_PALETTE = ['#3fb950', '#58a6ff', '#d29922', '#bc8cff', '#f85149', '#79b8ff', '#56d364', '#ffa657'];
+        let h = 0;
+        for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+        return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
+      }
+
+      const dot = document.createElement('span');
+      dot.className = 'tag-dot';
+      dot.style.background = _tagColor(tag);
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.includes(tag);
+      chk.addEventListener('change', () => {
+        let filter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+        if (chk.checked) {
+          if (!filter.includes(tag)) filter.push(tag);
+        } else {
+          filter = filter.filter(t => t !== tag);
+        }
+        state.gallery.tagFilter = filter;
+        applyGalleryImageScopeByTagFilter();
+        renderGallery();
+        renderGalleryTagCloud();
+        _updateFilterBtnColor();
+      });
+
+      lbl.appendChild(chk);
+      lbl.appendChild(dot);
+      lbl.appendChild(document.createTextNode(tag));
+      list.appendChild(lbl);
+    };
+
+    groupNames.forEach(grpName => {
+      const tags = (groups[grpName] || []).filter(t => allTags.includes(t));
+      const filteredTags = ql ? tags.filter(t => t.toLowerCase().includes(ql)) : tags;
+      if (filteredTags.length) {
+        const gLbl = document.createElement('div');
+        gLbl.className = 'panel-manage-label';
+        gLbl.style.marginTop = '6px';
+        gLbl.textContent = grpName;
+        list.appendChild(gLbl);
+        filteredTags.forEach(renderListTag);
+      }
+    });
+
+    const ungroupedTags = allTags.filter(t => !renderedTags.has(t));
+    const filteredUngrouped = ql ? ungroupedTags.filter(t => t.toLowerCase().includes(ql)) : ungroupedTags;
+    if (filteredUngrouped.length) {
+      if (groupNames.length) {
+        const gLbl = document.createElement('div');
+        gLbl.className = 'panel-manage-label';
+        gLbl.style.marginTop = '6px';
+        gLbl.textContent = 'Ungrouped';
+        list.appendChild(gLbl);
+      }
+      filteredUngrouped.forEach(renderListTag);
+    }
+  };
+
+  renderFilterList('');
+  searchInp.addEventListener('input', () => {
+    renderFilterList(searchInp.value);
+  });
+
+  searchInp.addEventListener('keydown', e => {
+    const items = Array.from(list.querySelectorAll('.head-checkbox'));
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      let activeIdx = items.findIndex(item => item.classList.contains('active-filter-item'));
+
+      if (activeIdx >= 0) items[activeIdx].classList.remove('active-filter-item');
+
+      if (e.key === 'ArrowDown') {
+        activeIdx = activeIdx < items.length - 1 ? activeIdx + 1 : 0;
+      } else {
+        activeIdx = activeIdx > 0 ? activeIdx - 1 : items.length - 1;
+      }
+
+      items[activeIdx].classList.add('active-filter-item');
+      items[activeIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const activeItem = list.querySelector('.head-checkbox.active-filter-item') || items[0];
+      if (activeItem) {
+        const chk = activeItem.querySelector('input[type="checkbox"]');
+        if (chk) {
+          chk.checked = !chk.checked;
+          chk.dispatchEvent(new Event('change'));
+        }
+      }
+    }
+  });
+
+  panel.appendChild(list);
+  _updateFilterBtnColor();
+
+  function _updateFilterBtnColor() {
+    const btn = document.getElementById('gallery-img-tag-filter-btn');
+    if (btn) {
+      const hasFilter = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+      btn.style.borderColor = hasFilter ? 'var(--blue)' : 'var(--border)';
+      btn.style.color = hasFilter ? 'var(--blue)' : '';
+    }
+  }
+}
+
 

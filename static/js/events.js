@@ -256,6 +256,14 @@ function bindEvents() {
   });
   _loadDateRange();
 
+  setupDropdown('gallery-show-heads-btn', 'gallery-show-heads-panel');
+  const galleryHeadsPanel = document.getElementById('gallery-show-heads-panel');
+  if (galleryHeadsPanel) galleryHeadsPanel.addEventListener('click', e => e.stopPropagation());
+
+  setupDropdown('gallery-img-tag-filter-btn', 'gallery-img-tag-filter-panel');
+  const galleryFilterPanel = document.getElementById('gallery-img-tag-filter-panel');
+  if (galleryFilterPanel) galleryFilterPanel.addEventListener('click', e => e.stopPropagation());
+
   document.getElementById('gallery-prev').addEventListener('click', () => navigateGallery(-1));
   document.getElementById('gallery-next').addEventListener('click', () => navigateGallery(1));
   document.getElementById('gallery-date-prev').addEventListener('click', () => navigateGalleryDate(-1));
@@ -434,7 +442,7 @@ function bindEvents() {
   if (rowHPlus) rowHPlus.addEventListener('click', () => applyRowHeight(getRowHeight() + ROW_H_STEP));
   if (rowHMinus) rowHMinus.addEventListener('click', () => applyRowHeight(getRowHeight() - ROW_H_STEP));
 
-  (function() {
+  (function () {
     const handle = document.getElementById('settings-resize-handle');
     const panel = document.querySelector('.settings-panel');
     if (!handle || !panel) return;
@@ -460,7 +468,7 @@ function bindEvents() {
     });
   })();
 
-  (function() {
+  (function () {
     const handle = document.getElementById('gv2-tray-resize-handle');
     const tray = document.getElementById('gv2-tags-tray');
     if (!handle || !tray) return;
@@ -526,12 +534,14 @@ function bindEvents() {
   document.getElementById('upload-done-btn').addEventListener('click', async () => {
     if (state._dayUploadKey) {
       if (!state.dayData[state._dayUploadKey]) state.dayData[state._dayUploadKey] = {};
-      state.dayData[state._dayUploadKey].images = [...state.pendingFiles];
+      if (!state.dayData[state._dayUploadKey].images) state.dayData[state._dayUploadKey].images = [];
+      state.dayData[state._dayUploadKey].images.push(...state.pendingFiles);
       await saveTrades(); render();
       showToast('Images saved!', 'success');
       state._dayUploadKey = null;
     } else if (state.uploadRow !== null) {
-      state.trades[state.uploadRow].images = [...state.pendingFiles];
+      if (!state.trades[state.uploadRow].images) state.trades[state.uploadRow].images = [];
+      state.trades[state.uploadRow].images.push(...state.pendingFiles);
       cleanupImageTagStore(state.trades[state.uploadRow]);
       syncTradeDateField(state.trades[state.uploadRow]);
       saveTrades();
@@ -678,12 +688,6 @@ function bindEvents() {
         openGalleryImageTagManager();
         return;
       }
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'm' || e.key === 'M')) {
-        e.preventDefault();
-        if (!annotState.active) startAnnotation();
-        setAnnotTool('marquee');
-        return;
-      }
       if (!e.ctrlKey && !e.altKey && !typingInField && e.key === ']') {
         e.preventDefault();
         if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(+1);
@@ -699,12 +703,79 @@ function bindEvents() {
       if (e.key === 'ArrowRight') navigateGallery(1);
       if (e.key === 'r' || e.key === 'R') resetZoom();
       if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
-      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+
+      if (annotState.active) {
+        if (annotState.tool === 'marquee' && !typingInField && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          // Let the marquee typing handler in annotate.js process this.
+          return;
+        }
+      }
+
+      if (e.key === 'h' || e.key === 'H') {
+        if (annotState.active) return;
         e.preventDefault();
-        document.getElementById('gv2-tags-btn').click();
+        const toggleBtn = document.getElementById('gallery-show-heads-btn');
+        if (toggleBtn) toggleBtn.click();
+        return;
+      }
+      if ((e.key === 'i' || e.key === 'I') && !e.altKey && !e.ctrlKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        const btn = document.getElementById('gallery-upload-btn');
+        if (btn && btn.style.display !== 'none') btn.click();
+        return;
+      }
+      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        const toggleBtn = document.getElementById('gallery-img-tag-filter-btn');
+        if (toggleBtn) {
+          toggleBtn.click();
+          setTimeout(() => {
+            const panel = document.getElementById('gallery-img-tag-filter-panel');
+            if (panel && panel.classList.contains('open')) {
+              const inp = panel.querySelector('.panel-search');
+              if (inp) {
+                inp.focus();
+                inp.select();
+              }
+            }
+          }, 100);
+        }
+        return;
+      }
+      if ((e.key === 'm' || e.key === 'M') && !e.altKey && !e.ctrlKey) {
+        if (annotState.active && annotState.tool !== 'marquee') return;
+        e.preventDefault();
+        const mqBtn = document.getElementById('gv2-marquee-btn');
+        if (mqBtn) mqBtn.click();
+        return;
+      }
+      if (e.key === 'c' && !e.shiftKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        state.calendarMode = 'consolidated';
+        updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
+        if (typeof renderGalleryStats === 'function') renderGalleryStats();
+        showToast('Consolidated Mode', 'success');
+        return;
+      }
+      if ((e.key === 'C' || e.key === 'c') && e.shiftKey) {
+        e.preventDefault();
+        state.calendarMode = 'individual';
+        updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
+        if (typeof renderGalleryStats === 'function') renderGalleryStats();
+        showToast('Individual Mode', 'success');
         return;
       }
       if (e.key === 'Escape') {
+        const filterPanel = document.getElementById('gallery-img-tag-filter-panel');
+        if (filterPanel && filterPanel.classList.contains('open')) {
+          e.preventDefault();
+          const btn = document.getElementById('gallery-img-tag-filter-btn');
+          if (btn) btn.click();
+          return;
+        }
         if (state.gallery.tagFilter?.length) {
           e.preventDefault();
           state.gallery.tagFilter = [];
@@ -714,6 +785,10 @@ function bindEvents() {
           return;
         }
         if (annotState.active) { stopAnnotation(); return; }
+        if (document.getElementById('upload-modal')?.classList.contains('open')) {
+          document.getElementById('upload-modal').classList.remove('open');
+          return;
+        }
         document.getElementById('gallery-modal').classList.remove('open');
         unlockBodyScroll();
       }
@@ -771,6 +846,59 @@ function bindEvents() {
       if (document.getElementById('tag-modal').classList.contains('open')) closeTagPicker();
       if (document.getElementById('img-tag-modal').classList.contains('open')) closeGalleryImageTagManager();
       if (_notePop) closeNotePopup(true);
+    }
+  });
+
+  document.addEventListener('paste', async e => {
+    const galleryOpen = document.getElementById('gallery-modal').classList.contains('open');
+    if (!galleryOpen) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imgFiles = Array.from(items).filter(it => it.type.startsWith('image/')).map(it => it.getAsFile()).filter(Boolean);
+    if (!imgFiles.length) return;
+
+    e.preventDefault();
+    const ctx = getCurrentGalleryPreserveContext();
+    const targetDate = state.gallery.date || ctx.date;
+
+    if (!targetDate) {
+      showToast('Need a date context to paste image here', 'error');
+      return;
+    }
+
+    showToast('Uploading pasted image...', '');
+    let added = 0;
+
+    if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+    if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
+
+    for (const file of imgFiles) {
+      try {
+        const fd = new FormData();
+        fd.append('image', file);
+        const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.url) {
+          state.dayData[targetDate].images.push(data.url);
+          added++;
+          // Add to current gallery view directly so it shows up instantly
+          if (!state.gallery.images) state.gallery.images = [];
+          state.gallery.images.push(data.url);
+          if (state.gallery._baseImages) state.gallery._baseImages.push(data.url);
+          state.gallery.currentIndex = state.gallery.images.length - 1;
+        }
+      } catch (err) { }
+    }
+
+    if (added > 0) {
+      await saveTrades();
+      render();
+      renderGallery();
+      updateGalleryDateArrows();
+      showToast(`${added} image(s) pasted directly to ${targetDate}`, 'success');
     }
   });
 

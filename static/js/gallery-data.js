@@ -350,16 +350,18 @@ function renderGalleryImageTags() {
     imgLbl.textContent = 'Image:';
     box.appendChild(imgLbl);
     tags.forEach(tag => {
-      const c = tagColor(tag);
+      const isRed = tags.length > 5;
+      const c = isRed ? '#ff6b6b' : tagColor(tag);
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'gallery-img-tag-chip';
       chip.textContent = `${tag} x`;
       chip.style.color = c;
       chip.style.borderColor = hexToRgba(c, 0.45);
-      chip.style.background = hexToRgba(c, 0.16);
+      chip.style.background = isRed ? 'rgba(255, 107, 107, 0.16)' : hexToRgba(c, 0.16);
       chip.title = 'Remove tag from this image';
       chip.addEventListener('click', async () => {
+        window._lastDeletedImageTag = { tag, imgUrl, ownerType: info.ownerType, trade: info.trade, dateKey: info.dateKey, origTags: [...tags] };
         const next = tags.filter(t => t !== tag);
         if (info.ownerType === 'trade' && info.trade) setImageTagsForUrl(info.trade, imgUrl, next);
         else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
@@ -406,46 +408,124 @@ function isPermanentImageTag(tag) {
 }
 
 function renameImageTagGlobal(oldTag, newTag) {
+  const oTagLow = String(oldTag).toLowerCase();
   state.trades.forEach(t => {
     const store = ensureImageTagStore(t);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.map(x => (x === oldTag ? newTag : x));
+      const next = arr.map(x => (String(x).toLowerCase() === oTagLow ? newTag : x));
       store[url] = Array.from(new Set(next.filter(Boolean)));
       if (!store[url].length) delete store[url];
     });
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
+
+    state.tagColumns.forEach(c => {
+      if (typeof t[c] === 'string') {
+        let arr = t[c].split(',').map(x => x.trim()).filter(Boolean);
+        if (arr.some(x => x.toLowerCase() === oTagLow)) {
+          t[c] = arr.map(x => x.toLowerCase() === oTagLow ? newTag : x).join(',');
+        }
+      } else if (Array.isArray(t[c])) {
+        t[c] = t[c].map(x => String(x).toLowerCase() === oTagLow ? newTag : x);
+      }
+    });
+
   });
   Object.keys(state.dayData || {}).forEach(d => {
     const store = ensureDayImageTagStore(d);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.map(x => (x === oldTag ? newTag : x));
+      const next = arr.map(x => (String(x).toLowerCase() === oTagLow ? newTag : x));
       store[url] = Array.from(new Set(next.filter(Boolean)));
       if (!store[url].length) delete store[url];
     });
+
+    const day = state.dayData[d];
+    if (day && day.tags) {
+      Object.keys(day.tags).forEach(c => {
+        if (typeof day.tags[c] === 'string') {
+          let arr = day.tags[c].split(',').map(x => x.trim()).filter(Boolean);
+          if (arr.some(x => x.toLowerCase() === oTagLow)) {
+            day.tags[c] = arr.map(x => x.toLowerCase() === oTagLow ? newTag : x).join(',');
+          }
+        } else if (Array.isArray(day.tags[c])) {
+          day.tags[c] = day.tags[c].map(x => String(x).toLowerCase() === oTagLow ? newTag : x);
+        }
+      });
+    }
+
   });
 }
 
 function deleteImageTagGlobal(tagToDelete) {
+  const tLow = String(tagToDelete).toLowerCase();
+  window._lastDeletedGlobalTag = {
+    tag: tagToDelete,
+    trades: JSON.parse(JSON.stringify(state.trades)),
+    dayData: JSON.parse(JSON.stringify(state.dayData || {})),
+    allTags: [...state.allTags],
+    tagGroups: JSON.parse(JSON.stringify(state.tagGroups || {}))
+  };
   state.trades.forEach(t => {
     const store = ensureImageTagStore(t);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.filter(x => x !== tagToDelete);
+      const next = arr.filter(x => String(x).toLowerCase() !== tLow);
       if (next.length) store[url] = next;
       else delete store[url];
     });
+    const mb = ensureMarqueeBoxes(t);
+    Object.keys(mb).forEach(url => {
+      mb[url].forEach(box => {
+        if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+          box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+        }
+      });
+    });
+
+    state.tagColumns.forEach(c => {
+      if (typeof t[c] === 'string') {
+        const arr = t[c].split(',').map(x => x.trim()).filter(Boolean);
+        if (arr.some(x => String(x).toLowerCase() === tLow)) {
+          t[c] = arr.filter(x => String(x).toLowerCase() !== tLow).join(',');
+        }
+      } else if (Array.isArray(t[c])) {
+        t[c] = t[c].filter(x => String(x).toLowerCase() !== tLow);
+      }
+    });
+
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
   });
   Object.keys(state.dayData || {}).forEach(d => {
     const store = ensureDayImageTagStore(d);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
-      const next = arr.filter(x => x !== tagToDelete);
+      const next = arr.filter(x => String(x).toLowerCase() !== tLow);
       if (next.length) store[url] = next;
       else delete store[url];
     });
+    const mb = ensureDayMarqueeBoxes(d);
+    Object.keys(mb).forEach(url => {
+      mb[url].forEach(box => {
+        if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+          box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+        }
+      });
+    });
+
+    const day = state.dayData[d];
+    if (day && day.tags) {
+      Object.keys(day.tags).forEach(c => {
+        if (typeof day.tags[c] === 'string') {
+          const arr = day.tags[c].split(',').map(x => x.trim()).filter(Boolean);
+          if (arr.some(x => String(x).toLowerCase() === tLow)) {
+            day.tags[c] = arr.filter(x => String(x).toLowerCase() !== tLow).join(',');
+          }
+        } else if (Array.isArray(day.tags[c])) {
+          day.tags[c] = day.tags[c].filter(x => String(x).toLowerCase() !== tLow);
+        }
+      });
+    }
   });
 }
 
@@ -495,6 +575,7 @@ function renderImageTagModal() {
       normalizeAllTagsFromTrades();
       await saveTrades();
       renderGalleryImageTags();
+      renderTagFilterPanel();
       renderTable();
       renderCalendar();
       renderImageTagModal();
@@ -511,6 +592,8 @@ function renderImageTagModal() {
     hint.textContent = 'No tags yet';
     currentWrap.appendChild(hint);
   }
+
+
 
   all.forEach(tag => {
     const row = document.createElement('div');
@@ -587,4 +670,56 @@ async function addImageTagFromModal() {
   inp.value = '';
   renderImageTagModal();
 }
+
+document.addEventListener('keydown', e => {
+  const isTyping = document.activeElement &&
+    (document.activeElement.tagName === 'INPUT' ||
+      document.activeElement.tagName === 'TEXTAREA' ||
+      document.activeElement.isContentEditable);
+
+  // Global Ctrl+Z to undo deleted image tags
+  if (!isTyping && (e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) {
+    if (!annotState.active) {
+      if (window._lastDeletedImageTag) {
+        e.preventDefault();
+        const p = window._lastDeletedImageTag;
+        if (p.ownerType === 'trade' && p.trade) setImageTagsForUrl(p.trade, p.imgUrl, p.origTags);
+        else if (p.ownerType === 'day' && p.dateKey) setDayImageTagsForUrl(p.dateKey, p.imgUrl, p.origTags);
+        if (!state.allTags.includes(p.tag)) state.allTags.push(p.tag);
+        normalizeAllTagsFromTrades();
+        window._lastDeletedImageTag = null;
+        saveTrades().then(() => {
+          if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+          if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          renderTable();
+          renderCalendar();
+          showToast(`Tag '${p.tag}' restored on image`, 'success');
+        });
+        return;
+      } else if (window._lastDeletedGlobalTag) {
+        e.preventDefault();
+        const g = window._lastDeletedGlobalTag;
+        state.trades = g.trades;
+        state.dayData = g.dayData;
+        state.allTags = g.allTags;
+        state.tagGroups = g.tagGroups;
+        window._lastDeletedGlobalTag = null;
+        saveTrades().then(() => {
+          if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+          if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          if (typeof renderImageTagModal === 'function') {
+            const modal = document.getElementById('img-tag-modal');
+            if (modal && modal.classList.contains('open')) renderImageTagModal();
+          }
+          renderTable();
+          renderCalendar();
+          showToast(`Global tag '${g.tag}' restored`, 'success');
+        });
+        return;
+      }
+    }
+  }
+});
 

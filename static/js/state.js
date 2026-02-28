@@ -82,7 +82,7 @@ const HEIGHT_MAP = { compact: '70px', normal: '100px', spacious: '140px', roomy:
 const DEFAULT_SETTINGS = {
   daySize: 'H3', dayBold: true, dayPos: 'top-left',
   dataSize: 'H4', dataBold: false, showLabels: true, cellHeight: 'normal',
-  satSunOff: false, tableRows: 5,
+  satSunOff: true, tableRows: 5,
   groupAColor: '#58a6ff',
   groupBColor: '#ffffff',
   groupSepColor: '#58a6ff'

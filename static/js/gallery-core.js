@@ -9,7 +9,11 @@ function openGalleryForDate(dateStr) {
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
-  renderGalleryTagCloud(); renderGalleryTagsTray();
+  renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
+  const tray1 = document.getElementById('gv2-tags-tray');
+  const btn1 = document.getElementById('gv2-tags-btn');
+  if (tray1) tray1.style.display = 'flex';
+  if (btn1) btn1.classList.add('active');
 }
 
 function openGalleryDirect(images, startIndex, sourceRow = null) {
@@ -21,7 +25,11 @@ function openGalleryDirect(images, startIndex, sourceRow = null) {
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
-  renderGalleryTagCloud(); renderGalleryTagsTray();
+  renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
+  const tray2 = document.getElementById('gv2-tags-tray');
+  const btn2 = document.getElementById('gv2-tags-btn');
+  if (tray2) tray2.style.display = 'flex';
+  if (btn2) btn2.classList.add('active');
 }
 
 function lockBodyScroll() {
@@ -93,6 +101,8 @@ function renderGallery() {
   if (tray && tray.style.display !== 'none') renderGalleryTagsTray();
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) renderImageTagModal();
 
+  if (typeof renderGalleryStats === 'function') renderGalleryStats();
+
   const thumbs = document.getElementById('gallery-thumbs'); thumbs.innerHTML = '';
   const thumbImages = _getGalleryThumbImages();
   let dragFromIndex = -1;
@@ -102,6 +112,49 @@ function renderGallery() {
     t.src = url;
     t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '');
     t.addEventListener('click', () => { state.gallery.currentIndex = globalIdx; renderGallery(); });
+    t.addEventListener('contextmenu', async e => {
+      e.preventDefault();
+      const dateInp = document.createElement('input');
+      dateInp.type = 'date';
+      dateInp.style.position = 'absolute';
+      dateInp.style.opacity = '0';
+      dateInp.style.pointerEvents = 'none';
+      dateInp.style.left = e.clientX + 'px';
+      dateInp.style.top = e.clientY + 'px';
+
+      const onPickerChange = async () => {
+        const rawDate = dateInp.value;
+        if (document.body.contains(dateInp)) document.body.removeChild(dateInp);
+        if (!rawDate) return;
+        const targetDate = normalizeDate(rawDate);
+        if (confirm(`Move image to ${targetDate}?`)) {
+          await moveGalleryImageToDate(globalIdx, targetDate);
+        }
+      };
+
+      dateInp.addEventListener('change', onPickerChange);
+
+      const removeInp = () => { if (document.body.contains(dateInp)) document.body.removeChild(dateInp); };
+      dateInp.addEventListener('blur', removeInp);
+
+      document.body.appendChild(dateInp);
+
+      try {
+        dateInp.showPicker();
+      } catch (err) {
+        removeInp();
+        const rawDate = prompt('Enter date (YYYY-MM-DD) to move this image to its consolidated row:');
+        if (!rawDate) return;
+        const targetDate = normalizeDate(rawDate);
+        if (!targetDate || !targetDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          showToast('Invalid date format', 'error'); return;
+        }
+        if (confirm(`Move image to ${targetDate}?`)) {
+          await moveGalleryImageToDate(globalIdx, targetDate);
+        }
+      }
+    });
+
     t.addEventListener('touchend', e => {
       if (IS_TOUCH_DEVICE) {
         e.preventDefault();
@@ -147,6 +200,104 @@ function renderGallery() {
 
     wrap.appendChild(t); wrap.appendChild(del); thumbs.appendChild(wrap);
   });
+}
+
+function renderGalleryStats() {
+  const display = document.getElementById('gallery-heads-display');
+  if (!display) return;
+  const heads = getActiveShowHeads();
+  const cols = state.columns.filter(col => heads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
+  if (cols.length === 0) {
+    display.style.display = 'none';
+    return;
+  }
+
+  const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex] || '';
+  const ctx = getCurrentGalleryPreserveContext();
+  let dateToUse = state.gallery.date || ctx.date;
+
+  let trades = [];
+  if (state.calendarMode === 'consolidated') {
+    if (dateToUse) {
+      trades = getTradesForDate(dateToUse);
+    } else {
+      const owner = getOwnerTradeForImageUrl(activeUrl);
+      if (owner) trades = [owner];
+    }
+  } else {
+    const owner = getOwnerTradeForImageUrl(activeUrl);
+    if (owner) trades = [owner];
+  }
+
+  if (trades.length === 0) {
+    display.style.display = 'none';
+    return;
+  }
+
+  display.style.display = 'flex';
+  display.innerHTML = '';
+
+  const isConsolidated = state.calendarMode === 'consolidated' && trades.length > 1;
+
+  if (isConsolidated) {
+    const title = document.createElement('div');
+    title.style.fontWeight = 'bold';
+    title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
+    title.style.marginBottom = '2px';
+    title.style.paddingBottom = '2px';
+    title.textContent = 'Consolidated Stats';
+    display.appendChild(title);
+
+    cols.forEach(col => {
+      const lower = col.toLowerCase();
+      if (lower === 'thumbnail' || lower === 'sell time' || lower === 'buy time') return;
+      const vals = trades.map(t => t[col]).filter(v => v !== '' && v != null);
+      if (!vals.length) return;
+      const item = document.createElement('div');
+      const nums = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
+      if (nums.length === vals.length) {
+        let outNum;
+        if (lower === 'sell price' || lower === 'buy price') outNum = nums.reduce((a, b) => a + b, 0) / nums.length;
+        else outNum = nums.reduce((a, b) => a + b, 0);
+        const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
+        item.textContent = `${col}: ${out}`;
+        if (lower.includes('profit') || lower === 'rs') item.style.color = outNum >= 0 ? 'var(--green)' : 'var(--red)';
+      } else {
+        const first = String(vals[0]);
+        const same = vals.every(v => String(v) === first);
+        item.textContent = same ? `${col}: ${first}` : `${col}: ${vals.length} entries`;
+      }
+      display.appendChild(item);
+    });
+  } else {
+    trades.forEach((tr, i) => {
+      const title = document.createElement('div');
+      title.style.fontWeight = 'bold';
+      title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
+      title.style.marginBottom = '2px';
+      title.style.paddingBottom = '2px';
+      title.textContent = document.getElementById('gallery-date-picker')?.value === dateToUse && trades.length === 1 ? 'Trade Stats' : 'Individual Stats';
+      display.appendChild(title);
+
+      cols.forEach(col => {
+        if (col.toLowerCase() === 'thumbnail') return;
+        const val = tr[col];
+        if (val === '' || val == null) return;
+        const item = document.createElement('div');
+        const isProfit = col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs';
+        if (isProfit) {
+          const num = parseFloat(val);
+          if (!isNaN(num)) {
+            item.textContent = `${col}: ${num > 0 ? '+' : ''}${num}`;
+            item.style.color = num >= 0 ? 'var(--green)' : 'var(--red)';
+          } else { item.textContent = `${col}: ${val}`; }
+        } else {
+          item.textContent = `${col}: ${val}`;
+        }
+        display.appendChild(item);
+      });
+    });
+  }
 }
 
 function _getGalleryThumbImages() {
@@ -202,10 +353,10 @@ function getFilteredGalleryImagesByTagSelection() {
   if (!tagFilter.length) return [];
   const mode = state.gallery.filterMode === 'and' ? 'and' : 'or';
   return getAllGalleryImagesAcrossDates().filter(item => {
-    const arr = getImageTagsForGalleryItem(item);
+    const arr = getImageTagsForGalleryItem(item).map(t => typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim());
     return mode === 'and'
-      ? tagFilter.every(t => arr.includes(t))
-      : tagFilter.some(t => arr.includes(t));
+      ? tagFilter.every(t => arr.includes(typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim()))
+      : tagFilter.some(t => arr.includes(typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim()));
   });
 }
 
@@ -347,6 +498,45 @@ async function reorderGalleryImages(fromIdx, toIdx) {
   await saveTrades();
   renderGallery();
   renderTable();
+}
+
+async function moveGalleryImageToDate(globalIdx, targetDate) {
+  const arr = state.gallery.images || [];
+  if (globalIdx < 0 || globalIdx >= arr.length) return;
+  const imageUrl = arr[globalIdx];
+
+  const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
+  if (ownerTrade) {
+    ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.images) {
+    state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
+  }
+
+  let targetTrade = getTradeForDate(targetDate);
+  if (!targetTrade) {
+    targetTrade = getOrCreateTrade(targetDate);
+  }
+  if (!targetTrade.images) targetTrade.images = [];
+  targetTrade.images.push(imageUrl);
+
+  arr.splice(globalIdx, 1);
+  if (state.gallery.currentIndex >= arr.length) state.gallery.currentIndex = Math.max(0, arr.length - 1);
+
+  if (!arr.length) {
+    await saveTrades();
+    renderTable();
+    renderCalendar();
+    document.getElementById('gallery-modal').classList.remove('open');
+    unlockBodyScroll();
+    showToast(`Image moved to ${targetDate}`, 'success');
+    return;
+  }
+  syncGalleryImageOrderToTrades();
+  await saveTrades();
+  renderGallery();
+  renderTable();
+  renderCalendar();
+  showToast(`Image moved to ${targetDate}`, 'success');
 }
 
 async function removeGalleryImageAt(idx) {
