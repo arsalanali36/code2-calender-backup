@@ -134,6 +134,7 @@ const UNIFIED_STRUCTURED_COLUMNS = [
   'Rs',
   'trade_date'
 ];
+const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 // â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getSectionOrder() {
@@ -3426,6 +3427,7 @@ function openGalleryForDate(dateStr) {
   state.gallery._baseImages = [...images];
   state.gallery._baseDate = dateStr;
   state.gallery._baseSourceRow = null;
+  lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray();
@@ -3437,9 +3439,19 @@ function openGalleryDirect(images, startIndex, sourceRow = null) {
   state.gallery._baseImages = [...images];
   state.gallery._baseDate = '';
   state.gallery._baseSourceRow = sourceRow;
+  lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray();
+}
+
+function lockBodyScroll() {
+  document.body.classList.add('modal-open');
+}
+
+function unlockBodyScroll() {
+  if (document.querySelector('.modal-overlay.open')) return;
+  document.body.classList.remove('modal-open');
 }
 
 function openGalleryForDateWithTagFilter(dateStr, tags = []) {
@@ -3511,11 +3523,18 @@ function renderGallery() {
   const thumbImages = _getGalleryThumbImages();
   let dragFromIndex = -1;
   thumbImages.forEach(({ url, globalIdx, isCurrentDate }) => {
-    const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = true;
+    const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
     const t = document.createElement('img');
     t.src = url;
     t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '');
     t.addEventListener('click', () => { state.gallery.currentIndex = globalIdx; renderGallery(); });
+    t.addEventListener('touchend', e => {
+      if (IS_TOUCH_DEVICE) {
+        e.preventDefault();
+        state.gallery.currentIndex = globalIdx;
+        renderGallery();
+      }
+    }, { passive: false });
 
     // Drag reorder (only within current date's images)
     if (isCurrentDate) {
@@ -3801,6 +3820,7 @@ async function removeGalleryImageAt(idx) {
     renderTable();
     renderCalendar();
     document.getElementById('gallery-modal').classList.remove('open');
+    unlockBodyScroll();
     showToast('Image removed', 'success');
     return;
   }
@@ -6147,15 +6167,55 @@ function bindZoomPan() {
   });
 
   let lastDist = 0;
+  let swipeTracking = false;
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let swipeLastX = 0;
+  let swipeLastY = 0;
   wrapper.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    if (e.touches.length === 2) {
+      lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      swipeTracking = false;
+      return;
+    }
+    if (e.touches.length === 1 && zoom.scale <= 1 && !annotState.active) {
+      swipeTracking = true;
+      swipeStartX = e.touches[0].clientX;
+      swipeStartY = e.touches[0].clientY;
+      swipeLastX = swipeStartX;
+      swipeLastY = swipeStartY;
+      return;
+    }
+    swipeTracking = false;
   }, { passive: true });
   wrapper.addEventListener('touchmove', e => {
-    if (e.touches.length !== 2) return; e.preventDefault();
-    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    zoom.scale = Math.min(Math.max(zoom.scale * (dist / lastDist), 1), 8);
-    lastDist = dist; applyZoom();
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      zoom.scale = Math.min(Math.max(zoom.scale * (dist / lastDist), 1), 8);
+      lastDist = dist; applyZoom();
+      return;
+    }
+    if (swipeTracking && e.touches.length === 1) {
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      swipeLastX = x;
+      swipeLastY = y;
+      const dx = x - swipeStartX;
+      const dy = y - swipeStartY;
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+        e.preventDefault();
+      }
+    }
   }, { passive: false });
+  wrapper.addEventListener('touchend', () => {
+    if (!swipeTracking) return;
+    const dx = swipeLastX - swipeStartX;
+    const dy = swipeLastY - swipeStartY;
+    swipeTracking = false;
+    if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+    navigateGallery(dx < 0 ? 1 : -1);
+  }, { passive: true });
 }
 
 // â”€â”€ UPLOAD MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -6872,6 +6932,7 @@ function bindEvents() {
     if (annotState.active) stopAnnotation();
     closeGalleryImageTagManager();
     document.getElementById('gallery-modal').classList.remove('open');
+    unlockBodyScroll();
   });
   // V2: no click-on-overlay-to-close (it's fullscreen now)
 
@@ -6933,7 +6994,11 @@ function bindEvents() {
   // V2: Observation button
   document.getElementById('gv2-obs-btn').addEventListener('click', () => {
     const d = state.gallery.date;
-    if (d) { document.getElementById('gallery-modal').classList.remove('open'); openObsModal(d); }
+    if (d) {
+      document.getElementById('gallery-modal').classList.remove('open');
+      unlockBodyScroll();
+      openObsModal(d);
+    }
   });
 
   // V2: Add tag group
@@ -7187,6 +7252,7 @@ function bindEvents() {
         }
         if (annotState.active) { stopAnnotation(); return; }
         document.getElementById('gallery-modal').classList.remove('open');
+        unlockBodyScroll();
       }
     }
     // C = Consolidated, Shift+C = Individual (only when not typing, no modal open)
