@@ -1,0 +1,423 @@
+function loadSettingsFromStorage() {
+  try {
+    const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('tj_settings') || '{}') };
+    applySettingsToDOM(s);
+    populateSettingsPanel(s);
+  } catch (e) { applySettingsToDOM(DEFAULT_SETTINGS); }
+}
+
+function readSettingsFromPanel() {
+  return {
+    daySize: document.getElementById('s-day-size').value,
+    dayBold: document.getElementById('s-day-bold').checked,
+    dayPos: document.getElementById('s-day-pos').value,
+    dataSize: document.getElementById('s-data-size').value,
+    dataBold: document.getElementById('s-data-bold').checked,
+    showLabels: document.getElementById('s-show-labels').checked,
+    cellHeight: document.getElementById('s-cell-height').value,
+    satSunOff: document.getElementById('s-sat-sun-off').checked,
+    tableRows: Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
+    groupAColor: document.getElementById('s-group-a-color').value || '#58a6ff',
+    groupBColor: document.getElementById('s-group-b-color').value || '#ffffff',
+    groupSepColor: document.getElementById('s-group-sep-color').value || '#58a6ff'
+  };
+}
+
+function populateSettingsPanel(s) {
+  document.getElementById('s-day-size').value = s.daySize;
+  document.getElementById('s-day-bold').checked = s.dayBold;
+  document.getElementById('s-day-pos').value = s.dayPos;
+  document.getElementById('s-data-size').value = s.dataSize;
+  document.getElementById('s-data-bold').checked = s.dataBold;
+  document.getElementById('s-show-labels').checked = s.showLabels;
+  document.getElementById('s-cell-height').value = s.cellHeight;
+  document.getElementById('s-sat-sun-off').checked = !!s.satSunOff;
+  document.getElementById('s-table-rows').value = String(s.tableRows || 5);
+  document.getElementById('s-group-a-color').value = s.groupAColor || '#58a6ff';
+  document.getElementById('s-group-b-color').value = s.groupBColor || '#ffffff';
+  document.getElementById('s-group-sep-color').value = s.groupSepColor || '#58a6ff';
+}
+
+function applySettingsToDOM(s) {
+  const root = document.documentElement;
+  root.style.setProperty('--cal-day-size', SIZE_MAP[s.daySize] || SIZE_MAP.H3);
+  root.style.setProperty('--cal-day-weight', s.dayBold ? '700' : '400');
+  root.style.setProperty('--cal-data-size', SIZE_MAP[s.dataSize] || SIZE_MAP.H4);
+  root.style.setProperty('--cal-data-weight', s.dataBold ? '700' : '400');
+  root.style.setProperty('--cal-cell-height', HEIGHT_MAP[s.cellHeight] || HEIGHT_MAP.normal);
+  root.style.setProperty('--table-visible-rows', String(Math.max(3, Math.min(25, parseInt(s.tableRows, 10) || 5))));
+  root.style.setProperty('--date-group-a-bg', hexToRgba(s.groupAColor || '#58a6ff', 0.10));
+  root.style.setProperty('--date-group-b-bg', hexToRgba(s.groupBColor || '#ffffff', 0.05));
+  root.style.setProperty('--date-group-sep', hexToRgba(s.groupSepColor || '#58a6ff', 0.35));
+  window._showLabels = s.showLabels !== false;
+  window._dayPos = s.dayPos || 'top-left';
+  window._satSunOff = !!s.satSunOff;
+  const grid = document.getElementById('calendar-grid');
+  if (grid) {
+    grid.className = `calendar-grid cal-pos-${window._dayPos}`;
+  }
+}
+
+function saveSettings(s) {
+  localStorage.setItem('tj_settings', JSON.stringify(s));
+  applySettingsToDOM(s);
+  renderCalendar();
+  showToast('Settings applied!', 'success');
+}
+
+function normalizeShortcutString(s) {
+  return String(s || '').trim().replace(/\s+/g, '').toLowerCase();
+}
+
+function loadShortcutsFromStorage() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tj_shortcuts') || '{}');
+    state.shortcuts = { ...DEFAULT_SHORTCUTS, ...saved };
+  } catch (e) {
+    state.shortcuts = { ...DEFAULT_SHORTCUTS };
+  }
+  populateShortcutPanel();
+}
+
+function populateShortcutPanel() {
+  document.getElementById('sc-pen').value = state.shortcuts.pen;
+  document.getElementById('sc-image').value = state.shortcuts.imageImport;
+  document.getElementById('sc-eraser').value = state.shortcuts.eraser;
+  document.getElementById('sc-date').value = state.shortcuts.datePicker;
+  document.getElementById('sc-merge').value = state.shortcuts.mergeSave;
+  document.getElementById('sc-overlay').value = state.shortcuts.overlaySave;
+}
+
+function readShortcutsFromPanel() {
+  return {
+    pen: document.getElementById('sc-pen').value.trim() || DEFAULT_SHORTCUTS.pen,
+    imageImport: document.getElementById('sc-image').value.trim() || DEFAULT_SHORTCUTS.imageImport,
+    eraser: document.getElementById('sc-eraser').value.trim() || DEFAULT_SHORTCUTS.eraser,
+    datePicker: document.getElementById('sc-date').value.trim() || DEFAULT_SHORTCUTS.datePicker,
+    mergeSave: document.getElementById('sc-merge').value.trim() || DEFAULT_SHORTCUTS.mergeSave,
+    overlaySave: document.getElementById('sc-overlay').value.trim() || DEFAULT_SHORTCUTS.overlaySave
+  };
+}
+
+function saveShortcuts(shortcuts) {
+  state.shortcuts = { ...DEFAULT_SHORTCUTS, ...shortcuts };
+  localStorage.setItem('tj_shortcuts', JSON.stringify(state.shortcuts));
+  populateShortcutPanel();
+}
+
+function eventToShortcut(e) {
+  const parts = [];
+  if (e.ctrlKey) parts.push('ctrl');
+  if (e.shiftKey) parts.push('shift');
+  if (e.altKey) parts.push('alt');
+  const key = String(e.key || '').toLowerCase();
+  if (!['control', 'shift', 'alt', 'meta'].includes(key)) parts.push(key);
+  return parts.join('+');
+}
+
+function shortcutMatches(e, configured) {
+  const rhs = normalizeShortcutString(configured);
+  if (!rhs) return false;
+  return eventToShortcut(e) === rhs;
+}
+
+/** Returns the showHeads object for the currently active calendar mode. */
+function getActiveShowHeads() {
+  return state.calendarMode === 'consolidated'
+    ? state.showHeadsConsolidated
+    : state.showHeadsIndividual;
+}
+
+/** True if a column should be on by default (P/L, RS type). */
+function isDefaultShowHeadCol(col) {
+  const l = col.toLowerCase();
+  return l === 'rs' || l === 'net p/l' || l === 'gross p/l' ||
+    l.includes('profit') || l.includes('p/l') || l.includes('p&l');
+}
+
+function saveShowHeads() {
+  try {
+    localStorage.setItem('tj_heads_consolidated', JSON.stringify(state.showHeadsConsolidated));
+    localStorage.setItem('tj_heads_individual', JSON.stringify(state.showHeadsIndividual));
+  } catch (e) { }
+}
+
+function loadShowHeads() {
+  try {
+    const c = localStorage.getItem('tj_heads_consolidated');
+    const i = localStorage.getItem('tj_heads_individual');
+    if (c) state.showHeadsConsolidated = JSON.parse(c);
+    if (i) state.showHeadsIndividual = JSON.parse(i);
+  } catch (e) { }
+}
+
+function initShowHeads() {
+  loadShowHeads();
+  state.columns.forEach(col => {
+    if (col.toLowerCase() === 'date') return;
+    const def = isDefaultShowHeadCol(col);
+    if (!(col in state.showHeadsConsolidated)) state.showHeadsConsolidated[col] = def;
+    if (!(col in state.showHeadsIndividual)) state.showHeadsIndividual[col] = def;
+  });
+  renderShowHeads();
+}
+
+function renderShowHeads() {
+  const panel = document.getElementById('show-heads-panel');
+  panel.innerHTML = '';
+  const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+  if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
+
+  const badge = document.createElement('div');
+  const isConsolidated = state.calendarMode === 'consolidated';
+  badge.style.cssText = 'font-size:0.72rem;font-weight:600;padding:4px 2px 6px 2px;color:' + (isConsolidated ? 'var(--blue)' : 'var(--green)');
+  badge.textContent = isConsolidated ? 'Consolidated Heads' : 'Individual Heads';
+  panel.appendChild(badge);
+
+  const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
+  const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
+  searchRow.appendChild(searchInp); panel.appendChild(searchRow);
+
+  const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
+  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
+  const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
+  const btnPL = document.createElement('button'); btnPL.className = 'panel-act-btn'; btnPL.textContent = 'P/L Only';
+  const heads = getActiveShowHeads();
+  btnAll.addEventListener('click', () => { cols.forEach(c => { heads[c] = true; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  btnNone.addEventListener('click', () => { cols.forEach(c => { heads[c] = false; }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  btnPL.addEventListener('click', () => { cols.forEach(c => { heads[c] = isDefaultShowHeadCol(c); }); saveShowHeads(); renderShowHeads(); renderCalendar(); });
+  actRow.appendChild(btnAll); actRow.appendChild(btnNone); actRow.appendChild(btnPL); panel.appendChild(actRow);
+
+  const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
+
+  const renderList = (q) => {
+    list.innerHTML = '';
+    const activeHeads = getActiveShowHeads();
+    cols.filter(c => !q || c.toLowerCase().includes(q.toLowerCase())).forEach(col => {
+      const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
+      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!activeHeads[col];
+      chk.addEventListener('change', () => { getActiveShowHeads()[col] = chk.checked; saveShowHeads(); renderCalendar(); });
+      lbl.appendChild(chk); lbl.appendChild(document.createTextNode(col));
+      list.appendChild(lbl);
+    });
+  };
+  renderList('');
+  searchInp.addEventListener('input', () => renderList(searchInp.value));
+}
+
+function initTableShowCols() {
+  const allCols = [...state.columns];
+  if (!allCols.some(c => c.toLowerCase() === 'thumbnail') && !allCols.some(c => c.toLowerCase() === 'images')) {
+    allCols.push('Images');
+  }
+  allCols.forEach(col => {
+    if (!(col in state.tableShowCols)) state.tableShowCols[col] = true;
+  });
+  getTagColumns().forEach(col => {
+    if (!(col in state.tableShowCols)) state.tableShowCols[col] = true;
+  });
+  state.tableShowCols[BROKER_COLUMN] = true;
+  state.tableShowCols[IMAGE_TAG_COLUMN] = true;
+  renderColVisPanel();
+}
+
+const VIEWS_KEY = 'tj_savedViews';
+
+function getSavedViews() {
+  try { return JSON.parse(localStorage.getItem(VIEWS_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveCurrentView(name) {
+  const views = getSavedViews();
+  views[name] = JSON.parse(JSON.stringify(state.tableShowCols));
+  localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
+  renderViewsPanel();
+}
+
+function loadView(name) {
+  const views = getSavedViews();
+  if (!views[name]) return;
+  state.tableShowCols = Object.assign({}, views[name]);
+  renderColVisPanel();
+  render();
+  showToast(`View "${name}" loaded`, 'success');
+}
+
+function deleteView(name) {
+  const views = getSavedViews();
+  delete views[name];
+  localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
+  renderViewsPanel();
+}
+
+function renderViewsPanel() {
+  const list = document.getElementById('saved-views-list');
+  if (!list) return;
+  const views = getSavedViews();
+  const names = Object.keys(views);
+  list.innerHTML = '';
+  if (!names.length) {
+    const hint = document.createElement('p');
+    hint.className = 'panel-hint';
+    hint.style.margin = '8px';
+    hint.textContent = 'No saved views yet';
+    list.appendChild(hint);
+    return;
+  }
+  names.forEach(name => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 8px;';
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'dropdown-item';
+    loadBtn.style.cssText = 'flex:1;text-align:left;';
+    loadBtn.textContent = name;
+    loadBtn.title = 'Load this view';
+    loadBtn.addEventListener('click', () => { loadView(name); closeAllDropdowns('__none__'); });
+    const delBtn = document.createElement('button');
+    delBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#c00;font-size:1em;padding:2px 4px;';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Delete view';
+    delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteView(name); });
+    row.appendChild(loadBtn);
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+
+function renderColVisPanel() {
+  const panel = document.getElementById('col-vis-panel');
+  panel.innerHTML = '';
+  const allCols = [...state.columns, 'Images'];
+  if (!allCols.length || (allCols.length === 1 && allCols[0] === 'Images')) {
+    panel.innerHTML = '<p class="panel-hint" style="margin:8px">Import Excel first</p>'; return;
+  }
+
+  const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
+  const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
+  searchRow.appendChild(searchInp); panel.appendChild(searchRow);
+
+  const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
+  const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
+  const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
+  btnAll.addEventListener('click', () => { allCols.forEach(c => { state.tableShowCols[c] = true; }); renderColVisPanel(); renderTable(); });
+  btnNone.addEventListener('click', () => {
+    allCols.forEach(c => { state.tableShowCols[c] = false; });
+    state.tableShowCols[BROKER_COLUMN] = true;
+    state.tableShowCols[IMAGE_TAG_COLUMN] = true;
+    renderColVisPanel();
+    renderTable();
+  });
+  actRow.appendChild(btnAll); actRow.appendChild(btnNone); panel.appendChild(actRow);
+
+  const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
+
+  const renderList = (q) => {
+    list.innerHTML = '';
+    const ql = (q || '').toLowerCase();
+    const orderedCols = state.columns.filter(c => !ql || c.toLowerCase().includes(ql));
+    const includeImages = !ql || 'images'.includes(ql);
+
+    const buildRow = (col, draggable, isPermanent) => {
+      const row = document.createElement('div');
+      row.className = 'head-checkbox' + (draggable ? ' drag-row' : '');
+      row.style.padding = '3px 0';
+      row.dataset.col = col;
+
+      if (draggable) {
+        const handle = document.createElement('span');
+        handle.textContent = '⋮⋮';
+        handle.style.opacity = '0.6';
+        handle.style.marginRight = '8px';
+        row.appendChild(handle);
+        row.setAttribute('draggable', 'true');
+      }
+
+      const chk = document.createElement('input'); chk.type = 'checkbox';
+      chk.checked = isPermanent ? true : (state.tableShowCols[col] !== false);
+      chk.disabled = isPermanent;
+      chk.addEventListener('change', () => {
+        if (isPermanent) return;
+        state.tableShowCols[col] = chk.checked;
+        renderTable();
+      });
+      row.appendChild(chk);
+      row.appendChild(document.createTextNode(col));
+
+      if (draggable) {
+        row.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', col);
+          row.style.opacity = '0.5';
+        });
+        row.addEventListener('dragend', () => { row.style.opacity = '1'; });
+        row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '1px dashed var(--border2)'; });
+        row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
+        row.addEventListener('drop', e => {
+          e.preventDefault();
+          row.style.borderTop = '';
+          const from = e.dataTransfer.getData('text/plain');
+          const to = col;
+          if (!from || from === to) return;
+          const order = state.columns.filter(c => c !== from);
+          const idx = order.indexOf(to);
+          order.splice(idx, 0, from);
+          state.columns = order;
+          saveTrades();
+          renderColVisPanel();
+          renderTable();
+        });
+      }
+
+      list.appendChild(row);
+    };
+
+    orderedCols.forEach(col => {
+      const lowerCol = String(col).toLowerCase();
+      const isPermanent =
+        lowerCol === String(IMAGE_TAG_COLUMN).toLowerCase() ||
+        lowerCol === String(BROKER_COLUMN).toLowerCase();
+      buildRow(col, true, isPermanent);
+    });
+
+    if (includeImages) {
+      buildRow('Images', false, false);
+    }
+  };
+  renderList('');
+  searchInp.addEventListener('input', () => renderList(searchInp.value));
+
+  const freezeWrap = document.createElement('div');
+  freezeWrap.style.padding = '6px 10px 10px';
+  freezeWrap.style.borderTop = '1px solid var(--border)';
+  const freezeLabel = document.createElement('div');
+  freezeLabel.className = 'panel-manage-label';
+  freezeLabel.textContent = 'Freeze Columns';
+  freezeLabel.style.marginBottom = '6px';
+  freezeWrap.appendChild(freezeLabel);
+
+  const freezeList = document.createElement('div');
+  freezeList.className = 'panel-list';
+  freezeList.style.maxHeight = '180px';
+  const frozen = getFrozenCols();
+  state.columns.forEach(col => {
+    const row = document.createElement('label');
+    row.className = 'head-checkbox';
+    row.style.padding = '3px 0';
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = frozen.includes(col);
+    chk.addEventListener('change', () => {
+      const next = new Set(getFrozenCols());
+      if (chk.checked) next.add(col);
+      else next.delete(col);
+      saveFrozenCols(Array.from(next));
+      renderTable();
+    });
+    row.appendChild(chk);
+    row.appendChild(document.createTextNode(col));
+    freezeList.appendChild(row);
+  });
+  freezeWrap.appendChild(freezeList);
+  panel.appendChild(freezeWrap);
+}
+

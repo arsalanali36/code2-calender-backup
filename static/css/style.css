@@ -27,6 +27,7 @@
   --table-head-height: 78px;
   --table-foot-height: 42px;
   --table-visible-rows: 5;
+  --table-font-size: 0.85rem;
   --date-group-a-bg: rgba(88,166,255,0.03);
   --date-group-b-bg: rgba(255,255,255,0.01);
   --date-group-sep: rgba(88,166,255,0.28);
@@ -410,7 +411,7 @@ body.modal-open {
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
-.trade-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; table-layout: fixed; }
+.trade-table { width: 100%; border-collapse: collapse; font-size: var(--table-font-size, 0.85rem); table-layout: fixed; }
 .trade-table thead { position: sticky; top: 0; z-index: 10; background: var(--surface2); }
 .trade-table th {
   padding: 9px 12px; text-align: left; color: var(--text2);
@@ -467,6 +468,10 @@ body.modal-open {
 .col-resizer:hover::after,
 .col-resizer:active::after { background: var(--blue); }
 .col-resizer:hover { background: rgba(88,166,255,0.1); }
+.trade-table th.sortable-th { cursor: grab; }
+.trade-table th.sortable-th:active { cursor: grabbing; }
+.trade-table th.col-th-dragging { opacity: 0.35; background: var(--bg2); }
+.trade-table th.col-th-drag-over { border-left: 3px solid var(--blue); background: rgba(88,166,255,0.12); }
 .trade-table td { padding: 7px 12px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; overflow: hidden; }
 .trade-table th { overflow: hidden; }
 .trade-table tbody tr:hover { background: rgba(255,255,255,0.02); }
@@ -1082,10 +1087,37 @@ tr.row-drop-after  { box-shadow: 0  3px 0 0 var(--blue); }
   padding: 1px 3px; pointer-events: none;
 }
 
+/* Context menu */
+.gv2-ctx-menu {
+  position: fixed; z-index: 9999;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  min-width: 170px; padding: 4px 0; user-select: none;
+}
+.gv2-ctx-item {
+  padding: 7px 16px; font-size: 0.82rem; color: var(--text);
+  cursor: pointer; transition: background 0.1s, color 0.1s;
+}
+.gv2-ctx-item:hover { background: rgba(88,166,255,0.14); color: var(--blue); }
+.gv2-ctx-header {
+  padding: 4px 16px 2px; font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2);
+}
+.gv2-ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
 /* Tags Tray (right panel) */
 .gv2-tags-tray {
   width: 220px; flex-shrink: 0; display: flex; flex-direction: column;
   background: var(--surface); border-left: 1px solid var(--border); overflow: hidden;
+  position: relative;
+}
+.gv2-tray-resize-handle {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+  cursor: ew-resize; z-index: 10; background: transparent;
+  border-left: 2px solid transparent; transition: border-color 0.15s, background 0.15s;
+}
+.gv2-tray-resize-handle:hover, .gv2-tray-resize-handle.dragging {
+  border-left-color: var(--blue); background: rgba(88,166,255,0.12);
 }
 .gv2-tt-hdr {
   display: flex; align-items: center; justify-content: space-between;
@@ -1103,6 +1135,11 @@ tr.row-drop-after  { box-shadow: 0  3px 0 0 var(--blue); }
 }
 .gv2-tt-del-tag:hover { border-color: var(--red); color: var(--red); }
 .gv2-tt-del-tag.active { background: rgba(248,81,73,0.12); border-color: var(--red); color: var(--red); }
+.gv2-tt-sz-btn {
+  font-size: 0.68rem; padding: 2px 5px; border-radius: 4px; cursor: pointer;
+  background: transparent; border: 1px solid var(--border2); color: var(--text2); line-height: 1;
+}
+.gv2-tt-sz-btn:hover { background: rgba(88,166,255,0.1); color: var(--blue); border-color: var(--blue); }
 .gv2-tt-body { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 10px; }
 .gv2-tt-group { display: flex; flex-direction: column; gap: 4px; }
 .gv2-tt-group.drop-hover, .gv2-tt-unassigned.drop-hover {
@@ -1121,7 +1158,8 @@ tr.row-drop-after  { box-shadow: 0  3px 0 0 var(--blue); }
 .gv2-tt-grp-tags { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 4px; }
 .gv2-tt-tag-chip {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px; border-radius: 10px; font-size: 0.72rem; cursor: pointer;
+  padding: 3px 8px; border-radius: 10px;
+  font-size: var(--tag-chip-size, 0.72rem); cursor: pointer;
   border: 1px solid var(--border2); color: var(--text2); background: transparent;
   transition: all 0.15s;
 }
@@ -1131,7 +1169,7 @@ tr.row-drop-after  { box-shadow: 0  3px 0 0 var(--blue); }
   border-radius: 999px;
   background: rgba(255,255,255,0.12);
   color: var(--text);
-  font-size: 0.62rem;
+  font-size: var(--tag-chip-count-size, 0.62rem);
   line-height: 1;
 }
 .gv2-tt-tag-chip[draggable="true"] { cursor: grab; }
@@ -1183,6 +1221,21 @@ tr.row-drop-after  { box-shadow: 0  3px 0 0 var(--blue); }
   display: flex; flex-direction: column;
   transform: translateX(100%); transition: transform 0.28s cubic-bezier(.4,0,.2,1); z-index: 901;
 }
+.settings-resize-handle {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 7px;
+  cursor: ew-resize; z-index: 10; background: transparent;
+  border-left: 2px solid transparent; transition: border-color 0.15s, background 0.15s;
+}
+.settings-resize-handle:hover, .settings-resize-handle.dragging {
+  border-left-color: var(--blue); background: rgba(88,166,255,0.10);
+}
+.s-sz-btn {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--text); font-size: 0.72rem; font-weight: 700; padding: 2px 7px;
+  cursor: pointer; line-height: 1.5; flex-shrink: 0;
+}
+.s-sz-btn:hover { background: var(--bg3); border-color: var(--blue); color: var(--blue); }
+.s-sz-val { font-size: 0.8rem; color: var(--text); min-width: 26px; text-align: center; }
 .settings-overlay.open .settings-panel { transform: translateX(0); }
 .settings-header {
   display: flex; align-items: center; justify-content: space-between;

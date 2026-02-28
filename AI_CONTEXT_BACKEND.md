@@ -1,3 +1,9 @@
+# Backend Context
+This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+
+
+## File: `app.py`
+```py
 ﻿from flask import Flask, request, jsonify, render_template, send_file, send_from_directory
 import pandas as pd
 import json
@@ -1102,3 +1108,53 @@ if __name__ == '__main__':
     print(f"  Open: http://localhost:{port}")
     print("=" * 50)
     app.run(debug=debug, host=host, port=port)
+
+```
+
+## File: `requirements.txt`
+```txt
+Flask>=3.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+gunicorn>=21.2.0
+
+```
+
+## File: `Dockerfile`
+```
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY . /app
+
+ENV PORT=10000
+EXPOSE 10000
+
+CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT:-10000} --workers 2 --threads 4 --timeout 120"]
+
+```
+
+## File: `Procfile`
+```
+web: gunicorn app:app --workers 2 --threads 4 --timeout 120
+
+```
+
+## File: `render.yaml`
+```yaml
+services:
+  - type: web
+    name: code2-calender
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --threads 4 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+
+```

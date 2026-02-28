@@ -161,6 +161,16 @@
             </div>
           </div>
 
+          <!-- Saved Views -->
+          <div class="dropdown-wrapper" id="view-preset-wrapper">
+            <button class="btn btn-outline" id="view-preset-btn">&#128204; Views &#9660;</button>
+            <div class="dropdown-menu" id="view-preset-panel" style="min-width:200px;">
+              <button class="dropdown-item" id="save-view-btn">&#128190; Save Current View</button>
+              <div class="dropdown-divider"></div>
+              <div id="saved-views-list"></div>
+            </div>
+          </div>
+
           <!-- Tag Filter -->
           <div class="dropdown-wrapper">
             <button class="btn btn-outline" id="tag-filter-btn">&#127991; Tags &#9660;</button>
@@ -198,9 +208,9 @@
               <button class="dropdown-item" id="export-btn">&#8681; Export Excel</button>
               <button class="dropdown-item" id="export-structured-csv-btn">&#8681; Export Structured CSV</button>
               <div class="dropdown-divider"></div>
-              <button class="dropdown-item" id="backup-btn">&#128190; Backup JSON</button>
-              <button class="dropdown-item" id="restore-btn">&#8635; Restore from JSON</button>
-              <input type="file" id="json-input" accept=".json" style="display:none" />
+              <button class="dropdown-item" id="backup-btn">&#128190; Backup (Data + Images)</button>
+              <button class="dropdown-item" id="restore-btn">&#8635; Restore from Backup</button>
+              <input type="file" id="json-input" accept=".json,.zip" style="display:none" />
             </div>
           </div>
 
@@ -223,6 +233,7 @@
   <!-- ── SETTINGS PANEL ───────────────────── -->
   <div class="settings-overlay" id="settings-overlay">
     <div class="settings-panel">
+      <div class="settings-resize-handle" id="settings-resize-handle"></div>
       <div class="settings-header">
         <span class="settings-title">&#9881; Settings</span>
         <button class="close-btn" id="settings-close">&#10005;</button>
@@ -308,6 +319,22 @@
               <option value="10">10 rows</option>
               <option value="12">12 rows</option>
               <option value="15">15 rows</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Row Height</label>
+            <button class="s-sz-btn" id="s-row-h-minus">&#9660;</button>
+            <span class="s-sz-val" id="s-row-h-val">40</span><span style="font-size:0.75rem;color:var(--text2)">px</span>
+            <button class="s-sz-btn" id="s-row-h-plus">&#9650;</button>
+          </div>
+          <div class="settings-row">
+            <label>Table Text</label>
+            <select class="select-box" id="s-tbl-font-size">
+              <option value="0.72">XS — 0.72rem</option>
+              <option value="0.78">S — 0.78rem</option>
+              <option value="0.85" selected>M — 0.85rem</option>
+              <option value="0.95">L — 0.95rem</option>
+              <option value="1.05">XL — 1.05rem</option>
             </select>
           </div>
           <div class="settings-row">
@@ -666,9 +693,12 @@
 
       <!-- Tags Tray (right panel, toggled by T) -->
       <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
+        <div class="gv2-tray-resize-handle" id="gv2-tray-resize-handle"></div>
         <div class="gv2-tt-hdr">
           <span class="gv2-tt-title">Tags</span>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="gv2-tt-sz-btn" id="gv2-tag-sz-minus" title="Tag size kam karo">A-</button>
+            <button class="gv2-tt-sz-btn" id="gv2-tag-sz-plus" title="Tag size badhao">A+</button>
             <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
             <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
           </div>
@@ -744,6 +774,18 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/state.js"></script>
+  <script src="/static/js/data.js"></script>
+  <script src="/static/js/settings.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+  <script src="/static/js/calendar.js"></script>
+  <script src="/static/js/table-render.js"></script>
+  <script src="/static/js/table-cols.js"></script>
+  <script src="/static/js/gallery-core.js"></script>
+  <script src="/static/js/gallery-tags.js"></script>
+  <script src="/static/js/gallery-data.js"></script>
+  <script src="/static/js/annotate.js"></script>
+  <script src="/static/js/io.js"></script>
+  <script src="/static/js/events.js"></script>
 </body>
 </html>
