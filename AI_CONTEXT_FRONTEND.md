@@ -262,7 +262,8 @@ This file contains the consolidated code context for the project to be used with
   <script src="/static/js/gallery-core.js"></script>
   <script src="/static/js/gallery-tags.js"></script>
   <script src="/static/js/gallery-data.js"></script>
-  <script src="/static/js/annotate.js"></script>
+  <script src="/static/js/annotate-tools.js"></script>
+  <script src="/static/js/annotate-canvas.js"></script>
   <script src="/static/js/io.js"></script>
   <script src="/static/js/events.js"></script>
 </body>
@@ -8040,7 +8041,7 @@ document.addEventListener('keydown', e => {
 
 ```
 
-## File: `static\js\annotate.js`
+## File: `static\js\annotate-tools.js`
 ```js
 function toggleAnnotation() {
   if (annotState.active && annotState.tool === 'text') {
@@ -8661,6 +8662,11 @@ function stopAnnotation() {
   loadOverlayForCurrentImage();
 }
 
+
+```
+
+## File: `static\js\annotate-canvas.js`
+```js
 function bindAnnotationCanvas() {
   const canvas = document.getElementById('annot-canvas');
   const wrapper = document.getElementById('gallery-img-wrapper');

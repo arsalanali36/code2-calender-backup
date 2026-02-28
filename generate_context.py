@@ -23,7 +23,8 @@ files_frontend = [
     "static/js/gallery-core.js",
     "static/js/gallery-tags.js",
     "static/js/gallery-data.js",
-    "static/js/annotate.js",
+    "static/js/annotate-tools.js",
+    "static/js/annotate-canvas.js",
     "static/js/io.js",
     "static/js/events.js"
 ]

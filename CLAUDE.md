@@ -27,7 +27,7 @@ Included via Jinja2 `{% include %}` in `index.html`.
 ---
 
 ## JS Module Structure (`static/js/`)
-The original `app.js` (7712 lines) has been split into 13 focused modules loaded in this order:
+The original `app.js` (7712 lines) has been split into 14 focused modules loaded in this order:
 
 | File | Lines | Responsibility |
 |------|-------|---------------|
@@ -41,9 +41,12 @@ The original `app.js` (7712 lines) has been split into 13 focused modules loaded
 | `gallery-core.js` | ~791 | Open/render gallery, navigate, overlay loading |
 | `gallery-tags.js` | ~533 | Tag cloud, tags tray (drag-to-resize) |
 | `gallery-data.js` | ~725 | Image/overlay data helpers, marquee box storage |
-| `annotate.js` | ~1437 | Annotation tools (brush/text/marquee), zoom/pan, save |
+| `annotate-tools.js` | ~619 | Tool toggles, marquee ops, `startAnnotation`, `stopAnnotation` |
+| `annotate-canvas.js` | ~818 | `bindAnnotationCanvas`, zoom/pan (`zoom`, `drag`, `applyZoom`, `bindZoomPan`) |
 | `io.js` | ~388 | Upload modal, import (JSON/ZIP), export, backup |
 | `events.js` | ~918 | `bindEvents()` + `init()` call at bottom |
+
+`annotate.js` = old backup (not loaded). Split into `annotate-tools.js` + `annotate-canvas.js`.
 
 All functions are in **global scope** (no ES modules) — each file can call functions from any other file.
 
