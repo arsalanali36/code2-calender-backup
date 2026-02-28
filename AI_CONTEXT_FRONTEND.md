@@ -259,9 +259,12 @@ This file contains the consolidated code context for the project to be used with
   <script src="/static/js/calendar.js"></script>
   <script src="/static/js/table-render.js"></script>
   <script src="/static/js/table-cols.js"></script>
+  <script src="/static/js/table-colops.js"></script>
   <script src="/static/js/gallery-core.js"></script>
+  <script src="/static/js/gallery-nav.js"></script>
   <script src="/static/js/gallery-tags.js"></script>
   <script src="/static/js/gallery-data.js"></script>
+  <script src="/static/js/gallery-img-tags.js"></script>
   <script src="/static/js/annotate-tools.js"></script>
   <script src="/static/js/annotate-canvas.js"></script>
   <script src="/static/js/io.js"></script>
@@ -5749,6 +5752,11 @@ function updateTagPickerList(q) {
   }
 }
 
+
+```
+
+## File: `static\js\table-colops.js`
+```js
 function renderTagFilterPanel() {
   const panel = document.getElementById('tag-filter-panel');
   normalizeAllTagsFromTrades();
@@ -6569,6 +6577,11 @@ async function removeGalleryImageAt(idx) {
   showToast('Image removed', 'success');
 }
 
+
+```
+
+## File: `static\js\gallery-nav.js`
+```js
 function loadOverlayForCurrentImage() {
   if (annotState.active) return; // annotation mode handles its own canvas
   const imgs = state.gallery.images || [];
@@ -7641,6 +7654,11 @@ function autoSaveAnnotationSession(session) {
   }, 'image/png');
 }
 
+
+```
+
+## File: `static\js\gallery-img-tags.js`
+```js
 function renderGalleryImageTags() {
   const box = document.getElementById('gallery-image-tags');
   if (!box) return;

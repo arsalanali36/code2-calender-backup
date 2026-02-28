@@ -27,7 +27,7 @@ Included via Jinja2 `{% include %}` in `index.html`.
 ---
 
 ## JS Module Structure (`static/js/`)
-The original `app.js` (7712 lines) has been split into 14 focused modules loaded in this order:
+The original `app.js` (7712 lines) has been split into 17 focused modules loaded in this order:
 
 | File | Lines | Responsibility |
 |------|-------|---------------|
@@ -37,16 +37,19 @@ The original `app.js` (7712 lines) has been split into 14 focused modules loaded
 | `dashboard.js` | ~398 | Dashboard stats, drag-drop stat order |
 | `calendar.js` | ~585 | Calendar render, yearly view, obs modal |
 | `table-render.js` | ~530 | `renderTable`, `renderTableBody`, frozen cols |
-| `table-cols.js` | ~772 | Column add/rename/delete, tag picker, tag filter, context menu |
-| `gallery-core.js` | ~791 | Open/render gallery, navigate, overlay loading |
+| `table-cols.js` | ~547 | Note popup, sort, col resize, tag picker, cell rendering |
+| `table-colops.js` | ~225 | `renderTagFilterPanel`, `applyTagFilter`, `addColumn`, `renameColumn`, `deleteColumn` |
+| `gallery-core.js` | ~590 | Open/render gallery, stats, scope/filter query helpers |
+| `gallery-nav.js` | ~201 | `loadOverlayForCurrentImage`, `navigateGallery`, `navigateGalleryDate`, arrows |
 | `gallery-tags.js` | ~533 | Tag cloud, tags tray (drag-to-resize) |
-| `gallery-data.js` | ~725 | Image/overlay data helpers, marquee box storage |
+| `gallery-data.js` | ~328 | Image/overlay/marquee data get/set, pack/unpack, autoSave |
+| `gallery-img-tags.js` | ~397 | `renderGalleryImageTags`, rename/delete image tags, tag modal |
 | `annotate-tools.js` | ~619 | Tool toggles, marquee ops, `startAnnotation`, `stopAnnotation` |
 | `annotate-canvas.js` | ~818 | `bindAnnotationCanvas`, zoom/pan (`zoom`, `drag`, `applyZoom`, `bindZoomPan`) |
 | `io.js` | ~388 | Upload modal, import (JSON/ZIP), export, backup |
 | `events.js` | ~918 | `bindEvents()` + `init()` call at bottom |
 
-`annotate.js` = old backup (not loaded). Split into `annotate-tools.js` + `annotate-canvas.js`.
+Old backups (not loaded): `app.js`, `annotate.js`.
 
 All functions are in **global scope** (no ES modules) — each file can call functions from any other file.
 
@@ -55,7 +58,7 @@ All functions are in **global scope** (no ES modules) — each file can call fun
 ## Key Globals
 - `state` — main app state (trades, columns, gallery, tags, dayData, etc.)
 - `annotState` — annotation mode state (tool, marquee boxes, drawing flags)
-- `zoom` / `drag` — gallery zoom/pan state (defined in `annotate.js`)
+- `zoom` / `drag` — gallery zoom/pan state (defined in `annotate-canvas.js`)
 
 ## Key Patterns
 
