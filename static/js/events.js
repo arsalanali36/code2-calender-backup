@@ -256,6 +256,10 @@ function bindEvents() {
   });
   _loadDateRange();
 
+  setupDropdown('gallery-tools-btn', 'gallery-tools-panel');
+  const galleryToolsPanel = document.getElementById('gallery-tools-panel');
+  if (galleryToolsPanel) galleryToolsPanel.addEventListener('click', e => e.stopPropagation());
+
   setupDropdown('gallery-show-heads-btn', 'gallery-show-heads-panel');
   const galleryHeadsPanel = document.getElementById('gallery-show-heads-panel');
   if (galleryHeadsPanel) galleryHeadsPanel.addEventListener('click', e => e.stopPropagation());

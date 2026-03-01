@@ -1,4 +1,12 @@
 import pandas as pd
+import json
+import os
+import time
+import shutil
+from datetime import datetime
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 STRUCTURED_COLUMNS = [
     'Instrument',
     'TradeType',
