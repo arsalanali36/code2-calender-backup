@@ -2,6 +2,7 @@ import os
 
 files_backend = [
     "app.py",
+    "data_processors.py",
     "requirements.txt",
     "Dockerfile",
     "Procfile",
@@ -22,12 +23,16 @@ files_frontend = [
     "static/js/table-cols.js",
     "static/js/table-colops.js",
     "static/js/gallery-core.js",
+    "static/js/gallery-ops.js",
     "static/js/gallery-nav.js",
     "static/js/gallery-tags.js",
+    "static/js/gallery-tags-filter.js",
     "static/js/gallery-data.js",
     "static/js/gallery-img-tags.js",
     "static/js/annotate-tools.js",
+    "static/js/annotate-marquee.js",
     "static/js/annotate-canvas.js",
+    "static/js/annotate-fabric.js",
     "static/js/io.js",
     "static/js/events.js"
 ]
