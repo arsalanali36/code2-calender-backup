@@ -435,14 +435,12 @@ function startAnnotation() {
   const canvas = document.getElementById('annot-canvas');
   const toolbar = document.getElementById('gv2-annot-bar'); // V2: floating bar
 
-  const left = img.offsetLeft;
-  const top = img.offsetTop;
   const w = Math.round(img.clientWidth || img.naturalWidth || 0);
   const h = Math.round(img.clientHeight || img.naturalHeight || 0);
   if (w <= 0 || h <= 0) return;
 
-  canvas.style.left = left + 'px';
-  canvas.style.top = top + 'px';
+  canvas.style.margin = 'auto';
+  canvas.style.inset = '0';
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
   canvas.width = w;

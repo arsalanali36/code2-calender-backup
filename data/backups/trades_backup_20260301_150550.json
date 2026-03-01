@@ -828,7 +828,7 @@
       "Total Fees": 64.93,
       "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=195",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
@@ -1108,7 +1108,7 @@
       "Total Fees": 60.6,
       "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=258",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
@@ -1164,7 +1164,7 @@
       "Total Fees": 62.71,
       "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=296",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
@@ -1192,7 +1192,7 @@
       "Total Fees": 60.16,
       "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=373",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
@@ -1290,6 +1290,7 @@
             "rx": 0.5971896955503513,
             "ry": 0.3390191897654584,
             "tags": [
+              "expiryDay",
               "RuleBased"
             ]
           }
@@ -2359,8 +2360,8 @@
         ],
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
           {
-            "rh": 0.2190802052933481,
-            "rw": 0.09991276975006638,
+            "rh": 0.15789473684210525,
+            "rw": 0.04964539007092199,
             "rx": 0.24442755825734547,
             "ry": 0.2990492185172143,
             "tags": [
@@ -2385,7 +2386,7 @@
         "/uploads/731da900-ae77-4681-881a-c75c321378e2.png": "/uploads/a6c6e270-9279-47a2-a9fd-a32b81be45f9.png",
         "/uploads/cd9dee16-dbb1-4386-8b52-3824b42c707c.png": "/uploads/910fd545-0a60-472f-b65d-ef935d299249.png",
         "/uploads/d44ce0fd-445e-489e-8c6b-2619c8404ee0.png": "/uploads/3191b6e6-af5e-4def-b1f5-74bea7524482.png",
-        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "/uploads/f1dacfb3-9bbe-4a47-9a09-c342babfd18d.png"
+        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "/uploads/9504da46-875f-4266-8dd9-7ab3104f4010.png"
       },
       "tags": [],
       "trade_date": "2026-02-03"
@@ -3557,12 +3558,7 @@
     "nafsPeKabu",
     "halkeMeLerahe",
     "Realisation",
-    "cont",
-    "ide",
-    "himmat nahi",
-    "impulsive",
-    "algo",
-    "no darr!"
+    "cont"
   ],
   "tagColumns": [
     "Tags"
@@ -3688,38 +3684,15 @@
             ]
           }
         ],
-        "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png": [
-          {
-            "rh": 0.16844349680170576,
-            "rw": 0.13780487804878047,
-            "rx": 0.1524390243902439,
-            "ry": 0.36673773987206826,
-            "tags": [
-              "idea",
-              "Manual",
-              "CloseButNotExactRule"
-            ]
-          }
-        ],
         "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": [
           {
             "rh": 0.3624733475479744,
             "rw": 0.19047619047619047,
-            "rx": 0.30036630036630035,
-            "ry": 0.36886993603411516,
+            "rx": 0.7667887667887668,
+            "ry": 0.5863539445628998,
             "tags": [
               "idea",
-              "Realisation",
-              "Late"
-            ]
-          },
-          {
-            "rh": 0.208955223880597,
-            "rw": 0.06593406593406594,
-            "rx": 0.5970695970695971,
-            "ry": 0.35181236673773986,
-            "tags": [
-              "himmat nahi"
+              "Realisation"
             ]
           }
         ],
@@ -3746,7 +3719,40 @@
             ]
           }
         ],
-        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [],
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [
+          {
+            "rh": 0.11353711790393013,
+            "rw": 0.02822085889570552,
+            "rx": 0.3619631901840491,
+            "ry": 0.23580786026200873,
+            "tags": [
+              "idea"
+            ]
+          },
+          {
+            "rh": 0.1794871794871795,
+            "rw": 0.06850961538461539,
+            "rx": 0.43990384615384615,
+            "ry": 0.4188034188034188,
+            "tags": []
+          },
+          {
+            "rh": 0.1987179487179487,
+            "rw": 0.0673076923076923,
+            "rx": 0.5985576923076923,
+            "ry": 0.3504273504273504,
+            "tags": [
+              "CloseButNotExactRule"
+            ]
+          },
+          {
+            "rh": 0.17307692307692307,
+            "rw": 0.08653846153846154,
+            "rx": 0.3581730769230769,
+            "ry": 0.6495726495726496,
+            "tags": []
+          }
+        ],
         "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": [
           {
             "rh": 0.1513859275053305,
@@ -3771,10 +3777,10 @@
       "overlays": {
         "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": "/uploads/5c4af92c-4b8f-403a-b692-c9a43c65a525.png",
         "/uploads/57c87743-e865-4e7c-bde0-1d53ea83698d.png": "/uploads/6396efcf-02c0-406e-918c-7adda8a9682b.png",
-        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/180f6a29-69f2-4152-a5d6-e14d25195614.png",
-        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/d9c6aeb1-ec84-45ab-bea4-b84cb44b9528.png",
-        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": "/uploads/c24570fe-9870-4241-959c-f293d1ab63b1.png",
-        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/858a2509-9b2e-41e3-8aa2-425bab492a9e.png",
+        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/5c8be4a9-41dd-4439-89ee-1d0a5f9dc128.png",
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/eafbef9f-dfe4-4077-8012-cfe36060ce50.png",
+        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": "/uploads/7a67bfbf-b497-4bdf-8c02-3fe7ef65c092.png",
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/a73a742d-6c23-4032-a239-b9ef94b7d603.png",
         "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": "/uploads/712bce25-0daa-424b-96c7-16c2c5f31f49.png"
       },
       "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE"
@@ -3793,63 +3799,55 @@
           {
             "rh": 0.35947712418300654,
             "rw": 0.515625,
-            "rx": 0.2216255762451415,
-            "ry": 0.4457915836317944,
+            "rx": 0.13701923076923078,
+            "ry": 0.5076252723311547,
             "tags": [
               "Realisation"
             ]
           }
         ],
-        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": [
-          {
-            "rh": 0.26652452025586354,
-            "rw": 0.16606498194945848,
-            "rx": 0.33935018050541516,
-            "ry": 0.4562899786780384,
-            "tags": []
-          }
-        ],
-        "/uploads/d2160d77-84e2-490a-a1a2-f69202f8d88d.png": [],
+        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": [],
         "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": [
           {
             "rh": 0.2516703786191537,
             "rw": 0.12100139082058414,
-            "rx": 0.64673157162726,
-            "ry": 0.5211581291759465,
+            "rx": 0.6453407510431154,
+            "ry": 0.40757238307349664,
             "tags": [
               "Conti",
               "Realisation"
             ]
           }
         ],
-        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": []
+        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": [
+          {
+            "rh": 0.2068230277185501,
+            "rw": 0.10722891566265061,
+            "rx": 0.4963855421686747,
+            "ry": 0.6417910447761194,
+            "tags": [
+              "idea",
+              "Realisation"
+            ]
+          }
+        ]
       },
       "overlays": {
-        "/uploads/657e23e7-5495-4464-9db9-752501aa06c8.png": "/uploads/0d6df1ac-02ed-470d-bcca-54f78f88d5d2.png",
-        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": "/uploads/613bbe44-e837-4526-851e-72ef256de933.png",
-        "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": "/uploads/d53a6862-b629-4991-a7db-dc65e29d72d1.png",
-        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": "/uploads/3ffe8cf8-f9be-4ebb-b53c-6eca6063e9f8.png"
+        "/uploads/657e23e7-5495-4464-9db9-752501aa06c8.png": "/uploads/d51dd2ba-0aac-4ab4-9c67-fe67eedb9b5b.png",
+        "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": "/uploads/4e5ad843-c752-43e2-b8ab-de4322d865c5.png",
+        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": "/uploads/0d255f5c-7f88-4eb1-b9f7-aac902d487dd.png"
       },
       "video": "https://youtu.be/6l-b6zPihQY?si=Tak1R32Zar3a6Ec3"
     },
     "2026-02-06": {
       "imageTags": {},
+      "video": "https://youtu.be/puTVLWO12oE?si=njeL4CZrk9A5dxS9",
       "images": [
         "/uploads/cf03f5b0-1c75-493f-b28b-c9953876278e.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/cf03f5b0-1c75-493f-b28b-c9953876278e.png": []
-      },
-      "video": "https://youtu.be/puTVLWO12oE?si=njeL4CZrk9A5dxS9"
+      ]
     },
     "2026-02-09": {
       "imageTags": {},
-      "images": [
-        "/uploads/f217c8be-7b7e-4821-8560-ed4c0b2858e6.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/f217c8be-7b7e-4821-8560-ed4c0b2858e6.png": []
-      },
       "video": "https://youtu.be/IfbQOR8B2n0?si=cCt8rscFyKdVLLDF"
     },
     "2026-02-10": {
@@ -3923,168 +3921,10 @@
       },
       "images": [
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png",
-        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png",
-        "/uploads/c249f96b-1e2f-4c62-b5fb-175e25f3ca9c.png",
-        "/uploads/0ec01064-5782-42ea-8885-40cb10c7ba1e.png",
-        "/uploads/443bbe4f-b8f2-4e36-8bd2-5fe2dda834fe.png",
-        "/uploads/74d4db2e-f5a5-421a-b79f-ea065e989865.png",
-        "/uploads/718cd4e2-5f6f-45dc-a6b3-7130d58c1561.png",
-        "/uploads/bd8e2a96-4592-43b7-8a0e-273057224580.png",
-        "/uploads/035ab5ff-0d68-4525-b5ff-c0ea266debed.png",
-        "/uploads/469b5e8a-3bff-4a77-b415-bceb3ccc6842.png",
-        "/uploads/cd149421-88f5-4968-94ee-b371e20d474f.png",
-        "/uploads/8831fb12-1b8a-4cf6-8956-011b6e364b5e.png",
-        "/uploads/48c44015-4484-4d4e-8c48-0629c8884348.png",
-        "/uploads/7be1f3da-aa86-4a96-b9ad-7228e36d88e5.png",
-        "/uploads/0c70010c-52f9-464c-833a-32a7a80d13fd.png",
-        "/uploads/ca4d5485-db5a-4a3a-b573-7bab8a3dbf09.png"
+        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png"
       ],
       "marqueeBoxes": {
-        "/uploads/035ab5ff-0d68-4525-b5ff-c0ea266debed.png": [
-          {
-            "rh": 0.19829424307036247,
-            "rw": 0.07810650887573964,
-            "rx": 0.6414201183431952,
-            "ry": 0.23880597014925373,
-            "tags": [
-              "idea"
-            ]
-          }
-        ],
-        "/uploads/0c70010c-52f9-464c-833a-32a7a80d13fd.png": [],
-        "/uploads/0ec01064-5782-42ea-8885-40cb10c7ba1e.png": [
-          {
-            "rh": 0.24946695095948826,
-            "rw": 0.1646919431279621,
-            "rx": 0.7215639810426541,
-            "ry": 0.6780383795309168,
-            "tags": [
-              "ide"
-            ]
-          }
-        ],
-        "/uploads/443bbe4f-b8f2-4e36-8bd2-5fe2dda834fe.png": [
-          {
-            "rh": 0.2260127931769723,
-            "rw": 0.2642857142857143,
-            "rx": 0.6226190476190476,
-            "ry": 0.6162046908315565,
-            "tags": [
-              "Realisation"
-            ]
-          }
-        ],
-        "/uploads/469b5e8a-3bff-4a77-b415-bceb3ccc6842.png": [
-          {
-            "rh": 0.1023454157782516,
-            "rw": 0.06682577565632458,
-            "rx": 0.4224343675417661,
-            "ry": 0.3304904051172708,
-            "tags": [
-              "impulsive",
-              "Manual"
-            ]
-          }
-        ],
-        "/uploads/48c44015-4484-4d4e-8c48-0629c8884348.png": [
-          {
-            "rh": 0.279317697228145,
-            "rw": 0.14605418138987045,
-            "rx": 0.3486454652532391,
-            "ry": 0.32196162046908317,
-            "tags": [
-              "RuleBased",
-              "algo",
-              "darr",
-              "Realisation"
-            ]
-          }
-        ],
-        "/uploads/718cd4e2-5f6f-45dc-a6b3-7130d58c1561.png": [
-          {
-            "rh": 0.20042643923240938,
-            "rw": 0.11927710843373494,
-            "rx": 0.5445783132530121,
-            "ry": 0.47334754797441364,
-            "tags": [
-              "Bach Gaye",
-              "Palat Gaya",
-              "CloseButNotExactRule",
-              "impulsive"
-            ]
-          }
-        ],
-        "/uploads/74d4db2e-f5a5-421a-b79f-ea065e989865.png": [
-          {
-            "rh": 0.24093816631130063,
-            "rw": 0.14863258026159334,
-            "rx": 0.3103448275862069,
-            "ry": 0.3752665245202559,
-            "tags": [
-              "himmat nahi"
-            ]
-          }
-        ],
-        "/uploads/7be1f3da-aa86-4a96-b9ad-7228e36d88e5.png": [],
-        "/uploads/8831fb12-1b8a-4cf6-8956-011b6e364b5e.png": [
-          {
-            "rh": 0.08102345415778252,
-            "rw": 0.1406799531066823,
-            "rx": 0.7596717467760844,
-            "ry": 0.7761194029850746,
-            "tags": [
-              "new",
-              "idea"
-            ]
-          }
-        ],
-        "/uploads/bd8e2a96-4592-43b7-8a0e-273057224580.png": [],
-        "/uploads/c249f96b-1e2f-4c62-b5fb-175e25f3ca9c.png": [
-          {
-            "rh": 0.18336886993603413,
-            "rw": 0.25741399762752076,
-            "rx": 0.17793594306049823,
-            "ry": 0.27078891257995735,
-            "tags": [
-              "new"
-            ]
-          }
-        ],
-        "/uploads/ca4d5485-db5a-4a3a-b573-7bab8a3dbf09.png": [
-          {
-            "rh": 0.148068669527897,
-            "rw": 0.06439854191980558,
-            "rx": 0.7095990279465371,
-            "ry": 0.49141630901287553,
-            "tags": [
-              "no darr!"
-            ]
-          }
-        ],
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [],
-        "/uploads/cd149421-88f5-4968-94ee-b371e20d474f.png": [
-          {
-            "rh": 0.1812366737739872,
-            "rw": 0.08480565371024736,
-            "rx": 0.14016489988221437,
-            "ry": 0.6481876332622601,
-            "tags": [
-              "impulsive",
-              "Manual"
-            ]
-          }
-        ],
-        "/uploads/cded4f49-9716-4090-9522-03b4f41e20d0.png": [
-          {
-            "rh": 0.21321961620469082,
-            "rw": 0.0863905325443787,
-            "rx": 0.41420118343195267,
-            "ry": 0.3582089552238806,
-            "tags": [
-              "himmat nahi"
-            ]
-          }
-        ],
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": []
       },
       "overlays": {
@@ -4126,22 +3966,10 @@
     },
     "2026-02-16": {
       "imageTags": {},
-      "images": [
-        "/uploads/a22d98e9-4d14-4a38-967f-29a32fa255ff.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/a22d98e9-4d14-4a38-967f-29a32fa255ff.png": []
-      },
       "video": "https://youtu.be/jLgwsF93jlI?si=2N_7WlAJ1dTft1Nx"
     },
     "2026-02-17": {
       "imageTags": {},
-      "images": [
-        "/uploads/d3947bdb-f879-4696-aec7-c6e445e6c616.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/d3947bdb-f879-4696-aec7-c6e445e6c616.png": []
-      },
       "video": "https://youtu.be/z8-DMCKP2NU?si=YxV3eluO_Xk3K4Fh"
     },
     "2026-02-18": {
@@ -4168,12 +3996,6 @@
     },
     "2026-02-20": {
       "imageTags": {},
-      "images": [
-        "/uploads/e814ab7d-809c-4a00-9114-eded60dda29c.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/e814ab7d-809c-4a00-9114-eded60dda29c.png": []
-      },
       "video": "https://youtu.be/95DgYF2elZs?si=JxysMClAtl_gbD3F"
     },
     "2026-02-23": {
@@ -4214,12 +4036,6 @@
     },
     "2026-02-25": {
       "imageTags": {},
-      "images": [
-        "/uploads/e2d8745a-16fc-4f0d-b40d-a7a69afee045.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/e2d8745a-16fc-4f0d-b40d-a7a69afee045.png": []
-      },
       "video": "https://youtu.be/__VCVg5RWyc?si=pPZxxQrbtNe_yZL2"
     },
     "2026-02-26": {
@@ -4365,10 +4181,7 @@
       "desperate",
       "halkeMeLerahe",
       "sdadssdsd",
-      "nafsPeKabu",
-      "no darr!",
-      "impulsive",
-      "himmat nahi"
+      "nafsPeKabu"
     ],
     "Entry Type": [
       "EntryMiss",
@@ -4395,8 +4208,7 @@
       "Reversal",
       "Manual",
       "Random",
-      "expiryDay",
-      "algo"
+      "expiryDay"
     ],
     "TargetType": [
       "Palat Gaya"

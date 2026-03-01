@@ -93,12 +93,15 @@ function renderGallery() {
   if (img.complete && img.naturalWidth) afterImageReady();
 
   document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
-  document.getElementById('gallery-prev').disabled = currentIndex === 0;
-  document.getElementById('gallery-next').disabled = currentIndex === images.length - 1;
+  document.getElementById('gallery-prev').disabled = images.length <= 1;
+  document.getElementById('gallery-next').disabled = images.length <= 1;
   renderGalleryImageTags();
   renderGalleryTagCloud();
   const tray = document.getElementById('gv2-tags-tray');
-  if (tray && tray.style.display !== 'none') renderGalleryTagsTray();
+  if (tray && tray.style.display !== 'none') {
+    renderGalleryTagsTray();
+    renderGalleryVideoUrls();
+  }
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) renderImageTagModal();
 
   if (typeof renderGalleryStats === 'function') renderGalleryStats();
@@ -200,6 +203,15 @@ function renderGallery() {
 
     wrap.appendChild(t); wrap.appendChild(del); thumbs.appendChild(wrap);
   });
+
+  if (thumbs.children.length > 0) {
+    const activeThumb = thumbs.querySelector('.gv2-thumb.active');
+    if (activeThumb) {
+      setTimeout(() => {
+        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }, 50);
+    }
+  }
 }
 
 function renderGalleryStats() {
@@ -586,5 +598,132 @@ async function removeGalleryImageAt(idx) {
   renderTable();
   renderCalendar();
   showToast('Image removed', 'success');
+}
+
+function renderGalleryVideoUrls() {
+  const container = document.getElementById('gv2-video-url-list');
+  const trayElem = document.getElementById('gv2-video-url-tray');
+  if (!container || !trayElem) return;
+
+  const ctx = getCurrentGalleryPreserveContext();
+  const dateToUse = state.gallery.date || ctx.date;
+
+  if (!dateToUse) {
+    trayElem.style.display = 'none';
+    return;
+  }
+
+  const dayTrades = getTradesForDate(dateToUse);
+  if (!dayTrades || dayTrades.length === 0) {
+    trayElem.style.display = 'none';
+    return;
+  }
+
+  trayElem.style.display = 'block';
+  container.innerHTML = '';
+
+  container.style.display = 'flex';
+  container.style.flexWrap = 'wrap';
+  container.style.gap = '8px';
+  container.style.padding = '4px 0';
+  container.style.marginBottom = '12px';
+
+  dayTrades.forEach((trade, idx) => {
+    const hasVideo = !!(trade[VIDEO_COLUMN] && trade[VIDEO_COLUMN].trim());
+
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.flexDirection = 'column';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.gap = '4px';
+
+    const circleBtn = document.createElement('div');
+    circleBtn.style.width = '28px';
+    circleBtn.style.height = '28px';
+    circleBtn.style.borderRadius = '50%';
+    circleBtn.style.display = 'flex';
+    circleBtn.style.alignItems = 'center';
+    circleBtn.style.justifyContent = 'center';
+    circleBtn.style.fontSize = '12px';
+    circleBtn.style.fontWeight = '600';
+    circleBtn.style.cursor = 'pointer';
+    circleBtn.style.transition = 'all 0.2s';
+    circleBtn.textContent = String(idx + 1);
+
+    if (hasVideo) {
+      circleBtn.style.background = 'var(--blue)';
+      circleBtn.style.color = '#fff';
+      circleBtn.style.boxShadow = '0 0 6px rgba(41, 121, 255, 0.4)';
+      circleBtn.title = `Trade ${idx + 1} Video\nClick to open link\nRight-click to edit URL`;
+    } else {
+      circleBtn.style.background = 'transparent';
+      circleBtn.style.border = '1.5px dashed var(--text2)';
+      circleBtn.style.color = 'var(--text2)';
+      circleBtn.title = `Trade ${idx + 1}\nClick to add video URL`;
+    }
+
+    circleBtn.addEventListener('mouseenter', () => {
+      if (!hasVideo) {
+        circleBtn.style.border = '1.5px dashed var(--text)';
+        circleBtn.style.color = 'var(--text)';
+      } else {
+        circleBtn.style.filter = 'brightness(1.1)';
+      }
+    });
+
+    circleBtn.addEventListener('mouseleave', () => {
+      if (!hasVideo) {
+        circleBtn.style.border = '1.5px dashed var(--text2)';
+        circleBtn.style.color = 'var(--text2)';
+      } else {
+        circleBtn.style.filter = '';
+      }
+    });
+
+    circleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentUrl = trade[VIDEO_COLUMN] || '';
+      if (hasVideo) {
+        window.open(currentUrl, '_blank');
+      } else {
+        const inputUrl = prompt(`Enter Video URL for Trade ${idx + 1} (or paste and hit Enter):`, currentUrl);
+        if (inputUrl !== null) {
+          trade[VIDEO_COLUMN] = inputUrl.trim();
+          saveTrades();
+          renderGalleryVideoUrls();
+          if (typeof renderTable === 'function') renderTable();
+        }
+      }
+    });
+
+    circleBtn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const currentUrl = trade[VIDEO_COLUMN] || '';
+      const inputUrl = prompt(`Edit Video URL for Trade ${idx + 1}:`, currentUrl);
+      if (inputUrl !== null) {
+        trade[VIDEO_COLUMN] = inputUrl.trim();
+        saveTrades();
+        renderGalleryVideoUrls();
+        if (typeof renderTable === 'function') renderTable();
+      }
+    });
+
+    const netPLNum = parseFloat(trade['Net P/L']);
+    const plLabel = document.createElement('div');
+    plLabel.style.fontSize = '0.65rem';
+    plLabel.style.fontWeight = '600';
+    if (!isNaN(netPLNum)) {
+      plLabel.textContent = Math.round(Math.abs(netPLNum));
+      plLabel.style.color = netPLNum >= 0 ? 'var(--green)' : 'var(--red)';
+    } else {
+      plLabel.textContent = '0';
+      plLabel.style.color = 'var(--text2)';
+    }
+
+    wrapper.appendChild(circleBtn);
+    wrapper.appendChild(plLabel);
+
+    container.appendChild(wrapper);
+  });
 }
 

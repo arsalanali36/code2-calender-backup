@@ -114,6 +114,7 @@ function isUiBusyForSync() {
   if (document.getElementById('upload-modal')?.classList.contains('open')) return true;
   if (document.getElementById('tag-modal')?.classList.contains('open')) return true;
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) return true;
+  if (document.getElementById('gallery-modal')?.classList.contains('open')) return true;
   return false;
 }
 
@@ -352,6 +353,15 @@ function ensurePermanentColumns() {
       changed = true;
     }
   });
+
+  const tdIdx = state.columns.indexOf('trade_date') !== -1 ? state.columns.indexOf('trade_date') : 0;
+  const ttIdx = state.columns.indexOf(TOTAL_TRADES_COLUMN);
+  if (ttIdx > -1 && ttIdx > tdIdx + 1) {
+    state.columns.splice(ttIdx, 1);
+    state.columns.splice(tdIdx + 1, 0, TOTAL_TRADES_COLUMN);
+    changed = true;
+  }
+
   return changed;
 }
 

@@ -19,14 +19,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 76.26,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-20",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-20"
+      "trade_date": "2026-02-20",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -47,14 +47,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 80.66,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-18",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-18"
+      "trade_date": "2026-02-18",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -75,7 +75,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 79.93,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-23",
@@ -83,7 +82,8 @@
       "images": [],
       "observation": "adasd",
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -104,14 +104,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 73.69,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -132,14 +132,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 77.77,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-20",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-20"
+      "trade_date": "2026-02-20",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -160,14 +160,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 78.46,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-17",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-17"
+      "trade_date": "2026-02-17",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -188,14 +188,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 66.51,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-17",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-17"
+      "trade_date": "2026-02-17",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -216,7 +216,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 84,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-25",
@@ -224,7 +223,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-25"
+      "trade_date": "2026-02-25",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -245,14 +245,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 79.33,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -273,7 +273,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 65.03,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-13",
@@ -283,7 +282,8 @@
         "/uploads/a4500dd7-b69d-4d83-a84f-ec0e9c127ce5.png": "/uploads/9eaf6135-3466-4a47-baef-bcae0004221a.png"
       },
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -304,7 +304,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 62.8,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
@@ -312,7 +311,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -333,14 +333,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 82.99,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-18",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-18"
+      "trade_date": "2026-02-18",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -361,14 +361,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 94.92,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -389,14 +389,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 62.92,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-16",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-16"
+      "trade_date": "2026-02-16",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -417,7 +417,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 85.07,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
@@ -425,7 +424,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -446,14 +446,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 76.31,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-25",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-25"
+      "trade_date": "2026-02-25",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -474,7 +474,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 83.52,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-23",
@@ -486,7 +485,8 @@
         "/uploads/064d8c2a-5b31-4410-a04f-cb9d93668ae3.png": []
       },
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -507,7 +507,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 82.63,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
@@ -541,7 +540,8 @@
         "/uploads/89f72757-b02b-467d-92b3-e857bf8f6506.png": "/uploads/63fe9de5-0f35-4d77-b279-e7a5cadc802b.png"
       },
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -562,14 +562,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 59.73,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -590,14 +590,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 77,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -618,7 +618,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 78.13,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
@@ -637,7 +636,8 @@
         "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": "/uploads/ed30d59e-2116-4c12-acf7-d9be9d041799.png"
       },
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -658,14 +658,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 83.11,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-25",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-25"
+      "trade_date": "2026-02-25",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -686,14 +686,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 59.57,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -714,14 +714,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 76.9,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -742,14 +742,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 78.12,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -770,14 +770,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 60.29,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -798,14 +798,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 80.66,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -826,14 +826,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 64.93,
-      "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=195",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -854,14 +854,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 85.96,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -882,14 +882,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 62.24,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -910,14 +910,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 69.15,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -938,14 +938,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 84.42,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -966,14 +966,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 83.26,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -994,14 +994,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 86.91,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1022,14 +1022,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 82.4,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1050,14 +1050,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 79.6,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1078,14 +1078,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 58.24,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1106,14 +1106,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 60.6,
-      "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=258",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1134,14 +1134,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 62.63,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-19",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1162,14 +1162,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 62.71,
-      "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=296",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1190,14 +1190,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 60.16,
-      "Total Trades": "",
       "TradeType": "sell",
-      "Video": "https://youtu.be/YH9hBE8b16c?t=373",
+      "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1218,7 +1218,6 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 51.62,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-10",
@@ -1290,6 +1289,7 @@
             "rx": 0.5971896955503513,
             "ry": 0.3390191897654584,
             "tags": [
+              "expiryDay",
               "RuleBased"
             ]
           }
@@ -1345,7 +1345,8 @@
         "/uploads/d07d80d1-d410-4244-b284-1cd36941cca6.png": "/uploads/e0b7acd8-6e83-4576-ae46-9a6e5627f767.png"
       },
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1366,14 +1367,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 59.35,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1394,14 +1395,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 53.51,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-10",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1422,14 +1423,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 55.48,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-10",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1450,14 +1451,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 58.1,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1478,14 +1479,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 54.55,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-10",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1506,14 +1507,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 63.57,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1534,14 +1535,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 58.37,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1562,14 +1563,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 55.62,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1590,14 +1591,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 59.41,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1618,14 +1619,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 59.65,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1646,14 +1647,14 @@
       "Tags": [],
       "Thumbnail": "",
       "Total Fees": 66.17,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1673,7 +1674,6 @@
       "Sell Time": "09:36:40",
       "Tags": [],
       "Total Fees": 78.07,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
@@ -1699,7 +1699,8 @@
         "/uploads/8bce6a18-e1a7-4ee0-b5b3-133e78700c74.png": "/uploads/9e0e38a7-2f2b-406b-8e27-2e5887e227ee.png"
       },
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1719,7 +1720,6 @@
       "Sell Time": "10:03:10",
       "Tags": [],
       "Total Fees": 76.8,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
@@ -1727,7 +1727,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1749,7 +1750,6 @@
         "bina zone"
       ],
       "Total Fees": 75.15,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
@@ -1759,7 +1759,8 @@
       "tags": [
         "bina zone"
       ],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1779,7 +1780,6 @@
       "Sell Time": "10:28:34",
       "Tags": [],
       "Total Fees": 78.02,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
@@ -1787,7 +1787,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1807,7 +1808,6 @@
       "Sell Time": "10:47:54",
       "Tags": [],
       "Total Fees": 75.42,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
@@ -1815,7 +1815,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -1835,7 +1836,6 @@
       "Sell Time": "10:52:42",
       "Tags": [],
       "Total Fees": 76.91,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-26",
@@ -1897,7 +1897,8 @@
         "/uploads/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png": "/uploads/79c8fecd-c3fa-4058-b8a7-1ed822f7630b.png"
       },
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -1917,7 +1918,6 @@
       "Sell Time": "09:45:35",
       "Tags": [],
       "Total Fees": 66.65,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-18",
@@ -1938,7 +1938,8 @@
         "/uploads/4f939a2e-9f5e-4a32-8e05-5676185417aa.png": "/uploads/fad88f5d-a732-444e-940b-801bb4708e42.png"
       },
       "tags": [],
-      "trade_date": "2026-02-18"
+      "trade_date": "2026-02-18",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -1958,7 +1959,6 @@
       "Sell Time": "09:48:15",
       "Tags": [],
       "Total Fees": 52.57,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -1967,7 +1967,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -1987,7 +1988,6 @@
       "Sell Time": "09:55:46",
       "Tags": [],
       "Total Fees": 62.13,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-13",
@@ -1996,7 +1996,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2016,7 +2017,6 @@
       "Sell Time": "10:03:03",
       "Tags": [],
       "Total Fees": 63.25,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -2025,7 +2025,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2045,7 +2046,6 @@
       "Sell Time": "10:15:22",
       "Tags": [],
       "Total Fees": 60.25,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-23",
@@ -2054,7 +2054,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2074,7 +2075,6 @@
       "Sell Time": "10:21:03",
       "Tags": [],
       "Total Fees": 67.57,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-10",
@@ -2083,7 +2083,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2103,7 +2104,6 @@
       "Sell Time": "10:21:30",
       "Tags": [],
       "Total Fees": 71.14,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -2112,7 +2112,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2132,7 +2133,6 @@
       "Sell Time": "10:27:30",
       "Tags": [],
       "Total Fees": 65.13,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-05",
@@ -2141,7 +2141,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-05"
+      "trade_date": "2026-02-05",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2161,7 +2162,6 @@
       "Sell Time": "10:31:33",
       "Tags": [],
       "Total Fees": 61.85,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-19",
@@ -2170,7 +2170,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2190,7 +2191,6 @@
       "Sell Time": "10:47:42",
       "Tags": [],
       "Total Fees": 62.09,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-13",
@@ -2199,7 +2199,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2219,7 +2220,6 @@
       "Sell Time": "10:48:03",
       "Tags": [],
       "Total Fees": 53.17,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-24",
@@ -2228,7 +2228,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2248,7 +2249,6 @@
       "Sell Time": "10:48:33",
       "Tags": [],
       "Total Fees": 105.28,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-04",
@@ -2257,7 +2257,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-04"
+      "trade_date": "2026-02-04",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2265,7 +2266,7 @@
       "Buy Price (Avg)": 237.2,
       "Buy Time": "10:50:26",
       "Gross P/L": -71.5,
-      "Image Tags": "Distracted, panic",
+      "Image Tags": "Distracted",
       "Instrument": "NIFTY 10 FEB 25800 PUT",
       "Net P/L": -147.3,
       "Note": "",
@@ -2277,15 +2278,11 @@
       "Sell Time": "10:54:07",
       "Tags": [],
       "Total Fees": 75.8,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-03",
       "fill_count": 2,
       "imageTags": {
-        "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [
-          "panic"
-        ],
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
           "Distracted"
         ]
@@ -2359,8 +2356,8 @@
         ],
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
           {
-            "rh": 0.2190802052933481,
-            "rw": 0.09991276975006638,
+            "rh": 0.15789473684210525,
+            "rw": 0.04964539007092199,
             "rx": 0.24442755825734547,
             "ry": 0.2990492185172143,
             "tags": [
@@ -2385,10 +2382,11 @@
         "/uploads/731da900-ae77-4681-881a-c75c321378e2.png": "/uploads/a6c6e270-9279-47a2-a9fd-a32b81be45f9.png",
         "/uploads/cd9dee16-dbb1-4386-8b52-3824b42c707c.png": "/uploads/910fd545-0a60-472f-b65d-ef935d299249.png",
         "/uploads/d44ce0fd-445e-489e-8c6b-2619c8404ee0.png": "/uploads/3191b6e6-af5e-4def-b1f5-74bea7524482.png",
-        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "/uploads/f1dacfb3-9bbe-4a47-9a09-c342babfd18d.png"
+        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "/uploads/9504da46-875f-4266-8dd9-7ab3104f4010.png"
       },
       "tags": [],
-      "trade_date": "2026-02-03"
+      "trade_date": "2026-02-03",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2408,7 +2406,6 @@
       "Sell Time": "11:00:05",
       "Tags": [],
       "Total Fees": 95.18,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-06",
@@ -2417,7 +2414,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-06"
+      "trade_date": "2026-02-06",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2437,7 +2435,6 @@
       "Sell Time": "11:06:18",
       "Tags": [],
       "Total Fees": 80.28,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-05",
@@ -2446,7 +2443,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-05"
+      "trade_date": "2026-02-05",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2466,7 +2464,6 @@
       "Sell Time": "11:13:16",
       "Tags": [],
       "Total Fees": 74.05,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-03",
@@ -2475,7 +2472,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-03"
+      "trade_date": "2026-02-03",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2495,7 +2493,6 @@
       "Sell Time": "11:38:18",
       "Tags": [],
       "Total Fees": 129.48,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-03",
@@ -2504,7 +2501,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-03"
+      "trade_date": "2026-02-03",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2524,7 +2522,6 @@
       "Sell Time": "11:54:21",
       "Tags": [],
       "Total Fees": 63.39,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -2533,7 +2530,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2553,7 +2551,6 @@
       "Sell Time": "11:55:18",
       "Tags": [],
       "Total Fees": 50.82,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -2562,7 +2559,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2582,7 +2580,6 @@
       "Sell Time": "11:57:02",
       "Tags": [],
       "Total Fees": 52.41,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-24",
@@ -2591,7 +2588,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2611,7 +2609,6 @@
       "Sell Time": "12:15:22",
       "Tags": [],
       "Total Fees": 62.1,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-09",
@@ -2620,7 +2617,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2640,7 +2638,6 @@
       "Sell Time": "12:18:43",
       "Tags": [],
       "Total Fees": 72.77,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-12",
@@ -2649,7 +2646,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2669,7 +2667,6 @@
       "Sell Time": "12:43:21",
       "Tags": [],
       "Total Fees": 122.92,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-11",
@@ -2678,7 +2675,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2698,7 +2696,6 @@
       "Sell Time": "12:45:19",
       "Tags": [],
       "Total Fees": 93.46,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -2707,7 +2704,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2727,7 +2725,6 @@
       "Sell Time": "12:48:12",
       "Tags": [],
       "Total Fees": 63.05,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-09",
@@ -2736,7 +2733,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2756,7 +2754,6 @@
       "Sell Time": "12:56:12",
       "Tags": [],
       "Total Fees": 89.94,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-12",
@@ -2765,7 +2762,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2785,7 +2783,6 @@
       "Sell Time": "13:08:16",
       "Tags": [],
       "Total Fees": 124.22,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-09",
@@ -2794,7 +2791,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2814,7 +2812,6 @@
       "Sell Time": "13:09:07",
       "Tags": [],
       "Total Fees": 60.41,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-04",
@@ -2823,7 +2820,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-04"
+      "trade_date": "2026-02-04",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2843,7 +2841,6 @@
       "Sell Time": "13:09:14",
       "Tags": [],
       "Total Fees": 77.55,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-12",
@@ -2852,7 +2849,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2872,7 +2870,6 @@
       "Sell Time": "13:24:02",
       "Tags": [],
       "Total Fees": 120.09,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-10",
@@ -2881,7 +2878,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2901,7 +2899,6 @@
       "Sell Time": "14:06:49",
       "Tags": [],
       "Total Fees": 99.75,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-06",
@@ -2910,7 +2907,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-06"
+      "trade_date": "2026-02-06",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2930,7 +2928,6 @@
       "Sell Time": "14:28:21",
       "Tags": [],
       "Total Fees": 79.73,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-12",
@@ -2939,7 +2936,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2959,7 +2957,6 @@
       "Sell Time": "14:47:24",
       "Tags": [],
       "Total Fees": 86.34,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-02",
@@ -2968,7 +2965,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-02"
+      "trade_date": "2026-02-02",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -2988,7 +2986,6 @@
       "Sell Time": "14:48:41",
       "Tags": [],
       "Total Fees": 105.64,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-09",
@@ -2997,7 +2994,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -3017,7 +3015,6 @@
       "Sell Time": "15:06:29",
       "Tags": [],
       "Total Fees": 82.2,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-05",
@@ -3026,7 +3023,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-05"
+      "trade_date": "2026-02-05",
+      "Total Trades": ""
     },
     {
       "Broker": "dhan",
@@ -3046,7 +3044,6 @@
       "Sell Time": "15:17:14",
       "Tags": [],
       "Total Fees": 75.24,
-      "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
       "date": "2026-02-09",
@@ -3055,7 +3052,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -3074,14 +3072,14 @@
       "Sell Price (Avg)": "",
       "Sell Time": "",
       "Tags": "",
-      "Total Trades": "",
       "TradeType": "",
       "Video": "",
       "date": "",
       "imageTags": {},
       "images": [],
       "observation": "",
-      "trade_date": ""
+      "trade_date": "",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -3104,7 +3102,6 @@
         "bina zone"
       ],
       "Total Fees": 73.81,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-27",
@@ -3227,7 +3224,8 @@
         "panic",
         "bina zone"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -3249,7 +3247,6 @@
         "bina zone"
       ],
       "Total Fees": 77.27,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-27",
@@ -3334,7 +3331,8 @@
       "tags": [
         "bina zone"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -3357,7 +3355,6 @@
         "panic"
       ],
       "Total Fees": 76.4,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-27",
@@ -3391,7 +3388,8 @@
         "bina zone",
         "panic"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -3411,7 +3409,6 @@
       "Sell Time": "10:23:13",
       "Tags": [],
       "Total Fees": 79.02,
-      "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-02-27",
@@ -3473,7 +3470,8 @@
         "/uploads/c6d50359-11f6-4318-88e6-aed1912603bd.png": "/uploads/309cf73f-b8fe-4801-97e1-fb981f09e184.png"
       },
       "tags": [],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "Total Trades": ""
     },
     {
       "Broker": "zerodha",
@@ -3493,14 +3491,14 @@
       "Sell Time": "",
       "Tags": "",
       "Total Fees": "",
-      "Total Trades": "",
       "TradeType": "",
       "Video": "",
       "date": "2026-02-28",
       "imageTags": {},
       "images": [],
       "observation": "",
-      "trade_date": "2026-02-28"
+      "trade_date": "2026-02-28",
+      "Total Trades": ""
     }
   ],
   "columns": [
@@ -3557,12 +3555,7 @@
     "nafsPeKabu",
     "halkeMeLerahe",
     "Realisation",
-    "cont",
-    "ide",
-    "himmat nahi",
-    "impulsive",
-    "algo",
-    "no darr!"
+    "cont"
   ],
   "tagColumns": [
     "Tags"
@@ -3688,38 +3681,15 @@
             ]
           }
         ],
-        "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png": [
-          {
-            "rh": 0.16844349680170576,
-            "rw": 0.13780487804878047,
-            "rx": 0.1524390243902439,
-            "ry": 0.36673773987206826,
-            "tags": [
-              "idea",
-              "Manual",
-              "CloseButNotExactRule"
-            ]
-          }
-        ],
         "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": [
           {
             "rh": 0.3624733475479744,
             "rw": 0.19047619047619047,
-            "rx": 0.30036630036630035,
-            "ry": 0.36886993603411516,
+            "rx": 0.7667887667887668,
+            "ry": 0.5863539445628998,
             "tags": [
               "idea",
-              "Realisation",
-              "Late"
-            ]
-          },
-          {
-            "rh": 0.208955223880597,
-            "rw": 0.06593406593406594,
-            "rx": 0.5970695970695971,
-            "ry": 0.35181236673773986,
-            "tags": [
-              "himmat nahi"
+              "Realisation"
             ]
           }
         ],
@@ -3746,7 +3716,40 @@
             ]
           }
         ],
-        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [],
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [
+          {
+            "rh": 0.11353711790393013,
+            "rw": 0.02822085889570552,
+            "rx": 0.3619631901840491,
+            "ry": 0.23580786026200873,
+            "tags": [
+              "idea"
+            ]
+          },
+          {
+            "rh": 0.1794871794871795,
+            "rw": 0.06850961538461539,
+            "rx": 0.43990384615384615,
+            "ry": 0.4188034188034188,
+            "tags": []
+          },
+          {
+            "rh": 0.1987179487179487,
+            "rw": 0.0673076923076923,
+            "rx": 0.5985576923076923,
+            "ry": 0.3504273504273504,
+            "tags": [
+              "CloseButNotExactRule"
+            ]
+          },
+          {
+            "rh": 0.17307692307692307,
+            "rw": 0.08653846153846154,
+            "rx": 0.3581730769230769,
+            "ry": 0.6495726495726496,
+            "tags": []
+          }
+        ],
         "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": [
           {
             "rh": 0.1513859275053305,
@@ -3771,10 +3774,10 @@
       "overlays": {
         "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": "/uploads/5c4af92c-4b8f-403a-b692-c9a43c65a525.png",
         "/uploads/57c87743-e865-4e7c-bde0-1d53ea83698d.png": "/uploads/6396efcf-02c0-406e-918c-7adda8a9682b.png",
-        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/180f6a29-69f2-4152-a5d6-e14d25195614.png",
-        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/d9c6aeb1-ec84-45ab-bea4-b84cb44b9528.png",
-        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": "/uploads/c24570fe-9870-4241-959c-f293d1ab63b1.png",
-        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/858a2509-9b2e-41e3-8aa2-425bab492a9e.png",
+        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/5c8be4a9-41dd-4439-89ee-1d0a5f9dc128.png",
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/eafbef9f-dfe4-4077-8012-cfe36060ce50.png",
+        "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": "/uploads/7a67bfbf-b497-4bdf-8c02-3fe7ef65c092.png",
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/a73a742d-6c23-4032-a239-b9ef94b7d603.png",
         "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": "/uploads/712bce25-0daa-424b-96c7-16c2c5f31f49.png"
       },
       "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE"
@@ -3793,63 +3796,52 @@
           {
             "rh": 0.35947712418300654,
             "rw": 0.515625,
-            "rx": 0.2216255762451415,
-            "ry": 0.4457915836317944,
+            "rx": 0.13701923076923078,
+            "ry": 0.5076252723311547,
             "tags": [
               "Realisation"
             ]
           }
         ],
-        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": [
-          {
-            "rh": 0.26652452025586354,
-            "rw": 0.16606498194945848,
-            "rx": 0.33935018050541516,
-            "ry": 0.4562899786780384,
-            "tags": []
-          }
-        ],
-        "/uploads/d2160d77-84e2-490a-a1a2-f69202f8d88d.png": [],
+        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": [],
         "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": [
           {
             "rh": 0.2516703786191537,
             "rw": 0.12100139082058414,
-            "rx": 0.64673157162726,
-            "ry": 0.5211581291759465,
+            "rx": 0.6453407510431154,
+            "ry": 0.40757238307349664,
             "tags": [
               "Conti",
               "Realisation"
             ]
           }
         ],
-        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": []
+        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": [
+          {
+            "rh": 0.2068230277185501,
+            "rw": 0.10722891566265061,
+            "rx": 0.4963855421686747,
+            "ry": 0.6417910447761194,
+            "tags": [
+              "idea",
+              "Realisation"
+            ]
+          }
+        ]
       },
       "overlays": {
-        "/uploads/657e23e7-5495-4464-9db9-752501aa06c8.png": "/uploads/0d6df1ac-02ed-470d-bcca-54f78f88d5d2.png",
-        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": "/uploads/613bbe44-e837-4526-851e-72ef256de933.png",
-        "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": "/uploads/d53a6862-b629-4991-a7db-dc65e29d72d1.png",
-        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": "/uploads/3ffe8cf8-f9be-4ebb-b53c-6eca6063e9f8.png"
+        "/uploads/657e23e7-5495-4464-9db9-752501aa06c8.png": "/uploads/d51dd2ba-0aac-4ab4-9c67-fe67eedb9b5b.png",
+        "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": "/uploads/4e5ad843-c752-43e2-b8ab-de4322d865c5.png",
+        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": "/uploads/0d255f5c-7f88-4eb1-b9f7-aac902d487dd.png"
       },
       "video": "https://youtu.be/6l-b6zPihQY?si=Tak1R32Zar3a6Ec3"
     },
     "2026-02-06": {
       "imageTags": {},
-      "images": [
-        "/uploads/cf03f5b0-1c75-493f-b28b-c9953876278e.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/cf03f5b0-1c75-493f-b28b-c9953876278e.png": []
-      },
       "video": "https://youtu.be/puTVLWO12oE?si=njeL4CZrk9A5dxS9"
     },
     "2026-02-09": {
       "imageTags": {},
-      "images": [
-        "/uploads/f217c8be-7b7e-4821-8560-ed4c0b2858e6.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/f217c8be-7b7e-4821-8560-ed4c0b2858e6.png": []
-      },
       "video": "https://youtu.be/IfbQOR8B2n0?si=cCt8rscFyKdVLLDF"
     },
     "2026-02-10": {
@@ -3923,168 +3915,10 @@
       },
       "images": [
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png",
-        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png",
-        "/uploads/c249f96b-1e2f-4c62-b5fb-175e25f3ca9c.png",
-        "/uploads/0ec01064-5782-42ea-8885-40cb10c7ba1e.png",
-        "/uploads/443bbe4f-b8f2-4e36-8bd2-5fe2dda834fe.png",
-        "/uploads/74d4db2e-f5a5-421a-b79f-ea065e989865.png",
-        "/uploads/718cd4e2-5f6f-45dc-a6b3-7130d58c1561.png",
-        "/uploads/bd8e2a96-4592-43b7-8a0e-273057224580.png",
-        "/uploads/035ab5ff-0d68-4525-b5ff-c0ea266debed.png",
-        "/uploads/469b5e8a-3bff-4a77-b415-bceb3ccc6842.png",
-        "/uploads/cd149421-88f5-4968-94ee-b371e20d474f.png",
-        "/uploads/8831fb12-1b8a-4cf6-8956-011b6e364b5e.png",
-        "/uploads/48c44015-4484-4d4e-8c48-0629c8884348.png",
-        "/uploads/7be1f3da-aa86-4a96-b9ad-7228e36d88e5.png",
-        "/uploads/0c70010c-52f9-464c-833a-32a7a80d13fd.png",
-        "/uploads/ca4d5485-db5a-4a3a-b573-7bab8a3dbf09.png"
+        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png"
       ],
       "marqueeBoxes": {
-        "/uploads/035ab5ff-0d68-4525-b5ff-c0ea266debed.png": [
-          {
-            "rh": 0.19829424307036247,
-            "rw": 0.07810650887573964,
-            "rx": 0.6414201183431952,
-            "ry": 0.23880597014925373,
-            "tags": [
-              "idea"
-            ]
-          }
-        ],
-        "/uploads/0c70010c-52f9-464c-833a-32a7a80d13fd.png": [],
-        "/uploads/0ec01064-5782-42ea-8885-40cb10c7ba1e.png": [
-          {
-            "rh": 0.24946695095948826,
-            "rw": 0.1646919431279621,
-            "rx": 0.7215639810426541,
-            "ry": 0.6780383795309168,
-            "tags": [
-              "ide"
-            ]
-          }
-        ],
-        "/uploads/443bbe4f-b8f2-4e36-8bd2-5fe2dda834fe.png": [
-          {
-            "rh": 0.2260127931769723,
-            "rw": 0.2642857142857143,
-            "rx": 0.6226190476190476,
-            "ry": 0.6162046908315565,
-            "tags": [
-              "Realisation"
-            ]
-          }
-        ],
-        "/uploads/469b5e8a-3bff-4a77-b415-bceb3ccc6842.png": [
-          {
-            "rh": 0.1023454157782516,
-            "rw": 0.06682577565632458,
-            "rx": 0.4224343675417661,
-            "ry": 0.3304904051172708,
-            "tags": [
-              "impulsive",
-              "Manual"
-            ]
-          }
-        ],
-        "/uploads/48c44015-4484-4d4e-8c48-0629c8884348.png": [
-          {
-            "rh": 0.279317697228145,
-            "rw": 0.14605418138987045,
-            "rx": 0.3486454652532391,
-            "ry": 0.32196162046908317,
-            "tags": [
-              "RuleBased",
-              "algo",
-              "darr",
-              "Realisation"
-            ]
-          }
-        ],
-        "/uploads/718cd4e2-5f6f-45dc-a6b3-7130d58c1561.png": [
-          {
-            "rh": 0.20042643923240938,
-            "rw": 0.11927710843373494,
-            "rx": 0.5445783132530121,
-            "ry": 0.47334754797441364,
-            "tags": [
-              "Bach Gaye",
-              "Palat Gaya",
-              "CloseButNotExactRule",
-              "impulsive"
-            ]
-          }
-        ],
-        "/uploads/74d4db2e-f5a5-421a-b79f-ea065e989865.png": [
-          {
-            "rh": 0.24093816631130063,
-            "rw": 0.14863258026159334,
-            "rx": 0.3103448275862069,
-            "ry": 0.3752665245202559,
-            "tags": [
-              "himmat nahi"
-            ]
-          }
-        ],
-        "/uploads/7be1f3da-aa86-4a96-b9ad-7228e36d88e5.png": [],
-        "/uploads/8831fb12-1b8a-4cf6-8956-011b6e364b5e.png": [
-          {
-            "rh": 0.08102345415778252,
-            "rw": 0.1406799531066823,
-            "rx": 0.7596717467760844,
-            "ry": 0.7761194029850746,
-            "tags": [
-              "new",
-              "idea"
-            ]
-          }
-        ],
-        "/uploads/bd8e2a96-4592-43b7-8a0e-273057224580.png": [],
-        "/uploads/c249f96b-1e2f-4c62-b5fb-175e25f3ca9c.png": [
-          {
-            "rh": 0.18336886993603413,
-            "rw": 0.25741399762752076,
-            "rx": 0.17793594306049823,
-            "ry": 0.27078891257995735,
-            "tags": [
-              "new"
-            ]
-          }
-        ],
-        "/uploads/ca4d5485-db5a-4a3a-b573-7bab8a3dbf09.png": [
-          {
-            "rh": 0.148068669527897,
-            "rw": 0.06439854191980558,
-            "rx": 0.7095990279465371,
-            "ry": 0.49141630901287553,
-            "tags": [
-              "no darr!"
-            ]
-          }
-        ],
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [],
-        "/uploads/cd149421-88f5-4968-94ee-b371e20d474f.png": [
-          {
-            "rh": 0.1812366737739872,
-            "rw": 0.08480565371024736,
-            "rx": 0.14016489988221437,
-            "ry": 0.6481876332622601,
-            "tags": [
-              "impulsive",
-              "Manual"
-            ]
-          }
-        ],
-        "/uploads/cded4f49-9716-4090-9522-03b4f41e20d0.png": [
-          {
-            "rh": 0.21321961620469082,
-            "rw": 0.0863905325443787,
-            "rx": 0.41420118343195267,
-            "ry": 0.3582089552238806,
-            "tags": [
-              "himmat nahi"
-            ]
-          }
-        ],
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": []
       },
       "overlays": {
@@ -4126,22 +3960,10 @@
     },
     "2026-02-16": {
       "imageTags": {},
-      "images": [
-        "/uploads/a22d98e9-4d14-4a38-967f-29a32fa255ff.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/a22d98e9-4d14-4a38-967f-29a32fa255ff.png": []
-      },
       "video": "https://youtu.be/jLgwsF93jlI?si=2N_7WlAJ1dTft1Nx"
     },
     "2026-02-17": {
       "imageTags": {},
-      "images": [
-        "/uploads/d3947bdb-f879-4696-aec7-c6e445e6c616.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/d3947bdb-f879-4696-aec7-c6e445e6c616.png": []
-      },
       "video": "https://youtu.be/z8-DMCKP2NU?si=YxV3eluO_Xk3K4Fh"
     },
     "2026-02-18": {
@@ -4168,12 +3990,6 @@
     },
     "2026-02-20": {
       "imageTags": {},
-      "images": [
-        "/uploads/e814ab7d-809c-4a00-9114-eded60dda29c.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/e814ab7d-809c-4a00-9114-eded60dda29c.png": []
-      },
       "video": "https://youtu.be/95DgYF2elZs?si=JxysMClAtl_gbD3F"
     },
     "2026-02-23": {
@@ -4214,12 +4030,6 @@
     },
     "2026-02-25": {
       "imageTags": {},
-      "images": [
-        "/uploads/e2d8745a-16fc-4f0d-b40d-a7a69afee045.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/e2d8745a-16fc-4f0d-b40d-a7a69afee045.png": []
-      },
       "video": "https://youtu.be/__VCVg5RWyc?si=pPZxxQrbtNe_yZL2"
     },
     "2026-02-26": {
@@ -4365,10 +4175,7 @@
       "desperate",
       "halkeMeLerahe",
       "sdadssdsd",
-      "nafsPeKabu",
-      "no darr!",
-      "impulsive",
-      "himmat nahi"
+      "nafsPeKabu"
     ],
     "Entry Type": [
       "EntryMiss",
@@ -4395,8 +4202,7 @@
       "Reversal",
       "Manual",
       "Random",
-      "expiryDay",
-      "algo"
+      "expiryDay"
     ],
     "TargetType": [
       "Palat Gaya"

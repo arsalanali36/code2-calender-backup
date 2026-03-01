@@ -141,6 +141,7 @@ function getDefaultColWidth(col) {
   if (col === 'Images') return 160;
   if (col === NOTE_COLUMN) return 130;
   if (col === VIDEO_COLUMN) return 180;
+  if (col === TOTAL_TRADES_COLUMN) return 80;
   if (col === IMAGE_TAG_COLUMN) return 150;
   if (col === BROKER_COLUMN) return 110;
   if (/net\s*p\/l|gross\s*p\/l|total\s*fees|brokerage|charges?/i.test(col)) return 95;

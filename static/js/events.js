@@ -325,37 +325,13 @@ function bindEvents() {
     const open = tray.style.display === 'none' || !tray.style.display;
     tray.style.display = open ? 'flex' : 'none';
     btn.classList.toggle('active', open);
-    if (open) renderGalleryTagsTray();
-  });
-
-  document.getElementById('gv2-text-btn').addEventListener('click', () => {
-    const bar = document.getElementById('gv2-text-bar');
-    const mqBar = document.getElementById('gv2-marquee-bar');
-    const btn = document.getElementById('gv2-text-btn');
-    const isTextModeOpen = annotState.active && annotState.tool === 'text' && bar.style.display === 'flex';
-
-    if (!isTextModeOpen) {
-      commitActiveCanvasTextEditor();
-      if (annotState.active && annotState.tool !== 'text') {
-        const annotBar = document.getElementById('gv2-annot-bar');
-        if (annotBar) annotBar.style.display = 'none';
-        document.getElementById('gv2-annotate-btn').classList.remove('active');
-        annotState.tool = 'text';
-      } else if (!annotState.active) {
-        annotState.tool = 'text';
-        startAnnotation();
-      }
-      if (mqBar) mqBar.style.display = 'none';
-      bar.style.display = 'flex';
-      btn.classList.add('active');
-    } else {
-      if (annotState.tool === 'text') {
-        stopAnnotation();
-      }
-      bar.style.display = 'none';
-      btn.classList.remove('active');
+    if (open) {
+      if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+      if (typeof renderGalleryVideoUrls === 'function') renderGalleryVideoUrls();
     }
   });
+
+  // gv2-text-btn click is handled by bindAnnotationCanvas() in annotate-fabric.js
 
   document.getElementById('gv2-tc-mode-btn').addEventListener('click', () => {
     state.gallery.filterMode = state.gallery.filterMode === 'or' ? 'and' : 'or';
@@ -725,7 +701,7 @@ function bindEvents() {
         if (btn && btn.style.display !== 'none') btn.click();
         return;
       }
-      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+      if ((e.key === 'f' || e.key === 'F') && !e.altKey && !e.ctrlKey) {
         if (annotState.active) return;
         e.preventDefault();
         const toggleBtn = document.getElementById('gallery-img-tag-filter-btn');
@@ -744,9 +720,17 @@ function bindEvents() {
         }
         return;
       }
+      if ((e.key === 't' || e.key === 'T') && !e.altKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        const tagsBtn = document.getElementById('gv2-tags-btn');
+        if (tagsBtn) tagsBtn.click();
+        return;
+      }
       if ((e.key === 'm' || e.key === 'M') && !e.altKey && !e.ctrlKey) {
         if (annotState.active && annotState.tool !== 'marquee') return;
         e.preventDefault();
+        e.stopPropagation();
         const mqBtn = document.getElementById('gv2-marquee-btn');
         if (mqBtn) mqBtn.click();
         return;
@@ -789,8 +773,9 @@ function bindEvents() {
           document.getElementById('upload-modal').classList.remove('open');
           return;
         }
-        document.getElementById('gallery-modal').classList.remove('open');
-        unlockBodyScroll();
+        e.preventDefault();
+        e.stopPropagation();
+        showGalleryExitConfirm();
       }
     }
     const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal']
@@ -916,3 +901,89 @@ function syncSelects() {
 }
 
 init();
+
+function showGalleryExitConfirm() {
+  if (document.getElementById('gallery-exit-confirm')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'gallery-exit-confirm';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0'; overlay.style.left = '0';
+  overlay.style.width = '100%'; overlay.style.height = '100%';
+  overlay.style.background = 'rgba(0,0,0,0.7)';
+  overlay.style.zIndex = '999999';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
+
+  const box = document.createElement('div');
+  box.style.background = 'var(--bg2)';
+  box.style.padding = '25px 30px';
+  box.style.borderRadius = '8px';
+  box.style.border = '1px solid var(--border)';
+  box.style.textAlign = 'center';
+  box.style.minWidth = '250px';
+  box.innerHTML = '<p style="margin: 0 0 20px 0; font-size: 1.15rem; color: #fff;">Exit Gallery View?</p>';
+
+  const btnYes = document.createElement('button');
+  btnYes.className = 'btn btn-outline'; btnYes.textContent = 'Yes';
+  btnYes.style.marginRight = '12px'; btnYes.style.outline = 'none';
+  btnYes.style.minWidth = '75px';
+
+  const btnNo = document.createElement('button');
+  btnNo.className = 'btn btn-outline'; btnNo.textContent = 'No';
+  btnNo.style.outline = 'none';
+  btnNo.style.minWidth = '75px';
+
+  box.appendChild(btnYes);
+  box.appendChild(btnNo);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  let focusedIndex = 0; // 0 for Yes, 1 for No
+  const btns = [btnYes, btnNo];
+
+  const updateFocus = () => {
+    btns.forEach((b, i) => {
+      if (i === focusedIndex) {
+        b.style.borderColor = '#58a6ff';
+        b.style.boxShadow = '0 0 0 2px rgba(88,166,255,0.3)';
+        b.style.color = '#58a6ff';
+        b.focus();
+      } else {
+        b.style.borderColor = 'var(--border)';
+        b.style.boxShadow = 'none';
+        b.style.color = '';
+      }
+    });
+  };
+
+  const cleanup = () => {
+    document.removeEventListener('keydown', keyHandler, true);
+    overlay.remove();
+    const gm = document.getElementById('gallery-modal');
+    if (gm) gm.focus();
+  };
+
+  const closeGallery = () => {
+    cleanup();
+    document.getElementById('gallery-modal').classList.remove('open');
+    unlockBodyScroll();
+  };
+
+  const keyHandler = (e) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); focusedIndex = 0; updateFocus(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); focusedIndex = 1; updateFocus(); }
+    else if (e.key === 'Enter') {
+      e.preventDefault(); e.stopPropagation();
+      if (focusedIndex === 0) closeGallery(); else cleanup();
+    }
+    else if (e.key === 'Escape') {
+      e.preventDefault(); e.stopPropagation(); cleanup();
+    }
+  };
+
+  btnYes.addEventListener('click', closeGallery);
+  btnNo.addEventListener('click', cleanup);
+
+  document.addEventListener('keydown', keyHandler, true);
+  setTimeout(updateFocus, 10);
+}

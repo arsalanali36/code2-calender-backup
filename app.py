@@ -4,6 +4,8 @@ import json
 import os
 import io
 import uuid
+import time
+import shutil
 from datetime import datetime
 import re
 import zipfile
@@ -62,9 +64,30 @@ def load_trades():
     }
 
 
+LAST_BACKUP_TIME = 0
+
 def save_trades_to_file(data):
+    global LAST_BACKUP_TIME
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    current_time = time.time()
+    if current_time - LAST_BACKUP_TIME > 300:  # Backup every 5 minutes if there are changes
+        LAST_BACKUP_TIME = current_time
+        try:
+            backup_dir = os.path.join(BASE_DIR, 'data', 'backups')
+            os.makedirs(backup_dir, exist_ok=True)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_file = os.path.join(backup_dir, f'trades_backup_{timestamp}.json')
+            shutil.copy2(DATA_FILE, backup_file)
+            
+            # Keep only the last 30 backups to avoid filling up disk
+            backups = sorted([os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.startswith('trades_backup_')])
+            if len(backups) > 30:
+                for b in backups[:-30]:
+                    os.remove(b)
+        except Exception as e:
+            print(f"Auto backup failed: {e}")
 
 
 def _format_float(value, digits=6):

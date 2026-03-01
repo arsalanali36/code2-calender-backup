@@ -186,10 +186,16 @@ function getFrozenCols() {
     const raw = localStorage.getItem('frozenCols');
     if (raw) {
       const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) return arr.filter(c => state.columns.includes(c));
+      if (Array.isArray(arr)) {
+        if (!arr.includes(TOTAL_TRADES_COLUMN) && state.columns.includes(TOTAL_TRADES_COLUMN)) {
+          arr.splice(1, 0, TOTAL_TRADES_COLUMN);
+          localStorage.setItem('frozenCols', JSON.stringify(arr));
+        }
+        return arr.filter(c => state.columns.includes(c));
+      }
     }
   } catch (e) { }
-  return ['trade_date', 'Images', 'Tags', NOTE_COLUMN, 'Net P/L'].filter(c => state.columns.includes(c));
+  return ['trade_date', TOTAL_TRADES_COLUMN, 'Images', 'Tags', NOTE_COLUMN, 'Net P/L'].filter(c => state.columns.includes(c));
 }
 
 function saveFrozenCols(cols) {
@@ -245,6 +251,7 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
 
   let lastDateKey = null;
   let band = 0;
+  let daySeq = 0;
 
   filtered.forEach((trade, displayIdx) => {
     const rowIdx = state.trades.indexOf(trade);
@@ -254,6 +261,9 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
       band = band === 0 ? 1 : 0;
       if (lastDateKey !== null) tr.classList.add('date-group-start');
       lastDateKey = rowDateKey;
+      daySeq = 1;
+    } else {
+      daySeq++;
     }
     tr.classList.add(band === 1 ? 'date-group-a' : 'date-group-b');
 
@@ -281,8 +291,31 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
         _refreshNoteCellDisplay(noteDiv, trade[NOTE_COLUMN] || '');
         noteDiv.addEventListener('click', e => { e.stopPropagation(); openNotePopup(td, rowIdx); });
         td.appendChild(noteDiv);
+      } else if (col === TOTAL_TRADES_COLUMN) {
+        const inp = document.createElement('input'); inp.className = 'cell-input'; inp.readOnly = true;
+        inp.value = daySeq;
+        inp.style.textAlign = 'center';
+        inp.style.fontWeight = 'bold';
+        td.appendChild(inp);
       } else if (isTagColumn(col)) {
         renderTagCell(td, rowIdx, col);
+      } else if (col === VIDEO_COLUMN) {
+        const curUrl = trade[col] || '';
+        const vwrap = document.createElement('div'); vwrap.className = 'video-cell';
+        if (curUrl) {
+          const link = document.createElement('a'); link.href = curUrl; link.target = '_blank';
+          link.rel = 'noopener'; link.className = 'video-link-btn'; link.textContent = '▶';
+          link.title = 'Open video'; link.addEventListener('click', e => e.stopPropagation());
+          vwrap.appendChild(link);
+        }
+        const vinp = document.createElement('input'); vinp.type = 'url'; vinp.className = 'cell-input video-url-inp';
+        vinp.value = curUrl; vinp.placeholder = 'Video URL…';
+        vinp.addEventListener('change', () => {
+          state.trades[rowIdx][col] = vinp.value.trim();
+          saveTrades(); renderTable();
+        });
+        vwrap.appendChild(vinp);
+        td.appendChild(vwrap);
       } else {
         const inp = document.createElement('input'); inp.className = 'cell-input';
         inp.value = trade[col] !== undefined ? trade[col] : '';
@@ -439,6 +472,13 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
           noteDiv.title = parts.join('\n');
           td.appendChild(noteDiv);
         }
+
+      } else if (col === TOTAL_TRADES_COLUMN) {
+        const inp = document.createElement('input'); inp.className = 'cell-input'; inp.readOnly = true;
+        inp.value = dayTrades.length;
+        inp.style.textAlign = 'center';
+        inp.style.fontWeight = 'bold';
+        td.appendChild(inp);
 
       } else if (isTagColumn(col)) {
         const wrap = document.createElement('div'); wrap.className = 'tag-cell';

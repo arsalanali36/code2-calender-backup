@@ -54,13 +54,43 @@ function renderGalleryImageTags() {
     box.appendChild(mqLbl);
     marqueeTags.forEach(tag => {
       const c = tagColor(tag);
-      const chip = document.createElement('span');
+      const chip = document.createElement('button');
+      chip.type = 'button';
       chip.className = 'gallery-img-tag-chip';
-      chip.textContent = tag;
+      chip.textContent = `${tag} x`;
       chip.style.color = c;
       chip.style.borderColor = hexToRgba(c, 0.45);
       chip.style.background = hexToRgba(c, 0.12);
       chip.style.opacity = '0.9';
+      chip.title = 'Remove this tag from all marquee boxes on this image';
+      chip.addEventListener('click', async () => {
+        let modified = false;
+        if (info.ownerType === 'trade' && info.trade && info.trade.marqueeBoxes && info.trade.marqueeBoxes[imgUrl]) {
+          info.trade.marqueeBoxes[imgUrl].forEach(b => {
+            if (b.tags && b.tags.includes(tag)) {
+              b.tags = b.tags.filter(t => t !== tag);
+              modified = true;
+            }
+          });
+        } else if (info.ownerType === 'day' && info.dateKey && state.dayData[info.dateKey]?.marqueeBoxes?.[imgUrl]) {
+          state.dayData[info.dateKey].marqueeBoxes[imgUrl].forEach(b => {
+            if (b.tags && b.tags.includes(tag)) {
+              b.tags = b.tags.filter(t => t !== tag);
+              modified = true;
+            }
+          });
+        }
+
+        if (modified) {
+          if (typeof syncMarqueeBoxesShadow === 'function') syncMarqueeBoxesShadow();
+          await saveTrades();
+          renderGalleryImageTags();
+          renderTable();
+          renderCalendar();
+          if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+          if (typeof _renderMarqueeOnOverlayCanvas === 'function') _renderMarqueeOnOverlayCanvas();
+        }
+      });
       box.appendChild(chip);
     });
   }
@@ -146,14 +176,15 @@ function deleteImageTagGlobal(tagToDelete) {
       if (next.length) store[url] = next;
       else delete store[url];
     });
-    const mb = ensureMarqueeBoxes(t);
-    Object.keys(mb).forEach(url => {
-      mb[url].forEach(box => {
-        if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
-          box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
-        }
+    if (t.marqueeBoxes) {
+      Object.keys(t.marqueeBoxes).forEach(url => {
+        t.marqueeBoxes[url].forEach(box => {
+          if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+            box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+          }
+        });
       });
-    });
+    }
 
     state.tagColumns.forEach(c => {
       if (typeof t[c] === 'string') {
@@ -176,14 +207,15 @@ function deleteImageTagGlobal(tagToDelete) {
       if (next.length) store[url] = next;
       else delete store[url];
     });
-    const mb = ensureDayMarqueeBoxes(d);
-    Object.keys(mb).forEach(url => {
-      mb[url].forEach(box => {
-        if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
-          box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
-        }
+    if (day && day.marqueeBoxes) {
+      Object.keys(day.marqueeBoxes).forEach(url => {
+        day.marqueeBoxes[url].forEach(box => {
+          if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+            box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+          }
+        });
       });
-    });
+    }
 
     const day = state.dayData[d];
     if (day && day.tags) {
@@ -199,6 +231,13 @@ function deleteImageTagGlobal(tagToDelete) {
       });
     }
   });
+
+  state.allTags = (state.allTags || []).filter(x => String(x).toLowerCase() !== tLow);
+  if (state.tagGroups) {
+    Object.keys(state.tagGroups).forEach(g => {
+      state.tagGroups[g] = (state.tagGroups[g] || []).filter(x => String(x).toLowerCase() !== tLow);
+    });
+  }
 }
 
 function openGalleryImageTagManager() {

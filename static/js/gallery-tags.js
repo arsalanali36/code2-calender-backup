@@ -268,6 +268,29 @@ function renderGalleryTagsTray() {
 
   normalizeGroups();
 
+  const topTags = Array.from(tagUsageCount.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0])
+    .slice(0, 8);
+
+  if (topTags.length > 0) {
+    const grpF = document.createElement('div');
+    grpF.className = 'gv2-tt-group';
+    const hdr = document.createElement('div');
+    hdr.className = 'gv2-tt-grp-hdr';
+    const lbl = document.createElement('span');
+    lbl.textContent = '★ FREQUENT TAGS';
+    lbl.style.color = '#ffb347';
+    lbl.style.fontWeight = 'bold';
+    hdr.appendChild(lbl);
+    grpF.appendChild(hdr);
+    const wrap = document.createElement('div');
+    wrap.className = 'gv2-tt-wrap';
+    topTags.forEach(t => wrap.appendChild(createTagChip(t, '')));
+    grpF.appendChild(wrap);
+    body.appendChild(grpF);
+  }
+
   groupNames.forEach(grpName => {
     const grp = document.createElement('div');
     grp.className = 'gv2-tt-group';
@@ -382,6 +405,31 @@ function renderGalleryTagFilterPanel() {
   searchRow.appendChild(searchInp);
   panel.appendChild(searchRow);
 
+  const tagUsageCount = new Map();
+  const bumpTagCount = (tag) => {
+    const t = String(tag || '').trim();
+    if (!t) return;
+    tagUsageCount.set(t, (tagUsageCount.get(t) || 0) + 1);
+  };
+  state.trades.forEach((tr, rowIdx) => {
+    const dateKey = normalizeDate(extractDateFromTrade(tr));
+    (tr.images || []).forEach(url => {
+      getImageTagsForUrl(tr, url).forEach(bumpTagCount);
+      const boxes = tr?.marqueeBoxes?.[url];
+      (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
+      if (!boxes) getMarqueeTagsForImage(url, dateKey, rowIdx).forEach(bumpTagCount);
+    });
+  });
+  Object.entries(state.dayData || {}).forEach(([dateKey, day]) => {
+    (day?.images || []).forEach(url => {
+      getDayImageTagsForUrl(dateKey, url).forEach(bumpTagCount);
+      const boxes = day?.marqueeBoxes?.[url];
+      (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
+      if (!boxes) getMarqueeTagsForImage(url, dateKey, null).forEach(bumpTagCount);
+    });
+  });
+  window._tagCountMap = tagUsageCount;
+
   const actRow = document.createElement('div');
   actRow.className = 'panel-act-row';
   const btnNone = document.createElement('button');
@@ -405,11 +453,8 @@ function renderGalleryTagFilterPanel() {
     list.innerHTML = '';
     const ql = (query || '').toLowerCase();
 
-    // Group tags logic similar to tray, but plain list for filter
     const groups = state.tagGroups || {};
     const groupNames = Object.keys(groups);
-
-    // Flatten an ordered list of tags by groups + ungrouped
     const renderedTags = new Set();
 
     const renderListTag = (tag) => {
@@ -419,7 +464,6 @@ function renderGalleryTagFilterPanel() {
       const lbl = document.createElement('label');
       lbl.className = 'head-checkbox';
 
-      // Tag Color
       function _tagColor(name) {
         const TAG_PALETTE = ['#3fb950', '#58a6ff', '#d29922', '#bc8cff', '#f85149', '#79b8ff', '#56d364', '#ffa657'];
         let h = 0;
@@ -450,14 +494,45 @@ function renderGalleryTagFilterPanel() {
 
       lbl.appendChild(chk);
       lbl.appendChild(dot);
-      lbl.appendChild(document.createTextNode(tag));
+
+      const tl = document.createElement('span');
+      tl.textContent = tag;
+      tl.style.flex = 1;
+      lbl.appendChild(tl);
+
+      if (window._tagCountMap && window._tagCountMap.has(tag)) {
+        const cnt = document.createElement('span');
+        cnt.className = 'gv2-tt-tag-count';
+        cnt.textContent = String(window._tagCountMap.get(tag));
+        cnt.style.marginLeft = '8px';
+        lbl.appendChild(cnt);
+      }
+
       list.appendChild(lbl);
     };
+
+    const topTags = Array.from(window._tagCountMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(entry => entry[0])
+      .slice(0, 8);
+
+    if (topTags.length > 0) {
+      const filteredTop = ql ? topTags.filter(t => t.toLowerCase().includes(ql)) : topTags;
+      if (filteredTop.length) {
+        const gLbl = document.createElement('div');
+        gLbl.className = 'panel-manage-label';
+        gLbl.style.marginTop = '6px';
+        gLbl.style.color = '#ffb347';
+        gLbl.textContent = '★ FREQUENT TAGS';
+        list.appendChild(gLbl);
+        filteredTop.forEach(renderListTag);
+      }
+    }
 
     groupNames.forEach(grpName => {
       const tags = (groups[grpName] || []).filter(t => allTags.includes(t));
       const filteredTags = ql ? tags.filter(t => t.toLowerCase().includes(ql)) : tags;
-      if (filteredTags.length) {
+      if (filteredTags.length && filteredTags.some(t => !renderedTags.has(t))) {
         const gLbl = document.createElement('div');
         gLbl.className = 'panel-manage-label';
         gLbl.style.marginTop = '6px';
@@ -470,7 +545,7 @@ function renderGalleryTagFilterPanel() {
     const ungroupedTags = allTags.filter(t => !renderedTags.has(t));
     const filteredUngrouped = ql ? ungroupedTags.filter(t => t.toLowerCase().includes(ql)) : ungroupedTags;
     if (filteredUngrouped.length) {
-      if (groupNames.length) {
+      if (groupNames.length || topTags.length) {
         const gLbl = document.createElement('div');
         gLbl.className = 'panel-manage-label';
         gLbl.style.marginTop = '6px';

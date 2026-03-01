@@ -127,6 +127,37 @@ renameTagEverywhere(oldTag, newTag)  // updates all trades/dayData/boxes
 
 ---
 
+## 📦 Library Policy
+- **Prefer battle-tested libraries** over custom implementations when a good one exists.
+- Before building something custom (drag, canvas, animation, annotation, date picker, etc.), check if a small focused library handles it better.
+- Approved/preferred libs for this project:
+  - **Fabric.js** — canvas annotation (replaces custom annotate-canvas + annotate-tools)
+  - Vanilla JS for everything else (no React/Vue)
+
+---
+
+## ✏️ Annotation Feature Requirements
+The annotation system must support (target: Fabric.js integration):
+
+### Ink Tools
+- Freehand pen (free draw)
+- Highlighter (semi-transparent brush)
+- Arrows (click-drag)
+- Shapes: Rectangle, Circle
+
+### Text Tools
+- Click anywhere on image → text box appears → type
+- Font size + color customizable
+- Callout/background box behind text
+- Text movable + editable after placing
+
+### General
+- **Edit mode**: All placed annotations selectable, movable, deletable
+- **Undo/Redo**: Ctrl+Z / Ctrl+Y
+- **Save format**: Must still integrate with existing `/api/overlay` route (PNG export from Fabric canvas)
+
+---
+
 ## 🌅 Custom Commands / EOD Routine
 If the user ever says **"Aap EOD dekh lijye"** or asks you to **"do the EOD routine"**, it means you must:
 1. Immediately read the contents of `EOD_AI_PROMPT.md` located in the root directory.

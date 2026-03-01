@@ -3668,10 +3668,10 @@
       "marqueeBoxes": {
         "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": [
           {
-            "rh": 0.15778251599147122,
-            "rw": 0.16199376947040497,
             "rx": 0.1806853582554517,
             "ry": 0.279317697228145,
+            "rw": 0.16199376947040497,
+            "rh": 0.15778251599147122,
             "tags": [
               "news"
             ]
@@ -3703,32 +3703,22 @@
         ],
         "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": [
           {
-            "rh": 0.3624733475479744,
+            "rx": 0.7667887667887668,
+            "ry": 0.5863539445628998,
             "rw": 0.19047619047619047,
-            "rx": 0.30036630036630035,
-            "ry": 0.36886993603411516,
+            "rh": 0.3624733475479744,
             "tags": [
               "idea",
-              "Realisation",
-              "Late"
-            ]
-          },
-          {
-            "rh": 0.208955223880597,
-            "rw": 0.06593406593406594,
-            "rx": 0.5970695970695971,
-            "ry": 0.35181236673773986,
-            "tags": [
-              "himmat nahi"
+              "Realisation"
             ]
           }
         ],
         "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": [
           {
-            "rh": 0.14444444444444443,
-            "rw": 0.09735576923076923,
             "rx": 0.4014423076923077,
             "ry": 0.3288888888888889,
+            "rw": 0.09735576923076923,
+            "rh": 0.14444444444444443,
             "tags": [
               "news"
             ]
@@ -3736,10 +3726,10 @@
         ],
         "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": [
           {
-            "rh": 0.12875536480686695,
-            "rw": 0.054086538461538464,
             "rx": 0.5456730769230769,
             "ry": 0.22746781115879827,
+            "rw": 0.054086538461538464,
+            "rh": 0.12875536480686695,
             "tags": [
               "idea",
               "new"
@@ -3749,19 +3739,19 @@
         "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [],
         "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": [
           {
-            "rh": 0.1513859275053305,
-            "rw": 0.1346153846153846,
             "rx": 0.59375,
             "ry": 0.10660980810234541,
+            "rw": 0.1346153846153846,
+            "rh": 0.1513859275053305,
             "tags": [
               "halkeMeLerahe"
             ]
           },
           {
-            "rh": 0.14925373134328357,
-            "rw": 0.08653846153846154,
             "rx": 0.3629807692307692,
             "ry": 0.697228144989339,
+            "rw": 0.08653846153846154,
+            "rh": 0.14925373134328357,
             "tags": [
               "Realisation"
             ]
@@ -3771,11 +3761,11 @@
       "overlays": {
         "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": "/uploads/5c4af92c-4b8f-403a-b692-c9a43c65a525.png",
         "/uploads/57c87743-e865-4e7c-bde0-1d53ea83698d.png": "/uploads/6396efcf-02c0-406e-918c-7adda8a9682b.png",
-        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/180f6a29-69f2-4152-a5d6-e14d25195614.png",
-        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/d9c6aeb1-ec84-45ab-bea4-b84cb44b9528.png",
+        "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": "/uploads/5c8be4a9-41dd-4439-89ee-1d0a5f9dc128.png",
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": "/uploads/eafbef9f-dfe4-4077-8012-cfe36060ce50.png",
         "/uploads/cc1c5878-8ce9-45b8-8731-06b6b31a5862.png": "/uploads/c24570fe-9870-4241-959c-f293d1ab63b1.png",
-        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/858a2509-9b2e-41e3-8aa2-425bab492a9e.png",
-        "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": "/uploads/712bce25-0daa-424b-96c7-16c2c5f31f49.png"
+        "/uploads/ff4dbeb1-89fc-4769-9fdc-63c0a3e56dc8.png": "/uploads/712bce25-0daa-424b-96c7-16c2c5f31f49.png",
+        "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": "/uploads/c2df4e79-2a9d-4b4d-8bb4-04b38b9e4909.png"
       },
       "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE"
     },
@@ -3800,15 +3790,7 @@
             ]
           }
         ],
-        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": [
-          {
-            "rh": 0.26652452025586354,
-            "rw": 0.16606498194945848,
-            "rx": 0.33935018050541516,
-            "ry": 0.4562899786780384,
-            "tags": []
-          }
-        ],
+        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": [],
         "/uploads/d2160d77-84e2-490a-a1a2-f69202f8d88d.png": [],
         "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": [
           {
@@ -3822,13 +3804,24 @@
             ]
           }
         ],
-        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": []
+        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": [
+          {
+            "rh": 0.2068230277185501,
+            "rw": 0.10722891566265061,
+            "rx": 0.5,
+            "ry": 0.6162046908315565,
+            "tags": [
+              "idea",
+              "Realisation"
+            ]
+          }
+        ]
       },
       "overlays": {
         "/uploads/657e23e7-5495-4464-9db9-752501aa06c8.png": "/uploads/0d6df1ac-02ed-470d-bcca-54f78f88d5d2.png",
-        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": "/uploads/613bbe44-e837-4526-851e-72ef256de933.png",
+        "/uploads/9d40fb34-ad22-4394-a707-0033a949dd98.png": "/uploads/57e7a98d-445f-40bf-8768-b89b3126b045.png",
         "/uploads/eff5471c-d7a7-4098-8acd-7c38d246ee9e.png": "/uploads/d53a6862-b629-4991-a7db-dc65e29d72d1.png",
-        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": "/uploads/3ffe8cf8-f9be-4ebb-b53c-6eca6063e9f8.png"
+        "/uploads/f24a82f1-cf43-4367-b843-4165aaf834c0.png": "/uploads/cd72db24-f065-448b-898d-adf3cbd3c6c3.png"
       },
       "video": "https://youtu.be/6l-b6zPihQY?si=Tak1R32Zar3a6Ec3"
     },

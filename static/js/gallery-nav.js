@@ -10,8 +10,6 @@ function loadOverlayForCurrentImage() {
   const wrapper = document.getElementById('gallery-img-wrapper');
   if (!wrapper) return;
 
-  const left = img.offsetLeft;
-  const top = img.offsetTop;
   const w = Math.round(img.clientWidth || img.naturalWidth || 0);
   const h = Math.round(img.clientHeight || img.naturalHeight || 0);
   if (w <= 0 || h <= 0) {
@@ -21,8 +19,8 @@ function loadOverlayForCurrentImage() {
     return;
   }
 
-  canvas.style.left = left + 'px';
-  canvas.style.top = top + 'px';
+  canvas.style.margin = 'auto';
+  canvas.style.inset = '0';
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
 
@@ -32,6 +30,7 @@ function loadOverlayForCurrentImage() {
   }
 
   canvas.style.pointerEvents = 'none'; // view-only, no drawing
+  canvas.style.cursor = 'default'; // prevent crosshair from .annot-canvas CSS showing over image
   canvas.style.display = 'block';
 
   const boxes = unpackMarqueeBoxes(packedBoxes, w, h);
@@ -81,13 +80,13 @@ function loadOverlayForCurrentImage() {
 }
 
 function navigateGallery(dir) {
-  const { images, currentIndex, date } = state.gallery;
-  const next = currentIndex + dir;
-  if (next >= 0 && next < images.length) {
-    state.gallery.currentIndex = next; renderGallery();
-  } else if (date) {
-    navigateGalleryDate(dir);
-  }
+  const { images, currentIndex } = state.gallery;
+  if (!images || !images.length) return;
+  let next = currentIndex + dir;
+  if (next >= images.length) next = 0;
+  else if (next < 0) next = images.length - 1;
+  state.gallery.currentIndex = next;
+  renderGallery();
 }
 
 function getGalleryDateScopeForFilter() {
