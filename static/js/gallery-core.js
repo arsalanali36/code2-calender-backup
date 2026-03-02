@@ -1,327 +1,4 @@
-function openGalleryForDate(dateStr) {
-  const images = getImagesForDate(dateStr);
-  if (!images.length) return;
-  state.gallery.images = images; state.gallery.currentIndex = 0;
-  state.gallery.date = dateStr; state.gallery.sourceRow = null;
-  state.gallery._baseImages = [...images];
-  state.gallery._baseDate = dateStr;
-  state.gallery._baseSourceRow = null;
-  lockBodyScroll();
-  document.getElementById('gallery-modal').classList.add('open');
-  renderGallery(); updateGalleryDateArrows();
-  renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
-  const tray1 = document.getElementById('gv2-tags-tray');
-  const btn1 = document.getElementById('gv2-tags-btn');
-  if (tray1) tray1.style.display = 'flex';
-  if (btn1) btn1.classList.add('active');
-}
-
-function openGalleryDirect(images, startIndex, sourceRow = null) {
-  state.gallery.images = images; state.gallery.currentIndex = startIndex;
-  state.gallery.date = ''; state.gallery.sourceRow = sourceRow;
-  state.gallery._baseImages = [...images];
-  state.gallery._baseDate = '';
-  state.gallery._baseSourceRow = sourceRow;
-  lockBodyScroll();
-  document.getElementById('gallery-modal').classList.add('open');
-  renderGallery(); updateGalleryDateArrows();
-  renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
-  const tray2 = document.getElementById('gv2-tags-tray');
-  const btn2 = document.getElementById('gv2-tags-btn');
-  if (tray2) tray2.style.display = 'flex';
-  if (btn2) btn2.classList.add('active');
-}
-
-function lockBodyScroll() {
-  document.body.classList.add('modal-open');
-}
-
-function unlockBodyScroll() {
-  if (document.querySelector('.modal-overlay.open')) return;
-  document.body.classList.remove('modal-open');
-}
-
-function openGalleryForDateWithTagFilter(dateStr, tags = []) {
-  const cleanTags = Array.from(new Set((tags || []).map(t => String(t || '').trim()).filter(Boolean)));
-  openGalleryForDate(dateStr);
-  state.gallery.tagFilter = cleanTags;
-  const keep = {
-    url: (state.gallery.images || [])[state.gallery.currentIndex] || '',
-    date: normalizeDate(dateStr || ''),
-    sourceRow: null
-  };
-  if (cleanTags.length) applyGalleryImageScopeByTagFilter(keep);
-  renderGalleryTagCloud();
-  renderGallery();
-  updateGalleryDateArrows();
-}
-
-function renderGallery() {
-  if (state.gallery._skipFilterRescopeOnce) {
-    state.gallery._skipFilterRescopeOnce = false;
-  } else if (state.gallery.tagFilter?.length) {
-    const before = getCurrentGalleryPreserveContext();
-    applyGalleryImageScopeByTagFilter(before);
-  }
-  const { images, currentIndex, date } = state.gallery;
-  const currentImageUrl = images[currentIndex] || '';
-  if (annotState.active && annotState.imageUrl && annotState.imageUrl !== currentImageUrl) {
-    state._carryAnnotTool = annotState.tool;
-    stopAnnotation();
-  }
-  document.getElementById('gallery-date').textContent = date ? formatDisplayDate(date) : `${images.length} image(s)`;
-  if (date) document.getElementById('gallery-date-picker').value = date;
-
-  const uploadBtn = document.getElementById('gallery-upload-btn');
-  if (uploadBtn) uploadBtn.style.display = date ? '' : 'none';
-
-  const obsBtn = document.getElementById('gv2-obs-btn');
-  if (obsBtn) obsBtn.style.display = date ? '' : 'none';
-
-  const img = document.getElementById('gallery-img');
-  if (!annotState.active) document.getElementById('annot-canvas').style.display = 'none';
-  img.src = images[currentIndex] || ''; img.classList.remove('zoomed', 'dragging'); resetZoom();
-  const afterImageReady = () => {
-    loadOverlayForCurrentImage();
-    if (state._carryAnnotTool) {
-      annotState.tool = state._carryAnnotTool;
-      state._carryAnnotTool = '';
-      startAnnotation();
-    }
-  };
-  img.addEventListener('load', afterImageReady, { once: true });
-  if (img.complete && img.naturalWidth) afterImageReady();
-
-  document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
-  document.getElementById('gallery-prev').disabled = images.length <= 1;
-  document.getElementById('gallery-next').disabled = images.length <= 1;
-  renderGalleryImageTags();
-  renderGalleryTagCloud();
-  const tray = document.getElementById('gv2-tags-tray');
-  if (tray && tray.style.display !== 'none') {
-    renderGalleryTagsTray();
-    renderGalleryVideoUrls();
-  }
-  if (document.getElementById('img-tag-modal')?.classList.contains('open')) renderImageTagModal();
-
-  if (typeof renderGalleryStats === 'function') renderGalleryStats();
-
-  const thumbs = document.getElementById('gallery-thumbs'); thumbs.innerHTML = '';
-  const thumbImages = _getGalleryThumbImages();
-  let dragFromIndex = -1;
-  thumbImages.forEach(({ url, globalIdx, isCurrentDate }) => {
-    const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
-    const t = document.createElement('img');
-    t.src = url;
-    t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '');
-    t.addEventListener('click', () => { state.gallery.currentIndex = globalIdx; renderGallery(); });
-    t.addEventListener('contextmenu', async e => {
-      e.preventDefault();
-      const dateInp = document.createElement('input');
-      dateInp.type = 'date';
-      dateInp.style.position = 'absolute';
-      dateInp.style.opacity = '0';
-      dateInp.style.pointerEvents = 'none';
-      dateInp.style.left = e.clientX + 'px';
-      dateInp.style.top = e.clientY + 'px';
-
-      const onPickerChange = async () => {
-        const rawDate = dateInp.value;
-        if (document.body.contains(dateInp)) document.body.removeChild(dateInp);
-        if (!rawDate) return;
-        const targetDate = normalizeDate(rawDate);
-        if (confirm(`Move image to ${targetDate}?`)) {
-          await moveGalleryImageToDate(globalIdx, targetDate);
-        }
-      };
-
-      dateInp.addEventListener('change', onPickerChange);
-
-      const removeInp = () => { if (document.body.contains(dateInp)) document.body.removeChild(dateInp); };
-      dateInp.addEventListener('blur', removeInp);
-
-      document.body.appendChild(dateInp);
-
-      try {
-        dateInp.showPicker();
-      } catch (err) {
-        removeInp();
-        const rawDate = prompt('Enter date (YYYY-MM-DD) to move this image to its consolidated row:');
-        if (!rawDate) return;
-        const targetDate = normalizeDate(rawDate);
-        if (!targetDate || !targetDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          showToast('Invalid date format', 'error'); return;
-        }
-        if (confirm(`Move image to ${targetDate}?`)) {
-          await moveGalleryImageToDate(globalIdx, targetDate);
-        }
-      }
-    });
-
-    t.addEventListener('touchend', e => {
-      if (IS_TOUCH_DEVICE) {
-        e.preventDefault();
-        state.gallery.currentIndex = globalIdx;
-        renderGallery();
-      }
-    }, { passive: false });
-
-    if (isCurrentDate) {
-      wrap.addEventListener('dragstart', e => {
-        dragFromIndex = globalIdx; wrap.classList.add('dragging');
-        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-      });
-      wrap.addEventListener('dragend', () => {
-        dragFromIndex = -1; wrap.classList.remove('dragging');
-        thumbs.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-      });
-      wrap.addEventListener('dragover', e => {
-        e.preventDefault();
-        if (dragFromIndex !== globalIdx) wrap.classList.add('drag-over');
-      });
-      wrap.addEventListener('dragleave', () => wrap.classList.remove('drag-over'));
-      wrap.addEventListener('drop', async e => {
-        e.preventDefault(); wrap.classList.remove('drag-over');
-        if (dragFromIndex < 0 || dragFromIndex === globalIdx) return;
-        await reorderGalleryImages(dragFromIndex, globalIdx);
-      });
-    }
-
-    const del = document.createElement('button'); del.type = 'button';
-    del.className = 'gv2-thumb-del'; del.textContent = '×'; del.title = 'Remove image';
-    del.addEventListener('click', async e => { e.stopPropagation(); await removeGalleryImageAt(globalIdx); });
-
-    if (globalIdx === 0 && date) {
-      const videoUrl = state.dayData[date]?.video;
-      if (videoUrl) {
-        const vi = document.createElement('span'); vi.className = 'gv2-thumb-video-icon'; vi.textContent = '▶';
-        vi.style.pointerEvents = 'auto'; vi.style.cursor = 'pointer';
-        vi.addEventListener('click', e => { e.stopPropagation(); window.open(videoUrl, '_blank'); });
-        wrap.appendChild(vi);
-      }
-    }
-
-    wrap.appendChild(t); wrap.appendChild(del); thumbs.appendChild(wrap);
-  });
-
-  if (thumbs.children.length > 0) {
-    const activeThumb = thumbs.querySelector('.gv2-thumb.active');
-    if (activeThumb) {
-      setTimeout(() => {
-        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }, 50);
-    }
-  }
-}
-
-function renderGalleryStats() {
-  const display = document.getElementById('gallery-heads-display');
-  if (!display) return;
-  const heads = getActiveShowHeads();
-  const cols = state.columns.filter(col => heads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
-  if (cols.length === 0) {
-    display.style.display = 'none';
-    return;
-  }
-
-  const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex] || '';
-  const ctx = getCurrentGalleryPreserveContext();
-  let dateToUse = state.gallery.date || ctx.date;
-
-  let trades = [];
-  if (state.calendarMode === 'consolidated') {
-    if (dateToUse) {
-      trades = getTradesForDate(dateToUse);
-    } else {
-      const owner = getOwnerTradeForImageUrl(activeUrl);
-      if (owner) trades = [owner];
-    }
-  } else {
-    const owner = getOwnerTradeForImageUrl(activeUrl);
-    if (owner) trades = [owner];
-  }
-
-  if (trades.length === 0) {
-    display.style.display = 'none';
-    return;
-  }
-
-  display.style.display = 'flex';
-  display.innerHTML = '';
-
-  const isConsolidated = state.calendarMode === 'consolidated' && trades.length > 1;
-
-  if (isConsolidated) {
-    const title = document.createElement('div');
-    title.style.fontWeight = 'bold';
-    title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
-    title.style.marginBottom = '2px';
-    title.style.paddingBottom = '2px';
-    title.textContent = 'Consolidated Stats';
-    display.appendChild(title);
-
-    cols.forEach(col => {
-      const lower = col.toLowerCase();
-      if (lower === 'thumbnail' || lower === 'sell time' || lower === 'buy time') return;
-      const vals = trades.map(t => t[col]).filter(v => v !== '' && v != null);
-      if (!vals.length) return;
-      const item = document.createElement('div');
-      const nums = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
-      if (nums.length === vals.length) {
-        let outNum;
-        if (lower === 'sell price' || lower === 'buy price') outNum = nums.reduce((a, b) => a + b, 0) / nums.length;
-        else outNum = nums.reduce((a, b) => a + b, 0);
-        const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
-        item.textContent = `${col}: ${out}`;
-        if (lower.includes('profit') || lower === 'rs') item.style.color = outNum >= 0 ? 'var(--green)' : 'var(--red)';
-      } else {
-        const first = String(vals[0]);
-        const same = vals.every(v => String(v) === first);
-        item.textContent = same ? `${col}: ${first}` : `${col}: ${vals.length} entries`;
-      }
-      display.appendChild(item);
-    });
-  } else {
-    trades.forEach((tr, i) => {
-      const title = document.createElement('div');
-      title.style.fontWeight = 'bold';
-      title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
-      title.style.marginBottom = '2px';
-      title.style.paddingBottom = '2px';
-      title.textContent = document.getElementById('gallery-date-picker')?.value === dateToUse && trades.length === 1 ? 'Trade Stats' : 'Individual Stats';
-      display.appendChild(title);
-
-      cols.forEach(col => {
-        if (col.toLowerCase() === 'thumbnail') return;
-        const val = tr[col];
-        if (val === '' || val == null) return;
-        const item = document.createElement('div');
-        const isProfit = col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs';
-        if (isProfit) {
-          const num = parseFloat(val);
-          if (!isNaN(num)) {
-            item.textContent = `${col}: ${num > 0 ? '+' : ''}${num}`;
-            item.style.color = num >= 0 ? 'var(--green)' : 'var(--red)';
-          } else { item.textContent = `${col}: ${val}`; }
-        } else {
-          item.textContent = `${col}: ${val}`;
-        }
-        display.appendChild(item);
-      });
-    });
-  }
-}
-
-function _getGalleryThumbImages() {
-  const { images, tagFilter } = state.gallery;
-  const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
-  return (images || []).map((url, i) => ({
-    url,
-    globalIdx: i,
-    isCurrentDate: !filteredMode,
-    date: filteredMode ? '' : state.gallery.date
-  }));
-}
+// gallery-core.js — tag helpers, scope/filter functions, applyGalleryImageScopeByTagFilter
 
 function _getTagsForImageUrl(url) {
   const tags = new Set();
@@ -360,16 +37,53 @@ function getAllGalleryImagesAcrossDates() {
   return out;
 }
 
+function _getSubImagesForParent(parentUrl, date, sourceRow) {
+  if (sourceRow !== null && sourceRow !== undefined && state.trades[sourceRow]?.subImages?.[parentUrl]?.length) {
+    return state.trades[sourceRow].subImages[parentUrl];
+  }
+  if (date && state.dayData[date]?.subImages?.[parentUrl]?.length) {
+    return state.dayData[date].subImages[parentUrl];
+  }
+  for (const [, v] of Object.entries(state.dayData || {})) {
+    if (v?.subImages?.[parentUrl]?.length) return v.subImages[parentUrl];
+  }
+  for (const t of state.trades || []) {
+    if (t.subImages?.[parentUrl]?.length) return t.subImages[parentUrl];
+  }
+  return [];
+}
+
 function getFilteredGalleryImagesByTagSelection() {
   const tagFilter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
   if (!tagFilter.length) return [];
   const mode = state.gallery.filterMode === 'and' ? 'and' : 'or';
-  return getAllGalleryImagesAcrossDates().filter(item => {
-    const arr = getImageTagsForGalleryItem(item).map(t => typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim());
-    return mode === 'and'
-      ? tagFilter.every(t => arr.includes(typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim()))
-      : tagFilter.some(t => arr.includes(typeof t === 'string' ? t.toLowerCase().trim() : String(t).toLowerCase().trim()));
-  });
+  const groupMode = state.gallery.filterGroupMode !== 'image'; // default: group
+  const norm = t => (typeof t === 'string' ? t : String(t)).toLowerCase().trim();
+  const normFilter = tagFilter.map(norm);
+  const matchesFilter = (item) => {
+    const arr = getImageTagsForGalleryItem(item).map(norm);
+    return mode === 'and' ? normFilter.every(t => arr.includes(t)) : normFilter.some(t => arr.includes(t));
+  };
+  const allItems = getAllGalleryImagesAcrossDates();
+  if (!groupMode) {
+    // Image mode: only directly matching top-level images
+    return allItems.filter(item => matchesFilter(item));
+  } else {
+    // Group mode: if parent OR any sub-image matches → include parent
+    const result = []; const added = new Set();
+    allItems.forEach(item => {
+      if (added.has(item.url)) return;
+      if (matchesFilter(item)) {
+        result.push(item); added.add(item.url);
+      } else {
+        const subs = _getSubImagesForParent(item.url, item.date, item.sourceRow);
+        if (subs.some(subUrl => matchesFilter({ url: subUrl, date: item.date, sourceRow: item.sourceRow }))) {
+          result.push(item); added.add(item.url);
+        }
+      }
+    });
+    return result;
+  }
 }
 
 function findGalleryContextByImageUrl(imageUrl) {
@@ -403,6 +117,18 @@ function applyGalleryImageScopeByTagFilter(preserveUrl = '') {
   let nextMeta = null;
   if (filterActive) {
     nextMeta = getFilteredGalleryImagesByTagSelection();
+    // In Grp mode: if any group parents are expanded, insert their sub-images after the parent
+    if (state.gallery.filterGroupMode !== 'image' && state.gallery.expandedGroups?.size) {
+      const expanded = [];
+      for (const item of nextMeta) {
+        expanded.push(item);
+        if (state.gallery.expandedGroups.has(item.url)) {
+          const subs = _getSubImagesForParent(item.url, item.date, item.sourceRow);
+          subs.forEach(subUrl => expanded.push({ url: subUrl, date: item.date, sourceRow: item.sourceRow }));
+        }
+      }
+      nextMeta = expanded;
+    }
     nextImages = nextMeta.map(x => x.url);
   } else if (Array.isArray(state.gallery._baseImages) && state.gallery._baseImages.length) {
     nextImages = [...state.gallery._baseImages];

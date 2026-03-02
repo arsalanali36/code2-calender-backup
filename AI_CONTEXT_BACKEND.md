@@ -28,8 +28,11 @@ UPLOADS_DIR = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads
 os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
-from data_processors import STRUCTURED_COLUMNS, HISTORICAL_STRUCTURED_COLUMNS, consolidate_raw_fills, consolidate_zerodha_historical_csv, consolidate_dhan_csv
-
+from data_processors import (
+    STRUCTURED_COLUMNS, HISTORICAL_STRUCTURED_COLUMNS,
+    consolidate_raw_fills, consolidate_zerodha_historical_csv, consolidate_dhan_csv,
+    load_trades, save_trades_to_file
+)
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -653,6 +656,14 @@ if __name__ == '__main__':
 ## File: `data_processors.py`
 ```py
 import pandas as pd
+import json
+import os
+import time
+import shutil
+from datetime import datetime
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 STRUCTURED_COLUMNS = [
     'Instrument',
     'TradeType',

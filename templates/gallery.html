@@ -15,17 +15,22 @@
       <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-marquee-btn" title="Marquee mode (M)">&#9633;
         Marquee</button>
       <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags tray">&#127991; Tags</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers panel (L)">&#10064; Layers</button>
     </div>
     <div class="gv2-tray-right">
       <!-- Gallery Tools Dropdown -->
       <div class="dropdown-wrapper">
         <button class="btn btn-outline" id="gallery-tools-btn"
-          style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Tools &#9660;</button>
+          style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Tools
+          &#9660;</button>
         <div class="dropdown-menu" id="gallery-tools-panel"
           style="right: 0px; left: auto; min-width: 150px; overflow-y: auto; background: var(--bg2);">
-          <button class="dropdown-item" id="gallery-upload-btn" style="text-align: left; padding: 8px 12px; width: 100%;">&#11014; Upload</button>
-          <button class="dropdown-item" id="gallery-tag-btn" title="Manage tags for this image" style="text-align: left; padding: 8px 12px; width: 100%;">&#127991; Img Tag</button>
-          <button class="dropdown-item" id="gv2-obs-btn" title="Open observation for this date" style="text-align: left; padding: 8px 12px; width: 100%;">&#128211; Obs</button>
+          <button class="dropdown-item" id="gallery-upload-btn"
+            style="text-align: left; padding: 8px 12px; width: 100%;">&#11014; Upload</button>
+          <button class="dropdown-item" id="gallery-tag-btn" title="Manage tags for this image"
+            style="text-align: left; padding: 8px 12px; width: 100%;">&#127991; Img Tag</button>
+          <button class="dropdown-item" id="gv2-obs-btn" title="Open observation for this date"
+            style="text-align: left; padding: 8px 12px; width: 100%;">&#128211; Obs</button>
         </div>
       </div>
       <!-- Gallery Show Heads Dropdown -->
@@ -64,7 +69,8 @@
       <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Eraser">&#9003;</button>
       <!-- Shape tool group (right-click = shape picker) -->
       <div class="annot-shape-group" id="annot-shape-group">
-        <button class="annot-tool gv2-ab-btn" id="annot-shape" title="Shape (right-click: switch shape)" data-shape="rect">&#9645;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-shape" title="Shape (right-click: switch shape)"
+          data-shape="rect">&#9645;</button>
         <div class="annot-shape-menu" id="annot-shape-menu">
           <button class="annot-shape-opt" data-tool="arrow">&#8599; Arrow</button>
           <button class="annot-shape-opt" data-tool="rect">&#9645; Rect</button>
@@ -83,6 +89,21 @@
       <div class="gv2-ab-sep"></div>
       <button class="gv2-ab-btn gv2-ab-save" id="annot-save-overlay" title="Save as overlay">&#128190;</button>
       <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
+    </div>
+
+    <!-- Layer Panel (Photoshop-style, left side) -->
+    <div class="gv2-layer-panel" id="gv2-layer-panel" style="display:none">
+      <div class="gv2-lp-header">
+        <span>Layers</span>
+        <div style="display:flex;gap:3px;align-items:center;">
+          <button class="gv2-lp-sel-btn" id="gv2-lp-sel-all" title="Select All">&#9745;</button>
+          <button class="gv2-lp-sel-btn" id="gv2-lp-sel-none" title="Deselect All">&#9746;</button>
+          <button class="gv2-lp-sel-btn" id="gv2-lp-sel-inv" title="Invert Selection">&#8645;</button>
+          <button class="gv2-lp-close" id="gv2-lp-close-btn" title="Close">&#10005;</button>
+        </div>
+      </div>
+      <div class="gv2-lp-body" id="gv2-layer-list"></div>
+      <div class="gv2-lp-resize-handle" id="gv2-lp-resize-handle" title="Drag to resize"></div>
     </div>
 
     <!-- Center column: image + tag cloud + thumbnails -->
@@ -107,7 +128,7 @@
 
         <!-- Text Bar -->
         <div class="gv2-text-bar" id="gv2-text-bar" style="display:none">
-          <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#ffffff" title="Text Color" />
+          <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#000000" title="Text Color" />
           <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
           <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family"
             style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
@@ -118,6 +139,8 @@
           </select>
           <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
           <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
+          <button id="gv2-tb-list" class="gv2-ab-btn" style="font-size:0.75rem"
+            title="Bullets / Numbering">&#9776;</button>
           <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
         </div>
         <div class="gv2-marquee-bar" id="gv2-marquee-bar" style="display:none">
@@ -137,12 +160,17 @@
         <span class="gv2-tc-label">Filter:</span>
         <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
         <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
+        <button class="gv2-tc-mode-btn active" id="gv2-grp-filter-btn" title="Filter mode: Grp = entire group if any image matches, Img = only matching image" style="margin-left:4px">Grp</button>
         <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005;
           Clear</button>
+        <!-- Shortcuts reference button -->
+        <button class="gv2-tc-mode-btn" id="gv2-shortcuts-btn" title="Keyboard shortcuts" style="margin-left:4px;font-size:0.8rem;padding:2px 7px;">&#9000;</button>
+        <div id="gv2-shortcuts-popover" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;max-width:520px;margin:0 auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);z-index:9999;padding:10px 14px;font-size:0.78rem;"></div>
       </div>
 
       <!-- Thumbnail Tray -->
       <div class="gv2-thumb-tray">
+        <div class="gv2-tray-resize-handle-horiz" id="gv2-tray-resize-handle-horiz"></div>
         <div class="gv2-thumbs" id="gallery-thumbs"></div>
       </div>
 

@@ -7,3 +7,6 @@
 .DS_Store
 Thumbs.db
 static/uploads/
+node_modules/
+data/backups/
+package-lock.json

@@ -1,35 +1,66 @@
-// ─── annotate-zoom.js ────────────────────────────────────────────────────────
-// Zoom / pan state and handlers for the gallery image + annotation canvas.
-// ─────────────────────────────────────────────────────────────────────────────
+// annot-zoom.js — Shared annotation state, zoom/pan, brush cursor.
+// Loaded FIRST. All module-level vars (fabricCanvas, zoom, drag, etc.) live here.
+
+// ─── A. Module-level state ───────────────────────────────────────────────────
+let fabricCanvas = null;
+let _fabricHistory = [], _fabricFuture = [], _historyLocked = false;
+let _mqCanvas = null;
+let _shapeStartPoint = null, _activeShape = null, _isShapeDrawing = false;
+let _eraserActive = false, _eraserLastPos = null;
 
 const zoom = { scale: 1, x: 0, y: 0 };
 const drag = { active: false, startX: 0, startY: 0, originX: 0, originY: 0 };
+let preferredTool = 'pen';
+
+function _brushCursorMove(e) {
+  if (!shouldUseBrushCursor()) return;
+  const brushEl = document.getElementById('annot-brush-cursor');
+  if (!brushEl) return;
+  const wr = document.getElementById('gallery-img-wrapper').getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  brushEl.style.left = (src.clientX - wr.left) + 'px';
+  brushEl.style.top = (src.clientY - wr.top) + 'px';
+  brushEl.style.display = 'block';
+}
+function _brushCursorLeave() {
+  const brushEl = document.getElementById('annot-brush-cursor');
+  if (brushEl) brushEl.style.display = 'none';
+}
+
+// ─── B. Zoom / Pan ───────────────────────────────────────────────────────────
 
 function resetZoom() { zoom.scale = 1; zoom.x = 0; zoom.y = 0; applyZoom(); }
 
 function applyZoom() {
   const img = document.getElementById('gallery-img');
   const tf = `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`;
+
+  const zoomLayer = document.getElementById('gallery-zoom-layer');
+  if (zoomLayer) {
+    zoomLayer.style.transform = 'none'; // Un-scale the parent so canvas isn't stretched
+  }
+
   img.style.transform = tf;
   img.style.transformOrigin = 'top left';
-  // Fabric wrapper OR plain canvas
-  if (typeof fabricCanvas !== 'undefined' && fabricCanvas && fabricCanvas.wrapperEl) {
-    fabricCanvas.wrapperEl.style.transform = tf;
-    fabricCanvas.wrapperEl.style.transformOrigin = 'top left';
-    fabricCanvas.wrapperEl.classList.toggle('dragging', !!drag.active);
-  } else {
-    const canvas = document.getElementById('annot-canvas');
-    if (canvas) {
-      canvas.style.transform = tf;
-      canvas.style.transformOrigin = 'top left';
-      canvas.classList.toggle('dragging', !!drag.active);
-    }
-  }
-  // MQ overlay canvas follows same transform
-  if (typeof _mqCanvas !== 'undefined' && _mqCanvas) {
+
+  if (_mqCanvas) {
     _mqCanvas.style.transform = tf;
     _mqCanvas.style.transformOrigin = 'top left';
   }
+
+  if (fabricCanvas) {
+    if (fabricCanvas.wrapperEl) {
+      fabricCanvas.wrapperEl.style.transform = 'none'; // Prevent CSS scaling
+    }
+    const vpt = fabricCanvas.viewportTransform;
+    vpt[0] = zoom.scale;
+    vpt[3] = zoom.scale;
+    vpt[4] = zoom.x;
+    vpt[5] = zoom.y;
+    fabricCanvas.setViewportTransform(vpt);
+    fabricCanvas.requestRenderAll();
+  }
+
   if (zoom.scale > 1) { img.classList.add('zoomed'); img.classList.remove('dragging'); }
   else { img.classList.remove('zoomed', 'dragging'); }
 }
@@ -39,6 +70,9 @@ function bindZoomPan() {
   const img = document.getElementById('gallery-img');
 
   wrapper.addEventListener('wheel', e => {
+    // Top-bar/properties panels (inputs, UI controls) pe scroll karne se canvas zoom na ho
+    if (e.target.closest('#gv2-annot-bar') || e.target.closest('#gv2-text-bar') || e.target.closest('#gv2-marquee-bar')) return;
+
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
     const newScale = Math.min(Math.max(zoom.scale * factor, 1), 8);
@@ -65,7 +99,7 @@ function bindZoomPan() {
     const t = e.target;
     const validTarget = t && (
       t.id === 'gallery-img' || t.id === 'annot-canvas' ||
-      t.id === 'gallery-img-wrapper' ||
+      t.id === 'gallery-img-wrapper' || t.id === 'gallery-zoom-layer' ||
       (t.classList && (t.classList.contains('lower-canvas') || t.classList.contains('upper-canvas')))
     );
     if (!validTarget) return;
@@ -124,3 +158,31 @@ function bindZoomPan() {
     navigateGallery(dx < 0 ? 1 : -1);
   }, { passive: true });
 }
+
+// ─── C. Brush cursor ─────────────────────────────────────────────────────────
+
+function ensureAnnotBrushCursor() {
+  const wrapper = document.getElementById('gallery-img-wrapper');
+  if (!wrapper) return null;
+  let el = document.getElementById('annot-brush-cursor');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'annot-brush-cursor';
+    el.className = 'annot-brush-cursor';
+    wrapper.appendChild(el);
+  }
+  return el;
+}
+
+function updateAnnotBrushCursorVisual() {
+  const el = ensureAnnotBrushCursor();
+  if (!el) return;
+  const s = Math.max(10, Math.min(80, (annotState.size || 3) * 4));
+  el.style.width = s + 'px';
+  el.style.height = s + 'px';
+}
+
+function shouldUseBrushCursor() {
+  return annotState.active && (annotState.tool === 'pen' || annotState.tool === 'eraser' || annotState.tool === 'highlight');
+}
+

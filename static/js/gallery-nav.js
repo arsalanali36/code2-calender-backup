@@ -83,8 +83,9 @@ function navigateGallery(dir) {
   const { images, currentIndex } = state.gallery;
   if (!images || !images.length) return;
   let next = currentIndex + dir;
-  if (next >= images.length) next = 0;
-  else if (next < 0) next = images.length - 1;
+  if (next >= images.length) next = images.length - 1;
+  else if (next < 0) next = 0;
+  if (next === currentIndex) return;
   state.gallery.currentIndex = next;
   renderGallery();
 }
