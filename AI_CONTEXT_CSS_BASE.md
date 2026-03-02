@@ -1,4 +1,4 @@
-# Frontend Context — CSS Base (reset / layout / dashboard / calendar / table)
+# CSS — Base (reset / layout / dashboard / calendar / table)
 This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
 
 

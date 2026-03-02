@@ -4,7 +4,7 @@
 - **Backend**: Python / Flask (`app.py`)
 - **Frontend**: Vanilla JS (split modules) + Jinja2 (`templates/index.html`)
 - **Storage**: `trades.json` (flat file, no DB), images in `static/uploads/`
-- **CSS**: `static/css/style.css`
+- **CSS**: `style-base.css` / `style-gallery-a.css` / `style-gallery-b.css` / `style-misc.css`
 
 ## Running the app
 ```bash
@@ -124,6 +124,45 @@ renameTagEverywhere(oldTag, newTag)  // updates all trades/dayData/boxes
 - When fixing a bug, check which module file it belongs to before reading
 - `annotState.active` gates annotation mode — always check this before modifying the canvas
 - `canvas.width = w` clears canvas even if value is same — use `if (canvas.width !== w)` guard
+
+---
+
+## 📏 File Size Rules (STRICT — enforce proactively, no need to ask)
+
+### JS files (`static/js/*.js`) — hard limit: **30 KB**
+- If any `.js` file exceeds 30 KB, **immediately split it** into smaller focused modules before doing anything else.
+- Split along logical function boundaries (e.g., render vs data vs events).
+- After splitting: update `templates/index.html` script tags (load order matters — global scope!), update `generate_context.py`, regenerate context MDs.
+
+### CSS files (`static/css/*.css`) — hard limit: **30 KB**
+- If any `.css` file exceeds 30 KB, **immediately split it** at a natural section comment boundary (`/* ── SECTION ──`).
+- After splitting: update `templates/index.html` link tags, update `generate_context.py`.
+
+### HTML files (`templates/*.html`) — hard limit: **30 KB**
+- If any `.html` file exceeds 30 KB, **split it** by moving sections into a new Jinja2 include file and replacing with `{% include 'new_file.html' %}`.
+- After splitting: update `generate_context.py` file lists, regenerate context MDs.
+
+### AI Context MD files (`AI_CONTEXT_*.md`) — hard limit: **30 KB**
+- Run `python generate_context.py` to regenerate whenever source files change.
+- If any output MD exceeds 30 KB, **split the file list** in `generate_context.py` into two smaller groups and regenerate.
+- Delete old oversized MDs after splitting.
+
+### How to check sizes
+```bash
+python -c "
+import os
+files = [f for f in os.listdir('.') if f.endswith('.md') and f.startswith('AI_CONTEXT')]
+js  = [f for f in os.listdir('static/js') if f.endswith('.js')]
+css = [f for f in os.listdir('static/css') if f.endswith('.css')]
+html = [f for f in os.listdir('templates') if f.endswith('.html')]
+for label, lst, base in [('MD', files, '.'), ('JS', js, 'static/js'), ('CSS', css, 'static/css'), ('HTML', html, 'templates')]:
+    for f in sorted(lst):
+        s = os.path.getsize(os.path.join(base, f))
+        flag = ' ← SPLIT NEEDED' if s > 30720 else ''
+        if flag: print(f'{label} {s/1024:.1f}KB{flag}  {f}')
+print('Done — no output means all files are under 30KB')
+"
+```
 
 ---
 

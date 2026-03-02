@@ -1,82 +1,128 @@
 import os
 
-files_backend = [
+# ── Backend ───────────────────────────────────────────────────────────────────
+files_backend_app = [
     "app.py",
-    "data_processors.py",
     "requirements.txt",
     "Dockerfile",
     "Procfile",
-    "render.yaml"
+    "render.yaml",
+]
+files_backend_processors = [
+    "data_processors.py",
 ]
 
-# --- Frontend split into focused context files ---
-
-files_frontend_html = [
+# ── HTML Templates ────────────────────────────────────────────────────────────
+files_html_layout = [
     "templates/index.html",
     "templates/gallery.html",
+]
+files_html_modals = [
     "templates/modals.html",
 ]
 
-files_frontend_css_base = [
+# ── CSS ───────────────────────────────────────────────────────────────────────
+files_css_base = [
     "static/css/style-base.css",
 ]
-
-files_frontend_css_gallery = [
-    "static/css/style-gallery.css",
+files_css_gallery_a = [
+    "static/css/style-gallery-a.css",       # Gallery Modal + Annotation Toolbar + Obs Modal
+]
+files_css_gallery_b = [
+    "static/css/style-gallery-b.css",       # Gallery V2 (thumbnails, tags, toolbar)
+]
+files_css_misc = [
     "static/css/style-misc.css",
 ]
 
-files_frontend_data = [
+# ── JS: State & IO ────────────────────────────────────────────────────────────
+files_state_io = [
     "static/js/state.js",
+    "static/js/io.js",
+]
+files_data = [
     "static/js/data.js",
 ]
 
-files_frontend_settings = [
-    "static/js/settings.js",
-    "static/js/dashboard.js",
+# ── JS: Settings / Dashboard / Calendar ──────────────────────────────────────
+files_calendar = [
     "static/js/calendar.js",
 ]
-
-files_frontend_table = [
-    "static/js/table-render.js",
-    "static/js/table-cols.js",
+files_settings = [
+    "static/js/settings.js",
+]
+files_dashboard_colops = [
+    "static/js/dashboard.js",
     "static/js/table-colops.js",
 ]
 
-files_frontend_gallery = [
-    "static/js/gallery-open.js",
+# ── JS: Table ─────────────────────────────────────────────────────────────────
+files_table_render = [
+    "static/js/table-render.js",
+]
+files_table_cols = [
+    "static/js/table-cols.js",
+]
+
+# ── JS: Gallery Core ──────────────────────────────────────────────────────────
+files_gallery_render = [
     "static/js/gallery-render.js",
+]
+files_gallery_core_nav = [
+    "static/js/gallery-open.js",
     "static/js/gallery-core.js",
     "static/js/gallery-nav.js",
+]
+files_gallery_layer_data = [
+    "static/js/gallery-layer.js",
     "static/js/gallery-data.js",
 ]
 
-files_frontend_gallery_ops = [
+# ── JS: Gallery Ops ───────────────────────────────────────────────────────────
+files_gallery_image_ops = [
     "static/js/gallery-image-ops.js",
+]
+files_gallery_ops = [
     "static/js/gallery-ops.js",
-    "static/js/gallery-layer.js",
+]
+
+# ── JS: Gallery Tags ──────────────────────────────────────────────────────────
+files_gallery_tags = [
     "static/js/gallery-tags.js",
     "static/js/gallery-tags-filter.js",
+]
+files_gallery_img_tags = [
     "static/js/gallery-img-tags.js",
 ]
 
-files_frontend_annotate = [
-    "static/js/annotate-zoom.js",
-    "static/js/annotate-marquee.js",
-    "static/js/annotate-tools.js",
+# ── JS: Annotation ────────────────────────────────────────────────────────────
+files_annotate_canvas = [
     "static/js/annotate-canvas.js",
-    "static/js/annotate-ctx-menu.js",
-    "static/js/annotate-lifecycle.js",
+]
+files_annotate_zoom_fabric = [
+    "static/js/annotate-zoom.js",
     "static/js/annotate-fabric.js",
 ]
+files_annotate_marquee = [
+    "static/js/annotate-marquee.js",
+    "static/js/annotate-tools.js",
+]
+files_annotate_ctx = [
+    "static/js/annotate-ctx-menu.js",
+    "static/js/annotate-lifecycle.js",
+]
 
-files_frontend_events = [
-    "static/js/io.js",
+# ── JS: Events ────────────────────────────────────────────────────────────────
+files_events_init = [
+    "static/js/events.js",
     "static/js/events-keys.js",
+]
+files_events_ui_gallery = [
     "static/js/events-ui.js",
     "static/js/events-gallery.js",
+]
+files_events_settings = [
     "static/js/events-settings.js",
-    "static/js/events.js",
 ]
 
 
@@ -100,15 +146,55 @@ def create_context(out_file, files, title):
 
 
 if __name__ == "__main__":
-    create_context("AI_CONTEXT_BACKEND.md",                files_backend,              "Backend Context")
-    create_context("AI_CONTEXT_FRONTEND_HTML.md",          files_frontend_html,        "Frontend Context — HTML Templates")
-    create_context("AI_CONTEXT_FRONTEND_CSS_BASE.md",      files_frontend_css_base,    "Frontend Context — CSS Base (reset / layout / dashboard / calendar / table)")
-    create_context("AI_CONTEXT_FRONTEND_CSS_GALLERY.md",   files_frontend_css_gallery, "Frontend Context — CSS Gallery & Misc (gallery / annotation / settings / tags)")
-    create_context("AI_CONTEXT_FRONTEND_DATA.md",          files_frontend_data,        "Frontend Context — State & Data")
-    create_context("AI_CONTEXT_FRONTEND_SETTINGS.md",      files_frontend_settings,    "Frontend Context — Settings / Dashboard / Calendar")
-    create_context("AI_CONTEXT_FRONTEND_TABLE.md",         files_frontend_table,       "Frontend Context — Table Rendering")
-    create_context("AI_CONTEXT_FRONTEND_GALLERY.md",       files_frontend_gallery,     "Frontend Context — Gallery Core (open / render / nav / data)")
-    create_context("AI_CONTEXT_FRONTEND_GALLERY_OPS.md",   files_frontend_gallery_ops, "Frontend Context — Gallery Ops (image-ops / context-menu / tags)")
-    create_context("AI_CONTEXT_FRONTEND_ANNOTATE.md",      files_frontend_annotate,    "Frontend Context — Annotation (Fabric.js)")
-    create_context("AI_CONTEXT_FRONTEND_EVENTS.md",        files_frontend_events,      "Frontend Context — IO & Events")
+    # Backend
+    create_context("AI_CONTEXT_BACKEND_APP.md",          files_backend_app,         "Backend — App & Config (app.py / Dockerfile / Procfile / render.yaml)")
+    create_context("AI_CONTEXT_BACKEND_PROCESSORS.md",   files_backend_processors,  "Backend — Data Processors")
+
+    # HTML
+    create_context("AI_CONTEXT_HTML_LAYOUT.md",          files_html_layout,         "HTML — Layout (index.html / gallery.html)")
+    create_context("AI_CONTEXT_HTML_MODALS.md",          files_html_modals,         "HTML — Modals")
+
+    # CSS
+    create_context("AI_CONTEXT_CSS_BASE.md",             files_css_base,            "CSS — Base (reset / layout / dashboard / calendar / table)")
+    create_context("AI_CONTEXT_CSS_GALLERY_A.md",        files_css_gallery_a,       "CSS — Gallery A (gallery modal / annotation toolbar / obs modal)")
+    create_context("AI_CONTEXT_CSS_GALLERY_B.md",        files_css_gallery_b,       "CSS — Gallery B (GV2 thumbnails / tags / toolbar)")
+    create_context("AI_CONTEXT_CSS_MISC.md",             files_css_misc,            "CSS — Misc (upload / settings / tags / toast / scrollbar)")
+
+    # JS - State & IO
+    create_context("AI_CONTEXT_JS_STATE_IO.md",          files_state_io,            "JS — State & IO (state.js / io.js)")
+    create_context("AI_CONTEXT_JS_DATA.md",              files_data,                "JS — Data (data.js: loadTrades / saveTrades / sync)")
+
+    # JS - Settings / Dashboard / Calendar
+    create_context("AI_CONTEXT_JS_CALENDAR.md",          files_calendar,            "JS — Calendar")
+    create_context("AI_CONTEXT_JS_SETTINGS.md",          files_settings,            "JS — Settings Panel")
+    create_context("AI_CONTEXT_JS_DASHBOARD_COLOPS.md",  files_dashboard_colops,    "JS — Dashboard & Table Column Ops")
+
+    # JS - Table
+    create_context("AI_CONTEXT_JS_TABLE_RENDER.md",      files_table_render,        "JS — Table Rendering")
+    create_context("AI_CONTEXT_JS_TABLE_COLS.md",        files_table_cols,          "JS — Table Columns (sort / resize / cell render / tag picker)")
+
+    # JS - Gallery Core
+    create_context("AI_CONTEXT_JS_GALLERY_RENDER.md",    files_gallery_render,      "JS — Gallery Render")
+    create_context("AI_CONTEXT_JS_GALLERY_CORE_NAV.md",  files_gallery_core_nav,    "JS — Gallery Core & Nav (open / core / nav)")
+    create_context("AI_CONTEXT_JS_GALLERY_LAYER_DATA.md",files_gallery_layer_data,  "JS — Gallery Layer & Data")
+
+    # JS - Gallery Ops
+    create_context("AI_CONTEXT_JS_GALLERY_IMAGE_OPS.md", files_gallery_image_ops,   "JS — Gallery Image Ops")
+    create_context("AI_CONTEXT_JS_GALLERY_OPS.md",       files_gallery_ops,         "JS — Gallery Context Menu & Ops")
+
+    # JS - Gallery Tags
+    create_context("AI_CONTEXT_JS_GALLERY_TAGS.md",      files_gallery_tags,        "JS — Gallery Tags (tag cloud / filter)")
+    create_context("AI_CONTEXT_JS_GALLERY_IMG_TAGS.md",  files_gallery_img_tags,    "JS — Gallery Image Tags")
+
+    # JS - Annotation
+    create_context("AI_CONTEXT_JS_ANNOTATE_CANVAS.md",   files_annotate_canvas,     "JS — Annotation Canvas")
+    create_context("AI_CONTEXT_JS_ANNOTATE_ZOOM_FABRIC.md", files_annotate_zoom_fabric, "JS — Annotation Zoom/Pan & Fabric.js")
+    create_context("AI_CONTEXT_JS_ANNOTATE_MARQUEE.md",  files_annotate_marquee,    "JS — Annotation Marquee & Tools")
+    create_context("AI_CONTEXT_JS_ANNOTATE_CTX.md",      files_annotate_ctx,        "JS — Annotation Context Menu & Lifecycle")
+
+    # JS - Events
+    create_context("AI_CONTEXT_JS_EVENTS_INIT.md",       files_events_init,         "JS — Events Init & Keyboard (events.js / events-keys.js)")
+    create_context("AI_CONTEXT_JS_EVENTS_UI_GALLERY.md", files_events_ui_gallery,   "JS — Events UI & Gallery handlers")
+    create_context("AI_CONTEXT_JS_EVENTS_SETTINGS.md",   files_events_settings,     "JS — Events Settings Panel handlers")
+
     print("Context files created successfully!")
