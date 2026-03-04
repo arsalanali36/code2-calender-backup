@@ -1,3 +1,55 @@
+// ── NSE/BSE Market Holidays ──────────────────────────────────────────────────
+// Format: 'YYYY-MM-DD': 'Holiday Name'
+const MARKET_HOLIDAYS = {
+  // 2025
+  '2025-02-26': 'Mahashivratri',
+  '2025-03-14': 'Holi',
+  '2025-03-31': 'Id-Ul-Fitr (Ramadan Eid)',
+  '2025-04-10': 'Shri Ram Navami',
+  '2025-04-14': 'Dr. Baba Saheb Ambedkar Jayanti',
+  '2025-04-18': 'Good Friday',
+  '2025-05-01': 'Maharashtra Day',
+  '2025-08-15': 'Independence Day',
+  '2025-08-27': 'Ganesh Chaturthi',
+  '2025-10-02': 'Mahatma Gandhi Jayanti / Dussehra',
+  '2025-10-20': 'Diwali-Laxmi Puja',
+  '2025-10-21': 'Diwali-Balipratipada',
+  '2025-11-05': 'Prakash Gurpurb Sri Guru Nanak Dev',
+  '2025-12-25': 'Christmas',
+  // 2026 (NSE circular)
+  '2026-01-15': 'Municipal Corp. Election – Maharashtra',
+  '2026-01-26': 'Republic Day',
+  '2026-03-03': 'Holi',
+  '2026-03-26': 'Shri Ram Navami',
+  '2026-03-31': 'Shri Mahavir Jayanti',
+  '2026-04-03': 'Good Friday',
+  '2026-04-14': 'Dr. Baba Saheb Ambedkar Jayanti',
+  '2026-05-01': 'Maharashtra Day',
+  '2026-05-28': 'Bakri Id',
+  '2026-06-26': 'Muharram',
+  '2026-09-14': 'Ganesh Chaturthi',
+  '2026-10-02': 'Mahatma Gandhi Jayanti',
+  '2026-10-20': 'Dussehra',
+  '2026-11-10': 'Diwali-Balipratipada',
+  '2026-11-24': 'Prakash Gurpurb Sri Guru Nanak Dev',
+  '2026-12-25': 'Christmas',
+};
+
+// Muhurat Trading days — market opens for 1 special evening session
+const MUHURAT_TRADING = {
+  '2025-10-20': 'Muhurat Trading',
+  '2026-11-08': 'Muhurat Trading (Diwali Laxmi Pujan)',
+};
+
+function getMarketHoliday(dateStr) {
+  return MARKET_HOLIDAYS[dateStr] || null;
+}
+
+function getMuhuratDay(dateStr) {
+  return MUHURAT_TRADING[dateStr] || null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderCalendar() {
   syncAllTradeDates();
   if (state.calendarTagFocus && !getAllColumnTagKeys().includes(state.calendarTagFocus)) {
@@ -67,6 +119,14 @@ function renderCalendar() {
     if (isWeekend) cell.classList.add('weekend-day');
     if (isToday) cell.classList.add('today');
 
+    const holidayName = getMarketHoliday(dateStr);
+    const muhuratName = getMuhuratDay(dateStr);
+    if (muhuratName) {
+      cell.classList.add('muhurat-day');
+    } else if (holidayName) {
+      cell.classList.add('market-holiday');
+    }
+
     const hasObs = dayTrades.some(t => t && t.observation);
     if (hasObs) cell.classList.add('has-obs');
 
@@ -86,6 +146,15 @@ function renderCalendar() {
 
     const numDiv = document.createElement('div'); numDiv.className = 'day-num';
     numDiv.textContent = d; cell.appendChild(numDiv);
+
+    const hlabel = holidayName || muhuratName;
+    if (hlabel) {
+      const hl = document.createElement('div');
+      hl.className = muhuratName ? 'holiday-label muhurat-label' : 'holiday-label';
+      hl.textContent = hlabel;
+      hl.title = hlabel;
+      cell.appendChild(hl);
+    }
 
     if (dayTrades.length) {
       const dataDiv = document.createElement('div'); dataDiv.className = 'day-data';
@@ -255,7 +324,14 @@ function renderYearlyView() {
       if (val > 0) cell.classList.add('pos');
       else if (val < 0) cell.classList.add('neg');
       else cell.classList.add('zero');
-      cell.title = `${dateStr} • ${formatCurrency(val)}`;
+      const yHoliday = getMarketHoliday(dateStr);
+      const yMuhurat = getMuhuratDay(dateStr);
+      if (yMuhurat) cell.classList.add('muhurat-day');
+      else if (yHoliday) cell.classList.add('market-holiday');
+      const titlePnl = val !== 0 ? ` • ${formatCurrency(val)}` : '';
+      cell.title = yMuhurat ? `${dateStr} — ${yMuhurat}${titlePnl}` :
+                   yHoliday ? `${dateStr} — ${yHoliday}${titlePnl}` :
+                   `${dateStr}${titlePnl}`;
       grid.appendChild(cell);
     }
 

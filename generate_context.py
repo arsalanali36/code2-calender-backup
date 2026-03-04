@@ -11,6 +11,10 @@ files_backend_app = [
 files_backend_processors = [
     "data_processors.py",
 ]
+files_memory_logs = [
+    "CHANGELOG.md",
+    "Docs/Update_History.txt"
+]
 
 # ── HTML Templates ────────────────────────────────────────────────────────────
 files_html_layout = [
@@ -150,6 +154,7 @@ if __name__ == "__main__":
     # Backend
     create_context("AI_CONTEXT_BACKEND_APP.md",          files_backend_app,         "Backend — App & Config (app.py / Dockerfile / Procfile / render.yaml)")
     create_context("AI_CONTEXT_BACKEND_PROCESSORS.md",   files_backend_processors,  "Backend — Data Processors")
+    create_context("AI_CONTEXT_MEMORY_LOGS.md",          files_memory_logs,         "Memory Logs — Daily Changelogs & Feature History")
 
     # HTML
     create_context("AI_CONTEXT_HTML_LAYOUT.md",          files_html_layout,         "HTML — Layout (index.html / gallery.html)")

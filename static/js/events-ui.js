@@ -51,6 +51,7 @@ function _bindUIEvents() {
     renderShowHeads();
     renderCalendar();
     renderTable();
+    if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
   document.getElementById('show-heads-btn').addEventListener('click', e => {

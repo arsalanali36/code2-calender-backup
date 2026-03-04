@@ -631,6 +631,54 @@ body.modal-open {
   color: var(--orange);
 }
 
+/* ── Market Holidays ── */
+.day-cell.market-holiday {
+  background: rgba(255, 180, 40, 0.08);
+  border-top: 2px solid rgba(255, 180, 40, 0.55);
+}
+.day-cell.market-holiday:hover {
+  background: rgba(255, 180, 40, 0.14);
+}
+.day-cell.market-holiday .day-num {
+  color: #f0a500;
+}
+/* Muhurat Trading — special evening session (amber-purple) */
+.day-cell.muhurat-day {
+  background: rgba(160, 100, 255, 0.08);
+  border-top: 2px solid rgba(160, 100, 255, 0.55);
+}
+.day-cell.muhurat-day:hover {
+  background: rgba(160, 100, 255, 0.14);
+}
+.day-cell.muhurat-day .day-num {
+  color: #b07aff;
+}
+/* Holiday name label inside the tile */
+.holiday-label {
+  font-size: 9px;
+  line-height: 1.2;
+  color: #f0a500;
+  opacity: 0.85;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  letter-spacing: 0.02em;
+}
+.holiday-label.muhurat-label {
+  color: #b07aff;
+}
+/* Year view holiday dots */
+.year-cell.market-holiday {
+  background: rgba(255, 180, 40, 0.22) !important;
+  outline: 1px solid rgba(255, 180, 40, 0.45);
+}
+.year-cell.muhurat-day {
+  background: rgba(160, 100, 255, 0.22) !important;
+  outline: 1px solid rgba(160, 100, 255, 0.45);
+}
+
 /* Day number — positioning handled via data-pos class on grid */
 .day-num {
   font-size: var(--cal-day-size);

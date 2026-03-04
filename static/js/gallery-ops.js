@@ -469,8 +469,13 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
         // Remove from current location
         if (ownerTrade) {
             ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
-        } else if (state.gallery.date && state.dayData[state.gallery.date]?.images) {
-            state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
+        } else if (state.gallery.date && state.dayData[state.gallery.date]) {
+            if (state.dayData[state.gallery.date].images) {
+                state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
+            }
+            if (state.dayData[state.gallery.date].closeImages) {
+                state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(u => u !== imageUrl);
+            }
         }
 
         // Add to target location
@@ -484,11 +489,62 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
     }
 
     state.gallery.selectedIndices.clear();
-    syncGalleryImageOrderToTrades();
+    if (state.gallery.date === dateToUse) {
+        state.gallery.images = getImagesForDate(dateToUse);
+        state.gallery._baseImages = [...state.gallery.images];
+    }
     await saveTrades();
     renderGallery();
     renderTable();
     renderCalendar();
     showToast(`Moved ${movedCount} image(s)`, 'success');
+}
+
+async function moveSelectedToDayData(dateToUse, isClose = false) {
+    if (!state.gallery.selectedIndices || state.gallery.selectedIndices.size === 0) return;
+    const arr = state.gallery.images || [];
+    const indices = Array.from(state.gallery.selectedIndices).sort((a, b) => b - a);
+    let movedCount = 0;
+
+    if (!state.dayData[dateToUse]) state.dayData[dateToUse] = {};
+    if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
+    if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
+
+    for (let idx of indices) {
+        if (idx < 0 || idx >= arr.length) continue;
+        const imageUrl = arr[idx];
+        const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
+
+        // Remove from current location
+        if (ownerTrade) {
+            ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
+        } else if (state.gallery.date && state.dayData[state.gallery.date]) {
+            if (state.dayData[state.gallery.date].images) {
+                state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
+            }
+            if (state.dayData[state.gallery.date].closeImages) {
+                state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(u => u !== imageUrl);
+            }
+        }
+
+        // Add to target location
+        if (isClose) {
+            state.dayData[dateToUse].closeImages.push(imageUrl);
+        } else {
+            state.dayData[dateToUse].images.push(imageUrl);
+        }
+        movedCount++;
+    }
+
+    state.gallery.selectedIndices.clear();
+    if (state.gallery.date === dateToUse) {
+        state.gallery.images = getImagesForDate(dateToUse);
+        state.gallery._baseImages = [...state.gallery.images];
+    }
+    await saveTrades();
+    renderGallery();
+    renderTable();
+    renderCalendar();
+    showToast(`Moved ${movedCount} image(s) to ${isClose ? 'CLOSE' : 'OPEN'}`, 'success');
 }
 

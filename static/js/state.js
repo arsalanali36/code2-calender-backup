@@ -137,14 +137,14 @@ const UNIFIED_STRUCTURED_COLUMNS = [
 const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 function getSectionOrder() {
-  try { const o = JSON.parse(localStorage.getItem('sectionOrder')); if (Array.isArray(o) && o.length === 3) return o; } catch (e) { }
-  return ['calendar', 'dashboard', 'table'];
+  try { const o = JSON.parse(localStorage.getItem('sectionOrder')); if (Array.isArray(o) && o.length === 4) return o; } catch (e) { }
+  return ['calendar', 'dashboard', 'visual-dashboard', 'table'];
 }
 function saveSectionOrder(order) { try { localStorage.setItem('sectionOrder', JSON.stringify(order)); } catch (e) { } }
 function applySectionOrder() {
   const order = getSectionOrder();
   const main = document.querySelector('.app-main');
-  const map = { calendar: '.calendar-section', dashboard: '.dashboard-section', table: '.table-section' };
+  const map = { calendar: '.calendar-section', dashboard: '.dashboard-section', 'visual-dashboard': '.visual-dashboard-section', table: '.table-section' };
   order.forEach(key => { const el = main.querySelector(map[key]); if (el) main.appendChild(el); });
   const list = document.getElementById('section-order-list');
   if (!list) return;

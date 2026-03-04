@@ -132,12 +132,83 @@ function renderGallery() {
         draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
 
         if (typeof moveSelectedToTrade === 'function' && dayTrades[idx]) {
-          await moveSelectedToTrade(state.gallery.date, dayTrades[idx]);
+          const tr = dayTrades[idx];
+          if (tr.images && tr.images.length > 0 && typeof handleReorderGalleryImagesBatch === 'function') {
+            const firstUrl = tr.images[0];
+            const insertAt = state.gallery.images.indexOf(firstUrl);
+            await handleReorderGalleryImagesBatch(draggedIndices, insertAt, firstUrl);
+          } else {
+            await moveSelectedToTrade(state.gallery.date, tr);
+          }
         }
       } catch (err) { console.error(err); }
     });
     return sep;
   };
+
+  const createSpecialSeparator = (label, isClose) => {
+    const sep = document.createElement('div');
+    sep.className = 'gv2-thumb-separator';
+    sep.style.minWidth = '22px';
+    sep.style.height = 'calc(var(--thumb-size, 54px) * 0.85)';
+    sep.style.background = 'var(--surface2)';
+    sep.style.border = '1px dashed var(--border2)';
+    sep.style.margin = '0 6px';
+    sep.style.alignSelf = 'center';
+    sep.style.borderRadius = '3px';
+    sep.style.flexShrink = '0';
+    sep.style.display = 'flex';
+    sep.style.alignItems = 'center';
+    sep.style.justifyContent = 'center';
+    sep.style.fontSize = '0.75rem';
+    sep.style.color = 'var(--text2)';
+    sep.style.fontWeight = 'bold';
+    sep.style.cursor = 'pointer';
+    sep.title = `${label} (Drop to move)`;
+    sep.textContent = label;
+
+    sep.addEventListener('dragover', e => {
+      e.preventDefault();
+      sep.style.background = 'var(--hover)';
+      sep.style.borderColor = '#58a6ff';
+      sep.style.color = '#fff';
+    });
+    sep.addEventListener('dragleave', () => {
+      sep.style.background = 'var(--surface2)';
+      sep.style.borderColor = 'var(--border2)';
+      sep.style.color = 'var(--text2)';
+    });
+    sep.addEventListener('drop', async e => {
+      e.preventDefault();
+      sep.style.background = 'var(--surface2)';
+      sep.style.borderColor = 'var(--border2)';
+      sep.style.color = 'var(--text2)';
+      try {
+        const draggedIndices = JSON.parse(e.dataTransfer.getData('application/json'));
+        if (!draggedIndices || draggedIndices.length === 0) return;
+
+        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+        draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
+
+        if (typeof moveSelectedToDayData === 'function') {
+          const dData = state.dayData[state.gallery.date];
+          let arrToUse = isClose ? dData?.closeImages : dData?.images;
+          if (arrToUse && arrToUse.length > 0 && typeof handleReorderGalleryImagesBatch === 'function') {
+            const firstUrl = arrToUse[0];
+            const insertAt = state.gallery.images.indexOf(firstUrl);
+            await handleReorderGalleryImagesBatch(draggedIndices, insertAt, firstUrl);
+          } else {
+            await moveSelectedToDayData(state.gallery.date, isClose);
+          }
+        }
+      } catch (err) { console.error(err); }
+    });
+    return sep;
+  };
+
+  if (state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+    thumbs.appendChild(createSpecialSeparator('OPEN', false));
+  }
 
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate }, currentIterIdx) => {
 
@@ -279,9 +350,7 @@ function renderGallery() {
             let insertAt = globalIdx;
             if (isRight) insertAt += 1;
             if (typeof handleReorderGalleryImagesBatch === 'function') {
-              await handleReorderGalleryImagesBatch(draggedIndices, insertAt);
-            } else if (draggedIndices.length === 1) {
-              await reorderGalleryImages(draggedIndices[0], insertAt);
+              await handleReorderGalleryImagesBatch(draggedIndices, insertAt, url);
             }
           }
         } catch (err) {
@@ -369,6 +438,10 @@ function renderGallery() {
       thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
       lastTradeIdxRendered++;
     }
+  }
+
+  if (state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+    thumbs.appendChild(createSpecialSeparator('CLOSE', true));
   }
 
   const btnWrap = document.createElement('div');

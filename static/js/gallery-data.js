@@ -4,6 +4,7 @@ function getImagesForDate(dateStr) {
   getTradesForDate(dateStr).forEach(t => {
     (t.images || []).forEach(url => out.push(url));
   });
+  (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
   return out;
 }
 

@@ -161,8 +161,11 @@ function renderDashboard() {
   setDashValue(document.getElementById('dash-totalfees'), brokerage + charges, false);
   const tradeCount = document.getElementById('dash-trades');
   if (tradeCount) {
-    const totalFills = trades.reduce((sum, t) => sum + (Math.max(parseInt(t['fill_count']) || 0, 2)), 0);
-    tradeCount.textContent = (totalFills || trades.length).toLocaleString('en-IN');
+    const validTrades = trades.filter(t => {
+      const instr = t.Instrument || t.Symbol || t.Scrip || t.Name || t.instrument;
+      return instr && String(instr).trim() !== '';
+    });
+    tradeCount.textContent = validTrades.length.toLocaleString('en-IN');
   }
 
   const winEl = document.getElementById('dash-winrate');
@@ -177,6 +180,7 @@ function renderDashboard() {
   const worstDate = document.getElementById('dash-worst-date');
   if (bestDate) bestDate.textContent = best.date ? formatShortDate(best.date) : '-';
   if (worstDate) worstDate.textContent = worst.date ? formatShortDate(worst.date) : '-';
+  if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
 }
 
 function getDashboardStatsState() {

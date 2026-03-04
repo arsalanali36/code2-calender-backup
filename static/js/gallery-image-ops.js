@@ -50,20 +50,37 @@ function syncGalleryImageOrderToTrades() {
 
             // Re-assign images based on owner.
             const newDayImages = [];
+            const newCloseImages = [];
             const newTradeImages = new Map();
             dayTrades.forEach(t => newTradeImages.set(t, []));
+
+            let seenAnyTrade = false;
+            let currentDayData = state.dayData[dk];
 
             ordered.forEach(u => {
                 const owner = getOwnerTradeForImageUrl(u);
                 if (owner && newTradeImages.has(owner)) {
+                    seenAnyTrade = true;
                     const subs = getSubSet(owner);
                     if (!subs.has(u)) newTradeImages.get(owner).push(u);
                 } else {
-                    if (!daySubs.has(u)) newDayImages.push(u);
+                    if (!daySubs.has(u)) {
+                        if (dayTrades.length > 0) {
+                            if (seenAnyTrade) newCloseImages.push(u);
+                            else newDayImages.push(u);
+                        } else {
+                            if (currentDayData?.closeImages?.includes(u)) {
+                                newCloseImages.push(u);
+                            } else {
+                                newDayImages.push(u);
+                            }
+                        }
+                    }
                 }
             });
 
             state.dayData[dk].images = newDayImages;
+            state.dayData[dk].closeImages = newCloseImages;
             dayTrades.forEach(t => { t.images = newTradeImages.get(t); });
         }
         return;
@@ -377,7 +394,7 @@ async function removeGalleryImageAt(idx, force = false) {
     });
 }
 
-async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobalIdx) {
+async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobalIdx, targetUrl = null) {
     const arr = state.gallery.images || [];
     const indices = draggedIndicesStr.sort((a, b) => a - b);
     if (!indices.length) return;
@@ -409,14 +426,39 @@ async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobal
         return p;
     };
 
-    // If the items being dragged ARE currently sub-images, detach them.
-    // If they were grouped with something, they will now be independent.
-    // NOTE: This happens for ALL dragged items, including parents. If a parent is dragged natively (which shouldn't happen unless inside its group wrapper), its subimages stay in its map. But dragging subimages outside is what matters.
     let anyDetached = false;
     items.forEach(u => {
         const P = removeFromGroup(u);
         if (P) anyDetached = true;
     });
+
+    if (targetUrl) {
+        const targetOwner = getOwnerTradeForImageUrl(targetUrl);
+        const isTargetClose = !targetOwner && state.dayData[state.gallery.date]?.closeImages?.includes(targetUrl);
+
+        items.forEach(u => {
+            const owner = getOwnerTradeForImageUrl(u);
+            if (owner) owner.images = (owner.images || []).filter(x => x !== u);
+            else if (state.gallery.date && state.dayData[state.gallery.date]) {
+                if (state.dayData[state.gallery.date].images) state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(x => x !== u);
+                if (state.dayData[state.gallery.date].closeImages) state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(x => x !== u);
+            }
+
+            if (targetOwner) {
+                if (!targetOwner.images) targetOwner.images = [];
+                targetOwner.images.push(u);
+            } else if (state.gallery.date) {
+                if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+                if (isTargetClose) {
+                    if (!state.dayData[state.gallery.date].closeImages) state.dayData[state.gallery.date].closeImages = [];
+                    state.dayData[state.gallery.date].closeImages.push(u);
+                } else {
+                    if (!state.dayData[state.gallery.date].images) state.dayData[state.gallery.date].images = [];
+                    state.dayData[state.gallery.date].images.push(u);
+                }
+            }
+        });
+    }
 
     // adjust insertAt index based on items being removed before it
     let adjustedInsertAt = insertAtGlobalIdx;

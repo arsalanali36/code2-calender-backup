@@ -1728,13 +1728,13 @@
         "/uploads/71e34ae5-0394-400c-be54-61d10e4848ce.png"
       ],
       "observation": "",
-      "tags": [],
-      "trade_date": "2026-02-26",
       "subImages": {
         "/uploads/71e34ae5-0394-400c-be54-61d10e4848ce.png": [
           "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png"
         ]
-      }
+      },
+      "tags": [],
+      "trade_date": "2026-02-26"
     },
     {
       "Broker": "zerodha",
@@ -2301,7 +2301,8 @@
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png",
         "/uploads/cd9dee16-dbb1-4386-8b52-3824b42c707c.png",
         "/uploads/d44ce0fd-445e-489e-8c6b-2619c8404ee0.png",
-        "/uploads/731da900-ae77-4681-881a-c75c321378e2.png"
+        "/uploads/731da900-ae77-4681-881a-c75c321378e2.png",
+        "/uploads/9c708292-f67f-4ae2-81b7-726dc8694acf.png"
       ],
       "marqueeBoxes": {
         "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [
@@ -3126,7 +3127,9 @@
           "panic"
         ]
       },
-      "images": [],
+      "images": [
+        "/uploads/08bd0fd4-a7a0-4b6d-b57c-faa3a166bf60.png"
+      ],
       "marqueeBoxes": {
         "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
           {
@@ -11232,23 +11235,12 @@
       },
       "imageTags": {},
       "images": [
-        "/uploads/53f5944a-39c7-44a3-a6f3-9b38c7346dc1.png",
-        "/uploads/4c64feca-8c44-4ba0-8528-d9b432f06ecc.png",
-        "/uploads/dd4f8786-3fc5-4fd1-96c5-972ad7b3a68e.png",
         "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png"
       ],
       "observation": "",
       "subImages": {
         "/uploads/02440bdf-0513-43dd-bf80-b86f9b5c737c.png": [
           "/uploads/5f19d39b-7ad0-4a7c-9a14-fa1cdff9eeaf.png"
-        ],
-        "/uploads/53f5944a-39c7-44a3-a6f3-9b38c7346dc1.png": [
-          "/uploads/fcfb3e34-9893-4a4e-8dc2-4e1cb5126ac8.png",
-          "/uploads/55ca9633-de77-4107-aa44-3a06ae2ded64.png",
-          "/uploads/ba07ed25-25ce-44c3-83b5-62f965af48da.png",
-          "/uploads/84d08c8a-c997-48ba-97b9-50e4fc53bcf8.png",
-          "/uploads/a8c523fb-3a86-4153-8966-77cba06d9506.png",
-          "/uploads/80426200-3a24-462e-b4b1-33eef59f602b.png"
         ],
         "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png": [
           "/uploads/a59b1af7-d5b4-4775-a970-04b02a2eed73.png",
@@ -11257,12 +11249,42 @@
           "/uploads/acff7840-3fe8-4636-b028-5c28d0ef6291.png",
           "/uploads/2aa413ac-14b2-4412-8a46-781698874f99.png",
           "/uploads/48d269eb-531d-4fd9-9f40-d46bc9acf6d0.png",
-          "/uploads/ed54bf5e-30d1-4cea-949a-e11c4abd27a0.png"
+          "/uploads/ed54bf5e-30d1-4cea-949a-e11c4abd27a0.png",
+          "/uploads/4c64feca-8c44-4ba0-8528-d9b432f06ecc.png",
+          "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png"
         ],
         "/uploads/ed54bf5e-30d1-4cea-949a-e11c4abd27a0.png": [
           "/uploads/aba385f6-e473-443a-af08-4f66feba7f09.png"
         ]
       },
+      "trade_date": "2026-03-04"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 314.35,
+      "Buy Time": "10:00:13",
+      "Gross P/L": 4043,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024350CE",
+      "Net P/L": 3914.11,
+      "Note": "",
+      "Other Charges": 88.89,
+      "Pt": 31.1,
+      "Qty": 130,
+      "Rs": 4043,
+      "Sell Price (Avg)": 345.45,
+      "Sell Time": "09:47:04",
+      "Tags": [],
+      "Total Fees": 128.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-04",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [],
       "trade_date": "2026-03-04"
     }
   ],
@@ -11328,7 +11350,8 @@
     "no darr!",
     "Reversal-Fail",
     "unexpected Move",
-    "kill Switch"
+    "kill Switch",
+    "almostPerfect"
   ],
   "tagColumns": [
     "Tags"
@@ -11996,8 +12019,7 @@
         "/uploads/a380f4d0-d796-4ce0-9e4e-b8e6621fffcd.png",
         "/uploads/bf0730a0-8572-4deb-a14a-de1e37616ac6.png",
         "/uploads/b2c17f4e-f60f-438a-9f62-e19bdab5e307.png",
-        "/uploads/7d507fe8-7468-419d-9b0f-5f030293cd68.png",
-        "/uploads/08bd0fd4-a7a0-4b6d-b57c-faa3a166bf60.png"
+        "/uploads/7d507fe8-7468-419d-9b0f-5f030293cd68.png"
       ],
       "marqueeBoxes": {
         "/uploads/06533d85-5a8d-44a7-8261-59f7d8574468.png": [],
@@ -19762,8 +19784,57 @@
     },
     "2026-03-03": {},
     "2026-03-04": {
+      "closeImages": [],
       "imageTags": {},
-      "images": []
+      "images": [
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png",
+        "/uploads/dd4f8786-3fc5-4fd1-96c5-972ad7b3a68e.png",
+        "/uploads/d257107e-2806-4f3e-b246-e6dfa61366bf.png",
+        "/uploads/fcfb3e34-9893-4a4e-8dc2-4e1cb5126ac8.png",
+        "/uploads/55ca9633-de77-4107-aa44-3a06ae2ded64.png",
+        "/uploads/ba07ed25-25ce-44c3-83b5-62f965af48da.png",
+        "/uploads/84d08c8a-c997-48ba-97b9-50e4fc53bcf8.png",
+        "/uploads/a8c523fb-3a86-4153-8966-77cba06d9506.png"
+      ],
+      "fabricData": {
+        "/uploads/800a790b-f21d-4fbd-bf62-7eee7b4b5938.png": {
+          "version": "5.3.0",
+          "objects": [],
+          "hoverCursor": "move"
+        },
+        "/uploads/a59b1af7-d5b4-4775-a970-04b02a2eed73.png": {
+          "version": "5.3.0",
+          "objects": [],
+          "hoverCursor": "move"
+        },
+        "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": {
+          "version": "5.3.0",
+          "objects": [],
+          "hoverCursor": "move"
+        },
+        "/uploads/fb01aa47-d10b-4034-8165-2405f5f6baea.png": {
+          "version": "5.3.0",
+          "objects": [],
+          "hoverCursor": "move"
+        }
+      },
+      "marqueeBoxes": {
+        "/uploads/800a790b-f21d-4fbd-bf62-7eee7b4b5938.png": [
+          {
+            "rx": 0.3760618054369098,
+            "ry": 0.29341372275839045,
+            "rw": 0.08648111332007952,
+            "rh": 0.1326530612244898,
+            "tags": [
+              "clean",
+              "almostPerfect"
+            ]
+          }
+        ],
+        "/uploads/a59b1af7-d5b4-4775-a970-04b02a2eed73.png": [],
+        "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": [],
+        "/uploads/fb01aa47-d10b-4034-8165-2405f5f6baea.png": []
+      }
     }
   },
   "tagGroups": {

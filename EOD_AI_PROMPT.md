@@ -20,12 +20,17 @@
 **3. Application Integrity Check:**
 - Double-check the root `index.html` (for `<script>` tags or `{% include %}` tags) and `app.py` for correct paths. No broken references should occur due to the split.
 
-**4. Git Push Preparation:**
-- Finally, provide me with a quick bulleted summary of everything you optimized.
+**4. Update Daily Changelog & Memory:**
+- Before summarizing, open the `CHANGELOG.md` file at the root of the project.
+- Write down a concise, bulleted daily summary of every feature, bug fix, or update we worked on together today. Put it under a new `🌟 TODAY'S END OF DAY SUMMARY ([Current Date])` section or update the existing latest version.
+- Save this file to ensure all AI agents have access to the exact feature history tomorrow.
+
+**5. Git Push Preparation:**
+- Finally, provide me with a quick bulleted summary of everything you optimized and updated in the Changelog today.
 - Generate a clean multi-command chain that I can copy-paste into my terminal to instantly commit and push the code:
    ```bash
    git add .
-   git commit -m "EOD Refactoring: [Summarize your technical changes here briefly]"
+   git commit -m "EOD Update: [Summarize the daily changelog and technical changes here briefly]"
    git push
    ```
 "
