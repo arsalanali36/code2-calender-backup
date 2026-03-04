@@ -67,6 +67,7 @@ files_table_cols = [
 # ── JS: Gallery Core ──────────────────────────────────────────────────────────
 files_gallery_render = [
     "static/js/gallery-render.js",
+    "static/js/gallery-stats.js",
 ]
 files_gallery_core_nav = [
     "static/js/gallery-open.js",

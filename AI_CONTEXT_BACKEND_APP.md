@@ -300,6 +300,56 @@ def delete_image():
             os.remove(filepath)
     return jsonify({'success': True})
 
+@app.route('/api/copy-image-to-clipboard', methods=['POST'])
+def copy_image_to_clipboard():
+    data = request.json or {}
+    filename = os.path.basename(data.get('filename', ''))
+    if not filename:
+        return jsonify({'error': 'No filename'}), 400
+    
+    filepath = os.path.join(UPLOADS_DIR, filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+        
+    try:
+        import win32clipboard
+        import ctypes
+        
+        # Prepare the file path for CF_HDROP structure
+        # CF_HDROP requires a double null-terminated wide string (UTF-16 LE)
+        # preceded by a DROPFILES structure.
+        
+        # Windows DROPFILES struct: 
+        # typedef struct _DROPFILES {
+        #   DWORD pFiles; // offset to the file list 
+        #   POINT pt;     // drop point (not needed, 0)
+        #   BOOL fNC;     // client or non-client area (not needed, 0)
+        #   BOOL fWide;   // wide strings (TRUE)
+        # } DROPFILES;
+        
+        # Pack the DROPFILES struct (20 bytes total: 4 + 8 + 4 + 4)
+        # pFiles = 20 (size of struct), pt.x = 0, pt.y = 0, fNC = 0, fWide = 1
+        import struct
+        dropfiles = struct.pack("<IIIII", 20, 0, 0, 0, 1) 
+        
+        # Format the file path as wide string and double-null terminate
+        file_list = filepath.replace('/', '\\') + '\0\0'
+        file_chars = file_list.encode('utf-16le')
+        
+        # Combine struct and file chars
+        hdrop_data = dropfiles + file_chars
+        
+        win32clipboard.OpenClipboard()
+        try:
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardData(win32clipboard.CF_HDROP, hdrop_data)
+        finally:
+            win32clipboard.CloseClipboard()
+
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 def _build_excel_bytes(data):
     """Generate Excel with all trade columns + tags + image URLs."""

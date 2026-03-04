@@ -172,11 +172,14 @@ function startAnnotation() {
   plainCanvas.height = h;
 
   // Initialize Fabric.js
+  const dpr = window.devicePixelRatio || 1;
   fabricCanvas = new fabric.Canvas('annot-canvas', {
     width: w, height: h,
     selection: false, isDrawingMode: false,
     enableRetinaScaling: true
   });
+
+
 
   // Fabric wraps #annot-canvas — position the wrapper correctly
   if (fabricCanvas.wrapperEl) {

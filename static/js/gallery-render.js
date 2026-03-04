@@ -82,7 +82,80 @@ function renderGallery() {
     }
   }
 
+  let lastTradeIdxRendered = -1;
+  const dayTrades = (state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0))
+    ? getTradesForDate(state.gallery.date)
+    : [];
+
+  const createTradeSeparator = (idx) => {
+    const sep = document.createElement('div');
+    sep.className = 'gv2-thumb-separator';
+    sep.style.minWidth = '22px';
+    sep.style.height = 'calc(var(--thumb-size, 54px) * 0.85)';
+    sep.style.background = 'var(--surface2)';
+    sep.style.border = '1px dashed var(--border2)';
+    sep.style.margin = '0 6px';
+    sep.style.alignSelf = 'center';
+    sep.style.borderRadius = '3px';
+    sep.style.flexShrink = '0';
+    sep.style.display = 'flex';
+    sep.style.alignItems = 'center';
+    sep.style.justifyContent = 'center';
+    sep.style.fontSize = '0.75rem';
+    sep.style.color = 'var(--text2)';
+    sep.style.fontWeight = 'bold';
+    sep.style.cursor = 'pointer';
+    sep.title = `Trade ${idx + 1} (Drop to move)`;
+    sep.textContent = `${idx + 1}`;
+
+    sep.addEventListener('dragover', e => {
+      e.preventDefault();
+      sep.style.background = 'var(--hover)';
+      sep.style.borderColor = '#58a6ff';
+      sep.style.color = '#fff';
+    });
+    sep.addEventListener('dragleave', () => {
+      sep.style.background = 'var(--surface2)';
+      sep.style.borderColor = 'var(--border2)';
+      sep.style.color = 'var(--text2)';
+    });
+    sep.addEventListener('drop', async e => {
+      e.preventDefault();
+      sep.style.background = 'var(--surface2)';
+      sep.style.borderColor = 'var(--border2)';
+      sep.style.color = 'var(--text2)';
+      try {
+        const draggedIndices = JSON.parse(e.dataTransfer.getData('application/json'));
+        if (!draggedIndices || draggedIndices.length === 0) return;
+
+        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+        draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
+
+        if (typeof moveSelectedToTrade === 'function' && dayTrades[idx]) {
+          await moveSelectedToTrade(state.gallery.date, dayTrades[idx]);
+        }
+      } catch (err) { console.error(err); }
+    });
+    return sep;
+  };
+
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate }, currentIterIdx) => {
+
+    const ownerTrade = getOwnerTradeForImageUrl(url);
+
+    if (isCurrentDate && dayTrades.length > 0) {
+      let targetTradeIdx = -1;
+      if (ownerTrade) {
+        targetTradeIdx = dayTrades.indexOf(ownerTrade);
+      }
+
+      // Add missing separators for any intervening or current trades
+      while (lastTradeIdxRendered < targetTradeIdx) {
+        thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
+        lastTradeIdxRendered++;
+      }
+    }
+
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
     wrap.dataset.globalIdx = globalIdx;
 
@@ -231,7 +304,7 @@ function renderGallery() {
       }
     }
 
-    const ownerTrade = getOwnerTradeForImageUrl(url);
+    // ownerTrade already defined at the start of loop for separators
     let subCount = 0;
     let groupName = null;
     if (ownerTrade?.subImages?.[url]?.length) {
@@ -289,6 +362,14 @@ function renderGallery() {
 
     thumbs.appendChild(wrap);
   });
+
+  // Append any remaining separators for trailing empty trades
+  if (dayTrades.length > 0) {
+    while (lastTradeIdxRendered < dayTrades.length - 1) {
+      thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
+      lastTradeIdxRendered++;
+    }
+  }
 
   const btnWrap = document.createElement('div');
   btnWrap.className = 'gv2-thumb-wrap';
@@ -411,103 +492,7 @@ function renderGallery() {
   thumbs.addEventListener('mousedown', _rbMousedown);
 }
 
-function renderGalleryStats() {
-  const display = document.getElementById('gallery-heads-display');
-  if (!display) return;
-  const heads = getActiveShowHeads();
-  const cols = state.columns.filter(col => heads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
-  if (cols.length === 0) {
-    display.style.display = 'none';
-    return;
-  }
 
-  const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex] || '';
-  const ctx = getCurrentGalleryPreserveContext();
-  let dateToUse = state.gallery.date || ctx.date;
-
-  let trades = [];
-  if (state.calendarMode === 'consolidated') {
-    if (dateToUse) {
-      trades = getTradesForDate(dateToUse);
-    } else {
-      const owner = getOwnerTradeForImageUrl(activeUrl);
-      if (owner) trades = [owner];
-    }
-  } else {
-    const owner = getOwnerTradeForImageUrl(activeUrl);
-    if (owner) trades = [owner];
-  }
-
-  if (trades.length === 0) {
-    display.style.display = 'none';
-    return;
-  }
-
-  display.style.display = 'flex';
-  display.innerHTML = '';
-
-  const isConsolidated = state.calendarMode === 'consolidated' && trades.length > 1;
-
-  if (isConsolidated) {
-    const title = document.createElement('div');
-    title.style.fontWeight = 'bold';
-    title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
-    title.style.marginBottom = '2px';
-    title.style.paddingBottom = '2px';
-    title.textContent = 'Consolidated Stats';
-    display.appendChild(title);
-
-    cols.forEach(col => {
-      const lower = col.toLowerCase();
-      if (lower === 'thumbnail' || lower === 'sell time' || lower === 'buy time') return;
-      const vals = trades.map(t => t[col]).filter(v => v !== '' && v != null);
-      if (!vals.length) return;
-      const item = document.createElement('div');
-      const nums = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
-      if (nums.length === vals.length) {
-        let outNum;
-        if (lower === 'sell price' || lower === 'buy price') outNum = nums.reduce((a, b) => a + b, 0) / nums.length;
-        else outNum = nums.reduce((a, b) => a + b, 0);
-        const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
-        item.textContent = `${col}: ${out}`;
-        if (lower.includes('profit') || lower === 'rs') item.style.color = outNum >= 0 ? 'var(--green)' : 'var(--red)';
-      } else {
-        const first = String(vals[0]);
-        const same = vals.every(v => String(v) === first);
-        item.textContent = same ? `${col}: ${first}` : `${col}: ${vals.length} entries`;
-      }
-      display.appendChild(item);
-    });
-  } else {
-    trades.forEach((tr, i) => {
-      const title = document.createElement('div');
-      title.style.fontWeight = 'bold';
-      title.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
-      title.style.marginBottom = '2px';
-      title.style.paddingBottom = '2px';
-      title.textContent = document.getElementById('gallery-date-picker')?.value === dateToUse && trades.length === 1 ? 'Trade Stats' : 'Individual Stats';
-      display.appendChild(title);
-
-      cols.forEach(col => {
-        if (col.toLowerCase() === 'thumbnail') return;
-        const val = tr[col];
-        if (val === '' || val == null) return;
-        const item = document.createElement('div');
-        const isProfit = col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs';
-        if (isProfit) {
-          const num = parseFloat(val);
-          if (!isNaN(num)) {
-            item.textContent = `${col}: ${num > 0 ? '+' : ''}${num}`;
-            item.style.color = num >= 0 ? 'var(--green)' : 'var(--red)';
-          } else { item.textContent = `${col}: ${val}`; }
-        } else {
-          item.textContent = `${col}: ${val}`;
-        }
-        display.appendChild(item);
-      });
-    });
-  }
-}
 
 function _getGalleryThumbImages() {
   const { images, tagFilter, _filteredMeta } = state.gallery;

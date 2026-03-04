@@ -16,12 +16,6 @@ function bindEvents() {
     if (!imgFiles.length) return;
 
     e.preventDefault();
-
-    // If mouse is in viewport → Fabric.js canvas layer (coming soon)
-    if (state._mouseInViewport) {
-      showToast('Viewport paste: canvas layer will be available after Fabric.js integration', 'info');
-      return;
-    }
     const ctx = getCurrentGalleryPreserveContext();
     const targetDate = state.gallery.date || ctx.date;
 
@@ -43,13 +37,48 @@ function bindEvents() {
         const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
         const data = await res.json();
         if (data.url) {
-          state.dayData[targetDate].images.push(data.url);
+          let addedToGroup = false;
+          const currUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+          if (currUrl) {
+            const ownerTrade = getOwnerTradeForImageUrl(currUrl);
+            const ownerDay = state.dayData[targetDate];
+            const findParent = (trade, d, targetUrl) => {
+              if (trade?.subImages?.[targetUrl]) return { targetDict: trade.subImages, url: targetUrl, isParent: true };
+              if (d?.subImages?.[targetUrl]) return { targetDict: d.subImages, url: targetUrl, isParent: true };
+              for (const [p, subs] of Object.entries(trade?.subImages || {})) if (subs.includes(targetUrl)) return { targetDict: trade.subImages, url: p, isParent: false };
+              for (const [p, subs] of Object.entries(d?.subImages || {})) if (subs.includes(targetUrl)) return { targetDict: d.subImages, url: p, isParent: false };
+              return null;
+            };
+            const pInfo = findParent(ownerTrade, ownerDay, currUrl);
+            if (pInfo) {
+              pInfo.targetDict[pInfo.url].push(data.url);
+              addedToGroup = true;
+            } else if (ownerTrade) {
+              ownerTrade.images = ownerTrade.images || [];
+              ownerTrade.images.push(data.url);
+              addedToGroup = true;
+            }
+          }
+
+          if (!addedToGroup) {
+            if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+            if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
+            state.dayData[targetDate].images.push(data.url);
+          }
+
           added++;
-          // Add to current gallery view directly so it shows up instantly
           if (!state.gallery.images) state.gallery.images = [];
-          state.gallery.images.push(data.url);
+
+          if (addedToGroup) {
+            // For groups/trades we will let sync logic handle insertion, but we need it locally first
+            const insertPos = state.gallery.images.indexOf(currUrl) + 1;
+            state.gallery.images.splice(insertPos, 0, data.url);
+            state.gallery.currentIndex = insertPos;
+          } else {
+            state.gallery.images.push(data.url);
+            state.gallery.currentIndex = state.gallery.images.length - 1;
+          }
           if (state.gallery._baseImages) state.gallery._baseImages.push(data.url);
-          state.gallery.currentIndex = state.gallery.images.length - 1;
         }
       } catch (err) { }
     }

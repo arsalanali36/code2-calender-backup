@@ -100,6 +100,31 @@ function showGalleryContextMenu(x, y) {
             addSep();
         }
 
+        menu.appendChild(createOpt('Copy Image', async () => {
+            try {
+                // If it's a local app, we can ask the backend to copy it to system clipboard
+                const filename = url.split('/').pop();
+                const res = await fetch('/api/copy-image-to-clipboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+                if (res.ok) {
+                    showToast('Image copied to clipboard (System)', 'success');
+                } else {
+                    // Fallback to browser clipboard if backend isn't supporting it
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const item = new ClipboardItem({ [blob.type]: blob });
+                    await navigator.clipboard.write([item]);
+                    showToast('Image copied to clipboard (Browser)', 'success');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to copy image', 'error');
+            }
+        }));
+
         menu.appendChild(createOpt('Replace Image', () => {
             const inp = document.createElement('input');
             inp.type = 'file'; inp.accept = 'image/*';

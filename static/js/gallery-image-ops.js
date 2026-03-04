@@ -136,6 +136,37 @@ async function moveGalleryImageToDate(globalIdx, targetDate) {
 }
 
 let undoGalleryDeletes = {};
+window.galleryUndoStack = [];
+
+window.performGalleryUndo = function () {
+    if (!window.galleryUndoStack || window.galleryUndoStack.length === 0) {
+        showToast('Nothing to undo', 'info');
+        return;
+    }
+    const backup = window.galleryUndoStack.pop();
+    if (backup.deleteTimer) clearTimeout(backup.deleteTimer);
+
+    if (backup.backupTradeIdx >= 0) state.trades[backup.backupTradeIdx] = JSON.parse(JSON.stringify(backup.backupTradeClone));
+    if (backup.dayDate && backup.backupDay) state.dayData[backup.dayDate] = JSON.parse(JSON.stringify(backup.backupDay));
+    state.gallery.images = [...backup.backupArr];
+    state.gallery.currentIndex = backup.backupCurrentIndex;
+    if (backup.backupExpanded) state.gallery.expandedGroups = new Set(backup.backupExpanded);
+
+    syncGalleryImageOrderToTrades();
+    renderGallery();
+    saveTrades();
+    renderTable();
+    renderCalendar();
+
+    // clear the toast if it was an undo toast
+    const t = document.getElementById('toast');
+    if (t.classList.contains('show') && t.innerText.includes('Undo')) {
+        t.innerText = "Restored.";
+        setTimeout(() => { t.className = 'toast'; }, 2000);
+    } else {
+        showToast('Undo successful', 'success');
+    }
+};
 
 async function removeGalleryImageAt(idx, force = false) {
     const arr = state.gallery.images || [];
@@ -196,28 +227,27 @@ async function removeGalleryImageAt(idx, force = false) {
         syncGalleryImageOrderToTrades();
         renderGallery(); renderTable(); renderCalendar();
 
-        const t2 = document.getElementById('toast');
-        t2.innerHTML = `Parent removed, ${subImages.length} image(s) ungrouped. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;">Undo</button>`;
-        t2.className = 'toast success show';
-        let isUndone2 = false;
-        document.getElementById('undo-del-btn').addEventListener('click', () => {
-            isUndone2 = true;
-            if (backupTradeIdx2 >= 0) state.trades[backupTradeIdx2] = backupTradeClone2;
-            if (dayDate && backupDay2) state.dayData[dayDate] = backupDay2;
-            state.gallery.images = backupArr2; state.gallery.currentIndex = backupCurrentIndex2;
-            if (backupExpanded2) state.gallery.expandedGroups = backupExpanded2;
-            t2.innerText = 'Restored.'; setTimeout(() => { t2.className = 'toast'; }, 2000);
-            syncGalleryImageOrderToTrades(); renderGallery(); saveTrades(); renderTable(); renderCalendar();
-        });
-        setTimeout(() => { if (!isUndone2) t2.className = 'toast'; }, 4000);
-        setTimeout(async () => {
-            if (!isUndone2) {
-                try {
-                    const fn = String(imageUrl || '').split('/').pop();
-                    await fetch('/api/delete-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: fn }) });
-                } catch (e) { }
-            }
+        const actionBackup = {
+            backupTradeIdx: backupTradeIdx2, backupTradeClone: backupTradeClone2,
+            dayDate, backupDay: backupDay2, backupArr: backupArr2, backupCurrentIndex: backupCurrentIndex2,
+            backupExpanded: backupExpanded2, urlsToDelete: [imageUrl]
+        };
+
+        const timerId = setTimeout(async () => {
+            const idx = window.galleryUndoStack.indexOf(actionBackup);
+            if (idx > -1) window.galleryUndoStack.splice(idx, 1); // remove from stack once permanent
+            try {
+                const fn = String(imageUrl || '').split('/').pop();
+                await fetch('/api/delete-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: fn }) });
+            } catch (e) { }
         }, 5000);
+        actionBackup.deleteTimer = timerId;
+        window.galleryUndoStack.push(actionBackup);
+
+        const t2 = document.getElementById('toast');
+        t2.innerHTML = `Parent removed, ${subImages.length} image(s) ungrouped. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
+        t2.className = 'toast success show';
+        setTimeout(() => { t2.className = 'toast'; }, 4000);
         if (!state.gallery.images.length) { document.getElementById('gallery-modal').classList.remove('open'); unlockBodyScroll(); }
         await fetch('/api/trades', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -300,55 +330,37 @@ async function removeGalleryImageAt(idx, force = false) {
     renderTable();
     renderCalendar();
 
-    // Create custom undo toast OVERRIDING whatever might happen next (though we won't call saveTrades until 100ms or manually)
-    const t = document.getElementById('toast');
-    t.innerHTML = `Image removed. <button id="undo-del-btn" style="margin-left:10px; padding:2px 8px; background:var(--blue); color:#fff; border:none; border-radius:4px; cursor:pointer;">Undo</button>`;
-    t.className = `toast success show`;
+    const actionBackup = {
+        backupTradeIdx, backupTradeClone,
+        dayDate, backupDay, backupArr, backupCurrentIndex,
+        backupExpanded, urlsToDelete
+    };
 
-    let isUndone = false;
-    document.getElementById('undo-del-btn').addEventListener('click', () => {
-        isUndone = true;
-        // Restore
-        if (backupTradeIdx >= 0) {
-            state.trades[backupTradeIdx] = backupTradeClone;
-        }
-        if (dayDate && backupDay) {
-            state.dayData[dayDate] = backupDay;
-        }
-        state.gallery.images = backupArr;
-        state.gallery.currentIndex = backupCurrentIndex;
-        if (backupExpanded) state.gallery.expandedGroups = backupExpanded;
-        undoGalleryDeletes[imageUrl] = true;
-
-        t.innerText = "Restored.";
-        setTimeout(() => { t.className = 'toast'; }, 2000);
-
-        syncGalleryImageOrderToTrades();
-        renderGallery();
-        saveTrades();
-        renderTable();
-        renderCalendar();
-    });
-
-    setTimeout(() => {
-        if (!isUndone) t.className = 'toast';
-    }, 4000);
-
-    setTimeout(async () => {
-        if (!isUndone) {
-            for (const dictUrl of urlsToDelete) {
-                try {
-                    const filename = String(dictUrl || '').split('/').pop();
-                    await fetch('/api/delete-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ filename })
-                    });
-                } catch (e) { }
-                delete undoGalleryDeletes[dictUrl];
-            }
+    const timerId = setTimeout(async () => {
+        const idx = window.galleryUndoStack.indexOf(actionBackup);
+        if (idx > -1) window.galleryUndoStack.splice(idx, 1);
+        for (const dictUrl of urlsToDelete) {
+            try {
+                const filename = String(dictUrl || '').split('/').pop();
+                await fetch('/api/delete-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+            } catch (e) { }
         }
     }, 5000);
+    actionBackup.deleteTimer = timerId;
+    window.galleryUndoStack.push(actionBackup);
+
+    // Create custom undo toast
+    const t = document.getElementById('toast');
+    t.innerHTML = `Image removed. <button id="undo-del-btn" style="margin-left:10px; padding:2px 8px; background:var(--blue); color:#fff; border:none; border-radius:4px; cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
+    t.className = `toast success show`;
+
+    setTimeout(() => {
+        t.className = 'toast';
+    }, 4000);
 
     if (!arr.length) {
         document.getElementById('gallery-modal').classList.remove('open');

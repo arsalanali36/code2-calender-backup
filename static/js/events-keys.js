@@ -17,6 +17,11 @@ function _bindKeyboardEvents() {
     }
 
     if ((e.key === 'z' || e.key === 'Z') && e.ctrlKey && !e.shiftKey && !e.altKey && !typingInField) {
+      if (typeof performGalleryUndo === 'function' && window.galleryUndoStack?.length > 0) {
+        e.preventDefault();
+        performGalleryUndo();
+        return;
+      }
       const undoBtn = document.getElementById('undo-del-btn');
       if (undoBtn) {
         e.preventDefault();

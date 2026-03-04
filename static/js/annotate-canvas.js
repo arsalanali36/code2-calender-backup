@@ -93,11 +93,7 @@ function _bindFabricShapeEvents() {
       return;
     }
 
-    if (tool === 'text') {
-      if (e.target && e.target.type === 'i-text') return;
-      _createFabricIText(pointer);
-      return;
-    }
+
     if (['arrow', 'rect', 'circle'].includes(tool)) {
       // Agar existing Fabric object pe click hua toh naya shape mat banao
       if (e.target) return;
@@ -243,6 +239,16 @@ function _bindFabricShapeEvents() {
   });
   fabricCanvas.on('object:modified', () => { annotState.dirty = true; _pushFabricHistorySnapshot(); });
   fabricCanvas.on('object:removed', () => { annotState.dirty = true; _pushFabricHistorySnapshot(); });
+
+  fabricCanvas.on('mouse:dblclick', (e) => {
+    if (!annotState.active) return;
+    const tool = annotState.tool;
+    if (tool === 'text') {
+      if (e.target && e.target.type === 'i-text') return; // let Fabric handled dbclick edit mode natively
+      const pointer = fabricCanvas.getPointer(e.e);
+      _createFabricIText(pointer);
+    }
+  });
 }
 
 function _addArrowGroup(x1, y1, x2, y2) {
@@ -298,16 +304,34 @@ function _createFabricIText(pointer) {
       }
       // Simple list handling check
       if (e.key === 'Enter') {
-        const lines = itext.text.split('\n');
-        const curLine = lines[lines.length - 1] || '';
-        if (curLine.trim().startsWith('- ')) {
-          e.preventDefault();
-          itext.insertChars('\n- ');
-        } else if (curLine.trim().match(/^\d+\.\s/)) {
-          e.preventDefault();
-          const match = curLine.trim().match(/^(\d+)\.\s/);
-          const nextNum = parseInt(match[1], 10) + 1;
-          itext.insertChars(`\n${nextNum}. `);
+        const textStr = itext.text || '';
+        const cursorIdx = itext.selectionStart !== null ? itext.selectionStart : textStr.length;
+        const textBeforeCursor = textStr.substring(0, cursorIdx);
+        const lines = textBeforeCursor.split('\n');
+        const curLine = lines[lines.length - 1];
+
+        const bulletRegex = /^(\s*)-\s?/;
+        const numberRegex = /^(\s*)(\d+)\.\s?/;
+
+        if (bulletRegex.test(curLine)) {
+          if (curLine.replace(bulletRegex, '').trim() === '') {
+            e.preventDefault();
+            itext.removeChars(cursorIdx - curLine.length, cursorIdx);
+          } else {
+            e.preventDefault();
+            const match = curLine.match(bulletRegex);
+            itext.insertChars(`\n${match[1]}- `);
+          }
+        } else if (numberRegex.test(curLine)) {
+          if (curLine.replace(numberRegex, '').trim() === '') {
+            e.preventDefault();
+            itext.removeChars(cursorIdx - curLine.length, cursorIdx);
+          } else {
+            e.preventDefault();
+            const match = curLine.match(numberRegex);
+            const nextNum = parseInt(match[2], 10) + 1;
+            itext.insertChars(`\n${match[1]}${nextNum}. `);
+          }
         }
       }
     });

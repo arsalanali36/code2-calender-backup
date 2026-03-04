@@ -210,7 +210,7 @@ function _bindSettingsEvents() {
     const items = e.clipboardData?.items;
     if (!items) return;
     const imgFiles = Array.from(items).filter(it => it.type.startsWith('image/')).map(it => it.getAsFile()).filter(Boolean);
-    if (imgFiles.length) { e.preventDefault(); await handleImageFiles(imgFiles); showToast('Image pasted from clipboard', 'success'); }
+    if (imgFiles.length) { e.preventDefault(); e.stopPropagation(); await handleImageFiles(imgFiles); showToast('Image pasted from clipboard', 'success'); }
   });
 
   document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-overlay').classList.toggle('open'));

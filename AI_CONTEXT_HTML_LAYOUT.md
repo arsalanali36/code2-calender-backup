@@ -266,6 +266,7 @@ This file contains the consolidated code context for the project to be used with
   <script src="/static/js/table-colops.js"></script>
   <script src="/static/js/gallery-open.js"></script>
   <script src="/static/js/gallery-render.js"></script>
+  <script src="/static/js/gallery-stats.js"></script>
   <script src="/static/js/gallery-core.js"></script>
   <script src="/static/js/gallery-image-ops.js"></script>
   <script src="/static/js/gallery-ops.js"></script>

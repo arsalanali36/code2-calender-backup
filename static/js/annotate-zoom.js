@@ -50,19 +50,27 @@ function applyZoom() {
 
   if (fabricCanvas) {
     if (fabricCanvas.wrapperEl) {
-      fabricCanvas.wrapperEl.style.transform = 'none'; // Prevent CSS scaling
+      fabricCanvas.wrapperEl.style.transform = tf; // Apple CSS scaling correctly
+      fabricCanvas.wrapperEl.style.transformOrigin = 'top left';
     }
+    // We do NOT use setViewportTransform and manual dpr scaling anymore
+    // CSS scaling handles the viewport and prevents edge clipping natively.
     const vpt = fabricCanvas.viewportTransform;
-    vpt[0] = zoom.scale;
-    vpt[3] = zoom.scale;
-    vpt[4] = zoom.x;
-    vpt[5] = zoom.y;
+    vpt[0] = 1;
+    vpt[3] = 1;
+    vpt[4] = 0;
+    vpt[5] = 0;
     fabricCanvas.setViewportTransform(vpt);
+    fabricCanvas.calcOffset();
     fabricCanvas.requestRenderAll();
   }
 
   if (zoom.scale > 1) { img.classList.add('zoomed'); img.classList.remove('dragging'); }
   else { img.classList.remove('zoomed', 'dragging'); }
+
+  if (typeof updateAnnotBrushCursorVisual === 'function') {
+    updateAnnotBrushCursorVisual();
+  }
 }
 
 function bindZoomPan() {
@@ -91,7 +99,10 @@ function bindZoomPan() {
     applyZoom();
   }, { passive: false });
 
-  wrapper.addEventListener('dblclick', () => resetZoom());
+  wrapper.addEventListener('dblclick', (e) => {
+    if (typeof annotState !== 'undefined' && annotState.active && annotState.tool === 'text') return;
+    resetZoom();
+  });
 
   wrapper.addEventListener('mousedown', e => {
     if (zoom.scale <= 1) return;
@@ -177,7 +188,7 @@ function ensureAnnotBrushCursor() {
 function updateAnnotBrushCursorVisual() {
   const el = ensureAnnotBrushCursor();
   if (!el) return;
-  const s = Math.max(10, Math.min(80, (annotState.size || 3) * 4));
+  const s = Math.max(10, Math.min(80, (annotState.size || 3) * 4)) * (typeof zoom !== 'undefined' ? zoom.scale : 1);
   el.style.width = s + 'px';
   el.style.height = s + 'px';
 }
