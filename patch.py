@@ -1,31 +1,17 @@
 import re
 
-f = open('templates/index.html', encoding='utf-8').read()
+content = open('templates/index.html', encoding='utf-8').read()
 
-mappings = {
-    'cumulative': 'cumulative',
-    'daily': 'daily',
-    'distribution': 'dist',
-    'profitability': 'profit',
-    'long_short': 'longShort',
-    'daily_qty': 'dailyQty',
-    'pat_sum': 'patSum',
-    'points_per_trade': 'pointsPerTrade',
-    'points_sum': 'pointsSum',
-    'daily_fc': 'dailyFc',
-    'avg_buy_price': 'avgBuyPrice'
-}
-
-for k, val in mappings.items():
-    pattern = r'(<select class="select-box"[^>]*?onchange="updateVdChartType\(\'' + val + r'\'[^>]*?>[\s\S]*?</select>)'
-    
-    def repl(m):
-        return m.group(1) + f'''
-            <select class="select-box vd-mode-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartMode('{k}', this.value)">
+# Fix duplicates created by buggy python patch loop
+for id_key in ['cumulative','daily','distribution','profitability','long_short','daily_qty','pat_sum','points_per_trade','points_sum','daily_fc','avg_buy_price']:
+    find_str = f"""            <select class="select-box vd-mode-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartMode('{id_key}', this.value)">
               <option value="consolidated">Consolidated</option>
               <option value="individual">Individual</option>
-            </select>'''
-            
-    f = re.sub(pattern, repl, f)
+            </select>"""
+    
+    # regex to replace double duplicates or triple
+    pattern = r'(\s*<select class="select-box vd-mode-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartMode\(\'' + id_key + r'\', this\.value\)">\s*<option value="consolidated">Consolidated</option>\s*<option value="individual">Individual</option>\s*</select>)+'
+    
+    content = re.sub(pattern, "\n" + find_str, content)
 
-open('templates/index.html', 'w', encoding='utf-8').write(f)
+open('templates/index.html', 'w', encoding='utf-8').write(content)
