@@ -11376,7 +11376,8 @@
       "imageTags": {},
       "images": [
         "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png",
-        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png"
+        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png",
+        "/uploads/76197fa3-3d5b-4bb6-bdd3-dc159fac0f15.png"
       ],
       "observation": "",
       "tags": [],
@@ -11444,7 +11445,8 @@
         "/uploads/c963eeb2-d423-45f9-a9de-6ec91683fbaf.png",
         "/uploads/b8eab4b2-00c1-44f4-8a1e-89f5507a4b76.png",
         "/uploads/dadcdac9-6d71-4007-b113-aea977d3c5a0.png",
-        "/uploads/da637bb0-6e6c-43c4-abd4-70202155e864.png"
+        "/uploads/da637bb0-6e6c-43c4-abd4-70202155e864.png",
+        "/uploads/3ff71b46-48fb-486d-b03b-cfb214175679.png"
       ],
       "marqueeBoxes": {
         "/uploads/9615ed6a-5e12-4f85-bcce-2268c19c3a5d.png": []
@@ -11563,6 +11565,32 @@
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-05"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": "",
+      "Buy Price (Avg)": "",
+      "Buy Time": "",
+      "Gross P/L": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Net P/L": "",
+      "Note": "",
+      "Other Charges": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price (Avg)": "",
+      "Sell Time": "",
+      "Tags": "",
+      "Total Fees": "",
+      "Total Trades": "",
+      "TradeType": "",
+      "Video": "",
+      "date": "2026-03-06",
+      "imageTags": {},
+      "images": [],
+      "trade_date": "2026-03-06"
     }
   ],
   "columns": [
@@ -20244,16 +20272,17 @@
       }
     },
     "2026-03-05": {
+      "closeImages": [],
+      "imageTags": {},
       "images": [
         "/uploads/24f906cb-7657-485a-a91f-4b509f9186c5.png",
         "/uploads/5512f856-0620-4cc2-9a5e-2cac750a62d2.png",
         "/uploads/884c74cc-9ed7-488d-81f4-1c3f85e8a344.png",
         "/uploads/6d93e7d8-4a7e-4cd0-9194-0b1214b372f6.png",
         "/uploads/217f70c6-c54e-4045-b4dc-b2ea0179eb99.png"
-      ],
-      "closeImages": [],
-      "imageTags": {}
-    }
+      ]
+    },
+    "2026-03-06": {}
   },
   "tagGroups": {
     "Emotions": [

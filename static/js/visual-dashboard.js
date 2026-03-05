@@ -1,9 +1,14 @@
-// Visual Dashboard state
 const vdState = {
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
-    view: 'month' // 'month' or 'year'
+    view: 'month', // 'month' or 'year'
+    chartModes: {}
 };
+
+function updateVdChartMode(chartKey, mode) {
+    vdState.chartModes[chartKey] = mode;
+    renderVisualDashboard();
+}
 
 let vdCharts = {};
 
@@ -138,17 +143,8 @@ function renderVisualDashboard() {
     let totalTradesCount = 0;
 
     // Data for charts
-    const dailyPnlMap = new Map(); // Date -> Net P/L
     const strategyPnlMap = new Map(); // Setup -> Net P/L
     const strategyCountMap = new Map(); // Setup -> count
-
-    // New metrics maps
-    const dailyTradeCountMap = new Map();
-    const dailyQtyMap = new Map();
-    const dailyPointsMap = new Map();
-    const dailyFcMap = new Map();
-    const dailyBuyPriceSumMap = new Map();
-    const dailyBuyPriceCountMap = new Map();
     const pointsPerTradeData = [];
 
     let longPnl = 0;
@@ -156,11 +152,76 @@ function renderVisualDashboard() {
     let longCount = 0;
     let shortCount = 0;
 
+    // Helper to build daily aggregated datamaps for a given mode
+    const buildMapForMode = (mode) => {
+        const pMap = new Map(), cMap = new Map(), qMap = new Map(), ptMap = new Map(), fMap = new Map(), bpSMap = new Map(), bpCMap = new Map();
+        let ltc = 0;
+        trades.forEach(t => {
+            const pnl = getTradePnl(t) || 0;
+            ltc++;
+            const qty = parseFloat(t['Qty'] || t['quantity'] || t['Qty.']) || 0;
+            const pt = parseFloat(t['Pt'] || t['Points']) || 0;
+            const fc = parseFloat(t['fill_count'] || t['FC']) || 0;
+            const buyPrice = parseFloat(t['Buy Price (Avg)'] || t['Buy Price']) || 0;
+
+            let d = normalizeDate(extractDateFromTrade(t));
+            if (mode === 'individual') d = `T${ltc} (${d})`;
+            if (d && d !== `T${ltc} (undefined)`) {
+                pMap.set(d, (pMap.get(d) || 0) + pnl);
+                cMap.set(d, (cMap.get(d) || 0) + 1);
+                qMap.set(d, (qMap.get(d) || 0) + qty);
+                ptMap.set(d, (ptMap.get(d) || 0) + pt);
+                fMap.set(d, (fMap.get(d) || 0) + fc);
+                if (buyPrice > 0) {
+                    bpSMap.set(d, (bpSMap.get(d) || 0) + buyPrice);
+                    bpCMap.set(d, (bpCMap.get(d) || 0) + 1);
+                }
+            }
+        });
+
+        const sorted = Array.from(pMap.keys()).sort();
+        const res = { dailyPlData: [], cumulativeData: [], dailyTradeCountData: [], dailyQtyData: [], dailyPointsData: [], dailyFcData: [], avgBuyPriceData: [], chartDates: [] };
+        let run = 0;
+        sorted.forEach(d => {
+            const v = pMap.get(d) || 0;
+            res.dailyPlData.push(v.toFixed(2));
+            run += v;
+            res.cumulativeData.push(run.toFixed(2));
+            res.dailyTradeCountData.push(cMap.get(d) || 0);
+            res.dailyQtyData.push(qMap.get(d) || 0);
+            res.dailyPointsData.push((ptMap.get(d) || 0).toFixed(2));
+            res.dailyFcData.push(fMap.get(d) || 0);
+            const bps = bpSMap.get(d) || 0, bpc = bpCMap.get(d) || 0;
+            res.avgBuyPriceData.push(bpc > 0 ? (bps / bpc).toFixed(2) : "0.00");
+
+            let ds = d;
+            if (ds.startsWith('T')) {
+                const m = ds.match(/(T\d+) \((.*)\)/);
+                if (m) {
+                    const dobj = new Date(m[2]);
+                    if (!isNaN(dobj)) ds = `${m[1]} - ${dobj.getDate()} ${dobj.toLocaleString('default', { month: 'short' })}`;
+                }
+            } else {
+                const dobj = new Date(ds);
+                if (!isNaN(dobj)) ds = `${dobj.getDate()} ${dobj.toLocaleString('default', { month: 'short' })}`;
+            }
+            res.chartDates.push(ds);
+        });
+        return res;
+    };
+
+    const dataC = buildMapForMode('consolidated');
+    const dataI = buildMapForMode('individual');
+
+    const getDat = (key) => {
+        const m = vdState.chartModes[key] || (typeof state !== 'undefined' ? state.calendarMode : 'consolidated');
+        return m === 'individual' ? dataI : dataC;
+    };
+
     trades.forEach(t => {
-        const pnl = getTradePnl(t) || 0; // Using existing helper if available
+        const pnl = getTradePnl(t) || 0;
         const isWin = pnl > 0;
 
-        // Stats
         totalTradesCount++;
         if (isWin) {
             totalWin += pnl;
@@ -169,45 +230,15 @@ function renderVisualDashboard() {
             totalLoss += Math.abs(pnl);
         }
 
-        // Other stats
-        const qty = parseFloat(t['Qty'] || t['quantity'] || t['Qty.']) || 0;
         const pt = parseFloat(t['Pt'] || t['Points']) || 0;
-        const fc = parseFloat(t['fill_count'] || t['FC']) || 0;
-        const buyPrice = parseFloat(t['Buy Price (Avg)'] || t['Buy Price']) || 0;
-
         let d = normalizeDate(extractDateFromTrade(t));
-
-        // Push full data for tooltip formatting
-        pointsPerTradeData.push({
-            x: `T${totalTradesCount}`,
-            y: pt,
-            date: d || 'Unknown',
-            amt: pnl
-        });
-
-        // Daily map
-        const mode = typeof state !== 'undefined' ? state.calendarMode : 'consolidated';
-        if (mode === 'individual') {
-            d = `T${totalTradesCount} (${d})`;
-        }
-        if (d) {
-            dailyPnlMap.set(d, (dailyPnlMap.get(d) || 0) + pnl);
-            dailyTradeCountMap.set(d, (dailyTradeCountMap.get(d) || 0) + 1);
-            dailyQtyMap.set(d, (dailyQtyMap.get(d) || 0) + qty);
-            dailyPointsMap.set(d, (dailyPointsMap.get(d) || 0) + pt);
-            dailyFcMap.set(d, (dailyFcMap.get(d) || 0) + fc);
-            if (buyPrice > 0) {
-                dailyBuyPriceSumMap.set(d, (dailyBuyPriceSumMap.get(d) || 0) + buyPrice);
-                dailyBuyPriceCountMap.set(d, (dailyBuyPriceCountMap.get(d) || 0) + 1);
-            }
-        }
+        pointsPerTradeData.push({ x: `T${totalTradesCount}`, y: pt, date: d || 'Unknown', amt: pnl });
 
         // Strategy Map (Use 'Setup' or 'Tags' column)
         const setupStr = typeof getTradeTagsForColumn === 'function' && state && state.tagColumns && state.tagColumns.length > 0
             ? getTradeTagsForColumn(t, state.tagColumns[0]).join(', ') || 'No Strategy'
             : t['Setup'] || t['Strategy'] || 'No Strategy';
 
-        // Split comma separated setups if multiple tags
         const setups = setupStr.split(',').map(s => s.trim()).filter(s => s);
         if (setups.length === 0) setups.push('No Strategy');
 
@@ -225,52 +256,6 @@ function renderVisualDashboard() {
             shortPnl += pnl;
             shortCount++;
         }
-    });
-
-    // Process daily results and cumulative
-    const sortedDates = Array.from(dailyPnlMap.keys()).sort();
-
-    const dailyPlData = [];
-    const cumulativeData = [];
-    const dailyTradeCountData = [];
-    const dailyQtyData = [];
-    const dailyPointsData = [];
-    const dailyFcData = [];
-    const avgBuyPriceData = [];
-
-    let runningTotal = 0;
-    const chartDates = [];
-
-    sortedDates.forEach(date => {
-        const val = dailyPnlMap.get(date) || 0;
-        dailyPlData.push(val.toFixed(2));
-        runningTotal += val;
-        cumulativeData.push(runningTotal.toFixed(2));
-
-        dailyTradeCountData.push(dailyTradeCountMap.get(date) || 0);
-        dailyQtyData.push(dailyQtyMap.get(date) || 0);
-        dailyPointsData.push((dailyPointsMap.get(date) || 0).toFixed(2));
-        dailyFcData.push(dailyFcMap.get(date) || 0);
-
-        const bpSum = dailyBuyPriceSumMap.get(date) || 0;
-        const bpCount = dailyBuyPriceCountMap.get(date) || 0;
-        avgBuyPriceData.push(bpCount > 0 ? (bpSum / bpCount).toFixed(2) : "0.00");
-
-        // Formatting date
-        let displayStr = '';
-        if (date.startsWith('T')) {
-            const match = date.match(/(T\d+) \((.*)\)/);
-            if (match) {
-                const dateObj = new Date(match[2]);
-                displayStr = `${match[1]} - ${dateObj.getDate()} ${dateObj.toLocaleString('default', { month: 'short' })}`;
-            } else {
-                displayStr = date;
-            }
-        } else {
-            const dateObj = new Date(date);
-            displayStr = `${dateObj.getDate()} ${dateObj.toLocaleString('default', { month: 'short' })}`;
-        }
-        chartDates.push(displayStr);
     });
 
     // Calculate Metrics
@@ -311,9 +296,10 @@ function renderVisualDashboard() {
 
     // 1. Cumulative Performance (Area Chart)
     if (vdCharts.cumulative) vdCharts.cumulative.destroy();
+    const datCumul = getDat('cumulative');
     const optionsCumulative = {
         ...commonOptions,
-        series: [{ name: 'Cumulative P/L (₹)', data: cumulativeData.length ? cumulativeData : [0] }],
+        series: [{ name: 'Cumulative P/L (₹)', data: datCumul.cumulativeData.length ? datCumul.cumulativeData : [0] }],
         chart: { ...commonOptions.chart, type: 'area', height: 300 },
         colors: ['#00e396'],
         fill: {
@@ -322,7 +308,7 @@ function renderVisualDashboard() {
         },
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 2 },
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'], tooltip: { enabled: false } },
+        xaxis: { categories: datCumul.chartDates.length ? datCumul.chartDates : ['No Data'], tooltip: { enabled: false } },
         yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
     };
     vdCharts.cumulative = new ApexCharts(document.querySelector("#chart-cumulative"), optionsCumulative);
@@ -330,9 +316,10 @@ function renderVisualDashboard() {
 
     // 2. Daily Net P/L (Bar Chart)
     if (vdCharts.daily) vdCharts.daily.destroy();
+    const datDaily = getDat('daily');
     const optionsDaily = {
         ...commonOptions,
-        series: [{ name: 'Net P/L', data: dailyPlData.length ? dailyPlData : [0] }],
+        series: [{ name: 'Net P/L', data: datDaily.dailyPlData.length ? datDaily.dailyPlData : [0] }],
         chart: { ...commonOptions.chart, type: 'bar', height: 250 },
         plotOptions: {
             bar: {
@@ -342,12 +329,12 @@ function renderVisualDashboard() {
                         { from: 0, to: 10000000, color: '#3fb950' }
                     ]
                 },
-                columnWidth: chartDates.length > 20 ? '80%' : '60%',
+                columnWidth: datDaily.chartDates.length > 20 ? '80%' : '60%',
                 borderRadius: 2
             }
         },
         dataLabels: { enabled: false },
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'] },
+        xaxis: { categories: datDaily.chartDates.length ? datDaily.chartDates : ['No Data'] },
         yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
     };
     vdCharts.daily = new ApexCharts(document.querySelector("#chart-daily-pl"), optionsDaily);
@@ -455,16 +442,17 @@ function renderVisualDashboard() {
 
     // 6. Daily Trade Count & Qty
     if (vdCharts.dailyQty) vdCharts.dailyQty.destroy();
+    const datQty = getDat('daily_qty');
     vdCharts.dailyQty = new ApexCharts(document.querySelector("#chart-daily-qty"), {
         ...commonOptions,
         series: [
-            { name: 'Trade Count', type: 'column', data: dailyTradeCountData.length ? dailyTradeCountData : [0] },
-            { name: 'Quantity sum', type: 'line', data: dailyQtyData.length ? dailyQtyData : [0] }
+            { name: 'Trade Count', type: 'column', data: datQty.dailyTradeCountData.length ? datQty.dailyTradeCountData : [0] },
+            { name: 'Quantity sum', type: 'line', data: datQty.dailyQtyData.length ? datQty.dailyQtyData : [0] }
         ],
         chart: { ...commonOptions.chart, height: 250 },
         stroke: { width: [0, 3], curve: 'smooth' },
         colors: ['#58a6ff', '#f85149'],
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'] },
+        xaxis: { categories: datQty.chartDates.length ? datQty.chartDates : ['No Data'] },
         yaxis: [
             { title: { text: 'Count' }, labels: { formatter: (val) => Math.floor(val) } },
             { opposite: true, title: { text: 'Quantity' }, labels: { formatter: (val) => Number(val).toLocaleString() } }
@@ -474,9 +462,10 @@ function renderVisualDashboard() {
 
     // 7. PAT (SUM) -> Area chart of Net PL but non-cumulative (daily sum)
     if (vdCharts.patSum) vdCharts.patSum.destroy();
+    const datPat = getDat('pat_sum');
     vdCharts.patSum = new ApexCharts(document.querySelector("#chart-pat-sum"), {
         ...commonOptions,
-        series: [{ name: 'PAT Sum (₹)', data: dailyPlData.length ? dailyPlData : [0] }],
+        series: [{ name: 'PAT Sum (₹)', data: datPat.dailyPlData.length ? datPat.dailyPlData : [0] }],
         chart: { ...commonOptions.chart, type: 'area', height: 250 },
         colors: ['#d29922'],
         fill: {
@@ -485,7 +474,7 @@ function renderVisualDashboard() {
         },
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 2 },
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'] },
+        xaxis: { categories: datPat.chartDates.length ? datPat.chartDates : ['No Data'] },
         yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
     });
     vdCharts.patSum.render();
@@ -529,8 +518,9 @@ function renderVisualDashboard() {
 
     // 9. Points - Sum
     if (vdCharts.pointsSum) vdCharts.pointsSum.destroy();
+    const datPoints = getDat('points_sum');
     let rPoints = 0;
-    const pointsCumulData = dailyPointsData.map(p => { rPoints += parseFloat(p); return rPoints.toFixed(2); });
+    const pointsCumulData = datPoints.dailyPointsData.map(p => { rPoints += parseFloat(p); return rPoints.toFixed(2); });
     vdCharts.pointsSum = new ApexCharts(document.querySelector("#chart-points-sum"), {
         ...commonOptions,
         series: [{ name: 'Cumulative Points Sum', data: pointsCumulData.length ? pointsCumulData : [0] }],
@@ -541,32 +531,34 @@ function renderVisualDashboard() {
             type: 'gradient',
             gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] }
         },
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'] },
+        xaxis: { categories: datPoints.chartDates.length ? datPoints.chartDates : ['No Data'] },
         yaxis: { labels: { formatter: (val) => Number(val).toLocaleString() } }
     });
     vdCharts.pointsSum.render();
 
     // 10. Daily FC
     if (vdCharts.dailyFc) vdCharts.dailyFc.destroy();
+    const datFc = getDat('daily_fc');
     vdCharts.dailyFc = new ApexCharts(document.querySelector("#chart-daily-fc"), {
         ...commonOptions,
-        series: [{ name: 'Daily FC', data: dailyFcData.length ? dailyFcData : [0] }],
+        series: [{ name: 'Daily FC', data: datFc.dailyFcData.length ? datFc.dailyFcData : [0] }],
         chart: { ...commonOptions.chart, type: 'bar', height: 250 },
         colors: ['#8b949e'],
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'] },
+        xaxis: { categories: datFc.chartDates.length ? datFc.chartDates : ['No Data'] },
         yaxis: { labels: { formatter: (val) => Math.floor(val) } }
     });
     vdCharts.dailyFc.render();
 
     // 11. Avg Buy Price
     if (vdCharts.avgBuyPrice) vdCharts.avgBuyPrice.destroy();
+    const datBuy = getDat('avg_buy_price');
     vdCharts.avgBuyPrice = new ApexCharts(document.querySelector("#chart-avg-buy-price"), {
         ...commonOptions,
-        series: [{ name: 'Avg Buy Price', data: avgBuyPriceData.length ? avgBuyPriceData : [0] }],
+        series: [{ name: 'Avg Buy Price', data: datBuy.avgBuyPriceData.length ? datBuy.avgBuyPriceData : [0] }],
         chart: { ...commonOptions.chart, type: 'line', height: 250 },
         stroke: { width: 3, curve: 'smooth' },
         colors: ['#58a6ff'],
-        xaxis: { categories: chartDates.length ? chartDates : ['No Data'] },
+        xaxis: { categories: datBuy.chartDates.length ? datBuy.chartDates : ['No Data'] },
         yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
     });
     vdCharts.avgBuyPrice.render();
