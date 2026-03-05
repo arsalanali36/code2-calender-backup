@@ -123,24 +123,54 @@ function renderDashboard() {
   applyDashboardStatOrder();
 
   const trades = getTradesForMonth(state.year, state.month);
-  const pnlList = trades.map(getTradePnl).filter(n => n !== null);
-  const overall = pnlList.reduce((a, b) => a + b, 0);
+
+  let overall = 0;
+  let net = 0;
+  let hasGrossAndNetCols = false;
+
+  // Let's compute PNL accurately, preferring Gross P/L and Net P/L if available
+  trades.forEach(t => {
+    const gPl = parseNumber(t['Gross P/L']);
+    const nPl = parseNumber(t['Net P/L']);
+    if (gPl !== null && nPl !== null) {
+      overall += gPl;
+      net += nPl;
+      hasGrossAndNetCols = true;
+    }
+  });
+
   const charges = sumByKeys(trades, ['Other Charges', 'Charges', 'Charge', 'charges', 'charge', 'Transaction Charges', 'Charges (Total)', 'Total Charges']) || 0;
   const brokerage = sumByKeys(trades, ['Brokerage', 'brokerage', 'Brokerage Charges', 'Brokerage (Total)']) || 0;
-  let net = sumByKeys(trades, ['Net P/L', 'Net P&L', 'Net Pnl', 'Net P&L (Total)', 'Net Profit', 'Net Profit/Loss']);
-  if (net === null) net = overall - charges - brokerage;
+  const totalFees = charges + brokerage;
 
-  const wins = pnlList.filter(n => n > 0);
-  const losses = pnlList.filter(n => n < 0);
-  const winRate = pnlList.length ? (wins.length / pnlList.length) * 100 : 0;
-  const avg = pnlList.length ? (overall / pnlList.length) : 0;
+  if (!hasGrossAndNetCols) {
+    const pnlList = trades.map(getTradePnl).filter(n => n !== null);
+    overall = pnlList.reduce((a, b) => a + b, 0);
+    net = overall - totalFees;
+  }
+
+  // Use net for win/loss stats if available, otherwise fallback to what we use for overall
+  const pnlListForStats = trades.map(t => {
+    if (hasGrossAndNetCols) return parseNumber(t['Net P/L']);
+    const pl = getTradePnl(t);
+    if (pl !== null) return pl - (parseNumber(t['Brokerage']) || 0) - (parseNumber(t['Other Charges']) || 0); // approx
+    return null;
+  }).filter(n => n !== null);
+
+  const wins = pnlListForStats.filter(n => n > 0);
+  const losses = pnlListForStats.filter(n => n < 0);
+  const winRate = pnlListForStats.length ? (wins.length / pnlListForStats.length) * 100 : 0;
+  const avg = pnlListForStats.length ? (net / pnlListForStats.length) : 0;
   const avgWin = wins.length ? (wins.reduce((a, b) => a + b, 0) / wins.length) : 0;
   const avgLoss = losses.length ? (losses.reduce((a, b) => a + b, 0) / losses.length) : 0;
 
   const dailyMap = new Map();
   trades.forEach(t => {
     const ds = normalizeDate(extractDateFromTrade(t));
-    const pnl = getTradePnl(t);
+    let pnl = null;
+    if (hasGrossAndNetCols) pnl = parseNumber(t['Net P/L']);
+    else pnl = getTradePnl(t);
+
     if (!ds || pnl === null) return;
     dailyMap.set(ds, (dailyMap.get(ds) || 0) + pnl);
   });

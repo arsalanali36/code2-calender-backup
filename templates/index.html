@@ -19,8 +19,9 @@
       <span class="logo-icon">&#9650;</span>
       <span class="logo-text">Trading Journal</span>
     </div>
-    
-    <div class="calendar-nav global-date-nav" style="background:var(--bg2); padding:4px 8px; border-radius:6px; border:1px solid var(--border1);">
+
+    <div class="calendar-nav global-date-nav"
+      style="background:var(--bg2); padding:4px 8px; border-radius:6px; border:1px solid var(--border1);">
       <button class="nav-arrow" id="glob-prev">&#8249;</button>
       <select id="glob-month" class="select-box"></select>
       <select id="glob-view" class="select-box">
@@ -30,13 +31,14 @@
       <select id="glob-year" class="select-box"></select>
       <button class="nav-arrow" id="glob-next">&#8250;</button>
       <button class="btn btn-outline" id="glob-today">Today</button>
-      
+
       <span style="color:var(--text2); margin:0 8px;">|</span>
-      
+
       <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
       <span class="date-range-sep">&#8212;</span>
       <input type="date" id="glob-date-to" class="select-box date-range-input" title="To date" />
-      <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter" style="display:none;">&#10005;</button>
+      <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter"
+        style="display:none;">&#10005;</button>
     </div>
 
     <div class="header-actions">
@@ -58,7 +60,7 @@
     <!-- ── CALENDAR SECTION ─────────────────── -->
     <section class="section calendar-section">
       <div class="section-header">
-        
+
         <div class="show-heads-wrapper">
           <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
           <div class="show-heads-panel" id="show-heads-panel">
@@ -97,97 +99,123 @@
         </div>
       </div>
       <div class="dashboard-grid">
-        <div class="dash-card" data-stat="overall"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Overall P&amp;L</span>
-              
-            </div>
+        <div class="dash-card" data-stat="overall">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Overall P&amp;L</span>
+
+          </div>
           <div class="dash-value" id="dash-overall">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="net"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Net P&amp;L</span>
-              
-            </div>
+        <div class="dash-card" data-stat="net">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Net P&amp;L</span>
+
+          </div>
           <div class="dash-value" id="dash-net">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="trades"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Total Trades</span>
-              
-            </div>
+        <div class="dash-card" data-stat="trades">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Total Trades</span>
+
+          </div>
           <div class="dash-value dash-value-muted" id="dash-trades">0</div>
         </div>
-        <div class="dash-card" data-stat="charges"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Charges</span>
-              
-            </div>
+        <div class="dash-card" data-stat="charges">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Charges</span>
+
+          </div>
           <div class="dash-value dash-value-muted" id="dash-charges">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="brokerage"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Brokerage</span>
-              
-            </div>
+        <div class="dash-card" data-stat="brokerage">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Brokerage</span>
+
+          </div>
           <div class="dash-value dash-value-muted" id="dash-brokerage">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="totalfees"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Total Fees</span>
-              
-            </div>
+        <div class="dash-card" data-stat="totalfees">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Total Fees</span>
+
+          </div>
           <div class="dash-value dash-value-muted" id="dash-totalfees">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="winrate"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Win %</span>
-              
-            </div>
+        <div class="dash-card" data-stat="winrate">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Win %</span>
+
+          </div>
           <div class="dash-value dash-value-muted" id="dash-winrate">0%</div>
         </div>
-        <div class="dash-card" data-stat="avg"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Avg / Trade</span>
-              
-            </div>
+        <div class="dash-card" data-stat="avg">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Avg / Trade</span>
+
+          </div>
           <div class="dash-value" id="dash-avg">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="avgwin"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Avg Win</span>
-              
-            </div>
+        <div class="dash-card" data-stat="avgwin">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Avg Win</span>
+
+          </div>
           <div class="dash-value" id="dash-avgwin">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="avgloss"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Avg Loss</span>
-              
-            </div>
+        <div class="dash-card" data-stat="avgloss">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Avg Loss</span>
+
+          </div>
           <div class="dash-value" id="dash-avgloss">₹ 0.00</div>
         </div>
-        <div class="dash-card" data-stat="best"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Best Day</span>
-              
-            </div>
+        <div class="dash-card" data-stat="best">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Best Day</span>
+
+          </div>
           <div class="dash-value" id="dash-best">₹ 0.00</div>
           <div class="dash-subvalue" id="dash-best-date">-</div>
         </div>
-        <div class="dash-card" data-stat="worst"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Worst Day</span>
-              
-            </div>
+        <div class="dash-card" data-stat="worst">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Worst Day</span>
+
+          </div>
           <div class="dash-value" id="dash-worst">₹ 0.00</div>
           <div class="dash-subvalue" id="dash-worst-date">-</div>
         </div>
-        <div class="dash-card" data-stat="dd"><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-              <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
-              <span>Max Drawdown</span>
-              
-            </div>
+        <div class="dash-card" data-stat="dd">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span>Max Drawdown</span>
+
+          </div>
           <div class="dash-value" id="dash-dd">₹ 0.00</div>
         </div>
       </div>
@@ -200,7 +228,7 @@
           <div class="section-title">Performance Analytics (Visual Dashboard)</div>
           <div class="dashboard-subtitle">Sample Data</div>
         </div>
-        
+
         <div class="dashboard-actions">
           <div class="dropdown-wrapper">
             <button class="btn btn-outline" id="vd-stats-btn">Stats &#9660;</button>
@@ -216,249 +244,285 @@
           style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px;">
 
           <!-- Cumulative Area Chart -->
-          <div class="dash-card" data-vd-stat="cumulative" data-vd-default-width="6"
-            style="padding: 15px;   "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="cumulative" data-vd-default-width="6" style="padding: 15px;   ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Cumulative
-              Performance</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('cumulative', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('cumulative', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+                Performance</span>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('cumulative', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('cumulative', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-cumulative" style="min-height: 300px; "></div>
           </div>
 
           <!-- Daily Net P/L -->
-          <div class="dash-card" data-vd-stat="daily" data-vd-default-width="6"
-            style="padding: 15px;   "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="daily" data-vd-default-width="6" style="padding: 15px;   ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Daily Net P/L</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('daily', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('daily', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('daily', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('daily', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-daily-pl" style="min-height: 250px; "></div>
           </div>
 
           <!-- Strategy Distribution -->
-          <div class="dash-card" data-vd-stat="distribution" data-vd-default-width="3" style="padding: 15px;  "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="distribution" data-vd-default-width="3" style="padding: 15px;  ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Strategy
-              Distribution</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('dist', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('distribution', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+                Distribution</span>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('dist', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('distribution', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
-            <div id="chart-strategy-dist"
-              style="min-height: 280px;  ">
+            <div id="chart-strategy-dist" style="min-height: 280px;  ">
             </div>
           </div>
 
           <!-- Strategy Profitability -->
-          <div class="dash-card" data-vd-stat="profitability" data-vd-default-width="3" style="padding: 15px;  "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="profitability" data-vd-default-width="3" style="padding: 15px;  ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Strategy
-              Profitability</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('profit', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('profitability', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+                Profitability</span>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('profit', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('profitability', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-strategy-profit" style="min-height: 280px; "></div>
           </div>
 
           <!-- Long vs Short -->
           <div class="dash-card" data-vd-stat="long_short" data-vd-default-width="6"
-            style="padding: 15px;  max-width: 500px; margin: 0 auto; width: 100%;  "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            style="padding: 15px;  max-width: 500px; margin: 0 auto; width: 100%;  ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Long vs Short
-              Performance</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('longShort', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('long_short', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+                Performance</span>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('longShort', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('long_short', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
-            <div id="chart-long-short"
-              style="min-height: 250px;  ">
+            <div id="chart-long-short" style="min-height: 250px;  ">
             </div>
           </div>
 
           <!-- Daily Trade Count & Qty -->
-          <div class="dash-card" data-vd-stat="daily_qty" data-vd-default-width="6"
-            style="padding: 15px;   "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="daily_qty" data-vd-default-width="6" style="padding: 15px;   ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Daily Trade
-              Count & Qty</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('dailyQty', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('daily_qty', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+                Count & Qty</span>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('dailyQty', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('daily_qty', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-daily-qty" style="min-height: 250px; "></div>
           </div>
 
           <!-- PAT (SUM) -->
-          <div class="dash-card" data-vd-stat="pat_sum" data-vd-default-width="6"
-            style="padding: 15px;   "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="pat_sum" data-vd-default-width="6" style="padding: 15px;   ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>PAT (SUM)</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('patSum', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('pat_sum', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('patSum', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('pat_sum', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-pat-sum" style="min-height: 250px; "></div>
           </div>
 
           <!-- Points Per Trade -->
-          <div class="dash-card" data-vd-stat="points_per_trade" data-vd-default-width="6"
-            style="padding: 15px;   "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="points_per_trade" data-vd-default-width="6" style="padding: 15px;   ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Points - Per
-              Trade</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('pointsPerTrade', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('points_per_trade', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+                Trade</span>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('pointsPerTrade', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar" selected>Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('points_per_trade', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-points-per-trade" style="min-height: 250px; "></div>
           </div>
 
           <!-- Points Sum -->
-          <div class="dash-card" data-vd-stat="points_sum" data-vd-default-width="6"
-            style="padding: 15px;   "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="points_sum" data-vd-default-width="6" style="padding: 15px;   ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Points - Sum</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('pointsSum', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('points_sum', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('pointsSum', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('points_sum', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-points-sum" style="min-height: 250px; "></div>
           </div>
 
           <!-- Daily FC -->
-          <div class="dash-card" data-vd-stat="daily_fc" data-vd-default-width="6" style="padding: 15px;  "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="daily_fc" data-vd-default-width="6" style="padding: 15px;  ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Daily FC</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('dailyFc', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('daily_fc', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('dailyFc', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('daily_fc', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-daily-fc" style="min-height: 250px; "></div>
           </div>
 
           <!-- Avg Buy Price -->
-          <div class="dash-card" data-vd-stat="avg_buy_price" data-vd-default-width="6" style="padding: 15px;  "><div class="dash-label vd-drag-handle" style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+          <div class="dash-card" data-vd-stat="avg_buy_price" data-vd-default-width="6" style="padding: 15px;  ">
+            <div class="dash-label vd-drag-handle"
+              style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Avg Buy Price</span>
-              
-            <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;" onchange="updateVdChartType('avgBuyPrice', this.value)">
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-              <option value="bar">Bar</option>
-            
-            </select>
-            <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;" onchange="updateVdChartWidth('avg_buy_price', this.value)">
-              <option value="2">1/3 Width</option>
-              <option value="3">1/2 Width</option>
-              <option value="4">2/3 Width</option>
-              <option value="6">Full Width</option>
-            </select>
+
+              <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartType('avgBuyPrice', this.value)">
+                <option value="line">Line</option>
+                <option value="area">Area</option>
+                <option value="bar">Bar</option>
+
+              </select>
+              <select class="select-box vd-width-select" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
+                onchange="updateVdChartWidth('avg_buy_price', this.value)">
+                <option value="2">1/3 Width</option>
+                <option value="3">1/2 Width</option>
+                <option value="4">2/3 Width</option>
+                <option value="6">Full Width</option>
+              </select>
             </div>
             <div id="chart-avg-buy-price" style="min-height: 250px; "></div>
           </div>
@@ -474,7 +538,7 @@
         <div class="table-header-actions">
 
           <!-- Date Range Filter -->
-          
+
 
           <!-- Note column quick toggle -->
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>

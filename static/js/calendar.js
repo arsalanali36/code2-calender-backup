@@ -271,7 +271,19 @@ function renderCalendar() {
     pencil.addEventListener('click', e => { e.stopPropagation(); openObsModal(dateStr); });
     cell.appendChild(pencil);
 
-    cell.addEventListener('click', () => openGalleryForDate(dateStr));
+    cell.addEventListener('click', () => {
+      if (dayTrades.length === 0) {
+        if (confirm(`Want to create "temp place holder row" for ${dateStr}?`)) {
+          getOrCreateTrade(dateStr);
+          if (typeof saveTrades === 'function') saveTrades();
+          if (typeof renderTable === 'function') renderTable();
+          renderCalendar();
+          openGalleryForDate(dateStr);
+        }
+      } else {
+        openGalleryForDate(dateStr);
+      }
+    });
     grid.appendChild(cell);
   }
 }

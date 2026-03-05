@@ -140,10 +140,50 @@ function showGalleryContextMenu(x, y) {
         addSep();
     }
 
-    menu.appendChild(createOpt('Global (Consolidate)', () => moveSelectedToTrade(dateToUse, null)));
+    const parentOpItem = createOpt('Consolidate \u25B6', () => { });
+    parentOpItem.style.position = 'relative';
+    const subMenu = document.createElement('div');
+    subMenu.style.display = 'none';
+    subMenu.style.position = 'absolute';
+    subMenu.style.left = '100%';
+    subMenu.style.top = '0';
+    subMenu.style.background = 'var(--surface2)';
+    subMenu.style.border = '1px solid var(--border)';
+    subMenu.style.zIndex = '100000';
+    subMenu.style.padding = '4px 0';
+    subMenu.style.minWidth = '160px';
+    subMenu.style.borderRadius = 'var(--radius)';
+    subMenu.style.boxShadow = 'var(--shadow)';
+
+    parentOpItem.appendChild(subMenu);
+
+    const createSubOpt = (text, onClick) => {
+        const opt = document.createElement('div');
+        opt.textContent = text;
+        opt.style.cursor = 'pointer';
+        opt.style.padding = '7px 16px';
+        opt.style.fontSize = '0.85rem';
+        opt.style.whiteSpace = 'nowrap';
+        opt.onmouseenter = () => { opt.style.background = 'var(--hover)'; };
+        opt.onmouseleave = () => { opt.style.background = ''; };
+        opt.onclick = (e) => { e.stopPropagation(); cleanup(); onClick(); };
+        return opt;
+    };
+
+    subMenu.appendChild(createSubOpt('Global (Consolidate)', () => moveSelectedToTrade(dateToUse, null)));
     dayTrades.forEach((tr, i) => {
-        menu.appendChild(createOpt(`Trade ${i + 1}`, () => moveSelectedToTrade(dateToUse, tr)));
+        subMenu.appendChild(createSubOpt(`Trade ${i + 1}`, () => moveSelectedToTrade(dateToUse, tr)));
     });
+
+    parentOpItem.onmouseenter = () => {
+        parentOpItem.style.background = 'var(--hover)';
+        subMenu.style.display = 'block';
+    };
+    parentOpItem.onmouseleave = () => {
+        parentOpItem.style.background = '';
+        subMenu.style.display = 'none';
+    };
+    menu.appendChild(parentOpItem);
 
     document.body.appendChild(menu);
     const rect = menu.getBoundingClientRect();

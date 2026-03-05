@@ -175,11 +175,18 @@ function renderVisualDashboard() {
         const fc = parseFloat(t['fill_count'] || t['FC']) || 0;
         const buyPrice = parseFloat(t['Buy Price (Avg)'] || t['Buy Price']) || 0;
 
-        pointsPerTradeData.push({ x: `T${totalTradesCount}`, y: pt });
+        let d = normalizeDate(extractDateFromTrade(t));
+
+        // Push full data for tooltip formatting
+        pointsPerTradeData.push({
+            x: `T${totalTradesCount}`,
+            y: pt,
+            date: d || 'Unknown',
+            amt: pnl
+        });
 
         // Daily map
         const mode = typeof state !== 'undefined' ? state.calendarMode : 'consolidated';
-        let d = normalizeDate(extractDateFromTrade(t));
         if (mode === 'individual') {
             d = `T${totalTradesCount} (${d})`;
         }
@@ -501,7 +508,22 @@ function renderVisualDashboard() {
         },
         xaxis: { categories: pointsPerTradeData.map(p => p.x).length ? pointsPerTradeData.map(p => p.x) : ['No Data'], labels: { show: false } }, // hides large number of trade labels
         yaxis: { labels: { formatter: (val) => Number(val).toLocaleString() } },
-        dataLabels: { enabled: false }
+        dataLabels: { enabled: false },
+        tooltip: {
+            theme: 'dark',
+            custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+                const data = pointsPerTradeData[dataPointIndex];
+                if (!data) return '';
+                return `
+                  <div style="padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;">
+                    <div><strong>Date:</strong> ${data.date}</div>
+                    <div><strong>Trade:</strong> ${data.x}</div>
+                    <div><strong>PT:</strong> ${data.y}</div>
+                    <div><strong>AMT:</strong> ₹ ${data.amt.toFixed(2)}</div>
+                  </div>
+                `;
+            }
+        }
     });
     vdCharts.pointsPerTrade.render();
 
