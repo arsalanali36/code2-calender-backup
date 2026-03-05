@@ -3,6 +3,14 @@ Here is a complete, date-wise breakdown of all the features, updates, and refact
 
 ---
 
+## 🚀 Version 2.2.1 (Dashboards & Filtering UI)
+**Date:** `March 05, 2026`
+- **Global Date Filtering:** Swapped out component-level date pickers for one unified, global Date Range filter integrated into the main application navigation header.
+- **Visual Dashboard Upgrade:** Completely transformed the static chart metrics to interactive cards. Added dynamic selection dropdowns to toggle between Area, Bar, and Line interpretations on-the-fly.
+- **Layout Elasticity:** Injected Width selectors allowing cards to dynamically span `1/3`, `1/2`, `2/3`, or `Full` grid sizes.
+- **Customizable Sorting:** Applied Drag-and-Drop methodology to Visual Dashboard tiles—empowering full re-arrangement and custom stat-prioritization mappings alongside a visibility menu to hide/show metrics.
+
+
 ## 🚀 Version 2.2.0 (Latest Update)
 **Date:** `March 04, 2026`
 - **Windows File Explorer Paste:** Rewrote the entire clipboard backend utilizing the `win32clipboard` and `CF_HDROP` memory structures. The gallery's "Copy Image" context menu now successfully copies the *actual image file* directly to your computer's system clipboard, enabling seamless native `Ctrl + V` pasting directly into Windows Explorer directories. 
