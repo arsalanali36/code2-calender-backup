@@ -178,10 +178,39 @@ function showGalleryContextMenu(x, y) {
     parentOpItem.onmouseenter = () => {
         parentOpItem.style.background = 'var(--hover)';
         subMenu.style.display = 'block';
+
+        // Recalculate layout based on absolute positioning from viewport
+        requestAnimationFrame(() => {
+            const menuRect = menu.getBoundingClientRect();
+            const subMenuRect = subMenu.getBoundingClientRect();
+
+            // Re-adjust horizontal alignment
+            if (menuRect.right + subMenuRect.width > window.innerWidth) {
+                subMenu.style.left = 'auto';
+                subMenu.style.right = '100%';
+            } else {
+                subMenu.style.right = 'auto';
+                subMenu.style.left = '100%';
+            }
+
+            // Re-adjust vertical alignment (if it goes off screen on bottom)
+            const parentRect = parentOpItem.getBoundingClientRect();
+            if (parentRect.top + subMenuRect.height > window.innerHeight) {
+                subMenu.style.top = 'auto';
+                subMenu.style.bottom = '0';
+            } else {
+                subMenu.style.bottom = 'auto';
+                subMenu.style.top = '0';
+            }
+        });
     };
     parentOpItem.onmouseleave = () => {
         parentOpItem.style.background = '';
         subMenu.style.display = 'none';
+        subMenu.style.top = '0';
+        subMenu.style.bottom = 'auto';
+        subMenu.style.left = '100%';
+        subMenu.style.right = 'auto';
     };
     menu.appendChild(parentOpItem);
 
