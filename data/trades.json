@@ -11185,7 +11185,7 @@
       "Buy Price (Avg)": "",
       "Buy Time": "",
       "Gross P/L": "",
-      "Image Tags": "",
+      "Image Tags": "news, news+",
       "Instrument": "",
       "Net P/L": "",
       "Note": "",
@@ -11201,10 +11201,30 @@
       "TradeType": "",
       "Video": "",
       "date": "2026-03-03",
-      "imageTags": {},
+      "fabricData": {
+        "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        }
+      },
+      "imageTags": {
+        "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": [
+          "news+",
+          "news"
+        ]
+      },
       "images": [
         "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png"
       ],
+      "marqueeBoxes": {
+        "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": []
+      },
       "observation": "",
       "trade_date": "2026-03-03"
     },
@@ -11230,13 +11250,81 @@
       "TradeType": "",
       "Video": "",
       "date": "2026-03-04",
+      "fabricData": {
+        "/uploads/587e4db0-4cef-4a94-9d47-df3f1d2768ed.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/8a61a0d6-4106-4093-943a-6a5ef09e0b31.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        }
+      },
       "groupNames": {
-        "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png": "TRADE1"
+        "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png": "TRADE1",
+        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png": "EOD"
       },
       "imageTags": {},
-      "images": [
-        "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png"
-      ],
+      "images": [],
+      "marqueeBoxes": {
+        "/uploads/587e4db0-4cef-4a94-9d47-df3f1d2768ed.png": [
+          {
+            "rh": 0.0671462829736211,
+            "rw": 0.06042654028436019,
+            "rx": 0.34845971383189706,
+            "ry": 0.2545803353654967,
+            "tags": [
+              "Conti"
+            ]
+          },
+          {
+            "rh": 0.07753138124122494,
+            "rw": 0.07171312054882736,
+            "rx": 0.312635273073401,
+            "ry": 0.5590177365008004,
+            "tags": [
+              "Reversal-Fail"
+            ]
+          }
+        ],
+        "/uploads/8a61a0d6-4106-4093-943a-6a5ef09e0b31.png": [
+          {
+            "rh": 0.03597122302158273,
+            "rw": 0.02132701421800948,
+            "rx": 0.39229857639113874,
+            "ry": 0.24738609076118012,
+            "tags": [
+              "Reversal"
+            ]
+          },
+          {
+            "rh": 0.10551558752997602,
+            "rw": 0.10308056872037914,
+            "rx": 0.5167061593295273,
+            "ry": 0.6766426854854007,
+            "tags": [
+              "EntryMiss"
+            ]
+          },
+          {
+            "rh": 0.07673860911270983,
+            "rw": 0.022511848341232227,
+            "rx": 0.405331751746589,
+            "ry": 0.4895923257731705,
+            "tags": [
+              "EntryMiss"
+            ]
+          }
+        ],
+        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png": []
+      },
       "observation": "",
       "subImages": {
         "/uploads/02440bdf-0513-43dd-bf80-b86f9b5c737c.png": [
@@ -11252,6 +11340,10 @@
           "/uploads/ed54bf5e-30d1-4cea-949a-e11c4abd27a0.png",
           "/uploads/4c64feca-8c44-4ba0-8528-d9b432f06ecc.png",
           "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png"
+        ],
+        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png": [
+          "/uploads/587e4db0-4cef-4a94-9d47-df3f1d2768ed.png",
+          "/uploads/8a61a0d6-4106-4093-943a-6a5ef09e0b31.png"
         ],
         "/uploads/ed54bf5e-30d1-4cea-949a-e11c4abd27a0.png": [
           "/uploads/aba385f6-e473-443a-af08-4f66feba7f09.png"
@@ -11282,10 +11374,61 @@
       "Video": "",
       "date": "2026-03-04",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/7620ac87-4228-4503-af3b-cfd79253ddda.png",
+        "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-04"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": "",
+      "Buy Price (Avg)": "",
+      "Buy Time": "",
+      "Gross P/L": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Net P/L": "",
+      "Note": "",
+      "Other Charges": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price (Avg)": "",
+      "Sell Time": "",
+      "Tags": "",
+      "Total Fees": "",
+      "Total Trades": "",
+      "TradeType": "",
+      "Video": "",
+      "date": "2026-03-05",
+      "imageTags": {},
+      "images": [
+        "/uploads/24f906cb-7657-485a-a91f-4b509f9186c5.png",
+        "/uploads/5512f856-0620-4cc2-9a5e-2cac750a62d2.png",
+        "/uploads/884c74cc-9ed7-488d-81f4-1c3f85e8a344.png",
+        "/uploads/6d93e7d8-4a7e-4cd0-9194-0b1214b372f6.png",
+        "/uploads/da637bb0-6e6c-43c4-abd4-70202155e864.png",
+        "/uploads/dadcdac9-6d71-4007-b113-aea977d3c5a0.png",
+        "/uploads/b8eab4b2-00c1-44f4-8a1e-89f5507a4b76.png",
+        "/uploads/c963eeb2-d423-45f9-a9de-6ec91683fbaf.png",
+        "/uploads/924a2e13-6067-4be7-8dae-e905a21df299.png",
+        "/uploads/97240366-30a6-44fe-a45f-0394630b7b6e.png",
+        "/uploads/4ec9cb73-aed6-4d9e-884b-59fcc3b4f6f3.png",
+        "/uploads/c57f29d7-0e36-4f3b-b4ce-23cb57e1ab22.png",
+        "/uploads/b0de7e8c-0937-4f1b-bf0d-ef0a586d4962.png",
+        "/uploads/40a0e4a6-7f2a-4269-bbeb-a285bc3951c4.png",
+        "/uploads/6576d71a-0523-45a1-b212-aa1c91d1fdd3.png",
+        "/uploads/f00547f0-ab14-4b4d-bbcd-ff1afdc009a0.png",
+        "/uploads/4a8400fb-461f-41f7-8323-0f0faac9c8e9.png",
+        "/uploads/b9bae3d1-03aa-4f2d-bf5e-060fb225cb2e.png",
+        "/uploads/9615ed6a-5e12-4f85-bcce-2268c19c3a5d.png",
+        "/uploads/4bbff287-df46-4960-b25d-4d34055367f5.png"
+      ],
+      "observation": "",
+      "trade_date": "2026-03-05"
     }
   ],
   "columns": [
@@ -11351,7 +11494,8 @@
     "Reversal-Fail",
     "unexpected Move",
     "kill Switch",
-    "almostPerfect"
+    "almostPerfect",
+    "news+"
   ],
   "tagColumns": [
     "Tags"
@@ -11445,6 +11589,106 @@
       "video": "https://youtu.be/b2T_q2edvI0?si=E-SXQypuYMUiRLhl"
     },
     "2026-02-04": {
+      "fabricData": {
+        "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": {
+          "backgroundImage": {
+            "angle": 0,
+            "backgroundColor": "",
+            "cropX": 0,
+            "cropY": 0,
+            "crossOrigin": "anonymous",
+            "data": {
+              "isOverlayBase": true
+            },
+            "evented": false,
+            "fill": "rgb(0,0,0)",
+            "fillRule": "nonzero",
+            "filters": [],
+            "flipX": false,
+            "flipY": false,
+            "globalCompositeOperation": "source-over",
+            "height": 469,
+            "hoverCursor": null,
+            "left": 0,
+            "opacity": 1,
+            "originX": "left",
+            "originY": "top",
+            "paintFirst": "fill",
+            "scaleX": 0.9,
+            "scaleY": 0.9,
+            "selectable": false,
+            "shadow": null,
+            "skewX": 0,
+            "skewY": 0,
+            "src": "http://localhost:5000/uploads/5c4af92c-4b8f-403a-b692-c9a43c65a525.png",
+            "stroke": null,
+            "strokeDashArray": null,
+            "strokeDashOffset": 0,
+            "strokeLineCap": "butt",
+            "strokeLineJoin": "miter",
+            "strokeMiterLimit": 4,
+            "strokeUniform": false,
+            "strokeWidth": 0,
+            "top": 0,
+            "type": "image",
+            "version": "5.3.0",
+            "visible": true,
+            "width": 321
+          },
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": {
+          "backgroundImage": {
+            "angle": 0,
+            "backgroundColor": "",
+            "cropX": 0,
+            "cropY": 0,
+            "crossOrigin": "anonymous",
+            "data": {
+              "isOverlayBase": true
+            },
+            "evented": false,
+            "fill": "rgb(0,0,0)",
+            "fillRule": "nonzero",
+            "filters": [],
+            "flipX": false,
+            "flipY": false,
+            "globalCompositeOperation": "source-over",
+            "height": 469,
+            "hoverCursor": null,
+            "left": 0,
+            "opacity": 1,
+            "originX": "left",
+            "originY": "top",
+            "paintFirst": "fill",
+            "scaleX": 0.9,
+            "scaleY": 0.9,
+            "selectable": false,
+            "shadow": null,
+            "skewX": 0,
+            "skewY": 0,
+            "src": "http://localhost:5000/uploads/d9c6aeb1-ec84-45ab-bea4-b84cb44b9528.png",
+            "stroke": null,
+            "strokeDashArray": null,
+            "strokeDashOffset": 0,
+            "strokeLineCap": "butt",
+            "strokeLineJoin": "miter",
+            "strokeMiterLimit": 4,
+            "strokeUniform": false,
+            "strokeWidth": 0,
+            "top": 0,
+            "type": "image",
+            "version": "5.3.0",
+            "visible": true,
+            "width": 868
+          },
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        }
+      },
       "imageTags": {},
       "images": [
         "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png",
@@ -11517,8 +11761,8 @@
           {
             "rh": 0.14444444444444443,
             "rw": 0.09735576923076923,
-            "rx": 0.4014423076923077,
-            "ry": 0.3288888888888889,
+            "rx": 0.40144230769230765,
+            "ry": 0.32888888888888895,
             "tags": [
               "news"
             ]
@@ -19785,46 +20029,53 @@
     "2026-03-03": {},
     "2026-03-04": {
       "closeImages": [],
-      "imageTags": {},
-      "images": [
-        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png",
-        "/uploads/dd4f8786-3fc5-4fd1-96c5-972ad7b3a68e.png",
-        "/uploads/d257107e-2806-4f3e-b246-e6dfa61366bf.png",
-        "/uploads/fcfb3e34-9893-4a4e-8dc2-4e1cb5126ac8.png",
-        "/uploads/55ca9633-de77-4107-aa44-3a06ae2ded64.png",
-        "/uploads/ba07ed25-25ce-44c3-83b5-62f965af48da.png",
-        "/uploads/84d08c8a-c997-48ba-97b9-50e4fc53bcf8.png",
-        "/uploads/a8c523fb-3a86-4153-8966-77cba06d9506.png"
-      ],
       "fabricData": {
-        "/uploads/800a790b-f21d-4fbd-bf62-7eee7b4b5938.png": {
-          "version": "5.3.0",
+        "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": {
+          "hoverCursor": "move",
           "objects": [],
-          "hoverCursor": "move"
+          "version": "5.3.0"
+        },
+        "/uploads/800a790b-f21d-4fbd-bf62-7eee7b4b5938.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
         },
         "/uploads/a59b1af7-d5b4-4775-a970-04b02a2eed73.png": {
-          "version": "5.3.0",
+          "hoverCursor": "move",
           "objects": [],
-          "hoverCursor": "move"
+          "version": "5.3.0"
         },
-        "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": {
-          "version": "5.3.0",
+        "/uploads/dd4f8786-3fc5-4fd1-96c5-972ad7b3a68e.png": {
+          "hoverCursor": "move",
           "objects": [],
-          "hoverCursor": "move"
+          "version": "5.3.0"
+        },
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
         },
         "/uploads/fb01aa47-d10b-4034-8165-2405f5f6baea.png": {
-          "version": "5.3.0",
+          "hoverCursor": "move",
           "objects": [],
-          "hoverCursor": "move"
+          "version": "5.3.0"
         }
       },
+      "groupNames": {
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png": "OPEN"
+      },
+      "imageTags": {},
+      "images": [
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png"
+      ],
       "marqueeBoxes": {
+        "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": [],
         "/uploads/800a790b-f21d-4fbd-bf62-7eee7b4b5938.png": [
           {
+            "rh": 0.1326530612244898,
+            "rw": 0.08648111332007952,
             "rx": 0.3760618054369098,
             "ry": 0.29341372275839045,
-            "rw": 0.08648111332007952,
-            "rh": 0.1326530612244898,
             "tags": [
               "clean",
               "almostPerfect"
@@ -19832,9 +20083,34 @@
           }
         ],
         "/uploads/a59b1af7-d5b4-4775-a970-04b02a2eed73.png": [],
-        "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": [],
+        "/uploads/dd4f8786-3fc5-4fd1-96c5-972ad7b3a68e.png": [],
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png": [
+          {
+            "rh": 0.21733724131805668,
+            "rw": 0.41021836307848325,
+            "rx": 0.4973684295062542,
+            "ry": 0.35575309094087576,
+            "tags": [
+              "news"
+            ]
+          }
+        ],
         "/uploads/fb01aa47-d10b-4034-8165-2405f5f6baea.png": []
+      },
+      "subImages": {
+        "/uploads/ef142381-6000-462c-a6cb-d6ae73db7126.png": [
+          "/uploads/dd4f8786-3fc5-4fd1-96c5-972ad7b3a68e.png",
+          "/uploads/d257107e-2806-4f3e-b246-e6dfa61366bf.png",
+          "/uploads/fcfb3e34-9893-4a4e-8dc2-4e1cb5126ac8.png",
+          "/uploads/55ca9633-de77-4107-aa44-3a06ae2ded64.png",
+          "/uploads/ba07ed25-25ce-44c3-83b5-62f965af48da.png",
+          "/uploads/84d08c8a-c997-48ba-97b9-50e4fc53bcf8.png",
+          "/uploads/a8c523fb-3a86-4153-8966-77cba06d9506.png"
+        ]
       }
+    },
+    "2026-03-05": {
+      "images": []
     }
   },
   "tagGroups": {

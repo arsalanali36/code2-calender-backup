@@ -330,8 +330,8 @@ function renderYearlyView() {
       else if (yHoliday) cell.classList.add('market-holiday');
       const titlePnl = val !== 0 ? ` • ${formatCurrency(val)}` : '';
       cell.title = yMuhurat ? `${dateStr} — ${yMuhurat}${titlePnl}` :
-                   yHoliday ? `${dateStr} — ${yHoliday}${titlePnl}` :
-                   `${dateStr}${titlePnl}`;
+        yHoliday ? `${dateStr} — ${yHoliday}${titlePnl}` :
+          `${dateStr}${titlePnl}`;
       grid.appendChild(cell);
     }
 
@@ -357,7 +357,7 @@ function getTradeForDate(dateStr) {
 }
 
 function getTradesForDate(dateStr) {
-  return state.trades.filter(t => normalizeDate(extractDateFromTrade(t)) === dateStr);
+  return state.trades.filter(t => normalizeDate(extractDateFromTrade(t)) === dateStr && tradeMatchesDateRange(t));
 }
 
 function getThumbnailTaggedImageForTrades(trades) {

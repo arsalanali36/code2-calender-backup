@@ -19,34 +19,24 @@ async function init() {
 }
 
 function populateSelects() {
-  const ms = document.getElementById('month-select');
-  const ys = document.getElementById('year-select');
-  const vs = document.getElementById('view-select');
-  const vd_ms = document.getElementById('vd-month-select');
-  const vd_ys = document.getElementById('vd-year-select');
+  const ms = document.getElementById('glob-month');
+  const ys = document.getElementById('glob-year');
+  const vs = document.getElementById('glob-view');
 
-  MONTHS.forEach((m, i) => {
-    const o = document.createElement('option');
-    o.value = i; o.textContent = m; if (i === state.month) o.selected = true;
-    ms.appendChild(o);
+  if (ms) {
+    MONTHS.forEach((m, i) => {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = m; if (i === state.month) o.selected = true;
+      ms.appendChild(o);
+    });
+  }
 
-    if (vd_ms) {
-      const o_vd = document.createElement('option');
-      o_vd.value = i; o_vd.textContent = m; if (i === state.month) o_vd.selected = true;
-      vd_ms.appendChild(o_vd);
-    }
-  });
-
-  const cy = new Date().getFullYear();
-  for (let y = cy - 5; y <= cy + 2; y++) {
-    const o = document.createElement('option');
-    o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
-    ys.appendChild(o);
-
-    if (vd_ys) {
-      const o_vd = document.createElement('option');
-      o_vd.value = y; o_vd.textContent = y; if (y === state.year) o_vd.selected = true;
-      vd_ys.appendChild(o_vd);
+  if (ys) {
+    const cy = new Date().getFullYear();
+    for (let y = cy - 5; y <= cy + 2; y++) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
+      ys.appendChild(o);
     }
   }
   if (vs) vs.value = state.calendarView;
@@ -624,5 +614,14 @@ function migrateLegacyTagsData() {
   }
   normalizeAllTagsFromTrades();
   return changed;
+}
+
+function tradeMatchesDateRange(trade) {
+  if (!state.dateRange.from && !state.dateRange.to) return true;
+  const dk = normalizeDate(extractDateFromTrade(trade));
+  if (!dk) return false;
+  if (state.dateRange.from && dk < state.dateRange.from) return false;
+  if (state.dateRange.to && dk > state.dateRange.to) return false;
+  return true;
 }
 

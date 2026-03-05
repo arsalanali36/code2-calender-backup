@@ -16,11 +16,7 @@ function getFilteredTrades() {
     if (!colMatch) return false;
     if (!tradeMatchesBrokerFilter(trade)) return false;
     if (!tradeMatchesTagFilter(trade)) return false;
-    if (state.dateRange.from || state.dateRange.to) {
-      const dk = normalizeDate(extractDateFromTrade(trade));
-      if (state.dateRange.from && dk < state.dateRange.from) return false;
-      if (state.dateRange.to && dk > state.dateRange.to) return false;
-    }
+    if (!tradeMatchesDateRange(trade)) return false;
     return true;
   });
 }

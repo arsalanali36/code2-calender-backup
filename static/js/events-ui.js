@@ -1,21 +1,23 @@
 // events-ui.js — Calendar, table, column ops, date range event bindings
 
 function _bindUIEvents() {
-  document.getElementById('month-select').addEventListener('change', e => {
+  const gm = document.getElementById('glob-month');
+  if (gm) gm.addEventListener('change', e => {
     state.month = parseInt(e.target.value);
-    renderCalendar();
-    renderDashboard();
+    render();
   });
-  document.getElementById('view-select').addEventListener('change', e => {
+  const gv = document.getElementById('glob-view');
+  if (gv) gv.addEventListener('change', e => {
     state.calendarView = String(e.target.value || 'month');
-    renderCalendar();
+    render();
   });
-  document.getElementById('year-select').addEventListener('change', e => {
+  const gy = document.getElementById('glob-year');
+  if (gy) gy.addEventListener('change', e => {
     state.year = parseInt(e.target.value);
-    renderCalendar();
-    renderDashboard();
+    render();
   });
-  document.getElementById('prev-month').addEventListener('click', () => {
+  const gp = document.getElementById('glob-prev');
+  if (gp) gp.addEventListener('click', () => {
     if (state.calendarView === 'year') {
       state.year--;
     } else {
@@ -23,10 +25,10 @@ function _bindUIEvents() {
       if (state.month < 0) { state.month = 11; state.year--; }
     }
     syncSelects();
-    renderCalendar();
-    renderDashboard();
+    render();
   });
-  document.getElementById('next-month').addEventListener('click', () => {
+  const gn = document.getElementById('glob-next');
+  if (gn) gn.addEventListener('click', () => {
     if (state.calendarView === 'year') {
       state.year++;
     } else {
@@ -34,16 +36,15 @@ function _bindUIEvents() {
       if (state.month > 11) { state.month = 0; state.year++; }
     }
     syncSelects();
-    renderCalendar();
-    renderDashboard();
+    render();
   });
-  document.getElementById('today-btn').addEventListener('click', () => {
+  const gt = document.getElementById('glob-today');
+  if (gt) gt.addEventListener('click', () => {
     const now = new Date();
     state.month = now.getMonth();
     state.year = now.getFullYear();
     syncSelects();
-    renderCalendar();
-    renderDashboard();
+    render();
   });
   document.getElementById('calendar-mode-btn').addEventListener('click', () => {
     state.calendarMode = state.calendarMode === 'consolidated' ? 'individual' : 'consolidated';
@@ -233,9 +234,9 @@ function _bindUIEvents() {
     _updateNoteToggleBtn();
   }
 
-  const _drFrom = document.getElementById('date-range-from');
-  const _drTo = document.getElementById('date-range-to');
-  const _drClear = document.getElementById('date-range-clear');
+  const _drFrom = document.getElementById('glob-date-from');
+  const _drTo = document.getElementById('glob-date-to');
+  const _drClear = document.getElementById('glob-date-clear');
   const _loadDateRange = () => {
     try { const r = JSON.parse(localStorage.getItem('tj_dateRange') || '{}'); state.dateRange = { from: r.from || '', to: r.to || '' }; } catch (e) { }
     if (_drFrom) _drFrom.value = state.dateRange.from;
@@ -249,13 +250,13 @@ function _bindUIEvents() {
     if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
     if (_drClear) _drClear.style.display = active ? '' : 'none';
   };
-  if (_drFrom) _drFrom.addEventListener('change', () => { state.dateRange.from = _drFrom.value; _saveDateRange(); _updateDateRangeUI(); renderTable(); });
-  if (_drTo) _drTo.addEventListener('change', () => { state.dateRange.to = _drTo.value; _saveDateRange(); _updateDateRangeUI(); renderTable(); });
+  if (_drFrom) _drFrom.addEventListener('change', () => { state.dateRange.from = _drFrom.value; _saveDateRange(); _updateDateRangeUI(); render(); });
+  if (_drTo) _drTo.addEventListener('change', () => { state.dateRange.to = _drTo.value; _saveDateRange(); _updateDateRangeUI(); render(); });
   if (_drClear) _drClear.addEventListener('click', () => {
     state.dateRange = { from: '', to: '' };
     if (_drFrom) _drFrom.value = '';
     if (_drTo) _drTo.value = '';
-    _saveDateRange(); _updateDateRangeUI(); renderTable();
+    _saveDateRange(); _updateDateRangeUI(); render();
   });
   _loadDateRange();
 }

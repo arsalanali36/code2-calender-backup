@@ -70,6 +70,8 @@ function getTradePnl(trade) {
 function getTradesForMonth(year, monthIndex) {
   return state.trades.filter(t => {
     if (!tradeMatchesBrokerFilter(t)) return false;
+    if (!tradeMatchesDateRange(t)) return false;
+    if (state.dateRange.from || state.dateRange.to) return true;
     const ds = normalizeDate(extractDateFromTrade(t));
     if (!ds || !/^\d{4}-\d{2}-\d{2}$/.test(ds)) return false;
     const d = new Date(ds + 'T00:00:00');
@@ -110,7 +112,13 @@ function formatShortDate(dateStr) {
 
 function renderDashboard() {
   const subtitle = document.getElementById('dashboard-subtitle');
-  if (subtitle) subtitle.textContent = `for ${MONTHS[state.month]} ${state.year}`;
+  if (subtitle) {
+    if (state.dateRange.from || state.dateRange.to) {
+      subtitle.textContent = `for ${state.dateRange.from || '...'} to ${state.dateRange.to || '...'}`;
+    } else {
+      subtitle.textContent = `for ${MONTHS[state.month]} ${state.year}`;
+    }
+  }
   applyDashboardStatVisibility();
   applyDashboardStatOrder();
 

@@ -105,6 +105,8 @@ function getVdTrades() {
     return allTrades.filter(t => {
         // Check if the trade matches the broker filter if it's there
         if (typeof tradeMatchesBrokerFilter === 'function' && !tradeMatchesBrokerFilter(t)) return false;
+        if (typeof tradeMatchesDateRange === 'function' && !tradeMatchesDateRange(t)) return false;
+        if (typeof state !== 'undefined' && (state.dateRange.from || state.dateRange.to)) return true;
 
         // Parse Date
         let ds = extractDateFromTrade(t);

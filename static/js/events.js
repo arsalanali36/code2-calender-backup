@@ -118,12 +118,13 @@ function bindEvents() {
 }
 
 function syncSelects() {
-  document.getElementById('month-select').value = state.month;
-  document.getElementById('year-select').value = state.year;
-  const vs = document.getElementById('view-select');
-  if (vs) vs.value = state.calendarView;
-  const ms = document.getElementById('month-select');
-  if (ms) ms.disabled = state.calendarView === 'year';
+  const m = document.getElementById('glob-month');
+  if (m) m.value = state.month;
+  const y = document.getElementById('glob-year');
+  if (y) y.value = state.year;
+  const v = document.getElementById('glob-view');
+  if (v) v.value = state.calendarView;
+  if (m && v) m.disabled = state.calendarView === 'year';
 }
 
 init();

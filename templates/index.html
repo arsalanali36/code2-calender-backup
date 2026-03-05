@@ -19,6 +19,26 @@
       <span class="logo-icon">&#9650;</span>
       <span class="logo-text">Trading Journal</span>
     </div>
+    
+    <div class="calendar-nav global-date-nav" style="background:var(--bg2); padding:4px 8px; border-radius:6px; border:1px solid var(--border1);">
+      <button class="nav-arrow" id="glob-prev">&#8249;</button>
+      <select id="glob-month" class="select-box"></select>
+      <select id="glob-view" class="select-box">
+        <option value="month" selected>Month</option>
+        <option value="year">Year</option>
+      </select>
+      <select id="glob-year" class="select-box"></select>
+      <button class="nav-arrow" id="glob-next">&#8250;</button>
+      <button class="btn btn-outline" id="glob-today">Today</button>
+      
+      <span style="color:var(--text2); margin:0 8px;">|</span>
+      
+      <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
+      <span class="date-range-sep">&#8212;</span>
+      <input type="date" id="glob-date-to" class="select-box date-range-input" title="To date" />
+      <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter" style="display:none;">&#10005;</button>
+    </div>
+
     <div class="header-actions">
       <div class="dropdown-wrapper">
         <button class="btn btn-outline" id="broker-filter-btn-top">Broker: Both &#9660;</button>
@@ -38,18 +58,7 @@
     <!-- ── CALENDAR SECTION ─────────────────── -->
     <section class="section calendar-section">
       <div class="section-header">
-        <div class="calendar-nav">
-          <button class="nav-arrow" id="prev-month">&#8249;</button>
-          <select id="month-select" class="select-box"></select>
-          <select id="view-select" class="select-box">
-            <option value="month" selected>Month</option>
-            <option value="year">Year</option>
-          </select>
-          <select id="year-select" class="select-box"></select>
-          <button class="nav-arrow" id="next-month">&#8250;</button>
-          <button class="btn btn-outline" id="today-btn">Today</button>
-          <span class="range-label" id="month-range-label"></span>
-        </div>
+        
         <div class="show-heads-wrapper">
           <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
           <div class="show-heads-panel" id="show-heads-panel">
@@ -191,18 +200,7 @@
           <div class="section-title">Performance Analytics (Visual Dashboard)</div>
           <div class="dashboard-subtitle">Sample Data</div>
         </div>
-        <div class="calendar-nav" style="margin-left: auto;">
-          <button class="nav-arrow" id="vd-prev-month">&#8249;</button>
-          <select id="vd-month-select" class="select-box"></select>
-          <select id="vd-view-select" class="select-box">
-            <option value="month" selected>Month</option>
-            <option value="year">Year</option>
-          </select>
-          <select id="vd-year-select" class="select-box"></select>
-          <button class="nav-arrow" id="vd-next-month">&#8250;</button>
-          <button class="btn btn-outline" id="vd-today-btn">Today</button>
-          <span class="range-label" id="vd-range-label"></span>
-        </div>
+        
         <div class="dashboard-actions">
           <div class="dropdown-wrapper">
             <button class="btn btn-outline" id="vd-stats-btn">Stats &#9660;</button>
@@ -476,13 +474,7 @@
         <div class="table-header-actions">
 
           <!-- Date Range Filter -->
-          <div class="date-range-filter">
-            <input type="date" id="date-range-from" class="select-box date-range-input" title="From date" />
-            <span class="date-range-sep">&#8212;</span>
-            <input type="date" id="date-range-to" class="select-box date-range-input" title="To date" />
-            <button class="btn btn-outline date-range-clear" id="date-range-clear"
-              title="Clear date filter">&#10005;</button>
-          </div>
+          
 
           <!-- Note column quick toggle -->
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
