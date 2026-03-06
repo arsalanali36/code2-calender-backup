@@ -26,12 +26,20 @@
 - Write down a concise, bulleted daily summary of every feature, bug fix, or update we worked on together today. Put it under a new `🌟 TODAY'S END OF DAY SUMMARY ([Current Date])` section or update the existing latest version.
 - Save this file to ensure all AI agents have access to the exact feature history tomorrow.
 
-**5. Git Push Preparation:**
-- Finally, provide me with a quick bulleted summary of everything you optimized and updated in the Changelog today.
-- Generate a clean multi-command chain that I can copy-paste into my terminal to instantly commit and push the code:
+**5. File Size Enforcement:**
+- Check ALL JS, CSS, HTML files for the **30KB hard limit**. If any file exceeds it, split immediately:
+  - JS → split along function boundaries
+  - CSS → split at `/* ── SECTION` boundary
+  - HTML → use Jinja2 `{% include %}`
+- Check ALL `Docs/AI_Contexts/AI_CONTEXT_*.md` files — none should exceed 30KB. If over, split into separate groups in `Scripts/generate_context.py`.
+
+**6. Git Commit & Push (includes data backup):**
+- Stage and commit ALL changed files — including `data/trades.json` (this is our trade data backup on GitHub).
+- Do NOT skip trades.json — it contains tags, images refs, overlays, observations. It must be in every EOD commit.
+- Commit with a clear message summarizing today's work, then push:
    ```bash
    git add .
-   git commit -m "EOD Update: [Summarize the daily changelog and technical changes here briefly]"
+   git commit -m "EOD [Date]: [summary of features/fixes + file splits]"
    git push
    ```
 "
@@ -40,4 +48,5 @@
 ### 💡 Why this specific prompt works:
 1. **Saves Future Context Window:** AI immediately understands it needs to split large chunks rather than piling onto single files.
 2. **Auto-updates the "Brain":** It forces the AI to rebuild `AI_CONTEXT...md` files instantly, meaning tomorrow when you return, the AI has a 100% updated map of your project without re-reading huge folders.
-3. **One-click Git:** It hands you the exact terminal command for version control, saving mental energy at the close of your day.
+3. **One-click Git:** It handles the entire commit including `data/trades.json` — so tags, notes, overlays are always backed up on GitHub.
+4. **Triple backup system:** Images → Google Drive (real-time junction sync) | trades.json → GitHub (every EOD) + Google Drive (11:30 PM daily task) | Code → GitHub.
