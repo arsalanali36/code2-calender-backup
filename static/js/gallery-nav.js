@@ -1,6 +1,11 @@
 /**
  * @fileoverview gallery-nav.js
- * @description Navigating indices and managing resource caching of prev/next.
+ * @description Loads overlay+marquee for current image; navigate gallery by index or date.
+ * @exports loadOverlayForCurrentImage, navigateGallery, navigateGalleryDate,
+ *          updateGalleryDateArrows, getGalleryDateScopeForFilter
+ * @reads state.gallery.{images,currentIndex,date,tagFilter}, state._localOverlays
+ * @writes state.gallery.currentIndex, state.gallery.date (date navigation)
+ * @calls renderGallery, getOverlayUrlForImage, getMarqueeBoxesForImage, renderMarqueeScene
  */
 
 function loadOverlayForCurrentImage() {

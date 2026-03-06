@@ -6,7 +6,14 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview settings.js
- * @description Handles system-wide preferences local storage saves and popups.
+ * @description Settings panel: column visibility, keyboard shortcuts, saved views, show-heads.
+ * @exports loadSettingsFromStorage, applySettingsToDOM, saveSettings, readSettingsFromPanel,
+ *          loadShortcutsFromStorage, shortcutMatches, eventToShortcut, populateShortcutPanel,
+ *          getActiveShowHeads, initShowHeads, renderShowHeads, initTableShowCols,
+ *          getSavedViews, loadColWidths, loadTagGroups, saveTagGroups
+ * @reads state.columns, state.showHeadsConsolidated, state.showHeadsIndividual
+ * @writes state.tableShowCols, state.tagGroups, state.colWidths, state.shortcuts
+ * @storage tj_settings, tj_shortcuts, tj_tagGroups, tj_colWidths, tj_tblFontSize, tj_rowHeight
  */
 
 function loadSettingsFromStorage() {

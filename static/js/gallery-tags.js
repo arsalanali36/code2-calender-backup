@@ -1,6 +1,10 @@
 /**
  * @fileoverview gallery-tags.js
- * @description Cloud chip UI lists, drag & drop between group definitions.
+ * @description Tag cloud (click-to-filter) and tags tray (drag-to-resize) for gallery.
+ * @exports renderGalleryTagCloud, renderGalleryTagsTray
+ * @reads state.gallery.{images,tagFilter,filterMode}, state.tagGroups, state.trades, state.dayData
+ * @writes state.gallery.tagFilter, state.gallery.filterMode (on tag click)
+ * @calls applyGalleryImageScopeByTagFilter, renderGallery, saveTagGroups
  */
 
 function renderGalleryTagCloud() {

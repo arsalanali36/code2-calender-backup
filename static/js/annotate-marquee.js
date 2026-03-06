@@ -1,6 +1,14 @@
 /**
  * @fileoverview annotate-marquee.js
- * @description Marquee selection overlay, tags and grouped dragging.
+ * @description Draws marquee selection boxes on overlay canvas; hit testing; tag assignment.
+ * @exports drawMarqueeBox, hitTestMarquee, hitTestMarqueeResizeHandle, hitTestMarqueeDeleteHandle,
+ *          getSelectedMarqueeIndexes, getSelectedMarqueeTagSet, isMarqueeSelectionActive,
+ *          syncMarqueeBoxesShadow, toggleTagOnSelectedMarquees, setSingleMarqueeSelection,
+ *          renderMarqueeScene, rebindCurrentImageOverlayToMarquee,
+ *          refreshMarqueeTagSuggestions, addTagToSelectedMarqueeBox, refreshGalleryTagsTrayIfVisible
+ * @reads annotState.marqueeBoxes, annotState.imageUrl, state.gallery, state.tagGroups
+ * @writes annotState.marqueeBoxes (add/resize/move/delete), trade.marqueeBoxes via setMarqueeBoxesForImage
+ * @calls renderGalleryTagCloud, renderGalleryTagsTray, saveTrades
  */
 
 // annot-marquee.js — Marquee box draw, hit-test, selection, tag helpers.

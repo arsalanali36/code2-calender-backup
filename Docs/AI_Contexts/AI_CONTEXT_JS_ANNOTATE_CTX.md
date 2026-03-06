@@ -6,7 +6,10 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview annotate-ctx-menu.js
- * @description Context menus for the Marquee and Fabric features.
+ * @description Right-click context menu for marquee boxes (rename tag, delete box, tag ops).
+ * @exports _ensureMarqueeContextMenu, _showMarqueeContextMenu, _hideMarqueeContextMenu
+ * @reads annotState.marqueeBoxes, state.tagGroups
+ * @calls toggleTagOnSelectedMarquees, saveTrades, renderGallery
  */
 
 // annotate-ctx-menu.js — Marquee context menu
@@ -133,7 +136,11 @@ function _showMarqueeContextMenu(clientX, clientY, idx) {
 ```js
 /**
  * @fileoverview annotate-lifecycle.js
- * @description Lifecycle manager: starts and stops annotation sessions.
+ * @description Start/stop annotation sessions; Fabric.js canvas init + teardown; auto-save raster.
+ * @exports startAnnotation, stopAnnotation, _buildFabricSessionForAutoSave
+ * @reads annotState.imageUrl, annotState.tool, state.gallery, state._localOverlays
+ * @writes annotState.{active,tool,dirty,imageUrl}, fabricCanvas (init via new fabric.Canvas())
+ * @calls bindAnnotationCanvas, bindZoomPan, renderGallery, autoSaveAnnotationSession
  */
 
 // annotate-lifecycle.js — startAnnotation, stopAnnotation, save helpers

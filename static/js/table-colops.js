@@ -1,6 +1,11 @@
 /**
  * @fileoverview table-colops.js
- * @description Header context actions, hide/add column schemas logic.
+ * @description Tag filter panel, add/rename/delete columns, edit column modal.
+ * @exports renderTagFilterPanel, applyTagFilter, addColumn, renameColumn,
+ *          deleteColumn, openEditColumnModal
+ * @reads state.columns, state.trades, state.filterValues
+ * @writes state.columns, state.trades (tag cells on rename/delete)
+ * @calls saveTrades, renderTable
  */
 
 function renderTagFilterPanel() {

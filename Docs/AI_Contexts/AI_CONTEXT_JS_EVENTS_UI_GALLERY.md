@@ -6,7 +6,11 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview events-ui.js
- * @description UI level input bindings for view, year, and month pickers.
+ * @description Calendar navigation inputs, month/year pickers, view toggle, broker filter buttons.
+ * @exports _bindUIEvents
+ * @reads state.year, state.month, state.calendarMode, state.dateRange
+ * @writes state.year, state.month, state.calendarMode, state.dateRange
+ * @calls render, renderCalendar
  */
 
 // events-ui.js — Calendar, table, column ops, date range event bindings
@@ -278,7 +282,11 @@ function _bindUIEvents() {
 ```js
 /**
  * @fileoverview events-gallery.js
- * @description Gallery specific interaction panels, tags tray events.
+ * @description Gallery toolbar buttons: layer panel toggle, time display toggle, tags tray events.
+ * @exports _bindGalleryEvents
+ * @reads state.gallery.{showTime,layerPanelOpen}
+ * @writes state.gallery.showTime, state.gallery.selectedSeparator
+ * @calls toggleLayerPanel, fetchImageTimesForGallery, renderGallery
  */
 
 // events-gallery.js — Gallery tools, nav, upload, tags tray, tag cloud event bindings

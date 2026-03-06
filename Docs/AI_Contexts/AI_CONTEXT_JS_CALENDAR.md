@@ -6,7 +6,14 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview calendar.js
- * @description Calendar view rendering, market holiday mappings logic.
+ * @description Monthly/yearly calendar grid, trade-to-date mapping, observation modal, date utils.
+ * @exports renderCalendar, renderYearlyView, getTradesForDate, getTradeForDate,
+ *          getOrCreateTrade, syncTradeDateField, syncAllTradeDates, formatDisplayDate,
+ *          formatDate, normalizeDate, openObsModal, saveObservation, getMarketHoliday,
+ *          extractDateFromTrade, updateRangeLabel, navigateObsDate, bindObsToolbar
+ * @reads state.trades, state.dayData, state.year, state.month, state.dateRange
+ * @writes state.trades (getOrCreateTrade), state.dayData (observation save)
+ * @calls renderTable, saveTrades, openGalleryForDate
  */
 
 // ── NSE/BSE Market Holidays ──────────────────────────────────────────────────

@@ -6,7 +6,13 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview table-cols.js
- * @description Col resizing, drag/drop sort, popup note, inner cell render routines.
+ * @description Cell rendering, note popup, column sort, resize handles, tag picker, image cell.
+ * @exports sortTrades, renderImagesCell, renderImageTagsCell, openNotePopup, closeNotePopup,
+ *          bindColumnResizer, loadColWidths, tagColor, renameTagEverywhere,
+ *          showCtxMenu, loadTagGroups, saveTagGroups, applyProfitColor, stripHtml
+ * @reads state.trades, state.columns, state.tableSort, state.tagGroups, state.colWidths
+ * @writes state.tableSort, state.tagGroups, state.colWidths
+ * @calls saveTrades, renderTable, openGalleryForDate
  */
 
 function stripHtml(html) {

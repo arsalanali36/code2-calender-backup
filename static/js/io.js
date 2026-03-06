@@ -1,6 +1,14 @@
 /**
  * @fileoverview io.js
- * @description Importing Excel, JSON, Dhan CSVs. File picking and image upload UI.
+ * @description Upload modal, image drag-drop on table rows, CSV/JSON import, export, backup, toast.
+ * @exports openUploadModal, openDayUploadModal, renderUploadPreview, handleImageFiles,
+ *          uploadImagesToRow, uploadImagesToDayData, bindRowImageDrop, bindTableRowDrag,
+ *          importExcel, importRawCsv, importHistoricalCsv, importDhanCsv, importJson,
+ *          backupJson, exportExcel, exportStructuredCsv,
+ *          showToast, setupDropdown, closeAllDropdowns
+ * @reads state.trades, state.dayData, state.uploadRow, state.pendingFiles, state._dayUploadKey
+ * @writes state.pendingFiles, state.trades[].images, state.dayData[].images
+ * @calls saveTrades, render, fetch /api/upload, /api/backup, /api/import-json
  */
 
 

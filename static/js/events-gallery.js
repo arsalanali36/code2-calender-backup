@@ -1,6 +1,10 @@
 /**
  * @fileoverview events-gallery.js
- * @description Gallery specific interaction panels, tags tray events.
+ * @description Gallery toolbar buttons: layer panel toggle, time display toggle, tags tray events.
+ * @exports _bindGalleryEvents
+ * @reads state.gallery.{showTime,layerPanelOpen}
+ * @writes state.gallery.showTime, state.gallery.selectedSeparator
+ * @calls toggleLayerPanel, fetchImageTimesForGallery, renderGallery
  */
 
 // events-gallery.js — Gallery tools, nav, upload, tags tray, tag cloud event bindings

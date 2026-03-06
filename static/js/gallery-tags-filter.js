@@ -1,6 +1,9 @@
 /**
  * @fileoverview gallery-tags-filter.js
- * @description Logic hiding thumbnails in Gallery by selected tag conditions.
+ * @description Renders the compact tag filter panel inside the gallery toolbar.
+ * @exports renderGalleryTagFilterPanel
+ * @reads state.gallery.tagFilter, state.gallery.images, state.tagGroups
+ * @calls applyGalleryImageScopeByTagFilter, renderGallery
  */
 
 function renderGalleryTagFilterPanel() {

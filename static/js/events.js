@@ -1,6 +1,11 @@
 /**
  * @fileoverview events.js
- * @description Main bootstrapper mapping all app hotkeys and interactions.
+ * @description Main event bootstrapper: calls all sub-binders + handles gallery paste-to-upload.
+ * @exports bindEvents, syncSelects, showGalleryExitConfirm
+ * @reads state.gallery.{date,selectedSeparator,images,currentIndex}, state.dayData, state.trades
+ * @writes state.dayData[].{images,closeImages}, state.trades[].images (paste routing)
+ * @calls _bindUIEvents, _bindGalleryEvents, _bindSettingsEvents, _bindKeyboardEvents,
+ *        saveTrades, render, showToast, fetch /api/upload-image
  */
 
 function bindEvents() {

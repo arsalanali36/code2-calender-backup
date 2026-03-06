@@ -1,3 +1,9 @@
+# HTML — Main Layout (index.html)
+This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+
+
+## File: `templates\index.html`
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -363,3 +369,4 @@
 </body>
 
 </html>
+```

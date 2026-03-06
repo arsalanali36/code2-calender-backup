@@ -11823,7 +11823,8 @@
       "imageTags": {},
       "images": [
         "/uploads/51f00eb6-7df8-4f03-a200-5cff83286efd.png",
-        "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png"
+        "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png",
+        "/uploads/132262cb-a74e-4407-8491-8a6ce234fc58.png"
       ],
       "observation": "",
       "subImages": {
@@ -20829,7 +20830,12 @@
       }
     },
     "2026-03-06": {
-      "closeImages": [],
+      "closeImages": [
+        "/uploads/aca599e2-d491-4576-a19f-c0477b018023.png",
+        "/uploads/f272b8d2-03b5-4964-9467-4d618645fa15.png",
+        "/uploads/80176a18-74ca-4467-8182-218eed3d12ab.png",
+        "/uploads/ea8f613c-16be-4bd6-9dc3-859b4ce5afb4.png"
+      ],
       "imageTags": {},
       "images": [
         "/uploads/5575fa68-bad7-40a7-8c17-0bff6ffeb752.png"

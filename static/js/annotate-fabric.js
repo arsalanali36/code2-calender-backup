@@ -1,6 +1,10 @@
 /**
  * @fileoverview annotate-fabric.js
- * @description Overlay export, file saving and merging routines.
+ * @description Export Fabric canvas to PNG overlay; merge annotation onto base image; canvas bind helper.
+ * @exports saveAnnotOverlay, saveAnnotMerge, bindAnnotationCanvas
+ * @reads fabricCanvas, annotState.imageUrl, state.gallery
+ * @writes state._localOverlays, trade.overlays via setOverlayUrlForCurrentGalleryImage
+ * @calls saveTrades, stopAnnotation, fetch /api/upload-image, fetch /api/overlay
  */
 
 // annotate-fabric.js — saveAnnotOverlay, saveAnnotMerge, bindAnnotationCanvas

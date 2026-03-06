@@ -6,7 +6,15 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview annotate-marquee.js
- * @description Marquee selection overlay, tags and grouped dragging.
+ * @description Draws marquee selection boxes on overlay canvas; hit testing; tag assignment.
+ * @exports drawMarqueeBox, hitTestMarquee, hitTestMarqueeResizeHandle, hitTestMarqueeDeleteHandle,
+ *          getSelectedMarqueeIndexes, getSelectedMarqueeTagSet, isMarqueeSelectionActive,
+ *          syncMarqueeBoxesShadow, toggleTagOnSelectedMarquees, setSingleMarqueeSelection,
+ *          renderMarqueeScene, rebindCurrentImageOverlayToMarquee,
+ *          refreshMarqueeTagSuggestions, addTagToSelectedMarqueeBox, refreshGalleryTagsTrayIfVisible
+ * @reads annotState.marqueeBoxes, annotState.imageUrl, state.gallery, state.tagGroups
+ * @writes annotState.marqueeBoxes (add/resize/move/delete), trade.marqueeBoxes via setMarqueeBoxesForImage
+ * @calls renderGalleryTagCloud, renderGalleryTagsTray, saveTrades
  */
 
 // annot-marquee.js — Marquee box draw, hit-test, selection, tag helpers.
@@ -248,7 +256,13 @@ function addTagToSelectedMarqueeBox(rawTag) {
 ```js
 /**
  * @fileoverview annotate-tools.js
- * @description UI Toolbar bindings (Pen, Eraser, Text, Marquee tools).
+ * @description Tool toggles (pen/highlighter/eraser/text/arrow/shape/marquee), cursor, size adjust.
+ * @exports toggleAnnotation, toggleMarquee, setAnnotTool, adjustAnnotSize,
+ *          updateAnnotToolIcons, commitActiveCanvasTextEditor,
+ *          toggleMarqueeGroupSelect, updateMarqueeMultiSelectButton
+ * @reads annotState.{tool,active,marqueeMode}, fabricCanvas
+ * @writes annotState.tool, annotState.marqueeMode
+ * @calls startAnnotation, stopAnnotation, _applyFabricToolMode, _setCursor
  */
 
 // annot-tools.js — Tool toggles, setAnnotTool, _applyFabricToolMode, _setCursor.

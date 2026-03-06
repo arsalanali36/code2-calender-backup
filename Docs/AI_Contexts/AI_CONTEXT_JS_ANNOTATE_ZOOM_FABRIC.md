@@ -6,7 +6,12 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview annotate-zoom.js
- * @description Module-level state, zoom/pan bounds, and brush cursor.
+ * @description Declares fabricCanvas, zoom, drag globals; zoom/pan bindings; brush cursor.
+ * @exports fabricCanvas (null until startAnnotation sets it), zoom{scale,x,y}, drag{active,...},
+ *          resetZoom, applyZoom, bindZoomPan, ensureAnnotBrushCursor, updateAnnotBrushCursorVisual
+ * @note MUST load BEFORE all other annotate-*.js — these globals are referenced by all annotate files.
+ * @reads annotState.tool, annotState.active
+ * @writes zoom.scale, zoom.x, zoom.y, fabricCanvas (assigned externally by startAnnotation)
  */
 
 // annot-zoom.js — Shared annotation state, zoom/pan, brush cursor.
@@ -215,7 +220,11 @@ function shouldUseBrushCursor() {
 ```js
 /**
  * @fileoverview annotate-fabric.js
- * @description Overlay export, file saving and merging routines.
+ * @description Export Fabric canvas to PNG overlay; merge annotation onto base image; canvas bind helper.
+ * @exports saveAnnotOverlay, saveAnnotMerge, bindAnnotationCanvas
+ * @reads fabricCanvas, annotState.imageUrl, state.gallery
+ * @writes state._localOverlays, trade.overlays via setOverlayUrlForCurrentGalleryImage
+ * @calls saveTrades, stopAnnotation, fetch /api/upload-image, fetch /api/overlay
  */
 
 // annotate-fabric.js — saveAnnotOverlay, saveAnnotMerge, bindAnnotationCanvas

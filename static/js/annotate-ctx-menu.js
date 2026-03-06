@@ -1,6 +1,9 @@
 /**
  * @fileoverview annotate-ctx-menu.js
- * @description Context menus for the Marquee and Fabric features.
+ * @description Right-click context menu for marquee boxes (rename tag, delete box, tag ops).
+ * @exports _ensureMarqueeContextMenu, _showMarqueeContextMenu, _hideMarqueeContextMenu
+ * @reads annotState.marqueeBoxes, state.tagGroups
+ * @calls toggleTagOnSelectedMarquees, saveTrades, renderGallery
  */
 
 // annotate-ctx-menu.js — Marquee context menu

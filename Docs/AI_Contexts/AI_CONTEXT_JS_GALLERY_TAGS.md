@@ -6,7 +6,11 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview gallery-tags.js
- * @description Cloud chip UI lists, drag & drop between group definitions.
+ * @description Tag cloud (click-to-filter) and tags tray (drag-to-resize) for gallery.
+ * @exports renderGalleryTagCloud, renderGalleryTagsTray
+ * @reads state.gallery.{images,tagFilter,filterMode}, state.tagGroups, state.trades, state.dayData
+ * @writes state.gallery.tagFilter, state.gallery.filterMode (on tag click)
+ * @calls applyGalleryImageScopeByTagFilter, renderGallery, saveTagGroups
  */
 
 function renderGalleryTagCloud() {
@@ -400,7 +404,10 @@ function renderGalleryTagsTray() {
 ```js
 /**
  * @fileoverview gallery-tags-filter.js
- * @description Logic hiding thumbnails in Gallery by selected tag conditions.
+ * @description Renders the compact tag filter panel inside the gallery toolbar.
+ * @exports renderGalleryTagFilterPanel
+ * @reads state.gallery.tagFilter, state.gallery.images, state.tagGroups
+ * @calls applyGalleryImageScopeByTagFilter, renderGallery
  */
 
 function renderGalleryTagFilterPanel() {

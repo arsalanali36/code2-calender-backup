@@ -1,6 +1,12 @@
 /**
  * @fileoverview gallery-image-ops.js
- * @description Tile reordering, moves across dates, flat/sub-image deletion.
+ * @description Image reordering, cross-date move, deletion, sub-image drag-drop in gallery.
+ * @exports getOwnerTradeForImageUrl, syncGalleryImageOrderToTrades,
+ *          reorderGalleryImages, moveGalleryImageToDate, removeGalleryImageAt,
+ *          handleReorderGalleryImagesBatch, handleDropAsSubImage
+ * @reads state.trades, state.dayData, state.gallery
+ * @writes state.trades[].images, state.dayData[].images, trade.subImages (move/delete/group)
+ * @calls saveTrades, renderGallery, showToast
  */
 
 // gallery-image-ops.js — getOwnerTrade, syncOrder, reorder, move, remove,

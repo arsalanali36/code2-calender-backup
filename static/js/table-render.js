@@ -1,6 +1,11 @@
 /**
  * @fileoverview table-render.js
- * @description Generates the main DOM matrix rows depending on filter states.
+ * @description Renders the trade table (header + body), frozen columns, consolidated view.
+ * @exports renderTable, renderTableBody, renderTableBodyConsolidated,
+ *          getFilteredTrades, getFrozenCols, saveFrozenCols, applyFrozenColumns
+ * @reads state.trades, state.columns, state.tableSort, state.filterValues,
+ *        state.tableShowCols, state.dateRange, state.calendarMode
+ * @calls renderTableBody, applyFrozenColumns, getActiveShowHeads, getFilteredTrades
  */
 
 function getFilteredTrades() {

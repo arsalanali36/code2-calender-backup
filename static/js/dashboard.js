@@ -1,6 +1,12 @@
 /**
  * @fileoverview dashboard.js
- * @description Entry point for main dashboard rendering and interactions.
+ * @description Top-level render() orchestrator + dashboard P&L stats, drag-drop stat ordering.
+ * @exports render, renderDashboard, updateCalendarModeButton, updateBrokerFilterButton,
+ *          getTradePnl, getTradesForMonth, formatCurrency, parseNumber, setDashValue,
+ *          formatShortDate, getDashboardStatsOrder, saveDashboardStatsOrder,
+ *          bindDashboardDragDrop, renderDashboardStatsMenu, applyDashboardStatVisibility
+ * @reads state.trades, state.dateRange, state.calendarMode
+ * @calls renderCalendar, renderTable, renderVisualDashboard
  */
 
 function render() {

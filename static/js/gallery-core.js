@@ -1,6 +1,13 @@
 /**
  * @fileoverview gallery-core.js
- * @description Helper logical boundaries and filter scope definitions.
+ * @description Tag-scope helpers: resolve image tags, filter/scope gallery by tag selection.
+ * @exports _getTagsForImageUrl, getAllGalleryImagesAcrossDates, _getSubImagesForParent,
+ *          getFilteredGalleryImagesByTagSelection, applyGalleryImageScopeByTagFilter,
+ *          getCurrentGalleryPreserveContext, findGalleryContextByImageUrl,
+ *          getImageTagsForGalleryItem
+ * @reads state.gallery, state.trades, state.dayData, state.tagGroups
+ * @writes state.gallery.images, state.gallery.currentIndex (on scope change)
+ * @calls renderGallery
  */
 
 // gallery-core.js — tag helpers, scope/filter functions, applyGalleryImageScopeByTagFilter

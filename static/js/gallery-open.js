@@ -1,6 +1,11 @@
 /**
  * @fileoverview gallery-open.js
- * @description Functions bounding UI flow from Table/Calendar -> Gallery Viewer.
+ * @description Opens gallery modal for a date or arbitrary image list; body scroll lock.
+ * @exports openGalleryForDate, openGalleryDirect, openGalleryForDateWithTagFilter,
+ *          lockBodyScroll, unlockBodyScroll
+ * @reads state.trades, state.dayData
+ * @writes state.gallery (images, date, currentIndex, sourceRow, tagFilter, selectedSeparator)
+ * @calls renderGallery, lockBodyScroll
  */
 
 // gallery-open.js — openGalleryForDate, openGalleryDirect, openGalleryForDateWithTagFilter, lock/unlockBodyScroll

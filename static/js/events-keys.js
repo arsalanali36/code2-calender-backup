@@ -1,6 +1,9 @@
 /**
  * @fileoverview events-keys.js
- * @description Global keyboard shortcuts (undo, navigation).
+ * @description Global keyboard shortcut handler: ESC, Ctrl+Z/Y undo-redo, gallery nav keys.
+ * @exports _bindKeyboardEvents
+ * @reads annotState.active, state.gallery, shortcuts from settings
+ * @calls fabricUndo, fabricRedo, navigateGallery, stopAnnotation, shortcutMatches, adjustAnnotSize
  */
 
 // events-keys.js — Global keyboard handler (gallery hotkeys, annotation shortcuts,

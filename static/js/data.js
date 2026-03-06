@@ -1,6 +1,13 @@
 /**
  * @fileoverview data.js
- * @description Database handling, HTTP interactions, Tag schemas, Server syncing.
+ * @description Bootstraps app, loads/saves trades to server, CSV/JSON normalization, sync.
+ * @exports init, loadTrades, saveTrades, syncFromServerIfChanged, normalizeStructuredTradeRow,
+ *          computeTradeCharges, mergeStructuredTrades, ensurePermanentColumns,
+ *          syncTagColumnRegistry, isProtectedSystemColumn, canDeleteColumn,
+ *          splitDateTime, pickTradeField, formatDate, normalizeDate, syncImageTagColumnValues
+ * @reads state.trades, state.columns, state.dayData
+ * @writes state.trades, state.columns, state.dayData, state.tagGroups
+ * @calls render, fetch /api/trades (GET + POST)
  */
 
 async function init() {

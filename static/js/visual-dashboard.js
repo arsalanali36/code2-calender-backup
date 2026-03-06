@@ -1,6 +1,13 @@
 /**
  * @fileoverview visual-dashboard.js
- * @description Advanced graph widgets, PnL statistics visualization.
+ * @description ApexCharts visual dashboard: P&L charts, customizable stat cards, drag-drop, widths.
+ * @exports initVisualDashboard, renderVisualDashboard, updateVdChartMode, updateVdChartType,
+ *          updateVdChartWidth, bindVdEvents, bindVdDragDrop, renderVdStatsMenu,
+ *          getVdStatsOrder, saveVdStatsOrder, getVdStatsState, saveVdStatsState,
+ *          applyVdStatVisibility, applyVdStatOrder, syncVdSelects
+ * @reads state.trades, state.dateRange
+ * @calls ApexCharts (external lib), getTradePnl (local copy), formatCurrency
+ * @storage vd_statsState, vd_statsOrder, vd_cardWidths
  */
 
 const vdState = {

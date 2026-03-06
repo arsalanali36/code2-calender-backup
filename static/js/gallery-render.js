@@ -1,6 +1,11 @@
 /**
  * @fileoverview gallery-render.js
- * @description Paints gallery grid DOM, separators, thumbnail generation.
+ * @description Renders gallery thumbnail strip: OPEN/Trade/CLOSE separators, drag-drop, time labels.
+ * @exports renderGallery, _getGalleryThumbImages
+ * @reads state.gallery.{images,currentIndex,date,tagFilter,showTime,imageTimes,selectedSeparator},
+ *        state.dayData, state.trades, annotState.active
+ * @calls loadOverlayForCurrentImage, applyGalleryImageScopeByTagFilter,
+ *        renderGalleryStats, resetZoom, stopAnnotation
  */
 
 // gallery-render.js — renderGallery (thumbnails), renderGalleryStats, _getGalleryThumbImages

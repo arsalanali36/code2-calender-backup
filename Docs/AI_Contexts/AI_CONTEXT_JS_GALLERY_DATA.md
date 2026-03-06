@@ -1,3 +1,9 @@
+# JS — Gallery Data (gallery-data.js: overlays / marquee / image-times)
+This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+
+
+## File: `static\js\gallery-data.js`
+```js
 /**
  * @fileoverview gallery-data.js
  * @description Low-level get/set for overlays, marquee boxes, sub-images; image times fetch.
@@ -360,3 +366,5 @@ function autoSaveAnnotationSession(session) {
   }, 'image/png');
 }
 
+
+```

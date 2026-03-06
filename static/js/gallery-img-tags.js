@@ -1,6 +1,13 @@
 /**
  * @fileoverview gallery-img-tags.js
- * @description Applying standard image tags directly onto individual items.
+ * @description Image-level tag rendering, global rename/delete across all data, tag manager modal.
+ * @exports renderGalleryImageTags, getAllImageTagsGlobal, isPermanentImageTag,
+ *          renameImageTagGlobal, deleteImageTagGlobal,
+ *          openGalleryImageTagManager, closeGalleryImageTagManager,
+ *          renderImageTagModal, addImageTagFromModal
+ * @reads state.gallery, state.trades, state.dayData, state.tagGroups
+ * @writes trade.imageTags, dayData.imageTags (rename/delete propagated everywhere)
+ * @calls saveTrades, renderGallery, renameTagEverywhere
  */
 
 function renderGalleryImageTags() {

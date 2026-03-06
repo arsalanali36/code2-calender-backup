@@ -6,12 +6,19 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview state.js
- * @description Global monolithic state object storing arrays and configs.
+ * @description Defines the two global singletons used everywhere: state and annotState.
+ * @exports state, annotState
+ * @keyfields state.trades[], state.dayData{}, state.columns[], state.gallery{},
+ *            state.tagGroups{}, state.dateRange{from,to}, state.uploadRow,
+ *            state._localOverlays{}, state._galleryUploadCallback,
+ *            state.gallery.selectedSeparator, state.gallery.showTime, state.gallery.imageTimes
+ *            annotState.active, annotState.tool, annotState.imageUrl, annotState.dirty
+ * @note MUST be the first script loaded. All other modules read/write these objects directly.
  */
 
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   Trading Journal â€” app.js
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ================================================
+   Trading Journal - state.js
+   ================================================ */
 
 const state = {
   year: new Date().getFullYear(),
@@ -200,7 +207,15 @@ function bindSectionOrderDrag() {
 ```js
 /**
  * @fileoverview io.js
- * @description Importing Excel, JSON, Dhan CSVs. File picking and image upload UI.
+ * @description Upload modal, image drag-drop on table rows, CSV/JSON import, export, backup, toast.
+ * @exports openUploadModal, openDayUploadModal, renderUploadPreview, handleImageFiles,
+ *          uploadImagesToRow, uploadImagesToDayData, bindRowImageDrop, bindTableRowDrag,
+ *          importExcel, importRawCsv, importHistoricalCsv, importDhanCsv, importJson,
+ *          backupJson, exportExcel, exportStructuredCsv,
+ *          showToast, setupDropdown, closeAllDropdowns
+ * @reads state.trades, state.dayData, state.uploadRow, state.pendingFiles, state._dayUploadKey
+ * @writes state.pendingFiles, state.trades[].images, state.dayData[].images
+ * @calls saveTrades, render, fetch /api/upload, /api/backup, /api/import-json
  */
 
 

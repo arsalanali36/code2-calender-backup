@@ -1,6 +1,11 @@
 /**
  * @fileoverview events-settings.js
- * @description Settings modal events, row height and font UI bindings.
+ * @description Settings modal events, upload-done handler routing via selectedSeparator, drag-drop zone.
+ * @exports _bindSettingsEvents
+ * @reads state.{uploadRow,_dayUploadKey,pendingFiles,_galleryUploadCallback},
+ *        state.gallery.{selectedSeparator,date}
+ * @writes state.trades[].images, state.dayData[].{images,closeImages} (via upload routing)
+ * @calls saveTrades, render, applySettingsToDOM, showToast, getTradesForDate
  */
 
 // events-settings.js — Tag/font/row-height size controls, resize handles, obs modal, upload modal, settings panel

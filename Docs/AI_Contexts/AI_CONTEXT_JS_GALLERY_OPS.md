@@ -6,7 +6,13 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview gallery-ops.js
- * @description Tile contexts menu: merge, group, flatten nested grids.
+ * @description Gallery context menu (right-click), group/ungroup images, move to trade/dayData.
+ * @exports showGalleryContextMenu, replaceGalleryImageUrl, groupAllGalleryImages,
+ *          ungroupAllGalleryImages, moveGalleryTile, showGalleryGroupDeleteConfirm,
+ *          toggleGalleryGroupExpand, moveSelectedToTrade, moveSelectedToDayData
+ * @reads state.gallery, state.trades, state.dayData
+ * @writes trade.subImages, dayData.subImages, state.gallery (context updates)
+ * @calls saveTrades, renderGallery, showToast
  */
 
 // gallery-ops.js — Context menu, image replace, group/ungroup/tile ops,

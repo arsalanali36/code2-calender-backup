@@ -1,6 +1,12 @@
 /**
  * @fileoverview annotate-tools.js
- * @description UI Toolbar bindings (Pen, Eraser, Text, Marquee tools).
+ * @description Tool toggles (pen/highlighter/eraser/text/arrow/shape/marquee), cursor, size adjust.
+ * @exports toggleAnnotation, toggleMarquee, setAnnotTool, adjustAnnotSize,
+ *          updateAnnotToolIcons, commitActiveCanvasTextEditor,
+ *          toggleMarqueeGroupSelect, updateMarqueeMultiSelectButton
+ * @reads annotState.{tool,active,marqueeMode}, fabricCanvas
+ * @writes annotState.tool, annotState.marqueeMode
+ * @calls startAnnotation, stopAnnotation, _applyFabricToolMode, _setCursor
  */
 
 // annot-tools.js — Tool toggles, setAnnotTool, _applyFabricToolMode, _setCursor.

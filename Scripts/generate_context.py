@@ -17,9 +17,14 @@ files_memory_logs = [
 ]
 
 # ── HTML Templates ────────────────────────────────────────────────────────────
-files_html_layout = [
+files_html_index = [
     "templates/index.html",
+]
+files_html_gallery = [
     "templates/gallery.html",
+]
+files_html_visual_dashboard = [
+    "templates/visual_dashboard.html",
 ]
 files_html_modals = [
     "templates/modals.html",
@@ -71,15 +76,19 @@ files_table_cols = [
 # ── JS: Gallery Core ──────────────────────────────────────────────────────────
 files_gallery_render = [
     "static/js/gallery-render.js",
+]
+files_gallery_stats_open = [
     "static/js/gallery-stats.js",
+    "static/js/gallery-open.js",
 ]
 files_gallery_core_nav = [
-    "static/js/gallery-open.js",
     "static/js/gallery-core.js",
     "static/js/gallery-nav.js",
 ]
-files_gallery_layer_data = [
+files_gallery_layer = [
     "static/js/gallery-layer.js",
+]
+files_gallery_data = [
     "static/js/gallery-data.js",
 ]
 
@@ -162,8 +171,10 @@ if __name__ == "__main__":
     create_context("AI_CONTEXT_MEMORY_LOGS.md",          files_memory_logs,         "Memory Logs — Daily Changelogs & Feature History")
 
     # HTML
-    create_context("AI_CONTEXT_HTML_LAYOUT.md",          files_html_layout,         "HTML — Layout (index.html / gallery.html)")
-    create_context("AI_CONTEXT_HTML_MODALS.md",          files_html_modals,         "HTML — Modals")
+    create_context("AI_CONTEXT_HTML_INDEX.md",            files_html_index,           "HTML — Main Layout (index.html)")
+    create_context("AI_CONTEXT_HTML_GALLERY.md",          files_html_gallery,         "HTML — Gallery Template (gallery.html)")
+    create_context("AI_CONTEXT_HTML_VISUAL_DASHBOARD.md", files_html_visual_dashboard,"HTML — Visual Dashboard Charts (visual_dashboard.html)")
+    create_context("AI_CONTEXT_HTML_MODALS.md",           files_html_modals,          "HTML — Modals")
 
     # CSS
     create_context("AI_CONTEXT_CSS_BASE.md",             files_css_base,            "CSS — Base (reset / layout / dashboard / calendar / table)")
@@ -185,9 +196,11 @@ if __name__ == "__main__":
     create_context("AI_CONTEXT_JS_TABLE_COLS.md",        files_table_cols,          "JS — Table Columns (sort / resize / cell render / tag picker)")
 
     # JS - Gallery Core
-    create_context("AI_CONTEXT_JS_GALLERY_RENDER.md",    files_gallery_render,      "JS — Gallery Render")
-    create_context("AI_CONTEXT_JS_GALLERY_CORE_NAV.md",  files_gallery_core_nav,    "JS — Gallery Core & Nav (open / core / nav)")
-    create_context("AI_CONTEXT_JS_GALLERY_LAYER_DATA.md",files_gallery_layer_data,  "JS — Gallery Layer & Data")
+    create_context("AI_CONTEXT_JS_GALLERY_RENDER.md",       files_gallery_render,       "JS — Gallery Render (gallery-render.js)")
+    create_context("AI_CONTEXT_JS_GALLERY_STATS_OPEN.md",   files_gallery_stats_open,   "JS — Gallery Stats & Open (gallery-stats.js / gallery-open.js)")
+    create_context("AI_CONTEXT_JS_GALLERY_CORE_NAV.md",     files_gallery_core_nav,     "JS — Gallery Core & Nav (core / nav)")
+    create_context("AI_CONTEXT_JS_GALLERY_LAYER.md",        files_gallery_layer,        "JS — Gallery Layer Panel (gallery-layer.js)")
+    create_context("AI_CONTEXT_JS_GALLERY_DATA.md",         files_gallery_data,         "JS — Gallery Data (gallery-data.js: overlays / marquee / image-times)")
 
     # JS - Gallery Ops
     create_context("AI_CONTEXT_JS_GALLERY_IMAGE_OPS.md", files_gallery_image_ops,   "JS — Gallery Image Ops")

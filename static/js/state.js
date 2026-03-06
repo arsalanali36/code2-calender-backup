@@ -1,11 +1,18 @@
 /**
  * @fileoverview state.js
- * @description Global monolithic state object storing arrays and configs.
+ * @description Defines the two global singletons used everywhere: state and annotState.
+ * @exports state, annotState
+ * @keyfields state.trades[], state.dayData{}, state.columns[], state.gallery{},
+ *            state.tagGroups{}, state.dateRange{from,to}, state.uploadRow,
+ *            state._localOverlays{}, state._galleryUploadCallback,
+ *            state.gallery.selectedSeparator, state.gallery.showTime, state.gallery.imageTimes
+ *            annotState.active, annotState.tool, annotState.imageUrl, annotState.dirty
+ * @note MUST be the first script loaded. All other modules read/write these objects directly.
  */
 
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   Trading Journal â€” app.js
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ================================================
+   Trading Journal - state.js
+   ================================================ */
 
 const state = {
   year: new Date().getFullYear(),

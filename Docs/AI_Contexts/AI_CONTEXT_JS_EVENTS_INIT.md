@@ -6,7 +6,12 @@ This file contains the consolidated code context for the project to be used with
 ```js
 /**
  * @fileoverview events.js
- * @description Main bootstrapper mapping all app hotkeys and interactions.
+ * @description Main event bootstrapper: calls all sub-binders + handles gallery paste-to-upload.
+ * @exports bindEvents, syncSelects, showGalleryExitConfirm
+ * @reads state.gallery.{date,selectedSeparator,images,currentIndex}, state.dayData, state.trades
+ * @writes state.dayData[].{images,closeImages}, state.trades[].images (paste routing)
+ * @calls _bindUIEvents, _bindGalleryEvents, _bindSettingsEvents, _bindKeyboardEvents,
+ *        saveTrades, render, showToast, fetch /api/upload-image
  */
 
 function bindEvents() {
@@ -260,7 +265,10 @@ function showGalleryExitConfirm() {
 ```js
 /**
  * @fileoverview events-keys.js
- * @description Global keyboard shortcuts (undo, navigation).
+ * @description Global keyboard shortcut handler: ESC, Ctrl+Z/Y undo-redo, gallery nav keys.
+ * @exports _bindKeyboardEvents
+ * @reads annotState.active, state.gallery, shortcuts from settings
+ * @calls fabricUndo, fabricRedo, navigateGallery, stopAnnotation, shortcutMatches, adjustAnnotSize
  */
 
 // events-keys.js — Global keyboard handler (gallery hotkeys, annotation shortcuts,

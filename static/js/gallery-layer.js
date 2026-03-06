@@ -1,6 +1,10 @@
 /**
  * @fileoverview gallery-layer.js
- * @description Layer panel sidebar controlling visibility and hierarchy of images.
+ * @description Layer panel (sub-images list), keyboard shortcuts popover, video URL panel.
+ * @exports renderLayerPanel, toggleLayerPanel, renderShortcutsPopover, renderGalleryVideoUrls
+ * @reads state.gallery.{images,currentIndex,date,layerPanelOpen}, state.trades, state.dayData
+ * @writes state.gallery.layerPanelOpen
+ * @calls renderGallery, openGalleryDirect
  */
 
 // gallery-layer.js — renderLayerPanel, toggleLayerPanel, shortcuts list,

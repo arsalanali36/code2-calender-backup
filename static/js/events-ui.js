@@ -1,6 +1,10 @@
 /**
  * @fileoverview events-ui.js
- * @description UI level input bindings for view, year, and month pickers.
+ * @description Calendar navigation inputs, month/year pickers, view toggle, broker filter buttons.
+ * @exports _bindUIEvents
+ * @reads state.year, state.month, state.calendarMode, state.dateRange
+ * @writes state.year, state.month, state.calendarMode, state.dateRange
+ * @calls render, renderCalendar
  */
 
 // events-ui.js — Calendar, table, column ops, date range event bindings

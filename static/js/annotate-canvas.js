@@ -1,6 +1,12 @@
 /**
  * @fileoverview annotate-canvas.js
- * @description Fabric history, shape handling, text events.
+ * @description Fabric.js history (undo/redo), shape/text/arrow event bindings, raster baking.
+ * @exports fabricUndo, fabricRedo, _bindFabricShapeEvents, _addArrowGroup, _createFabricIText,
+ *          _bakeRasterToBackground, _ensureMarqueeOverlayCanvas, _destroyMarqueeOverlayCanvas,
+ *          _renderMarqueeOnOverlayCanvas, _bindMarqueeCanvasEvents
+ * @reads fabricCanvas, annotState.{tool,active}
+ * @writes fabricCanvas objects (add/remove), annotState.dirty
+ * @calls _pushFabricHistorySnapshot, updateAnnotBrushCursorVisual, _renderMarqueeOnOverlayCanvas
  */
 
 // annot-canvas.js — Fabric history, shape/text events, marquee overlay canvas.
