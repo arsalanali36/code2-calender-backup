@@ -11177,6 +11177,14 @@
         "/uploads/9b130ae4-0a9c-4d1a-8d34-a5249ad298c7.png": "/uploads/4d91e0c3-7c20-40f3-9ddd-5791a2ef4d48.png"
       },
       "tags": [],
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
       "trade_date": "2026-03-02"
     },
     {
@@ -11226,6 +11234,14 @@
         "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": []
       },
       "observation": "",
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
       "trade_date": "2026-03-03"
     },
     {
@@ -11349,6 +11365,14 @@
           "/uploads/aba385f6-e473-443a-af08-4f66feba7f09.png"
         ]
       },
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
       "trade_date": "2026-03-04"
     },
     {
@@ -11424,6 +11448,14 @@
         ]
       },
       "tags": [],
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
       "trade_date": "2026-03-05"
     },
     {
@@ -11585,7 +11617,20 @@
       "Rs": "",
       "Sell Price (Avg)": "",
       "Sell Time": "",
-      "Tags": "",
+      "Tags": [
+        "Reversal",
+        "Mann Nahi",
+        "panic",
+        "Panicyy",
+        "Distracted",
+        "bach gaye",
+        "new",
+        "halkeMeLerahe",
+        "Partial Exit",
+        "Premium",
+        "BAT",
+        "HERO"
+      ],
       "Total Fees": "",
       "Total Trades": "",
       "TradeType": "",
@@ -11596,13 +11641,67 @@
       },
       "imageTags": {},
       "images": [
-        "/uploads/0770ffc7-23f1-485c-bb21-3611dc5a443b.png"
+        "/uploads/2af115c1-2b6a-4a46-a9e0-1c324768dd2e.png",
+        "/uploads/49ab0341-3306-4f07-9014-0590f9fa65d0.png",
+        "/uploads/d6403e24-2cb2-41d3-b002-299c240a1649.png",
+        "/uploads/544430db-9f5d-4ec6-829e-4e1df2c2a6ab.png",
+        "/uploads/d41cc919-1c82-48f5-8672-bbab4f90373f.png"
       ],
+      "observation": "",
       "subImages": {
         "/uploads/0770ffc7-23f1-485c-bb21-3611dc5a443b.png": [
           "/uploads/7af69c4d-b976-436b-b724-cb681c5e846f.png",
           "/uploads/32db5500-bdc6-4f8e-81d6-d01cb70fee11.png"
         ]
+      },
+      "tags": [
+        "Reversal",
+        "Mann Nahi",
+        "panic",
+        "Panicyy",
+        "Distracted",
+        "bach gaye",
+        "new",
+        "halkeMeLerahe",
+        "Partial Exit",
+        "Premium",
+        "BAT",
+        "HERO"
+      ],
+      "tradeLogger": {},
+      "tradeReview": {
+        "dd": "1",
+        "runnup": "22",
+        "sl": "30",
+        "tagSliders": {
+          "BAT": 0,
+          "Distracted": 77,
+          "HERO": 0,
+          "Mann Nahi": 78,
+          "Panicyy": -52,
+          "Partial Exit": 0,
+          "Premium": 0,
+          "Reversal": -50,
+          "bach gaye": 57,
+          "halkeMeLerahe": 0,
+          "new": -54,
+          "panic": -14
+        },
+        "tags": [
+          "Reversal",
+          "Mann Nahi",
+          "panic",
+          "Panicyy",
+          "Distracted",
+          "bach gaye",
+          "new",
+          "halkeMeLerahe",
+          "Partial Exit",
+          "Premium",
+          "BAT",
+          "HERO"
+        ],
+        "targ": "25"
       },
       "trade_date": "2026-03-06"
     },
@@ -11622,7 +11721,16 @@
       "Rs": -5018,
       "Sell Price (Avg)": 239.066667,
       "Sell Time": "09:39:39",
-      "Tags": [],
+      "Tags": [
+        "Distracted",
+        "bach gaye",
+        "halkeMeLerahe",
+        "Mann Nahi",
+        "BAT",
+        "HERO",
+        "Late",
+        "news"
+      ],
       "Total Fees": 136.1,
       "Total Trades": "",
       "TradeType": "sell",
@@ -11633,11 +11741,92 @@
         "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png": "T2"
       },
       "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [
+        "Distracted",
+        "bach gaye",
+        "halkeMeLerahe",
+        "Mann Nahi",
+        "BAT",
+        "HERO",
+        "Late",
+        "news"
+      ],
+      "tradeLogger": {
+        "placement": "At Level",
+        "sc_sl_moved": "N",
+        "strat_cont": true,
+        "strat_rev": true,
+        "zone": "Y"
+      },
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {
+          "BAT": 0,
+          "Distracted": 0,
+          "HERO": 0,
+          "Late": 0,
+          "Mann Nahi": 0,
+          "bach gaye": 0,
+          "desperate": 0,
+          "halkeMeLerahe": 0,
+          "news": 0
+        },
+        "tags": [
+          "desperate",
+          "Distracted",
+          "bach gaye",
+          "halkeMeLerahe",
+          "Mann Nahi",
+          "BAT",
+          "HERO",
+          "Late",
+          "news"
+        ],
+        "targ": ""
+      },
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 216.5,
+      "Buy Time": "10:14:03",
+      "Gross P/L": 146.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024650CE",
+      "Net P/L": 20.36,
+      "Note": "",
+      "Other Charges": 85.89,
+      "Pt": 0.75,
+      "Qty": 195,
+      "Rs": 146.25,
+      "Sell Price (Avg)": 217.25,
+      "Sell Time": "09:49:59",
+      "Tags": [
+        "Mann Nahi",
+        "Panicyy",
+        "Distracted",
+        "new"
+      ],
+      "Total Fees": 125.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
+      "groupNames": {
+        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png": "PRE"
+      },
+      "heroImage": "/uploads/35d38bbd-94a5-44ba-a1c6-02936f5639d4.png",
+      "imageTags": {},
       "images": [
-        "/uploads/b9b7f30f-0a5f-4897-86d7-e09d08357440.png",
-        "/uploads/60e3b0d4-030f-4183-a228-c1aa7ab7010f.png",
+        "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png",
         "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png",
-        "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png"
+        "/uploads/60e3b0d4-030f-4183-a228-c1aa7ab7010f.png",
+        "/uploads/b9b7f30f-0a5f-4897-86d7-e09d08357440.png"
       ],
       "observation": "",
       "subImages": {
@@ -11668,39 +11857,64 @@
           "/uploads/2ad7935a-c904-4211-99d3-faa3aa32b632.png"
         ]
       },
-      "tags": [],
+      "tags": [
+        "Mann Nahi",
+        "Panicyy",
+        "Distracted",
+        "new"
+      ],
+      "tradeLogger": {},
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {
+          "Distracted": 0,
+          "Mann Nahi": 0,
+          "Panicyy": 0,
+          "new": 0
+        },
+        "tags": [
+          "Mann Nahi",
+          "Panicyy",
+          "Distracted",
+          "new"
+        ],
+        "targ": ""
+      },
       "trade_date": "2026-03-06"
     },
     {
       "Broker": "zerodha",
       "Brokerage": 40,
-      "Buy Price (Avg)": 216.5,
-      "Buy Time": "10:14:03",
-      "Gross P/L": 146.25,
+      "Buy Price (Avg)": 191.9,
+      "Buy Time": "11:02:51",
+      "Gross P/L": 3997.5,
       "Image Tags": "",
-      "Instrument": "NIFTY2631024650CE",
-      "Net P/L": 20.36,
+      "Instrument": "NIFTY2631024600PE",
+      "Net P/L": 3875.08,
       "Note": "",
-      "Other Charges": 85.89,
-      "Pt": 0.75,
+      "Other Charges": 82.42,
+      "Pt": 20.5,
       "Qty": 195,
-      "Rs": 146.25,
-      "Sell Price (Avg)": 217.25,
-      "Sell Time": "09:49:59",
-      "Tags": [],
-      "Total Fees": 125.89,
+      "Rs": 3997.5,
+      "Sell Price (Avg)": 212.4,
+      "Sell Time": "11:00:13",
+      "Tags": [
+        "EntryMiss",
+        "Distracted"
+      ],
+      "Total Fees": 122.42,
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-03-06",
-      "groupNames": {
-        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png": "PRE"
-      },
+      "heroImage": "/uploads/3c8ae8c0-db78-445a-a093-0cff7cf3fad5.png",
       "imageTags": {},
       "images": [
-        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png",
+        "/uploads/35d38bbd-94a5-44ba-a1c6-02936f5639d4.png",
         "/uploads/39e570d1-e2ea-4065-ba5e-0264efebdda1.png",
-        "/uploads/35d38bbd-94a5-44ba-a1c6-02936f5639d4.png"
+        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png"
       ],
       "observation": "",
       "subImages": {
@@ -11720,39 +11934,7 @@
           "/uploads/a20531ac-6771-4eee-8960-b6591e2eb0fa.png",
           "/uploads/82160c5b-31fc-4773-8e08-6a219c832bdb.png",
           "/uploads/32a1d953-ca40-4d8b-93d1-6c76aba1ae0b.png"
-        ]
-      },
-      "tags": [],
-      "trade_date": "2026-03-06"
-    },
-    {
-      "Broker": "zerodha",
-      "Brokerage": 40,
-      "Buy Price (Avg)": 191.9,
-      "Buy Time": "11:02:51",
-      "Gross P/L": 3997.5,
-      "Image Tags": "",
-      "Instrument": "NIFTY2631024600PE",
-      "Net P/L": 3875.08,
-      "Note": "",
-      "Other Charges": 82.42,
-      "Pt": 20.5,
-      "Qty": 195,
-      "Rs": 3997.5,
-      "Sell Price (Avg)": 212.4,
-      "Sell Time": "11:00:13",
-      "Tags": [],
-      "Total Fees": 122.42,
-      "Total Trades": "",
-      "TradeType": "sell",
-      "Video": "",
-      "date": "2026-03-06",
-      "imageTags": {},
-      "images": [
-        "/uploads/ad00c494-2e03-4522-9ad2-c6b99c195597.png"
-      ],
-      "observation": "",
-      "subImages": {
+        ],
         "/uploads/92619eec-7c26-4c7b-9711-7e99cccab5fe.png": [
           "/uploads/07b8ec9b-8121-438a-8c71-10c45eeb4662.png",
           "/uploads/3158bc1a-5d78-491b-90e0-d5c0a369a5a6.png",
@@ -11770,32 +11952,27 @@
           "/uploads/dd12f2e9-a604-4d9a-be82-d17edf55e879.png",
           "/uploads/c5f669f2-f7ce-4fb0-b6e2-df4b89cebdbf.png",
           "/uploads/cad1f45c-d491-4f7e-91bd-0fdb4f499f5c.png"
-        ],
-        "/uploads/ad00c494-2e03-4522-9ad2-c6b99c195597.png": [
-          "/uploads/9bce8000-9ce1-433e-a1d5-12af4802279e.png",
-          "/uploads/7b770d53-701b-4c28-a10a-fa62503e153b.png",
-          "/uploads/fac7f6f7-f7bb-4acb-8a95-06c98e26a866.png",
-          "/uploads/007c778f-02b0-4584-9205-2ec53ae8b5b8.png",
-          "/uploads/dcd932aa-f4b1-442d-a0f4-c0e0b346b293.png",
-          "/uploads/abcbabc8-dce4-4c9d-af75-30dd24d394cc.png",
-          "/uploads/29246826-fb06-4a7e-82e9-df7975327a1c.png",
-          "/uploads/a9fe67cf-7e1b-43ec-b7cd-b1acc2192f7d.png",
-          "/uploads/6b40af21-88da-4ebe-b5a5-dba341b810d9.png",
-          "/uploads/379add62-422c-4378-9fbb-7e140ce45fc1.png",
-          "/uploads/e184792a-0997-4b83-a15d-23e3fa0229e1.png",
-          "/uploads/9f7e5e62-575f-4115-84b3-68f0051886e5.png",
-          "/uploads/e1237334-c44a-48d5-8d4a-304c2328b6d6.png",
-          "/uploads/9b0784b2-398d-4f14-b054-cbc4959508fd.png",
-          "/uploads/43a0d8c7-6ca3-483a-8e42-36f3d5385c41.png",
-          "/uploads/fb8b451c-9c6b-4cea-a1da-7f241d699a66.png",
-          "/uploads/2694aac0-5841-427b-a94e-c489ec02e134.png",
-          "/uploads/bae36584-d8df-4b05-9ba7-9560fdb777a6.png",
-          "/uploads/91508613-f22e-47e1-9ef2-59b9f1fa6716.png",
-          "/uploads/9f2fc7ff-df22-49a0-be6f-8f5d43982848.png",
-          "/uploads/3c8ae8c0-db78-445a-a093-0cff7cf3fad5.png"
         ]
       },
-      "tags": [],
+      "tags": [
+        "EntryMiss",
+        "Distracted"
+      ],
+      "tradeLogger": {},
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {
+          "Distracted": 0,
+          "EntryMiss": 0
+        },
+        "tags": [
+          "EntryMiss",
+          "Distracted"
+        ],
+        "targ": ""
+      },
       "trade_date": "2026-03-06"
     },
     {
@@ -11820,12 +11997,9 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-03-06",
+      "heroImage": "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png",
       "imageTags": {},
-      "images": [
-        "/uploads/51f00eb6-7df8-4f03-a200-5cff83286efd.png",
-        "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png",
-        "/uploads/132262cb-a74e-4407-8491-8a6ce234fc58.png"
-      ],
+      "images": [],
       "observation": "",
       "subImages": {
         "/uploads/0d1912ce-66d2-4d99-bdea-826667bef0a8.png": [
@@ -11845,28 +12019,18 @@
           "/uploads/eb3d5afc-12ec-44b0-806a-63cf1c953285.png",
           "/uploads/46880813-624e-427e-aecb-2077ffb93c65.png",
           "/uploads/bb7815f5-ca52-49bd-a06c-3d866b17faa7.png"
-        ],
-        "/uploads/51f00eb6-7df8-4f03-a200-5cff83286efd.png": [
-          "/uploads/126109a7-45c7-4f58-ba07-eaa3bfdbb187.png",
-          "/uploads/27ac3968-d405-46be-bc33-db39156d1f22.png",
-          "/uploads/71717498-d635-439a-af05-d6cb69a74fe5.png",
-          "/uploads/212c34e1-6c27-4b7a-9610-59a485ac5b16.png",
-          "/uploads/62ba7600-8de1-4002-8c70-486ed96bd98d.png",
-          "/uploads/b149b6d7-5c0d-4867-ac39-98a1215ea89f.png",
-          "/uploads/81955045-25b5-4acb-89d4-d233121f2a7e.png",
-          "/uploads/5820df14-8c60-4280-9ec1-ff8deee4ace1.png",
-          "/uploads/a256902e-ada9-4041-9445-bd3779a18906.png",
-          "/uploads/c3cc00de-d506-4431-819b-d2e457a4f369.png",
-          "/uploads/2fa13521-3684-4ff8-ae82-5c417d54c78a.png",
-          "/uploads/f631eb2c-8e6d-43e6-88de-650e4999c537.png",
-          "/uploads/7559c693-5969-4611-83e4-ab779e804e44.png",
-          "/uploads/56233df3-e40f-49aa-a8df-4f4f7bc5f258.png",
-          "/uploads/8622b814-6e15-4fa2-877d-cac1be4ecf75.png",
-          "/uploads/529f2d8a-90e2-4521-8048-43400b0bf582.png",
-          "/uploads/f45a9735-bc46-453f-9634-9fb25daba08e.png"
         ]
       },
       "tags": [],
+      "tradeLogger": {},
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
       "trade_date": "2026-03-06"
     },
     {
@@ -11894,18 +12058,22 @@
       "groupNames": {
         "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png": "T6"
       },
+      "heroImage": "/uploads/ad477f03-85aa-489d-8e05-6a7649af576e.png",
       "imageTags": {},
-      "images": [
-        "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png"
-      ],
+      "images": [],
       "observation": "",
-      "subImages": {
-        "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png": [
-          "/uploads/bd586c3b-b321-435e-8033-0fe28d63621a.png",
-          "/uploads/ad477f03-85aa-489d-8e05-6a7649af576e.png"
-        ]
-      },
       "tags": [],
+      "tradeLogger": {
+        "strat_rev": true
+      },
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
       "trade_date": "2026-03-06"
     },
     {
@@ -11924,16 +12092,82 @@
       "Rs": -1179.75,
       "Sell Price (Avg)": 200,
       "Sell Time": "13:37:51",
-      "Tags": [],
+      "Tags": [
+        "desperate",
+        "halkeMeLerahe",
+        "Late",
+        "EntryMiss",
+        "Mann Nahi"
+      ],
       "Total Fees": 71.89,
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
       "date": "2026-03-06",
+      "heroImage": "/uploads/30911868-3748-41cd-920f-29a5626028f8.png",
+      "imageTags": {},
+      "images": [
+        "/uploads/30911868-3748-41cd-920f-29a5626028f8.png"
+      ],
+      "observation": "",
+      "tags": [
+        "desperate",
+        "halkeMeLerahe",
+        "Late",
+        "EntryMiss",
+        "Mann Nahi"
+      ],
+      "tradeLogger": {
+        "en_algo": "N",
+        "en_sc10": "N"
+      },
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {
+          "EntryMiss": 0,
+          "Late": 0,
+          "Mann Nahi": 0,
+          "desperate": 41,
+          "halkeMeLerahe": -57
+        },
+        "tags": [
+          "desperate",
+          "halkeMeLerahe",
+          "Late",
+          "EntryMiss",
+          "Mann Nahi"
+        ],
+        "targ": ""
+      },
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": "",
+      "Buy Price (Avg)": "",
+      "Buy Time": "",
+      "Gross P/L": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Net P/L": "",
+      "Note": "",
+      "Other Charges": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price (Avg)": "",
+      "Sell Time": "",
+      "Tags": "",
+      "Total Fees": "",
+      "Total Trades": "",
+      "TradeType": "",
+      "Video": "",
+      "date": "2026-03-06",
       "imageTags": {},
       "images": [],
       "observation": "",
-      "tags": [],
       "trade_date": "2026-03-06"
     }
   ],
@@ -11986,13 +12220,10 @@
     "thumbnail",
     "bina zone",
     "Premium",
-    "sdadssdsd",
     "news",
     "nafsPeKabu",
     "halkeMeLerahe",
     "Realisation",
-    "cont",
-    "ide",
     "himmat nahi",
     "impulsive",
     "algo",
@@ -12001,7 +12232,11 @@
     "unexpected Move",
     "kill Switch",
     "almostPerfect",
-    "news+"
+    "news+",
+    "BAT",
+    "HERO",
+    "sdadssdsd",
+    "ide"
   ],
   "tagColumns": [
     "Tags"
@@ -20834,23 +21069,40 @@
         "/uploads/aca599e2-d491-4576-a19f-c0477b018023.png",
         "/uploads/f272b8d2-03b5-4964-9467-4d618645fa15.png",
         "/uploads/80176a18-74ca-4467-8182-218eed3d12ab.png",
-        "/uploads/ea8f613c-16be-4bd6-9dc3-859b4ce5afb4.png"
+        "/uploads/ea8f613c-16be-4bd6-9dc3-859b4ce5afb4.png",
+        "/uploads/c107abf4-a565-47a2-8faf-9d5e6226d7b1.png",
+        "/uploads/dde2f330-8c72-4ae9-81d4-2d0323ce9a85.png"
       ],
+      "fabricData": {
+        "/uploads/988f18ac-b4c8-4a1c-95f3-fb2bfe7bb5ce.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        }
+      },
       "imageTags": {},
       "images": [
         "/uploads/5575fa68-bad7-40a7-8c17-0bff6ffeb752.png"
       ],
+      "marqueeBoxes": {},
       "subImages": {
         "/uploads/5575fa68-bad7-40a7-8c17-0bff6ffeb752.png": [
           "/uploads/54f6e0d3-74b1-4bc9-8da3-220803d4fda9.png",
           "/uploads/e784f8f3-e296-4b2a-b162-352a5b9b026e.png",
           "/uploads/4a5b4b53-d548-40de-8696-1fe1b65acd7c.png",
-          "/uploads/d4918717-445c-402b-b528-43d99498822a.png"
+          "/uploads/d4918717-445c-402b-b528-43d99498822a.png",
+          "/uploads/8d4cf7cc-daf7-425b-97d8-1fefb3b33419.png",
+          "/uploads/c5f74dc8-7b38-4abe-a0b8-64049ea2150d.png",
+          "/uploads/30911868-3748-41cd-920f-29a5626028f8.png"
         ]
       }
     }
   },
   "tagGroups": {
+    "BAT": [
+      "BAT",
+      "HERO"
+    ],
     "Emotions": [
       "darr",
       "Mann Nahi",
@@ -20858,7 +21110,6 @@
       "Panicyy",
       "desperate",
       "halkeMeLerahe",
-      "sdadssdsd",
       "nafsPeKabu",
       "no darr!",
       "impulsive",
@@ -20894,6 +21145,8 @@
     ],
     "TargetType": [
       "Palat Gaya"
-    ]
+    ],
+    "car": [],
+    "cat": []
   }
 }
