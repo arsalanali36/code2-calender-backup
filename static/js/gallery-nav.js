@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-nav.js
+ * @description Navigating indices and managing resource caching of prev/next.
+ */
+
 function loadOverlayForCurrentImage() {
   if (annotState.active) return; // annotation mode handles its own canvas
   const imgs = state.gallery.images || [];

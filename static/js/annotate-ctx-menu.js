@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-ctx-menu.js
+ * @description Context menus for the Marquee and Fabric features.
+ */
+
 // annotate-ctx-menu.js — Marquee context menu
 
 // annotate-fabric.js (core) — Marquee context menu, startAnnotation,

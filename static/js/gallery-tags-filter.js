@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-tags-filter.js
+ * @description Logic hiding thumbnails in Gallery by selected tag conditions.
+ */
+
 function renderGalleryTagFilterPanel() {
     const panel = document.getElementById('gallery-img-tag-filter-panel');
     if (!panel) return;

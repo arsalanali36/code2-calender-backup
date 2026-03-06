@@ -1,3 +1,8 @@
+/**
+ * @fileoverview data.js
+ * @description Database handling, HTTP interactions, Tag schemas, Server syncing.
+ */
+
 async function init() {
   loadSettingsFromStorage();
   loadShortcutsFromStorage();

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-data.js
+ * @description Extracting subsets of trades and overlays mapped to specific dates.
+ */
+
 function getImagesForDate(dateStr) {
   const out = [];
   (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
@@ -6,6 +11,25 @@ function getImagesForDate(dateStr) {
   });
   (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
   return out;
+}
+
+async function fetchImageTimesForGallery() {
+  const urls = state.gallery._baseImages || state.gallery.images || [];
+  if (!urls.length) return;
+  try {
+    const res = await fetch('/api/image-times', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls })
+    });
+    if (res.ok) {
+      const times = await res.json();
+      state.gallery.imageTimes = times;
+      renderGallery();
+    }
+  } catch (err) {
+    console.error('Failed to fetch image times', err);
+  }
 }
 
 function getTradeForDateByImage(dateStr, imageUrl) {

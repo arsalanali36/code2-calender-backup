@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-canvas.js
+ * @description Fabric history, shape handling, text events.
+ */
+
 // annot-canvas.js — Fabric history, shape/text events, marquee overlay canvas.
 
 // ─── G. Fabric history ────────────────────────────────────────────────────────

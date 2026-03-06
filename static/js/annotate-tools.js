@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-tools.js
+ * @description UI Toolbar bindings (Pen, Eraser, Text, Marquee tools).
+ */
+
 // annot-tools.js — Tool toggles, setAnnotTool, _applyFabricToolMode, _setCursor.
 
 // ─── E. Tool state ───────────────────────────────────────────────────────────

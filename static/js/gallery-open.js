@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-open.js
+ * @description Functions bounding UI flow from Table/Calendar -> Gallery Viewer.
+ */
+
 // gallery-open.js — openGalleryForDate, openGalleryDirect, openGalleryForDateWithTagFilter, lock/unlockBodyScroll
 
 function openGalleryForDate(dateStr) {

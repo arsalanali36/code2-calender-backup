@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-tags.js
+ * @description Cloud chip UI lists, drag & drop between group definitions.
+ */
+
 function renderGalleryTagCloud() {
   const chips = document.getElementById('gv2-tag-cloud-chips');
   const modeBtn = document.getElementById('gv2-tc-mode-btn');

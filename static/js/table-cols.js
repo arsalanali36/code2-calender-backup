@@ -1,3 +1,8 @@
+/**
+ * @fileoverview table-cols.js
+ * @description Col resizing, drag/drop sort, popup note, inner cell render routines.
+ */
+
 function stripHtml(html) {
   if (!html) return '';
   const d = document.createElement('div'); d.innerHTML = html;

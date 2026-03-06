@@ -11385,77 +11385,6 @@
     },
     {
       "Broker": "zerodha",
-      "Brokerage": "",
-      "Buy Price (Avg)": "",
-      "Buy Time": "",
-      "Gross P/L": "",
-      "Image Tags": "",
-      "Instrument": "",
-      "Net P/L": "",
-      "Note": "",
-      "Other Charges": "",
-      "Pt": "",
-      "Qty": "",
-      "Rs": "",
-      "Sell Price (Avg)": "",
-      "Sell Time": "",
-      "Tags": "",
-      "Total Fees": "",
-      "Total Trades": "",
-      "TradeType": "",
-      "Video": "",
-      "date": "2026-03-05",
-      "fabricData": {
-        "/uploads/9615ed6a-5e12-4f85-bcce-2268c19c3a5d.png": {
-          "hoverCursor": "move",
-          "objects": [],
-          "version": "5.3.0"
-        }
-      },
-      "imageTags": {},
-      "images": [
-        "/uploads/4ec9cb73-aed6-4d9e-884b-59fcc3b4f6f3.png",
-        "/uploads/c57f29d7-0e36-4f3b-b4ce-23cb57e1ab22.png",
-        "/uploads/b0de7e8c-0937-4f1b-bf0d-ef0a586d4962.png",
-        "/uploads/40a0e4a6-7f2a-4269-bbeb-a285bc3951c4.png",
-        "/uploads/6576d71a-0523-45a1-b212-aa1c91d1fdd3.png",
-        "/uploads/f00547f0-ab14-4b4d-bbcd-ff1afdc009a0.png",
-        "/uploads/4a8400fb-461f-41f7-8323-0f0faac9c8e9.png",
-        "/uploads/b9bae3d1-03aa-4f2d-bf5e-060fb225cb2e.png",
-        "/uploads/9615ed6a-5e12-4f85-bcce-2268c19c3a5d.png",
-        "/uploads/4bbff287-df46-4960-b25d-4d34055367f5.png",
-        "/uploads/e2708bfc-e254-4e72-9718-05883432d040.png",
-        "/uploads/8d6302eb-e3b9-471b-a484-ab7765df3373.png",
-        "/uploads/e8e9592d-c7d8-49e9-8acf-3b182bc3e540.png",
-        "/uploads/68b90f6e-21aa-4eba-a432-b919b34654a7.png",
-        "/uploads/e0e16da5-1a41-4f04-bea9-b53713cd2b2d.png",
-        "/uploads/ef31c6be-fa1e-4be0-b952-436f5e5be6d2.png",
-        "/uploads/a0a50194-d415-4b46-8e8f-30f009f17265.png",
-        "/uploads/17aa4f95-6625-4af3-a07f-7c7478d676eb.png",
-        "/uploads/32bb3604-4146-4c0a-a2f2-2b5c97e7dbcc.png",
-        "/uploads/58c97597-a867-45f8-b955-f14c91054a46.png",
-        "/uploads/739c5ec4-5b2d-402d-ad4d-3a6bc02290b4.png",
-        "/uploads/3e05da7b-21c9-4113-8b8a-b13c99fd1e24.png",
-        "/uploads/4a16966b-60c4-4682-a7c8-30f033d9f852.png",
-        "/uploads/17cc285e-1099-488a-828c-1d05e013b0d3.png",
-        "/uploads/af70bc5e-55c9-4229-817b-51f073d5c2a9.png",
-        "/uploads/e594e94a-8ec0-455d-b2d6-b7d6f0ee7a82.png",
-        "/uploads/97240366-30a6-44fe-a45f-0394630b7b6e.png",
-        "/uploads/924a2e13-6067-4be7-8dae-e905a21df299.png",
-        "/uploads/c963eeb2-d423-45f9-a9de-6ec91683fbaf.png",
-        "/uploads/b8eab4b2-00c1-44f4-8a1e-89f5507a4b76.png",
-        "/uploads/dadcdac9-6d71-4007-b113-aea977d3c5a0.png",
-        "/uploads/da637bb0-6e6c-43c4-abd4-70202155e864.png",
-        "/uploads/3ff71b46-48fb-486d-b03b-cfb214175679.png"
-      ],
-      "marqueeBoxes": {
-        "/uploads/9615ed6a-5e12-4f85-bcce-2268c19c3a5d.png": []
-      },
-      "observation": "",
-      "trade_date": "2026-03-05"
-    },
-    {
-      "Broker": "zerodha",
       "Brokerage": 40,
       "Buy Price (Avg)": 231.5,
       "Buy Time": "09:30:05",
@@ -11477,8 +11406,23 @@
       "Video": "",
       "date": "2026-03-05",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/3176e6f3-ddea-4f92-bb77-5c015452237c.png"
+      ],
       "observation": "",
+      "subImages": {
+        "/uploads/3176e6f3-ddea-4f92-bb77-5c015452237c.png": [
+          "/uploads/921bcd6b-663c-436a-807f-a8071a5b1fe4.png",
+          "/uploads/a0298607-b4ef-46d5-a68e-28514fa2ffc1.png",
+          "/uploads/36af687f-8ec5-4739-98a1-4cc8917731aa.png",
+          "/uploads/96ecf3e7-fedb-4339-a297-e88032831964.png",
+          "/uploads/5e2d60cf-750e-4fef-988e-f5a18dd5ae8d.png",
+          "/uploads/6c2a0630-291c-4c77-a13e-cf1e2e394abc.png",
+          "/uploads/2d45866e-849b-4bad-a16b-0d3d25c68f76.png",
+          "/uploads/7240a942-32cc-41a1-8e82-8cbc78a12be4.png",
+          "/uploads/0abf4531-b2f9-4267-b9ca-62f8f0537287.png"
+        ]
+      },
       "tags": [],
       "trade_date": "2026-03-05"
     },
@@ -11504,9 +11448,43 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-03-05",
+      "fabricData": {
+        "/uploads/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/dab74d83-fe3e-407b-b9e4-61c7a033cbaf.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/f09db504-d01b-43be-a5c1-9fb9ba6b3d11.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        }
+      },
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": []
+      },
       "observation": "",
+      "subImages": {
+        "/uploads/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": [
+          "/uploads/dab74d83-fe3e-407b-b9e4-61c7a033cbaf.png",
+          "/uploads/9170f0b0-05d6-4f09-a4e3-a5ef8570b775.png",
+          "/uploads/8f89a6c9-598a-47f6-b3a7-f47c7095d76d.png",
+          "/uploads/370b19df-fd55-4db0-aff9-c2889f55e59d.png",
+          "/uploads/38a351fc-b85e-4b04-9e68-d239d7f5458e.png",
+          "/uploads/c6f0741b-7494-469a-8f56-296c5ef816d9.png",
+          "/uploads/f09db504-d01b-43be-a5c1-9fb9ba6b3d11.png",
+          "/uploads/8a767215-0895-42aa-a1c3-8175a68a838f.png"
+        ]
+      },
       "tags": [],
       "trade_date": "2026-03-05"
     },
@@ -11533,8 +11511,16 @@
       "Video": "",
       "date": "2026-03-05",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/be106d75-6807-4c06-8607-aa4c7ed8dc41.png"
+      ],
       "observation": "",
+      "subImages": {
+        "/uploads/be106d75-6807-4c06-8607-aa4c7ed8dc41.png": [
+          "/uploads/d033584f-ef2a-4056-b854-4fbbaa89c750.png",
+          "/uploads/655f0359-e756-4458-bb52-8e958f144097.png"
+        ]
+      },
       "tags": [],
       "trade_date": "2026-03-05"
     },
@@ -11561,8 +11547,25 @@
       "Video": "",
       "date": "2026-03-05",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/d609aa99-ccff-424a-a4d4-45082a8b6cc1.png"
+      ],
       "observation": "",
+      "subImages": {
+        "/uploads/d609aa99-ccff-424a-a4d4-45082a8b6cc1.png": [
+          "/uploads/34734e9c-662e-4dca-8e07-39a1056f70b3.png",
+          "/uploads/a06f6714-c74c-47a0-b37e-9dc48456428c.png",
+          "/uploads/240eed08-993b-4d93-b4ca-9b2a1576c550.png",
+          "/uploads/263e7219-2f7a-4201-89be-84e424110941.png",
+          "/uploads/b796f309-7808-4346-a222-4bc18f11fbb4.png",
+          "/uploads/259e5e4d-e5ed-4b7a-8aa6-7fa93c44ec96.png",
+          "/uploads/3ff65c26-7f58-4317-823e-070b26e32dca.png",
+          "/uploads/153ab576-dbc2-4330-a354-5e3c3cfdbb59.png",
+          "/uploads/767c9e2a-31cb-432e-b601-84a31d8c2981.png",
+          "/uploads/b7b97c16-5fc8-4c18-9e29-b4f4531e430a.png",
+          "/uploads/2e5f7cf7-3dfc-4414-93a6-0be198ee25b1.png"
+        ]
+      },
       "tags": [],
       "trade_date": "2026-03-05"
     },
@@ -11588,8 +11591,348 @@
       "TradeType": "",
       "Video": "",
       "date": "2026-03-06",
+      "groupNames": {
+        "/uploads/0770ffc7-23f1-485c-bb21-3611dc5a443b.png": "T1"
+      },
+      "imageTags": {},
+      "images": [
+        "/uploads/0770ffc7-23f1-485c-bb21-3611dc5a443b.png"
+      ],
+      "subImages": {
+        "/uploads/0770ffc7-23f1-485c-bb21-3611dc5a443b.png": [
+          "/uploads/7af69c4d-b976-436b-b724-cb681c5e846f.png",
+          "/uploads/32db5500-bdc6-4f8e-81d6-d01cb70fee11.png"
+        ]
+      },
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 264.8,
+      "Buy Time": "09:45:31",
+      "Gross P/L": -5018,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024600CE",
+      "Net P/L": -5154.1,
+      "Note": "",
+      "Other Charges": 96.1,
+      "Pt": -25.733333,
+      "Qty": 195,
+      "Rs": -5018,
+      "Sell Price (Avg)": 239.066667,
+      "Sell Time": "09:39:39",
+      "Tags": [],
+      "Total Fees": 136.1,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
+      "groupNames": {
+        "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png": "T2 POST",
+        "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png": "T2"
+      },
+      "imageTags": {},
+      "images": [
+        "/uploads/b9b7f30f-0a5f-4897-86d7-e09d08357440.png",
+        "/uploads/60e3b0d4-030f-4183-a228-c1aa7ab7010f.png",
+        "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png",
+        "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png"
+      ],
+      "observation": "",
+      "subImages": {
+        "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png": [
+          "/uploads/c12ae266-5950-4821-bdcb-dcd87b0978b9.png",
+          "/uploads/3b96441a-208f-4a40-a34f-5e3d5e704684.png",
+          "/uploads/f00920b1-0440-486d-bc55-cea8d0950431.png",
+          "/uploads/fea4243a-46af-4f55-a5be-13423f0c8311.png",
+          "/uploads/06296ca9-9bae-49ec-8850-b342aa74b4db.png",
+          "/uploads/c1e99d0c-6281-4b55-8cd5-aebe08e199df.png",
+          "/uploads/41f9185d-01ef-4b35-991f-bc87b0342322.png",
+          "/uploads/6c9bc075-a533-4358-962b-915f9558efa3.png",
+          "/uploads/6b5bfc2a-7432-40f4-bf82-30320fd9af33.png",
+          "/uploads/f321445e-056f-4a17-a42c-7975d0926e44.png",
+          "/uploads/0a9edb60-cc73-46f8-a745-a1bd834f39cb.png",
+          "/uploads/d2c14294-8bb9-4991-ab96-b6fd1dd10f9b.png",
+          "/uploads/9b0f90fb-3359-40cb-a167-e4a4ff62f0e9.png",
+          "/uploads/c0803069-e85f-4c70-9b88-cdb271047504.png"
+        ],
+        "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png": [
+          "/uploads/56825db9-40be-4364-bddc-c5c5826c2b27.png",
+          "/uploads/35bab5d1-2d8f-420c-a439-e033b87a9e8d.png",
+          "/uploads/f794be98-e2f5-4c0c-9f07-4a16629966ad.png",
+          "/uploads/22136dda-da58-4d70-bc81-3ba41e64488b.png",
+          "/uploads/f7ca227e-41ec-45fc-8407-c9455cb61453.png",
+          "/uploads/bbc321d8-4c7d-40ea-b8b2-85acdaa02bc8.png",
+          "/uploads/53769d77-2e53-4bb8-aa51-228b4782e832.png",
+          "/uploads/2ad7935a-c904-4211-99d3-faa3aa32b632.png"
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 216.5,
+      "Buy Time": "10:14:03",
+      "Gross P/L": 146.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024650CE",
+      "Net P/L": 20.36,
+      "Note": "",
+      "Other Charges": 85.89,
+      "Pt": 0.75,
+      "Qty": 195,
+      "Rs": 146.25,
+      "Sell Price (Avg)": 217.25,
+      "Sell Time": "09:49:59",
+      "Tags": [],
+      "Total Fees": 125.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
+      "groupNames": {
+        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png": "PRE"
+      },
+      "imageTags": {},
+      "images": [
+        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png",
+        "/uploads/39e570d1-e2ea-4065-ba5e-0264efebdda1.png",
+        "/uploads/35d38bbd-94a5-44ba-a1c6-02936f5639d4.png"
+      ],
+      "observation": "",
+      "subImages": {
+        "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png": [
+          "/uploads/0c22d977-696c-4c5f-8dc6-b8bb34fec5ed.png",
+          "/uploads/a87f9731-02ba-445f-8c20-e686a371d8c3.png",
+          "/uploads/3a7a78ba-7d43-460d-befc-6500a5942edf.png",
+          "/uploads/84cf742c-5d85-47af-baff-68a029076659.png",
+          "/uploads/579479fe-f228-4a73-9c9d-a9240823c490.png",
+          "/uploads/31456910-d902-4718-ad7e-eed9fee1654a.png",
+          "/uploads/06c6f3ed-c827-4ace-b84b-4e7c51d2d00a.png",
+          "/uploads/d1b65c54-ff3c-4e86-8670-40288abf7b8a.png",
+          "/uploads/b34fcd8f-cf9f-4081-99b8-b278a8544720.png",
+          "/uploads/b31e7d4f-9b27-4b02-8654-83958353734d.png",
+          "/uploads/cf1ac155-3bbd-42f7-bcb6-f01faf3fb014.png",
+          "/uploads/90fb50b0-db6a-451a-8817-75b3f13d60a8.png",
+          "/uploads/a20531ac-6771-4eee-8960-b6591e2eb0fa.png",
+          "/uploads/82160c5b-31fc-4773-8e08-6a219c832bdb.png",
+          "/uploads/32a1d953-ca40-4d8b-93d1-6c76aba1ae0b.png"
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 191.9,
+      "Buy Time": "11:02:51",
+      "Gross P/L": 3997.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024600PE",
+      "Net P/L": 3875.08,
+      "Note": "",
+      "Other Charges": 82.42,
+      "Pt": 20.5,
+      "Qty": 195,
+      "Rs": 3997.5,
+      "Sell Price (Avg)": 212.4,
+      "Sell Time": "11:00:13",
+      "Tags": [],
+      "Total Fees": 122.42,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
+      "imageTags": {},
+      "images": [
+        "/uploads/ad00c494-2e03-4522-9ad2-c6b99c195597.png"
+      ],
+      "observation": "",
+      "subImages": {
+        "/uploads/92619eec-7c26-4c7b-9711-7e99cccab5fe.png": [
+          "/uploads/07b8ec9b-8121-438a-8c71-10c45eeb4662.png",
+          "/uploads/3158bc1a-5d78-491b-90e0-d5c0a369a5a6.png",
+          "/uploads/083c748f-7145-4e0e-af83-f26f6fcdcfd3.png",
+          "/uploads/240db18c-d081-4752-a9f1-12f2419fc9b5.png",
+          "/uploads/a86a66a5-d280-42c5-a350-3b9e71d77372.png",
+          "/uploads/446a8d76-970c-45d3-abda-90fb80682395.png",
+          "/uploads/53d6622a-a1c9-430c-9eb4-f6010a13a7ad.png",
+          "/uploads/72934e82-2d27-452d-bf19-bc3dec103841.png",
+          "/uploads/8036b5b1-80c5-4f11-9cdb-878df2527015.png",
+          "/uploads/1a403225-2015-4abe-8961-df0345a2ba7a.png",
+          "/uploads/789292bb-8429-4e6a-8acb-8c2c2159def7.png",
+          "/uploads/49a176ce-9cb1-4f1f-a422-b7ead7120382.png",
+          "/uploads/87218b7c-f27a-4204-a5b5-9549d2f119e9.png",
+          "/uploads/dd12f2e9-a604-4d9a-be82-d17edf55e879.png",
+          "/uploads/c5f669f2-f7ce-4fb0-b6e2-df4b89cebdbf.png",
+          "/uploads/cad1f45c-d491-4f7e-91bd-0fdb4f499f5c.png"
+        ],
+        "/uploads/ad00c494-2e03-4522-9ad2-c6b99c195597.png": [
+          "/uploads/9bce8000-9ce1-433e-a1d5-12af4802279e.png",
+          "/uploads/7b770d53-701b-4c28-a10a-fa62503e153b.png",
+          "/uploads/fac7f6f7-f7bb-4acb-8a95-06c98e26a866.png",
+          "/uploads/007c778f-02b0-4584-9205-2ec53ae8b5b8.png",
+          "/uploads/dcd932aa-f4b1-442d-a0f4-c0e0b346b293.png",
+          "/uploads/abcbabc8-dce4-4c9d-af75-30dd24d394cc.png",
+          "/uploads/29246826-fb06-4a7e-82e9-df7975327a1c.png",
+          "/uploads/a9fe67cf-7e1b-43ec-b7cd-b1acc2192f7d.png",
+          "/uploads/6b40af21-88da-4ebe-b5a5-dba341b810d9.png",
+          "/uploads/379add62-422c-4378-9fbb-7e140ce45fc1.png",
+          "/uploads/e184792a-0997-4b83-a15d-23e3fa0229e1.png",
+          "/uploads/9f7e5e62-575f-4115-84b3-68f0051886e5.png",
+          "/uploads/e1237334-c44a-48d5-8d4a-304c2328b6d6.png",
+          "/uploads/9b0784b2-398d-4f14-b054-cbc4959508fd.png",
+          "/uploads/43a0d8c7-6ca3-483a-8e42-36f3d5385c41.png",
+          "/uploads/fb8b451c-9c6b-4cea-a1da-7f241d699a66.png",
+          "/uploads/2694aac0-5841-427b-a94e-c489ec02e134.png",
+          "/uploads/bae36584-d8df-4b05-9ba7-9560fdb777a6.png",
+          "/uploads/91508613-f22e-47e1-9ef2-59b9f1fa6716.png",
+          "/uploads/9f2fc7ff-df22-49a0-be6f-8f5d43982848.png",
+          "/uploads/3c8ae8c0-db78-445a-a093-0cff7cf3fad5.png"
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 176.05,
+      "Buy Time": "11:44:27",
+      "Gross P/L": -48.75,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024550PE",
+      "Net P/L": -117.15,
+      "Note": "",
+      "Other Charges": 28.4,
+      "Pt": -0.75,
+      "Qty": 65,
+      "Rs": -48.75,
+      "Sell Price (Avg)": 175.3,
+      "Sell Time": "11:04:15",
+      "Tags": [],
+      "Total Fees": 68.4,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
+      "imageTags": {},
+      "images": [
+        "/uploads/51f00eb6-7df8-4f03-a200-5cff83286efd.png",
+        "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png"
+      ],
+      "observation": "",
+      "subImages": {
+        "/uploads/0d1912ce-66d2-4d99-bdea-826667bef0a8.png": [
+          "/uploads/a3f886c0-2f41-43cf-9001-77aeb2020b04.png",
+          "/uploads/73c1d39f-03ac-4b60-8d4d-9244c41afba7.png",
+          "/uploads/150379fc-4956-4ebd-8cd0-94a7ea4e4453.png",
+          "/uploads/e2b4a9bb-eb31-43d7-8dae-9020e2d368de.png",
+          "/uploads/28623b9f-e1ab-4fec-9a28-5bdbe4a2b417.png",
+          "/uploads/20343297-fbd1-4816-8496-0a7e64c8d5f8.png",
+          "/uploads/3978af68-81eb-46b0-b80f-e843acc3d66c.png",
+          "/uploads/9f9ece84-c088-4910-821b-dad2f750ffb6.png",
+          "/uploads/be5ce2a0-faee-4b10-8ba8-71d36f11d0b9.png",
+          "/uploads/fbd369f9-7070-450d-8c28-cc52b0259f05.png",
+          "/uploads/dd991f3b-121b-4d3b-b3a7-86a6b9ef985e.png",
+          "/uploads/3927742d-d088-45b9-aabc-73988476b317.png",
+          "/uploads/06e5445c-1ad0-4aa9-98a0-73a2aba33e2f.png",
+          "/uploads/eb3d5afc-12ec-44b0-806a-63cf1c953285.png",
+          "/uploads/46880813-624e-427e-aecb-2077ffb93c65.png",
+          "/uploads/bb7815f5-ca52-49bd-a06c-3d866b17faa7.png"
+        ],
+        "/uploads/51f00eb6-7df8-4f03-a200-5cff83286efd.png": [
+          "/uploads/126109a7-45c7-4f58-ba07-eaa3bfdbb187.png",
+          "/uploads/27ac3968-d405-46be-bc33-db39156d1f22.png",
+          "/uploads/71717498-d635-439a-af05-d6cb69a74fe5.png",
+          "/uploads/212c34e1-6c27-4b7a-9610-59a485ac5b16.png",
+          "/uploads/62ba7600-8de1-4002-8c70-486ed96bd98d.png",
+          "/uploads/b149b6d7-5c0d-4867-ac39-98a1215ea89f.png",
+          "/uploads/81955045-25b5-4acb-89d4-d233121f2a7e.png",
+          "/uploads/5820df14-8c60-4280-9ec1-ff8deee4ace1.png",
+          "/uploads/a256902e-ada9-4041-9445-bd3779a18906.png",
+          "/uploads/c3cc00de-d506-4431-819b-d2e457a4f369.png",
+          "/uploads/2fa13521-3684-4ff8-ae82-5c417d54c78a.png",
+          "/uploads/f631eb2c-8e6d-43e6-88de-650e4999c537.png",
+          "/uploads/7559c693-5969-4611-83e4-ab779e804e44.png",
+          "/uploads/56233df3-e40f-49aa-a8df-4f4f7bc5f258.png",
+          "/uploads/8622b814-6e15-4fa2-877d-cac1be4ecf75.png",
+          "/uploads/529f2d8a-90e2-4521-8048-43400b0bf582.png",
+          "/uploads/f45a9735-bc46-453f-9634-9fb25daba08e.png"
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 167.1,
+      "Buy Time": "13:37:42",
+      "Gross P/L": -136.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024700CE",
+      "Net P/L": -203.7,
+      "Note": "",
+      "Other Charges": 27.2,
+      "Pt": -2.1,
+      "Qty": 65,
+      "Rs": -136.5,
+      "Sell Price (Avg)": 165,
+      "Sell Time": "11:44:42",
+      "Tags": [],
+      "Total Fees": 67.2,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
+      "groupNames": {
+        "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png": "T6"
+      },
+      "imageTags": {},
+      "images": [
+        "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png"
+      ],
+      "observation": "",
+      "subImages": {
+        "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png": [
+          "/uploads/bd586c3b-b321-435e-8033-0fe28d63621a.png",
+          "/uploads/ad477f03-85aa-489d-8e05-6a7649af576e.png"
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 218.15,
+      "Buy Time": "13:47:24",
+      "Gross P/L": -1179.75,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024600PE",
+      "Net P/L": -1251.64,
+      "Note": "",
+      "Other Charges": 31.89,
+      "Pt": -18.15,
+      "Qty": 65,
+      "Rs": -1179.75,
+      "Sell Price (Avg)": 200,
+      "Sell Time": "13:37:51",
+      "Tags": [],
+      "Total Fees": 71.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-06",
       "imageTags": {},
       "images": [],
+      "observation": "",
+      "tags": [],
       "trade_date": "2026-03-06"
     }
   ],
@@ -20272,17 +20615,234 @@
       }
     },
     "2026-03-05": {
+      "closeImages": [
+        "/uploads/5bbaaf5d-2a1e-4c59-a0d3-6f09c1cdac9a.png"
+      ],
+      "fabricData": {
+        "/uploads/240eed08-993b-4d93-b4ca-9b2a1576c550.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/259e5e4d-e5ed-4b7a-8aa6-7fa93c44ec96.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/263e7219-2f7a-4201-89be-84e424110941.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/3176e6f3-ddea-4f92-bb77-5c015452237c.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/34734e9c-662e-4dca-8e07-39a1056f70b3.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/370b19df-fd55-4db0-aff9-c2889f55e59d.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/38a351fc-b85e-4b04-9e68-d239d7f5458e.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/5bbaaf5d-2a1e-4c59-a0d3-6f09c1cdac9a.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/655f0359-e756-4458-bb52-8e958f144097.png": {
+          "hoverCursor": "move",
+          "objects": [
+            {
+              "angle": 0,
+              "backgroundColor": "transparent",
+              "charSpacing": 0,
+              "data": {
+                "isText": true,
+                "listCounter": 1,
+                "listType": "none"
+              },
+              "direction": "ltr",
+              "evented": true,
+              "fill": "#000000",
+              "fillRule": "nonzero",
+              "flipX": false,
+              "flipY": false,
+              "fontFamily": "Arial",
+              "fontSize": 24,
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+              "globalCompositeOperation": "source-over",
+              "height": 27.12,
+              "hoverCursor": null,
+              "left": 520.75,
+              "lineHeight": 1.16,
+              "linethrough": false,
+              "opacity": 1,
+              "originX": "left",
+              "originY": "top",
+              "overline": false,
+              "paintFirst": "fill",
+              "path": null,
+              "pathAlign": "baseline",
+              "pathSide": "left",
+              "pathStartOffset": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "selectable": true,
+              "shadow": null,
+              "skewX": 0,
+              "skewY": 0,
+              "stroke": null,
+              "strokeDashArray": null,
+              "strokeDashOffset": 0,
+              "strokeLineCap": "butt",
+              "strokeLineJoin": "miter",
+              "strokeMiterLimit": 4,
+              "strokeUniform": false,
+              "strokeWidth": 1,
+              "styles": [],
+              "text": "adsas",
+              "textAlign": "left",
+              "textBackgroundColor": "",
+              "top": 105.03,
+              "type": "i-text",
+              "underline": false,
+              "version": "5.3.0",
+              "visible": true,
+              "width": 64.04
+            }
+          ],
+          "version": "5.3.0"
+        },
+        "/uploads/8a767215-0895-42aa-a1c3-8175a68a838f.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/8f89a6c9-598a-47f6-b3a7-f47c7095d76d.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/9170f0b0-05d6-4f09-a4e3-a5ef8570b775.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/91f0c48f-36a9-44da-a9d3-08fc2b37e5b1.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/a06f6714-c74c-47a0-b37e-9dc48456428c.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/b2fe5de1-3ddd-4448-8aea-5057a54d6de5.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/b796f309-7808-4346-a222-4bc18f11fbb4.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/be106d75-6807-4c06-8607-aa4c7ed8dc41.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/c6f0741b-7494-469a-8f56-296c5ef816d9.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/d033584f-ef2a-4056-b854-4fbbaa89c750.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/d609aa99-ccff-424a-a4d4-45082a8b6cc1.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        },
+        "/uploads/f09db504-d01b-43be-a5c1-9fb9ba6b3d11.png": {
+          "hoverCursor": "move",
+          "objects": [],
+          "version": "5.3.0"
+        }
+      },
+      "imageTags": {},
+      "images": [
+        "/uploads/b2fe5de1-3ddd-4448-8aea-5057a54d6de5.png"
+      ],
+      "marqueeBoxes": {
+        "/uploads/0abf4531-b2f9-4267-b9ca-62f8f0537287.png": [],
+        "/uploads/240eed08-993b-4d93-b4ca-9b2a1576c550.png": [],
+        "/uploads/259e5e4d-e5ed-4b7a-8aa6-7fa93c44ec96.png": [],
+        "/uploads/263e7219-2f7a-4201-89be-84e424110941.png": [],
+        "/uploads/34734e9c-662e-4dca-8e07-39a1056f70b3.png": [],
+        "/uploads/370b19df-fd55-4db0-aff9-c2889f55e59d.png": [],
+        "/uploads/38a351fc-b85e-4b04-9e68-d239d7f5458e.png": [],
+        "/uploads/5bbaaf5d-2a1e-4c59-a0d3-6f09c1cdac9a.png": [],
+        "/uploads/655f0359-e756-4458-bb52-8e958f144097.png": [],
+        "/uploads/8a767215-0895-42aa-a1c3-8175a68a838f.png": [],
+        "/uploads/8f89a6c9-598a-47f6-b3a7-f47c7095d76d.png": [],
+        "/uploads/9170f0b0-05d6-4f09-a4e3-a5ef8570b775.png": [],
+        "/uploads/91f0c48f-36a9-44da-a9d3-08fc2b37e5b1.png": [],
+        "/uploads/a06f6714-c74c-47a0-b37e-9dc48456428c.png": [],
+        "/uploads/b2fe5de1-3ddd-4448-8aea-5057a54d6de5.png": [],
+        "/uploads/b796f309-7808-4346-a222-4bc18f11fbb4.png": [],
+        "/uploads/c6f0741b-7494-469a-8f56-296c5ef816d9.png": [],
+        "/uploads/d033584f-ef2a-4056-b854-4fbbaa89c750.png": [],
+        "/uploads/dab74d83-fe3e-407b-b9e4-61c7a033cbaf.png": [],
+        "/uploads/f09db504-d01b-43be-a5c1-9fb9ba6b3d11.png": []
+      },
+      "overlays": {
+        "/uploads/655f0359-e756-4458-bb52-8e958f144097.png": "/uploads/c8b6e709-0d75-4bb6-8602-4778560ada9a.png"
+      },
+      "subImages": {
+        "/uploads/b2fe5de1-3ddd-4448-8aea-5057a54d6de5.png": [
+          "/uploads/93dae566-0578-492e-83ce-31a9838235a9.png",
+          "/uploads/63080277-eaa1-4c26-a3d2-f7f1da5f7212.png",
+          "/uploads/91f0c48f-36a9-44da-a9d3-08fc2b37e5b1.png",
+          "/uploads/6c18e26a-48ed-4009-a9f6-28143d01ebfe.png"
+        ]
+      }
+    },
+    "2026-03-06": {
       "closeImages": [],
       "imageTags": {},
       "images": [
-        "/uploads/24f906cb-7657-485a-a91f-4b509f9186c5.png",
-        "/uploads/5512f856-0620-4cc2-9a5e-2cac750a62d2.png",
-        "/uploads/884c74cc-9ed7-488d-81f4-1c3f85e8a344.png",
-        "/uploads/6d93e7d8-4a7e-4cd0-9194-0b1214b372f6.png",
-        "/uploads/217f70c6-c54e-4045-b4dc-b2ea0179eb99.png"
-      ]
-    },
-    "2026-03-06": {}
+        "/uploads/5575fa68-bad7-40a7-8c17-0bff6ffeb752.png"
+      ],
+      "subImages": {
+        "/uploads/5575fa68-bad7-40a7-8c17-0bff6ffeb752.png": [
+          "/uploads/54f6e0d3-74b1-4bc9-8da3-220803d4fda9.png",
+          "/uploads/e784f8f3-e296-4b2a-b162-352a5b9b026e.png",
+          "/uploads/4a5b4b53-d548-40de-8696-1fe1b65acd7c.png",
+          "/uploads/d4918717-445c-402b-b528-43d99498822a.png"
+        ]
+      }
+    }
   },
   "tagGroups": {
     "Emotions": [

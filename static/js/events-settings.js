@@ -1,3 +1,8 @@
+/**
+ * @fileoverview events-settings.js
+ * @description Settings modal events, row height and font UI bindings.
+ */
+
 // events-settings.js — Tag/font/row-height size controls, resize handles, obs modal, upload modal, settings panel
 
 function _bindSettingsEvents() {
@@ -179,21 +184,52 @@ function _bindSettingsEvents() {
   dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
   dz.addEventListener('drop', async e => { e.preventDefault(); dz.classList.remove('drag-over'); await handleImageFiles(Array.from(e.dataTransfer.files)); });
   document.getElementById('upload-done-btn').addEventListener('click', async () => {
-    if (state._dayUploadKey) {
-      if (!state.dayData[state._dayUploadKey]) state.dayData[state._dayUploadKey] = {};
-      if (!state.dayData[state._dayUploadKey].images) state.dayData[state._dayUploadKey].images = [];
-      state.dayData[state._dayUploadKey].images.push(...state.pendingFiles);
-      await saveTrades(); render();
-      showToast('Images saved!', 'success');
-      state._dayUploadKey = null;
-    } else if (state.uploadRow !== null) {
-      if (!state.trades[state.uploadRow].images) state.trades[state.uploadRow].images = [];
-      state.trades[state.uploadRow].images.push(...state.pendingFiles);
-      cleanupImageTagStore(state.trades[state.uploadRow]);
-      syncTradeDateField(state.trades[state.uploadRow]);
-      saveTrades();
-      render();
-      showToast('Images saved!', 'success');
+    let savedViaGallerySeparator = false;
+
+    if (state._galleryUploadCallback && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
+      const targetDate = state.gallery.date;
+      const sel = state.gallery.selectedSeparator;
+      if (sel === 'CLOSE') {
+        if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+        if (!state.dayData[targetDate].closeImages) state.dayData[targetDate].closeImages = [];
+        state.dayData[targetDate].closeImages.push(...state.pendingFiles);
+        savedViaGallerySeparator = true;
+      } else if (sel === 'OPEN') {
+        if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+        if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
+        state.dayData[targetDate].images.push(...state.pendingFiles);
+        savedViaGallerySeparator = true;
+      } else if (typeof sel === 'number') {
+        const tr = getTradesForDate(targetDate)[sel];
+        if (tr) {
+          tr.images = tr.images || [];
+          tr.images.push(...state.pendingFiles);
+          savedViaGallerySeparator = true;
+        }
+      }
+      if (savedViaGallerySeparator) {
+        await saveTrades(); render();
+        showToast('Images stored via separator!', 'success');
+      }
+    }
+
+    if (!savedViaGallerySeparator) {
+      if (state._dayUploadKey) {
+        if (!state.dayData[state._dayUploadKey]) state.dayData[state._dayUploadKey] = {};
+        if (!state.dayData[state._dayUploadKey].images) state.dayData[state._dayUploadKey].images = [];
+        state.dayData[state._dayUploadKey].images.push(...state.pendingFiles);
+        await saveTrades(); render();
+        showToast('Images saved!', 'success');
+        state._dayUploadKey = null;
+      } else if (state.uploadRow !== null) {
+        if (!state.trades[state.uploadRow].images) state.trades[state.uploadRow].images = [];
+        state.trades[state.uploadRow].images.push(...state.pendingFiles);
+        cleanupImageTagStore(state.trades[state.uploadRow]);
+        syncTradeDateField(state.trades[state.uploadRow]);
+        saveTrades();
+        render();
+        showToast('Images saved!', 'success');
+      }
     }
     document.getElementById('upload-modal').classList.remove('open');
     if (state._galleryUploadCallback) { state._galleryUploadCallback(); state._galleryUploadCallback = null; }

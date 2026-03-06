@@ -1,3 +1,8 @@
+/**
+ * @fileoverview events-ui.js
+ * @description UI level input bindings for view, year, and month pickers.
+ */
+
 // events-ui.js — Calendar, table, column ops, date range event bindings
 
 function _bindUIEvents() {

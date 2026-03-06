@@ -1,3 +1,8 @@
+/**
+ * @fileoverview settings.js
+ * @description Handles system-wide preferences local storage saves and popups.
+ */
+
 function loadSettingsFromStorage() {
   try {
     const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('tj_settings') || '{}') };

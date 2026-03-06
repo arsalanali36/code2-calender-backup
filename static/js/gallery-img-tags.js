@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-img-tags.js
+ * @description Applying standard image tags directly onto individual items.
+ */
+
 function renderGalleryImageTags() {
   const box = document.getElementById('gallery-image-tags');
   if (!box) return;

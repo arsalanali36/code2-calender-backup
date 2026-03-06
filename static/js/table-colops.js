@@ -1,3 +1,8 @@
+/**
+ * @fileoverview table-colops.js
+ * @description Header context actions, hide/add column schemas logic.
+ */
+
 function renderTagFilterPanel() {
   const panel = document.getElementById('tag-filter-panel');
   normalizeAllTagsFromTrades();

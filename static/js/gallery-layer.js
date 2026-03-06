@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-layer.js
+ * @description Layer panel sidebar controlling visibility and hierarchy of images.
+ */
+
 // gallery-layer.js — renderLayerPanel, toggleLayerPanel, shortcuts list,
 //   renderShortcutsPopover, renderGalleryVideoUrls.
 

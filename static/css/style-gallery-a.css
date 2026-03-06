@@ -271,6 +271,12 @@
   border-radius: 6px;
 }
 
+.selected-separator {
+  box-shadow: 0 0 0 2px var(--blue) !important;
+  color: var(--blue) !important;
+  border-color: var(--blue) !important;
+}
+
 .gallery-thumb {
   width: 48px;
   height: 48px;

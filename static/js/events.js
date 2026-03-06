@@ -1,3 +1,8 @@
+/**
+ * @fileoverview events.js
+ * @description Main bootstrapper mapping all app hotkeys and interactions.
+ */
+
 function bindEvents() {
   _bindUIEvents();
   _bindGalleryEvents();
@@ -38,25 +43,53 @@ function bindEvents() {
         const data = await res.json();
         if (data.url) {
           let addedToGroup = false;
-          const currUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-          if (currUrl) {
-            const ownerTrade = getOwnerTradeForImageUrl(currUrl);
-            const ownerDay = state.dayData[targetDate];
-            const findParent = (trade, d, targetUrl) => {
-              if (trade?.subImages?.[targetUrl]) return { targetDict: trade.subImages, url: targetUrl, isParent: true };
-              if (d?.subImages?.[targetUrl]) return { targetDict: d.subImages, url: targetUrl, isParent: true };
-              for (const [p, subs] of Object.entries(trade?.subImages || {})) if (subs.includes(targetUrl)) return { targetDict: trade.subImages, url: p, isParent: false };
-              for (const [p, subs] of Object.entries(d?.subImages || {})) if (subs.includes(targetUrl)) return { targetDict: d.subImages, url: p, isParent: false };
-              return null;
-            };
-            const pInfo = findParent(ownerTrade, ownerDay, currUrl);
-            if (pInfo) {
-              pInfo.targetDict[pInfo.url].push(data.url);
+
+          let targetDictToInsert = null;
+          let insertArr = null;
+
+          if (state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
+            const sel = state.gallery.selectedSeparator;
+            if (sel === 'CLOSE') {
+              if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+              if (!state.dayData[targetDate].closeImages) state.dayData[targetDate].closeImages = [];
+              state.dayData[targetDate].closeImages.push(data.url);
               addedToGroup = true;
-            } else if (ownerTrade) {
-              ownerTrade.images = ownerTrade.images || [];
-              ownerTrade.images.push(data.url);
+            } else if (sel === 'OPEN') {
+              if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+              if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
+              state.dayData[targetDate].images.push(data.url);
               addedToGroup = true;
+            } else if (typeof sel === 'number') {
+              const tr = getTradesForDate(targetDate)[sel];
+              if (tr) {
+                tr.images = tr.images || [];
+                tr.images.push(data.url);
+                addedToGroup = true;
+              }
+            }
+          }
+
+          if (!addedToGroup) {
+            const currUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+            if (currUrl) {
+              const ownerTrade = getOwnerTradeForImageUrl(currUrl);
+              const ownerDay = state.dayData[targetDate];
+              const findParent = (trade, d, targetUrl) => {
+                if (trade?.subImages?.[targetUrl]) return { targetDict: trade.subImages, url: targetUrl, isParent: true };
+                if (d?.subImages?.[targetUrl]) return { targetDict: d.subImages, url: targetUrl, isParent: true };
+                for (const [p, subs] of Object.entries(trade?.subImages || {})) if (subs.includes(targetUrl)) return { targetDict: trade.subImages, url: p, isParent: false };
+                for (const [p, subs] of Object.entries(d?.subImages || {})) if (subs.includes(targetUrl)) return { targetDict: d.subImages, url: p, isParent: false };
+                return null;
+              };
+              const pInfo = findParent(ownerTrade, ownerDay, currUrl);
+              if (pInfo) {
+                pInfo.targetDict[pInfo.url].push(data.url);
+                addedToGroup = true;
+              } else if (ownerTrade) {
+                ownerTrade.images = ownerTrade.images || [];
+                ownerTrade.images.push(data.url);
+                addedToGroup = true;
+              }
             }
           }
 

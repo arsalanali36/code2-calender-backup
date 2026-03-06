@@ -1,3 +1,8 @@
+/**
+ * @fileoverview io.js
+ * @description Importing Excel, JSON, Dhan CSVs. File picking and image upload UI.
+ */
+
 
 function openUploadModal(rowIdx) {
   syncTradeDateField(state.trades[rowIdx]);

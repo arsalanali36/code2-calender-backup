@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-ops.js
+ * @description Tile contexts menu: merge, group, flatten nested grids.
+ */
+
 // gallery-ops.js — Context menu, image replace, group/ungroup/tile ops,
 //   showGalleryGroupDeleteConfirm, toggleGalleryGroupExpand, moveSelectedToTrade.
 

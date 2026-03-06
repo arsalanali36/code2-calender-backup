@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-marquee.js
+ * @description Marquee selection overlay, tags and grouped dragging.
+ */
+
 // annot-marquee.js — Marquee box draw, hit-test, selection, tag helpers.
 
 // ─── D. Marquee helpers ───────────────────────────────────────────────────────

@@ -294,6 +294,19 @@ def delete_image():
             os.remove(filepath)
     return jsonify({'success': True})
 
+@app.route('/api/image-times', methods=['POST'])
+def image_times():
+    urls = request.json.get('urls', [])
+    times = {}
+    for url in urls:
+        filename = os.path.basename(url)
+        filepath = os.path.join(UPLOADS_DIR, filename)
+        if os.path.exists(filepath):
+            mtime = os.path.getmtime(filepath)
+            times[url] = datetime.fromtimestamp(mtime).strftime('%I:%M %p')
+    return jsonify(times)
+
+
 @app.route('/api/copy-image-to-clipboard', methods=['POST'])
 def copy_image_to_clipboard():
     data = request.json or {}

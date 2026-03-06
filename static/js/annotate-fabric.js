@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-fabric.js
+ * @description Overlay export, file saving and merging routines.
+ */
+
 // annotate-fabric.js — saveAnnotOverlay, saveAnnotMerge, bindAnnotationCanvas
 
 // ─── L. Overlay export ────────────────────────────────────────────────────────

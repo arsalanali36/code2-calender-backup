@@ -1,3 +1,8 @@
+/**
+ * @fileoverview events-keys.js
+ * @description Global keyboard shortcuts (undo, navigation).
+ */
+
 // events-keys.js — Global keyboard handler (gallery hotkeys, annotation shortcuts,
 //   calendar navigation, view toggles). Called by bindEvents() in events.js.
 
@@ -44,8 +49,8 @@ function _bindKeyboardEvents() {
         // Hum gallery exit ye tools exit nahi karenge.
         return;
       }
-      if (e.shiftKey && !e.ctrlKey && !e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); navigateGalleryDate(-1); return; }
-      if (e.shiftKey && !e.ctrlKey && !e.altKey && e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1); return; }
+      if (!e.ctrlKey && !e.altKey && (e.key === '<' || (e.key === ',' && e.shiftKey))) { e.preventDefault(); navigateGalleryDate(-1); return; }
+      if (!e.ctrlKey && !e.altKey && (e.key === '>' || (e.key === '.' && e.shiftKey))) { e.preventDefault(); navigateGalleryDate(1); return; }
 
       if (shortcutMatches(e, state.shortcuts.mergeSave)) {
         e.preventDefault();

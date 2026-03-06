@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-render.js
+ * @description Paints gallery grid DOM, separators, thumbnail generation.
+ */
+
 // gallery-render.js — renderGallery (thumbnails), renderGalleryStats, _getGalleryThumbImages
 
 function renderGallery() {
@@ -143,6 +148,13 @@ function renderGallery() {
         }
       } catch (err) { console.error(err); }
     });
+    sep.addEventListener('click', () => {
+      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
+      sep.classList.add('selected-separator');
+      state.gallery.selectedSeparator = idx; // zero-indexed trade index
+      showToast(`Selected Trade ${idx + 1} separator`, 'success');
+    });
+
     return sep;
   };
 
@@ -203,6 +215,13 @@ function renderGallery() {
         }
       } catch (err) { console.error(err); }
     });
+    sep.addEventListener('click', () => {
+      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
+      sep.classList.add('selected-separator');
+      state.gallery.selectedSeparator = isClose ? 'CLOSE' : 'OPEN';
+      showToast(`Selected ${label} separator`, 'success');
+    });
+
     return sep;
   };
 
@@ -210,11 +229,14 @@ function renderGallery() {
     thumbs.appendChild(createSpecialSeparator('OPEN', false));
   }
 
+  let renderedCloseSep = false;
+
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate }, currentIterIdx) => {
 
     const ownerTrade = getOwnerTradeForImageUrl(url);
+    const isCloseImg = state.gallery.date && state.dayData[state.gallery.date]?.closeImages?.includes(url);
 
-    if (isCurrentDate && dayTrades.length > 0) {
+    if (isCurrentDate && dayTrades.length > 0 && !isCloseImg) {
       let targetTradeIdx = -1;
       if (ownerTrade) {
         targetTradeIdx = dayTrades.indexOf(ownerTrade);
@@ -225,6 +247,18 @@ function renderGallery() {
         thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
         lastTradeIdxRendered++;
       }
+    }
+
+    if (isCurrentDate && isCloseImg && !renderedCloseSep && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+      // Catch up any remaining trade separators before switching to CLOSE
+      if (dayTrades.length > 0) {
+        while (lastTradeIdxRendered < dayTrades.length - 1) {
+          thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
+          lastTradeIdxRendered++;
+        }
+      }
+      thumbs.appendChild(createSpecialSeparator('CLOSE', true));
+      renderedCloseSep = true;
     }
 
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
@@ -389,6 +423,24 @@ function renderGallery() {
 
     wrap.appendChild(t); wrap.appendChild(del);
 
+    if (state.gallery.showTime && state.gallery.imageTimes && state.gallery.imageTimes[url]) {
+      const timeLbl = document.createElement('div');
+      timeLbl.textContent = state.gallery.imageTimes[url];
+      timeLbl.style.position = 'absolute';
+      timeLbl.style.bottom = '20px';
+      timeLbl.style.left = '50%';
+      timeLbl.style.transform = 'translateX(-50%)';
+      timeLbl.style.background = 'rgba(0,0,0,0.7)';
+      timeLbl.style.color = '#fff';
+      timeLbl.style.fontSize = '0.65rem';
+      timeLbl.style.padding = '1px 3px';
+      timeLbl.style.borderRadius = '3px';
+      timeLbl.style.pointerEvents = 'none';
+      timeLbl.style.whiteSpace = 'nowrap';
+      timeLbl.style.zIndex = '10';
+      wrap.appendChild(timeLbl);
+    }
+
     if (groupName) {
       const nameLbl = document.createElement('div');
       nameLbl.textContent = groupName;
@@ -432,7 +484,7 @@ function renderGallery() {
     thumbs.appendChild(wrap);
   });
 
-  // Append any remaining separators for trailing empty trades
+  // Append any remaining separators for trailing empty trades if CLOSE hasn't triggered it
   if (dayTrades.length > 0) {
     while (lastTradeIdxRendered < dayTrades.length - 1) {
       thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
@@ -440,7 +492,7 @@ function renderGallery() {
     }
   }
 
-  if (state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+  if (!renderedCloseSep && state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
     thumbs.appendChild(createSpecialSeparator('CLOSE', true));
   }
 

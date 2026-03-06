@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-core.js
+ * @description Helper logical boundaries and filter scope definitions.
+ */
+
 // gallery-core.js — tag helpers, scope/filter functions, applyGalleryImageScopeByTagFilter
 
 function _getTagsForImageUrl(url) {

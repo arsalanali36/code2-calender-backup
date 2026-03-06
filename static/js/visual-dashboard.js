@@ -1,3 +1,8 @@
+/**
+ * @fileoverview visual-dashboard.js
+ * @description Advanced graph widgets, PnL statistics visualization.
+ */
+
 const vdState = {
     month: new Date().getMonth(),
     year: new Date().getFullYear(),

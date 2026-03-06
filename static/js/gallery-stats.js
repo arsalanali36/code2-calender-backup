@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-stats.js
+ * @description Aggregating stats associated with the currently visible tag/date.
+ */
+
 // gallery-stats.js — renderGalleryStats
 
 function renderGalleryStats() {

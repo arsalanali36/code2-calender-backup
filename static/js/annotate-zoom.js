@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-zoom.js
+ * @description Module-level state, zoom/pan bounds, and brush cursor.
+ */
+
 // annot-zoom.js — Shared annotation state, zoom/pan, brush cursor.
 // Loaded FIRST. All module-level vars (fabricCanvas, zoom, drag, etc.) live here.
 

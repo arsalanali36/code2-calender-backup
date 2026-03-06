@@ -1,3 +1,8 @@
+/**
+ * @fileoverview gallery-image-ops.js
+ * @description Tile reordering, moves across dates, flat/sub-image deletion.
+ */
+
 // gallery-image-ops.js — getOwnerTrade, syncOrder, reorder, move, remove,
 //   handleReorderBatch, handleDropAsSubImage (lines 1-494).
 

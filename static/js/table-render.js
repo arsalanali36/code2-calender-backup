@@ -1,3 +1,8 @@
+/**
+ * @fileoverview table-render.js
+ * @description Generates the main DOM matrix rows depending on filter states.
+ */
+
 function getFilteredTrades() {
   return state.trades.filter(trade => {
     const colMatch = state.columns.every(col => {

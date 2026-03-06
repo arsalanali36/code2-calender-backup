@@ -1,3 +1,8 @@
+/**
+ * @fileoverview dashboard.js
+ * @description Entry point for main dashboard rendering and interactions.
+ */
+
 function render() {
   const sx = window.scrollX, sy = window.scrollY;
   renderCalendar();

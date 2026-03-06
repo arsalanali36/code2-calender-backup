@@ -1,3 +1,8 @@
+/**
+ * @fileoverview calendar.js
+ * @description Calendar view rendering, market holiday mappings logic.
+ */
+
 // ── NSE/BSE Market Holidays ──────────────────────────────────────────────────
 // Format: 'YYYY-MM-DD': 'Holiday Name'
 const MARKET_HOLIDAYS = {

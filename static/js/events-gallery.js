@@ -1,3 +1,8 @@
+/**
+ * @fileoverview events-gallery.js
+ * @description Gallery specific interaction panels, tags tray events.
+ */
+
 // events-gallery.js — Gallery tools, nav, upload, tags tray, tag cloud event bindings
 
 function _bindGalleryEvents() {
@@ -17,6 +22,16 @@ function _bindGalleryEvents() {
   const layerBtn = document.getElementById('gv2-layer-btn');
   if (layerBtn) layerBtn.addEventListener('click', () => {
     if (typeof toggleLayerPanel === 'function') toggleLayerPanel();
+  });
+  const timeBtn = document.getElementById('gv2-time-btn');
+  if (timeBtn) timeBtn.addEventListener('click', () => {
+    state.gallery.showTime = !state.gallery.showTime;
+    timeBtn.classList.toggle('active', state.gallery.showTime);
+    if (state.gallery.showTime) {
+      fetchImageTimesForGallery();
+    } else {
+      renderGallery();
+    }
   });
   const lpCloseBtn = document.getElementById('gv2-lp-close-btn');
   if (lpCloseBtn) lpCloseBtn.addEventListener('click', () => {

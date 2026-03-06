@@ -1,3 +1,8 @@
+/**
+ * @fileoverview annotate-lifecycle.js
+ * @description Lifecycle manager: starts and stops annotation sessions.
+ */
+
 // annotate-lifecycle.js — startAnnotation, stopAnnotation, save helpers
 
 // ─── K. Annotation lifecycle ──────────────────────────────────────────────────
