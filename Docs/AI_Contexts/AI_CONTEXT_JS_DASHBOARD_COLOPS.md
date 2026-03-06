@@ -546,6 +546,36 @@ function applyTagFilter() {
   const btn = document.getElementById('tag-filter-btn');
   btn.style.borderColor = state.tagFilter.length ? 'var(--blue)' : '';
   btn.style.color = state.tagFilter.length ? 'var(--blue)' : '';
+
+  // Update active tag filter banner
+  const banner = document.getElementById('active-tag-filter-banner');
+  const textEl = document.getElementById('active-tag-filter-text');
+  const clearBtn = document.getElementById('clear-tag-filter-btn');
+
+  if (banner && textEl) {
+    if (state.tagFilter.length > 0) {
+      // Extract just the tag names (strip the column info for display context)
+      const displayTags = state.tagFilter.map(k => {
+        const parsed = parseTagFilterKey(k);
+        return parsed.tag;
+      }).join(', ');
+
+      textEl.textContent = displayTags;
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // Bind clear button if not already bound
+  if (clearBtn && !clearBtn.dataset.bound) {
+    clearBtn.addEventListener('click', () => {
+      state.tagFilter = [];
+      renderTagFilterPanel();
+      applyTagFilter();
+    });
+    clearBtn.dataset.bound = 'true';
+  }
 }
 
 function addColumn(colName) {

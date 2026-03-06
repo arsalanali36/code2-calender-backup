@@ -14,9 +14,8 @@
         Annotate</button>
       <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-marquee-btn" title="Marquee mode (M)">&#9633;
         Marquee</button>
-      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags tray">&#127991; Tags</button>
       <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers panel (L)">&#10064; Layers</button>
-      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-time-btn" title="Show Save Time">&#128338; Time</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-time-btn" title="Show image time">&#128338; Time</button>
     </div>
     <div class="gv2-tray-right">
       <!-- Gallery Tools Dropdown -->
@@ -25,13 +24,11 @@
           style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Tools
           &#9660;</button>
         <div class="dropdown-menu" id="gallery-tools-panel"
-          style="right: 0px; left: auto; min-width: 150px; overflow-y: auto; background: var(--bg2);">
-          <button class="dropdown-item" id="gallery-upload-btn"
-            style="text-align: left; padding: 8px 12px; width: 100%;">&#11014; Upload</button>
-          <button class="dropdown-item" id="gallery-tag-btn" title="Manage tags for this image"
-            style="text-align: left; padding: 8px 12px; width: 100%;">&#127991; Img Tag</button>
-          <button class="dropdown-item" id="gv2-obs-btn" title="Open observation for this date"
-            style="text-align: left; padding: 8px 12px; width: 100%;">&#128211; Obs</button>
+          style="right: 0px; left: auto; min-width: 150px; overflow-y: auto; z-index: 9999;">
+          <button class="dropdown-item" id="gallery-upload-btn">&#11014; Upload</button>
+          <button class="dropdown-item" id="gv2-tags-btn" title="Tags tray (T)">&#127991; Tags</button>
+          <button class="dropdown-item" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
+          <button class="dropdown-item" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
         </div>
       </div>
       <!-- Gallery Show Heads Dropdown -->

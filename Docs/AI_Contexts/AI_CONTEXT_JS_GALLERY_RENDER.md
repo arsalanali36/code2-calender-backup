@@ -591,6 +591,10 @@ function renderGallery() {
     _rbEl.style.width = '0'; _rbEl.style.height = '0';
     const _rbMove = (me) => {
       const dr = thumbs.getBoundingClientRect();
+      // Auto-scroll when mouse near left/right edges
+      const EDGE = 50, SPEED = 12;
+      if (me.clientX < dr.left + EDGE) thumbs.scrollLeft -= SPEED;
+      else if (me.clientX > dr.right - EDGE) thumbs.scrollLeft += SPEED;
       const cx = me.clientX - dr.left + thumbs.scrollLeft;
       const cy = me.clientY - dr.top + thumbs.scrollTop;
       const x = Math.min(cx, _rbStart.x), y = Math.min(cy, _rbStart.y);
@@ -602,6 +606,7 @@ function renderGallery() {
       const rbRect = _rbEl.getBoundingClientRect(); // must get BEFORE hiding
       _rbEl.style.display = 'none';
       if (rbRect.width > 4 || rbRect.height > 4) {
+        const savedScroll = thumbs.scrollLeft;
         if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
         thumbs.querySelectorAll('.gv2-thumb-wrap').forEach(wrap => {
           if (wrap.dataset.globalIdx === undefined) return;
@@ -610,6 +615,7 @@ function renderGallery() {
           if (overlaps) state.gallery.selectedIndices.add(parseInt(wrap.dataset.globalIdx));
         });
         renderGallery();
+        setTimeout(() => { thumbs.scrollLeft = savedScroll; }, 60);
       } else {
         // Plain click on empty area → deselect all
         if (state.gallery.selectedIndices?.size > 0) {

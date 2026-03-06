@@ -10,6 +10,12 @@
 
 function getFilteredTrades() {
   return state.trades.filter(trade => {
+    // Exclude manual empty rows without actual data (e.g., added manually, empty fields)
+    const t = trade;
+    if (!t['Time'] && !t['Ex Time'] && !t['Buy Time'] && !t['Sell Time'] && !t['Gross P/L'] && !t['Net P/L'] && !t['Rs'] && !t['Qty']) {
+      return false;
+    }
+
     const colMatch = state.columns.every(col => {
       const fv = (state.filterValues[col] || '').toLowerCase().trim();
       if (!fv) return true;
@@ -496,6 +502,18 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
             const chip = document.createElement('span'); chip.className = 'tag-chip';
             chip.textContent = tag;
             chip.style.cssText = `color:${c};background:${hexToRgba(c, 0.15)};border-color:${hexToRgba(c, 0.45)}`;
+            chip.title = 'Click to filter (exclusive)';
+            chip.addEventListener('click', e => {
+              e.stopPropagation();
+              const fk = typeof makeTagFilterKey === 'function' ? makeTagFilterKey(col, tag) : `${col}::${tag}`;
+              if (state.tagFilter.length === 1 && state.tagFilter[0] === fk) {
+                state.tagFilter = [];
+              } else {
+                state.tagFilter = [fk];
+              }
+              if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+              if (typeof applyTagFilter === 'function') applyTagFilter();
+            });
             wrap.appendChild(chip);
           }
         }));
@@ -506,11 +524,17 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
             const chip = document.createElement('span'); chip.className = 'tag-chip tag-chip-day';
             chip.textContent = tag;
             chip.style.cssText = `color:${c};background:${hexToRgba(c, 0.15)};border-color:${hexToRgba(c, 0.45)}`;
-            chip.title = 'Day tag — click to remove';
+            chip.title = 'Day tag — click to filter (exclusive)';
             chip.addEventListener('click', e => {
               e.stopPropagation();
-              _setDayLevelTag(dateKey, col, tag, false);
-              saveTrades(); renderTable();
+              const fk = typeof makeTagFilterKey === 'function' ? makeTagFilterKey(col, tag) : `${col}::${tag}`;
+              if (state.tagFilter.length === 1 && state.tagFilter[0] === fk) {
+                state.tagFilter = [];
+              } else {
+                state.tagFilter = [fk];
+              }
+              if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+              if (typeof applyTagFilter === 'function') applyTagFilter();
             });
             wrap.appendChild(chip);
           }

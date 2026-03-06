@@ -80,8 +80,10 @@ function bindEvents() {
             }
           }
 
+          // currUrl must be declared here (outside nested blocks) to avoid ReferenceError
+          const currUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+
           if (!addedToGroup) {
-            const currUrl = (state.gallery.images || [])[state.gallery.currentIndex];
             if (currUrl) {
               const ownerTrade = getOwnerTradeForImageUrl(currUrl);
               const ownerDay = state.dayData[targetDate];
@@ -114,10 +116,14 @@ function bindEvents() {
           if (!state.gallery.images) state.gallery.images = [];
 
           if (addedToGroup) {
-            // For groups/trades we will let sync logic handle insertion, but we need it locally first
             const insertPos = state.gallery.images.indexOf(currUrl) + 1;
-            state.gallery.images.splice(insertPos, 0, data.url);
-            state.gallery.currentIndex = insertPos;
+            if (insertPos > 0) {
+              state.gallery.images.splice(insertPos, 0, data.url);
+              state.gallery.currentIndex = insertPos;
+            } else {
+              state.gallery.images.push(data.url);
+              state.gallery.currentIndex = state.gallery.images.length - 1;
+            }
           } else {
             state.gallery.images.push(data.url);
             state.gallery.currentIndex = state.gallery.images.length - 1;

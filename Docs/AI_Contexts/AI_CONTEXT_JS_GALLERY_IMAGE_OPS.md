@@ -180,8 +180,13 @@ window.performGalleryUndo = function () {
     const backup = window.galleryUndoStack.pop();
     if (backup.deleteTimer) clearTimeout(backup.deleteTimer);
 
-    if (backup.backupTradeIdx >= 0) state.trades[backup.backupTradeIdx] = JSON.parse(JSON.stringify(backup.backupTradeClone));
-    if (backup.dayDate && backup.backupDay) state.dayData[backup.dayDate] = JSON.parse(JSON.stringify(backup.backupDay));
+    if (backup.backupAllTrades) {
+        state.trades = JSON.parse(backup.backupAllTrades);
+        if (backup.backupAllDayData) state.dayData = JSON.parse(backup.backupAllDayData);
+    } else {
+        if (backup.backupTradeIdx >= 0) state.trades[backup.backupTradeIdx] = JSON.parse(JSON.stringify(backup.backupTradeClone));
+        if (backup.dayDate && backup.backupDay) state.dayData[backup.dayDate] = JSON.parse(JSON.stringify(backup.backupDay));
+    }
     state.gallery.images = [...backup.backupArr];
     state.gallery.currentIndex = backup.backupCurrentIndex;
     if (backup.backupExpanded) state.gallery.expandedGroups = new Set(backup.backupExpanded);
@@ -416,11 +421,19 @@ async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobal
     const indices = draggedIndicesStr.sort((a, b) => a - b);
     if (!indices.length) return;
 
+    // Backup for undo (cross-separator moves only)
+    const backupArr = [...arr];
+    const backupCurrentIndex = state.gallery.currentIndex;
+    const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
+    const backupAllTrades = targetUrl ? JSON.stringify(state.trades) : null;
+    const backupAllDayData = targetUrl ? JSON.stringify(state.dayData) : null;
+    const dayDate = state.gallery.date;
+
     // gather items
     const items = indices.map(i => arr[i]);
     const currentUrl = arr[state.gallery.currentIndex];
 
-    // First, detach moving items from their current groups
+    // First, detach moving items from their current groups (if they're sub-images of some parent)
     const removeFromGroup = (u) => {
         let p = null;
         for (const trade of state.trades) {
@@ -452,26 +465,48 @@ async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobal
     if (targetUrl) {
         const targetOwner = getOwnerTradeForImageUrl(targetUrl);
         const isTargetClose = !targetOwner && state.dayData[state.gallery.date]?.closeImages?.includes(targetUrl);
+        const dayKey = state.gallery.date;
 
         items.forEach(u => {
             const owner = getOwnerTradeForImageUrl(u);
+
+            // Collect & detach subImages if this item is a group parent
+            let ownedSubs = null;
+            if (owner && owner.subImages?.[u]) {
+                ownedSubs = [...owner.subImages[u]];
+                delete owner.subImages[u];
+                if (Object.keys(owner.subImages).length === 0) delete owner.subImages;
+            } else if (!owner && dayKey && state.dayData[dayKey]?.subImages?.[u]) {
+                ownedSubs = [...state.dayData[dayKey].subImages[u]];
+                delete state.dayData[dayKey].subImages[u];
+                if (Object.keys(state.dayData[dayKey].subImages).length === 0) delete state.dayData[dayKey].subImages;
+            }
+
             if (owner) owner.images = (owner.images || []).filter(x => x !== u);
-            else if (state.gallery.date && state.dayData[state.gallery.date]) {
-                if (state.dayData[state.gallery.date].images) state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(x => x !== u);
-                if (state.dayData[state.gallery.date].closeImages) state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(x => x !== u);
+            else if (dayKey && state.dayData[dayKey]) {
+                if (state.dayData[dayKey].images) state.dayData[dayKey].images = state.dayData[dayKey].images.filter(x => x !== u);
+                if (state.dayData[dayKey].closeImages) state.dayData[dayKey].closeImages = state.dayData[dayKey].closeImages.filter(x => x !== u);
             }
 
             if (targetOwner) {
                 if (!targetOwner.images) targetOwner.images = [];
                 targetOwner.images.push(u);
-            } else if (state.gallery.date) {
-                if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+                if (ownedSubs?.length) {
+                    targetOwner.subImages = targetOwner.subImages || {};
+                    targetOwner.subImages[u] = ownedSubs;
+                }
+            } else if (dayKey) {
+                if (!state.dayData[dayKey]) state.dayData[dayKey] = {};
                 if (isTargetClose) {
-                    if (!state.dayData[state.gallery.date].closeImages) state.dayData[state.gallery.date].closeImages = [];
-                    state.dayData[state.gallery.date].closeImages.push(u);
+                    if (!state.dayData[dayKey].closeImages) state.dayData[dayKey].closeImages = [];
+                    state.dayData[dayKey].closeImages.push(u);
                 } else {
-                    if (!state.dayData[state.gallery.date].images) state.dayData[state.gallery.date].images = [];
-                    state.dayData[state.gallery.date].images.push(u);
+                    if (!state.dayData[dayKey].images) state.dayData[dayKey].images = [];
+                    state.dayData[dayKey].images.push(u);
+                }
+                if (ownedSubs?.length) {
+                    state.dayData[dayKey].subImages = state.dayData[dayKey].subImages || {};
+                    state.dayData[dayKey].subImages[u] = ownedSubs;
                 }
             }
         });
@@ -491,7 +526,6 @@ async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobal
 
     if (anyDetached) {
         state.gallery.expandedGroups = state.gallery.expandedGroups || new Set();
-        // Since it's detached, it becomes a regular item in `arr`, and syncGalleryImageOrderToTrades will naturally put it back into its owner's `images` array because it's no longer in `subImages`.
     }
 
     state.gallery.currentIndex = Math.max(0, arr.indexOf(currentUrl));
@@ -500,6 +534,16 @@ async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobal
     await saveTrades();
     renderGallery();
     renderTable();
+
+    // Push undo entry for cross-separator moves
+    if (targetUrl) {
+        window.galleryUndoStack = window.galleryUndoStack || [];
+        window.galleryUndoStack.push({ backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate });
+        const t = document.getElementById('toast');
+        t.innerHTML = `Image(s) moved. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
+        t.className = 'toast success show';
+        setTimeout(() => { t.className = 'toast'; }, 4000);
+    }
 }
 
 async function handleDropAsSubImage(draggedIndicesStr, targetGlobalIdx) {

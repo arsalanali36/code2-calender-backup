@@ -396,7 +396,7 @@ function renderTagCell(td, rowIdx, colName) {
     chip.style.color = c;
     chip.style.background = hexToRgba(c, 0.15);
     chip.style.borderColor = hexToRgba(c, 0.45);
-    chip.title = 'Click to remove \u2022 Drag to move \u2022 Ctrl+Drag to copy';
+    chip.title = 'Click to filter \u2022 Drag to move \u2022 Ctrl+Drag to copy';
     chip.setAttribute('draggable', 'true');
     chip.addEventListener('dragstart', e => {
       _tagDragIsCopy = e.ctrlKey;
@@ -406,9 +406,14 @@ function renderTagCell(td, rowIdx, colName) {
     });
     chip.addEventListener('click', e => {
       e.stopPropagation();
-      trade[colName] = getTradeTagsForColumn(trade, colName).filter(t => t !== tag);
-      if (colName === 'Tags') trade.tags = [...trade[colName]];
-      saveTrades(); renderTable(); renderTagFilterPanel();
+      const fk = makeTagFilterKey(colName, tag);
+      if (state.tagFilter.length === 1 && state.tagFilter[0] === fk) {
+        state.tagFilter = []; // Toggle off if clicking the only active filter
+      } else {
+        state.tagFilter = [fk]; // Replace filters with this one tag
+      }
+      if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+      if (typeof applyTagFilter === 'function') applyTagFilter();
     });
     wrap.appendChild(chip);
   });

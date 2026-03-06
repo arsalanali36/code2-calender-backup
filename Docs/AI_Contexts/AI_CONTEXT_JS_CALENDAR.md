@@ -387,7 +387,24 @@ function getTradeForDate(dateStr) {
 }
 
 function getTradesForDate(dateStr) {
-  return state.trades.filter(t => normalizeDate(extractDateFromTrade(t)) === dateStr && tradeMatchesDateRange(t));
+  return state.trades.filter(t => {
+    if (normalizeDate(extractDateFromTrade(t)) !== dateStr) return false;
+    if (!tradeMatchesDateRange(t)) return false;
+    // Exclude manual empty rows without actual data
+    if (
+      (t['Time'] === '' || t['Time'] === undefined) &&
+      (t['Ex Time'] === '' || t['Ex Time'] === undefined) &&
+      (t['Buy Time'] === '' || t['Buy Time'] === undefined) &&
+      (t['Sell Time'] === '' || t['Sell Time'] === undefined) &&
+      (t['Gross P/L'] === '' || t['Gross P/L'] === undefined) &&
+      (t['Net P/L'] === '' || t['Net P/L'] === undefined) &&
+      (t['Rs'] === '' || t['Rs'] === undefined) &&
+      (t['Qty'] === '' || t['Qty'] === undefined)
+    ) {
+      return false;
+    }
+    return true;
+  });
 }
 
 function getThumbnailTaggedImageForTrades(trades) {

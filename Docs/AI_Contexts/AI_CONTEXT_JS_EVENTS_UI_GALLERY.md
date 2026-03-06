@@ -249,6 +249,16 @@ function _bindUIEvents() {
     _updateNoteToggleBtn();
   }
 
+  const _trToolbarBtn = document.getElementById('trade-review-toolbar-btn');
+  if (_trToolbarBtn) {
+    _trToolbarBtn.addEventListener('click', () => openTradeReviewFromToolbar());
+  }
+
+  const _tlToolbarBtn = document.getElementById('trade-logger-toolbar-btn');
+  if (_tlToolbarBtn) {
+    _tlToolbarBtn.addEventListener('click', () => openTradeLoggerFromToolbar());
+  }
+
   const _drFrom = document.getElementById('glob-date-from');
   const _drTo = document.getElementById('glob-date-to');
   const _drClear = document.getElementById('glob-date-clear');
@@ -487,6 +497,7 @@ function _bindGalleryEvents() {
   });
 
   document.getElementById('gv2-tags-btn').addEventListener('click', () => {
+    document.getElementById('gallery-tools-panel')?.classList.remove('open');
     const tray = document.getElementById('gv2-tags-tray');
     const btn = document.getElementById('gv2-tags-btn');
     const open = tray.style.display === 'none' || !tray.style.display;

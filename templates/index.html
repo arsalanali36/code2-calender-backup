@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/static/css/style-gallery-a.css" />
   <link rel="stylesheet" href="/static/css/style-gallery-b.css" />
   <link rel="stylesheet" href="/static/css/style-misc.css" />
+  <link rel="stylesheet" href="/static/css/style-trade.css" />
 </head>
 
 <body>
@@ -235,6 +236,8 @@
 
           <!-- Note column quick toggle -->
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
+          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
+          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
 
           <!-- Column Visibility -->
           <div class="dropdown-wrapper" id="col-vis-wrapper">
@@ -293,11 +296,20 @@
               <div class="dropdown-divider"></div>
               <button class="dropdown-item" id="backup-btn">&#128190; Backup (Data + Images)</button>
               <button class="dropdown-item" id="restore-btn">&#8635; Restore from Backup</button>
-              <input type="file" id="json-input" accept=".json,.zip" style="display:none" />
+              <input type="file" id="json-input" accept=".js">on,.zip" style="display:none" />
             </div>
           </div>
 
         </div>
+      </div>
+      
+      <!-- Active Tag Filter Banner -->
+      <div id="active-tag-filter-banner" style="display:none; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--blue); color: var(--blue); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; align-items: center; justify-content: space-between;">
+        <span style="font-size: 0.95rem;">
+          <span style="opacity:0.8; margin-right:6px;">&#128269; Currently filtering by tag(s):</span>
+          <strong id="active-tag-filter-text">None</strong>
+        </span>
+        <button id="clear-tag-filter-btn" style="background:transparent; border:1px solid rgba(88, 166, 255, 0.5); color:var(--blue); padding:4px 10px; border-radius:4px; cursor:pointer;" onmouseover="this.style.background='var(--blue)'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='var(--blue)';">Clear Filter</button>
       </div>
 
       <div class="table-wrapper">
@@ -323,43 +335,47 @@
 
   <div class="toast" id="toast"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <script src="/static/js/state.js"></script>
-  <script src="/static/js/data.js"></script>
-  <script src="/static/js/settings.js"></script>
-  <script src="/static/js/dashboard.js"></script>
-  <script src="/static/js/calendar.js"></script>
-  <script src="/static/js/table-render.js"></script>
-  <script src="/static/js/table-cols.js"></script>
-  <script src="/static/js/table-colops.js"></script>
-  <script src="/static/js/gallery-open.js"></script>
-  <script src="/static/js/gallery-render.js"></script>
-  <script src="/static/js/gallery-stats.js"></script>
-  <script src="/static/js/gallery-core.js"></script>
-  <script src="/static/js/gallery-image-ops.js"></script>
-  <script src="/static/js/gallery-ops.js"></script>
-  <script src="/static/js/gallery-layer.js"></script>
-  <script src="/static/js/gallery-nav.js"></script>
-  <script src="/static/js/gallery-tags.js"></script>
-  <script src="/static/js/gallery-tags-filter.js"></script>
-  <script src="/static/js/gallery-data.js"></script>
-  <script src="/static/js/gallery-img-tags.js"></script>
-  <script src="/static/js/annotate-zoom.js"></script>
-  <script src="/static/js/annotate-marquee.js"></script>
-  <script src="/static/js/annotate-tools.js"></script>
-  <script src="/static/js/annotate-canvas.js"></script>
-  <script src="/static/js/annotate-ctx-menu.js"></script>
-  <script src="/static/js/annotate-lifecycle.js"></script>
-  <script src="/static/js/annotate-fabric.js"></script>
-  <script src="/static/js/io.js"></script>
-  <script src="/static/js/events-keys.js"></script>
-  <script src="/static/js/events-ui.js"></script>
-  <script src="/static/js/events-gallery.js"></script>
-  <script src="/static/js/events-settings.js"></script>
-  <script src="/static/js/events.js"></script>
+  <script src="/static/js/state.js?v=1772818490"></script>
+  <script src="/static/js/data.js?v=1772818490"></script>
+  <script src="/static/js/settings.js?v=1772818490"></script>
+  <script src="/static/js/dashboard.js?v=1772818490"></script>
+  <script src="/static/js/calendar.js?v=1772818490"></script>
+  <script src="/static/js/table-render.js?v=1772818490"></script>
+  <script src="/static/js/table-cols.js?v=1772818490"></script>
+  <script src="/static/js/table-colops.js?v=1772818490"></script>
+  <script src="/static/js/trade-review.js?v=1772818490"></script>
+  <script src="/static/js/trade-logger.js?v=1772818490"></script>
+  <script src="/static/js/gallery-open.js?v=1772818490"></script>
+  <script src="/static/js/gallery-render.js?v=1772818490"></script>
+  <script src="/static/js/gallery-stats.js?v=1772818490"></script>
+  <script src="/static/js/gallery-core.js?v=1772818490"></script>
+  <script src="/static/js/gallery-image-ops.js?v=1772818490"></script>
+  <script src="/static/js/gallery-ops.js?v=1772818490"></script>
+  <script src="/static/js/gallery-ops-group.js?v=1772818490"></script>
+  <script src="/static/js/gallery-layer.js?v=1772818490"></script>
+  <script src="/static/js/gallery-nav.js?v=1772818490"></script>
+  <script src="/static/js/gallery-tags.js?v=1772818490"></script>
+  <script src="/static/js/gallery-tags-filter.js?v=1772818490"></script>
+  <script src="/static/js/gallery-data.js?v=1772818490"></script>
+  <script src="/static/js/gallery-img-tags.js?v=1772818490"></script>
+  <script src="/static/js/annotate-zoom.js?v=1772818490"></script>
+  <script src="/static/js/annotate-marquee.js?v=1772818490"></script>
+  <script src="/static/js/annotate-tools.js?v=1772818490"></script>
+  <script src="/static/js/annotate-canvas.js?v=1772818490"></script>
+  <script src="/static/js/annotate-ctx-menu.js?v=1772818490"></script>
+  <script src="/static/js/annotate-lifecycle.js?v=1772818490"></script>
+  <script src="/static/js/annotate-fabric.js?v=1772818490"></script>
+  <script src="/static/js/io.js?v=1772818490"></script>
+  <script src="/static/js/events-keys.js?v=1772818490"></script>
+  <script src="/static/js/events-ui.js?v=1772818490"></script>
+  <script src="/static/js/events-gallery.js?v=1772818490"></script>
+  <script src="/static/js/events-settings.js?v=1772818490"></script>
+  <script src="/static/js/events.js?v=1772818490"></script>
 
   <!-- ApexCharts for Visual Dashboard -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="/static/js/visual-dashboard.js"></script>
+  <script src="/static/js/visual-dashboard-stats.js?v=1772818490"></script>
+  <script src="/static/js/visual-dashboard.js?v=1772818490"></script>
 </body>
 
 </html>

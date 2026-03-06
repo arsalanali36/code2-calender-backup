@@ -148,8 +148,93 @@ function showGalleryContextMenu(x, y) {
             };
             inp.click();
         }));
+
+        menu.appendChild(createOpt('Set as Hero', async () => {
+            if (ownerTrade) {
+                ownerTrade.heroImage = url;
+                await saveTrades();
+                showToast('Hero image updated', 'success');
+            } else {
+                showToast('Image does not belong to a specific trade', 'info');
+            }
+        }));
         addSep();
     }
+
+    // ── Group Selected (2+ images) ──────────────────────────────────────
+    if (selectedIdxArr.length >= 2) {
+        menu.appendChild(createOpt('Group Selected', async () => {
+            await groupAllGalleryImages();
+        }));
+    }
+
+    // ── Delete Selected ─────────────────────────────────────────────────
+    if (selectedIdxArr.length >= 1) {
+        menu.appendChild(createOpt('Delete Selected', async () => {
+            const arr = state.gallery.images || [];
+            const dayDate = state.gallery.date;
+
+            // Collect URLs to delete (including sub-images of group parents)
+            const toDelete = new Set();
+            selectedIdxArr.forEach(i => {
+                const url = arr[i];
+                if (!url) return;
+                toDelete.add(url);
+                const ot = getOwnerTradeForImageUrl(url);
+                const subs = (ot?.subImages?.[url]) || (dayDate && state.dayData[dayDate]?.subImages?.[url]) || [];
+                subs.forEach(s => toDelete.add(s));
+            });
+
+            // Backup for undo
+            const backupAllTrades = JSON.stringify(state.trades);
+            const backupAllDayData = JSON.stringify(state.dayData);
+            const backupArr = [...arr];
+            const backupCurrentIndex = state.gallery.currentIndex;
+            const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
+
+            const cleanupObj = (obj) => {
+                if (!obj) return;
+                obj.images = (obj.images || []).filter(u => !toDelete.has(u));
+                if (obj.closeImages) obj.closeImages = obj.closeImages.filter(u => !toDelete.has(u));
+                if (obj.subImages) {
+                    for (const [p, subs] of Object.entries({ ...obj.subImages })) {
+                        if (toDelete.has(p)) { delete obj.subImages[p]; continue; }
+                        obj.subImages[p] = subs.filter(u => !toDelete.has(u));
+                        if (obj.subImages[p].length === 0) delete obj.subImages[p];
+                    }
+                    if (Object.keys(obj.subImages).length === 0) delete obj.subImages;
+                }
+            };
+
+            if (dayDate) {
+                getTradesForDate(dayDate).forEach(cleanupObj);
+                if (state.dayData[dayDate]) cleanupObj(state.dayData[dayDate]);
+            }
+
+            state.gallery.images = arr.filter(u => !toDelete.has(u));
+            state.gallery.selectedIndices = new Set();
+            if (state.gallery.currentIndex >= state.gallery.images.length)
+                state.gallery.currentIndex = Math.max(0, state.gallery.images.length - 1);
+            if (state.gallery.expandedGroups) toDelete.forEach(u => state.gallery.expandedGroups.delete(u));
+
+            const thumbsEl = document.getElementById('gallery-thumbs');
+            const savedScroll = thumbsEl ? thumbsEl.scrollLeft : 0;
+
+            syncGalleryImageOrderToTrades();
+            renderGallery(); renderTable(); renderCalendar();
+            setTimeout(() => { const t2 = document.getElementById('gallery-thumbs'); if (t2) t2.scrollLeft = savedScroll; }, 60);
+            await saveTrades();
+
+            window.galleryUndoStack = window.galleryUndoStack || [];
+            window.galleryUndoStack.push({ backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate });
+            const t = document.getElementById('toast');
+            t.innerHTML = `Deleted ${toDelete.size} image(s). <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
+            t.className = 'toast success show';
+            setTimeout(() => { t.className = 'toast'; }, 4000);
+        }));
+    }
+
+    addSep();
 
     const parentOpItem = createOpt('Consolidate \u25B6', () => { });
     parentOpItem.style.position = 'relative';
@@ -370,261 +455,5 @@ async function moveGalleryTile(dir) {
     syncGalleryImageOrderToTrades();
     await saveTrades();
     renderGallery(); renderTable();
-}
-
-function showGalleryGroupDeleteConfirm(idx, subCount) {
-    if (document.getElementById('gallery-grp-del-confirm')) return;
-    const overlay = document.createElement('div');
-    overlay.id = 'gallery-grp-del-confirm';
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0'; overlay.style.left = '0';
-    overlay.style.width = '100%'; overlay.style.height = '100%';
-    overlay.style.background = 'rgba(0,0,0,0.7)';
-    overlay.style.zIndex = '999999';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
-
-    const box = document.createElement('div');
-    box.style.background = 'var(--bg2)';
-    box.style.padding = '25px 30px';
-    box.style.borderRadius = '8px';
-    box.style.border = '1px solid var(--border)';
-    box.style.textAlign = 'center';
-    box.style.minWidth = '250px';
-    box.innerHTML = `<p style="margin: 0 0 20px 0; font-size: 1.15rem; color: #fff;">Delete group + ${subCount} sub-images?</p>`;
-
-    const btnYes = document.createElement('button');
-    btnYes.className = 'btn btn-outline'; btnYes.textContent = 'Yes';
-    btnYes.style.marginRight = '12px'; btnYes.style.outline = 'none';
-    btnYes.style.minWidth = '75px';
-
-    const btnNo = document.createElement('button');
-    btnNo.className = 'btn btn-outline'; btnNo.textContent = 'No';
-    btnNo.style.outline = 'none';
-    btnNo.style.minWidth = '75px';
-
-    box.appendChild(btnYes);
-    box.appendChild(btnNo);
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-
-    let focusedIndex = 1; // 1 for No default
-    const btns = [btnYes, btnNo];
-
-    const updateFocus = () => {
-        btns.forEach((b, i) => {
-            if (i === focusedIndex) {
-                b.style.borderColor = 'var(--red)';
-                b.style.boxShadow = '0 0 0 2px rgba(255,100,100,0.3)';
-                b.style.color = 'var(--red)';
-                b.focus();
-            } else {
-                b.style.borderColor = 'var(--border)';
-                b.style.boxShadow = 'none';
-                b.style.color = '';
-            }
-        });
-    };
-
-    const cleanup = () => {
-        document.removeEventListener('keydown', keyHandler, true);
-        overlay.remove();
-        const gm = document.getElementById('gallery-modal');
-        if (gm) gm.focus();
-    };
-
-    const runDelete = () => {
-        cleanup();
-        removeGalleryImageAt(idx, true);
-    };
-
-    const keyHandler = (e) => {
-        if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); focusedIndex = 0; updateFocus(); }
-        else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); focusedIndex = 1; updateFocus(); }
-        else if (e.key === 'Enter') {
-            e.preventDefault(); e.stopPropagation();
-            if (focusedIndex === 0) runDelete(); else cleanup();
-        }
-        else if (e.key === 'Escape') {
-            e.preventDefault(); e.stopPropagation(); cleanup();
-        }
-    };
-
-    btnYes.addEventListener('click', runDelete);
-    btnNo.addEventListener('click', cleanup);
-
-    document.addEventListener('keydown', keyHandler, true);
-    setTimeout(updateFocus, 10);
-}
-
-function toggleGalleryGroupExpand(url) {
-    if (!state.gallery.expandedGroups) state.gallery.expandedGroups = new Set();
-    const arr = state.gallery.images || [];
-    let isExpanded = state.gallery.expandedGroups.has(url);
-
-    // fetch sub-images — search ownerTrade first, then all dayData
-    const ownerTrade = getOwnerTradeForImageUrl(url);
-    let subImages = [];
-    if (ownerTrade?.subImages?.[url]?.length) {
-        subImages = ownerTrade.subImages[url];
-    } else {
-        for (const [, v] of Object.entries(state.dayData || {})) {
-            if (v?.subImages?.[url]?.length) { subImages = v.subImages[url]; break; }
-        }
-    }
-
-    if (!subImages.length) {
-        // Maybe the user clicked a sub-image — find its parent
-        let parentUrl = null;
-        for (const [pUrl, imgs] of Object.entries(ownerTrade?.subImages || {})) {
-            if (imgs.includes(url)) { parentUrl = pUrl; break; }
-        }
-        if (!parentUrl) {
-            for (const [, v] of Object.entries(state.dayData || {})) {
-                for (const [pUrl, imgs] of Object.entries(v?.subImages || {})) {
-                    if (imgs.includes(url)) { parentUrl = pUrl; break; }
-                }
-                if (parentUrl) break;
-            }
-        }
-        if (parentUrl && state.gallery.expandedGroups.has(parentUrl)) {
-            return toggleGalleryGroupExpand(parentUrl);
-        }
-        if (state.gallery.expandedGroups.has(url)) state.gallery.expandedGroups.delete(url);
-        return false;
-    }
-
-    const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
-    if (filterActive) {
-        // Filter mode: just toggle expandedGroups, applyGalleryImageScopeByTagFilter handles the rest
-        if (isExpanded) state.gallery.expandedGroups.delete(url);
-        else state.gallery.expandedGroups.add(url);
-        renderGallery(); renderTable();
-        return true;
-    }
-
-    const idx = arr.indexOf(url);
-    if (isExpanded) {
-        state.gallery.expandedGroups.delete(url);
-        const toRemove = new Set(subImages);
-        const currUrl = arr[state.gallery.currentIndex];
-        const newArr = arr.filter(u => !toRemove.has(u));
-        state.gallery.images = newArr;
-
-        let targetCurr = newArr.indexOf(currUrl);
-        if (targetCurr === -1) targetCurr = newArr.indexOf(url);
-        state.gallery.currentIndex = Math.max(0, targetCurr);
-    } else {
-        if (idx === -1) return false;
-        state.gallery.expandedGroups.add(url);
-        const currUrl = arr[state.gallery.currentIndex];
-        state.gallery.images.splice(idx + 1, 0, ...subImages);
-        state.gallery.currentIndex = Math.max(0, state.gallery.images.indexOf(currUrl));
-    }
-
-    renderGallery();
-    renderTable();
-    return true;
-}
-
-async function moveSelectedToTrade(dateToUse, targetTrade) {
-    if (!state.gallery.selectedIndices || state.gallery.selectedIndices.size === 0) return;
-    const arr = state.gallery.images || [];
-    const indices = Array.from(state.gallery.selectedIndices).sort((a, b) => b - a); // descending to splice safely
-
-    let targetTradeObj = targetTrade;
-    if (!targetTradeObj && dateToUse) {
-        // If it's global, we move it out of trades to dayData
-        if (!state.dayData[dateToUse]) state.dayData[dateToUse] = {};
-        if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
-    }
-
-    let movedCount = 0;
-
-    for (let idx of indices) {
-        if (idx < 0 || idx >= arr.length) continue;
-        const imageUrl = arr[idx];
-        const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
-
-        // Remove from current location
-        if (ownerTrade) {
-            ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
-        } else if (state.gallery.date && state.dayData[state.gallery.date]) {
-            if (state.dayData[state.gallery.date].images) {
-                state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
-            }
-            if (state.dayData[state.gallery.date].closeImages) {
-                state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(u => u !== imageUrl);
-            }
-        }
-
-        // Add to target location
-        if (targetTradeObj) {
-            if (!targetTradeObj.images) targetTradeObj.images = [];
-            targetTradeObj.images.push(imageUrl);
-        } else if (dateToUse) {
-            state.dayData[dateToUse].images.push(imageUrl);
-        }
-        movedCount++;
-    }
-
-    state.gallery.selectedIndices.clear();
-    if (state.gallery.date === dateToUse) {
-        state.gallery.images = getImagesForDate(dateToUse);
-        state.gallery._baseImages = [...state.gallery.images];
-    }
-    await saveTrades();
-    renderGallery();
-    renderTable();
-    renderCalendar();
-    showToast(`Moved ${movedCount} image(s)`, 'success');
-}
-
-async function moveSelectedToDayData(dateToUse, isClose = false) {
-    if (!state.gallery.selectedIndices || state.gallery.selectedIndices.size === 0) return;
-    const arr = state.gallery.images || [];
-    const indices = Array.from(state.gallery.selectedIndices).sort((a, b) => b - a);
-    let movedCount = 0;
-
-    if (!state.dayData[dateToUse]) state.dayData[dateToUse] = {};
-    if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
-    if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
-
-    for (let idx of indices) {
-        if (idx < 0 || idx >= arr.length) continue;
-        const imageUrl = arr[idx];
-        const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
-
-        // Remove from current location
-        if (ownerTrade) {
-            ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
-        } else if (state.gallery.date && state.dayData[state.gallery.date]) {
-            if (state.dayData[state.gallery.date].images) {
-                state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
-            }
-            if (state.dayData[state.gallery.date].closeImages) {
-                state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(u => u !== imageUrl);
-            }
-        }
-
-        // Add to target location
-        if (isClose) {
-            state.dayData[dateToUse].closeImages.push(imageUrl);
-        } else {
-            state.dayData[dateToUse].images.push(imageUrl);
-        }
-        movedCount++;
-    }
-
-    state.gallery.selectedIndices.clear();
-    if (state.gallery.date === dateToUse) {
-        state.gallery.images = getImagesForDate(dateToUse);
-        state.gallery._baseImages = [...state.gallery.images];
-    }
-    await saveTrades();
-    renderGallery();
-    renderTable();
-    renderCalendar();
-    showToast(`Moved ${movedCount} image(s) to ${isClose ? 'CLOSE' : 'OPEN'}`, 'success');
 }
 

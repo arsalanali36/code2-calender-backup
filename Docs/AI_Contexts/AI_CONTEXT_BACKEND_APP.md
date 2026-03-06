@@ -308,8 +308,8 @@ def image_times():
         filename = os.path.basename(url)
         filepath = os.path.join(UPLOADS_DIR, filename)
         if os.path.exists(filepath):
-            mtime = os.path.getmtime(filepath)
-            times[url] = datetime.fromtimestamp(mtime).strftime('%I:%M %p')
+            ctime = os.path.getctime(filepath)
+            times[url] = datetime.fromtimestamp(ctime).strftime('%I:%M %p')
     return jsonify(times)
 
 

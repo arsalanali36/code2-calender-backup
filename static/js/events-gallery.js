@@ -205,6 +205,7 @@ function _bindGalleryEvents() {
   });
 
   document.getElementById('gv2-tags-btn').addEventListener('click', () => {
+    document.getElementById('gallery-tools-panel')?.classList.remove('open');
     const tray = document.getElementById('gv2-tags-tray');
     const btn = document.getElementById('gv2-tags-btn');
     const open = tray.style.display === 'none' || !tray.style.display;

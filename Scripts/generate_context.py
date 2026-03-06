@@ -43,6 +43,9 @@ files_css_gallery_b = [
 files_css_misc = [
     "static/css/style-misc.css",
 ]
+files_css_trade = [
+    "static/css/style-trade.css",         # Trade Review popup + Trade Logger modal CSS
+]
 
 # ── JS: State & IO ────────────────────────────────────────────────────────────
 files_state_io = [
@@ -99,6 +102,9 @@ files_gallery_image_ops = [
 files_gallery_ops = [
     "static/js/gallery-ops.js",
 ]
+files_gallery_ops_group = [
+    "static/js/gallery-ops-group.js",     # Group delete confirm, expand/collapse, move selected
+]
 
 # ── JS: Gallery Tags ──────────────────────────────────────────────────────────
 files_gallery_tags = [
@@ -124,6 +130,22 @@ files_annotate_marquee = [
 files_annotate_ctx = [
     "static/js/annotate-ctx-menu.js",
     "static/js/annotate-lifecycle.js",
+]
+
+# ── JS: Trade Tools ───────────────────────────────────────────────────────────
+files_trade_review = [
+    "static/js/trade-review.js",
+]
+files_trade_logger = [
+    "static/js/trade-logger.js",
+]
+
+# ── JS: Visual Dashboard ───────────────────────────────────────────────────────
+files_visual_dashboard_stats = [
+    "static/js/visual-dashboard-stats.js",  # Stats cards, drag/drop, chart width (load 1st)
+]
+files_visual_dashboard = [
+    "static/js/visual-dashboard.js",        # Init, render, chart drawing
 ]
 
 # ── JS: Events ────────────────────────────────────────────────────────────────
@@ -181,6 +203,7 @@ if __name__ == "__main__":
     create_context("AI_CONTEXT_CSS_GALLERY_A.md",        files_css_gallery_a,       "CSS — Gallery A (gallery modal / annotation toolbar / obs modal)")
     create_context("AI_CONTEXT_CSS_GALLERY_B.md",        files_css_gallery_b,       "CSS — Gallery B (GV2 thumbnails / tags / toolbar)")
     create_context("AI_CONTEXT_CSS_MISC.md",             files_css_misc,            "CSS — Misc (upload / settings / tags / toast / scrollbar)")
+    create_context("AI_CONTEXT_CSS_TRADE.md",            files_css_trade,           "CSS — Trade Review popup + Trade Logger modal (style-trade.css)")
 
     # JS - State & IO
     create_context("AI_CONTEXT_JS_STATE_IO.md",          files_state_io,            "JS — State & IO (state.js / io.js)")
@@ -205,6 +228,7 @@ if __name__ == "__main__":
     # JS - Gallery Ops
     create_context("AI_CONTEXT_JS_GALLERY_IMAGE_OPS.md", files_gallery_image_ops,   "JS — Gallery Image Ops")
     create_context("AI_CONTEXT_JS_GALLERY_OPS.md",       files_gallery_ops,         "JS — Gallery Context Menu & Ops")
+    create_context("AI_CONTEXT_JS_GALLERY_OPS_GROUP.md", files_gallery_ops_group,   "JS — Gallery Group Ops (delete confirm / expand / move selected)")
 
     # JS - Gallery Tags
     create_context("AI_CONTEXT_JS_GALLERY_TAGS.md",      files_gallery_tags,        "JS — Gallery Tags (tag cloud / filter)")
@@ -215,6 +239,14 @@ if __name__ == "__main__":
     create_context("AI_CONTEXT_JS_ANNOTATE_ZOOM_FABRIC.md", files_annotate_zoom_fabric, "JS — Annotation Zoom/Pan & Fabric.js")
     create_context("AI_CONTEXT_JS_ANNOTATE_MARQUEE.md",  files_annotate_marquee,    "JS — Annotation Marquee & Tools")
     create_context("AI_CONTEXT_JS_ANNOTATE_CTX.md",      files_annotate_ctx,        "JS — Annotation Context Menu & Lifecycle")
+
+    # JS - Trade Tools
+    create_context("AI_CONTEXT_JS_TRADE_REVIEW.md",      files_trade_review,        "JS — Trade Review popup (trade-review.js)")
+    create_context("AI_CONTEXT_JS_TRADE_LOGGER.md",      files_trade_logger,        "JS — Trade Logger modal (trade-logger.js)")
+
+    # JS - Visual Dashboard
+    create_context("AI_CONTEXT_JS_VISUAL_DASHBOARD_STATS.md", files_visual_dashboard_stats, "JS — Visual Dashboard Stats & Controls (visual-dashboard-stats.js)")
+    create_context("AI_CONTEXT_JS_VISUAL_DASHBOARD.md",  files_visual_dashboard,    "JS — Visual Dashboard Charts & Render (visual-dashboard.js)")
 
     # JS - Events
     create_context("AI_CONTEXT_JS_EVENTS_INIT.md",       files_events_init,         "JS — Events Init & Keyboard (events.js / events-keys.js)")

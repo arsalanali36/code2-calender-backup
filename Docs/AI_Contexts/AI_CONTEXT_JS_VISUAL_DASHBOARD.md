@@ -1,3 +1,9 @@
+# JS — Visual Dashboard Charts & Render (visual-dashboard.js)
+This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+
+
+## File: `static\js\visual-dashboard.js`
+```js
 /**
  * @fileoverview visual-dashboard.js
  * @description ApexCharts visual dashboard: P&L charts, customizable stat cards, drag-drop, widths.
@@ -581,3 +587,5 @@ function renderVisualDashboard() {
 }
 
 // Ensure parsing PNL dynamically works safely
+
+```

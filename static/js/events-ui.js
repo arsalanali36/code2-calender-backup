@@ -243,6 +243,16 @@ function _bindUIEvents() {
     _updateNoteToggleBtn();
   }
 
+  const _trToolbarBtn = document.getElementById('trade-review-toolbar-btn');
+  if (_trToolbarBtn) {
+    _trToolbarBtn.addEventListener('click', () => openTradeReviewFromToolbar());
+  }
+
+  const _tlToolbarBtn = document.getElementById('trade-logger-toolbar-btn');
+  if (_tlToolbarBtn) {
+    _tlToolbarBtn.addEventListener('click', () => openTradeLoggerFromToolbar());
+  }
+
   const _drFrom = document.getElementById('glob-date-from');
   const _drTo = document.getElementById('glob-date-to');
   const _drClear = document.getElementById('glob-date-clear');

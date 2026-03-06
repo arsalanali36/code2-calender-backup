@@ -16,6 +16,18 @@ function getImagesForDate(dateStr) {
   const out = [];
   (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
   getTradesForDate(dateStr).forEach(t => {
+    if (
+      (t['Time'] === '' || t['Time'] === undefined) &&
+      (t['Ex Time'] === '' || t['Ex Time'] === undefined) &&
+      (t['Buy Time'] === '' || t['Buy Time'] === undefined) &&
+      (t['Sell Time'] === '' || t['Sell Time'] === undefined) &&
+      (t['Gross P/L'] === '' || t['Gross P/L'] === undefined) &&
+      (t['Net P/L'] === '' || t['Net P/L'] === undefined) &&
+      (t['Rs'] === '' || t['Rs'] === undefined) &&
+      (t['Qty'] === '' || t['Qty'] === undefined)
+    ) {
+      return;
+    }
     (t.images || []).forEach(url => out.push(url));
   });
   (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
@@ -23,7 +35,18 @@ function getImagesForDate(dateStr) {
 }
 
 async function fetchImageTimesForGallery() {
-  const urls = state.gallery._baseImages || state.gallery.images || [];
+  const urlSet = new Set(state.gallery._baseImages || state.gallery.images || []);
+  // Also include sub-images (groups) for the current date
+  const dayDate = state.gallery.date;
+  if (dayDate) {
+    const addSubs = (obj) => {
+      if (!obj?.subImages) return;
+      Object.values(obj.subImages).forEach(subs => subs.forEach(u => urlSet.add(u)));
+    };
+    getTradesForDate(dayDate).forEach(addSubs);
+    if (state.dayData[dayDate]) addSubs(state.dayData[dayDate]);
+  }
+  const urls = Array.from(urlSet);
   if (!urls.length) return;
   try {
     const res = await fetch('/api/image-times', {
