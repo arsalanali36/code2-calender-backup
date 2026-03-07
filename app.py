@@ -89,11 +89,13 @@ def updates():
     if os.path.exists(blog_path):
         with open(blog_path, 'r', encoding='utf-8') as f:
             entries = json.load(f)
-    for entry in entries:
+    for i, entry in enumerate(entries):
         dt = datetime.strptime(entry['date'], '%Y-%m-%d')
         entry['display_date'] = dt.strftime('%B %d, %Y')
         entry['display_day']  = dt.strftime('%A')
-    entries.sort(key=lambda x: x['date'], reverse=True)
+        entry['_idx'] = i
+    # Sort by date desc, then by position in file desc (last added = first shown)
+    entries.sort(key=lambda x: (x['date'], x['_idx']), reverse=True)
     return render_template('updates.html', entries=entries, cache_bust=CACHE_BUST)
 
 
