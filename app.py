@@ -21,6 +21,7 @@ DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json')
 UPLOADS_DIR = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
 TRASH_DIR = os.path.join(UPLOADS_DIR, '_trash')
 TRASH_EXPIRY_DAYS = 7
+CACHE_BUST = int(time.time())
 
 os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
@@ -50,7 +51,7 @@ from data_processors import (
 )
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', cache_bust=CACHE_BUST)
 
 
 @app.route('/updates')
@@ -65,7 +66,7 @@ def updates():
         entry['display_date'] = dt.strftime('%B %d, %Y')
         entry['display_day']  = dt.strftime('%A')
     entries.sort(key=lambda x: x['date'], reverse=True)
-    return render_template('updates.html', entries=entries)
+    return render_template('updates.html', entries=entries, cache_bust=CACHE_BUST)
 
 
 @app.route('/api/trades', methods=['GET'])

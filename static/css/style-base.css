@@ -103,6 +103,8 @@ body.modal-open {
 .header-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* ── BUTTONS ──────────────────────────────────── */
@@ -326,6 +328,32 @@ body.modal-open {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.global-date-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+#dev-log-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1700px) {
+  #dev-log-btn {
+    padding: 7px 10px;
+    font-size: 0;
+  }
+  #dev-log-btn::before {
+    content: "\1F4D3";
+    font-size: 0.95rem;
+    line-height: 1;
+  }
 }
 
 .calendar-nav #today-btn {

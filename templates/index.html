@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trading Journal</title>
-  <link rel="stylesheet" href="/static/css/style-base.css" />
-  <link rel="stylesheet" href="/static/css/style-gallery-a.css" />
-  <link rel="stylesheet" href="/static/css/style-gallery-b.css" />
-  <link rel="stylesheet" href="/static/css/style-misc.css" />
-  <link rel="stylesheet" href="/static/css/style-trade.css" />
+  <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-a.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-b.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-misc.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-trade.css?v={{ cache_bust }}" />
 </head>
 
 <body>
@@ -55,13 +55,13 @@
       </div>
       <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
       <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
-      <a href="/updates" class="btn btn-outline" title="Dev Journal" target="_blank" style="text-decoration:none;">&#128211; Dev Log</a>
+      <a href="/updates" id="dev-log-btn" class="btn btn-outline" title="Dev Journal" target="_blank" style="text-decoration:none;">&#128211; Dev Log</a>
     </div>
   </header>
 
   <main class="app-main">
 
-    <!-- ── CALENDAR SECTION ─────────────────── -->
+    <!-- â”€â”€ CALENDAR SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section calendar-section">
       <div class="section-header">
 
@@ -88,7 +88,7 @@
       <div class="calendar-yearly hidden" id="calendar-year-view"></div>
     </section>
 
-    <!-- ── DASHBOARD SUMMARY ─────────────────── -->
+    <!-- â”€â”€ DASHBOARD SUMMARY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section dashboard-section">
       <div class="section-header dashboard-header">
         <div class="dashboard-title">
@@ -106,25 +106,25 @@
         <div class="dash-card" data-stat="overall">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Overall P&amp;L</span>
 
           </div>
-          <div class="dash-value" id="dash-overall">₹ 0.00</div>
+          <div class="dash-value" id="dash-overall">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="net">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Net P&amp;L</span>
 
           </div>
-          <div class="dash-value" id="dash-net">₹ 0.00</div>
+          <div class="dash-value" id="dash-net">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="trades">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Total Trades</span>
 
           </div>
@@ -133,34 +133,34 @@
         <div class="dash-card" data-stat="charges">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Charges</span>
 
           </div>
-          <div class="dash-value dash-value-muted" id="dash-charges">₹ 0.00</div>
+          <div class="dash-value dash-value-muted" id="dash-charges">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="brokerage">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Brokerage</span>
 
           </div>
-          <div class="dash-value dash-value-muted" id="dash-brokerage">₹ 0.00</div>
+          <div class="dash-value dash-value-muted" id="dash-brokerage">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="totalfees">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Total Fees</span>
 
           </div>
-          <div class="dash-value dash-value-muted" id="dash-totalfees">₹ 0.00</div>
+          <div class="dash-value dash-value-muted" id="dash-totalfees">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="winrate">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Win %</span>
 
           </div>
@@ -169,66 +169,63 @@
         <div class="dash-card" data-stat="avg">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Avg / Trade</span>
 
           </div>
-          <div class="dash-value" id="dash-avg">₹ 0.00</div>
+          <div class="dash-value" id="dash-avg">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="avgwin">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Avg Win</span>
 
           </div>
-          <div class="dash-value" id="dash-avgwin">₹ 0.00</div>
+          <div class="dash-value" id="dash-avgwin">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="avgloss">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Avg Loss</span>
 
           </div>
-          <div class="dash-value" id="dash-avgloss">₹ 0.00</div>
+          <div class="dash-value" id="dash-avgloss">â‚¹ 0.00</div>
         </div>
         <div class="dash-card" data-stat="best">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Best Day</span>
 
           </div>
-          <div class="dash-value" id="dash-best">₹ 0.00</div>
+          <div class="dash-value" id="dash-best">â‚¹ 0.00</div>
           <div class="dash-subvalue" id="dash-best-date">-</div>
         </div>
         <div class="dash-card" data-stat="worst">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Worst Day</span>
 
           </div>
-          <div class="dash-value" id="dash-worst">₹ 0.00</div>
+          <div class="dash-value" id="dash-worst">â‚¹ 0.00</div>
           <div class="dash-subvalue" id="dash-worst-date">-</div>
         </div>
         <div class="dash-card" data-stat="dd">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">â‹®â‹®</span>
             <span>Max Drawdown</span>
 
           </div>
-          <div class="dash-value" id="dash-dd">₹ 0.00</div>
+          <div class="dash-value" id="dash-dd">â‚¹ 0.00</div>
         </div>
       </div>
     </section>
 
-    {% include "visual_dashboard.html" %}
-
-
-    <!-- ── TRADE TABLE SECTION ─────────────── -->
+    <!-- â”€â”€ TRADE TABLE SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section table-section">
       <div class="section-header">
         <h2 class="section-title">Trade Table</h2>
@@ -332,6 +329,8 @@
       </div>
     </section>
 
+    {% include "visual_dashboard.html" %}
+
   </main>
 
   {% include 'modals.html' %}
@@ -339,47 +338,48 @@
 
   <div class="toast" id="toast"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <script src="/static/js/state.js?v=1772818490"></script>
-  <script src="/static/js/data.js?v=1772818490"></script>
-  <script src="/static/js/settings.js?v=1772818490"></script>
-  <script src="/static/js/dashboard.js?v=1772818490"></script>
-  <script src="/static/js/calendar.js?v=1772818490"></script>
-  <script src="/static/js/table-render.js?v=1772818490"></script>
-  <script src="/static/js/table-cols.js?v=1772818490"></script>
-  <script src="/static/js/table-colops.js?v=1772818490"></script>
-  <script src="/static/js/trade-review.js?v=1772818490"></script>
-  <script src="/static/js/trade-logger.js?v=1772818490"></script>
-  <script src="/static/js/gallery-open.js?v=1772818490"></script>
-  <script src="/static/js/gallery-render.js?v=1772818490"></script>
-  <script src="/static/js/gallery-stats.js?v=1772818490"></script>
-  <script src="/static/js/gallery-core.js?v=1772818490"></script>
-  <script src="/static/js/gallery-image-ops.js?v=1772818490"></script>
-  <script src="/static/js/gallery-ops.js?v=1772818490"></script>
-  <script src="/static/js/gallery-ops-group.js?v=1772818490"></script>
-  <script src="/static/js/gallery-layer.js?v=1772818490"></script>
-  <script src="/static/js/gallery-nav.js?v=1772818490"></script>
-  <script src="/static/js/gallery-tags.js?v=1772818490"></script>
-  <script src="/static/js/gallery-tags-filter.js?v=1772818490"></script>
-  <script src="/static/js/gallery-data.js?v=1772818490"></script>
-  <script src="/static/js/gallery-img-tags.js?v=1772818490"></script>
-  <script src="/static/js/annotate-zoom.js?v=1772818490"></script>
-  <script src="/static/js/annotate-marquee.js?v=1772818490"></script>
-  <script src="/static/js/annotate-tools.js?v=1772818490"></script>
-  <script src="/static/js/annotate-canvas.js?v=1772818490"></script>
-  <script src="/static/js/annotate-ctx-menu.js?v=1772818490"></script>
-  <script src="/static/js/annotate-lifecycle.js?v=1772818490"></script>
-  <script src="/static/js/annotate-fabric.js?v=1772818490"></script>
-  <script src="/static/js/io.js?v=1772818490"></script>
-  <script src="/static/js/events-keys.js?v=1772818490"></script>
-  <script src="/static/js/events-ui.js?v=1772818490"></script>
-  <script src="/static/js/events-gallery.js?v=1772818490"></script>
-  <script src="/static/js/events-settings.js?v=1772818490"></script>
-  <script src="/static/js/events.js?v=1772818490"></script>
+  <script src="/static/js/state.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/dashboard.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/calendar.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/table-render.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/table-cols.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/table-colops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-review.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-logger.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-open.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-render.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-core.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-image-ops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ops-group.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-layer.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-nav.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-tags.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-tags-filter.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-img-tags.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-zoom.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-marquee.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-tools.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-canvas.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-ctx-menu.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-lifecycle.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/io.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-settings.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events.js?v={{ cache_bust }}"></script>
 
   <!-- ApexCharts for Visual Dashboard -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="/static/js/visual-dashboard-stats.js?v=1772818490"></script>
-  <script src="/static/js/visual-dashboard.js?v=1772818490"></script>
+  <script src="/static/js/visual-dashboard-stats.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/visual-dashboard.js?v={{ cache_bust }}"></script>
 </body>
 
 </html>
+
