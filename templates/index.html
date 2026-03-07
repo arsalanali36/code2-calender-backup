@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/static/css/style-gallery-b.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-misc.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-trade.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-mobile.css?v={{ cache_bust }}" />
 </head>
 
 <body>
@@ -23,8 +24,7 @@
       <span class="logo-text">Trading Journal</span>
     </div>
 
-    <div class="calendar-nav global-date-nav"
-      style="background:var(--bg2); padding:4px 8px; border-radius:6px; border:1px solid var(--border1);">
+    <div class="calendar-nav global-date-nav">
       <button class="nav-arrow" id="glob-prev">&#8249;</button>
       <select id="glob-month" class="select-box"></select>
       <select id="glob-view" class="select-box">
@@ -35,7 +35,7 @@
       <button class="nav-arrow" id="glob-next">&#8250;</button>
       <button class="btn btn-outline" id="glob-today">Today</button>
 
-      <span style="color:var(--text2); margin:0 8px;">|</span>
+      <span class="global-date-divider">|</span>
 
       <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
       <span class="date-range-sep">&#8212;</span>
