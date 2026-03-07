@@ -27,6 +27,34 @@ os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 os.makedirs(TRASH_DIR, exist_ok=True)
 
+def _bootstrap_persistent_storage():
+    """One-time seed: if using external DATA/UPLOADS paths, copy bundled local data."""
+    default_data_file = os.path.join(BASE_DIR, 'data', 'trades.json')
+    default_uploads_dir = os.path.join(BASE_DIR, 'static', 'uploads')
+
+    try:
+        if DATA_FILE != default_data_file and (not os.path.exists(DATA_FILE)) and os.path.exists(default_data_file):
+            shutil.copy2(default_data_file, DATA_FILE)
+    except Exception:
+        pass
+
+    try:
+        if UPLOADS_DIR != default_uploads_dir and os.path.isdir(default_uploads_dir):
+            for root, _, files in os.walk(default_uploads_dir):
+                for fname in files:
+                    src = os.path.join(root, fname)
+                    rel = os.path.relpath(src, default_uploads_dir)
+                    if rel.startswith('_trash'):
+                        continue
+                    dst = os.path.join(UPLOADS_DIR, rel)
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+    except Exception:
+        pass
+
+_bootstrap_persistent_storage()
+
 def _cleanup_trash():
     """Delete files from _trash older than TRASH_EXPIRY_DAYS. Runs daily in background."""
     while True:

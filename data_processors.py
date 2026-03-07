@@ -4,6 +4,7 @@ import os
 import time
 import shutil
 from datetime import datetime
+from urllib.parse import urlparse, unquote
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
@@ -37,7 +38,7 @@ HISTORICAL_STRUCTURED_COLUMNS = [
 def load_trades():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            return _normalize_trade_payload(json.load(f))
     return {
         'trades': [],
         'columns': ['Date', 'Profit', 'Trade'],
@@ -53,6 +54,8 @@ LAST_BACKUP_TIME = 0
 
 def save_trades_to_file(data):
     global LAST_BACKUP_TIME
+    data = _normalize_trade_payload(data)
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     
@@ -60,7 +63,7 @@ def save_trades_to_file(data):
     if current_time - LAST_BACKUP_TIME > 300:  # Backup every 5 minutes if there are changes
         LAST_BACKUP_TIME = current_time
         try:
-            backup_dir = os.path.join(BASE_DIR, 'data', 'backups')
+            backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
             os.makedirs(backup_dir, exist_ok=True)
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_file = os.path.join(backup_dir, f'trades_backup_{timestamp}.json')
@@ -73,6 +76,97 @@ def save_trades_to_file(data):
                     os.remove(b)
         except Exception as e:
             print(f"Auto backup failed: {e}")
+
+
+def _normalize_upload_url(value):
+    if not isinstance(value, str):
+        return value
+    raw = value.strip()
+    if not raw:
+        return raw
+
+    # Normalize Windows-style separators first.
+    raw = raw.replace('\\', '/')
+    parsed = urlparse(raw)
+    path = parsed.path.replace('\\', '/')
+    if not path:
+        path = raw
+
+    lowered = path.lower()
+    if '/uploads/' in lowered:
+        path = path[lowered.rfind('/uploads/'):]
+    elif lowered.startswith('uploads/'):
+        path = '/' + path
+    else:
+        return value
+
+    filename = os.path.basename(unquote(path))
+    if not filename:
+        return value
+    return f'/uploads/{filename}'
+
+
+def _normalize_trade_payload(data):
+    if not isinstance(data, dict):
+        return data
+
+    def _norm_image_list(items):
+        if not isinstance(items, list):
+            return []
+        out = []
+        for it in items:
+            if isinstance(it, str):
+                out.append(_normalize_upload_url(it))
+            else:
+                out.append(it)
+        return out
+
+    def _norm_url_keyed_dict(d, value_mode='raw'):
+        if not isinstance(d, dict):
+            return {}
+        out = {}
+        for k, v in d.items():
+            nk = _normalize_upload_url(k) if isinstance(k, str) else k
+            if value_mode == 'url':
+                nv = _normalize_upload_url(v) if isinstance(v, str) else v
+            elif value_mode == 'url_list':
+                nv = _norm_image_list(v)
+            else:
+                nv = v
+            out[nk] = nv
+        return out
+
+    trades = data.get('trades', [])
+    if isinstance(trades, list):
+        for t in trades:
+            if not isinstance(t, dict):
+                continue
+            if 'images' in t:
+                t['images'] = _norm_image_list(t.get('images', []))
+            if isinstance(t.get('heroImage'), str):
+                t['heroImage'] = _normalize_upload_url(t['heroImage'])
+            if isinstance(t.get('thumbnail'), str):
+                t['thumbnail'] = _normalize_upload_url(t['thumbnail'])
+            if 'imageTags' in t:
+                t['imageTags'] = _norm_url_keyed_dict(t.get('imageTags', {}), 'raw')
+            if '_overlayMap' in t:
+                t['_overlayMap'] = _norm_url_keyed_dict(t.get('_overlayMap', {}), 'url')
+            if 'subImages' in t:
+                t['subImages'] = _norm_url_keyed_dict(t.get('subImages', {}), 'url_list')
+
+    day_data = data.get('dayData', {})
+    if isinstance(day_data, dict):
+        for d in day_data.values():
+            if not isinstance(d, dict):
+                continue
+            if 'images' in d:
+                d['images'] = _norm_image_list(d.get('images', []))
+            if 'closeImages' in d:
+                d['closeImages'] = _norm_image_list(d.get('closeImages', []))
+            if 'imageTags' in d:
+                d['imageTags'] = _norm_url_keyed_dict(d.get('imageTags', {}), 'raw')
+
+    return data
 
 
 def _format_float(value, digits=6):
