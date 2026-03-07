@@ -101,6 +101,96 @@
   }
 }
 
+/* ── HEADER DATE RANGE → SHOW ON MOBILE (scrollable) */
+/* Un-hide date inputs on mobile but put them in the scrollable nav row */
+@media (max-width: 768px) {
+  /* Re-show the date inputs so user can swipe to reach them */
+  #glob-date-from,
+  #glob-date-to,
+  .date-range-sep {
+    display: inline-flex !important;
+    flex-shrink: 0;
+  }
+
+  /* Divider still hidden (saves space) */
+  .global-date-divider {
+    display: none !important;
+  }
+
+  /* Date inputs narrower on mobile */
+  .date-range-input {
+    width: 100px;
+    font-size: 0.75rem;
+    padding: 4px 2px 4px 4px;
+  }
+}
+
+/* ── GALLERY TRAY MOBILE SWIPE ────────────────── */
+@media (max-width: 768px) {
+  /* Single scrollable row instead of wrapping */
+  .gv2-tray {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    padding: 6px 8px;
+  }
+
+  .gv2-tray::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Left section: no shrink */
+  .gv2-tray-left {
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  /* Button group: no shrink, no wrap */
+  .gv2-tray-btns {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  /* Right section: no shrink, no auto-margin */
+  .gv2-tray-right {
+    margin-left: 0;
+    flex-shrink: 0;
+    gap: 6px;
+  }
+
+  /* Hide zoom hint text (saves space) */
+  .gv2-zoom-hint {
+    display: none;
+  }
+
+  /* Gallery close button: bigger touch target */
+  .gv2-close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
+  }
+
+  /* Gallery tray buttons: bigger touch target */
+  .gv2-tray-btn {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Date arrows bigger */
+  .gv2-date-arrow {
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 /* ── TABLET / LANDSCAPE PHONE (≤ 900px) ──────── */
 @media (max-width: 900px) {
   .app-main {
@@ -145,12 +235,8 @@
     padding-bottom: 2px;
   }
 
-  /* Hide date range divider + inputs in header on small screens
-     (they can use date filter in table section instead) */
-  .global-date-divider,
-  #glob-date-from,
-  #glob-date-to,
-  .date-range-sep {
+  /* date range inputs handled in the block above — divider stays hidden */
+  .global-date-divider {
     display: none !important;
   }
 

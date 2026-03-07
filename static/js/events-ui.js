@@ -268,7 +268,7 @@ function _bindUIEvents() {
     const active = !!(state.dateRange.from || state.dateRange.to);
     if (_drFrom) _drFrom.style.borderColor = active ? 'var(--blue)' : '';
     if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
-    if (_drClear) _drClear.style.display = active ? '' : 'none';
+    if (_drClear) _drClear.style.display = active ? 'inline-flex' : 'none';
   };
   if (_drFrom) _drFrom.addEventListener('change', () => { state.dateRange.from = _drFrom.value; _saveDateRange(); _updateDateRangeUI(); render(); });
   if (_drTo) _drTo.addEventListener('change', () => { state.dateRange.to = _drTo.value; _saveDateRange(); _updateDateRangeUI(); render(); });
