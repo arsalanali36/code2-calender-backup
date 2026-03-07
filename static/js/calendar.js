@@ -170,6 +170,24 @@ function renderCalendar() {
 
     if (dayTrades.length) {
       const dataDiv = document.createElement('div'); dataDiv.className = 'day-data';
+      // Abbreviation map for calendar cell labels (keeps cells compact)
+      const _CAL_ABBR = {
+        'gross p&l':'G','gross p/l':'G','gross':'G',
+        'net p&l':'N','net p/l':'N','net':'N',
+        'total trades':'T#','trade count':'T#','trades':'T#',
+        'charges':'Ch','brokerage':'Br','total fees':'Fee',
+        'win %':'W%','win rate':'W%','winrate':'W%',
+        'avg win':'AW','avg loss':'AL',
+        'avg / trade':'Avg','avg per trade':'Avg',
+        'points':'Pt','rs':'₹','p/l':'P/L',
+        'drawdown':'DD','max drawdown':'DD',
+        'profit':'P','loss':'L','qty':'Q','quantity':'Q',
+        'instrument':'Ins','strategy':'Stg','setup':'Stg',
+        'entry':'En','exit':'Ex','time':'T',
+        'buy price':'BP','sell price':'SP',
+      };
+      const _abbr = col => _CAL_ABBR[col.toLowerCase()] || col;
+
       const cols = state.columns.filter(col => getActiveShowHeads()[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
       if (state.calendarMode === 'individual') {
         dayTrades.forEach((tr, i) => {
@@ -183,11 +201,11 @@ function renderCalendar() {
             if (isProfit) {
               const num = parseFloat(val);
               if (!isNaN(num)) {
-                item.textContent = showLabels ? `${prefix}${col}: ${num > 0 ? '+' : ''}${num}` : `${prefix}${num > 0 ? '+' : ''}${num}`;
+                item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${num > 0 ? '+' : ''}${num}` : `${prefix}${num > 0 ? '+' : ''}${num}`;
                 item.classList.add(num >= 0 ? 'profit-pos' : 'profit-neg');
-              } else { item.textContent = showLabels ? `${prefix}${col}: ${val}` : `${prefix}${val}`; }
+              } else { item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${val}` : `${prefix}${val}`; }
             } else {
-              item.textContent = showLabels ? `${prefix}${col}: ${val}` : `${prefix}${val}`;
+              item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${val}` : `${prefix}${val}`;
             }
             dataDiv.appendChild(item);
           });
@@ -209,12 +227,12 @@ function renderCalendar() {
               outNum = nums.reduce((a, b) => a + b, 0);
             }
             const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
-            item.textContent = showLabels ? `${col}: ${out}` : `${out}`;
+            item.textContent = showLabels ? `${_abbr(col)}: ${out}` : `${out}`;
             if (lower.includes('profit') || lower === 'rs') item.classList.add(outNum >= 0 ? 'profit-pos' : 'profit-neg');
           } else {
             const first = String(vals[0]);
             const same = vals.every(v => String(v) === first);
-            item.textContent = same ? (showLabels ? `${col}: ${first}` : first) : (showLabels ? `${col}: ${vals.length} entries` : `${vals.length}`);
+            item.textContent = same ? (showLabels ? `${_abbr(col)}: ${first}` : first) : (showLabels ? `${_abbr(col)}: ${vals.length}x` : `${vals.length}x`);
           }
           dataDiv.appendChild(item);
         });

@@ -306,8 +306,12 @@ function renderVisualDashboard() {
         responsive: [{
             breakpoint: 769,
             options: {
-                xaxis: { tickAmount: 5, labels: { rotate: -45, rotateAlways: true } },
-                chart: { toolbar: { show: false } }
+                xaxis: { tickAmount: 5, labels: { rotate: -45, rotateAlways: true, style: { fontSize: '10px' } } },
+                yaxis: { labels: { style: { fontSize: '10px' } } },
+                chart: { toolbar: { show: false }, height: 200 },
+                grid: { padding: { left: 0, right: 0, top: 0, bottom: 0 } },
+                dataLabels: { style: { fontSize: '9px' } },
+                legend: { fontSize: '11px', itemMargin: { horizontal: 4 } }
             }
         }]
     };

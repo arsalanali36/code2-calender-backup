@@ -411,14 +411,36 @@ function showToast(msg, type = 'success') {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
 }
 
+function _getMobileBackdrop() {
+  let bd = document.getElementById('_mob-dd-backdrop');
+  if (!bd) {
+    bd = document.createElement('div');
+    bd.id = '_mob-dd-backdrop';
+    bd.style.cssText = 'display:none;position:fixed;inset:0;z-index:7999;background:rgba(0,0,0,0.45);';
+    bd.addEventListener('click', () => closeAllDropdowns('__none__'));
+    document.body.appendChild(bd);
+  }
+  return bd;
+}
+
 function setupDropdown(btnId, menuId) {
   const btn = document.getElementById(btnId);
   const menu = document.getElementById(menuId);
   if (!btn || !menu) return;
-  btn.addEventListener('click', e => { e.stopPropagation(); closeAllDropdowns(menuId); menu.classList.toggle('open'); });
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = menu.classList.contains('open');
+    closeAllDropdowns(menuId);
+    if (!wasOpen) {
+      menu.classList.add('open');
+      if (window.innerWidth <= 768) _getMobileBackdrop().style.display = 'block';
+    }
+  });
 }
 
 function closeAllDropdowns(except) {
   document.querySelectorAll('.dropdown-menu.open').forEach(m => { if (m.id !== except) m.classList.remove('open'); });
+  const bd = document.getElementById('_mob-dd-backdrop');
+  if (bd) bd.style.display = 'none';
 }
 
