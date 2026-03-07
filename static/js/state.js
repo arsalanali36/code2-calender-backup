@@ -149,8 +149,18 @@ const UNIFIED_STRUCTURED_COLUMNS = [
 const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 function getSectionOrder() {
-  try { const o = JSON.parse(localStorage.getItem('sectionOrder')); if (Array.isArray(o) && o.length === 4) return o; } catch (e) { }
-  return ['calendar', 'dashboard', 'visual-dashboard', 'table'];
+  const preferred = ['calendar', 'dashboard', 'table', 'visual-dashboard'];
+  try {
+    const o = JSON.parse(localStorage.getItem('sectionOrder'));
+    if (Array.isArray(o) && o.length === 4) {
+      // Migrate old default order to new expected order.
+      if (JSON.stringify(o) === JSON.stringify(['calendar', 'dashboard', 'visual-dashboard', 'table'])) {
+        return preferred;
+      }
+      return o;
+    }
+  } catch (e) { }
+  return preferred;
 }
 function saveSectionOrder(order) { try { localStorage.setItem('sectionOrder', JSON.stringify(order)); } catch (e) { } }
 function applySectionOrder() {

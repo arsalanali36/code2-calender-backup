@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @fileoverview dashboard.js
  * @description Top-level render() orchestrator + dashboard P&L stats, drag-drop stat ordering.
  * @exports render, renderDashboard, updateCalendarModeButton, updateBrokerFilterButton,
@@ -92,11 +92,11 @@ function getTradesForMonth(year, monthIndex) {
 }
 
 function formatCurrency(n) {
-  if (n === null || n === undefined || isNaN(n)) return '₹ 0.00';
+  if (n === null || n === undefined || isNaN(n)) return '\u20B9 0.00';
   const sign = n < 0 ? '-' : '';
   const abs = Math.abs(n);
   const out = abs.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `${sign}₹ ${out}`;
+  return `${sign}\u20B9 ${out}`;
 }
 
 function setDashValue(el, n, colorize = true) {
@@ -399,7 +399,7 @@ function renderDashboardStatsMenu() {
       row.style.cursor = 'grab';
 
       const handle = document.createElement('span');
-      handle.textContent = '⋮⋮';
+      handle.textContent = '::';
       handle.style.marginRight = '8px';
       handle.style.opacity = '0.6';
       handle.style.userSelect = 'none';
@@ -448,4 +448,5 @@ function renderDashboardStatsMenu() {
   renderList('');
   searchInp.addEventListener('input', () => renderList(searchInp.value));
 }
+
 
