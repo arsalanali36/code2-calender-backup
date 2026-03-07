@@ -1,7 +1,21 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
-## EOD Summary - March 07, 2026
+## EOD Summary - March 07, 2026 (Session 2)
+
+### v2.5.0 — Mobile Responsive
+- **`static/css/style-mobile.css`:** New dedicated mobile stylesheet. Touch targets min 44×44px, iOS font-size fix, Trade Logger/Review full-screen (100vw×100vh), visual dashboard charts single-column, frozen table columns disabled on mobile.
+- **Dropdown Bottom Sheets:** All `.dropdown-menu` elements become slide-up bottom sheets on mobile (`position:fixed`, `bottom:-105%→0`, `border-radius:16px 16px 0 0`, drag handle via `::before`, dim backdrop). Fixed `display:none` transition bug by keeping menus always `display:block` + `pointer-events:none` when hidden.
+- **Calendar Abbreviations (`calendar.js`):** Added `_CAL_ABBR` map — Gross P&L→G, Net→N, Total Trades→T#, Charges→Ch, Win%→W%, etc. Cells now show short codes instead of full column names.
+- **Chart Improvements (`visual-dashboard.js`):** Replaced all `toFixed(2)` with `Math.round()`. Added ApexCharts `responsive` breakpoint: single column, `tickAmount:5`, `height:200`, zeroed grid padding.
+- **Date Range Clear Button Fix (`events-ui.js`):** Fixed ghost button bug — `style.display=''` was letting CSS `display:none` class win. Changed to explicit `'inline-flex'`.
+- **Image Sync:** Restored 362 gitignored trade images to Render persistent disk via 76.6MB ZIP POST to `/api/import-json`.
+- **Blog Sort Fix (`app.py`):** Sort now uses `(date, array_index)` descending so last-added post appears first within same-date group.
+- **Blog Post:** Added v2.5.0 mobile responsive dev journal entry with 3 screenshots.
+
+---
+
+## EOD Summary - March 07, 2026 (Session 1)
 
 ### Features Added
 - **EOD Automation Workflow:** Added a trigger-contract based EOD runbook in `Docs/EOD_AI_PROMPT.md` with mandatory execution order and final report format.

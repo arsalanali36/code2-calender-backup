@@ -11763,6 +11763,10 @@
         "news"
       ],
       "tradeLogger": {
+        "_migrationLog": [
+          "2026-03-07T12:01:19.633Z - schema upgraded 1 -> 2"
+        ],
+        "_schemaVersion": 2,
         "bc_gt_20": "N",
         "dema": "Y",
         "dur": 6,
