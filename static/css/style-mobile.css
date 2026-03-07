@@ -586,8 +586,9 @@
 @media (max-width: 768px) {
   /* All dropdown menus become bottom sheets */
   .dropdown-menu {
+    display: block !important;   /* always block — transition requires non-none */
     position: fixed !important;
-    bottom: -105% !important;
+    bottom: -105% !important;    /* hidden below viewport until .open */
     left: 0 !important;
     right: 0 !important;
     top: auto !important;
@@ -602,11 +603,12 @@
     transition: bottom 0.28s cubic-bezier(.4, 0, .2, 1) !important;
     padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
     box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6) !important;
+    pointer-events: none;        /* can't click while hidden */
   }
 
   .dropdown-menu.open {
     bottom: 0 !important;
-    display: block !important;
+    pointer-events: auto !important;
   }
 
   /* Bigger items in bottom sheet */
