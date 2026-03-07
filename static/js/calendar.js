@@ -225,7 +225,7 @@ function renderCalendar() {
         const tags = Array.from(new Set(dayTrades.flatMap(t => getTradeTagsForColumn(t, col))));
         tags.forEach(tag => dayTagKeys.push(makeTagFilterKey(col, tag)));
       });
-      if (dayTagKeys.length) {
+      if (window._showCalTags && dayTagKeys.length) {
         const tagWrap = document.createElement('div');
         tagWrap.className = 'day-tag-bubbles';
         dayTagKeys.forEach(key => {

@@ -196,15 +196,15 @@ function renderVisualDashboard() {
         let run = 0;
         sorted.forEach(d => {
             const v = pMap.get(d) || 0;
-            res.dailyPlData.push(v.toFixed(2));
+            res.dailyPlData.push(Math.round(v));
             run += v;
-            res.cumulativeData.push(run.toFixed(2));
+            res.cumulativeData.push(Math.round(run));
             res.dailyTradeCountData.push(cMap.get(d) || 0);
             res.dailyQtyData.push(qMap.get(d) || 0);
-            res.dailyPointsData.push((ptMap.get(d) || 0).toFixed(2));
+            res.dailyPointsData.push(Math.round(ptMap.get(d) || 0));
             res.dailyFcData.push(fMap.get(d) || 0);
             const bps = bpSMap.get(d) || 0, bpc = bpCMap.get(d) || 0;
-            res.avgBuyPriceData.push(bpc > 0 ? (bps / bpc).toFixed(2) : "0.00");
+            res.avgBuyPriceData.push(bpc > 0 ? Math.round(bps / bpc) : 0);
 
             let ds = d;
             if (ds.startsWith('T')) {
@@ -301,7 +301,15 @@ function renderVisualDashboard() {
             borderColor: '#30363d',
             strokeDashArray: 4,
             padding: { top: 0, right: 10, bottom: 0, left: 10 }
-        }
+        },
+        dataLabels: { formatter: (val) => Math.round(val) },
+        responsive: [{
+            breakpoint: 769,
+            options: {
+                xaxis: { tickAmount: 5, labels: { rotate: -45, rotateAlways: true } },
+                chart: { toolbar: { show: false } }
+            }
+        }]
     };
 
     // Re-create charts instead of trying to update dynamically, to avoid issues
@@ -382,7 +390,7 @@ function renderVisualDashboard() {
     // Sort strategies by profitability
     const sortedStrats = Array.from(strategyPnlMap.entries()).sort((a, b) => b[1] - a[1]);
     let profitLabels = sortedStrats.map(e => e[0]);
-    let profitData = sortedStrats.map(e => e[1].toFixed(2));
+    let profitData = sortedStrats.map(e => Math.round(e[1]));
 
     if (profitData.length === 0) {
         profitLabels = ['No Data'];
@@ -532,7 +540,7 @@ function renderVisualDashboard() {
     if (vdCharts.pointsSum) vdCharts.pointsSum.destroy();
     const datPoints = getDat('points_sum');
     let rPoints = 0;
-    const pointsCumulData = datPoints.dailyPointsData.map(p => { rPoints += parseFloat(p); return rPoints.toFixed(2); });
+    const pointsCumulData = datPoints.dailyPointsData.map(p => { rPoints += parseFloat(p); return Math.round(rPoints); });
     vdCharts.pointsSum = new ApexCharts(document.querySelector("#chart-points-sum"), {
         ...commonOptions,
         series: [{ name: 'Cumulative Points Sum', data: pointsCumulData.length ? pointsCumulData : [0] }],

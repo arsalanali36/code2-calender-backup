@@ -28,6 +28,7 @@ function readSettingsFromPanel() {
     showLabels: document.getElementById('s-show-labels').checked,
     cellHeight: document.getElementById('s-cell-height').value,
     satSunOff: document.getElementById('s-sat-sun-off').checked,
+    showCalTags: document.getElementById('s-show-cal-tags').checked,
     tableRows: Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
     groupAColor: document.getElementById('s-group-a-color').value || '#58a6ff',
     groupBColor: document.getElementById('s-group-b-color').value || '#ffffff',
@@ -44,6 +45,7 @@ function populateSettingsPanel(s) {
   document.getElementById('s-show-labels').checked = s.showLabels;
   document.getElementById('s-cell-height').value = s.cellHeight;
   document.getElementById('s-sat-sun-off').checked = !!s.satSunOff;
+  document.getElementById('s-show-cal-tags').checked = !!s.showCalTags;
   document.getElementById('s-table-rows').value = String(s.tableRows || 5);
   document.getElementById('s-group-a-color').value = s.groupAColor || '#58a6ff';
   document.getElementById('s-group-b-color').value = s.groupBColor || '#ffffff';
@@ -64,6 +66,7 @@ function applySettingsToDOM(s) {
   window._showLabels = s.showLabels !== false;
   window._dayPos = s.dayPos || 'top-left';
   window._satSunOff = !!s.satSunOff;
+  window._showCalTags = !!s.showCalTags;
   const grid = document.getElementById('calendar-grid');
   if (grid) {
     grid.className = `calendar-grid cal-pos-${window._dayPos}`;

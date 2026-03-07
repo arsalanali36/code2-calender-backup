@@ -98,7 +98,8 @@ const DEFAULT_SETTINGS = {
   satSunOff: true, tableRows: 5,
   groupAColor: '#58a6ff',
   groupBColor: '#ffffff',
-  groupSepColor: '#58a6ff'
+  groupSepColor: '#58a6ff',
+  showCalTags: false
 };
 
 const DEFAULT_SHORTCUTS = {
