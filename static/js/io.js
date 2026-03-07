@@ -382,6 +382,29 @@ async function exportStructuredCsv() {
   }
 }
 
+async function exportLoggerExcel() {
+  if (!state.trades.length) { showToast('No data to export', 'error'); return; }
+  try {
+    showToast('Preparing logger Excel...', '');
+    const res = await fetch('/api/export-logger-excel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trades: state.trades, columns: state.columns })
+    });
+    if (!res.ok) { showToast('Logger export failed', 'error'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trade_logger_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Logger Excel exported!', 'success');
+  } catch (e) {
+    showToast('Logger export failed', 'error');
+  }
+}
+
 let toastTimer = null;
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`;

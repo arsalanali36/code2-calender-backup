@@ -6,7 +6,8 @@ import io
 import uuid
 import time
 import shutil
-from datetime import datetime
+import threading
+from datetime import datetime, timedelta
 import re
 import zipfile
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -18,9 +19,29 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 UPLOADS_DIR = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
+TRASH_DIR = os.path.join(UPLOADS_DIR, '_trash')
+TRASH_EXPIRY_DAYS = 7
 
 os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
+os.makedirs(TRASH_DIR, exist_ok=True)
+
+def _cleanup_trash():
+    """Delete files from _trash older than TRASH_EXPIRY_DAYS. Runs daily in background."""
+    while True:
+        try:
+            cutoff = datetime.now() - timedelta(days=TRASH_EXPIRY_DAYS)
+            for fname in os.listdir(TRASH_DIR):
+                fpath = os.path.join(TRASH_DIR, fname)
+                if os.path.isfile(fpath):
+                    mtime = datetime.fromtimestamp(os.path.getmtime(fpath))
+                    if mtime < cutoff:
+                        os.remove(fpath)
+        except Exception:
+            pass
+        time.sleep(86400)  # check every 24 hours
+
+threading.Thread(target=_cleanup_trash, daemon=True).start()
 
 from data_processors import (
     STRUCTURED_COLUMNS, HISTORICAL_STRUCTURED_COLUMNS,
@@ -30,6 +51,21 @@ from data_processors import (
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/updates')
+def updates():
+    blog_path = os.path.join(BASE_DIR, 'data', 'dev-blog.json')
+    entries = []
+    if os.path.exists(blog_path):
+        with open(blog_path, 'r', encoding='utf-8') as f:
+            entries = json.load(f)
+    for entry in entries:
+        dt = datetime.strptime(entry['date'], '%Y-%m-%d')
+        entry['display_date'] = dt.strftime('%B %d, %Y')
+        entry['display_day']  = dt.strftime('%A')
+    entries.sort(key=lambda x: x['date'], reverse=True)
+    return render_template('updates.html', entries=entries)
 
 
 @app.route('/api/trades', methods=['GET'])
@@ -291,7 +327,8 @@ def delete_image():
     if filename:
         filepath = os.path.join(UPLOADS_DIR, filename)
         if os.path.exists(filepath):
-            os.remove(filepath)
+            trash_path = os.path.join(TRASH_DIR, filename)
+            shutil.move(filepath, trash_path)
     return jsonify({'success': True})
 
 @app.route('/api/image-times', methods=['POST'])
@@ -695,6 +732,135 @@ def export_structured_csv():
         as_attachment=True,
         download_name='structured_trades.csv',
         mimetype='text/csv'
+    )
+
+
+@app.route('/api/export-logger-excel', methods=['POST'])
+def export_logger_excel():
+    data = request.json or {}
+    trades = data.get('trades', [])
+    if not trades:
+        return jsonify({'error': 'No data to export'}), 400
+
+    base_cols = [
+        'trade_date', 'date', 'Total Trades', 'Instrument', 'TradeType', 'Qty',
+        'Buy Time', 'Sell Time', 'Buy Price (Avg)', 'Sell Price (Avg)', 'Pt', 'Rs', 'Net P/L'
+    ]
+
+    logger_keys = set()
+    for t in trades:
+        tl = t.get('tradeLogger') if isinstance(t, dict) else None
+        if isinstance(tl, dict):
+            logger_keys.update(tl.keys())
+
+    preferred_order = [
+        'score', 'dur', 'tar', 'runn', 'sl', 'dd',
+        'strat_rev', 'strat_cont',
+        'entry_type', 'zone', 'zone_size', 'z_candle', 'bc_gt_20', 'placement', 'near',
+        'breakout_c', 'dema', 'en_algo', 'en_sl10', 'en_sc10', 'dist_gt_20',
+        'ex_nafs', 'sc_sl_moved', 'mgt_patience', 'mgt_conf',
+        'sc_targ_move', 'sc_gt10', 'sc_ptrail', 'ex_sl', 'ex_targ', 'ex_kill',
+        'en_nafs', 'en_patience', 'en_conf', 'en_impulsive', 'en_desperate', 'en_distracted', 'en_panic',
+        'ex_patience', 'ex_conf', 'ex_swing', 'ex_impulsive', 'ex_distracted', 'ex_panic', 'ex_desperate', 'ex_sahi',
+        '_schemaVersion', '_migrationLog'
+    ]
+    header_map = {
+        'score': 'Score',
+        'dur': 'DUR (min)',
+        'tar': 'TAR',
+        'runn': 'RUNN',
+        'sl': 'SL',
+        'dd': 'DD',
+        'strat_rev': 'Strategy - Reversal',
+        'strat_cont': 'Strategy - Cont',
+        'entry_type': 'Entry Type',
+        'zone': 'Zone (Y/N)',
+        'zone_size': 'Zone Size',
+        'z_candle': 'Zone Candle',
+        'bc_gt_20': 'Break Candle > 20pt',
+        'placement': 'Placement',
+        'near': 'Near',
+        'breakout_c': 'Breakout Candle',
+        'dema': 'DEMA',
+        'en_algo': 'Algo Signal',
+        'en_sl10': 'SL Under 10',
+        'en_sc10': 'SL Under 10 (Legacy)',
+        'dist_gt_20': 'Dist > 20',
+        'ex_nafs': 'Management - Nafs Pe Kabu',
+        'sc_sl_moved': 'Management - SL moved',
+        'mgt_patience': 'Management - Patience',
+        'mgt_conf': 'Management - Confirmation',
+        'sc_targ_move': 'Exit - Target move',
+        'sc_gt10': 'Exit - >10 pt',
+        'sc_ptrail': 'Exit - Profit trail',
+        'ex_sl': 'Exit - SL',
+        'ex_targ': 'Exit - Target',
+        'ex_kill': 'Exit - Kill Switch',
+        'en_nafs': 'Entry Emotion + Nafs Pe Kabu',
+        'en_patience': 'Entry Emotion + Patience',
+        'en_conf': 'Entry Emotion + Confirmation',
+        'en_impulsive': 'Entry Emotion - Impulsive',
+        'en_desperate': 'Entry Emotion - Desperate',
+        'en_distracted': 'Entry Emotion - Distracted',
+        'en_panic': 'Entry Emotion - Panic',
+        'ex_patience': 'Exit Emotion + Patience',
+        'ex_conf': 'Exit Emotion + Confirmation',
+        'ex_swing': 'Exit Emotion + Swing Creation',
+        'ex_impulsive': 'Exit Emotion - Impulsive',
+        'ex_distracted': 'Exit Emotion - Distracted',
+        'ex_panic': 'Exit Emotion - Panic',
+        'ex_desperate': 'Exit Emotion - Desperate',
+        'ex_sahi': 'Exit Emotion - Sahi Nahi Lag Raha',
+        '_schemaVersion': 'Logger Schema Version',
+        '_migrationLog': 'Logger Migration Log'
+    }
+
+    ordered_logger_keys = [k for k in preferred_order if k in logger_keys]
+    ordered_logger_keys += sorted([k for k in logger_keys if k not in ordered_logger_keys])
+    logger_cols = [header_map.get(k, k) for k in ordered_logger_keys]
+    cols = ['row_index'] + base_cols + logger_cols
+
+    rows = []
+    for i, t in enumerate(trades, 1):
+        row = {'row_index': i}
+        for c in base_cols:
+            row[c] = t.get(c, '')
+        tl = t.get('tradeLogger') if isinstance(t, dict) else {}
+        for k in ordered_logger_keys:
+            out_col = header_map.get(k, k)
+            v = tl.get(k, '') if isinstance(tl, dict) else ''
+            if isinstance(v, (dict, list)):
+                row[out_col] = json.dumps(v, ensure_ascii=False)
+            else:
+                row[out_col] = v
+        rows.append(row)
+
+    df_all = pd.DataFrame(rows, columns=cols)
+    if logger_cols:
+        has_logger = df_all[logger_cols].apply(
+            lambda r: any(str(v).strip() not in ('', '[]', '{}') for v in r), axis=1
+        )
+        df_logger = df_all[has_logger]
+    else:
+        df_logger = df_all.iloc[0:0]
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_all.to_excel(writer, index=False, sheet_name='LoggerExport')
+        df_logger.to_excel(writer, index=False, sheet_name='LoggerOnly')
+        for ws_name in ('LoggerExport', 'LoggerOnly'):
+            ws = writer.sheets[ws_name]
+            for col_cells in ws.columns:
+                max_len = max((len(str(c.value)) if c.value else 0) for c in col_cells)
+                ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 3, 44)
+
+    output.seek(0)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f'trade_logger_export_{timestamp}.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
 

@@ -21,6 +21,7 @@ async function init() {
   renderDashboardStatsMenu();
   bindEvents();
   await loadTrades();
+  _openGalleryFromUrlParamsOnce();
   setInterval(() => {
     if (!document.hidden) syncFromServerIfChanged(false);
   }, state.syncIntervalMs);
@@ -28,6 +29,30 @@ async function init() {
     if (!document.hidden) syncFromServerIfChanged(true);
   });
   window.addEventListener('focus', () => syncFromServerIfChanged(true));
+}
+
+function _openGalleryFromUrlParamsOnce() {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const dateKey = normalizeDate(q.get('galleryDate') || '');
+    const imgUrl = q.get('galleryImg') || '';
+    if (!dateKey) return;
+    if (typeof openGalleryForDate !== 'function') return;
+
+    openGalleryForDate(dateKey);
+    if (imgUrl && Array.isArray(state.gallery.images) && state.gallery.images.length) {
+      const decodedImg = decodeURIComponent(imgUrl);
+      const idx = state.gallery.images.findIndex(u => String(u) === decodedImg);
+      if (idx >= 0) state.gallery.currentIndex = idx;
+      renderGallery();
+    }
+
+    // Keep URL clean so refresh doesn't keep reopening from stale params.
+    q.delete('galleryDate');
+    q.delete('galleryImg');
+    const clean = `${window.location.pathname}${q.toString() ? `?${q.toString()}` : ''}${window.location.hash || ''}`;
+    window.history.replaceState({}, '', clean);
+  } catch (e) { }
 }
 
 function populateSelects() {
@@ -38,7 +63,7 @@ function populateSelects() {
   if (ms) {
     MONTHS.forEach((m, i) => {
       const o = document.createElement('option');
-      o.value = i; o.textContent = m; if (i === state.month) o.selected = true;
+      o.value = i; o.textContent = m.slice(0, 3); if (i === state.month) o.selected = true;
       ms.appendChild(o);
     });
   }

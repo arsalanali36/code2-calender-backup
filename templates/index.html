@@ -17,7 +17,9 @@
   <!-- HEADER -->
   <header class="app-header">
     <div class="logo">
-      <span class="logo-icon">&#9650;</span>
+      <div class="logo-icon-wrap">
+        <img src="/static/img/logo.png" class="logo-icon-img" alt="logo" />
+      </div>
       <span class="logo-text">Trading Journal</span>
     </div>
 
@@ -53,6 +55,7 @@
       </div>
       <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
       <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
+      <a href="/updates" class="btn btn-outline" title="Dev Journal" target="_blank" style="text-decoration:none;">&#128211; Dev Log</a>
     </div>
   </header>
 
@@ -293,6 +296,7 @@
               <input type="file" id="dhan-csv-input" accept=".csv,text/csv" style="display:none" />
               <button class="dropdown-item" id="export-btn">&#8681; Export Excel</button>
               <button class="dropdown-item" id="export-structured-csv-btn">&#8681; Export Structured CSV</button>
+              <button class="dropdown-item" id="export-logger-excel-btn">&#8681; Export Logger Excel</button>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item" id="backup-btn">&#128190; Backup (Data + Images)</button>
               <button class="dropdown-item" id="restore-btn">&#8635; Restore from Backup</button>

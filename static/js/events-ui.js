@@ -132,6 +132,7 @@ function _bindUIEvents() {
   document.getElementById('dhan-csv-input').addEventListener('change', e => { if (e.target.files[0]) importDhanCsv(e.target.files[0]); e.target.value = ''; });
   document.getElementById('export-btn').addEventListener('click', exportExcel);
   document.getElementById('export-structured-csv-btn').addEventListener('click', exportStructuredCsv);
+  document.getElementById('export-logger-excel-btn').addEventListener('click', exportLoggerExcel);
   document.getElementById('backup-btn').addEventListener('click', backupJson);
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
   document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });

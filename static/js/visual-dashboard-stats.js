@@ -323,7 +323,7 @@ function updateVdChartWidth(chartKey, cols) {
 }
 window.updateVdChartWidth = updateVdChartWidth;
 
-function applyVdCardWidths() {
+function applyVdCardWidths(triggerResize) {
     const widths = getVdCardWidths();
     document.querySelectorAll('.visual-dash-grid .dash-card[data-vd-stat]').forEach(card => {
         const key = card.getAttribute('data-vd-stat');
@@ -334,4 +334,8 @@ function applyVdCardWidths() {
         const sel = card.querySelector('.vd-width-select');
         if (sel) sel.value = cols;
     });
+    // After initial render, charts need a resize signal to fill their new container width
+    if (triggerResize) {
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+    }
 }

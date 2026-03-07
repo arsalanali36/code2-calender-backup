@@ -577,7 +577,7 @@ function renderVisualDashboard() {
 
     applyVdStatVisibility();
     applyVdStatOrder();
-    applyVdCardWidths();
+    applyVdCardWidths(true);
 }
 
 // Ensure parsing PNL dynamically works safely
