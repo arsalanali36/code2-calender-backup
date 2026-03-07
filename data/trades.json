@@ -11740,8 +11740,17 @@
         "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png": "T2 POST",
         "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png": "T2"
       },
+      "heroImage": "/uploads/eb751bd6-4f0f-442a-8cbf-5b551628839f.png",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "/uploads/00f329cc-8b28-4ed1-8a32-bbac30a24624.png",
+        "/uploads/59df6ed7-3bec-4d3e-8306-f0d04b060106.png",
+        "/uploads/8d5d38b3-4c72-4c30-a160-c212109cfef3.png",
+        "/uploads/d7167689-d070-4d22-adfa-79a2f1dbf984.png",
+        "/uploads/80e4caf3-1e46-47b8-bb89-bd39c6be59a1.png",
+        "/uploads/eb751bd6-4f0f-442a-8cbf-5b551628839f.png",
+        "/uploads/6b2b4fd9-fcc6-40e7-a136-ba119556e679.png"
+      ],
       "observation": "",
       "tags": [
         "Distracted",
@@ -11754,11 +11763,21 @@
         "news"
       ],
       "tradeLogger": {
-        "placement": "At Level",
-        "sc_sl_moved": "N",
+        "bc_gt_20": "N",
+        "dema": "Y",
+        "dur": 6,
+        "en_impulsive": "N",
+        "en_nafs": "N",
+        "ex_nafs": "N",
+        "mgt_conf": "N",
+        "mgt_patience": "N",
+        "placement": "Hawame",
+        "sc_sl_moved": "Y",
+        "sc_targ_move": "N",
         "strat_cont": true,
         "strat_rev": true,
-        "zone": "Y"
+        "zone": "N",
+        "zone_size": "0"
       },
       "tradeReview": {
         "dd": "",
@@ -11863,7 +11882,9 @@
         "Distracted",
         "new"
       ],
-      "tradeLogger": {},
+      "tradeLogger": {
+        "dur": 25
+      },
       "tradeReview": {
         "dd": "",
         "runnup": "",
@@ -11958,7 +11979,9 @@
         "EntryMiss",
         "Distracted"
       ],
-      "tradeLogger": {},
+      "tradeLogger": {
+        "dur": 2
+      },
       "tradeReview": {
         "dd": "",
         "runnup": "",
@@ -12022,7 +12045,9 @@
         ]
       },
       "tags": [],
-      "tradeLogger": {},
+      "tradeLogger": {
+        "dur": 40
+      },
       "tradeReview": {
         "dd": "",
         "runnup": "",
@@ -12064,6 +12089,7 @@
       "observation": "",
       "tags": [],
       "tradeLogger": {
+        "dur": 113,
         "strat_rev": true
       },
       "tradeReview": {
@@ -12118,6 +12144,7 @@
         "Mann Nahi"
       ],
       "tradeLogger": {
+        "dur": 10,
         "en_algo": "N",
         "en_sc10": "N"
       },

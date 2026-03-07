@@ -1,5 +1,22 @@
 [
   {
+    "id": "2026-03-07-eod-closeout",
+    "short_title": "EOD Closeout",
+    "date": "2026-03-07",
+    "version": "v2.4.4",
+    "emoji": "EOD",
+    "title": "v2.4.4: EOD Closeout - Prompt Contract Applied, Context Sync, and Shadow Repo Refresh",
+    "tags": [
+      "EOD",
+      "Automation",
+      "Context",
+      "Shadow Repo",
+      "Workflow"
+    ],
+    "summary": "Executed the formal EOD runbook: workflow contract enforced, compact context regenerated, shadow repo rebuilt, and logs synced for next-session continuity.",
+    "body": "<p>Today closed with a strict end-of-day execution pass. The new prompt contract was followed in sequence so the wrap-up stays consistent across sessions and models.</p><h3>What was finalized</h3><ul><li><strong>Workflow contract applied:</strong> EOD trigger behavior now maps to a fixed checklist in <code>Docs/EOD_AI_PROMPT.md</code>.</li><li><strong>Compact context sync:</strong> <code>Scripts/generate_context.py --mode compact --output-suffix _COMPACT</code> regenerated lightweight AI context snapshots.</li><li><strong>Shadow repo refresh:</strong> <code>Scripts/build_shadow_repo.ps1</code> rebuilt <code>_shadow_repo</code> with high-signal project scope.</li><li><strong>Daily memory updated:</strong> changelog and update-history records were refreshed for next-day continuity.</li></ul><p><strong>Result:</strong> EOD now runs as a repeatable engineering routine, not an ad-hoc manual checklist.</p>"
+  },
+  {
     "id": "2026-03-07-dev-blog-system",
     "short_title": "Blog System",
     "date": "2026-03-07",

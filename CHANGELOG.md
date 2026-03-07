@@ -1,6 +1,21 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 07, 2026
+
+### Features Added
+- **EOD Automation Workflow:** Added a trigger-contract based EOD runbook in `Docs/EOD_AI_PROMPT.md` with mandatory execution order and final report format.
+- **One-Command EOD Script:** Added `Scripts/EOD_OPTIMIZE.ps1` to run context validation, compact context generation, and shadow repo build in a single command.
+- **Shadow Repo Builder:** Added `Scripts/build_shadow_repo.ps1` to generate `_shadow_repo` with high-signal project files and optional `data/trades.json` inclusion.
+- **Cross-OS Setup Helpers:** Added `setup.sh`, `setup_windows.bat`, and `setup_windows.ps1` for faster environment setup across platforms.
+
+### Refactor and Token Hygiene
+- **`Scripts/generate_context.py` enhanced:** Added compact/full modes, changed-only generation from git status, dry-run support, configurable preview limits, and structured symbol extraction.
+- **Compact context regenerated:** Refreshed `Docs/AI_Contexts/*_COMPACT.md`.
+- **Shadow repo refreshed:** Rebuilt `_shadow_repo` using the new automation flow.
+
+---
+
 ---
 
 ## 🌟 EOD Summary — March 06, 2026

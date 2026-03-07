@@ -11,6 +11,27 @@ python app.py
 
 Or use `run.bat` on Windows.
 
+## One-command setup (new PC)
+
+```bash
+bash setup.sh
+```
+
+This installs Python dependencies in `.venv` and Node dependencies (if `npm` is available).
+
+### Windows (Python + Node.js auto-install + all dependencies)
+
+```bat
+setup_windows.bat
+```
+
+This script:
+- installs Python (if missing) using `winget`
+- installs Node.js LTS (if missing) using `winget`
+- creates `.venv`
+- installs `requirements.txt`
+- runs `npm install` for root and `.tmp_logger_ui`
+
 ## Recent Updates (Annotation + Tags)
 
 ### Image Annotation
