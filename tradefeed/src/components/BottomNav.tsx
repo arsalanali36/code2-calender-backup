@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, CalendarDays, PieChart, List, Grid3X3, PlusSquare } from 'lucide-react';
+import { LayoutGrid, CalendarDays, PieChart, Grid3X3, Newspaper } from 'lucide-react';
 import { ViewType } from '../types';
 
 interface BottomNavProps {
@@ -12,8 +12,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange 
     { id: 'feed', icon: LayoutGrid, label: 'Feed' },
     { id: 'calendar', icon: CalendarDays, label: 'Cal' },
     { id: 'dashboard', icon: PieChart, label: 'Stats' },
-    { id: 'table', icon: List, label: 'Trades' },
     { id: 'gallery', icon: Grid3X3, label: 'Gallery' },
+    { id: 'blog', icon: Newspaper, label: 'Blog' },
   ];
 
   return (

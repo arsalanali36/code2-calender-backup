@@ -1,4 +1,4 @@
-import { Trade, TradeSession, TradeType } from '../types';
+import { Trade, TradeSession, TradeType, BlogPost } from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -83,4 +83,10 @@ export async function fetchTrades(): Promise<Trade[]> {
   return trades
     .filter(t => typeof t['Net P/L'] === 'number' || typeof t['Gross P/L'] === 'number')
     .map((t, i) => mapTrade(t, i, emotionSet, mistakeSet));
+}
+
+export async function fetchBlogPosts(): Promise<BlogPost[]> {
+  const res = await fetch(`${BASE_URL}/api/blog-posts`);
+  if (!res.ok) throw new Error(`Blog API error: ${res.status}`);
+  return res.json();
 }

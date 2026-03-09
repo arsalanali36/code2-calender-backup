@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FeedView } from './components/FeedView';
+import { BlogView } from './components/BlogView';
 import { BottomNav } from './components/BottomNav';
 import { ViewType, Trade } from './types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -474,6 +475,8 @@ export default function App() {
         return <TableView trades={trades} onLogTrade={() => setCurrentView('import')} />;
       case 'gallery':
         return <GalleryView trades={trades} />;
+      case 'blog':
+        return <BlogView />;
       case 'import':
         return (
           <ImageImport 

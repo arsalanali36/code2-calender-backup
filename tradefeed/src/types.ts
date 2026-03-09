@@ -21,4 +21,18 @@ export interface Trade {
   };
 }
 
-export type ViewType = 'feed' | 'calendar' | 'dashboard' | 'table' | 'gallery' | 'import' | 'tagger' | 'logger';
+export type ViewType = 'feed' | 'calendar' | 'dashboard' | 'table' | 'gallery' | 'blog' | 'import' | 'tagger' | 'logger';
+
+export interface BlogPost {
+  id: string;
+  short_title: string;
+  date: string;
+  display_date: string;
+  display_day: string;
+  version: string;
+  emoji: string;
+  title: string;
+  tags: string[];
+  summary: string;
+  body: string;
+}
