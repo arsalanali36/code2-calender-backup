@@ -197,10 +197,13 @@
     .entry-body li strong { color: var(--text); }
     .entry-body img {
       max-width: 100%;
+      width: 100%;
+      height: auto;
       border-radius: var(--radius);
       border: 1px solid var(--border2);
       margin: 18px 0;
       display: block;
+      box-sizing: border-box;
     }
     .entry-body .img-caption {
       text-align: center;
@@ -280,7 +283,7 @@
       align-items: center;
     }
     .toc-drawer {
-      display: none;
+      display: block;
       position: fixed;
       bottom: 0; left: 0; right: 0;
       z-index: 200;
@@ -291,10 +294,11 @@
       max-height: 60vh;
       overflow-y: auto;
       box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
-      transform: translateY(100%);
+      transform: translateY(110%);
       transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+      visibility: hidden;
     }
-    .toc-drawer.open { transform: translateY(0); }
+    .toc-drawer.open { transform: translateY(0); visibility: visible; }
     .toc-drawer-handle {
       width: 40px; height: 4px;
       background: var(--border2);
@@ -312,8 +316,10 @@
 
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 768px) {
+      body { overflow-x: hidden; }
       .sidebar-nav { display: none; }
       .toc-toggle { display: flex; }
+      .main-content { overflow-x: hidden; max-width: 100%; }
 
       .page-layout {
         padding: 20px 16px 80px;
