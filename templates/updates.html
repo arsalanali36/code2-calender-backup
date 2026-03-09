@@ -241,11 +241,105 @@
     }
     .back-btn:hover { color: var(--text); border-color: var(--text2); }
 
+    /* ── PRE / CODE BLOCKS ───────────────────────── */
+    .entry-body pre {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin-bottom: 14px;
+      font-size: 0.84em;
+      line-height: 1.6;
+    }
+    .entry-body pre code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: var(--green);
+      white-space: pre;
+    }
+
+    /* ── MOBILE TOC BUTTON ───────────────────────── */
+    .toc-toggle {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 100;
+      background: var(--blue);
+      color: #0d1117;
+      border: none;
+      border-radius: 24px;
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      gap: 6px;
+      align-items: center;
+    }
+    .toc-drawer {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 200;
+      background: var(--surface);
+      border-top: 1px solid var(--border2);
+      border-radius: 16px 16px 0 0;
+      padding: 20px 20px 40px;
+      max-height: 60vh;
+      overflow-y: auto;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    .toc-drawer.open { transform: translateY(0); }
+    .toc-drawer-handle {
+      width: 40px; height: 4px;
+      background: var(--border2);
+      border-radius: 4px;
+      margin: 0 auto 18px;
+    }
+    .toc-drawer .sidebar-label { margin-bottom: 12px; }
+    .toc-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      z-index: 190;
+      background: rgba(0,0,0,0.5);
+    }
+    .toc-backdrop.open { display: block; }
+
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 768px) {
       .sidebar-nav { display: none; }
-      .page-layout { padding: 24px 16px 60px; }
-      .date-big { font-size: 1.35rem; }
+      .toc-toggle { display: flex; }
+
+      .page-layout {
+        padding: 20px 16px 80px;
+        gap: 0;
+      }
+
+      .updates-hero { margin-bottom: 36px; padding-bottom: 24px; }
+      .updates-hero h1 { font-size: 1.4rem; margin-bottom: 8px; }
+      .updates-hero p { font-size: 0.88rem; }
+
+      .date-big { font-size: 1.2rem; }
+      .entry-title { font-size: 1.1rem; }
+      .entry-summary { font-size: 0.85rem; }
+      .entry-body { font-size: 0.9rem; }
+      .entry-body h3 { font-size: 0.95rem; }
+
+      .blog-entry { margin-bottom: 52px; padding-bottom: 48px; }
+
+      .entry-meta { gap: 6px; }
+      .entry-version, .entry-tag { font-size: 0.7rem; }
+
+      .entry-body pre { font-size: 0.78em; padding: 10px 12px; }
+      .entry-body .img-row { flex-direction: column; }
+      .entry-body .img-row img { min-width: unset; width: 100%; }
+
+      .app-header .logo-text { font-size: 0.88rem; }
     }
   </style>
 </head>
@@ -258,6 +352,20 @@
     </div>
     <a href="/" class="back-btn">&#8592; Back to App</a>
   </header>
+
+  <!-- Mobile TOC -->
+  <div class="toc-backdrop" id="tocBackdrop"></div>
+  <div class="toc-drawer" id="tocDrawer">
+    <div class="toc-drawer-handle"></div>
+    <div class="sidebar-label">All Entries</div>
+    {% for entry in entries %}
+    <a href="#{{ entry.id }}" class="sidebar-item toc-link">
+      <span class="sidebar-item-heading">{{ entry.emoji }} {{ entry.short_title }}</span>
+      <span class="sidebar-item-sub">{{ entry.version }} &middot; {{ entry.display_date }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  <button class="toc-toggle" id="tocToggle">&#9776; All Posts</button>
 
   <div class="page-layout">
 
@@ -337,6 +445,28 @@
         const targetId = raw.startsWith('#') ? raw.slice(1) : raw;
         const target = document.getElementById(targetId);
         if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Mobile TOC drawer
+    const tocToggle   = document.getElementById('tocToggle');
+    const tocDrawer   = document.getElementById('tocDrawer');
+    const tocBackdrop = document.getElementById('tocBackdrop');
+
+    function openToc()  { tocDrawer.classList.add('open'); tocBackdrop.classList.add('open'); }
+    function closeToc() { tocDrawer.classList.remove('open'); tocBackdrop.classList.remove('open'); }
+
+    tocToggle.addEventListener('click', openToc);
+    tocBackdrop.addEventListener('click', closeToc);
+
+    document.querySelectorAll('.toc-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        closeToc();
+        const raw = link.getAttribute('href') || '';
+        const targetId = raw.startsWith('#') ? raw.slice(1) : raw;
+        const target = document.getElementById(targetId);
+        if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth' }), 320);
       });
     });
   </script>
