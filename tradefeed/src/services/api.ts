@@ -22,7 +22,9 @@ function buildTagSets(tagGroups: Record<string, string[]>) {
 function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<string>, mistakeSet: Set<string>): Trade {
   const instrument = (raw['Instrument'] as string) || '';
   const tradeType  = (raw['TradeType'] as string || '').toLowerCase();
-  const pnl        = (raw['Net P/L'] as number) ?? (raw['Gross P/L'] as number) ?? 0;
+  const rawPnl = raw['Net P/L'];
+  const rawGross = raw['Gross P/L'];
+  const pnl = typeof rawPnl === 'number' ? rawPnl : (typeof rawGross === 'number' ? rawGross : 0);
   const date       = (raw['trade_date'] as string) || (raw['date'] as string) || '';
   const note       = (raw['Note'] as string) || '';
   const qty        = (raw['Qty'] as number) || 0;
@@ -78,5 +80,7 @@ export async function fetchTrades(): Promise<Trade[]> {
   const trades: Record<string, unknown>[] = data.trades || [];
   const tagGroups: Record<string, string[]> = data.tagGroups || {};
   const { emotionSet, mistakeSet } = buildTagSets(tagGroups);
-  return trades.map((t, i) => mapTrade(t, i, emotionSet, mistakeSet));
+  return trades
+    .filter(t => typeof t['Net P/L'] === 'number' || typeof t['Gross P/L'] === 'number')
+    .map((t, i) => mapTrade(t, i, emotionSet, mistakeSet));
 }
