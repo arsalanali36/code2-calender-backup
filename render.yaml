@@ -16,3 +16,11 @@ services:
         value: /var/data/trades.json
       - key: UPLOADS_DIR
         value: /var/data/uploads
+
+  - type: static
+    name: tradefeed
+    buildCommand: cd tradefeed && npm install && npm run build
+    staticPublishPath: tradefeed/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://code2-calender.onrender.com
