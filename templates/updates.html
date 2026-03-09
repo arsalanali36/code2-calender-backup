@@ -171,6 +171,8 @@
       color: var(--text2);
       line-height: 1.85;
       font-size: 0.93rem;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
     .entry-body h3 {
       font-size: 1rem;
@@ -319,11 +321,20 @@
       body { overflow-x: hidden; }
       .sidebar-nav { display: none; }
       .toc-toggle { display: flex; }
-      .main-content { overflow-x: hidden; max-width: 100%; }
 
       .page-layout {
+        display: block;
         padding: 20px 16px 80px;
-        gap: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .main-content {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        word-break: break-word;
+        overflow-wrap: break-word;
       }
 
       .updates-hero { margin-bottom: 36px; padding-bottom: 24px; }
