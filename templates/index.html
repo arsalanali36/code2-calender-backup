@@ -338,6 +338,12 @@
 
   <div class="toast" id="toast"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <!-- ── Service layer (load before all other modules) ── -->
+  <script src="/static/js/services/apiClient.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/tradeService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/imageService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/importService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
   <script src="/static/js/state.js?v={{ cache_bust }}"></script>
   <script src="/static/js/data.js?v={{ cache_bust }}"></script>
   <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
@@ -347,7 +353,8 @@
   <script src="/static/js/table-cols.js?v={{ cache_bust }}"></script>
   <script src="/static/js/table-colops.js?v={{ cache_bust }}"></script>
   <script src="/static/js/trade-review.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/trade-logger.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-logger-core.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-logger-render.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-open.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-render.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>

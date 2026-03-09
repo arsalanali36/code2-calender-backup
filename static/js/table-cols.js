@@ -358,11 +358,7 @@ async function deleteImageFromRow(rowIdx, imageUrl) {
 
   try {
     const filename = String(imageUrl || '').split('/').pop();
-    await fetch('/api/delete-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename })
-    });
+    await imageService.deleteImage('/uploads/' + filename);
   } catch (e) { }
 
   await saveTrades();

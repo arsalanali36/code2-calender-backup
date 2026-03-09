@@ -49,16 +49,9 @@ async function fetchImageTimesForGallery() {
   const urls = Array.from(urlSet);
   if (!urls.length) return;
   try {
-    const res = await fetch('/api/image-times', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ urls })
-    });
-    if (res.ok) {
-      const times = await res.json();
-      state.gallery.imageTimes = times;
-      renderGallery();
-    }
+    const times = await imageService.getImageTimes(urls);
+    state.gallery.imageTimes = times;
+    renderGallery();
   } catch (err) {
     console.error('Failed to fetch image times', err);
   }
@@ -371,8 +364,7 @@ function autoSaveAnnotationSession(session) {
     const fd = new FormData();
     fd.append('image', blob, 'overlay.png');
     try {
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(fd.get('image'));
       if (!data.url) throw new Error();
       if (setOverlayUrlForImage(imageUrl, data.url, date, sourceRow)) {
         if (state._localOverlays?.[imageUrl]) delete state._localOverlays[imageUrl];

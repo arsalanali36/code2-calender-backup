@@ -1,8 +1,8 @@
 # Trading Journal — Project Context
 
 ## Stack
-- **Backend**: Python / Flask (`app.py`)
-- **Frontend**: Vanilla JS (split modules) + Jinja2 (`templates/index.html`)
+- **Backend**: Python / Flask (`app.py` — thin orchestrator only)
+- **Frontend**: Vanilla JS (split modules, global scope) + Jinja2 (`templates/index.html`)
 - **Storage**: `trades.json` (flat file, no DB), images in `static/uploads/`
 - **CSS**: `style-base.css` / `style-gallery-a.css` / `style-gallery-b.css` / `style-misc.css`
 
@@ -88,14 +88,48 @@ renameTagEverywhere(oldTag, newTag)  // updates all trades/dayData/boxes
 
 ---
 
-## Backend Key Routes (`app.py`)
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/trades` | GET/POST | Load/save all trades + dayData |
-| `/api/upload` | POST | Upload image → `static/uploads/` |
-| `/api/overlay` | POST | Save annotation overlay |
-| `/api/backup` | GET | Download ZIP (trades.json + images) |
-| `/api/import-json` | POST | Restore from JSON or ZIP |
+## Backend Architecture (STRICT — always follow this)
+
+```
+app.py              ← thin entry point only: app setup + blueprint registration
+config.py           ← ALL config/env vars/paths live here (DATA_FILE, UPLOADS_DIR, etc.)
+routes/             ← HTTP layer only: parse request → call service → return jsonify()
+│   page_routes.py      GET /, GET /updates
+│   trade_routes.py     GET/POST /api/trades
+│   image_routes.py     upload, delete, clipboard, image-times, serve /uploads/
+│   import_routes.py    import-excel, import-json, import-raw-csv, import-historical-csv, import-dhan-csv
+│   export_routes.py    backup, export-excel, export-structured-csv, export-logger-excel
+services/           ← business logic only (no Flask imports, no request/response)
+│   trade_service.py
+│   image_service.py
+│   import_service.py
+│   export_service.py
+processors/         ← pure data transformation (CSV parsing, normalization, JSON load/save)
+│   data_processors.py
+```
+
+### Rules — enforce on every new file:
+- **Routes** must only: parse `request.*`, call one service function, return `jsonify()`
+- **Services** must not import Flask or touch `request`/`response`
+- **Config** values (`DATA_FILE`, `UPLOADS_DIR`, `BASE_DIR`, etc.) always come from `config.py` — never hardcode paths
+- **New Python feature** → decide: is it a route (HTTP concern), service (business logic), or processor (data transform)?
+- **JS frontend** components must never call `fetch()` directly — always go through `static/js/services/`
+
+### Backend Key Routes
+| Route | Method | File | Purpose |
+|-------|--------|------|---------|
+| `/api/trades` | GET/POST | `trade_routes.py` | Load/save all trades + dayData |
+| `/api/upload-image` | POST | `image_routes.py` | Upload image → `static/uploads/` |
+| `/api/delete-image` | POST | `image_routes.py` | Move image to trash |
+| `/api/backup` | GET | `export_routes.py` | Download ZIP (trades.json + images) |
+| `/api/import-json` | POST | `import_routes.py` | Restore from JSON or ZIP |
+| `/api/import-excel` | POST | `import_routes.py` | Import Excel file |
+| `/api/import-raw-csv` | POST | `import_routes.py` | Import Zerodha raw fills CSV |
+| `/api/import-historical-csv` | POST | `import_routes.py` | Import Zerodha historical CSV |
+| `/api/import-dhan-csv` | POST | `import_routes.py` | Import Dhan CSV |
+| `/api/export-excel` | POST | `export_routes.py` | Export simple Excel |
+| `/api/export-structured-csv` | POST | `export_routes.py` | Export structured CSV |
+| `/api/export-logger-excel` | POST | `export_routes.py` | Export logger Excel |
 
 ---
 
@@ -199,5 +233,5 @@ The annotation system must support (target: Fabric.js integration):
 
 ## 🌅 Custom Commands / EOD Routine
 If the user ever says **"Aap EOD dekh lijye"** or asks you to **"do the EOD routine"**, it means you must:
-1. Immediately read the contents of `EOD_AI_PROMPT.md` located in the root directory.
+1. Immediately read the contents of `Docs/EOD_AI_PROMPT.md` (it lives in the `Docs/` folder, not root).
 2. Execute the exact End of Day Optimization, Refactoring, Context updating, and Git Push routine documented inside that file.

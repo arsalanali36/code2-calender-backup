@@ -42,10 +42,7 @@ function bindEvents() {
 
     for (const file of imgFiles) {
       try {
-        const fd = new FormData();
-        fd.append('image', file);
-        const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-        const data = await res.json();
+        const data = await imageService.uploadImage(file);
         if (data.url) {
           let addedToGroup = false;
 

@@ -42,6 +42,13 @@ Then AI must execute this workflow automatically without asking for step-by-step
 5. Integrity check
 - Validate key entrypoints/references are not broken (`app.py`, `templates/index.html`, script includes)
 - Run lightweight syntax checks for touched code where applicable
+- Verify backend architecture rules are intact:
+  - `app.py` must only contain: Flask setup, blueprint registration, startup tasks — NO route handlers
+  - All config/paths must come from `config.py` — never hardcoded in routes or services
+  - New routes must go in the correct `routes/*.py` blueprint file
+  - New business logic must go in `services/*.py` — not inside route handlers
+  - New data transforms must go in `processors/data_processors.py`
+  - JS frontend code must call `static/js/services/*.js` — never raw `fetch()` directly
 
 6. Update logs
 - Update `CHANGELOG.md` with today's concise bullet summary

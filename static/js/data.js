@@ -81,8 +81,7 @@ function populateSelects() {
 
 async function loadTrades() {
   try {
-    const res = await fetch('/api/trades');
-    const data = await res.json();
+    const data = await tradeService.loadTrades();
     state.trades = data.trades || [];
     state.columns = data.columns || [];
     state.allTags = data.allTags || [];
@@ -124,10 +123,7 @@ async function saveTrades() {
       dayData: state.dayData,
       tagGroups: state.tagGroups
     };
-    await fetch('/api/trades', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    await tradeService.saveTrades(payload);
     state.serverStateHash = hashServerState(payload);
   } catch (e) { showToast('Save failed', 'error'); }
 }
@@ -164,9 +160,7 @@ function isUiBusyForSync() {
 async function syncFromServerIfChanged(force = false) {
   if (!force && isUiBusyForSync()) return;
   try {
-    const res = await fetch('/api/trades');
-    if (!res.ok) return;
-    const data = await res.json();
+    const data = await tradeService.loadTrades();
     const incomingHash = hashServerState(data);
     if (!incomingHash || incomingHash === state.serverStateHash) return;
 

@@ -527,11 +527,7 @@ function renderGallery() {
         if (!blob) return;
         try {
           const file = new File([blob], 'blank_page_' + Date.now() + '.png', { type: 'image/png' });
-          const fd = new FormData();
-          fd.append('image', file);
-          const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: fd });
-          if (!uploadRes.ok) throw new Error('Upload failed');
-          const rv = await uploadRes.json();
+          const rv = await imageService.uploadImage(file);
           if (rv.url) {
             const newUrl = rv.url;
             const oT = getOwnerTradeForGalleryImage() || (state.gallery.sourceRow !== null ? state.trades[state.gallery.sourceRow] : null);

@@ -108,13 +108,9 @@ function showGalleryContextMenu(x, y) {
         menu.appendChild(createOpt('Copy Image', async () => {
             try {
                 // If it's a local app, we can ask the backend to copy it to system clipboard
-                const filename = url.split('/').pop();
-                const res = await fetch('/api/copy-image-to-clipboard', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename })
-                });
-                if (res.ok) {
+                try {
+                const _clipRes = await imageService.copyToClipboard(url);
+                if (_clipRes.success) {
                     showToast('Image copied to clipboard (System)', 'success');
                 } else {
                     // Fallback to browser clipboard if backend isn't supporting it
@@ -135,12 +131,8 @@ function showGalleryContextMenu(x, y) {
             inp.type = 'file'; inp.accept = 'image/*';
             inp.onchange = async () => {
                 if (!inp.files[0]) return;
-                const fd = new FormData();
-                fd.append('image', inp.files[0]);
                 try {
-                    const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-                    if (!res.ok) throw new Error();
-                    const rv = await res.json();
+                    const rv = await imageService.uploadImage(inp.files[0]);
                     if (!rv.url) throw new Error();
                     await replaceGalleryImageUrl(url, rv.url);
                     showToast('Image replaced', 'success');

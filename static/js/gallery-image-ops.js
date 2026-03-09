@@ -271,7 +271,7 @@ async function removeGalleryImageAt(idx, force = false) {
             if (idx > -1) window.galleryUndoStack.splice(idx, 1); // remove from stack once permanent
             try {
                 const fn = String(imageUrl || '').split('/').pop();
-                await fetch('/api/delete-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: fn }) });
+                await imageService.deleteImage('/' + fn);
             } catch (e) { }
         }, 5000);
         actionBackup.deleteTimer = timerId;
@@ -282,10 +282,7 @@ async function removeGalleryImageAt(idx, force = false) {
         t2.className = 'toast success show';
         setTimeout(() => { t2.className = 'toast'; }, 4000);
         if (!state.gallery.images.length) { document.getElementById('gallery-modal').classList.remove('open'); unlockBodyScroll(); }
-        await fetch('/api/trades', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups })
-        });
+        await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
         return;
     }
 
@@ -375,11 +372,7 @@ async function removeGalleryImageAt(idx, force = false) {
         for (const dictUrl of urlsToDelete) {
             try {
                 const filename = String(dictUrl || '').split('/').pop();
-                await fetch('/api/delete-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename })
-                });
+                await imageService.deleteImage('/uploads/' + filename);
             } catch (e) { }
         }
     }, 5000);
@@ -400,14 +393,7 @@ async function removeGalleryImageAt(idx, force = false) {
         unlockBodyScroll();
     }
 
-    await fetch('/api/trades', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            trades: state.trades, columns: state.columns, allTags: state.allTags,
-            tagColumns: state.tagColumns, userColumns: state.userColumns,
-            dayData: state.dayData, tagGroups: state.tagGroups
-        })
-    });
+    await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
 }
 
 async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobalIdx, targetUrl = null) {

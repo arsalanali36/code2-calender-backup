@@ -45,9 +45,7 @@ function renderUploadPreview() {
 async function handleImageFiles(files) {
   for (const file of files) {
     try {
-      const fd = new FormData(); fd.append('image', file);
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(file);
       if (data.url) { state.pendingFiles.push(data.url); renderUploadPreview(); }
     } catch (e) { showToast('Image upload failed', 'error'); }
   }
@@ -63,14 +61,8 @@ async function uploadImagesToRow(rowIdx, files) {
   for (const file of files) {
     if (!file || !String(file.type || '').startsWith('image/')) continue;
     try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.url) {
-        trade.images.push(data.url);
-        added++;
-      }
+      const data = await imageService.uploadImage(file);
+      if (data.url) { trade.images.push(data.url); added++; }
     } catch (e) { }
   }
   if (added > 0) {
@@ -88,10 +80,7 @@ async function uploadImagesToDayData(dateKey, files) {
   for (const file of files) {
     if (!file || !String(file.type || '').startsWith('image/')) continue;
     try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(file);
       if (data.url) { state.dayData[dateKey].images.push(data.url); added++; }
     } catch (e) { }
   }
@@ -182,11 +171,9 @@ function bindTableRowDrag(tr, rowIdx, body) {
 }
 
 async function importExcel(file) {
-  const fd = new FormData(); fd.append('file', file);
   try {
     showToast('Importing Excel...', '');
-    const res = await fetch('/api/import-excel', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importExcel(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     state.trades = data.trades;
     state.columns = data.columns;
@@ -205,12 +192,9 @@ async function importExcel(file) {
 }
 
 async function importRawCsv(file) {
-  const fd = new FormData();
-  fd.append('file', file);
   try {
     showToast('Consolidating Zerodha today CSV...', '');
-    const res = await fetch('/api/import-raw-csv', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importRawCsv(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
       const row = normalizeStructuredTradeRow(t);
@@ -240,12 +224,9 @@ async function importRawCsv(file) {
 }
 
 async function importHistoricalCsv(file) {
-  const fd = new FormData();
-  fd.append('file', file);
   try {
     showToast('Consolidating Zerodha historical CSV...', '');
-    const res = await fetch('/api/import-historical-csv', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importHistoricalCsv(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
       const row = normalizeStructuredTradeRow(t);
@@ -274,12 +255,9 @@ async function importHistoricalCsv(file) {
 }
 
 async function importDhanCsv(file) {
-  const fd = new FormData();
-  fd.append('file', file);
   try {
     showToast('Consolidating Dhan CSV...', '');
-    const res = await fetch('/api/import-dhan-csv', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importDhanCsv(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
       const row = normalizeStructuredTradeRow(t);
@@ -308,11 +286,9 @@ async function importDhanCsv(file) {
 }
 
 async function importJson(file) {
-  const fd = new FormData(); fd.append('file', file);
   try {
     showToast('Restoring backup...', '');
-    const res = await fetch('/api/import-json', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importJsonOrZip(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     state.trades = data.trades;
     state.columns = data.columns;
@@ -332,28 +308,15 @@ async function importJson(file) {
 }
 
 function backupJson() {
-  const name = prompt('Backup name (optional):');
-  let url = '/api/backup';
-  if (name && String(name).trim()) {
-    url += `?name=${encodeURIComponent(String(name).trim())}`;
-  }
-  window.location.href = url;
+  const name = prompt('Backup name (optional):') || '';
+  exportService.downloadBackup(String(name).trim());
 }
 
 async function exportExcel() {
   if (!state.trades.length) { showToast('No data to export', 'error'); return; }
   try {
     showToast('Preparing export...', '');
-    const res = await fetch('/api/export-excel', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trades: state.trades, columns: state.columns })
-    });
-    if (!res.ok) { showToast('Export failed', 'error'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url;
-    a.download = `trading_journal_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    a.click(); URL.revokeObjectURL(url);
+    await exportService.exportExcel({ trades: state.trades, columns: state.columns });
     showToast('Excel exported!', 'success');
   } catch (e) { showToast('Export failed', 'error'); }
 }
@@ -363,46 +326,18 @@ async function exportStructuredCsv() {
   try {
     normalizeStructuredDateColumns();
     showToast('Preparing structured CSV...', '');
-    const res = await fetch('/api/export-structured-csv', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trades: state.trades, columns: state.columns })
-    });
-    if (!res.ok) { showToast('Structured export failed', 'error'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'structured_trades.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    await exportService.exportStructuredCsv({ trades: state.trades, columns: state.columns });
     showToast('Structured CSV exported!', 'success');
-  } catch (e) {
-    showToast('Structured export failed', 'error');
-  }
+  } catch (e) { showToast('Structured export failed', 'error'); }
 }
 
 async function exportLoggerExcel() {
   if (!state.trades.length) { showToast('No data to export', 'error'); return; }
   try {
     showToast('Preparing logger Excel...', '');
-    const res = await fetch('/api/export-logger-excel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trades: state.trades, columns: state.columns })
-    });
-    if (!res.ok) { showToast('Logger export failed', 'error'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `trade_logger_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await exportService.exportLoggerExcel({ trades: state.trades, columns: state.columns });
     showToast('Logger Excel exported!', 'success');
-  } catch (e) {
-    showToast('Logger export failed', 'error');
-  }
+  } catch (e) { showToast('Logger export failed', 'error'); }
 }
 
 let toastTimer = null;

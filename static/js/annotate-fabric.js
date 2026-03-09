@@ -21,11 +21,8 @@ async function saveAnnotOverlay() {
 
   fabricCanvas.lowerCanvasEl.toBlob(async blob => {
     fabricCanvas.setViewportTransform(origVpt);
-    const fd = new FormData();
-    fd.append('image', blob, 'overlay.png');
     try {
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(new File([blob], 'overlay.png', { type: 'image/png' }));
       if (!data.url) throw new Error();
       if (!setOverlayUrlForCurrentGalleryImage(data.url)) { showToast('Unable to map overlay', 'error'); return; }
       await saveTrades();
@@ -53,11 +50,8 @@ async function saveAnnotMerge() {
   fabricCanvas.setViewportTransform(origVpt);
 
   out.toBlob(async blob => {
-    const fd = new FormData();
-    fd.append('image', blob, 'merged.png');
     try {
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(new File([blob], 'merged.png', { type: 'image/png' }));
       if (!data.url) throw new Error();
       const imgs = state.gallery.images;
       imgs.push(data.url);
