@@ -244,6 +244,11 @@ function _bindUIEvents() {
     _updateNoteToggleBtn();
   }
 
+  const _clToolbarBtn = document.getElementById('csvlog-toolbar-btn');
+  if (_clToolbarBtn) {
+    _clToolbarBtn.addEventListener('click', () => openCsvLogModal());
+  }
+
   const _trToolbarBtn = document.getElementById('trade-review-toolbar-btn');
   if (_trToolbarBtn) {
     _trToolbarBtn.addEventListener('click', () => openTradeReviewFromToolbar());

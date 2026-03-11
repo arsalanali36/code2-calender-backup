@@ -11635,6 +11635,9 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "csvlog": {
+        "zone": {}
+      },
       "date": "2026-03-06",
       "groupNames": {
         "/uploads/0770ffc7-23f1-485c-bb21-3611dc5a443b.png": "T1"
@@ -11749,7 +11752,8 @@
         "/uploads/d7167689-d070-4d22-adfa-79a2f1dbf984.png",
         "/uploads/80e4caf3-1e46-47b8-bb89-bd39c6be59a1.png",
         "/uploads/eb751bd6-4f0f-442a-8cbf-5b551628839f.png",
-        "/uploads/6b2b4fd9-fcc6-40e7-a136-ba119556e679.png"
+        "/uploads/6b2b4fd9-fcc6-40e7-a136-ba119556e679.png",
+        "/uploads/8ff637a4-7b56-4637-a0c9-cf99fdda8845.png"
       ],
       "observation": "",
       "tags": [
@@ -11887,6 +11891,10 @@
         "new"
       ],
       "tradeLogger": {
+        "_migrationLog": [
+          "2026-03-09T03:27:33.155Z - schema upgraded 1 -> 2"
+        ],
+        "_schemaVersion": 2,
         "dur": 25
       },
       "tradeReview": {
@@ -12137,7 +12145,9 @@
       "heroImage": "/uploads/30911868-3748-41cd-920f-29a5626028f8.png",
       "imageTags": {},
       "images": [
-        "/uploads/30911868-3748-41cd-920f-29a5626028f8.png"
+        "/uploads/30911868-3748-41cd-920f-29a5626028f8.png",
+        "/uploads/f92a1ea7-c626-48cb-a979-c5604ce42e80.png",
+        "/uploads/53a32145-315a-4641-8e3d-665b0f85429b.png"
       ],
       "observation": "",
       "tags": [
@@ -12200,6 +12210,227 @@
       "images": [],
       "observation": "",
       "trade_date": "2026-03-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 285.233333,
+      "Buy Time": "09:33:00",
+      "Gross P/L": 305.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631023900PE",
+      "Net P/L": 154.47,
+      "Note": "",
+      "Other Charges": 111.03,
+      "Pt": 1.566667,
+      "Qty": 195,
+      "Rs": 305.5,
+      "Sell Price (Avg)": 286.8,
+      "Sell Time": "09:30:27",
+      "Tags": [],
+      "Total Fees": 151.03,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "csvlog": {
+        "entry": {},
+        "exit": {},
+        "psy": {
+          "inpulsive_in": 0
+        },
+        "zone": {}
+      },
+      "date": "2026-03-09",
+      "imageTags": {},
+      "images": [
+        "/uploads/615b2443-2029-4534-8908-9caac2e21e8f.png",
+        "/uploads/7e383f9b-c3d8-4290-a539-f9238297d468.png",
+        "/uploads/0e51d127-2cb0-4624-a8ec-a7ff8e1daccd.png",
+        "/uploads/222e79e6-2ffc-46c0-89b4-b6ec1ab2d63a.png",
+        "/uploads/9ca99cfb-9ea3-4493-bff1-745784d1a235.png",
+        "/uploads/f38c25f6-c65c-4118-a276-02c11003cb85.png",
+        "/uploads/a2c609c9-cb76-4ed6-b8bb-2432bb1fc6b2.png",
+        "/uploads/890ebbbc-7c15-4adf-967d-b282466ce5e6.png",
+        "/uploads/66fbf424-c347-453f-83c1-04568dadcf5b.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-03-09"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 252.65,
+      "Buy Time": "10:11:45",
+      "Gross P/L": 4166.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631023900PE",
+      "Net P/L": 4052.35,
+      "Note": "",
+      "Other Charges": 74.15,
+      "Pt": 32.05,
+      "Qty": 130,
+      "Rs": 4166.5,
+      "Sell Price (Avg)": 284.7,
+      "Sell Time": "09:33:59",
+      "Tags": [],
+      "Total Fees": 114.15,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "csvlog": {
+        "zone": {}
+      },
+      "date": "2026-03-09",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-03-09"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 115.2,
+      "Buy Time": "09:36:23",
+      "Gross P/L": 5820.75,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024050CE",
+      "Net P/L": 5723.55,
+      "Note": "",
+      "Other Charges": 57.2,
+      "Pt": 29.85,
+      "Qty": 195,
+      "Rs": 5820.75,
+      "Sell Price (Avg)": 145.05,
+      "Sell Time": "09:30:22",
+      "Tags": [
+        "darr",
+        "Mann Nahi"
+      ],
+      "Total Fees": 97.2,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "csvlog": {
+        "entry": {},
+        "exit": {
+          "10_reach": "N",
+          "target_moved": "Y"
+        },
+        "psy": {},
+        "zone": {}
+      },
+      "date": "2026-03-10",
+      "heroImage": "/uploads/7ace3c69-c8d4-4915-9e4e-45f029179949.png",
+      "imageTags": {},
+      "images": [
+        "/uploads/4be4d0c4-3d45-40bb-942a-ecd5eeede35b.png",
+        "/uploads/9c7ceb6b-0e82-4460-8920-82877ccb1933.png",
+        "/uploads/7aa3a44a-2f35-4161-8f20-21b73814f705.png",
+        "/uploads/0f43d681-db4e-42d8-87f3-461e8e7587d7.png",
+        "/uploads/721ba325-1bf2-409b-9c43-572d2da4d082.png",
+        "/uploads/0982f8e2-c6e6-4e3a-898f-c0a65f36350d.png",
+        "/uploads/7ace3c69-c8d4-4915-9e4e-45f029179949.png",
+        "/uploads/74f12f25-d746-4797-b9fb-58be00fb5c9d.png"
+      ],
+      "observation": "",
+      "tags": [
+        "darr",
+        "Mann Nahi"
+      ],
+      "tradeLogger": {
+        "_migrationLog": [
+          "2026-03-10T15:16:56.796Z - schema upgraded 1 -> 2"
+        ],
+        "_schemaVersion": 2,
+        "bc_gt_20": "N",
+        "dur": 6,
+        "z_candle": "MorningStar",
+        "zone": "N",
+        "zone_size": "baad me 43"
+      },
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [
+          "darr",
+          "Mann Nahi"
+        ],
+        "targ": ""
+      },
+      "trade_date": "2026-03-10"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 205.15,
+      "Buy Time": "09:56:04",
+      "Gross P/L": 991.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631023950CE",
+      "Net P/L": 917.86,
+      "Note": "",
+      "Other Charges": 33.39,
+      "Pt": 15.25,
+      "Qty": 65,
+      "Rs": 991.25,
+      "Sell Price (Avg)": 220.4,
+      "Sell Time": "09:51:12",
+      "Tags": [
+        "himmat nahi",
+        "BAT",
+        "Mann Nahi"
+      ],
+      "Total Fees": 73.39,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "csvlog": {
+        "entry": {
+          "confused_algosignal": "Y",
+          "confused_any_entry_skip": "N",
+          "confused_candle_size_20": "Y",
+          "confused_confirmation": "Strong",
+          "confused_confused": 0,
+          "confused_sl_10": "Y",
+          "dema": "At",
+          "dema_obs": "adsad"
+        },
+        "exit": {},
+        "psy": {},
+        "zone": {}
+      },
+      "date": "2026-03-10",
+      "heroImage": "/uploads/2fe6c451-4b0a-406e-84a4-0edf2ae9677e.png",
+      "imageTags": {},
+      "images": [
+        "/uploads/bea964fb-db55-4557-af82-479db955a950.png",
+        "/uploads/6b63bc5f-44c9-4cce-a770-9f51358efe18.png",
+        "/uploads/dfbde25c-2fef-4b32-af06-e92304a2a3ce.png",
+        "/uploads/d4af2342-2f66-4e7c-9982-77bf9399eaea.png",
+        "/uploads/2b8eecb0-d962-4141-84d9-a93999e1a760.png",
+        "/uploads/2fe6c451-4b0a-406e-84a4-0edf2ae9677e.png",
+        "/uploads/ad249fbb-cd9a-464a-9740-2546d1b835b3.png",
+        "/uploads/fdd51125-770e-4eb3-88f7-8342838b11f6.png"
+      ],
+      "observation": "",
+      "tags": [
+        "himmat nahi",
+        "BAT",
+        "Mann Nahi"
+      ],
+      "tradeReview": {
+        "dd": "",
+        "runnup": "",
+        "sl": "",
+        "tagSliders": {},
+        "tags": [],
+        "targ": ""
+      },
+      "trade_date": "2026-03-10"
     }
   ],
   "columns": [
@@ -21102,7 +21333,8 @@
         "/uploads/80176a18-74ca-4467-8182-218eed3d12ab.png",
         "/uploads/ea8f613c-16be-4bd6-9dc3-859b4ce5afb4.png",
         "/uploads/c107abf4-a565-47a2-8faf-9d5e6226d7b1.png",
-        "/uploads/dde2f330-8c72-4ae9-81d4-2d0323ce9a85.png"
+        "/uploads/dde2f330-8c72-4ae9-81d4-2d0323ce9a85.png",
+        "/uploads/87222f80-92d6-4f5d-93ce-b3483c45cf70.png"
       ],
       "fabricData": {
         "/uploads/988f18ac-b4c8-4a1c-95f3-fb2bfe7bb5ce.png": {
@@ -21127,6 +21359,25 @@
           "/uploads/30911868-3748-41cd-920f-29a5626028f8.png"
         ]
       }
+    },
+    "2026-03-09": {
+      "closeImages": [],
+      "imageTags": {},
+      "images": []
+    },
+    "2026-03-10": {
+      "closeImages": [
+        "/uploads/975c00d3-7319-4b86-957c-ebab6f7ed725.png",
+        "/uploads/0dba275f-32a7-4322-8ec3-1b55a3cbbd75.png",
+        "/uploads/137eaefb-df83-42f8-bd34-cf9d2ddea346.png",
+        "/uploads/70629d93-bf77-4785-9adc-93e9ecb9c74f.png"
+      ],
+      "imageTags": {},
+      "images": [
+        "/uploads/8b38d415-4810-41d7-8ba6-88c8a693a34e.png",
+        "/uploads/18e8471e-2090-4d8a-bada-13a60f593785.png",
+        "/uploads/40682bfd-3067-4b79-bbb4-63dfa1b35ce2.png"
+      ]
     }
   },
   "tagGroups": {

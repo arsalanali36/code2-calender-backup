@@ -28,6 +28,7 @@ from routes.trade_routes  import trade_bp
 from routes.image_routes  import image_bp
 from routes.import_routes import import_bp
 from routes.export_routes import export_bp
+from routes.csvlog_routes import csvlog_bp
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -116,6 +117,7 @@ app.register_blueprint(trade_bp)
 app.register_blueprint(image_bp)
 app.register_blueprint(import_bp)
 app.register_blueprint(export_bp)
+app.register_blueprint(csvlog_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────

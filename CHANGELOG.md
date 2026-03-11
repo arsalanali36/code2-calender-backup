@@ -1,6 +1,23 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 10-11, 2026
+
+### v2.7.0 — CSVLog: Schema-Driven Observation Modal
+
+- **New: `routes/csvlog_routes.py`:** Blueprint with 4 routes — `GET /api/csvlog-schema`, `POST /api/csvlog-upload-schema`, `GET /api/csvlog-download-schema`, `GET /api/csvlog-export`. Registered in `app.py`.
+- **New: `services/csvlog_service.py`:** `load_schema(path)` parses LOGGER.xlsx (Group/Head/Input/Type/Display columns), returns structured JSON with groups + fields. `export_csvlog_excel()` generates two-sheet workbook from trades + csvlog data.
+- **New: `static/js/csvlog.js`:** Modal open/close, date navigation, Day overview tab (P/L cards + bar chart + trade table), per-trade group tabs (Zone/Entry/Exit/PSy), save/reset, schema upload prompt.
+- **New: `static/js/csvlog-fields.js`:** Split from csvlog.js (30KB rule). Field constructors for Switch (Y/N toggle), Input (text), Dropdown (select), Range (slider), section separators. Obs popup, tag display.
+- **New: `static/js/services/csvlogService.js`:** `getSchema()`, `uploadSchema()`, `exportCsvLog()` — no raw fetch() in modal code.
+- **New: `static/css/style-csvlog.css`:** All CSVLog modal styles — Day tab, trade tabs, group tabs, field rows, switches, sliders, bar chart rows, info/tags panel.
+- **`config.py`:** Added `CSVLOG_SCHEMA_FILE = data/csvlog_schema.xlsx`.
+- **`data/csvlog_schema.xlsx`:** Initial schema with Zone/Entry/Exit/PSy groups and field definitions.
+- **Ghost row fix:** CSVLog + Trade Logger now filter out day-header rows (empty instrument) from per-trade tab collection.
+- **Dev blog:** Added March 10 entry documenting CSVLog evolution from Trade Logger → Trade Review → CSVLog, with BRD wireframe, challenge writeups, and screenshots.
+
+---
+
 ## EOD Summary - March 07, 2026 (Session 2)
 
 ### v2.5.0 — Mobile Responsive

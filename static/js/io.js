@@ -43,7 +43,8 @@ function renderUploadPreview() {
 }
 
 async function handleImageFiles(files) {
-  for (const file of files) {
+  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  for (const file of sorted) {
     try {
       const data = await imageService.uploadImage(file);
       if (data.url) { state.pendingFiles.push(data.url); renderUploadPreview(); }
@@ -58,7 +59,8 @@ async function uploadImagesToRow(rowIdx, files) {
   if (!trade.images) trade.images = [];
   syncTradeDateField(trade);
   let added = 0;
-  for (const file of files) {
+  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  for (const file of sorted) {
     if (!file || !String(file.type || '').startsWith('image/')) continue;
     try {
       const data = await imageService.uploadImage(file);
@@ -77,7 +79,8 @@ async function uploadImagesToDayData(dateKey, files) {
   if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
   if (!state.dayData[dateKey].images) state.dayData[dateKey].images = [];
   let added = 0;
-  for (const file of files) {
+  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  for (const file of sorted) {
     if (!file || !String(file.type || '').startsWith('image/')) continue;
     try {
       const data = await imageService.uploadImage(file);

@@ -13,6 +13,8 @@ const imageService = (() => {
   async function uploadImage(file) {
     const fd = new FormData();
     fd.append('image', file);
+    if (file.lastModified) fd.append('last_modified_ms', String(file.lastModified));
+    if (file.name) fd.append('original_filename', file.name);
     return apiClient.upload('/api/upload-image', fd);
   }
 

@@ -149,7 +149,9 @@ function navigateGalleryDate(dir) {
         state.gallery.sourceRow = ctx.sourceRow ?? null;
       }
       state.gallery._skipFilterRescopeOnce = true;
+      state.gallery.imageTimes = {};
       renderGallery(); updateGalleryDateArrows();
+      if (state.gallery.showTime) fetchImageTimesForGallery();
     }
     return;
   }
@@ -181,10 +183,13 @@ function navigateGalleryDate(dir) {
   const images = getImagesForDate(nextDate);
   if (images.length) {
     state.gallery.images = images;
+    state.gallery._baseImages = [...images];
     state.gallery.currentIndex = 0;
     state.gallery.date = nextDate;
     state.gallery.sourceRow = null;
+    state.gallery.imageTimes = {};
     renderGallery(); updateGalleryDateArrows();
+    if (state.gallery.showTime) fetchImageTimesForGallery();
   }
 }
 

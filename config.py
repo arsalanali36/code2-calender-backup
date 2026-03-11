@@ -11,9 +11,10 @@ import time
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Data paths ────────────────────────────────────────────────────────────────
-DATA_FILE   = os.getenv('DATA_FILE',   os.path.join(BASE_DIR, 'data', 'trades.json'))
-UPLOADS_DIR = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
-TRASH_DIR   = os.path.join(UPLOADS_DIR, '_trash')
+DATA_FILE          = os.getenv('DATA_FILE',   os.path.join(BASE_DIR, 'data', 'trades.json'))
+UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
+TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
+CSVLOG_SCHEMA_FILE = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7

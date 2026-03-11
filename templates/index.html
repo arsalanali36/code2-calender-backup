@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/static/css/style-gallery-a.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-gallery-b.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-misc.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-csvlog.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-trade.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-mobile.css?v={{ cache_bust }}" />
 </head>
@@ -236,6 +237,7 @@
 
           <!-- Note column quick toggle -->
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
+          <button class="btn btn-outline" id="csvlog-toolbar-btn" title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
           <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
           <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
 
@@ -344,6 +346,7 @@
   <script src="/static/js/services/imageService.js?v={{ cache_bust }}"></script>
   <script src="/static/js/services/importService.js?v={{ cache_bust }}"></script>
   <script src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/csvlogService.js?v={{ cache_bust }}"></script>
   <script src="/static/js/state.js?v={{ cache_bust }}"></script>
   <script src="/static/js/data.js?v={{ cache_bust }}"></script>
   <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
@@ -376,6 +379,8 @@
   <script src="/static/js/annotate-lifecycle.js?v={{ cache_bust }}"></script>
   <script src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
   <script src="/static/js/io.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-fields.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>

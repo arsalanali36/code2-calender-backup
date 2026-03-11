@@ -28,8 +28,12 @@ function _bindGalleryEvents() {
     if (typeof toggleLayerPanel === 'function') toggleLayerPanel();
   });
   const timeBtn = document.getElementById('gv2-time-btn');
+  // Restore persisted showTime preference
+  state.gallery.showTime = localStorage.getItem('tj_showTime') === '1';
+  if (timeBtn) timeBtn.classList.toggle('active', state.gallery.showTime);
   if (timeBtn) timeBtn.addEventListener('click', () => {
     state.gallery.showTime = !state.gallery.showTime;
+    localStorage.setItem('tj_showTime', state.gallery.showTime ? '1' : '0');
     timeBtn.classList.toggle('active', state.gallery.showTime);
     if (state.gallery.showTime) {
       fetchImageTimesForGallery();

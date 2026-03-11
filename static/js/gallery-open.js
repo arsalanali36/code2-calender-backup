@@ -27,6 +27,7 @@ function openGalleryForDate(dateStr) {
   const btn1 = document.getElementById('gv2-tags-btn');
   if (tray1) tray1.style.display = 'flex';
   if (btn1) btn1.classList.add('active');
+  if (state.gallery.showTime) fetchImageTimesForGallery();
 }
 
 function openGalleryDirect(images, startIndex, sourceRow = null) {
@@ -44,6 +45,7 @@ function openGalleryDirect(images, startIndex, sourceRow = null) {
   const btn2 = document.getElementById('gv2-tags-btn');
   if (tray2) tray2.style.display = 'flex';
   if (btn2) btn2.classList.add('active');
+  if (state.gallery.showTime) fetchImageTimesForGallery();
 }
 
 function lockBodyScroll() {

@@ -107,13 +107,10 @@ function showGalleryContextMenu(x, y) {
 
         menu.appendChild(createOpt('Copy Image', async () => {
             try {
-                // If it's a local app, we can ask the backend to copy it to system clipboard
-                try {
                 const _clipRes = await imageService.copyToClipboard(url);
                 if (_clipRes.success) {
                     showToast('Image copied to clipboard (System)', 'success');
                 } else {
-                    // Fallback to browser clipboard if backend isn't supporting it
                     const response = await fetch(url);
                     const blob = await response.blob();
                     const item = new ClipboardItem({ [blob.type]: blob });

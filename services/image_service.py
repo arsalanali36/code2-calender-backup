@@ -6,6 +6,8 @@ and fetching upload timestamps.
 """
 
 import os
+import re
+import json
 import uuid
 import shutil
 from datetime import datetime
@@ -13,11 +15,30 @@ from datetime import datetime
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
 
 
-def save_uploaded_image(file_storage, uploads_dir: str) -> dict:
+def _parse_time_from_filename(name: str):
+    """Try to extract a datetime from a Windows screenshot filename.
+    Matches patterns like: Screenshot 2026-03-10 091700.png
+                           Screenshot 2026-03-10 09_17_00.png
+                           Screenshot 2026-03-10 09-17-00.png
+    Returns seconds-since-epoch float or None.
+    """
+    m = re.search(r'(\d{4}-\d{2}-\d{2})\D+(\d{2})[\D_-]?(\d{2})[\D_-]?(\d{2})', name)
+    if m:
+        try:
+            dt = datetime.strptime(f'{m.group(1)} {m.group(2)}:{m.group(3)}:{m.group(4)}', '%Y-%m-%d %H:%M:%S')
+            return dt.timestamp()
+        except ValueError:
+            pass
+    return None
+
+
+def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float = None,
+                        original_filename: str = None) -> dict:
     """
     Validate and save an uploaded image file.
     Returns {'url': '/uploads/<filename>', 'filename': '<filename>'}
     Raises ValueError on invalid type.
+    Saves a .meta sidecar with the resolved original time for reliable Time-button display.
     """
     ext = os.path.splitext(file_storage.filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -26,6 +47,18 @@ def save_uploaded_image(file_storage, uploads_dir: str) -> dict:
     filename = f'{uuid.uuid4()}{ext}'
     filepath = os.path.join(uploads_dir, filename)
     file_storage.save(filepath)
+
+    # Resolve original time: filename parse → lastModified → file mtime
+    orig_name = original_filename or file_storage.filename or ''
+    original_t = _parse_time_from_filename(orig_name) or last_modified_s or os.path.getmtime(filepath)
+
+    # Write sidecar .meta
+    try:
+        with open(filepath + '.meta', 'w') as f:
+            json.dump({'t': original_t}, f)
+    except OSError:
+        pass
+
     return {'url': f'/uploads/{filename}', 'filename': filename}
 
 
@@ -48,14 +81,26 @@ def get_image_times(urls: list, uploads_dir: str) -> dict:
     """
     Given a list of image URLs (/uploads/<name>), return a mapping of
     url -> formatted creation time string.
+    Reads .meta sidecar if available (has original screenshot time),
+    otherwise falls back to file mtime.
     """
     times = {}
     for url in urls:
         filename = os.path.basename(url)
         filepath = os.path.join(uploads_dir, filename)
-        if os.path.exists(filepath):
-            ctime = os.path.getctime(filepath)
-            times[url] = datetime.fromtimestamp(ctime).strftime('%I:%M %p')
+        if not os.path.exists(filepath):
+            continue
+        t = None
+        meta_path = filepath + '.meta'
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path) as f:
+                    t = json.load(f).get('t')
+            except Exception:
+                pass
+        if not t:
+            t = os.path.getmtime(filepath)
+        times[url] = datetime.fromtimestamp(t).strftime('%I:%M %p')
     return times
 
 

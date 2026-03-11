@@ -22,7 +22,10 @@ def upload_image():
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
     try:
-        result = save_uploaded_image(file, UPLOADS_DIR)
+        last_modified_ms = request.form.get('last_modified_ms')
+        last_modified_s = float(last_modified_ms) / 1000.0 if last_modified_ms else None
+        original_filename = request.form.get('original_filename', '')
+        result = save_uploaded_image(file, UPLOADS_DIR, last_modified_s, original_filename)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)
