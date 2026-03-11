@@ -67,7 +67,8 @@ def require_login():
     from flask_login import current_user
     from services.token_service import verify_token
     allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password',
-                         'auth.api_login', 'auth.api_me', 'static', 'options_handler']
+                         'auth.api_login', 'auth.api_me', 'static', 'options_handler',
+                         'image.uploaded_file']
     if request.endpoint and request.endpoint not in allowed_endpoints:
         # Bearer token check (for cross-origin frontends like tradefeed)
         auth_header = request.headers.get('Authorization', '')
