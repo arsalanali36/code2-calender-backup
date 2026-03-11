@@ -431,6 +431,8 @@ export default function App() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [authEmail, setAuthEmail] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [creationImages, setCreationImages] = useState<string[]>([]);
+  const [creationTags, setCreationTags] = useState<{ emotion: string[], strategy: string[], mistake: string[] }>({ emotion: [], strategy: [], mistake: [] });
 
   // Check stored token on mount
   useEffect(() => {
@@ -457,10 +459,6 @@ export default function App() {
   if (!authEmail) {
     return <LoginScreen onLogin={email => setAuthEmail(email)} />;
   }
-  
-  // Creation Flow State
-  const [creationImages, setCreationImages] = useState<string[]>([]);
-  const [creationTags, setCreationTags] = useState<{ emotion: string[], strategy: string[], mistake: string[] }>({ emotion: [], strategy: [], mistake: [] });
 
   const handleSaveTrade = (tradeData: Partial<Trade>) => {
     const newTrade: Trade = {
