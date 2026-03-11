@@ -8,7 +8,7 @@ interface FeedViewProps {
 }
 
 export const FeedView: React.FC<FeedViewProps> = ({ trades }) => {
-  const grouped = trades.reduce<Record<string, Trade[]>>((acc, t) => {
+  const grouped = trades.reduce((acc: Record<string, Trade[]>, t) => {
     const key = t.date || 'Unknown';
     if (!acc[key]) acc[key] = [];
     acc[key].push(t);
