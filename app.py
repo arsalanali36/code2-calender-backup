@@ -62,6 +62,8 @@ def add_cors(response):
 
 @app.before_request
 def require_login():
+    if request.method == 'OPTIONS':
+        return  # Allow preflight CORS requests unconditionally
     from flask_login import current_user
     from services.token_service import verify_token
     allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password',
