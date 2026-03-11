@@ -1,6 +1,8 @@
 import { Trade, TradeSession, TradeType, BlogPost } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const isProd = typeof window !== 'undefined' && !['localhost', '127.0.0.1'].includes(window.location.hostname) && !window.location.hostname.startsWith('192.168');
+const defaultUrl = isProd ? 'https://code2-calender.onrender.com' : 'http://localhost:5000';
+const BASE_URL = import.meta.env.VITE_API_URL || defaultUrl;
 
 // ── Auth token helpers ────────────────────────────────────────────────────────
 export const getToken  = () => localStorage.getItem('tf_token');
