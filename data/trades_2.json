@@ -1,0 +1,93 @@
+{
+  "trades": [
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 115.2,
+      "Buy Time": "09:36:23",
+      "Gross P/L": 5820.75,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631024050CE",
+      "Net P/L": 5723.55,
+      "Note": "",
+      "Other Charges": 57.2,
+      "Pt": 29.85,
+      "Qty": 195,
+      "Rs": 5820.75,
+      "Sell Price (Avg)": 145.05,
+      "Sell Time": "09:30:22",
+      "Total Fees": 97.2,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-10",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "trade_date": "2026-03-10"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 205.15,
+      "Buy Time": "09:56:04",
+      "Gross P/L": 991.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631023950CE",
+      "Net P/L": 917.86,
+      "Note": "",
+      "Other Charges": 33.39,
+      "Pt": 15.25,
+      "Qty": 65,
+      "Rs": 991.25,
+      "Sell Price (Avg)": 220.4,
+      "Sell Time": "09:51:12",
+      "Total Fees": 73.39,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-10",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "trade_date": "2026-03-10"
+    }
+  ],
+  "columns": [
+    "Total Trades",
+    "Profit",
+    "Trade",
+    "Broker",
+    "Image Tags",
+    "Note",
+    "Video",
+    "Brokerage",
+    "Other Charges",
+    "Gross P/L",
+    "Net P/L",
+    "Total Fees",
+    "Instrument",
+    "TradeType",
+    "Qty",
+    "Sell Time",
+    "Sell Price (Avg)",
+    "Buy Time",
+    "Buy Price (Avg)",
+    "Pt",
+    "Rs",
+    "trade_date"
+  ],
+  "allTags": [
+    "thumbnail"
+  ],
+  "tagColumns": [],
+  "userColumns": [],
+  "dayData": {
+    "2026-03-10": {
+      "images": [
+        "/uploads/cf65ab78-0faf-4b4a-b18b-9b2bd5aa5292.png"
+      ]
+    }
+  },
+  "tagGroups": {}
+}

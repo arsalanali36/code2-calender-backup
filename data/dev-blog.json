@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-03-11-user-login-csv-bellcurve",
+    "short_title": "Multi-User & Bell Curve! 🚀",
+    "date": "2026-03-11",
+    "version": "v2.8.0",
+    "emoji": "🚀",
+    "title": "v2.8.0: Bada Milestone — Multi-User Login Setup & CSV Logger with Bell Curve!",
+    "tags": [
+      "User Authentication",
+      "Flask-Login",
+      "Security",
+      "CSV Logger",
+      "Data Visualization",
+      "Milestone"
+    ],
+    "summary": "Aaj ka din ek massive milestone laya hai! Pehli baar app mein proper User Login system banaya jismein har user ka data uski apni private file mein save hoga. Saath hi, Claude ji ne CSV Logger ko ek awesome bell curve visualisation de diya hai. Ab dosto ko safely invite kiya ja sakta hai!",
+    "body": "<p>🔥 Aaj do bhot special cheezein hui jinhone app ko purely ek personal tool se ek proper <strong>SaaS-level</strong> product bana diya hai.</p><h3>🔐 The Multi-User Milestone</h3><p>Pehle saara data ek hi <code>trades.json</code> me save hota tha. Lekin aaj humne complete authentication routing laga di hai. <strong>Flask-Login</strong>, <strong>Flask-SQLAlchemy</strong> aur werkzeug security ki badolat:</p><ul><li>✅ Naye users register kar sakte hain aur unke passwords securely hash hoke <code>users.db</code> mein jate hain.</li><li>✅ Ek user ka data doosre user ko nahi dikhta! Backend automatically identify karta hai (e.g., <code>trades_1.json</code>).</li><li>✅ Forgot Password script aur interface bhi add kiya gaya hai takay account recovery easily ho sake.</li></ul><p>Sab se bari baat — jab pehla user register karega toh purana sara raw <code>trades.json</code> data safely us naye user par shift ho jayega taa ke koi purani mehnat zaya na ho!</p><img src='/static/dev-blog-images/PREV IMG/Screenshot 2026-03-11 083625.png' alt='New Login UI' /><p class='img-caption'>📸 Naya secure Login and Registration interface. Ab dosto ko link bhej ke invite kar sakte ho!</p><h3>📊 CSV Logger aur wo Awsome Bell Curve</h3><p>Jab main login set kar raha tha, <em>Claude ji</em> ne CSV Logger ke data visualisation ko naye level par pocha diya. Data ko completely ek <strong>Bell Curve</strong> format mein plot kiya gaya hai.</p><p>Ye simple line chart ya bar chart se bohot aagay ki cheez hai. Is say pata chalta hai ky statistically trades ka behaviour kya hai aur kaunsi observations outliers hain. Yeh feature basically confirm karta hai aapki strategy ki standard deviation ko.</p><p>🚀 Dono features combine ho ke ab app ko waqayi ready-to-share banate hain. Waqt agaya hai logo ko invite karne ka. <em>Milestone Passed!</em></p>"
+  },
+  {
     "id": "2026-03-10-csvlog-schema-driven",
     "short_title": "CSVLog — Schema-Driven Checklist",
     "date": "2026-03-10",

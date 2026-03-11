@@ -256,8 +256,18 @@
 }
 .cl-hero-img:hover { opacity: 0.9; }
 .cl-img-nav { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.cl-img-counter { font-size: 0.78rem; color: var(--text-muted); }
-.cl-img-empty { color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 40px 0; }
+.cl-img-counter { font-size: 0.78rem; color: var(--text-muted); flex: 1; text-align: center; }
+.cl-img-empty { color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cl-img-upload-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 1rem;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-muted); transition: background 0.15s, color 0.15s; flex-shrink: 0;
+}
+.cl-img-upload-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.cl-img-col { transition: box-shadow 0.15s; }
+.cl-img-drop-target { box-shadow: inset 0 0 0 2px var(--accent, #58a6ff); background: rgba(88,166,255,0.06); }
+.cl-img-drop-target .cl-img-empty, .cl-img-drop-target .cl-img-viewer { opacity: 0.6; }
 
 /* Info tab */
 .cl-info-wrap { display: flex; flex-direction: column; gap: 8px; max-width: 520px; }
@@ -374,8 +384,16 @@
 .cl-day-stat {
   background: #1b2232; border: 1px solid var(--border);
   border-radius: 8px; padding: 12px 20px; flex: 1; min-width: 100px;
-  text-align: center;
+  text-align: center; outline: none; transition: border-color 0.15s;
 }
+.cl-day-stat[tabindex] { cursor: pointer; }
+.cl-day-stat[tabindex]:hover { border-color: rgba(88,166,255,0.4); }
+.cl-day-stat[tabindex]:focus { border-color: #58a6ff; box-shadow: 0 0 0 2px rgba(88,166,255,0.25); }
+.cl-day-stat-sorted {
+  border-color: rgba(88,166,255,0.6) !important;
+  background: rgba(88,166,255,0.08);
+}
+.cl-day-stat-sorted .cl-day-stat-label::after { content: ' ↓'; opacity: 0.7; }
 .cl-day-stat-label {
   font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;
   letter-spacing: 0.04em; margin-bottom: 6px;
@@ -383,6 +401,48 @@
 .cl-day-stat-value {
   font-size: 1.2rem; font-weight: 700; color: var(--text);
 }
+
+/* Horizontal bell chart (All tab) */
+.cl-bell-wrap {
+  margin-bottom: 14px; position: relative;
+}
+.cl-bell-chart {
+  display: flex; align-items: stretch;
+  height: 210px; gap: 1px; padding: 0 2px;
+  position: relative;
+}
+.cl-bell-chart::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%;
+  border-top: 1px solid rgba(255,255,255,0.1); pointer-events: none;
+}
+.cl-bell-col {
+  flex: 1; min-width: 4px; display: flex; flex-direction: column;
+  cursor: pointer; transition: opacity 0.1s;
+}
+.cl-bell-col:hover { opacity: 0.75; }
+.cl-bell-top {
+  flex: 1; display: flex; align-items: flex-end;
+}
+.cl-bell-bot {
+  flex: 1; display: flex; align-items: flex-start;
+}
+.cl-bell-bar {
+  width: 100%; border-radius: 2px;
+}
+.cl-bell-bar-pos { border-top: 2px solid; border-radius: 2px 2px 0 0; }
+.cl-bell-bar-neg { border-bottom: 2px solid; border-radius: 0 0 2px 2px; }
+.cl-bell-tip {
+  position: fixed; z-index: 9999;
+  background: #1b2232; border: 1px solid var(--border);
+  border-radius: 7px; padding: 7px 11px;
+  font-size: 0.8rem; color: var(--text);
+  pointer-events: none; min-width: 148px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.cl-tip-date  { color: var(--text-muted); font-size: 0.72rem; margin-bottom: 2px; }
+.cl-tip-instr { font-weight: 600; margin-bottom: 3px; }
+.cl-tip-pnl   { font-size: 1rem; font-weight: 700; }
+.cl-tip-pts   { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
 
 /* P/L bar chart */
 .cl-day-chart {
@@ -429,6 +489,8 @@
 }
 .cl-day-table tbody tr:last-child td { border-bottom: none; }
 .cl-day-table tbody tr:hover td { background: rgba(88,166,255,0.06); }
+.cl-day-table tbody tr:focus { outline: none; }
+.cl-day-table tbody tr:focus td { background: rgba(88,166,255,0.1); }
 .cl-day-row-loss td { border-bottom: 1px solid rgba(248,81,73,0.35) !important; }
 .cl-day-ttype {
   font-size: 0.7rem; color: var(--text-muted); margin-left: 4px;

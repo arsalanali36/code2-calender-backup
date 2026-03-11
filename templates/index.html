@@ -56,7 +56,12 @@
       </div>
       <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
       <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
-      <a href="/updates" id="dev-log-btn" class="btn btn-outline" title="Dev Journal" target="_blank" style="text-decoration:none;">&#128211; Dev Log</a>
+      <a href="/updates" id="dev-log-btn" class="btn btn-outline" title="Dev Journal" target="_blank"
+        style="text-decoration:none;">&#128211; Dev Log</a>
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-outline" title="Sign Out"
+        style="text-decoration:none; border-color: #f85149; color: #f85149;">Sign Out</a>
+      {% endif %}
     </div>
   </header>
 
@@ -237,9 +242,12 @@
 
           <!-- Note column quick toggle -->
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
-          <button class="btn btn-outline" id="csvlog-toolbar-btn" title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
-          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
-          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
+          <button class="btn btn-outline" id="csvlog-toolbar-btn"
+            title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
+          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202;
+            Review</button>
+          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221;
+            Logger</button>
 
           <!-- Column Visibility -->
           <div class="dropdown-wrapper" id="col-vis-wrapper">
@@ -305,14 +313,18 @@
 
         </div>
       </div>
-      
+
       <!-- Active Tag Filter Banner -->
-      <div id="active-tag-filter-banner" style="display:none; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--blue); color: var(--blue); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; align-items: center; justify-content: space-between;">
+      <div id="active-tag-filter-banner"
+        style="display:none; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--blue); color: var(--blue); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; align-items: center; justify-content: space-between;">
         <span style="font-size: 0.95rem;">
           <span style="opacity:0.8; margin-right:6px;">&#128269; Currently filtering by tag(s):</span>
           <strong id="active-tag-filter-text">None</strong>
         </span>
-        <button id="clear-tag-filter-btn" style="background:transparent; border:1px solid rgba(88, 166, 255, 0.5); color:var(--blue); padding:4px 10px; border-radius:4px; cursor:pointer;" onmouseover="this.style.background='var(--blue)'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='var(--blue)';">Clear Filter</button>
+        <button id="clear-tag-filter-btn"
+          style="background:transparent; border:1px solid rgba(88, 166, 255, 0.5); color:var(--blue); padding:4px 10px; border-radius:4px; cursor:pointer;"
+          onmouseover="this.style.background='var(--blue)'; this.style.color='#fff';"
+          onmouseout="this.style.background='transparent'; this.style.color='var(--blue)';">Clear Filter</button>
       </div>
 
       <div class="table-wrapper">
@@ -380,7 +392,9 @@
   <script src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
   <script src="/static/js/io.js?v={{ cache_bust }}"></script>
   <script src="/static/js/csvlog.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-img.js?v={{ cache_bust }}"></script>
   <script src="/static/js/csvlog-fields.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-day.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>
@@ -394,5 +408,3 @@
 </body>
 
 </html>
-
-

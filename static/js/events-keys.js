@@ -362,6 +362,7 @@ function _bindKeyboardEvents() {
           : new Date().toISOString().slice(0, 10);
         openObsModal(target);
       } else if (e.key === 'i' && !e.shiftKey) {
+        if (_clBackdrop) return;   // CSVLog modal open — let it handle 'i'
         e.preventDefault();
         const datesWImg = getDatesWithImages();
         if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);

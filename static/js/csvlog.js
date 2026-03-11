@@ -19,6 +19,8 @@ let _clImgIdx     = {};         // { tradeIdx: currentImageIndex }
 let _clTagDelMode = false;
 let _clTagChipSize = 0.78;
 let _clColSplit   = 44;         // % width of form column
+let _clDaySortField = null;     // 'pnl' | 'pts' | null — Day tab sort state
+let _clAllSortField = null;     // 'pnl' | 'pts' | null — All tab sort state
 
 /* ── Public: open ─────────────────────────────────────────────────────────── */
 async function openCsvLogModal() {
@@ -180,8 +182,9 @@ function _buildAndOpen(dateKey) {
     _clSwitchGroupTab(e.shiftKey ? -1 : +1);
   }, true);
 
-  // ESC key
+  // ESC key + image paste
   document.addEventListener('keydown', _clEscKey);
+  document.addEventListener('paste', _clImgPasteHandler);
 
   _renderTradeTabs();
   _renderContent();
@@ -205,21 +208,39 @@ function _renderTradeTabs() {
       const allTabs = document.querySelectorAll('#cl-trade-tabs .cl-trade-tab');
       const dir = e.key === 'ArrowRight' ? 1 : -1;
       const nextIdx = (curIdx + dir + allTabs.length) % allTabs.length;
-      _clTab = nextIdx - 1;   // DOM index 0 = Day = _clTab -1; 1 = T1 = _clTab 0; etc.
+      _clTab = nextIdx - 2;   // DOM index 0 = All = _clTab -2; 1 = Day = _clTab -1; 2 = T1 = _clTab 0; etc.
       _renderTradeTabs();
       _renderContent();
       document.querySelectorAll('#cl-trade-tabs .cl-trade-tab')[nextIdx]?.focus();
 
     } else if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'Enter'
                || (e.key === 'Tab' && !e.shiftKey)) {
-      // Go INTO the active tab: focus group tabs or first field
       e.preventDefault();
-      (document.querySelector('#cl-group-tabs .cl-group-tab.active')
-        || document.querySelector('#cl-group-tabs .cl-group-tab')
-        || document.querySelector('#cl-body [data-cl-ctrl]')
-        || document.querySelector('#cl-body button, #cl-body input, #cl-body select'))?.focus();
+      if (_clTab === -1 || _clTab === -2) {
+        // All / Day tab: focus first sortable stat card
+        document.querySelector('#cl-body .cl-day-stat[tabindex="0"]')?.focus();
+      } else {
+        // Trade tab: go into group tabs or first field
+        (document.querySelector('#cl-group-tabs .cl-group-tab.active')
+          || document.querySelector('#cl-group-tabs .cl-group-tab')
+          || document.querySelector('#cl-body [data-cl-ctrl]')
+          || document.querySelector('#cl-body button, #cl-body input, #cl-body select'))?.focus();
+      }
     }
   }
+
+  // All tab (index -2) — global summary across all dates
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cl-trade-tab cl-all-tab' + (_clTab === -2 ? ' active' : '');
+  allBtn.textContent = 'All';
+  allBtn.title = 'All trades — global summary across all dates';
+  allBtn.addEventListener('click', () => {
+    _clTab = -2;
+    _renderTradeTabs();
+    _renderContent();
+  });
+  allBtn.addEventListener('keydown', _tradeTabKey);
+  bar.appendChild(allBtn);
 
   // Day summary tab (index -1)
   const dayBtn = document.createElement('button');
@@ -310,7 +331,8 @@ function _renderContent() {
   if (!body) return;
   body.innerHTML = '';
 
-  // Day summary tab
+  // All / Day summary tabs
+  if (_clTab === -2) { _renderAllContent(body); return; }
   if (_clTab === -1) { _renderDayContent(body); return; }
 
   if (!_clSchema) return;
@@ -407,6 +429,8 @@ function _loadDateIntoModal(newDate) {
 
   _clTab = -1;
   _clGroupTab = {};
+  _clDaySortField = null;
+  _clAllSortField = null;
 
   // Update date display + picker value
   const display = document.getElementById('cl-date-display');
@@ -462,153 +486,18 @@ function _initColResize(resizerEl, formColEl, colsEl) {
   }
 }
 
-/* ── Image viewer (right column) ─────────────────────────────────────────── */
-function _renderImageViewer(container, trade) {
-  const images = trade.images || [];
-  container.innerHTML = '';
-
-  if (!images.length) {
-    container.innerHTML = '<div class="cl-img-empty">No images</div>';
-    return;
-  }
-
-  if (_clImgIdx[_clTab] === undefined) _clImgIdx[_clTab] = 0;
-  const idx = Math.max(0, Math.min(_clImgIdx[_clTab], images.length - 1));
-  _clImgIdx[_clTab] = idx;
-
-  const src = images[idx];
-
-  const viewer = document.createElement('div');
-  viewer.className = 'cl-img-viewer';
-
-  // Main image with zoom button overlay
-  const imgWrap = document.createElement('div');
-  imgWrap.className = 'cl-img-wrap';
-
-  const img = document.createElement('img');
-  img.className = 'cl-hero-img';
-  img.src = src;
-  img.alt = 'Trade image';
-  img.style.cursor = 'zoom-in';
-  img.addEventListener('click', () => _openImgZoom(images, idx));
-
-  const zoomBtn = document.createElement('button');
-  zoomBtn.className = 'cl-zoom-btn';
-  zoomBtn.title = 'Zoom image';
-  zoomBtn.textContent = '⊕';
-  zoomBtn.addEventListener('click', e => { e.stopPropagation(); _openImgZoom(images, idx); });
-
-  imgWrap.appendChild(img);
-  imgWrap.appendChild(zoomBtn);
-  viewer.appendChild(imgWrap);
-
-  // Navigation row
-  if (images.length > 1) {
-    const nav = document.createElement('div');
-    nav.className = 'cl-img-nav';
-
-    const prev = document.createElement('button');
-    prev.className = 'cl-nav-btn';
-    prev.textContent = '‹';
-    prev.disabled = idx === 0;
-    prev.addEventListener('click', () => {
-      _clImgIdx[_clTab] = Math.max(0, idx - 1);
-      _renderImageViewer(container, trade);
-    });
-
-    const counter = document.createElement('span');
-    counter.className = 'cl-img-counter';
-    counter.textContent = `${idx + 1} / ${images.length}`;
-
-    const next = document.createElement('button');
-    next.className = 'cl-nav-btn';
-    next.textContent = '›';
-    next.disabled = idx >= images.length - 1;
-    next.addEventListener('click', () => {
-      _clImgIdx[_clTab] = Math.min(images.length - 1, idx + 1);
-      _renderImageViewer(container, trade);
-    });
-
-    nav.appendChild(prev);
-    nav.appendChild(counter);
-    nav.appendChild(next);
-    viewer.appendChild(nav);
-  }
-
-  container.appendChild(viewer);
-}
-
-/* ── Image zoom overlay (fullscreen with left/right nav) ─────────────────── */
-function _openImgZoom(images, startIdx) {
-  document.getElementById('cl-zoom-overlay')?.remove();
-
-  // Accept single src string for convenience
-  if (typeof images === 'string') { images = [images]; startIdx = 0; }
-  let cur = Math.max(0, Math.min(startIdx || 0, images.length - 1));
-
-  const overlay = document.createElement('div');
-  overlay.id = 'cl-zoom-overlay';
-  overlay.className = 'cl-zoom-overlay';
-
-  const img = document.createElement('img');
-  img.className = 'cl-zoom-img';
-  img.src = images[cur];
-  img.addEventListener('click', e => e.stopPropagation());
-
-  // Close button (top-right)
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'cl-zoom-close';
-  closeBtn.textContent = '✕';
-  closeBtn.addEventListener('click', () => overlay.remove());
-
-  // Left / right arrows
-  const prevBtn = document.createElement('button');
-  prevBtn.className = 'cl-zoom-arrow cl-zoom-arrow-left';
-  prevBtn.innerHTML = '&#8249;';
-  prevBtn.addEventListener('click', e => { e.stopPropagation(); cur = Math.max(0, cur - 1); img.src = images[cur]; _updateZoomState(); });
-
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'cl-zoom-arrow cl-zoom-arrow-right';
-  nextBtn.innerHTML = '&#8250;';
-  nextBtn.addEventListener('click', e => { e.stopPropagation(); cur = Math.min(images.length - 1, cur + 1); img.src = images[cur]; _updateZoomState(); });
-
-  const counter = document.createElement('div');
-  counter.className = 'cl-zoom-counter';
-
-  function _updateZoomState() {
-    counter.textContent = images.length > 1 ? `${cur + 1} / ${images.length}` : '';
-    prevBtn.style.display = (images.length > 1 && cur > 0) ? 'flex' : 'none';
-    nextBtn.style.display = (images.length > 1 && cur < images.length - 1) ? 'flex' : 'none';
-  }
-  _updateZoomState();
-
-  overlay.appendChild(prevBtn);
-  overlay.appendChild(img);
-  overlay.appendChild(nextBtn);
-  overlay.appendChild(closeBtn);
-  overlay.appendChild(counter);
-  overlay.addEventListener('click', () => overlay.remove());
-
-  // Keyboard: ESC, arrow keys
-  const onKey = e => {
-    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); }
-    if (e.key === 'ArrowLeft'  && cur > 0) { cur--; img.src = images[cur]; _updateZoomState(); }
-    if (e.key === 'ArrowRight' && cur < images.length - 1) { cur++; img.src = images[cur]; _updateZoomState(); }
-  };
-  document.addEventListener('keydown', onKey);
-  overlay.addEventListener('remove', () => document.removeEventListener('keydown', onKey));
-
-  document.body.appendChild(overlay);
-}
+// _renderImageViewer and _openImgZoom are in csvlog-img.js
 
 /* ── Close ────────────────────────────────────────────────────────────────── */
 function closeCsvLogModal() {
   document.removeEventListener('keydown', _clEscKey);
+  document.removeEventListener('paste', _clImgPasteHandler);
   if (_clBackdrop) { _clBackdrop.remove(); _clBackdrop = null; }
   _clDayTrades = [];
   _clImgIdx = {};
   _clTagDelMode = false;
   document.getElementById('cl-obs-popup')?.remove();
+  document.body.querySelectorAll('.cl-bell-tip').forEach(el => el.remove());
 }
 
 function _clEscKey(e) {
@@ -622,9 +511,31 @@ function _clEscKey(e) {
   if (e.key === '<') { e.preventDefault(); _navigateDay(-1); return; }
   if (e.key === '>') { e.preventDefault(); _navigateDay(1);  return; }
 
-  // Prevent page scroll behind the modal (arrow/page keys not inside inputs)
   const tag = (e.target || {}).tagName || '';
   const inTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+
+  // 'i' key (not in text input) — open trade images fullscreen
+  if ((e.key === 'i' || e.key === 'I') && !inTyping && _clTab >= 0) {
+    const entry = _clDayTrades[_clTab];
+    if (entry && entry.trade.images && entry.trade.images.length) {
+      e.preventDefault();
+      e.stopPropagation();   // prevent global gallery 'i' handler firing behind this modal
+      _openImgZoom(entry.trade.images, 0);
+      return;
+    }
+  }
+
+  // Backspace (not in text input) — go back to All tab
+  if (e.key === 'Backspace' && !inTyping && _clTab !== -2) {
+    e.preventDefault();
+    document.body.querySelectorAll('.cl-bell-tip').forEach(el => el.remove());
+    _clTab = -2;
+    _renderTradeTabs();
+    _renderContent();
+    return;
+  }
+
+  // Prevent page scroll behind the modal (arrow/page keys not inside inputs)
   if (!inTyping && ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', ' '].includes(e.key)) {
     e.preventDefault();
   }

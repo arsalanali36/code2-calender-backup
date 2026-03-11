@@ -5,10 +5,18 @@ import time
 import shutil
 from datetime import datetime
 from urllib.parse import urlparse, unquote
+from flask import has_request_context
+from flask_login import current_user
 
 # File lives at processors/data_processors.py → go up one level to reach project root
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
+
+def get_user_data_file():
+    if has_request_context() and current_user and current_user.is_authenticated:
+        return os.path.join(BASE_DIR, 'data', f'trades_{current_user.id}.json')
+    return DATA_FILE
+
 STRUCTURED_COLUMNS = [
     'Instrument',
     'TradeType',
@@ -37,8 +45,9 @@ HISTORICAL_STRUCTURED_COLUMNS = [
 
 
 def load_trades():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+    data_file = get_user_data_file()
+    if os.path.exists(data_file):
+        with open(data_file, 'r', encoding='utf-8') as f:
             return _normalize_trade_payload(json.load(f))
     return {
         'trades': [],
@@ -56,22 +65,24 @@ LAST_BACKUP_TIME = 0
 def save_trades_to_file(data):
     global LAST_BACKUP_TIME
     data = _normalize_trade_payload(data)
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+    data_file = get_user_data_file()
+    os.makedirs(os.path.dirname(data_file), exist_ok=True)
+    with open(data_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
     current_time = time.time()
     if current_time - LAST_BACKUP_TIME > 300:  # Backup every 5 minutes if there are changes
         LAST_BACKUP_TIME = current_time
         try:
-            backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
+            backup_dir = os.path.join(os.path.dirname(data_file), 'backups')
             os.makedirs(backup_dir, exist_ok=True)
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            backup_file = os.path.join(backup_dir, f'trades_backup_{timestamp}.json')
-            shutil.copy2(DATA_FILE, backup_file)
+            user_prefix = f'user_{current_user.id}_' if (has_request_context() and current_user and current_user.is_authenticated) else ''
+            backup_file = os.path.join(backup_dir, f'trades_backup_{user_prefix}{timestamp}.json')
+            shutil.copy2(data_file, backup_file)
 
             # Keep only the last 30 backups to avoid filling up disk
-            backups = sorted([os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.startswith('trades_backup_')])
+            backups = sorted([os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.startswith(f'trades_backup_{user_prefix}')])
             if len(backups) > 30:
                 for b in backups[:-30]:
                     os.remove(b)
