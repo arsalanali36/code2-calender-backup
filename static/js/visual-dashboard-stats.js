@@ -148,13 +148,19 @@ function bindVdDragDrop() {
     });
 }
 
+let tempVdStatsMap = null;
+let tempVdStatsOrder = null;
+
 function renderVdStatsMenu() {
-    const menu = document.getElementById('vd-stats-menu');
+    const menu = document.getElementById('vd-stats-menu-container');
     if (!menu) return;
     menu.innerHTML = '';
 
-    const map = getVdStatsState();
-    const order = getVdStatsOrder();
+    if (!tempVdStatsMap) tempVdStatsMap = getVdStatsState();
+    if (!tempVdStatsOrder) tempVdStatsOrder = getVdStatsOrder();
+
+    const map = tempVdStatsMap;
+    const order = tempVdStatsOrder;
 
     const searchRow = document.createElement('div');
     searchRow.className = 'panel-search-row';
@@ -176,15 +182,11 @@ function renderVdStatsMenu() {
     btnNone.textContent = 'None';
     btnAll.addEventListener('click', () => {
         VD_STATS.forEach(s => { map[s.key] = true; });
-        saveVdStatsState(map);
         renderVdStatsMenu();
-        applyVdStatVisibility();
     });
     btnNone.addEventListener('click', () => {
         VD_STATS.forEach(s => { map[s.key] = false; });
-        saveVdStatsState(map);
         renderVdStatsMenu();
-        applyVdStatVisibility();
     });
     actRow.appendChild(btnAll);
     actRow.appendChild(btnNone);
@@ -222,8 +224,6 @@ function renderVdStatsMenu() {
             chk.checked = map[s.key] !== false;
             chk.addEventListener('change', () => {
                 map[s.key] = chk.checked;
-                saveVdStatsState(map);
-                applyVdStatVisibility();
             });
 
             const label = document.createElement('span');
@@ -249,10 +249,8 @@ function renderVdStatsMenu() {
                 const newOrder = order.filter(k => k !== from);
                 const toIdx = newOrder.indexOf(to);
                 newOrder.splice(toIdx, 0, from);
-                saveVdStatsOrder(newOrder);
+                tempVdStatsOrder = newOrder;
                 renderList(searchInp.value);
-                applyVdStatOrder();
-                applyVdCardWidths();
             });
 
             list.appendChild(row);
@@ -270,24 +268,46 @@ document.addEventListener('DOMContentLoaded', function () {
         renderVdStatsMenu(); // render dropdown content
     }, 200);
 
-    // Bind dropdown click behavior
     const statBtn = document.getElementById('vd-stats-btn');
-    if (statBtn) {
+    const modal = document.getElementById('vd-stats-modal');
+    const closeBtn = document.getElementById('vd-stats-close-btn');
+    const applyBtn = document.getElementById('vd-stats-apply-btn');
+
+    if (statBtn && modal) {
         statBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const menu = document.getElementById('vd-stats-menu');
-            if (menu) menu.classList.toggle('open');
+            tempVdStatsMap = getVdStatsState();
+            tempVdStatsOrder = getVdStatsOrder();
+            renderVdStatsMenu();
+            modal.style.display = 'flex';
         });
     }
 
-    // Close on click outside
-    document.addEventListener('click', (e) => {
-        const menu = document.getElementById('vd-stats-menu');
-        const btn = document.getElementById('vd-stats-btn');
-        if (menu && menu.classList.contains('open') && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
-            menu.classList.remove('open');
-        }
-    });
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (applyBtn && modal) {
+        applyBtn.addEventListener('click', () => {
+            saveVdStatsState(tempVdStatsMap);
+            saveVdStatsOrder(tempVdStatsOrder);
+            applyVdStatVisibility();
+            applyVdStatOrder();
+            applyVdCardWidths();
+            modal.style.display = 'none';
+        });
+    }
+
+    // Close on click outside modal content
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
 });
 
 

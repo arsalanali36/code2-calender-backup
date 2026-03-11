@@ -3234,7 +3234,8 @@
         "panic",
         "bina zone"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "csvlog": {}
     },
     {
       "Broker": "zerodha",
@@ -12121,7 +12122,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "csvlog": {}
     },
     {
       "Broker": "zerodha",
@@ -12443,6 +12445,109 @@
         "targ": ""
       },
       "trade_date": "2026-03-10"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 252.25,
+      "Buy Time": "09:31:12",
+      "Gross P/L": 2291.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631724250CE",
+      "Net P/L": 2149.36,
+      "Note": "",
+      "Other Charges": 101.89,
+      "Pt": 11.75,
+      "Qty": 195,
+      "Rs": 2291.25,
+      "Sell Price (Avg)": 264,
+      "Sell Time": "09:24:03",
+      "Tags": [],
+      "Total Fees": 141.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-11",
+      "heroImage": "/uploads/57f4ea13-4c71-4140-a271-866b2afbb409.png",
+      "imageTags": {},
+      "images": [
+        "/uploads/2509983a-a40d-496f-872d-b1058eae06b9.png",
+        "/uploads/ee29210e-d442-4651-a51d-73cb346135d5.png",
+        "/uploads/b27450a0-d784-40a9-a99a-bfff2cbcc4d9.png",
+        "/uploads/cbe4d962-b2a7-435a-a61d-b88b1cc79d95.png",
+        "/uploads/57f4ea13-4c71-4140-a271-866b2afbb409.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-03-11",
+      "csvlog": {
+        "entry": {
+          "at": "Breakout pe",
+          "at_obs": "asdasd",
+          "breakoutcandle": "Red",
+          "dema": "Below",
+          "confused": 9,
+          "confirmation": "Strong",
+          "algosignal": "N",
+          "sl_10": "Y",
+          "sl_10_obs": "13 pt",
+          "entry_candle_20": "N",
+          "any_entry_skip": "N",
+          "skip_count": "0"
+        },
+        "exit": {
+          "actual_target_moved": "N",
+          "actual_10_reach": "Y",
+          "actual_profit_trail": "N",
+          "actual_sl_moved": "N",
+          "actual_sl_trail": "N",
+          "actual_output": "Target"
+        },
+        "psy": {
+          "sabar_in": 25,
+          "sabar_out": 0,
+          "desperate_in": 11,
+          "inpulsive_in": 63,
+          "inpulsive_out": 100,
+          "distracted_in": 0,
+          "sahi_lagraha_out": 76
+        }
+      }
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 326.15,
+      "Buy Time": "09:41:38",
+      "Gross P/L": 1280.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631724100CE",
+      "Net P/L": 1152.67,
+      "Note": "",
+      "Other Charges": 87.83,
+      "Pt": 9.85,
+      "Qty": 130,
+      "Rs": 1280.5,
+      "Sell Price (Avg)": 336,
+      "Sell Time": "09:35:40",
+      "Tags": [],
+      "Total Fees": 127.83,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-11",
+      "heroImage": "/uploads/ddbf0ee9-6994-4872-b534-f73b6dfb8cc1.png",
+      "imageTags": {},
+      "images": [
+        "/uploads/21307c90-df8a-4cad-bb9a-a863ec120cf1.png",
+        "/uploads/78f060dc-8314-4ffa-b595-73597761aea4.png",
+        "/uploads/36a7adf0-48e7-4035-81dd-dade44cf8c08.png",
+        "/uploads/ddbf0ee9-6994-4872-b534-f73b6dfb8cc1.png",
+        "/uploads/d4a19677-0af0-4e05-b812-ef4c5e81c66c.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-03-11"
     }
   ],
   "columns": [
@@ -21390,6 +21495,19 @@
         "/uploads/18e8471e-2090-4d8a-bada-13a60f593785.png",
         "/uploads/40682bfd-3067-4b79-bbb4-63dfa1b35ce2.png"
       ]
+    },
+    "2026-03-11": {
+      "images": [
+        "/uploads/ddafcf0c-d1c7-4dea-ac84-491553905807.png",
+        "/uploads/6ec9699f-4bea-467f-be96-4e24bec00ee8.png",
+        "/uploads/6ed50089-7920-4058-b4e6-299790b8dac8.png",
+        "/uploads/16cc4240-e20e-4fb7-aab2-ecb1a2a98d8e.png",
+        "/uploads/d2b7eea9-d187-4605-923d-161f78bf0d4f.png",
+        "/uploads/f65717ca-37da-42f7-a351-d8d7cf9ed09b.png",
+        "/uploads/e04423cc-f086-44fb-bf39-a30d04aaff0f.png",
+        "/uploads/ccc5ce42-b65c-4d66-891e-95a86a49c9ac.png"
+      ],
+      "imageTags": {}
     }
   },
   "tagGroups": {
