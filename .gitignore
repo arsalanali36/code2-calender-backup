@@ -10,6 +10,7 @@ static/uploads/
 node_modules/
 data/backups/
 package-lock.json
+!tradefeed/package-lock.json
 _shadow_repo/
 Docs/AI_Contexts/*_COMPACT.md
 .tmp_restore_bundle*.zip
