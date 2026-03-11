@@ -9,7 +9,7 @@ from flask import Blueprint, request, jsonify, send_from_directory
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
 )
-from config import UPLOADS_DIR, TRASH_DIR
+from config import UPLOADS_DIR, TRASH_DIR, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
 
@@ -47,6 +47,19 @@ def delete_image():
 def image_times():
     urls = (request.json or {}).get('urls', [])
     return jsonify(get_image_times(urls, UPLOADS_DIR))
+
+
+@image_bp.route('/api/cloudinary-status')
+def cloudinary_status():
+    """Check if Cloudinary is configured and reachable."""
+    if not USE_CLOUDINARY:
+        return jsonify({'enabled': False, 'message': 'CLOUDINARY_URL not set — using local storage'})
+    try:
+        import cloudinary.api
+        result = cloudinary.api.ping()
+        return jsonify({'enabled': True, 'status': 'connected', 'ping': result})
+    except Exception as e:
+        return jsonify({'enabled': True, 'status': 'error', 'message': str(e)}), 500
 
 
 @image_bp.route('/api/copy-image-to-clipboard', methods=['POST'])
