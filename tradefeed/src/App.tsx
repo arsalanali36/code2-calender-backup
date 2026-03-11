@@ -433,6 +433,7 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [creationImages, setCreationImages] = useState<string[]>([]);
   const [creationTags, setCreationTags] = useState<{ emotion: string[], strategy: string[], mistake: string[] }>({ emotion: [], strategy: [], mistake: [] });
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Check stored token on mount
   useEffect(() => {
@@ -446,8 +447,8 @@ export default function App() {
   useEffect(() => {
     if (!authEmail) return;
     fetchTrades()
-      .then(setTrades)
-      .catch(err => console.error('Failed to load trades:', err));
+      .then(data => { setTrades(data); setFetchError(null); })
+      .catch(err => setFetchError(String(err)));
   }, [authEmail]);
 
   if (!authChecked) {
@@ -535,6 +536,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      {fetchError && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-rose-50 border-b border-rose-200 px-4 py-2 text-xs text-rose-700 font-mono break-all">
+          ⚠ {fetchError}
+        </div>
+      )}
       {/* Main Content Area */}
       <main className="relative z-10">
         <AnimatePresence mode="wait">
