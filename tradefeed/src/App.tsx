@@ -7,13 +7,14 @@ import React, { useState, useEffect } from 'react';
 import { FeedView } from './components/FeedView';
 import { BlogView } from './components/BlogView';
 import { BottomNav } from './components/BottomNav';
+import { LoginScreen } from './components/LoginScreen';
 import { ViewType, Trade } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlusSquare, Grid3X3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageImport } from './components/ImageImport';
 import { Tagger } from './components/Tagger';
 import { TradeLogger } from './components/TradeLogger';
-import { fetchTrades } from './services/api';
+import { fetchTrades, checkAuth, clearToken } from './services/api';
 
 const CalendarView = ({ trades }: { trades: Trade[] }) => {
   const today = new Date();
@@ -428,12 +429,34 @@ const GalleryView = ({ trades }: { trades: Trade[] }) => {
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('feed');
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [authEmail, setAuthEmail] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
+  // Check stored token on mount
   useEffect(() => {
+    checkAuth().then(user => {
+      if (user) setAuthEmail(user.email);
+      setAuthChecked(true);
+    });
+  }, []);
+
+  // Load trades once authenticated
+  useEffect(() => {
+    if (!authEmail) return;
     fetchTrades()
       .then(setTrades)
       .catch(err => console.error('Failed to load trades:', err));
-  }, []);
+  }, [authEmail]);
+
+  if (!authChecked) {
+    return <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-700 rounded-full animate-spin" />
+    </div>;
+  }
+
+  if (!authEmail) {
+    return <LoginScreen onLogin={email => setAuthEmail(email)} />;
+  }
   
   // Creation Flow State
   const [creationImages, setCreationImages] = useState<string[]>([]);
