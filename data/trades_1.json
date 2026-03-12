@@ -307,6 +307,11 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "confused": 44
+        }
+      },
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
@@ -565,6 +570,11 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "confused": 70
+        }
+      },
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
@@ -689,6 +699,11 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "confused": 97
+        }
+      },
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
@@ -1565,6 +1580,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "psy": {
+          "desperate_in": 89,
+          "desperate_out": 77,
+          "sabar_in": 65,
+          "sabar_out": 27
+        }
+      },
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
@@ -2256,6 +2279,7 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "csvlog": {},
       "date": "2026-02-04",
       "fill_count": 3,
       "imageTags": {},
@@ -2822,6 +2846,11 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "confused": 34
+        }
+      },
       "date": "2026-02-04",
       "fill_count": 2,
       "imageTags": {},
@@ -3112,6 +3141,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {},
       "date": "2026-02-27",
       "imageTags": {
         "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
@@ -3234,8 +3264,7 @@
         "panic",
         "bina zone"
       ],
-      "trade_date": "2026-02-27",
-      "csvlog": {}
+      "trade_date": "2026-02-27"
     },
     {
       "Broker": "zerodha",
@@ -12101,6 +12130,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {},
       "date": "2026-03-06",
       "groupNames": {
         "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png": "T6"
@@ -12122,8 +12152,7 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-06",
-      "csvlog": {}
+      "trade_date": "2026-03-06"
     },
     {
       "Broker": "zerodha",
@@ -12324,12 +12353,25 @@
       "TradeType": "sell",
       "Video": "",
       "csvlog": {
-        "entry": {},
+        "entry": {
+          "confused": 74
+        },
         "exit": {
           "10_reach": "N",
           "target_moved": "Y"
         },
-        "psy": {},
+        "psy": {
+          "desperate_in": 30,
+          "desperate_out": 59,
+          "distracted_in": 50,
+          "distracted_out": 83,
+          "inpulsive_in": 80,
+          "inpulsive_out": 29,
+          "sabar_in": 51,
+          "sabar_out": 88,
+          "sahi_lagraha_in": 27,
+          "sahi_lagraha_out": 53
+        },
         "zone": {}
       },
       "date": "2026-03-10",
@@ -12467,6 +12509,39 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "algosignal": "N",
+          "any_entry_skip": "N",
+          "at": "Breakout pe",
+          "at_obs": "asdasd",
+          "breakoutcandle": "Red",
+          "confirmation": "Strong",
+          "confused": 75,
+          "dema": "Below",
+          "entry_candle_20": "N",
+          "skip_count": "0",
+          "sl_10": "Y",
+          "sl_10_obs": "13 pt"
+        },
+        "exit": {
+          "actual_10_reach": "Y",
+          "actual_output": "Target",
+          "actual_profit_trail": "N",
+          "actual_sl_moved": "N",
+          "actual_sl_trail": "N",
+          "actual_target_moved": "N"
+        },
+        "psy": {
+          "desperate_in": 11,
+          "distracted_in": 0,
+          "inpulsive_in": 63,
+          "inpulsive_out": 100,
+          "sabar_in": 25,
+          "sabar_out": 0,
+          "sahi_lagraha_out": 76
+        }
+      },
       "date": "2026-03-11",
       "heroImage": "/uploads/57f4ea13-4c71-4140-a271-866b2afbb409.png",
       "imageTags": {},
@@ -12479,40 +12554,7 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-11",
-      "csvlog": {
-        "entry": {
-          "at": "Breakout pe",
-          "at_obs": "asdasd",
-          "breakoutcandle": "Red",
-          "dema": "Below",
-          "confused": 9,
-          "confirmation": "Strong",
-          "algosignal": "N",
-          "sl_10": "Y",
-          "sl_10_obs": "13 pt",
-          "entry_candle_20": "N",
-          "any_entry_skip": "N",
-          "skip_count": "0"
-        },
-        "exit": {
-          "actual_target_moved": "N",
-          "actual_10_reach": "Y",
-          "actual_profit_trail": "N",
-          "actual_sl_moved": "N",
-          "actual_sl_trail": "N",
-          "actual_output": "Target"
-        },
-        "psy": {
-          "sabar_in": 25,
-          "sabar_out": 0,
-          "desperate_in": 11,
-          "inpulsive_in": 63,
-          "inpulsive_out": 100,
-          "distracted_in": 0,
-          "sahi_lagraha_out": 76
-        }
-      }
+      "trade_date": "2026-03-11"
     },
     {
       "Broker": "zerodha",
@@ -12535,6 +12577,24 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "confused": 36
+        },
+        "exit": {},
+        "psy": {
+          "desperate_in": 16,
+          "desperate_out": 33,
+          "distracted_in": 36,
+          "distracted_out": 22,
+          "inpulsive_in": 18,
+          "inpulsive_out": 31,
+          "sabar_in": 84,
+          "sabar_out": 36,
+          "sahi_lagraha_in": 19,
+          "sahi_lagraha_out": 38
+        }
+      },
       "date": "2026-03-11",
       "heroImage": "/uploads/ddbf0ee9-6994-4872-b534-f73b6dfb8cc1.png",
       "imageTags": {},
@@ -12548,6 +12608,132 @@
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-11"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 334.6,
+      "Buy Time": "09:37:56",
+      "Gross P/L": -2262,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631723550CE",
+      "Net P/L": -2427.3,
+      "Note": "",
+      "Other Charges": 125.3,
+      "Pt": -11.6,
+      "Qty": 195,
+      "Rs": -2262,
+      "Sell Price (Avg)": 323,
+      "Sell Time": "09:34:40",
+      "Tags": [],
+      "Total Fees": 165.3,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "csvlog": {
+        "entry": {},
+        "exit": {}
+      },
+      "date": "2026-03-12",
+      "imageTags": {},
+      "images": [
+        "/uploads/d0a262ea-0de9-4463-b00f-679a1bc13317.png",
+        "/uploads/0f507e50-ae39-467f-bf47-485a8f765450.png",
+        "/uploads/2bdb858b-6471-45f5-a14c-22e09965f35a.png",
+        "/uploads/d7a59fb1-9675-48ee-a007-c4b94e5d00f2.png",
+        "/uploads/a8cce459-8076-4bd0-bdfb-7aeffcbb1c91.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-03-12"
+    },
+    {
+      "Broker": "zerodha",
+      "Image Tags": "",
+      "Note": "",
+      "Total Trades": "",
+      "Video": "",
+      "_placeholder": true,
+      "_placeholderLabel": "x1",
+      "csvlog": {},
+      "date": "2026-03-16",
+      "imageTags": {},
+      "trade_date": "2026-03-16"
+    },
+    {
+      "Broker": "zerodha",
+      "Image Tags": "",
+      "Note": "",
+      "Total Trades": "",
+      "Video": "",
+      "_placeholder": true,
+      "_placeholderLabel": "x1",
+      "csvlog": {
+        "body_vitals": {
+          "alertness": 0,
+          "neend": 0,
+          "sabar": 0
+        },
+        "entry": {
+          "at": "Breakout pe",
+          "at_obs": "dhayan kahin aur tha, par jaise hi zone ka alert baja le liya ki mai us area me intezaar kar raha tha",
+          "breakoutcandle": "Red"
+        },
+        "psy": {},
+        "zone": {
+          "created": "N"
+        }
+      },
+      "date": "2026-03-12",
+      "imageTags": {},
+      "trade_date": "2026-03-12"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 298.25,
+      "Buy Time": "10:14:35",
+      "Gross P/L": 5937.75,
+      "Image Tags": "",
+      "Instrument": "NIFTY2631723600CE",
+      "Net P/L": 5774.03,
+      "Note": "",
+      "Other Charges": 123.72,
+      "Pt": 30.45,
+      "Qty": 195,
+      "Rs": 5937.75,
+      "Sell Price (Avg)": 328.7,
+      "Sell Time": "10:06:07",
+      "Tags": [],
+      "Total Fees": 163.72,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-03-12",
+      "imageTags": {},
+      "images": [
+        "/uploads/2fca172f-7314-4e7e-8a04-4aec6f7d17dc.png",
+        "/uploads/d668de56-9018-4c2d-868b-6cc2285d6976.png",
+        "/uploads/08a60b6f-e505-47fe-abcf-05f1b503065c.png",
+        "/uploads/ec23d3ed-56a1-488d-b1fe-d2060ad34e70.png",
+        "/uploads/63319109-3cf4-43ef-9f35-d75a896db7a7.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-03-12"
+    },
+    {
+      "Broker": "zerodha",
+      "Image Tags": "",
+      "Note": "",
+      "Total Trades": "",
+      "Video": "",
+      "_placeholder": true,
+      "_placeholderLabel": "x2",
+      "csvlog": {},
+      "date": "2026-03-12",
+      "imageTags": {},
+      "trade_date": "2026-03-12"
     }
   ],
   "columns": [
@@ -21497,6 +21683,12 @@
       ]
     },
     "2026-03-11": {
+      "closeImages": [
+        "/uploads/9dfd2295-f13f-4242-a5c4-509f48678a8a.png",
+        "/uploads/2c791504-ce4c-4cc1-8ae0-c178a583f915.png",
+        "/uploads/19af5c2c-defa-406c-ab32-6d48614a84ad.png"
+      ],
+      "imageTags": {},
       "images": [
         "/uploads/ddafcf0c-d1c7-4dea-ac84-491553905807.png",
         "/uploads/6ec9699f-4bea-467f-be96-4e24bec00ee8.png",
@@ -21506,8 +21698,19 @@
         "/uploads/f65717ca-37da-42f7-a351-d8d7cf9ed09b.png",
         "/uploads/e04423cc-f086-44fb-bf39-a30d04aaff0f.png",
         "/uploads/ccc5ce42-b65c-4d66-891e-95a86a49c9ac.png"
+      ]
+    },
+    "2026-03-12": {
+      "closeImages": [
+        "/uploads/c3655bbc-f0e7-417d-b99c-bae24e04e9f9.png"
       ],
-      "imageTags": {}
+      "imageTags": {},
+      "images": [
+        "/uploads/19b5cb77-f861-403e-b80e-ec9332a74572.png",
+        "/uploads/7dfb99ce-5030-48ed-8b2c-35025c70b505.png",
+        "/uploads/28de13a3-6e79-4a40-88b3-ecb1bacafd31.png",
+        "/uploads/c1faac6f-2f71-4d46-8fc6-4f68c5f135c4.png"
+      ]
     }
   },
   "tagGroups": {

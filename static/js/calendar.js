@@ -201,7 +201,8 @@ function renderCalendar() {
             if (isProfit) {
               const num = parseFloat(val);
               if (!isNaN(num)) {
-                item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${num > 0 ? '+' : ''}${num}` : `${prefix}${num > 0 ? '+' : ''}${num}`;
+                const fv = getShowDecimals() ? num : Math.round(num);
+                item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${num > 0 ? '+' : ''}${fv}` : `${prefix}${num > 0 ? '+' : ''}${fv}`;
                 item.classList.add(num >= 0 ? 'profit-pos' : 'profit-neg');
               } else { item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${val}` : `${prefix}${val}`; }
             } else {
@@ -226,7 +227,7 @@ function renderCalendar() {
             } else {
               outNum = nums.reduce((a, b) => a + b, 0);
             }
-            const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
+            const out = getShowDecimals() ? (outNum % 1 === 0 ? outNum : outNum.toFixed(2)) : Math.round(outNum);
             item.textContent = showLabels ? `${_abbr(col)}: ${out}` : `${out}`;
             if (lower.includes('profit') || lower === 'rs') item.classList.add(outNum >= 0 ? 'profit-pos' : 'profit-neg');
           } else {

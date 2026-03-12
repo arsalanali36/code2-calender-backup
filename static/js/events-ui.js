@@ -64,26 +64,89 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
+  // Profile avatar dropdown
+  const profileAvatarBtn = document.getElementById('profile-avatar-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  if (profileAvatarBtn && profileDropdown) {
+    profileAvatarBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('open');
+    });
+    profileDropdown.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Profile: Settings
+  const profileSettingsBtn = document.getElementById('profile-settings-btn');
+  if (profileSettingsBtn) profileSettingsBtn.addEventListener('click', () => {
+    document.getElementById('settings-overlay').classList.add('open');
+    if (profileDropdown) profileDropdown.classList.remove('open');
+  });
+
+  const profileQuoteBtn = document.getElementById('profile-quote-btn');
+  if (profileQuoteBtn) profileQuoteBtn.addEventListener('click', () => {
+    if (typeof openQuoteModal === 'function') openQuoteModal();
+    if (profileDropdown) profileDropdown.classList.remove('open');
+  });
+
+  // Profile: Broker inline dropdown
+  const brokerGroup = document.getElementById('profile-broker-group');
+  const brokerTrigger = document.getElementById('profile-broker-trigger');
+  if (brokerTrigger && brokerGroup) {
+    brokerTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const viewGroup = document.getElementById('profile-view-group');
+      if (viewGroup) viewGroup.classList.remove('open');
+      brokerGroup.classList.toggle('open');
+    });
+  }
+
+  // Profile: View inline dropdown
+  const viewGroup = document.getElementById('profile-view-group');
+  const viewTrigger = document.getElementById('profile-view-trigger');
+  if (viewTrigger && viewGroup) {
+    viewTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      if (brokerGroup) brokerGroup.classList.remove('open');
+      viewGroup.classList.toggle('open');
+    });
+  }
+
+  // Profile: View items
+  document.querySelectorAll('.profile-view-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.view;
+      if (state.calendarMode !== v) {
+        state.calendarMode = v;
+        updateCalendarModeButton();
+        renderShowHeads();
+        renderCalendar();
+        renderTable();
+        if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
+      }
+      if (viewGroup) viewGroup.classList.remove('open');
+    });
+  });
+
   document.getElementById('show-heads-btn').addEventListener('click', e => {
-    e.stopPropagation(); document.getElementById('show-heads-panel').classList.toggle('open');
+    e.stopPropagation(); openShowHeadsModal();
   });
 
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
   setupDropdown('add-dropdown-btn', 'add-dropdown-menu');
   setupDropdown('col-vis-btn', 'col-vis-panel');
   setupDropdown('view-preset-btn', 'view-preset-panel');
-  setupDropdown('broker-filter-btn-top', 'broker-filter-menu-top');
-  setupDropdown('dashboard-stats-btn', 'dashboard-stats-menu');
+  const statsBtn = document.getElementById('dashboard-stats-btn');
+  if (statsBtn) statsBtn.addEventListener('click', e => { e.stopPropagation(); openStatsConfigModal(); });
 
   document.addEventListener('click', () => {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
+    if (profileDropdown) profileDropdown.classList.remove('open');
+    document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
   document.getElementById('col-vis-panel').addEventListener('click', e => e.stopPropagation());
   document.getElementById('view-preset-panel').addEventListener('click', e => e.stopPropagation());
-  const brokerMenuTop = document.getElementById('broker-filter-menu-top');
-  if (brokerMenuTop) brokerMenuTop.addEventListener('click', e => e.stopPropagation());
   const dashStatsMenu = document.getElementById('dashboard-stats-menu');
   if (dashStatsMenu) dashStatsMenu.addEventListener('click', e => e.stopPropagation());
 
@@ -96,6 +159,7 @@ function _bindUIEvents() {
       renderCalendar();
       renderDashboard();
       closeAllDropdowns('__none__');
+      document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
     });
   });
   document.getElementById('tag-filter-panel').addEventListener('click', e => e.stopPropagation());
@@ -248,6 +312,10 @@ function _bindUIEvents() {
   if (_clToolbarBtn) {
     _clToolbarBtn.addEventListener('click', () => openCsvLogModal());
   }
+  const _clChartsToolbarBtn = document.getElementById('csvlog-charts-toolbar-btn');
+  if (_clChartsToolbarBtn) {
+    _clChartsToolbarBtn.addEventListener('click', () => openCsvLogChartsModal());
+  }
 
   const _trToolbarBtn = document.getElementById('trade-review-toolbar-btn');
   if (_trToolbarBtn) {
@@ -275,8 +343,23 @@ function _bindUIEvents() {
     if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
     if (_drClear) _drClear.style.display = active ? 'inline-flex' : 'none';
   };
-  if (_drFrom) _drFrom.addEventListener('change', () => { state.dateRange.from = _drFrom.value; _saveDateRange(); _updateDateRangeUI(); render(); });
-  if (_drTo) _drTo.addEventListener('change', () => { state.dateRange.to = _drTo.value; _saveDateRange(); _updateDateRangeUI(); render(); });
+  const _applyDateFromInput = () => {
+    state.dateRange.from = _drFrom ? _drFrom.value : '';
+    state.dateRange.to = _drTo ? _drTo.value : '';
+    _saveDateRange();
+    _updateDateRangeUI();
+    render();
+  };
+  if (_drFrom) {
+    _drFrom.addEventListener('change', _applyDateFromInput);
+    _drFrom.addEventListener('input', _applyDateFromInput);
+    _drFrom.addEventListener('keydown', e => { if (e.key === 'Enter') _applyDateFromInput(); });
+  }
+  if (_drTo) {
+    _drTo.addEventListener('change', _applyDateFromInput);
+    _drTo.addEventListener('input', _applyDateFromInput);
+    _drTo.addEventListener('keydown', e => { if (e.key === 'Enter') _applyDateFromInput(); });
+  }
   if (_drClear) _drClear.addEventListener('click', () => {
     state.dateRange = { from: '', to: '' };
     if (_drFrom) _drFrom.value = '';

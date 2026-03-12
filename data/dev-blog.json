@@ -1,5 +1,22 @@
 [
   {
+    "id": "2026-03-12-quotes-csvlog-charts",
+    "short_title": "Quotes + Logger Charts",
+    "date": "2026-03-12",
+    "version": "v2.9.0",
+    "emoji": "📊",
+    "title": "v2.9.0: Daily Quotes aur CSVLog Logger Charts Workspace",
+    "tags": [
+      "Quotes",
+      "CSVLog",
+      "Logger Charts",
+      "Analytics",
+      "UI"
+    ],
+    "summary": "Aaj ka focus tha do cheezon par: ek lightweight Daily Quotes workflow aur ek zyada useful CSVLog analytics workspace. Result me quote modal, quote popup automation, aur sliders/options/Y-N based logger charts ka pehla strong version ready hua.",
+    "body": "<p>Aaj ke session me do parallel tracks the: <strong>Daily Quotes</strong> aur <strong>CSVLog Logger Charts</strong>. Dono ka goal simple tha data ko zyada accessible aur action-oriented banana.</p><h3>Daily Quotes</h3><ul><li>Settings/menu ke neeche quote entry point add hua.</li><li>Modal me left-right quote navigation, rating slider, font +/- controls, CSV upload/download aur session-based random quote popup timer add hua.</li><li>Quote display ko compact kiya gaya: source/tags/date clutter hata kar cleaner reading mode banaya.</li></ul><h3>CSVLog Logger Charts</h3><ul><li>Naya Logger Charts modal add hua jisme <strong>Sliders</strong>, <strong>Options</strong>, aur <strong>Y/N</strong> tabs hain.</li><li>Sliders view me compact/detailed display, top tabs, expandable date rows, total amount column, per-trade rows, resizable columns, aur short date format add hua.</li><li>Options aur Y/N me bhi alternate <strong>View 2</strong> grouped summary layout diya gaya, jahan positive/negative counts popup filtering ke saath clickable hain.</li></ul><p>Session ke end par compact AI contexts regenerate kiye gaye, shadow repo refresh hua, aur EOD logs update kiye gaye taaki kal ka continuation clean state se ho.</p>"
+  },
+  {
     "id": "2026-03-11-user-login-csv-bellcurve",
     "short_title": "Multi-User & Bell Curve! 🚀",
     "date": "2026-03-11",

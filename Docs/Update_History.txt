@@ -2,6 +2,15 @@ Trading Journal - Update & Feature History (Changelog)
 ======================================================
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+TODAY'S END OF DAY SUMMARY (March 12, 2026):
+- Quotes Modal: Added Daily Quotes popup with CSV import/export, random auto-popup session timer, font resize, rating slider, and compact quote display.
+- CSVLog Charts: Added Logger Charts modal with Sliders, Options, and Y/N analytics from CSVLog schema data.
+- Slider Analytics Upgrade: Added compact/detailed slider views, focused top tabs, per-date expand rows, totals column, per-trade amount rows, short date formatting, and resizable columns.
+- Alternate Non-Slider Views: Added View 1 / View 2 layouts for Options and Y/N grouped summaries.
+- Context + EOD Sync: Regenerated compact AI contexts, rebuilt shadow repo, and refreshed dev logs.
+
+------------------------------------------------------
+
 TODAY'S END OF DAY SUMMARY (March 07, 2026):
 - EOD Runbook: Added trigger-contract workflow in `Docs/EOD_AI_PROMPT.md` for automatic end-of-day execution.
 - One-Command EOD: Added `Scripts/EOD_OPTIMIZE.ps1` to run validation, compact context generation, and shadow-repo build.

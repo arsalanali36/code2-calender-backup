@@ -21,6 +21,9 @@ TRASH_EXPIRY_DAYS   = 7
 MAX_CONTENT_LENGTH  = 100 * 1024 * 1024          # 100 MB upload limit
 CACHE_BUST          = int(time.time())
 
+# ── Cloudinary ────────────────────────────────────────────────────────────────
+USE_CLOUDINARY = bool(os.getenv('CLOUDINARY_URL'))
+
 # ── Server settings ───────────────────────────────────────────────────────────
 HOST  = os.getenv('HOST', '0.0.0.0')
 PORT  = int(os.getenv('PORT', '5000'))

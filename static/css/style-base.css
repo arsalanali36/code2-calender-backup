@@ -226,7 +226,7 @@ body.modal-open {
 
 /* ── DASHBOARD SUMMARY ───────────────────────── */
 .dashboard-section {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dashboard-header {
@@ -928,9 +928,10 @@ body.modal-open {
   display: none;
 }
 
-/* Hide browser calendar picker icon to save header space */
+/* Keep native date picker indicator visible for reliable input across browsers */
 .date-range-input::-webkit-calendar-picker-indicator {
-  display: none;
+  opacity: 0.9;
+  cursor: pointer;
 }
 
 .table-wrapper {

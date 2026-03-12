@@ -125,6 +125,19 @@ def export_csvlog_excel(trades, schema_file=None):
                         seen_cols.add(pair)
                         csvlog_cols.append((gk, fk, label))
 
+        # Explicitly add Body Vitals columns with nice labels
+        _vitals_keys = [
+            ('alertness', 'Body Vitals / Alertness'),
+            ('neend',     'Body Vitals / Neend (Sleep)'),
+            ('potty',     'Body Vitals / Potty'),
+            ('sabar',     'Body Vitals / Sabar vs Impulsive'),
+        ]
+        for fk, label in _vitals_keys:
+            pair = ('body_vitals', fk)
+            if pair not in seen_cols:
+                seen_cols.add(pair)
+                csvlog_cols.append(('body_vitals', fk, label))
+
         # Pick up any extra keys from actual data
         for trade in trades:
             for gk, fdata in (trade.get('csvlog') or {}).items():
@@ -203,6 +216,133 @@ def export_csvlog_excel(trades, schema_file=None):
         for col in ws.columns:
             w = max((len(str(c.value or '')) for c in col), default=8)
             ws.column_dimensions[col[0].column_letter].width = min(max(w + 2, 10), 45)
+
+        out = BytesIO()
+        wb.save(out)
+        out.seek(0)
+        return out, None
+
+    except Exception as exc:
+        return None, str(exc)
+
+
+def generate_logger_template(schema_file=None):
+    """
+    Generate a protected LOGGER.xlsx template BytesIO.
+    - Preserves existing schema rows from schema_file (if available)
+    - Appends Body Vitals group rows if not already present
+    - Row 1 header is locked; sheet protected to prevent col delete/rename
+    - No password → user can unprotect anytime (protects against accidents)
+    Returns (BytesIO, None) or (None, error_str).
+    """
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Protection
+        from openpyxl.worksheet.protection import SheetProtection
+        from io import BytesIO
+    except ImportError:
+        return None, 'openpyxl not installed'
+
+    try:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'LOGGER Schema'
+
+        # ── Header row ──────────────────────────────────────────────────────
+        headers = ['Group', 'Head', 'Input', 'Type', 'Display', 'Description']
+        ws.append(headers)
+        hdr_fill = PatternFill('solid', fgColor='1A3050')
+        for cell in ws[1]:
+            cell.font = Font(bold=True, color='FFFFFF')
+            cell.fill = hdr_fill
+            cell.alignment = Alignment(horizontal='center')
+            cell.protection = Protection(locked=True)   # lock header cells
+
+        # ── Column widths ────────────────────────────────────────────────────
+        for col, w in zip('ABCDEF', [16, 22, 30, 12, 10, 35]):
+            ws.column_dimensions[col].width = w
+
+        # ── Load existing schema rows ────────────────────────────────────────
+        existing_rows = []
+        has_body_vitals = False
+        if schema_file and os.path.exists(schema_file):
+            try:
+                src = openpyxl.load_workbook(schema_file, data_only=True)
+                sw = src.active
+                for row in sw.iter_rows(min_row=2, values_only=True):
+                    vals = list(row) + [None] * 6
+                    grp = str(vals[0] or '').strip()
+                    if grp.lower() == 'body vitals' or grp.lower() == 'body_vitals':
+                        has_body_vitals = True
+                    if grp:
+                        existing_rows.append(vals[:6])
+            except Exception:
+                pass
+
+        # Fill existing rows — data cells unlocked so user can edit values
+        for r in existing_rows:
+            ws.append(r)
+
+        # ── Append Body Vitals if not present ────────────────────────────────
+        _VITALS_ROWS = [
+            ['Body Vitals', 'Alertness',         '-5,5', 'Range', 'Show', 'Physical alertness level'],
+            ['Body Vitals', 'Neend',             '-5,5', 'Range', 'Show', 'Sleep quality last night'],
+            ['Body Vitals', 'Potty',             '-5,5', 'Range', 'Show', 'Gut health / comfort'],
+            ['Body Vitals', 'Sabar vs Impulsive','-5,5', 'Range', 'Show', 'Patience vs impulsiveness'],
+        ]
+        if not has_body_vitals:
+            ws.append([None] * 6)   # blank spacer row
+            for r in _VITALS_ROWS:
+                ws.append(r)
+
+        # ── Style data rows: A-D locked (group/head/input/type), E-F editable ─
+        # Note: only meaningful when sheet protection is on.
+        # A,B = Group,Head locked so names stay stable; C,D,E,F editable.
+        for row in ws.iter_rows(min_row=2):
+            for cell in row:
+                locked = cell.column_letter in ('A', 'B')
+                cell.protection = Protection(locked=locked)
+
+        # ── Sheet protection (no password → easy to unprotect intentionally) ──
+        ws.protection.sheet          = True
+        ws.protection.deleteColumns  = True   # prevent column deletion
+        ws.protection.insertColumns  = True   # prevent inserting columns
+        ws.protection.sort           = True   # prevent sorting (rearranging)
+        # Allow: editing unlocked cells (E=Display, C=Input, D=Type, F=Desc),
+        #        inserting rows (adding new fields), selecting any cell.
+        ws.protection.insertRows     = False
+        ws.protection.deleteRows     = False
+        ws.protection.selectLockedCells   = True
+        ws.protection.selectUnlockedCells = True
+
+        # ── Instructions sheet ───────────────────────────────────────────────
+        ws2 = wb.create_sheet('Instructions')
+        ws2.column_dimensions['A'].width = 70
+        instructions = [
+            ['LOGGER.xlsx — Instructions'],
+            [''],
+            ['Column guide:'],
+            ['  A: Group    — e.g. Zone / Entry / Exit / Body Vitals  (LOCKED — do not rename)'],
+            ['  B: Head     — field label shown in the app             (LOCKED — do not rename)'],
+            ['  C: Input    — Y/N for Switch; options for Dropdown; min,max for Range'],
+            ['  D: Type     — Switch | Input | Dropdown | Range | -    (- = section separator)'],
+            ['  E: Display  — Show or Hide'],
+            ['  F: Description — your notes (ignored by app)'],
+            [''],
+            ['Bidirectional sliders: set Input = "-5,5" (or any negative,positive range).'],
+            ['  The slider will be centered at 0 and fill green(+) or red(-).'],
+            [''],
+            ['Conditional freeze rules (built into app, not in schema):'],
+            ['  Zone  : If "Zone Created" = N  → Size and Candle fields are frozen'],
+            ['  Entry : If "At"  contains "pehle" → Breakout Candle field is frozen'],
+            [''],
+            ['To add a new field: insert a row below existing ones (allowed).'],
+            ['To hide a field:   change Display column from "Show" to "Hide".'],
+            ['Columns A-B are locked to prevent accidental renaming.'],
+        ]
+        for r in instructions:
+            ws2.append(r)
+        ws2['A1'].font = Font(bold=True, size=13)
 
         out = BytesIO()
         wb.save(out)

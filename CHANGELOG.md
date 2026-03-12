@@ -1,6 +1,20 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 12, 2026
+
+### v2.9.0 â€” Quotes + CSVLog Charts Workspace
+
+- **New: `static/js/quotes.js`:** Added Daily Quotes modal with left/right quote carousel, font size controls, rating slider, CSV import/export, per-session random popup timer, and quote formatting after commas.
+- **New: Quote UI wiring:** Added Quote and Quote Pop entry points in `templates/index.html`, modal markup in `templates/modals.html`, and modal state bindings in `static/js/events-ui.js`, `static/js/events-keys.js`, `static/js/data.js`.
+- **Quote styling pass:** Updated `static/css/style-misc.css` and `static/css/style-mobile.css` for compact quote chips, popup controls, mobile-safe layout, and smaller header controls.
+- **New: `static/js/csvlog-charts.js`:** Added Logger Charts modal for CSVLog data with Sliders, Options, and Y/N analytics views.
+- **Logger Charts sliders:** Added compact/detailed modes, top tabs for focused slider fields, expand-per-date rows, date totals column, per-trade totals, date formatting (`Mar 12`), and resizable table columns.
+- **Logger Charts options/YN:** Added `View 1 / View 2` alternate grouped layouts while keeping positive/negative click-through popup filtering.
+- **New helper modules:** Added `static/js/csvlog-vitals.js` and `static/js/csvlog-placeholder.js` for CSVLog modularization and future expansion stubs.
+- **Template/script integration:** Registered new CSVLog/Quotes scripts in `templates/index.html` and surfaced the Logger Charts toolbar action from `static/js/events-ui.js`.
+- **EOD hygiene:** Regenerated compact AI contexts, rebuilt `_shadow_repo`, and refreshed changelog/dev memory.
+
 ## EOD Summary - March 10-11, 2026
 
 ### v2.7.0 — CSVLog: Schema-Driven Observation Modal

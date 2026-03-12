@@ -38,6 +38,10 @@ const state = {
   tagDeleteMode: false,
   uploadRow: null,
   pendingFiles: [],
+  quotes: [],
+  quoteIndex: 0,
+  quoteRatings: {},
+  quoteAutoPopup: { enabled: false, minMinutes: 15, timerId: null },
   obsDate: '',
   allTags: [],   // all defined tag names
   tagFilter: [],   // selected filters in form "Column::Tag"
@@ -45,7 +49,7 @@ const state = {
   tagColumns: [],   // explicit list of tag columns (rename-safe)
   userColumns: [],   // only these columns are deletable
   addTagColumnMode: false,
-  brokerFilter: 'both', // both | zerodha | dhan
+  brokerFilter: 'zerodha', // both | zerodha | dhan
   calendarView: 'month', // month | year
   shortcuts: {},
   dayData: {},   // keyed by YYYY-MM-DD: { images: [], tags: { ColName: [tag,...] } }

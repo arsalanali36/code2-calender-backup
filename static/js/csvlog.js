@@ -138,6 +138,9 @@ function _buildAndOpen(dateKey) {
             <a class="dropdown-item" href="/api/csvlog-download-schema" download="LOGGER_schema.xlsx">
               &#11015; Download Current Schema
             </a>
+            <a class="dropdown-item" href="/api/csvlog-download-template" download="LOGGER_template.xlsx">
+              &#128274; Download Protected Template
+            </a>
             <a class="dropdown-item" href="/api/csvlog-export" download="csvlog_export.xlsx">
               &#128202; Export All Trades (Excel)
             </a>
@@ -255,14 +258,24 @@ function _renderTradeTabs() {
   dayBtn.addEventListener('keydown', _tradeTabKey);
   bar.appendChild(dayBtn);
 
+  let _realCount = 0;
   _clDayTrades.forEach(({ trade }, i) => {
+    const isPlaceholder = !!trade._placeholder;
     const btn = document.createElement('button');
-    btn.className = 'cl-trade-tab' + (i === _clTab ? ' active' : '');
-    btn.textContent = `T${i + 1}`;
-    btn.title = `Trade ${i + 1}`;
-    // Red indicator on loss trades
-    const _pnl = parseFloat(String(trade['Net P/L'] || trade['Gross P/L'] || trade['Rs'] || trade['rs'] || '').replace(/,/g, ''));
-    if (!isNaN(_pnl) && _pnl < 0) btn.classList.add('cl-tab-loss');
+    btn.className = 'cl-trade-tab' + (i === _clTab ? ' active' : '') + (isPlaceholder ? ' cl-ph-tab' : '');
+
+    if (isPlaceholder) {
+      btn.textContent = trade._placeholderLabel || ('x' + (i + 1));
+      btn.title = `Placeholder ${trade._placeholderLabel || ''} — right-click to merge with a real trade`;
+      btn.addEventListener('contextmenu', e => _showPlaceholderContextMenu(e, _clDayTrades[i], btn));
+    } else {
+      _realCount++;
+      btn.textContent = `T${_realCount}`;
+      btn.title = `Trade ${_realCount}`;
+      const _pnl = parseFloat(String(trade['Net P/L'] || trade['Gross P/L'] || trade['Rs'] || trade['rs'] || '').replace(/,/g, ''));
+      if (!isNaN(_pnl) && _pnl < 0) btn.classList.add('cl-tab-loss');
+    }
+
     btn.addEventListener('click', () => {
       _clTab = i;
       _renderTradeTabs();
@@ -271,6 +284,14 @@ function _renderTradeTabs() {
     btn.addEventListener('keydown', _tradeTabKey);
     bar.appendChild(btn);
   });
+
+  // "+" button — always visible so any date (with or without placeholders) can get one
+  const addBtn = document.createElement('button');
+  addBtn.className = 'cl-trade-tab cl-ph-add-btn';
+  addBtn.textContent = '+';
+  addBtn.title = 'Add a placeholder observation entry for this date';
+  addBtn.addEventListener('click', _addAnotherPlaceholder);
+  bar.appendChild(addBtn);
 }
 
 /* ── Render group tabs (Zone / Entry / Exit / PSy) ───────────────────────── */
@@ -282,7 +303,7 @@ function _renderGroupTabs() {
   if (_clTab === -1 || !_clSchema) return;
 
   const active = _clGroupTab[_clTab] || _clSchema.groups[0];
-  const allTabs = ['Info', ..._clSchema.groups, 'Tags'];
+  const allTabs = ['Info', ..._clSchema.groups, 'Vitals', 'Tags'];
   const grpBtns = [];
 
   allTabs.forEach((grp, idx) => {
@@ -341,7 +362,8 @@ function _renderContent() {
 
   const activeGrp = _clGroupTab[_clTab] || 'Info';
 
-  if (activeGrp === 'Info') { _renderInfoContent(body, trade); return; }
+  if (activeGrp === 'Info')    { _renderInfoContent(body, trade); return; }
+  if (activeGrp === 'Vitals')  { _renderVitalsContent(body, trade); return; }
 
   // Two-column layout for all schema groups AND Tags
   body.style.padding = '0';
@@ -418,7 +440,7 @@ function _navigateToDate(dateStr) {
   const trades = state.trades
     .map((t, i) => ({ trade: t, rowIdx: i }))
     .filter(({ trade: t }) => normalizeDate(t['trade_date'] || t['Date'] || t.date || '') === norm);
-  if (!trades.length) { showToast('No trades on this date', 'error'); return; }
+  if (!trades.length) { _offerPlaceholder(norm); return; }
   _loadDateIntoModal(norm);
 }
 
@@ -576,7 +598,7 @@ function _clFocusControl(fromEl) {
 // Tab → next group tab; Shift+Tab → prev group tab (wraps: Tags→Info, Info→Tags)
 function _clSwitchGroupTab(dir) {
   if (_clTab < 0 || !_clSchema) return;
-  const allTabs = ['Info', ..._clSchema.groups, 'Tags'];
+  const allTabs = ['Info', ..._clSchema.groups, 'Vitals', 'Tags'];
   const cur = _clGroupTab[_clTab] || _clSchema.groups[0];
   const idx = allTabs.indexOf(cur === undefined ? '' : cur);
   const next = (idx + dir + allTabs.length) % allTabs.length;
@@ -600,4 +622,12 @@ function _clSwitchGroupTab(dir) {
 function _toKey(head) {
   // Convert "Head Name" → "head_name" for storage key
   return head.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+/* ── Debounced auto-save (called from field change handlers) ─────────────── */
+let _clSaveTimer = null;
+function _clAutoSave() {
+  _clReapplyConditionals();   // immediate UI update (freeze/unfreeze dependent fields)
+  clearTimeout(_clSaveTimer);
+  _clSaveTimer = setTimeout(() => { saveTrades().catch(() => {}); }, 1500);
 }

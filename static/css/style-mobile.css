@@ -240,15 +240,10 @@
     display: none !important;
   }
 
-  /* Dev log button — icon only */
+  /* Dev log button */
   #dev-log-btn {
     padding: 7px 10px;
-    font-size: 0;
-  }
-  #dev-log-btn::before {
-    content: "\1F4D3";
-    font-size: 0.95rem;
-    line-height: 1;
+    font-size: 0.82rem;
   }
 
   /* Consolidated button — icon only */
@@ -337,6 +332,46 @@
     left: 0;
   }
 
+  .quote-modal-body {
+    padding: 14px;
+  }
+
+  .quote-card {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-nav-btn {
+    min-height: 42px;
+  }
+
+  .quote-text {
+    min-height: 110px;
+    padding-top: 18px;
+  }
+
+  .quote-header-tools {
+    margin-right: 0;
+  }
+
+  .quote-modal-header {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .quote-scheduler-inline-btn {
+    margin-right: 0;
+  }
+
+  .quote-rating-inline {
+    min-width: 100%;
+    order: 2;
+  }
+
+  .quote-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   /* But right-aligned ones (from right side of screen) stay right */
   #file-dropdown-menu,
   #add-dropdown-menu,
@@ -397,6 +432,18 @@
 
   .dash-value {
     font-size: 0.95rem;
+  }
+
+  .quote-modal-content {
+    width: 96vw;
+  }
+
+  .quote-card-main {
+    padding: 24px 14px 16px;
+  }
+
+  .quote-text {
+    font-size: 1rem;
   }
 
   /* Table section header stacks */

@@ -33,6 +33,7 @@ function _renderFormFields(container, trade, activeGrp) {
 
     const wrap = document.createElement('div');
     wrap.className = 'cl-field-wrap';
+    wrap.dataset.clFieldKey = fieldKey;   // used by conditional freeze
 
     const row = document.createElement('div');
     row.className = 'cl-field-row';
@@ -72,6 +73,9 @@ function _renderFormFields(container, trade, activeGrp) {
     wrap.appendChild(row);
     container.appendChild(wrap);
   });
+
+  // Apply conditional freeze rules on initial render
+  _clApplyConditionals(groupKey, saved);
 }
 
 /* ── Field constructors ───────────────────────────────────────────────────── */
@@ -90,6 +94,7 @@ function _makeSwitch(key, val, saved) {
       btns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       saved[key] = opt;
+      _clAutoSave();
     };
     btn.addEventListener('click', activate);
     btn.addEventListener('keydown', e => {
@@ -119,7 +124,7 @@ function _makeInput(key, val, saved) {
   inp.className = 'cl-input';
   inp.value = val;
   inp.dataset.clCtrl = 'input';
-  inp.addEventListener('input', () => { saved[key] = inp.value; });
+  inp.addEventListener('input', () => { saved[key] = inp.value; _clAutoSave(); });
   inp.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); _clNavigate(+1, inp); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); _clNavigate(-1, inp); }
@@ -141,7 +146,7 @@ function _makeDropdown(key, val, options, saved) {
     sel.appendChild(o);
   });
   let _open = false;
-  sel.addEventListener('change', () => { saved[key] = sel.value; _open = false; });
+  sel.addEventListener('change', () => { saved[key] = sel.value; _open = false; _clAutoSave(); });
   sel.addEventListener('blur',   () => { _open = false; });
   sel.addEventListener('keydown', e => {
     if (e.key === ' ' || e.key === 'Enter') {
@@ -169,6 +174,8 @@ function _makeRange(key, val, options, saved) {
 }
 
 function _makeSlider(key, val, min, max, saved) {
+  // Bidirectional slider when range spans negative and positive
+  if (min < 0 && max > 0) return _makeBiSlider(key, val, min, max, saved);
   const wrap = document.createElement('div');
   wrap.className = 'cl-slider-wrap';
 
@@ -176,7 +183,7 @@ function _makeSlider(key, val, min, max, saved) {
   slider.type = 'range';
   slider.className = 'cl-slider';
   slider.min = min; slider.max = max; slider.step = 1;
-  slider.value = val !== '' ? Number(val) : min;
+  slider.value = val !== '' ? Number(val) : 0;
   slider.dataset.clCtrl = 'slider';
 
   const display = document.createElement('span');
@@ -186,6 +193,7 @@ function _makeSlider(key, val, min, max, saved) {
   slider.addEventListener('input', () => {
     display.textContent = slider.value;
     saved[key] = Number(slider.value);
+    _clAutoSave();
   });
   // Down/Up navigate to next/prev field; Left/Right keep native slider increment
   slider.addEventListener('keydown', e => {
@@ -212,6 +220,7 @@ function _makeSegmented(key, val, options, saved) {
       btns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       saved[key] = opt;
+      _clAutoSave();
     };
     btn.addEventListener('click', activate);
     btn.addEventListener('keydown', e => {
@@ -381,6 +390,7 @@ function _renderInfoContent(body, trade) {
   noteArea.addEventListener('input', () => {
     trade['Note'] = noteArea.value;
     trade['note'] = noteArea.value;
+    _clAutoSave();
   });
   wrap.appendChild(noteArea);
 
@@ -412,6 +422,7 @@ function _showObsPopup(btn, obsKey, saved) {
   ta.addEventListener('input', () => {
     saved[obsKey] = ta.value;
     btn.classList.toggle('has-obs', !!ta.value);
+    _clAutoSave();
   });
   // ESC: close popup, return focus to obs button (not the whole modal)
   ta.addEventListener('keydown', e => {

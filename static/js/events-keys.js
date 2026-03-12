@@ -325,9 +325,10 @@ function _bindKeyboardEvents() {
         showGalleryExitConfirm();
       }
     }
-    const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal']
+    const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal', 'quote-modal']
       .some(id => document.getElementById(id)?.classList.contains('open'));
-    if (!typingInField && !galleryOpen && !anyModalOpen && !e.ctrlKey && !e.altKey) {
+    const chartsModalOpen = !!document.querySelector('.clc-backdrop');
+    if (!typingInField && !galleryOpen && !anyModalOpen && !chartsModalOpen && !e.ctrlKey && !e.altKey) {
       if (e.key === 'f' && !e.shiftKey) {
         e.preventDefault();
         document.body.classList.toggle('calendar-full');
@@ -379,6 +380,18 @@ function _bindKeyboardEvents() {
       if (document.getElementById('tag-modal').classList.contains('open')) closeTagPicker();
       if (document.getElementById('img-tag-modal').classList.contains('open')) closeGalleryImageTagManager();
       if (_notePop) closeNotePopup(true);
+      document.getElementById('show-heads-panel').classList.remove('open');
+      closeAllDropdowns('__none__');
+      const pd = document.getElementById('profile-dropdown');
+      if (pd) pd.classList.remove('open');
+      document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
+      const scm = document.getElementById('stats-config-modal');
+      if (scm) scm.classList.remove('open');
+      const shm = document.getElementById('show-heads-modal');
+      if (shm) shm.classList.remove('open');
+      const qm = document.getElementById('quote-modal');
+      if (qm) qm.classList.remove('open');
+      if (typeof closeCsvLogChartsModal === 'function' && document.querySelector('.clc-backdrop')) closeCsvLogChartsModal();
     }
   });
 }

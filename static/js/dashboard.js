@@ -22,23 +22,33 @@ function render() {
 
 function updateCalendarModeButton() {
   const btn = document.getElementById('calendar-mode-btn');
-  if (!btn) return;
-  const consolidated = state.calendarMode === 'consolidated';
-  btn.textContent = consolidated ? 'Consolidated' : 'Individual';
-  btn.style.borderColor = consolidated ? 'var(--blue)' : '';
-  btn.style.color = consolidated ? 'var(--blue)' : '';
+  if (btn) btn.textContent = state.calendarMode === 'consolidated' ? 'Consolidated' : 'Individual';
+  const badge = document.getElementById('profile-view-badge');
+  if (badge) {
+    const consolidated = state.calendarMode === 'consolidated';
+    badge.textContent = consolidated ? 'Consolidated' : 'Individual';
+    badge.style.background = consolidated ? 'rgba(88,166,255,0.12)' : 'rgba(255,166,88,0.12)';
+    badge.style.color = consolidated ? 'var(--blue)' : 'var(--orange, #f0883e)';
+  }
+  document.querySelectorAll('.profile-view-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === state.calendarMode);
+  });
 }
 
 function updateBrokerFilterButton() {
   const map = { both: 'Both', zerodha: 'Zerodha', dhan: 'Dhan' };
   const key = String(state.brokerFilter || 'both').toLowerCase();
-  const labels = `Broker: ${map[key] || 'Both'} ▼`;
-  ['broker-filter-btn-top'].forEach(id => {
-    const btn = document.getElementById(id);
-    if (!btn) return;
-    btn.textContent = labels;
-    btn.style.borderColor = key === 'both' ? '' : 'var(--blue)';
-    btn.style.color = key === 'both' ? '' : 'var(--blue)';
+  const label = map[key] || 'Both';
+  const btn = document.getElementById('broker-filter-btn-top');
+  if (btn) btn.textContent = `Broker: ${label}`;
+  const badge = document.getElementById('profile-broker-badge');
+  if (badge) {
+    badge.textContent = label;
+    badge.style.background = key === 'both' ? 'rgba(88,166,255,0.12)' : 'rgba(88,255,166,0.12)';
+    badge.style.color = key === 'both' ? 'var(--blue)' : 'var(--green)';
+  }
+  document.querySelectorAll('.broker-filter-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.broker === key);
   });
 }
 
@@ -91,11 +101,19 @@ function getTradesForMonth(year, monthIndex) {
   });
 }
 
+function getShowDecimals() {
+  return localStorage.getItem('tj_show_decimals') !== 'false';
+}
+
 function formatCurrency(n) {
-  if (n === null || n === undefined || isNaN(n)) return '\u20B9 0.00';
+  if (n === null || n === undefined || isNaN(n)) return '\u20B9 0';
+  const dec = getShowDecimals();
   const sign = n < 0 ? '-' : '';
   const abs = Math.abs(n);
-  const out = abs.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const out = abs.toLocaleString('en-IN', {
+    minimumFractionDigits: dec ? 2 : 0,
+    maximumFractionDigits: dec ? 2 : 0
+  });
   return `${sign}\u20B9 ${out}`;
 }
 
@@ -111,7 +129,8 @@ function setDashValue(el, n, colorize = true) {
 
 function formatPercent(n) {
   if (n === null || n === undefined || isNaN(n)) return '0%';
-  return `${n.toFixed(1)}%`;
+  const dec = getShowDecimals();
+  return `${dec ? n.toFixed(1) : Math.round(n)}%`;
 }
 
 function formatShortDate(dateStr) {
@@ -336,56 +355,25 @@ function bindDashboardDragDrop() {
 }
 
 function renderDashboardStatsMenu() {
-  const menu = document.getElementById('dashboard-stats-menu');
-  if (!menu) return;
-  menu.innerHTML = '';
+  // no-op: stats now rendered in modal via openStatsConfigModal()
+}
 
-  const map = getDashboardStatsState();
-  const order = getDashboardStatsOrder();
+function openStatsConfigModal() {
+  const modal = document.getElementById('stats-config-modal');
+  if (!modal) return;
 
-  const searchRow = document.createElement('div');
-  searchRow.className = 'panel-search-row';
-  searchRow.style.padding = '8px 10px 0';
-  const searchInp = document.createElement('input');
-  searchInp.className = 'panel-search';
-  searchInp.placeholder = 'Search stats...';
-  searchRow.appendChild(searchInp);
-  menu.appendChild(searchRow);
+  // work on a temp copy — only saved on Apply
+  const tempMap = Object.assign({}, getDashboardStatsState());
+  let tempOrder = [...getDashboardStatsOrder()];
 
-  const actRow = document.createElement('div');
-  actRow.className = 'panel-act-row';
-  actRow.style.padding = '8px 10px 6px';
-  const btnAll = document.createElement('button');
-  btnAll.className = 'panel-act-btn';
-  btnAll.textContent = 'All';
-  const btnNone = document.createElement('button');
-  btnNone.className = 'panel-act-btn';
-  btnNone.textContent = 'None';
-  btnAll.addEventListener('click', () => {
-    DASHBOARD_STATS.forEach(s => { map[s.key] = true; });
-    saveDashboardStatsState(map);
-    renderDashboardStatsMenu();
-    applyDashboardStatVisibility();
-  });
-  btnNone.addEventListener('click', () => {
-    DASHBOARD_STATS.forEach(s => { map[s.key] = false; });
-    saveDashboardStatsState(map);
-    renderDashboardStatsMenu();
-    applyDashboardStatVisibility();
-  });
-  actRow.appendChild(btnAll);
-  actRow.appendChild(btnNone);
-  menu.appendChild(actRow);
-
-  const list = document.createElement('div');
-  list.className = 'panel-list';
-  list.style.padding = '0 10px 8px';
-  menu.appendChild(list);
+  const list = document.getElementById('stats-config-list');
+  const searchInp = document.getElementById('stats-config-search');
+  if (searchInp) searchInp.value = '';
 
   const renderList = (q) => {
     list.innerHTML = '';
     const ql = (q || '').toLowerCase();
-    const items = order
+    const items = tempOrder
       .map(k => DASHBOARD_STATS.find(s => s.key === k))
       .filter(Boolean)
       .filter(s => !ql || s.label.toLowerCase().includes(ql));
@@ -395,23 +383,15 @@ function renderDashboardStatsMenu() {
       row.className = 'head-checkbox';
       row.setAttribute('draggable', 'true');
       row.dataset.stat = s.key;
-      row.style.padding = '4px 0';
-      row.style.cursor = 'grab';
 
       const handle = document.createElement('span');
       handle.textContent = '::';
-      handle.style.marginRight = '8px';
-      handle.style.opacity = '0.6';
-      handle.style.userSelect = 'none';
+      handle.className = 'stats-drag-handle';
 
       const chk = document.createElement('input');
       chk.type = 'checkbox';
-      chk.checked = map[s.key] !== false;
-      chk.addEventListener('change', () => {
-        map[s.key] = chk.checked;
-        saveDashboardStatsState(map);
-        applyDashboardStatVisibility();
-      });
+      chk.checked = tempMap[s.key] !== false;
+      chk.addEventListener('change', () => { tempMap[s.key] = chk.checked; });
 
       const label = document.createElement('span');
       label.textContent = s.label;
@@ -425,7 +405,7 @@ function renderDashboardStatsMenu() {
         row.style.opacity = '0.5';
       });
       row.addEventListener('dragend', () => { row.style.opacity = '1'; });
-      row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '1px dashed var(--border2)'; });
+      row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '2px solid var(--blue)'; });
       row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
       row.addEventListener('drop', e => {
         e.preventDefault();
@@ -433,12 +413,11 @@ function renderDashboardStatsMenu() {
         const from = e.dataTransfer.getData('text/plain');
         const to = s.key;
         if (!from || from === to) return;
-        const newOrder = order.filter(k => k !== from);
+        const newOrder = tempOrder.filter(k => k !== from);
         const toIdx = newOrder.indexOf(to);
         newOrder.splice(toIdx, 0, from);
-        saveDashboardStatsOrder(newOrder);
-        renderList(searchInp.value);
-        applyDashboardStatOrder();
+        tempOrder = newOrder;
+        renderList(searchInp ? searchInp.value : '');
       });
 
       list.appendChild(row);
@@ -446,7 +425,33 @@ function renderDashboardStatsMenu() {
   };
 
   renderList('');
-  searchInp.addEventListener('input', () => renderList(searchInp.value));
+  if (searchInp) searchInp.addEventListener('input', () => renderList(searchInp.value));
+
+  document.getElementById('stats-config-all').onclick = () => {
+    DASHBOARD_STATS.forEach(s => { tempMap[s.key] = true; });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  document.getElementById('stats-config-none').onclick = () => {
+    DASHBOARD_STATS.forEach(s => { tempMap[s.key] = false; });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  const decChk = document.getElementById('stats-decimals-chk');
+  if (decChk) decChk.checked = getShowDecimals();
+
+  document.getElementById('stats-config-apply').onclick = () => {
+    if (decChk) localStorage.setItem('tj_show_decimals', decChk.checked ? 'true' : 'false');
+    saveDashboardStatsState(tempMap);
+    saveDashboardStatsOrder(tempOrder);
+    applyDashboardStatVisibility();
+    applyDashboardStatOrder();
+    renderDashboard();
+    renderCalendar();
+    modal.classList.remove('open');
+  };
+  document.getElementById('stats-config-cancel').onclick = () => modal.classList.remove('open');
+  document.getElementById('stats-config-close').onclick  = () => modal.classList.remove('open');
+
+  modal.classList.add('open');
 }
 
 

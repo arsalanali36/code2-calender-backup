@@ -7,7 +7,7 @@ Routes for CSVLog schema management.
 """
 import os
 from flask import Blueprint, request, jsonify, send_file
-from services.csvlog_service import load_schema, export_csvlog_excel
+from services.csvlog_service import load_schema, export_csvlog_excel, generate_logger_template
 from processors.data_processors import load_trades
 from config import CSVLOG_SCHEMA_FILE
 
@@ -50,6 +50,17 @@ def download_schema():
         return jsonify({'error': 'no_file'}), 404
     return send_file(CSVLOG_SCHEMA_FILE, as_attachment=True,
                      download_name='LOGGER_schema.xlsx')
+
+
+@csvlog_bp.route('/api/csvlog-download-template', methods=['GET'])
+def download_template():
+    """Download a protected LOGGER.xlsx template (preserves existing schema + adds Body Vitals)."""
+    out, err = generate_logger_template(CSVLOG_SCHEMA_FILE)
+    if err:
+        return jsonify({'error': err}), 500
+    return send_file(out, as_attachment=True,
+                     download_name='LOGGER_template.xlsx',
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
 @csvlog_bp.route('/api/csvlog-export', methods=['GET'])

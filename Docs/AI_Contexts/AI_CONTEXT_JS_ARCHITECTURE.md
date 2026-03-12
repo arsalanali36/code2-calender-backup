@@ -41,6 +41,14 @@ Files dealing with the custom Fabric.js based annotation canvas overlay on top o
 *   **`events-settings.js`**: Global sizing modifiers (fonts, UI resizing sliders).
 *   **`events-gallery.js`**: Dropdowns and generic interactions for gallery specifically.
 
+### 3.5. CSVLog & Quotes Workspace
+*   **`csvlog.js`**: Main CSVLog modal lifecycle, day/trade navigation, save/reset orchestration.
+*   **`csvlog-fields.js`**: Schema-driven CSVLog field rendering helpers for switch, dropdown, range, and input controls.
+*   **`csvlog-vitals.js`**: CSVLog vitals-focused helper module reserved for per-trade stat rendering/extensions.
+*   **`csvlog-placeholder.js`**: Placeholder/empty-state support for CSVLog modular expansion.
+*   **`csvlog-charts.js`**: CSVLog analytics modal with slider drilldowns, occurrence views, field pickers, popup filtering, and resizable chart tables.
+*   **`quotes.js`**: Daily Quotes modal with CSV import/export, quote carousel, ratings, random popup scheduling, and font-size controls.
+
 ### 4. Gallery Logic (Modularized Viewers)
 *   **`gallery-core.js`**: Helper methods defining filter scope.
     *   `_getTagsForImageUrl`, `applyGalleryImageScopeByTagFilter`

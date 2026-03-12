@@ -151,6 +151,8 @@ function isUiBusyForSync() {
   if (annotState.active) return true;
   if (document.getElementById('obs-modal')?.classList.contains('open')) return true;
   if (document.getElementById('upload-modal')?.classList.contains('open')) return true;
+  if (document.getElementById('quote-modal')?.classList.contains('open')) return true;
+  if (document.querySelector('.clc-backdrop')) return true;
   if (document.getElementById('tag-modal')?.classList.contains('open')) return true;
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) return true;
   if (document.getElementById('gallery-modal')?.classList.contains('open')) return true;

@@ -46,21 +46,90 @@
     </div>
 
     <div class="header-actions">
-      <div class="dropdown-wrapper">
-        <button class="btn btn-outline" id="broker-filter-btn-top">Broker: Both &#9660;</button>
-        <div class="dropdown-menu" id="broker-filter-menu-top">
-          <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
-          <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
-          <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
+      <!-- Hidden: kept for JS compatibility -->
+      <button id="calendar-mode-btn" style="display:none">Consolidated</button>
+      <button id="broker-filter-btn-top" style="display:none">Broker: Both</button>
+      <div id="broker-filter-menu-top" style="display:none">
+        <button class="broker-filter-item" data-broker="both">Both</button>
+        <button class="broker-filter-item" data-broker="zerodha">Zerodha</button>
+        <button class="broker-filter-item" data-broker="dhan">Dhan</button>
+      </div>
+
+      <!-- Hidden: settings-btn kept for JS that references it -->
+      <button id="settings-btn" style="display:none"></button>
+
+      <div class="quote-random-wrap" id="quote-random-wrap">
+        <button class="btn btn-outline quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup">Quote Pop</button>
+        <div class="quote-random-panel" id="quote-random-panel">
+          <label class="quote-random-toggle">
+            <input type="checkbox" id="quote-random-enabled" />
+            Auto popup
+          </label>
+          <div class="quote-random-min-row">
+            <span>Min</span>
+            <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
+            <span>min</span>
+          </div>
         </div>
       </div>
-      <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
-      <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
-      <a href="/updates" id="dev-log-btn" class="btn btn-outline" title="Dev Journal" target="_blank"
-        style="text-decoration:none;">&#128211; Dev Log</a>
+
       {% if current_user.is_authenticated %}
-      <a href="{{ url_for('auth.logout') }}" class="btn btn-outline" title="Sign Out"
-        style="text-decoration:none; border-color: #f85149; color: #f85149;">Sign Out</a>
+      <div class="profile-menu-wrapper" id="profile-menu-wrapper">
+        <button class="profile-avatar-btn" id="profile-avatar-btn">
+          <img src="/static/img/logo.png" class="profile-avatar-img" alt="avatar" />
+        </button>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div class="profile-user-info">
+            <img src="/static/img/logo.png" class="profile-user-avatar" alt="avatar" />
+            <span class="profile-email">{{ current_user.email }}</span>
+          </div>
+          <div class="profile-divider"></div>
+
+          <button class="profile-menu-item" id="profile-settings-btn">
+            <span class="pmi-icon">&#9881;</span> Settings
+          </button>
+
+          <button class="profile-menu-item" id="profile-quote-btn">
+            <span class="pmi-icon">&#10077;</span> Quote
+          </button>
+
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
+
+          <!-- Broker inline dropdown -->
+          <div class="profile-inline-group" id="profile-broker-group">
+            <div class="profile-menu-item profile-inline-trigger" id="profile-broker-trigger">
+              <span class="pmi-icon">&#9632;</span>
+              <span>Broker</span>
+              <span class="pmi-badge" id="profile-broker-badge">Zerodha</span>
+              <span class="pmi-arrow" id="profile-broker-arrow">&#9660;</span>
+            </div>
+            <div class="profile-inline-dropdown" id="profile-broker-dropdown">
+              <button class="profile-sub-item broker-filter-item" data-broker="both">Both</button>
+              <button class="profile-sub-item broker-filter-item" data-broker="zerodha">Zerodha</button>
+              <button class="profile-sub-item broker-filter-item" data-broker="dhan">Dhan</button>
+            </div>
+          </div>
+
+          <!-- View inline dropdown -->
+          <div class="profile-inline-group" id="profile-view-group">
+            <div class="profile-menu-item profile-inline-trigger" id="profile-view-trigger">
+              <span class="pmi-icon">&#9635;</span>
+              <span>View</span>
+              <span class="pmi-badge" id="profile-view-badge">Consolidated</span>
+              <span class="pmi-arrow" id="profile-view-arrow">&#9660;</span>
+            </div>
+            <div class="profile-inline-dropdown" id="profile-view-dropdown">
+              <button class="profile-sub-item profile-view-item" data-view="consolidated">Consolidated</button>
+              <button class="profile-sub-item profile-view-item" data-view="individual">Individual</button>
+            </div>
+          </div>
+
+          <div class="profile-divider"></div>
+          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item profile-signout">
+            &#8617; Sign Out
+          </a>
+        </div>
+      </div>
       {% endif %}
     </div>
   </header>
@@ -70,7 +139,6 @@
     <!-- â”€â”€ CALENDAR SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section calendar-section">
       <div class="section-header" style="justify-content: flex-end;">
-
         <div class="show-heads-wrapper">
           <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
           <div class="show-heads-panel" id="show-heads-panel">
@@ -104,7 +172,6 @@
         <div class="dashboard-actions">
           <div class="dropdown-wrapper">
             <button class="btn btn-outline" id="dashboard-stats-btn">Stats &#9660;</button>
-            <div class="dropdown-menu" id="dashboard-stats-menu"></div>
           </div>
         </div>
       </div>
@@ -244,6 +311,8 @@
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
           <button class="btn btn-outline" id="csvlog-toolbar-btn"
             title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
+          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn"
+            title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
           <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202;
             Review</button>
           <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221;
@@ -360,6 +429,7 @@
   <script src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
   <script src="/static/js/services/csvlogService.js?v={{ cache_bust }}"></script>
   <script src="/static/js/state.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/quotes.js?v={{ cache_bust }}"></script>
   <script src="/static/js/data.js?v={{ cache_bust }}"></script>
   <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
   <script src="/static/js/dashboard.js?v={{ cache_bust }}"></script>
@@ -395,6 +465,9 @@
   <script src="/static/js/csvlog-img.js?v={{ cache_bust }}"></script>
   <script src="/static/js/csvlog-fields.js?v={{ cache_bust }}"></script>
   <script src="/static/js/csvlog-day.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-vitals.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-placeholder.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-charts.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>

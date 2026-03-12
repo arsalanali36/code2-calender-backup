@@ -223,6 +223,82 @@ function renderShowHeads() {
   });
 }
 
+function openShowHeadsModal() {
+  const modal = document.getElementById('show-heads-modal');
+  if (!modal) return;
+
+  const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+  const isConsolidated = state.calendarMode === 'consolidated';
+
+  // title badge
+  const title = document.getElementById('show-heads-modal-title');
+  if (title) {
+    title.textContent = isConsolidated ? 'Show Heads — Consolidated' : 'Show Heads — Individual';
+    title.style.color = isConsolidated ? 'var(--blue)' : 'var(--green)';
+  }
+
+  // work on a temp copy
+  const src = getActiveShowHeads();
+  const tempHeads = Object.assign({}, src);
+
+  const list = document.getElementById('show-heads-modal-list');
+  const searchInp = document.getElementById('show-heads-modal-search');
+  if (searchInp) searchInp.value = '';
+
+  const renderList = (q) => {
+    list.innerHTML = '';
+    const ql = (q || '').toLowerCase();
+    cols.filter(c => !ql || c.toLowerCase().includes(ql)).forEach(col => {
+      const lbl = document.createElement('label');
+      lbl.className = 'head-checkbox';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = !!tempHeads[col];
+      chk.addEventListener('change', () => { tempHeads[col] = chk.checked; });
+      lbl.appendChild(chk);
+      lbl.appendChild(document.createTextNode(col));
+      list.appendChild(lbl);
+    });
+  };
+
+  if (!cols.length) {
+    list.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>';
+  } else {
+    renderList('');
+    if (searchInp) searchInp.addEventListener('input', () => renderList(searchInp.value));
+  }
+
+  document.getElementById('show-heads-modal-all').onclick = () => {
+    cols.forEach(c => { tempHeads[c] = true; });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  document.getElementById('show-heads-modal-none').onclick = () => {
+    cols.forEach(c => { tempHeads[c] = false; });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  document.getElementById('show-heads-modal-pl').onclick = () => {
+    cols.forEach(c => { tempHeads[c] = isDefaultShowHeadCol(c); });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  const decChk = document.getElementById('show-heads-decimals-chk');
+  if (decChk) decChk.checked = getShowDecimals();
+
+  document.getElementById('show-heads-modal-apply').onclick = () => {
+    if (decChk) localStorage.setItem('tj_show_decimals', decChk.checked ? 'true' : 'false');
+    Object.assign(src, tempHeads);
+    saveShowHeads();
+    renderShowHeads();
+    renderCalendar();
+    renderDashboard();
+    if (typeof renderGalleryStats === 'function') renderGalleryStats();
+    modal.classList.remove('open');
+  };
+  document.getElementById('show-heads-modal-cancel').onclick = () => modal.classList.remove('open');
+  document.getElementById('show-heads-modal-close').onclick  = () => modal.classList.remove('open');
+
+  modal.classList.add('open');
+}
+
 function initTableShowCols() {
   const allCols = [...state.columns];
   if (!allCols.some(c => c.toLowerCase() === 'thumbnail') && !allCols.some(c => c.toLowerCase() === 'images')) {
