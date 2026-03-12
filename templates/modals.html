@@ -317,8 +317,15 @@
         <span class="quote-modal-counter" id="quote-modal-counter">1 / 1</span>
       </div>
       <div class="quote-header-tools">
-        <button class="quote-font-btn" id="quote-font-minus" title="Decrease quote font">-</button>
-        <button class="quote-font-btn" id="quote-font-plus" title="Increase quote font">+</button>
+        <div class="quote-tools-menu-wrap">
+          <button class="quote-tools-btn" id="quote-tools-btn" title="Quote options">Options &#9662;</button>
+          <div class="quote-tools-menu" id="quote-tools-menu">
+            <button class="quote-tools-menu-item" id="quote-font-minus" type="button">A-</button>
+            <button class="quote-tools-menu-item" id="quote-font-plus" type="button">A+</button>
+            <button class="quote-tools-menu-item" id="quote-upload-btn" type="button">&#8679; Upload CSV</button>
+            <button class="quote-tools-menu-item primary" id="quote-download-btn" type="button">&#8681; Download CSV</button>
+          </div>
+        </div>
       </div>
       <button class="close-btn" id="quote-modal-close">&#10005;</button>
     </div>
@@ -339,8 +346,6 @@
               <input type="range" id="quote-rating-slider" min="1" max="10" step="1" value="5" />
               <span id="quote-rating-value">5 / 10</span>
             </div>
-            <button class="btn btn-outline" id="quote-upload-btn">&#8679; Upload CSV</button>
-            <button class="btn btn-primary" id="quote-download-btn">&#8681; Download CSV</button>
             <input type="file" id="quote-csv-input" accept=".csv,text/csv" style="display:none" />
           </div>
         </div>

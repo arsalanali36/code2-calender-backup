@@ -8,6 +8,7 @@ const QUOTE_STORAGE_KEY = 'tj_quotes';
 const QUOTE_INDEX_KEY = 'tj_quote_index';
 const QUOTE_RATINGS_KEY = 'tj_quote_ratings';
 const QUOTE_FONT_SIZE_KEY = 'tj_quote_font_size';
+const QUOTE_AUTO_POPUP_KEY = 'tj_quote_auto_popup';
 const DEFAULT_QUOTES = [
   {
     Quote: 'Market me sabse bada edge discipline hai, indicator nahi.',
@@ -45,6 +46,8 @@ function initializeQuotesFeature() {
   const csvInput = document.getElementById('quote-csv-input');
   const fontMinusBtn = document.getElementById('quote-font-minus');
   const fontPlusBtn = document.getElementById('quote-font-plus');
+  const toolsBtn = document.getElementById('quote-tools-btn');
+  const toolsMenu = document.getElementById('quote-tools-menu');
   const randomLaunchBtn = document.getElementById('quote-random-launch-btn');
   const randomPanel = document.getElementById('quote-random-panel');
   const randomEnabled = document.getElementById('quote-random-enabled');
@@ -77,6 +80,13 @@ function initializeQuotesFeature() {
   if (downloadBtn) downloadBtn.addEventListener('click', downloadQuotesCsv);
   if (fontMinusBtn) fontMinusBtn.addEventListener('click', () => adjustQuoteFontSize(-0.08));
   if (fontPlusBtn) fontPlusBtn.addEventListener('click', () => adjustQuoteFontSize(0.08));
+  if (toolsBtn && toolsMenu) {
+    toolsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      toolsMenu.classList.toggle('open');
+    });
+    toolsMenu.addEventListener('click', e => e.stopPropagation());
+  }
   if (randomLaunchBtn && randomPanel) {
     randomLaunchBtn.addEventListener('click', e => {
       e.stopPropagation();
@@ -94,6 +104,7 @@ function initializeQuotesFeature() {
     randomEnabled.checked = !!state.quoteAutoPopup.enabled;
     randomEnabled.addEventListener('change', () => {
       state.quoteAutoPopup.enabled = !!randomEnabled.checked;
+      saveQuoteAutoPopup();
       syncQuoteAutoPopup();
     });
   }
@@ -103,6 +114,7 @@ function initializeQuotesFeature() {
       const nextMinutes = Math.max(1, Math.min(180, parseInt(randomMinutes.value || '15', 10) || 15));
       state.quoteAutoPopup.minMinutes = nextMinutes;
       randomMinutes.value = String(nextMinutes);
+      saveQuoteAutoPopup();
       if (state.quoteAutoPopup.enabled) syncQuoteAutoPopup(true);
     });
   }
@@ -122,6 +134,7 @@ function initializeQuotesFeature() {
   });
   document.addEventListener('click', () => {
     if (randomPanel) randomPanel.classList.remove('open');
+    if (toolsMenu) toolsMenu.classList.remove('open');
   });
 
   renderQuoteModal();
@@ -144,6 +157,14 @@ function loadQuotesFromStorage() {
   } catch (e) {
     state.quoteRatings = {};
   }
+  try {
+    const popupCfg = JSON.parse(localStorage.getItem(QUOTE_AUTO_POPUP_KEY) || 'null');
+    state.quoteAutoPopup.enabled = popupCfg?.enabled !== false;
+    state.quoteAutoPopup.minMinutes = Math.max(1, Math.min(180, parseInt(popupCfg?.minMinutes || 15, 10) || 15));
+  } catch (e) {
+    state.quoteAutoPopup.enabled = true;
+    state.quoteAutoPopup.minMinutes = 15;
+  }
 
   const maxIndex = Math.max(0, state.quotes.length - 1);
   const savedIndex = parseInt(localStorage.getItem(QUOTE_INDEX_KEY) || '0', 10);
@@ -158,6 +179,13 @@ function saveQuotesToStorage() {
 
 function saveQuoteRatings() {
   localStorage.setItem(QUOTE_RATINGS_KEY, JSON.stringify(state.quoteRatings || {}));
+}
+
+function saveQuoteAutoPopup() {
+  localStorage.setItem(QUOTE_AUTO_POPUP_KEY, JSON.stringify({
+    enabled: !!state.quoteAutoPopup.enabled,
+    minMinutes: Math.max(1, Math.min(180, parseInt(state.quoteAutoPopup.minMinutes || 15, 10) || 15))
+  }));
 }
 
 function normalizeQuoteRow(row) {
@@ -435,9 +463,11 @@ function toggleQuoteAutoPopupFromButton() {
     const nextMinutes = Math.max(1, Math.min(180, parseInt(answer || String(current), 10) || current));
     state.quoteAutoPopup.minMinutes = nextMinutes;
     state.quoteAutoPopup.enabled = true;
+    saveQuoteAutoPopup();
     showToast(`Auto popup on: minimum ${nextMinutes} min`, 'success');
   } else {
     state.quoteAutoPopup.enabled = false;
+    saveQuoteAutoPopup();
     showToast('Auto popup off', 'success');
   }
   syncQuoteAutoPopup(true);

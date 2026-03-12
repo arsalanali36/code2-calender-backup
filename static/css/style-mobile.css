@@ -353,6 +353,12 @@
     margin-right: 0;
   }
 
+  .quote-tools-menu {
+    right: 0;
+    left: auto;
+    min-width: 160px;
+  }
+
   .quote-modal-header {
     gap: 8px;
     flex-wrap: wrap;
@@ -365,11 +371,6 @@
   .quote-rating-inline {
     min-width: 100%;
     order: 2;
-  }
-
-  .quote-actions .btn {
-    width: 100%;
-    justify-content: center;
   }
 
   /* But right-aligned ones (from right side of screen) stay right */

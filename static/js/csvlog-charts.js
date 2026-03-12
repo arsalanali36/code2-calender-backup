@@ -15,7 +15,7 @@ let _clChartsActiveSliderKey = '';
 let _clChartsAltViewModes = { options: 'view1', yn: 'view1' };
 
 const _CL_CHARTS_POPUP_COLS_KEY = 'tj_csvlog_chart_popup_cols';
-const _CL_CHARTS_DEFAULT_POPUP_COLS = ['date', 'instrument', 'tradeType', 'pnl', 'points', 'selectedValue'];
+const _CL_CHARTS_DEFAULT_POPUP_COLS = ['date', 'instrument', 'tradeType', 'pnl', 'points'];
 const _CL_CHARTS_VISIBLE_FIELDS_KEY = 'tj_csvlog_charts_visible_fields';
 const _CL_CHARTS_SLIDER_VIEW_KEY = 'tj_csvlog_slider_view_mode';
 const _CL_CHARTS_SLIDER_WIDTHS_KEY = 'tj_csvlog_slider_col_widths';
@@ -63,13 +63,12 @@ async function openCsvLogChartsModal() {
         </div>
         <div class="clc-main">
           <div class="clc-toolbar">
-            <div>
+            <div class="clc-toolbar-copy">
               <div class="clc-toolbar-title" id="clc-toolbar-title">Sliders by Date</div>
               <div class="clc-toolbar-meta" id="clc-toolbar-meta"></div>
             </div>
             <div class="clc-toolbar-right">
               <label class="clc-view-wrap" id="clc-view-wrap">
-                <span>View</span>
                 <select id="clc-view-mode" class="clc-view-select">
                   <option value="compact">Compact</option>
                   <option value="detailed">Detailed</option>
@@ -187,6 +186,7 @@ function _clChartsRender() {
     toolbarMeta.textContent = `${rows.length} trade entries • ${catalog.sliders.length} sliders • ${catalog.options.length} options • ${catalog.yn.length} y/n`;
   }
 
+  if (toolbarMeta) toolbarMeta.textContent = '';
   const content = _clChartsBackdrop.querySelector('#clc-content');
   if (!content) return;
   content.innerHTML = '';
@@ -298,8 +298,7 @@ function _clChartsRenderSliders(content, rows, fields) {
   wrap.appendChild(tabs);
 
   const card = document.createElement('div');
-  card.className = 'clc-card';
-  card.innerHTML = `<div class="clc-card-hdr">${activeCol.toolbarTitle}</div>`;
+  card.className = 'clc-card clc-slider-card';
 
   const tableWrap = document.createElement('div');
   tableWrap.className = 'clc-grid-wrap clc-grid-wrap-slider';
@@ -632,7 +631,7 @@ function _clChartsRenderPopup() {
   });
 
   const picker = popup.querySelector('#clc-popup-field-picker');
-  Object.entries(_clChartsPopupColumnMap()).forEach(([key, meta]) => {
+  Object.entries(_clChartsPopupColumnMap()).filter(([key]) => key !== 'selectedValue').forEach(([key, meta]) => {
     const item = document.createElement('label');
     item.className = 'clc-popup-field-item';
     item.innerHTML = `<input type="checkbox" ${popupCols.includes(key) ? 'checked' : ''} /> <span>${meta.label}</span>`;
@@ -663,7 +662,10 @@ function _clChartsPopupColumnMap() {
 function _clChartsGetPopupVisibleCols() {
   try {
     const parsed = JSON.parse(localStorage.getItem(_CL_CHARTS_POPUP_COLS_KEY) || 'null');
-    if (Array.isArray(parsed) && parsed.length) return parsed.filter(key => _clChartsPopupColumnMap()[key]);
+    if (Array.isArray(parsed) && parsed.length) {
+      const filtered = parsed.filter(key => _clChartsPopupColumnMap()[key] && key !== 'selectedValue');
+      if (filtered.length) return filtered;
+    }
   } catch (e) { }
   return [..._CL_CHARTS_DEFAULT_POPUP_COLS];
 }
@@ -747,7 +749,7 @@ function _clChartsBuildSliderTd(dateRows, field, date, tone) {
   const span = Math.max(1, max - min);
   const avg = values.reduce((a, b) => a + b, 0) / values.length;
   const fillPct = Math.max(0, Math.min(100, ((avg - min) / span) * 100));
-  const displayValue = String(Math.round(avg * 10) / 10);
+  const displayValue = String(Math.round(avg));
   td.innerHTML = `
     <button class="clc-slider-bar-btn ${tone} ${_clChartsSliderViewMode}">
       <span class="clc-slider-bar-track">
@@ -804,7 +806,7 @@ function _clChartsBuildPairedSliderTd(dateRows, col, date) {
     const span = Math.max(1, max - min);
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const fillPct = Math.max(0, Math.min(100, ((avg - min) / span) * 100));
-    const displayValue = String(Math.round(avg * 10) / 10);
+    const displayValue = String(Math.round(avg));
     btn.querySelector('.clc-slider-bar-fill').style.width = `${fillPct}%`;
     btn.querySelector('.clc-slider-bar-val').textContent = displayValue;
     btn.querySelector('.clc-slider-bar-track-val').textContent = displayValue;

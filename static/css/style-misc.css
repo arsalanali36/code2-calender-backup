@@ -165,6 +165,76 @@
   margin-right: 10px;
 }
 
+.quote-tools-menu-wrap {
+  position: relative;
+}
+
+.quote-tools-btn {
+  min-width: 104px;
+  height: 34px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.86rem;
+  cursor: pointer;
+  padding: 0 12px;
+}
+
+.quote-tools-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.quote-tools-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: #1b2232;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.42);
+  z-index: 20;
+}
+
+.quote-tools-menu.open {
+  display: flex;
+}
+
+.quote-tools-menu-item {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.quote-tools-menu-item:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.quote-tools-menu-item.primary {
+  background: rgba(88, 166, 255, 0.92);
+  border-color: rgba(88, 166, 255, 0.92);
+  color: #fff;
+}
+
+.quote-tools-menu-item.primary:hover {
+  color: #fff;
+  filter: brightness(1.05);
+}
+
 .quote-modal-title-wrap {
   display: flex;
   flex-direction: column;
@@ -180,23 +250,6 @@
 .quote-modal-counter {
   font-size: 0.78rem;
   color: var(--text2);
-}
-
-.quote-font-btn {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  background: var(--surface2);
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.quote-font-btn:hover {
-  border-color: var(--blue);
-  color: var(--blue);
 }
 
 .quote-modal-body {
@@ -261,7 +314,7 @@
 .quote-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 10px;
   flex-wrap: wrap;
 }
