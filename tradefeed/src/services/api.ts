@@ -1,44 +1,6 @@
 import { Trade, TradeSession, TradeType, BlogPost } from '../types';
 
-const isProd = typeof window !== 'undefined' && !['localhost', '127.0.0.1'].includes(window.location.hostname) && !window.location.hostname.startsWith('192.168');
-const defaultUrl = isProd ? 'https://code2-calender.onrender.com' : 'http://localhost:5000';
-const BASE_URL = import.meta.env.VITE_API_URL || defaultUrl;
-
-// ── Auth token helpers ────────────────────────────────────────────────────────
-export const getToken  = () => localStorage.getItem('tf_token');
-export const setToken  = (t: string) => localStorage.setItem('tf_token', t);
-export const clearToken = () => localStorage.removeItem('tf_token');
-
-function authHeaders(): Record<string, string> {
-  const token = getToken();
-  return token
-    ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' };
-}
-
-export async function apiLogin(email: string, password: string): Promise<{ token: string; email: string }> {
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) throw new Error('Invalid credentials');
-  return res.json();
-}
-
-export async function checkAuth(): Promise<{ email: string; id: number } | null> {
-  const token = getToken();
-  if (!token) return null;
-  try {
-    const res = await fetch(`${BASE_URL}/api/auth/me`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!res.ok) { clearToken(); return null; }
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Groups whose tags count as emotions
 const EMOTION_GROUPS = ['emotions', 'emotion'];
@@ -112,7 +74,7 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
 }
 
 export async function fetchTrades(): Promise<Trade[]> {
-  const res = await fetch(`${BASE_URL}/api/trades`, { headers: authHeaders() });
+  const res = await fetch(`${BASE_URL}/api/trades`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
   const trades: Record<string, unknown>[] = data.trades || [];
@@ -124,7 +86,7 @@ export async function fetchTrades(): Promise<Trade[]> {
 }
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
-  const res = await fetch(`${BASE_URL}/api/blog-posts`, { headers: authHeaders() });
+  const res = await fetch(`${BASE_URL}/api/blog-posts`);
   if (!res.ok) throw new Error(`Blog API error: ${res.status}`);
   return res.json();
 }

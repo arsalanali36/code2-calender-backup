@@ -62,19 +62,9 @@ def add_cors(response):
 
 @app.before_request
 def require_login():
-    if request.method == 'OPTIONS':
-        return  # Allow preflight CORS requests unconditionally
     from flask_login import current_user
-    from services.token_service import verify_token
-    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password',
-                         'auth.api_login', 'auth.api_me', 'static', 'options_handler',
-                         'image.uploaded_file']
+    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler']
     if request.endpoint and request.endpoint not in allowed_endpoints:
-        # Bearer token check (for cross-origin frontends like tradefeed)
-        auth_header = request.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            if verify_token(auth_header[7:]):
-                return  # authorized via token
         if not current_user.is_authenticated:
             if request.path.startswith('/api/'):
                 return {'error': 'Unauthorized'}, 401

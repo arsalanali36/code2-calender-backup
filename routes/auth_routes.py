@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
-from services.token_service import create_token, verify_token
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -68,32 +67,6 @@ def register():
         return redirect(url_for('page.index'))
 
     return render_template('register.html')
-
-@auth_bp.route('/api/auth/login', methods=['POST'])
-def api_login():
-    """JSON login for cross-origin frontends (tradefeed). Returns a Bearer token."""
-    data = request.json or {}
-    email = data.get('email', '')
-    password = data.get('password', '')
-    user = User.query.filter_by(email=email).first()
-    if user and user.check_password(password):
-        token = create_token(user.id)
-        return jsonify({'token': token, 'email': user.email})
-    return jsonify({'error': 'Invalid credentials'}), 401
-
-
-@auth_bp.route('/api/auth/me')
-def api_me():
-    """Validate a Bearer token and return user info."""
-    auth_header = request.headers.get('Authorization', '')
-    if auth_header.startswith('Bearer '):
-        user_id = verify_token(auth_header[7:])
-        if user_id:
-            user = db.session.get(User, user_id)
-            if user:
-                return jsonify({'email': user.email, 'id': user.id})
-    return jsonify({'error': 'Unauthorized'}), 401
-
 
 @auth_bp.route('/logout')
 @login_required

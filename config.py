@@ -29,8 +29,3 @@ DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', '
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-for-dev-fallback')
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'data', 'users.db'))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-# ── Cloudinary (optional — set CLOUDINARY_URL on Render for cloud image storage) ──
-# Format: cloudinary://api_key:api_secret@cloud_name
-CLOUDINARY_URL = os.getenv('CLOUDINARY_URL', '')
-USE_CLOUDINARY  = bool(CLOUDINARY_URL)

@@ -7,14 +7,13 @@ import React, { useState, useEffect } from 'react';
 import { FeedView } from './components/FeedView';
 import { BlogView } from './components/BlogView';
 import { BottomNav } from './components/BottomNav';
-import { LoginScreen } from './components/LoginScreen';
 import { ViewType, Trade } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlusSquare, Grid3X3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageImport } from './components/ImageImport';
 import { Tagger } from './components/Tagger';
 import { TradeLogger } from './components/TradeLogger';
-import { fetchTrades, checkAuth, clearToken } from './services/api';
+import { fetchTrades } from './services/api';
 
 const CalendarView = ({ trades }: { trades: Trade[] }) => {
   const today = new Date();
@@ -429,37 +428,16 @@ const GalleryView = ({ trades }: { trades: Trade[] }) => {
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('feed');
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [authEmail, setAuthEmail] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    fetchTrades()
+      .then(setTrades)
+      .catch(err => console.error('Failed to load trades:', err));
+  }, []);
+  
+  // Creation Flow State
   const [creationImages, setCreationImages] = useState<string[]>([]);
   const [creationTags, setCreationTags] = useState<{ emotion: string[], strategy: string[], mistake: string[] }>({ emotion: [], strategy: [], mistake: [] });
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
-  // Check stored token on mount
-  useEffect(() => {
-    checkAuth().then(user => {
-      if (user) setAuthEmail(user.email);
-      setAuthChecked(true);
-    });
-  }, []);
-
-  // Load trades once authenticated
-  useEffect(() => {
-    if (!authEmail) return;
-    fetchTrades()
-      .then(data => { setTrades(data); setFetchError(null); })
-      .catch(err => setFetchError(String(err)));
-  }, [authEmail]);
-
-  if (!authChecked) {
-    return <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-700 rounded-full animate-spin" />
-    </div>;
-  }
-
-  if (!authEmail) {
-    return <LoginScreen onLogin={email => setAuthEmail(email)} />;
-  }
 
   const handleSaveTrade = (tradeData: Partial<Trade>) => {
     const newTrade: Trade = {
@@ -536,11 +514,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      {fetchError && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-rose-50 border-b border-rose-200 px-4 py-2 text-xs text-rose-700 font-mono break-all">
-          ⚠ {fetchError}
-        </div>
-      )}
       {/* Main Content Area */}
       <main className="relative z-10">
         <AnimatePresence mode="wait">
