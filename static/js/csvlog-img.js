@@ -20,7 +20,7 @@ async function _clUploadToTrade(files, trade, container) {
   }
   if (added) {
     _clImgIdx[_clTab] = trade.images.length - 1;
-    await saveTrades();
+    await _clPersistNow();
     _renderImageViewer(container, trade);
     showToast(added + ' image' + (added > 1 ? 's' : '') + ' added', 'success');
   }

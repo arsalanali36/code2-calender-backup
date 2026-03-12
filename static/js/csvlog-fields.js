@@ -337,6 +337,7 @@ function _renderInfoContent(body, trade) {
     obsArea.addEventListener('input', () => {
       if (!trade.csvlog._meta) trade.csvlog._meta = {};
       trade.csvlog._meta.obs_text = obsArea.value;
+      _clAutoSave();
     });
     wrap.appendChild(obsArea);
 
@@ -345,7 +346,7 @@ function _renderInfoContent(body, trade) {
     commitBtn.className = 'btn btn-outline cl-obs-commit-btn';
     commitBtn.textContent = '↵ Commit to fields';
     commitBtn.title = 'Parse and write observations back to each field';
-    commitBtn.addEventListener('click', () => {
+    commitBtn.addEventListener('click', async () => {
       const lines = obsArea.value.split('\n');
       const entries = [];
       let cur = null;
@@ -371,6 +372,7 @@ function _renderInfoContent(body, trade) {
       // Keep meta in sync
       if (!trade.csvlog._meta) trade.csvlog._meta = {};
       trade.csvlog._meta.obs_text = obsArea.value;
+      await _clPersistNow();
 
       showToast(`Committed ${updated} observation${updated !== 1 ? 's' : ''} — click Save to persist`, 'success');
     });
@@ -503,7 +505,8 @@ function _renderTagsContent(container, trade) {
         });
         trade['Tags'] = tradeTags.filter(t => t !== tag);
         trade['tags'] = [...trade['Tags']];
-        saveTagGroups(); saveTrades();
+        saveTagGroups();
+        _clAutoSave();
       } else {
         if (isOn) {
           trade['Tags'] = tradeTags.filter(t => t !== tag);
@@ -511,7 +514,7 @@ function _renderTagsContent(container, trade) {
           trade['Tags'] = [...tradeTags, tag];
         }
         trade['tags'] = [...trade['Tags']];
-        saveTrades();
+        _clAutoSave();
         if (typeof renderTable === 'function') renderTable();
       }
       _renderContent();

@@ -1,0 +1,25 @@
+{
+  "trades": [],
+  "columns": [
+    "Date",
+    "Total Trades",
+    "Profit",
+    "Trade",
+    "Broker",
+    "Image Tags",
+    "Note",
+    "Video",
+    "Brokerage",
+    "Other Charges",
+    "Gross P/L",
+    "Net P/L",
+    "Total Fees"
+  ],
+  "allTags": [
+    "thumbnail"
+  ],
+  "tagColumns": [],
+  "userColumns": [],
+  "dayData": {},
+  "tagGroups": {}
+}

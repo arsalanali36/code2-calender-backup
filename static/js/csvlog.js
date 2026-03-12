@@ -21,6 +21,72 @@ let _clTagChipSize = 0.78;
 let _clColSplit   = 44;         // % width of form column
 let _clDaySortField = null;     // 'pnl' | 'pts' | null — Day tab sort state
 let _clAllSortField = null;     // 'pnl' | 'pts' | null — All tab sort state
+const _CSVLOG_DRAFTS_KEY = 'tj_csvlog_modal_drafts_v1';
+
+function _clTradeDraftKey(trade) {
+  if (!trade || typeof trade !== 'object') return '';
+  const date = normalizeDate(trade['trade_date'] || trade['Date'] || trade.date || '');
+  const instrument = String(trade['Instrument'] || trade.instrument || '').trim();
+  const buyTime = String(trade['Buy Time'] || trade.buy_time || '').trim();
+  const sellTime = String(trade['Sell Time'] || trade.sell_time || '').trim();
+  const placeholder = String(trade._placeholderLabel || '').trim();
+  const tradeType = String(trade['TradeType'] || trade.tradetype || '').trim();
+  return [date, instrument, buyTime, sellTime, tradeType, placeholder].join('|');
+}
+
+function _clReadDrafts() {
+  try {
+    return JSON.parse(localStorage.getItem(_CSVLOG_DRAFTS_KEY) || '{}') || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function _clWriteDrafts(drafts) {
+  try {
+    localStorage.setItem(_CSVLOG_DRAFTS_KEY, JSON.stringify(drafts || {}));
+  } catch (e) { }
+}
+
+function _clPersistDraftTrade(trade) {
+  const key = _clTradeDraftKey(trade);
+  if (!key) return;
+  const drafts = _clReadDrafts();
+  drafts[key] = {
+    csvlog: trade?.csvlog || {},
+    Note: trade?.Note ?? '',
+    note: trade?.note ?? '',
+    Tags: Array.isArray(trade?.Tags) ? [...trade.Tags] : [],
+    tags: Array.isArray(trade?.tags) ? [...trade.tags] : [],
+    images: Array.isArray(trade?.images) ? [...trade.images] : [],
+    savedAt: Date.now()
+  };
+  _clWriteDrafts(drafts);
+}
+
+function _clApplyDraftTrade(trade) {
+  const key = _clTradeDraftKey(trade);
+  if (!key) return;
+  const draft = _clReadDrafts()[key];
+  if (!draft || typeof draft !== 'object') return;
+  trade.csvlog = (draft.csvlog && typeof draft.csvlog === 'object')
+    ? JSON.parse(JSON.stringify(draft.csvlog))
+    : (trade.csvlog || {});
+  if (draft.Note !== undefined) trade.Note = draft.Note;
+  if (draft.note !== undefined) trade.note = draft.note;
+  if (Array.isArray(draft.Tags)) trade.Tags = [...draft.Tags];
+  if (Array.isArray(draft.tags)) trade.tags = [...draft.tags];
+  if (Array.isArray(draft.images)) trade.images = [...draft.images];
+}
+
+function _clPersistDraftCurrentTrade() {
+  if (_clTab < 0 || !_clDayTrades[_clTab]?.trade) return;
+  _clPersistDraftTrade(_clDayTrades[_clTab].trade);
+}
+
+function _clApplyDraftsToDayTrades() {
+  _clDayTrades.forEach(({ trade }) => _clApplyDraftTrade(trade));
+}
 
 /* ── Public: open ─────────────────────────────────────────────────────────── */
 async function openCsvLogModal() {
@@ -43,6 +109,7 @@ async function openCsvLogModal() {
     .filter(({ trade: t }) => {
       return normalizeDate(t['trade_date'] || t['Date'] || t.date || '') === dateKey;
     });
+  _clApplyDraftsToDayTrades();
 
   if (!_clDayTrades.length) { showToast('No trades for this date', 'error'); return; }
 
@@ -110,8 +177,8 @@ function _openWithNoSchema() {
 function _buildAndOpen(dateKey) {
   _clBackdrop = document.createElement('div');
   _clBackdrop.className = 'cl-backdrop';
-  _clBackdrop.addEventListener('click', e => {
-    if (e.target === _clBackdrop) closeCsvLogModal();
+  _clBackdrop.addEventListener('click', async e => {
+    if (e.target === _clBackdrop) await closeCsvLogModal();
   });
 
   const panel = document.createElement('div');
@@ -162,11 +229,11 @@ function _buildAndOpen(dateKey) {
   document.body.appendChild(_clBackdrop);
 
   // Wire buttons
-  panel.querySelector('#cl-close-btn').addEventListener('click', closeCsvLogModal);
-  panel.querySelector('#cl-save-btn').addEventListener('click', _saveCsvLog);
-  panel.querySelector('#cl-reset-btn').addEventListener('click', _resetCsvLog);
-  panel.querySelector('#cl-prev-day').addEventListener('click', () => _navigateDay(-1));
-  panel.querySelector('#cl-next-day').addEventListener('click', () => _navigateDay(1));
+  panel.querySelector('#cl-close-btn').addEventListener('click', async () => await closeCsvLogModal());
+  panel.querySelector('#cl-save-btn').addEventListener('click', async () => await _saveCsvLog());
+  panel.querySelector('#cl-reset-btn').addEventListener('click', async () => await _resetCsvLog());
+  panel.querySelector('#cl-prev-day').addEventListener('click', async () => await _navigateDay(-1));
+  panel.querySelector('#cl-next-day').addEventListener('click', async () => await _navigateDay(1));
   panel.querySelector('#cl-schema-upload').addEventListener('change', _handleSchemaReplace);
   setupDropdown('cl-schema-dd-btn', 'cl-schema-dd-menu');
 
@@ -174,7 +241,7 @@ function _buildAndOpen(dateKey) {
   const dateDisplay = panel.querySelector('#cl-date-display');
   const datePicker  = panel.querySelector('#cl-date-picker');
   dateDisplay.addEventListener('click', () => datePicker.showPicker ? datePicker.showPicker() : datePicker.click());
-  datePicker.addEventListener('change', () => _navigateToDate(datePicker.value));
+  datePicker.addEventListener('change', async () => await _navigateToDate(datePicker.value));
 
   // Tab anywhere in #cl-body → switch group tab (wraps around, never reaches Reset/Save)
   panel.addEventListener('keydown', e => {
@@ -358,6 +425,7 @@ function _renderContent() {
 
   if (!_clSchema) return;
   const { trade } = _clDayTrades[_clTab];
+  _clApplyDraftTrade(trade);
   if (!trade.csvlog) trade.csvlog = {};
 
   const activeGrp = _clGroupTab[_clTab] || 'Info';
@@ -399,23 +467,24 @@ function _renderContent() {
 // Field constructors + form/info/tags renderers are in csvlog-fields.js
 
 /* ── Save ─────────────────────────────────────────────────────────────────── */
-function _saveCsvLog() {
-  saveTrades();
+async function _saveCsvLog() {
+  await _clPersistNow();
   showToast('CSVLog saved', 'success');
 }
 
 /* ── Reset current trade's csvlog ────────────────────────────────────────── */
-function _resetCsvLog() {
+async function _resetCsvLog() {
   if (!confirm('Reset all CSVLog data for this trade?')) return;
   const { trade } = _clDayTrades[_clTab];
   trade.csvlog = {};
-  saveTrades();
+  await _clPersistNow();
   _renderContent();
   showToast('Reset done', 'info');
 }
 
 /* ── Day navigation ──────────────────────────────────────────────────────── */
-function _navigateDay(dir) {
+async function _navigateDay(dir) {
+  await _clPersistNow();
   // Only include dates that have at least one trade with real data
   const dates = [...new Set(
     state.trades
@@ -434,7 +503,8 @@ function _navigateDay(dir) {
   _loadDateIntoModal(dates[newIdx]);
 }
 
-function _navigateToDate(dateStr) {
+async function _navigateToDate(dateStr) {
+  await _clPersistNow();
   if (!dateStr) return;
   const norm = normalizeDate(dateStr);
   const trades = state.trades
@@ -448,6 +518,7 @@ function _loadDateIntoModal(newDate) {
   _clDayTrades = state.trades
     .map((t, i) => ({ trade: t, rowIdx: i }))
     .filter(({ trade: t }) => normalizeDate(t['trade_date'] || t['Date'] || t.date || '') === newDate);
+  _clApplyDraftsToDayTrades();
 
   _clTab = -1;
   _clGroupTab = {};
@@ -511,7 +582,8 @@ function _initColResize(resizerEl, formColEl, colsEl) {
 // _renderImageViewer and _openImgZoom are in csvlog-img.js
 
 /* ── Close ────────────────────────────────────────────────────────────────── */
-function closeCsvLogModal() {
+async function closeCsvLogModal() {
+  await _clPersistNow();
   document.removeEventListener('keydown', _clEscKey);
   document.removeEventListener('paste', _clImgPasteHandler);
   if (_clBackdrop) { _clBackdrop.remove(); _clBackdrop = null; }
@@ -522,16 +594,16 @@ function closeCsvLogModal() {
   document.body.querySelectorAll('.cl-bell-tip').forEach(el => el.remove());
 }
 
-function _clEscKey(e) {
+async function _clEscKey(e) {
   if (e.key === 'Escape') {
     // If zoom overlay is open, let it handle ESC — don't close the logger
     if (document.getElementById('cl-zoom-overlay')) return;
-    closeCsvLogModal();
+    await closeCsvLogModal();
     return;
   }
   // Shift+< / Shift+> — navigate previous/next day
-  if (e.key === '<') { e.preventDefault(); _navigateDay(-1); return; }
-  if (e.key === '>') { e.preventDefault(); _navigateDay(1);  return; }
+  if (e.key === '<') { e.preventDefault(); await _navigateDay(-1); return; }
+  if (e.key === '>') { e.preventDefault(); await _navigateDay(1);  return; }
 
   const tag = (e.target || {}).tagName || '';
   const inTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
@@ -626,8 +698,44 @@ function _toKey(head) {
 
 /* ── Debounced auto-save (called from field change handlers) ─────────────── */
 let _clSaveTimer = null;
+let _clPersistInFlight = null;
+let _clPersistQueued = false;
 function _clAutoSave() {
   _clReapplyConditionals();   // immediate UI update (freeze/unfreeze dependent fields)
+  _clPersistDraftCurrentTrade();
   clearTimeout(_clSaveTimer);
-  _clSaveTimer = setTimeout(() => { saveTrades().catch(() => {}); }, 1500);
+  _clLiveRefreshCharts();
+  _clSaveTimer = setTimeout(() => { _clPersistNow(); }, 0);
+}
+
+async function _clPersistNow() {
+  _clPersistDraftCurrentTrade();
+  clearTimeout(_clSaveTimer);
+  _clSaveTimer = null;
+  _clLiveRefreshCharts();
+  if (_clPersistInFlight) {
+    _clPersistQueued = true;
+    return _clPersistInFlight;
+  }
+  window.__csvlogPersisting = true;
+  _clPersistInFlight = (async () => {
+    try {
+      await saveTrades();
+    } catch (e) {
+    } finally {
+      _clPersistInFlight = null;
+      window.__csvlogPersisting = false;
+    }
+  })();
+  await _clPersistInFlight;
+  if (_clPersistQueued) {
+    _clPersistQueued = false;
+    return _clPersistNow();
+  }
+}
+
+function _clLiveRefreshCharts() {
+  if (typeof _clChartsRender === 'function' && document.querySelector('.clc-backdrop')) {
+    try { _clChartsRender(); } catch (e) { }
+  }
 }

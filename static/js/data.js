@@ -145,6 +145,7 @@ function hashServerState(data) {
 }
 
 function isUiBusyForSync() {
+  if (window.__csvlogPersisting) return true;
   const ae = document.activeElement;
   const typing = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
   if (typing) return true;

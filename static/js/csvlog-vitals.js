@@ -1,39 +1,38 @@
 /**
  * @fileoverview csvlog-vitals.js
  * @description Body Vitals tab + bidirectional slider + conditional field-freeze rules.
- *   All functions global scope — called from csvlog.js / csvlog-fields.js.
+ *   All functions global scope - called from csvlog.js / csvlog-fields.js.
  *
  * Body Vitals stored at: trade.csvlog.body_vitals = { alertness, neend, potty, sabar }
  *
  * Conditional freeze rules (hardcoded, keyed by group name):
- *   Zone  : zone_created = 'N'  → freeze size, candle
- *   Entry : at contains 'pehle' → freeze breakout_candle
+ *   Zone  : zone_created = 'N' -> freeze size, candle
+ *   Entry : at contains 'pehle' -> freeze breakout_candle
  */
 
-/* ══════════════════════════════════════════════════════════════════
+/* ========================================================================
    BIDIRECTIONAL SLIDER
-   Range with negative min → visual bar grows left(-) or right(+) from 0
-═══════════════════════════════════════════════════════════════════ */
+   Range with negative min -> visual bar grows left(-) or right(+) from 0
+======================================================================== */
 function _makeBiSlider(key, val, min, max, saved) {
   const cur = (val !== '' && val !== undefined && val !== null) ? Number(val) : 0;
 
   const wrap = document.createElement('div');
   wrap.className = 'cl-bislider-wrap';
 
-  // The range input
   const slider = document.createElement('input');
   slider.type = 'range';
   slider.className = 'cl-bislider';
-  slider.min = min; slider.max = max; slider.step = 1;
+  slider.min = min;
+  slider.max = max;
+  slider.step = 1;
   slider.value = cur;
   slider.dataset.clCtrl = 'bislider';
 
-  // Value badge
   const badge = document.createElement('span');
   badge.className = 'cl-bislider-val';
   _biUpdateBadge(badge, cur);
 
-  // Fill bar (grows left or right from center)
   const track = document.createElement('div');
   track.className = 'cl-bislider-track';
   const fill = document.createElement('div');
@@ -50,13 +49,17 @@ function _makeBiSlider(key, val, min, max, saved) {
   });
 
   slider.addEventListener('keydown', e => {
-    if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); _clNavigate(+1, slider); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); _clNavigate(-1, slider); }
+    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+      e.preventDefault();
+      _clNavigate(+1, slider);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _clNavigate(-1, slider);
+    }
   });
 
   const container = document.createElement('div');
   container.className = 'cl-bislider-container';
-
   container.appendChild(track);
   container.appendChild(slider);
 
@@ -72,20 +75,30 @@ function _biUpdateBadge(badge, v) {
 }
 
 function _biUpdateFill(fill, v, min, max) {
-  if (v === 0) { fill.style.cssText = 'width:0;left:0%;'; return; }
-  const pct = (v / max) * 100;
-  fill.style.cssText = `left:0%;width:${pct}%;background:var(--blue);`;
+  if (v === 0) {
+    fill.style.cssText = 'width:0;left:50%;';
+    return;
+  }
+
+  const zeroPct = ((0 - min) / (max - min)) * 100;
+  if (v > 0) {
+    const widthPct = (v / max) * (100 - zeroPct);
+    fill.style.cssText = `left:${zeroPct}%;width:${widthPct}%;background:var(--blue);`;
+  } else {
+    const widthPct = (Math.abs(v) / Math.abs(min)) * zeroPct;
+    fill.style.cssText = `left:${zeroPct - widthPct}%;width:${widthPct}%;background:var(--blue);`;
+  }
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* ========================================================================
    BODY VITALS TAB
-   Hardcoded tab — stored in trade.csvlog.body_vitals
-═══════════════════════════════════════════════════════════════════ */
+   Hardcoded tab - stored in trade.csvlog.body_vitals
+======================================================================== */
 const _VITALS_FIELDS = [
-  { key: 'alertness',  label: 'Alertness',             min: 0, max: 10 },
-  { key: 'neend',      label: 'Neend (Sleep Quality)',  min: 0, max: 10 },
-  { key: 'potty',      label: 'Potty',                  min: 0, max: 10 },
-  { key: 'sabar',      label: 'Sabar vs Impulsive',     min: 0, max: 10 },
+  { key: 'alertness', label: 'Alertness', min: -5, max: 5 },
+  { key: 'neend', label: 'Neend (Sleep Quality)', min: -5, max: 5 },
+  { key: 'potty', label: 'Potty', min: -5, max: 5 },
+  { key: 'sabar', label: 'Sabar vs Impulsive', min: -5, max: 5 }
 ];
 
 function _renderVitalsContent(body, trade) {
@@ -103,17 +116,16 @@ function _renderVitalsContent(body, trade) {
   hdr.className = 'cl-vitals-hdr';
   hdr.innerHTML = `
     <span class="cl-vitals-title">&#129498; Body Vitals</span>
-    <span class="cl-vitals-hint">Scale: 0 (poor) → 10 (excellent)</span>
+    <span class="cl-vitals-hint">Scale: -5 (low) -> 0 -> 5 (high)</span>
   `;
   wrap.appendChild(hdr);
 
-  // Axis labels row
   const axisRow = document.createElement('div');
   axisRow.className = 'cl-vitals-row cl-vitals-axis';
   axisRow.innerHTML = `
     <div class="cl-vitals-label"></div>
     <div class="cl-vitals-axis-container">
-      <span>0</span><span>5</span><span>10</span>
+      <span>-5</span><span>0</span><span>5</span>
     </div>
     <div style="min-width: 32px"></div>
   `;
@@ -139,19 +151,17 @@ function _renderVitalsContent(body, trade) {
   body.appendChild(wrap);
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* ========================================================================
    CONDITIONAL FIELD FREEZE RULES
    Called after rendering each group to disable dependent fields.
-═══════════════════════════════════════════════════════════════════ */
+======================================================================== */
 const _CL_COND_RULES = {
   zone: [
-    // zone_created = 'N'  → freeze size, candle fields
-    { watchKey: 'formed', value: 'N', freeze: ['size', 'candle'] },
+    { watchKey: 'formed', value: 'N', freeze: ['size', 'candle'] }
   ],
   entry: [
-    // at contains "pehle" → freeze breakout_candle
-    { watchKey: 'at', match: 'pehle', freeze: ['breakout_candle', 'breakoutcandle'] },
-  ],
+    { watchKey: 'at', match: 'pehle', freeze: ['breakout_candle', 'breakoutcandle'] }
+  ]
 };
 
 function _clApplyConditionals(groupKey, saved) {
@@ -177,7 +187,6 @@ function _clFreezeFields(keySuffixes, freeze) {
   if (!body) return;
   body.querySelectorAll('[data-cl-field-key]').forEach(wrap => {
     const wk = wrap.dataset.clFieldKey || '';
-    // Match exact key OR key that ends with _suffix (handles section-prefixed keys)
     if (keySuffixes.some(k => wk === k || wk.endsWith('_' + k))) {
       wrap.classList.toggle('cl-field-frozen', freeze);
     }

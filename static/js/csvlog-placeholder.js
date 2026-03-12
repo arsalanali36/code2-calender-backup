@@ -38,7 +38,7 @@ function _offerPlaceholder(dateKey) {
 }
 
 /* ── Create a placeholder trade and open/reload the modal ─────────────────── */
-function _createPlaceholderTrade(dateKey, num) {
+async function _createPlaceholderTrade(dateKey, num) {
   const label = 'x' + num;
   const placeholder = {
     Date: dateKey,
@@ -47,7 +47,7 @@ function _createPlaceholderTrade(dateKey, num) {
     csvlog: {}
   };
   state.trades.push(placeholder);
-  saveTrades();
+  await _clPersistNow();
 
   const panelOpen = !!document.getElementById('cl-panel');
 
@@ -74,7 +74,7 @@ function _createPlaceholderTrade(dateKey, num) {
 }
 
 /* ── Add another placeholder for the currently-open date ─────────────────── */
-function _addAnotherPlaceholder() {
+async function _addAnotherPlaceholder() {
   if (!_clDayTrades.length) return;
   const dateKey = normalizeDate(
     _clDayTrades[0].trade['trade_date'] || _clDayTrades[0].trade['Date'] || _clDayTrades[0].trade.date || ''
@@ -97,7 +97,7 @@ function _addAnotherPlaceholder() {
     csvlog: {}
   };
   state.trades.push(placeholder);
-  saveTrades();
+  await _clPersistNow();
 
   _loadDateIntoModal(dateKey);
   _clTab = _clDayTrades.length - 1;
@@ -191,7 +191,7 @@ function _showPlaceholderContextMenu(e, tradeEntry, tabBtn) {
 }
 
 /* ── Merge placeholder csvlog data into a real trade ────────────────────────*/
-function _mergePlaceholderToReal(phRowIdx, realRowIdx, phLabel, realLabel) {
+async function _mergePlaceholderToReal(phRowIdx, realRowIdx, phLabel, realLabel) {
   if (!confirm(`Move "${phLabel}" logger data into "${realLabel}"?\n\nThe placeholder will be deleted.`)) return;
 
   const phTrade   = state.trades[phRowIdx];
@@ -210,7 +210,7 @@ function _mergePlaceholderToReal(phRowIdx, realRowIdx, phLabel, realLabel) {
 
   // Delete placeholder
   state.trades.splice(phRowIdx, 1);
-  saveTrades();
+  await _clPersistNow();
   showToast(`"${phLabel}" merged into ${realLabel}`, 'success');
 
   // Reload the date (rowIdx may have shifted after splice)
@@ -222,11 +222,11 @@ function _mergePlaceholderToReal(phRowIdx, realRowIdx, phLabel, realLabel) {
 }
 
 /* ── Delete a placeholder ────────────────────────────────────────────────── */
-function _deletePlaceholder(rowIdx, label, dateKey) {
+async function _deletePlaceholder(rowIdx, label, dateKey) {
   if (!confirm(`Delete placeholder "${label}"?\n\nAll data entered in it will be lost.`)) return;
 
   state.trades.splice(rowIdx, 1);
-  saveTrades();
+  await _clPersistNow();
   showToast(`Placeholder "${label}" deleted`, 'info');
 
   // Check if any trades remain for this date

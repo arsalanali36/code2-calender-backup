@@ -276,9 +276,30 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "body_vitals": {
+          "alertness": 1,
+          "neend": 1
+        },
+        "entry": {
+          "entry_candle_20": "N",
+          "sl_10": "N"
+        },
+        "exit": {
+          "actual_target_moved": "Y",
+          "actual_trail": "1"
+        },
+        "psy": {
+          "desperate_in": 12,
+          "desperate_out": 14,
+          "inpulsive_in": 16,
+          "inpulsive_out": 14
+        }
+      },
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
+      "note": "",
       "overlays": {
         "/uploads/a4500dd7-b69d-4d83-a84f-ec0e9c127ce5.png": "/uploads/9eaf6135-3466-4a47-baef-bcae0004221a.png"
       },
@@ -309,7 +330,14 @@
       "Video": "",
       "csvlog": {
         "entry": {
+          "any_entry_skip": "N",
+          "at": "Breakout se pehle",
           "confused": 44
+        },
+        "exit": {},
+        "psy": {
+          "sabar_in": 42,
+          "sabar_out": 24
         }
       },
       "date": "2026-02-12",
@@ -571,8 +599,23 @@
       "TradeType": "sell",
       "Video": "",
       "csvlog": {
+        "body_vitals": {
+          "alertness": 5,
+          "neend": 5,
+          "potty": 5,
+          "sabar": 4
+        },
         "entry": {
+          "any_entry_skip": "N",
           "confused": 70
+        },
+        "exit": {},
+        "psy": {
+          "desperate_in": 50,
+          "desperate_out": 78,
+          "distracted_in": 54,
+          "inpulsive_in": 74,
+          "inpulsive_out": 15
         }
       },
       "date": "2026-02-12",
@@ -701,7 +744,18 @@
       "Video": "",
       "csvlog": {
         "entry": {
+          "any_entry_skip": "N",
           "confused": 97
+        },
+        "exit": {},
+        "psy": {
+          "desperate_in": 19,
+          "desperate_out": 48,
+          "distracted_in": 22,
+          "inpulsive_in": 66,
+          "inpulsive_out": 26,
+          "sabar_in": 76,
+          "sabar_out": 23
         }
       },
       "date": "2026-02-12",
@@ -788,9 +842,30 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "body_vitals": {
+          "alertness": 1,
+          "neend": 1
+        },
+        "entry": {
+          "entry_candle_20": "N",
+          "sl_10": "N"
+        },
+        "exit": {
+          "actual_target_moved": "Y",
+          "actual_trail": "1"
+        },
+        "psy": {
+          "desperate_in": 13,
+          "desperate_out": 18,
+          "inpulsive_in": 17,
+          "inpulsive_out": 13
+        }
+      },
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
+      "note": "",
       "tags": [],
       "trade_date": "2026-02-13"
     },
@@ -928,9 +1003,31 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "body_vitals": {
+          "alertness": 3,
+          "neend": 1
+        },
+        "entry": {
+          "entry_candle_20": "N",
+          "sl_10": "N"
+        },
+        "exit": {
+          "actual_target_moved": "Y",
+          "actual_trail": "1"
+        },
+        "psy": {
+          "desperate_in": 15,
+          "desperate_out": 15,
+          "inpulsive_in": 11,
+          "inpulsive_out": 16,
+          "sabar_out": 17
+        }
+      },
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
+      "note": "",
       "tags": [],
       "trade_date": "2026-02-13"
     },
@@ -1096,9 +1193,15 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "entry": {
+          "entry_candle_20": "N"
+        }
+      },
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
+      "note": "",
       "tags": [],
       "trade_date": "2026-02-13"
     },
@@ -1552,6 +1655,11 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "body_vitals": {},
+        "exit": {},
+        "psy": {}
+      },
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
@@ -1581,6 +1689,12 @@
       "TradeType": "sell",
       "Video": "",
       "csvlog": {
+        "entry": {
+          "algosignal": "Y",
+          "any_entry_skip": "N",
+          "at": "Breakout pe",
+          "confused": 47
+        },
         "psy": {
           "desperate_in": 89,
           "desperate_out": 77,
@@ -1616,6 +1730,9 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "csvlog": {
+        "body_vitals": {}
+      },
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
@@ -12632,7 +12749,8 @@
       "Video": "",
       "csvlog": {
         "entry": {},
-        "exit": {}
+        "exit": {},
+        "body_vitals": {}
       },
       "date": "2026-03-12",
       "imageTags": {},
@@ -12645,7 +12763,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-12"
+      "trade_date": "2026-03-12",
+      "note": ""
     },
     {
       "Broker": "zerodha",

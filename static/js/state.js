@@ -41,7 +41,7 @@ const state = {
   quotes: [],
   quoteIndex: 0,
   quoteRatings: {},
-  quoteAutoPopup: { enabled: false, minMinutes: 15, timerId: null },
+  quoteAutoPopup: { enabled: true, minMinutes: 15, timerId: null },
   obsDate: '',
   allTags: [],   // all defined tag names
   tagFilter: [],   // selected filters in form "Column::Tag"
