@@ -16,6 +16,8 @@ services:
         value: /var/data/trades.json
       - key: UPLOADS_DIR
         value: /var/data/uploads
+      - key: CLOUDINARY_URL
+        sync: false   # Set this secret in the Render dashboard → Environment
 
   - type: static
     name: tradefeed

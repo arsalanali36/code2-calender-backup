@@ -33,14 +33,18 @@ def upload_image():
 
 @image_bp.route('/uploads/<path:filename>')
 def uploaded_file(filename):
+    """Serve local uploads. Cloudinary files are served directly by Cloudinary CDN."""
     return send_from_directory(UPLOADS_DIR, filename)
 
 
 @image_bp.route('/api/delete-image', methods=['POST'])
 def delete_image():
     data = request.json or {}
-    move_to_trash(data.get('filename', ''), UPLOADS_DIR, TRASH_DIR)
-    return jsonify({'success': True})
+    filename = data.get('filename', '')
+    if not filename:
+        return jsonify({'error': 'No filename'}), 400
+    moved = move_to_trash(filename, UPLOADS_DIR, TRASH_DIR)
+    return jsonify({'success': moved})
 
 
 @image_bp.route('/api/image-times', methods=['POST'])
@@ -53,7 +57,10 @@ def image_times():
 def cloudinary_status():
     """Check if Cloudinary is configured and reachable."""
     if not USE_CLOUDINARY:
-        return jsonify({'enabled': False, 'message': 'CLOUDINARY_URL not set — using local storage'})
+        return jsonify({
+            'enabled': False,
+            'message': 'CLOUDINARY_URL not set — using local storage'
+        })
     try:
         import cloudinary.api
         result = cloudinary.api.ping()

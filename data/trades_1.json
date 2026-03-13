@@ -12748,9 +12748,9 @@
       "TradeType": "sell",
       "Video": "",
       "csvlog": {
+        "body_vitals": {},
         "entry": {},
-        "exit": {},
-        "body_vitals": {}
+        "exit": {}
       },
       "date": "2026-03-12",
       "imageTags": {},
@@ -12761,10 +12761,10 @@
         "/uploads/d7a59fb1-9675-48ee-a007-c4b94e5d00f2.png",
         "/uploads/a8cce459-8076-4bd0-bdfb-7aeffcbb1c91.png"
       ],
+      "note": "",
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-12",
-      "note": ""
+      "trade_date": "2026-03-12"
     },
     {
       "Broker": "zerodha",
@@ -12853,6 +12853,171 @@
       "date": "2026-03-12",
       "imageTags": {},
       "trade_date": "2026-03-12"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": "",
+      "Buy Price (Avg)": "",
+      "Buy Time": "",
+      "Gross P/L": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Net P/L": "",
+      "Note": "sooc kar baitha tha, friday hai, gadbard nahi karene, jab zone bane ga tab hi lenge , aur fir baithey reh gaye!!",
+      "Other Charges": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price (Avg)": "",
+      "Sell Time": "",
+      "Tags": [],
+      "Total Fees": "",
+      "Total Trades": "",
+      "TradeType": "",
+      "Video": "",
+      "csvlog": {
+        "body_vitals": {
+          "alertness": 2,
+          "neend": -2,
+          "potty": 4
+        },
+        "entry": {
+          "algosignal": "N",
+          "any_entry_skip": "Y",
+          "any_entry_skip_obs": "pehle partial hammer, fir morning star jo ki pehle baar dikh raha th ared ke baad, uspe signal bhi nahi aaya ",
+          "at": "Breakout se pehle",
+          "confused": 8,
+          "dema": "Above",
+          "entry_candle_20": "N",
+          "skip_count": "1",
+          "sl_10": "Y"
+        },
+        "exit": {
+          "actual_10_reach": "N",
+          "actual_output": "SL",
+          "actual_profit_trail": "N",
+          "actual_sl_moved": "Y",
+          "actual_sl_trail": "Y",
+          "actual_target_moved": "N"
+        },
+        "psy": {
+          "desperate_in": 75,
+          "desperate_out": 31,
+          "distracted_in": 21,
+          "inpulsive_in": 48,
+          "inpulsive_out": 11,
+          "sabar_in": 72
+        }
+      },
+      "date": "2026-03-13",
+      "imageTags": {},
+      "images": [
+        "/uploads/49d11cc1-ab17-467d-9d1b-d7b73a4fa02b.png",
+        "/uploads/ea32881d-c58a-4580-95ed-b7e13beb6861.png",
+        "/uploads/b65c2e26-5750-44cb-9c63-03fc5ce1b052.png",
+        "/uploads/930c2bf8-ad59-4d8d-a19c-640c7fcc4f39.png",
+        "/uploads/5de61108-865e-4068-9894-afc04fc69899.png",
+        "/uploads/6409b72f-dd47-4da2-9f96-e64f67f0840a.png",
+        "/uploads/f9f6238f-e9a2-4e32-bbf3-5295a939e128.png",
+        "/uploads/e5fde177-4b43-41ad-b9f1-c359a8b1dddb.png",
+        "/uploads/fae68bfd-b0c2-4236-aedd-c2a5c896153b.png",
+        "/uploads/b1e92eac-dad6-46ed-b010-40eaed8c4b30.png",
+        "/uploads/b38c79d4-8b69-40f7-8962-c1d744926a77.png",
+        "/uploads/6381c44e-4261-4e5e-b5e0-e128244bad48.png",
+        "/uploads/debb918a-80c7-4da9-8150-b12a2d9a0181.png"
+      ],
+      "note": "sooc kar baitha tha, friday hai, gadbard nahi karene, jab zone bane ga tab hi lenge , aur fir baithey reh gaye!!",
+      "tags": [],
+      "trade_date": "2026-03-13"
+    },
+    {
+      "Broker": "zerodha",
+      "Image Tags": "",
+      "Note": "",
+      "Tags": [],
+      "Total Trades": "",
+      "Video": "",
+      "_placeholder": true,
+      "_placeholderLabel": "x1",
+      "csvlog": {
+        "body_vitals": {},
+        "entry": {
+          "algosignal": "N",
+          "any_entry_skip": "Y",
+          "at": "Breakout se pehle",
+          "confirmation": "Strong",
+          "dema": "Above",
+          "entry_candle_20": "N",
+          "skip_count": "2-3",
+          "skip_count_obs": "bahut hi zuada sabar se wait kar, raha tha ",
+          "sl_10": "Y"
+        },
+        "exit": {
+          "actual_10_reach": "Y",
+          "actual_output": "Target",
+          "actual_profit_trail": "N",
+          "actual_sl_moved": "N",
+          "actual_sl_trail": "N",
+          "actual_target_moved": "Y"
+        },
+        "psy": {
+          "desperate_in": 60,
+          "desperate_out": 30,
+          "distracted_in": 73,
+          "inpulsive_in": 0,
+          "inpulsive_out": 61,
+          "sabar_in": 25,
+          "sabar_out": 47,
+          "sahi_lagraha_in": 12,
+          "sahi_lagraha_out": 69
+        },
+        "zone": {
+          "candle": "GreenHammer",
+          "created": "Y",
+          "near": "LL",
+          "placement": "Hawa me",
+          "size": "between 10-25"
+        }
+      },
+      "date": "2026-03-13",
+      "imageTags": {},
+      "images": [],
+      "note": "",
+      "tags": [],
+      "trade_date": "2026-03-13"
+    },
+    {
+      "Note": "",
+      "Tags": [],
+      "_placeholder": true,
+      "_placeholderLabel": "x2",
+      "csvlog": {
+        "entry": {
+          "algosignal": "N",
+          "any_entry_skip": "N",
+          "at": "Breakout se pehle",
+          "confirmation": "Week",
+          "dema": "Above",
+          "entry_candle_20": "Y",
+          "sl_10": "Y"
+        },
+        "psy": {
+          "desperate_in": 20,
+          "desperate_out": 22,
+          "sabar_in": 19,
+          "sabar_out": 28
+        }
+      },
+      "images": [],
+      "note": "",
+      "tags": [],
+      "Broker": "zerodha",
+      "Image Tags": "",
+      "Video": "",
+      "Total Trades": "",
+      "imageTags": {},
+      "trade_date": "2026-03-13",
+      "date": "2026-03-13"
     }
   ],
   "columns": [

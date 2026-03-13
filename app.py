@@ -16,6 +16,13 @@ import shutil
 import threading
 from datetime import datetime, timedelta
 
+# Load .env file for local development (safe to call even if file doesn't exist)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed — env vars must be set manually
+
 from flask import Flask, request, redirect, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
 

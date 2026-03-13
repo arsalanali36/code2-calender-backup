@@ -22,7 +22,15 @@ MAX_CONTENT_LENGTH  = 100 * 1024 * 1024          # 100 MB upload limit
 CACHE_BUST          = int(time.time())
 
 # ── Cloudinary ────────────────────────────────────────────────────────────────
-USE_CLOUDINARY = bool(os.getenv('CLOUDINARY_URL'))
+CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
+USE_CLOUDINARY = bool(CLOUDINARY_URL_VALUE)
+
+if USE_CLOUDINARY:
+    try:
+        import cloudinary
+        cloudinary.config(cloudinary_url=CLOUDINARY_URL_VALUE)
+    except ImportError:
+        USE_CLOUDINARY = False  # cloudinary package not installed
 
 # ── Server settings ───────────────────────────────────────────────────────────
 HOST  = os.getenv('HOST', '0.0.0.0')
