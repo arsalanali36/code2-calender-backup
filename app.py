@@ -164,6 +164,24 @@ app.register_blueprint(auth_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
+@app.route('/api/debug-data')
+def debug_data():
+    """Debug route to see what image URLs are actually in the memory."""
+    try:
+        with open(config.DATA_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        trades = data.get('trades', [])
+        # Find 10 Feb trade
+        feb10 = [t for t in trades if t.get('date') == '2026-02-10']
+        return {
+            "data_file_path": config.DATA_FILE,
+            "force_refresh_env": os.getenv('FORCE_DATA_REFRESH'),
+            "total_trades": len(trades),
+            "feb10_sample": feb10[0].get('images', []) if feb10 else "Not found"
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 if __name__ == '__main__':
     print("=" * 50)
     print("  Trading Journal - Starting Server")
