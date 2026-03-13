@@ -19,10 +19,3 @@ services:
       - key: CLOUDINARY_URL
         sync: false   # Set this secret in the Render dashboard → Environment
 
-  - type: static
-    name: tradefeed
-    buildCommand: cd tradefeed && npm install && npm run build
-    staticPublishPath: tradefeed/dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://code2-calender.onrender.com
