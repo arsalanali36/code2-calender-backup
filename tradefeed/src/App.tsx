@@ -428,11 +428,13 @@ const GalleryView = ({ trades }: { trades: Trade[] }) => {
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('feed');
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTrades()
-      .then(setTrades)
-      .catch(err => console.error('Failed to load trades:', err));
+      .then(data => { setTrades(data); setLoading(false); })
+      .catch(err => { setFetchError(String(err)); setLoading(false); });
   }, []);
   
   // Creation Flow State
@@ -511,6 +513,19 @@ export default function App() {
         return <FeedView trades={trades} />;
     }
   };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center text-zinc-400 text-sm">Loading trades…</div>
+  );
+
+  if (fetchError) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-6 text-center">
+      <p className="text-rose-600 font-bold">Failed to load data</p>
+      <p className="text-xs text-zinc-500 break-all">{fetchError}</p>
+      <button onClick={() => window.location.reload()} className="mt-2 px-4 py-2 bg-zinc-900 text-white rounded-lg text-sm">Retry</button>
+      <a href="/" className="text-xs text-indigo-600 underline">Back to Desktop</a>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">

@@ -1,6 +1,8 @@
 import { Trade, TradeSession, TradeType, BlogPost } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Empty string = relative URLs (works when served from Flask at /mobile/)
+// Set VITE_API_URL in .env.local only if running tradefeed standalone
+const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
 // Groups whose tags count as emotions
 const EMOTION_GROUPS = ['emotions', 'emotion'];
@@ -74,15 +76,41 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
 }
 
 export async function fetchTrades(): Promise<Trade[]> {
-  const res = await fetch(`${BASE_URL}/api/trades`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const res = await fetch(`${BASE_URL}/api/trades`, { credentials: 'include' });
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
   const data = await res.json();
   const trades: Record<string, unknown>[] = data.trades || [];
   const tagGroups: Record<string, string[]> = data.tagGroups || {};
+  const dayData: Record<string, Record<string, unknown>> = data.dayData || {};
   const { emotionSet, mistakeSet } = buildTagSets(tagGroups);
-  return trades
+
+  const tradeMapped = trades
     .filter(t => typeof t['Net P/L'] === 'number' || typeof t['Gross P/L'] === 'number')
     .map((t, i) => mapTrade(t, i, emotionSet, mistakeSet));
+
+  // Add dayData entries that have images but no matching trade
+  const tradeDates = new Set(tradeMapped.map(t => t.date));
+  const dayOnlyEntries: Trade[] = Object.entries(dayData)
+    .filter(([date, day]) => !tradeDates.has(date) && Array.isArray((day as any).images) && (day as any).images.length > 0)
+    .map(([date, day], i) => ({
+      id: `day-${date}-${i}`,
+      instrument: 'Day Note',
+      type: 'Long' as const,
+      pnl: 0,
+      currency: '₹',
+      date,
+      session: 'Morning' as const,
+      chartUrls: ((day as any).images as string[]).map((img: string) =>
+        img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`
+      ),
+      emotionTags: [],
+      strategyTags: [],
+      mistakeTags: [],
+      note: (day as any).obs || '',
+      stats: { rMultiple: 0, riskReward: '', positionSize: 0 },
+    }));
+
+  return [...tradeMapped, ...dayOnlyEntries];
 }
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {

@@ -7,9 +7,11 @@ import json
 import os
 from datetime import datetime
 
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, send_from_directory
 
 from config import BASE_DIR, CACHE_BUST
+
+MOBILE_DIST = os.path.join(BASE_DIR, 'tradefeed', 'dist')
 
 page_bp = Blueprint('page', __name__)
 
@@ -33,6 +35,17 @@ def updates():
         entry['_idx'] = i
     entries.sort(key=lambda x: (x['date'], x['_idx']), reverse=True)
     return render_template('updates.html', entries=entries, cache_bust=CACHE_BUST)
+
+
+@page_bp.route('/mobile/')
+@page_bp.route('/mobile')
+def mobile():
+    return send_from_directory(MOBILE_DIST, 'index.html')
+
+
+@page_bp.route('/mobile/assets/<path:filename>')
+def mobile_assets(filename):
+    return send_from_directory(os.path.join(MOBILE_DIST, 'assets'), filename)
 
 
 @page_bp.route('/api/blog-posts')

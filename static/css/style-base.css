@@ -1391,3 +1391,27 @@ tr.row-drop-after {
   border-color: var(--blue);
 }
 
+
+
+/* ── Mobile View Toggle Button ─────────────────────────────────────────────── */
+.mobile-view-toggle-btn {
+  font-size: 1.1rem;
+  padding: 4px 10px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.mobile-view-toggle-btn:hover { opacity: 1; }
+.mobile-view-toggle-btn.active {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+/* ── Mobile View Layout (body.mobile-view) ──────────────────────────────────
+   Placeholder — mobile UI will be built here gradually.
+   Currently just flags the state; components can check this class.
+────────────────────────────────────────────────────────────────────────────── */
+body.mobile-view .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}

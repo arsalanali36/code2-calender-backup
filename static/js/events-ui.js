@@ -367,4 +367,12 @@ function _bindUIEvents() {
     _saveDateRange(); _updateDateRangeUI(); render();
   });
   _loadDateRange();
+
+  // ── Mobile View Toggle ──────────────────────────────────────────────────────
+  const mobileBtn = document.getElementById('mobile-view-toggle-btn');
+  if (mobileBtn) {
+    mobileBtn.addEventListener('click', () => {
+      window.location.href = '/mobile/';
+    });
+  }
 }

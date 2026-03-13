@@ -3,7 +3,7 @@ services:
     name: code2-calender
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && cd tradefeed && npm install && npm run build && cd ..
     startCommand: gunicorn app:app --workers 2 --threads 4 --timeout 120
     disks:
       - name: code2-calender-data
