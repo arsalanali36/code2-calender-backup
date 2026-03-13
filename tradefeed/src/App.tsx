@@ -14,8 +14,9 @@ import { ImageImport } from './components/ImageImport';
 import { Tagger } from './components/Tagger';
 import { TradeLogger } from './components/TradeLogger';
 import { fetchTrades } from './services/api';
+import { FullscreenViewer } from './components/FullscreenViewer';
 
-const CalendarView = ({ trades }: { trades: Trade[] }) => {
+const CalendarView = ({ trades, openViewer }: { trades: Trade[], openViewer: (days: any[], dIdx: number, iIdx: number) => void }) => {
   const today = new Date();
   const [viewYear, setViewYear]   = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
@@ -118,6 +119,39 @@ const CalendarView = ({ trades }: { trades: Trade[] }) => {
               {selectedPnl >= 0 ? '+' : ''}₹{Math.abs(selectedPnl).toLocaleString()}
             </span>
           </div>
+          
+          {/* Images for selected day */}
+          <div className="grid grid-cols-3 gap-1.5 mb-4">
+            {selectedTrades.flatMap(t => t.chartUrls).map((url, i) => (
+              <div 
+                key={i} 
+                className="aspect-square bg-zinc-100 rounded-md overflow-hidden cursor-pointer active:scale-95 transition-transform"
+                onClick={() => {
+                  // Construct the full list of all trades for cross-date navigation
+                  const allItems = trades.map(t => ({
+                    date: t.date,
+                    images: t.chartUrls
+                  }));
+                  
+                  // Find index of current image in the global list
+                  let globalIdx = 0;
+                  let imgInTradeIdx = 0;
+                  for(let j=0; j<trades.length; j++) {
+                    const idx = trades[j].chartUrls.indexOf(url);
+                    if (trades[j].date === selectedDate && idx !== -1) {
+                      globalIdx = j;
+                      imgInTradeIdx = idx;
+                      break;
+                    }
+                  }
+                  openViewer(allItems, globalIdx, imgInTradeIdx);
+                }}
+              >
+                <img src={url} alt="Trade chart" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+
           <div className="space-y-2">
             {selectedTrades.map(t => (
               <div key={t.id} className="flex items-center justify-between">
@@ -257,10 +291,11 @@ const TableView = ({ trades, onLogTrade }: { trades: Trade[], onLogTrade: () => 
   </div>
 );
 
-const GalleryView = ({ trades }: { trades: Trade[] }) => {
+const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (days: any[], dIdx: number, iIdx: number) => void }) => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [galleryMode, setGalleryMode] = useState<'tags' | 'day'>('tags');
   const [cols, setCols] = useState(3);
+  
   const galleryRef = React.useRef<HTMLDivElement>(null);
   const pinchStartDist = React.useRef(0);
   const pinchStartCols = React.useRef(3);
@@ -372,7 +407,14 @@ const GalleryView = ({ trades }: { trades: Trade[] }) => {
 
           <div style={gridStyle}>
             {filteredImages.map((img, i) => (
-              <div key={`${img.tradeId}-${i}`} className="aspect-square bg-zinc-100 overflow-hidden group cursor-pointer relative">
+              <div 
+                key={`${img.tradeId}-${i}`} 
+                className="aspect-square bg-zinc-100 overflow-hidden group cursor-pointer relative"
+                onClick={() => {
+                  const dayImages = filteredImages.map(f => f.url);
+                  openViewer([{ date: selectedTag || 'Filtered', images: dayImages }], 0, i);
+                }}
+              >
                 <img 
                   src={img.url} 
                   alt="Gallery" 
@@ -407,7 +449,35 @@ const GalleryView = ({ trades }: { trades: Trade[] }) => {
               </h3>
               <div style={gridStyle}>
                 {groupedByDay[date].map((img, i) => (
-                  <div key={`${img.tradeId}-${i}`} className="aspect-square bg-zinc-100 overflow-hidden cursor-pointer">
+                  <div 
+                    key={`${img.tradeId}-${i}`} 
+                    className="aspect-square bg-zinc-100 overflow-hidden cursor-pointer"
+                    onClick={() => {
+                      const globalTradeList: { date: string, images: string[], tradeNum?: number }[] = [];
+                      let targetTradeIdx = 0;
+                      let targetImgIdx = 0;
+                      
+                      sortedDates.forEach(d => {
+                        const tradesForDay = trades.filter(t => t.date === d);
+                        tradesForDay.forEach((t, tIdx) => {
+                          const currentTIdx = globalTradeList.length;
+                          globalTradeList.push({
+                            date: d,
+                            images: t.chartUrls,
+                            tradeNum: tIdx + 1
+                          });
+                          
+                          const foundImgIdx = t.chartUrls.indexOf(img.url);
+                          if (d === date && foundImgIdx !== -1) {
+                            targetTradeIdx = currentTIdx;
+                            targetImgIdx = foundImgIdx;
+                          }
+                        });
+                      });
+                      
+                      openViewer(globalTradeList, targetTradeIdx, targetImgIdx);
+                    }}
+                  >
                     <img
                       src={img.url}
                       alt="Gallery"
@@ -430,6 +500,51 @@ export default function App() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Fullscreen Viewer State (Lifted)
+  const [fsOpen, setFsOpen] = useState(false);
+  const [fsDayIndex, setFsDayIndex] = useState(0);
+  const [fsImageIndex, setFsImageIndex] = useState(0);
+  const [fsDays, setFsDays] = useState<{date: string, images: string[]}[]>([]);
+  const [fsInitialLocked, setFsInitialLocked] = useState(false);
+
+  const openViewer = (days: any[], dIdx: number, iIdx: number, locked = false) => {
+    setFsDays(days);
+    setFsDayIndex(dIdx);
+    setFsImageIndex(iIdx);
+    setFsInitialLocked(locked);
+    setFsOpen(true);
+    // Push state for back button handling
+    window.history.pushState({ view: 'fullscreen' }, '');
+  };
+
+  // Global Back Gesture / Browser Back Handling
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (fsOpen) {
+        setFsOpen(false);
+        return;
+      }
+      
+      // If we are in a non-feed view, go back to feed
+      if (currentView !== 'feed') {
+        setCurrentView('feed');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [fsOpen, currentView]);
+
+  // Track view changes in history for back gesture
+  useEffect(() => {
+    if (currentView !== 'feed') {
+      window.history.pushState({ view: currentView }, '');
+    }
+  }, [currentView]);
+
+  // Expose to window for CalendarView hack or we refactor CalendarView properly
+  (window as any)._openFS = openViewer;
 
   useEffect(() => {
     fetchTrades()
@@ -468,15 +583,15 @@ export default function App() {
   const renderView = () => {
     switch (currentView) {
       case 'feed':
-        return <FeedView trades={trades} />;
+        return <FeedView trades={trades} openViewer={openViewer} />;
       case 'calendar':
-        return <CalendarView trades={trades} />;
+        return <CalendarView trades={trades} openViewer={openViewer} />;
       case 'dashboard':
         return <DashboardView trades={trades} />;
       case 'table':
         return <TableView trades={trades} onLogTrade={() => setCurrentView('import')} />;
       case 'gallery':
-        return <GalleryView trades={trades} />;
+        return <GalleryView trades={trades} openViewer={openViewer} />;
       case 'blog':
         return <BlogView />;
       case 'import':
@@ -543,6 +658,15 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <FullscreenViewer
+        days={fsDays}
+        initialDayIndex={fsDayIndex}
+        initialImageIndex={fsImageIndex}
+        isOpen={fsOpen}
+        onClose={() => setFsOpen(false)}
+        initialLocked={fsInitialLocked}
+      />
 
       {/* Persistent Bottom Navigation */}
       <BottomNav currentView={currentView} onViewChange={setCurrentView} />

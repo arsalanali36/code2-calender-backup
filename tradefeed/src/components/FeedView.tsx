@@ -5,17 +5,23 @@ import { Trade } from '../types';
 
 interface FeedViewProps {
   trades: Trade[];
+  openViewer: (days: any[], dIdx: number, iIdx: number) => void;
 }
 
-export const FeedView: React.FC<FeedViewProps> = ({ trades }) => {
-  const grouped = trades.reduce<Record<string, Trade[]>>((acc, t) => {
+export const FeedView: React.FC<FeedViewProps> = ({ trades, openViewer }) => {
+  const grouped = trades.reduce((acc, t) => {
     const key = t.date || 'Unknown';
     if (!acc[key]) acc[key] = [];
     acc[key].push(t);
     return acc;
-  }, {});
+  }, {} as Record<string, Trade[]>);
 
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+  // Full cross-date item list — one entry per trade, for fullscreen date navigation
+  const allTradeItems = sortedDates.flatMap(d =>
+    grouped[d].map((t, idx) => ({ date: d, images: t.chartUrls, tradeNum: idx + 1 }))
+  );
 
   return (
     <div className="max-w-md mx-auto pb-24 pt-6 px-4">
@@ -37,7 +43,20 @@ export const FeedView: React.FC<FeedViewProps> = ({ trades }) => {
       {sortedDates.length === 0
         ? <p className="text-center text-zinc-400 text-sm mt-16">No trades yet.</p>
         : sortedDates.map(date => (
-            <DayFeedCard key={date} trades={grouped[date]} />
+            <DayFeedCard
+              key={date}
+              trades={grouped[date]}
+              allTradeItems={allTradeItems}
+              openViewer={openViewer}
+              onDateClick={() => {
+                // Pass allTradeItems to allow jumping to ANY date from the viewer
+                let targetIdx = 0;
+                for(let i=0; i<allTradeItems.length; i++) {
+                  if (allTradeItems[i].date === date) { targetIdx = i; break; }
+                }
+                openViewer(allTradeItems, targetIdx, 0);
+              }}
+            />
           ))
       }
     </div>

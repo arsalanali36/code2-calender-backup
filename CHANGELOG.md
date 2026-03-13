@@ -1,6 +1,22 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 14, 2026
+
+### v2.9.4 — Mobile Fullscreen UX: Gestures, Per-Trade Count, Landscape Lock
+
+- **Per-trade image count:** `FeedView.tsx` now builds `allTradeItems` flat list (one entry per trade, cross-date). Passed to each `DayFeedCard`. Image onClick now finds clicked URL in `allTradeItems` — fullscreen opens at exact trade+image. Old behaviour clubbed all trades of a day into T1 showing 1/24; now T1: 1/12, T2: 1/7, T3: 1/5.
+- **Next at trade boundary:** At last image of T1, pressing next goes to T2 of same date. Added `nextItem`/`prevItem` functions that traverse adjacent `dayIdx` regardless of date.
+- **Up/down = date jump:** `nextDay`/`prevDay` skip same-date items and jump to a different calendar date.
+- **Navigation layout rebuilt:** Left/right arrows on screen sides (image navigation), up/down circles at bottom corners (date navigation). Removed centre-clustered old layout.
+- **Buttons fixed to screen:** Moved all 4 nav buttons + zoom slider outside the draggable `motion.div` into the `fixed inset-0` parent — buttons no longer move when image is dragged/panned.
+- **Orientation lock:** Lock button → `requestFullscreen().then(() => orientation.lock('landscape'))`. Unlock → `orientation.unlock()` + `exitFullscreen()`. Portrait/landscape toggle works correctly.
+- **Image click opens locked landscape:** `openViewer` accepts optional 4th param `locked=true`. `DayFeedCard` passes `true` from image click. `FullscreenViewer` triggers fullscreen+landscape on open when `initialLocked=true`.
+- **Date picker on header:** Tapping date in fullscreen header opens native `<input type="date">` picker; selecting a date jumps viewer to that date.
+- **Removed "Trade View" title:** Header is cleaner — only date + trade/image badge remain.
+- **Flask fullscreen viewer:** Also updated `static/js/fullscreen-viewer.js` and `static/css/style-fullscreen.css` for same navigation layout (desktop app parity).
+- **Dev blog post added:** `v2.9.4: Mobile Fullscreen UX — Gestures, Per-Trade Count, Landscape Lock`.
+
 ## EOD Summary - March 13, 2026
 
 ### v2.9.3 — Mobile View + Strategy Session

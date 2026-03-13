@@ -244,6 +244,9 @@ function renderCalendar() {
         const tags = Array.from(new Set(dayTrades.flatMap(t => getTradeTagsForColumn(t, col))));
         tags.forEach(tag => dayTagKeys.push(makeTagFilterKey(col, tag)));
       });
+
+      const imgs = [...(state.dayData[dateStr]?.images || []), ...dayTrades.flatMap(t => t.images || [])];
+
       if (window._showCalTags && dayTagKeys.length) {
         const tagWrap = document.createElement('div');
         tagWrap.className = 'day-tag-bubbles';
@@ -286,11 +289,16 @@ function renderCalendar() {
           timg.src = resolveImageUrl(thumbnailImg);
           timg.alt = 'thumbnail';
           timg.title = 'Thumbnail tagged image';
+          
+          timg.addEventListener('click', e => {
+            e.stopPropagation();
+            openFullscreenFromAppContext(imgs, thumbnailImg);
+          });
+          
           cell.appendChild(timg);
         }
       }
 
-      const imgs = [...(state.dayData[dateStr]?.images || []), ...dayTrades.flatMap(t => t.images || [])];
       if (imgs.length > 0) {
         const badge = document.createElement('div'); badge.className = 'day-img-badge';
         badge.textContent = `Img ${imgs.length}`; cell.appendChild(badge);

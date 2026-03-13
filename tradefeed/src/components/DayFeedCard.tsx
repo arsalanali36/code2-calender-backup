@@ -9,9 +9,12 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface DayFeedCardProps {
   trades: Trade[];
+  allTradeItems?: { date: string; images: string[]; tradeNum: number }[];
+  openViewer: (days: any[], dIdx: number, iIdx: number) => void;
+  onDateClick: () => void;
 }
 
-export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades }) => {
+export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems, openViewer, onDateClick }) => {
   const [tradeIndex, setTradeIndex] = useState(0);
   const [imgIndex, setImgIndex]     = useState(0);
   const touchStartX = React.useRef<number>(0);
@@ -46,7 +49,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades }) => {
       className="bg-white border border-zinc-200 rounded-2xl overflow-hidden mb-6 shadow-sm"
     >
       {/* Header */}
-      <div className="px-3 py-2.5 flex items-center justify-between">
+      <div className="px-3 py-2.5 flex items-center justify-between cursor-pointer active:bg-zinc-50" onClick={onDateClick}>
         <div className="flex items-center gap-2.5">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isProfit ? 'bg-emerald-100' : 'bg-rose-100'}`}>
             {trade.type === 'Long'
@@ -68,7 +71,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades }) => {
             <h3 className="text-sm font-bold text-zinc-900 leading-tight">{trade.instrument}</h3>
           </div>
         </div>
-        <button className="text-zinc-400">
+        <button className="text-zinc-400 hover:text-zinc-600 p-1" onClick={(e) => { e.stopPropagation(); /* secondary menu logic here if any */ }}>
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
@@ -88,7 +91,21 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades }) => {
               exit={{ opacity: 0 }}
               src={trade.chartUrls[imgIndex]}
               alt="chart"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover cursor-zoom-in"
+              onClick={() => {
+                const clickedUrl = trade.chartUrls[imgIndex];
+                const itemsList = allTradeItems || trades.map((t, idx) => ({
+                  date: t.date, images: t.chartUrls, tradeNum: idx + 1
+                }));
+                // Find which item in the full list contains this image
+                let targetItemIdx = tradeIndex;
+                let targetImgIdx = imgIndex;
+                for (let i = 0; i < itemsList.length; i++) {
+                  const idx = itemsList[i].images.indexOf(clickedUrl);
+                  if (idx !== -1) { targetItemIdx = i; targetImgIdx = idx; break; }
+                }
+                openViewer(itemsList, targetItemIdx, targetImgIdx, true);
+              }}
             />
           </AnimatePresence>
 

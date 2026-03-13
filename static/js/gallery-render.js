@@ -59,6 +59,11 @@ function renderGallery() {
   img.addEventListener('load', afterImageReady, { once: true });
   if (img.complete && img.naturalWidth) afterImageReady();
 
+  // Fullscreen Viewer trigger
+  img.onclick = () => {
+    openFullscreenFromAppContext(state.gallery.images, images[currentIndex]);
+  };
+
   document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
   document.getElementById('gallery-prev').disabled = images.length <= 1;
   document.getElementById('gallery-next').disabled = images.length <= 1;
