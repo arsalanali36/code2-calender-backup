@@ -3,6 +3,17 @@ Here is a complete, date-wise breakdown of all the features, updates, and refact
 
 ## EOD Summary - March 13, 2026
 
+### v2.9.3 — Mobile View + Strategy Session
+
+- **Mobile view embedded in Flask:** Tradefeed React app now served at `/mobile/` route directly from Flask — no separate deployment needed. Same `/api/trades` backend, same data.
+- **Header 📱 button:** Clicking navigates to `/mobile/`. Bottom nav in mobile has Desktop button back to `/`.
+- **CORS fix:** `tradefeed/.env` had `VITE_API_URL=http://192.168.29.200:5000` hardcoded — caused CORS block when credentials mode is `include`. Fixed to empty (relative URLs).
+- **dayData images in gallery:** Mobile gallery now also shows images attached to day notes (not just trade images).
+- **tradefeed/dist committed to git:** Render.com Python service has no npm — pre-built dist ships with code. `tradefeed/.gitignore` updated to track dist.
+- **Standalone tradefeed service removed:** render.yaml cleaned up — only `code2-calender` Flask service remains.
+- **Strategy decisions documented:** AI model task division, scaling plan (Supabase free → paid at 100 users), pricing (Rs 499/month), CAC/LTV analysis — all saved to memory and dev blog.
+- **Dev blog post added:** `v2.9.3: Mobile + Desktop Strategy, Ek App Do Duniya`.
+
 ### v2.9.2 — Cloudinary Live Images: Full Debug & Structural Fix
 
 - **Root cause found:** Per-user data file system (`trades_1.json` for user ID 1) was never migrated to Cloudinary — migration script only processed `trades.json`. All 204 local `/uploads/` paths in `trades_1.json` replaced with Cloudinary CDN URLs using existing `cloudinary_migration_map.json`.
