@@ -1,6 +1,7 @@
 node_modules/
 build/
-dist/
+# dist/ is committed — render.com Python service has no npm, so pre-built dist ships with code
+!dist/
 coverage/
 .DS_Store
 *.log
