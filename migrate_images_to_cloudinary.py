@@ -2,11 +2,14 @@
 migrate_images_to_cloudinary.py
 --------------------------------
 ONE-TIME script: Upload all local static/uploads images to Cloudinary
-and update any references in data/trades.json from /uploads/<file> to
-the Cloudinary secure URL.
+and update any references in ALL data/trades*.json files from
+/uploads/<file> to the Cloudinary secure URL.
 
 Run once after setting up Cloudinary:
     python migrate_images_to_cloudinary.py
+
+NOTE: Processes trades.json AND all per-user files (trades_1.json,
+      trades_2.json, etc.) — never add new data files without re-running.
 """
 
 import os
@@ -27,8 +30,17 @@ cloudinary.config(
 
 BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 UPLOADS_DIR   = os.path.join(BASE_DIR, 'static', 'uploads')
-DATA_FILE     = os.path.join(BASE_DIR, 'data', 'trades.json')
+DATA_DIR      = os.path.join(BASE_DIR, 'data')
 MAPPING_FILE  = os.path.join(BASE_DIR, 'data', 'cloudinary_migration_map.json')
+
+# All data files to update — trades.json + all per-user trades_N.json
+import glob as _glob
+ALL_DATA_FILES = sorted(
+    _glob.glob(os.path.join(DATA_DIR, 'trades*.json'))
+)
+# Exclude backups
+ALL_DATA_FILES = [f for f in ALL_DATA_FILES if '.backup' not in f]
+print(f"Data files to update: {[os.path.basename(f) for f in ALL_DATA_FILES]}")
 
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
 
@@ -106,11 +118,14 @@ print(f"  ⏭️  Skipped  : {skip_count}")
 print(f"  ❌ Failed   : {fail_count}")
 print(f"{'='*60}\n")
 
-# ── Update trades.json ────────────────────────────────────────────────────────
-if not os.path.exists(DATA_FILE):
-    print("⚠️  trades.json not found — skipping JSON update")
-else:
-    with open(DATA_FILE, 'r', encoding='utf-8') as f:
+# ── Update ALL data files ─────────────────────────────────────────────────────
+print(f"\n{'='*60}")
+print("  Updating data files...")
+print(f"{'='*60}")
+
+for data_file in ALL_DATA_FILES:
+    fname = os.path.basename(data_file)
+    with open(data_file, 'r', encoding='utf-8') as f:
         raw = f.read()
 
     updated_raw = raw
@@ -121,16 +136,13 @@ else:
             replaced_count += 1
 
     if replaced_count > 0:
-        # Backup original
-        backup_path = DATA_FILE + '.backup_before_migration'
+        backup_path = data_file + '.backup_before_migration'
         with open(backup_path, 'w', encoding='utf-8') as f:
             f.write(raw)
-        print(f"📦 Backup saved: {backup_path}")
-
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        with open(data_file, 'w', encoding='utf-8') as f:
             f.write(updated_raw)
-        print(f"✅ trades.json updated — {replaced_count} URLs replaced with Cloudinary URLs")
+        print(f"✅ {fname} — {replaced_count} URLs replaced (backup saved)")
     else:
-        print("ℹ️  No /uploads/ URLs found in trades.json (already updated or no images referenced)")
+        print(f"ℹ️  {fname} — already clean, nothing to replace")
 
 print("\n🎉 Migration complete! Check data/cloudinary_migration_map.json for the full URL mapping.")

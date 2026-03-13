@@ -101,20 +101,33 @@ def _bootstrap_persistent_storage():
     copy bundled local data so the app starts with existing data.
 
     Set FORCE_DATA_REFRESH=1 env var to force-overwrite the disk trades.json
-    with the bundled (newly deployed) version. Remove after one deploy.
+    AND all per-user trades_N.json files with the deployed versions.
+    Remove after one deploy.
     """
-    default_data_file   = os.path.join(BASE_DIR, 'data', 'trades.json')
+    import glob as _glob
+    default_data_dir    = os.path.join(BASE_DIR, 'data')
+    default_data_file   = os.path.join(default_data_dir, 'trades.json')
     default_uploads_dir = os.path.join(BASE_DIR, 'static', 'uploads')
 
     force_refresh = os.getenv('FORCE_DATA_REFRESH', '').strip() == '1'
 
     try:
         if DATA_FILE != default_data_file and os.path.exists(default_data_file):
+            # Seed/refresh trades.json
             if force_refresh or not os.path.exists(DATA_FILE):
                 shutil.copy2(default_data_file, DATA_FILE)
                 print(f"[bootstrap] trades.json {'force-refreshed' if force_refresh else 'seeded'} → {DATA_FILE}")
+            # Seed/refresh all per-user trades_N.json files
+            if force_refresh:
+                for src in _glob.glob(os.path.join(default_data_dir, 'trades_*.json')):
+                    if '.backup' in src:
+                        continue
+                    dst_dir = os.path.dirname(DATA_FILE)
+                    dst = os.path.join(dst_dir, os.path.basename(src))
+                    shutil.copy2(src, dst)
+                    print(f"[bootstrap] force-refreshed {os.path.basename(src)} → {dst}")
     except Exception as e:
-        print(f"[bootstrap] WARNING: could not copy trades.json: {e}")
+        print(f"[bootstrap] WARNING: could not copy trades files: {e}")
 
     try:
         if UPLOADS_DIR != default_uploads_dir and os.path.isdir(default_uploads_dir):
@@ -167,18 +180,32 @@ app.register_blueprint(auth_bp)
 # ── Entry point ───────────────────────────────────────────────────────────────
 @app.route('/api/debug-data')
 def debug_data():
-    """Debug route to see what image URLs are actually in the memory."""
+    """Debug route: shows the actual data file being used for the current user."""
+    from processors.data_processors import get_user_data_file
     try:
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        actual_file = get_user_data_file()
+        with open(actual_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         trades = data.get('trades', [])
-        # Find 10 Feb trade
         feb10 = [t for t in trades if t.get('date') == '2026-02-10']
+        # Count local vs cloudinary image refs across all trades + dayData
+        local_imgs = cloud_imgs = 0
+        for t in trades:
+            for img in t.get('images', []):
+                if img.startswith('http'): cloud_imgs += 1
+                else: local_imgs += 1
+        for d in data.get('dayData', {}).values():
+            for img in d.get('images', []):
+                if img.startswith('http'): cloud_imgs += 1
+                else: local_imgs += 1
         return {
-            "data_file_path": DATA_FILE,
+            "actual_file": actual_file,
+            "default_data_file": DATA_FILE,
             "force_refresh_env": os.getenv('FORCE_DATA_REFRESH'),
             "total_trades": len(trades),
-            "feb10_sample": feb10[0].get('images', []) if feb10 else "Not found"
+            "images_cloudinary": cloud_imgs,
+            "images_local_broken": local_imgs,
+            "feb10_sample": feb10[0].get('images', [])[:3] if feb10 else "Not found"
         }
     except Exception as e:
         return {"error": str(e)}
