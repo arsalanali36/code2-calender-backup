@@ -98,17 +98,22 @@ def _bootstrap_persistent_storage():
     """
     One-time seed: if using external DATA/UPLOADS paths (e.g. Render disk),
     copy bundled local data so the app starts with existing data.
+
+    Set FORCE_DATA_REFRESH=1 env var to force-overwrite the disk trades.json
+    with the bundled (newly deployed) version. Remove after one deploy.
     """
     default_data_file   = os.path.join(BASE_DIR, 'data', 'trades.json')
     default_uploads_dir = os.path.join(BASE_DIR, 'static', 'uploads')
 
+    force_refresh = os.getenv('FORCE_DATA_REFRESH', '').strip() == '1'
+
     try:
-        if (DATA_FILE != default_data_file
-                and not os.path.exists(DATA_FILE)
-                and os.path.exists(default_data_file)):
-            shutil.copy2(default_data_file, DATA_FILE)
-    except Exception:
-        pass
+        if DATA_FILE != default_data_file and os.path.exists(default_data_file):
+            if force_refresh or not os.path.exists(DATA_FILE):
+                shutil.copy2(default_data_file, DATA_FILE)
+                print(f"[bootstrap] trades.json {'force-refreshed' if force_refresh else 'seeded'} → {DATA_FILE}")
+    except Exception as e:
+        print(f"[bootstrap] WARNING: could not copy trades.json: {e}")
 
     try:
         if UPLOADS_DIR != default_uploads_dir and os.path.isdir(default_uploads_dir):
