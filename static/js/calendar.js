@@ -283,7 +283,7 @@ function renderCalendar() {
         if (thumbnailImg) {
           const timg = document.createElement('img');
           timg.className = 'day-thumb-image';
-          timg.src = thumbnailImg;
+          timg.src = resolveImageUrl(thumbnailImg);
           timg.alt = 'thumbnail';
           timg.title = 'Thumbnail tagged image';
           cell.appendChild(timg);

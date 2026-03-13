@@ -74,13 +74,13 @@ function loadOverlayForCurrentImage() {
           ctx.drawImage(retryImg, 0, 0, canvas.width, canvas.height);
           drawBoxes();
         };
-        retryImg.src = localUrl;
+        retryImg.src = resolveImageUrl(localUrl);
         return;
       }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (boxes.length) drawBoxes();
     };
-    ovImg.src = overlayUrl;
+    ovImg.src = resolveImageUrl(overlayUrl);
   } else {
     ctx.clearRect(0, 0, w, h);
     drawBoxes();

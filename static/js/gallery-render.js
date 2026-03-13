@@ -38,11 +38,15 @@ function renderGallery() {
   img.src = resolveImageUrl(curUrl); img.classList.remove('zoomed', 'dragging'); resetZoom();
   img.onerror = () => {
     if (!curUrl) return;
-    const idx = state.gallery.images.indexOf(curUrl);
-    if (idx < 0) return;
-    state.gallery.images.splice(idx, 1);
-    state.gallery.currentIndex = Math.min(state.gallery.currentIndex, Math.max(0, state.gallery.images.length - 1));
-    renderGallery();
+    console.error('Failed to load image:', curUrl);
+    // Visual feedback instead of deletion
+    img.style.opacity = '0.3';
+    img.style.filter = 'grayscale(1) contrast(0.5)';
+    img.title = 'Image could not be loaded. Please check your connection or link.';
+    
+    // We only remove if absolutely sure and it helps (e.g. broken thumbnail in filtered view)
+    // But for now, let's play it safe and NOT delete anything automatically to avoid data loss.
+    // if (state.gallery.tagFilter?.length) { ... }
   };
   const afterImageReady = () => {
     loadOverlayForCurrentImage();
@@ -153,6 +157,10 @@ function renderGallery() {
         }
       } catch (err) { console.error(err); }
     });
+    if (state.gallery.selectedSeparator === idx) {
+        sep.classList.add('selected-separator');
+    }
+
     sep.addEventListener('click', () => {
       document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
       sep.classList.add('selected-separator');
@@ -220,10 +228,15 @@ function renderGallery() {
         }
       } catch (err) { console.error(err); }
     });
+    const sepKey = isClose ? 'CLOSE' : 'OPEN';
+    if (state.gallery.selectedSeparator === sepKey) {
+        sep.classList.add('selected-separator');
+    }
+
     sep.addEventListener('click', () => {
       document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
       sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = isClose ? 'CLOSE' : 'OPEN';
+      state.gallery.selectedSeparator = sepKey;
       showToast(`Selected ${label} separator`, 'success');
     });
 
@@ -290,26 +303,58 @@ function renderGallery() {
     t.onerror = () => {
       const idx = state.gallery.images.indexOf(url);
       if (idx < 0) { wrap.style.display = 'none'; return; }
-      state.gallery.images.splice(idx, 1);
-      state.gallery.currentIndex = Math.min(state.gallery.currentIndex, Math.max(0, state.gallery.images.length - 1));
-      clearTimeout(renderGallery._brokenTimer);
-      renderGallery._brokenTimer = setTimeout(() => renderGallery(), 30);
+      
+      // Visual feedback instead of deletion
+      t.style.opacity = '0.3';
+      t.title = 'Image could not be loaded';
+      
+      /* 
+      // Former aggressive deletion logic removed to prevent data loss 
+      if (!state.gallery.tagFilter?.length) {
+          removeGalleryImageAt(globalIdx, true).then(() => {
+              console.warn('Broken thumbnail removed:', url);
+          });
+      } else {
+          state.gallery.images.splice(idx, 1);
+          state.gallery.currentIndex = Math.min(state.gallery.currentIndex, Math.max(0, state.gallery.images.length - 1));
+          clearTimeout(renderGallery._brokenTimer);
+          renderGallery._brokenTimer = setTimeout(() => renderGallery(), 30);
+      }
+      */
     };
     t.addEventListener('click', (e) => {
+      // Initialize if needed
+      if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+      
+      const lastIdx = state.gallery.lastClickedIdx ?? currentIndex;
+
       if (e.shiftKey) {
-        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
-        if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
-        else state.gallery.selectedIndices.add(globalIdx);
-        renderGallery();
-        return;
+          // Range selection
+          const start = Math.min(lastIdx, globalIdx);
+          const end = Math.max(lastIdx, globalIdx);
+          for (let i = start; i <= end; i++) {
+              state.gallery.selectedIndices.add(i);
+          }
+          state.gallery.lastClickedIdx = globalIdx;
+          renderGallery();
+          return;
       }
+      
       if (e.ctrlKey || e.metaKey) {
-        if (typeof toggleGalleryGroupExpand === 'function') {
-          if (toggleGalleryGroupExpand(url)) return;
-        }
+          // Individual toggle
+          if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
+          else state.gallery.selectedIndices.add(globalIdx);
+          state.gallery.lastClickedIdx = globalIdx;
+          renderGallery();
+          return;
       }
+
+      // Normal click: select only this
       state.gallery.selectedIndices = new Set([globalIdx]);
       state.gallery.currentIndex = globalIdx;
+      state.gallery.lastClickedIdx = globalIdx;
+      
+      // If double click or secondary action? We'll just stick to single click for navigation
       renderGallery();
     });
     t.addEventListener('contextmenu', async e => {
@@ -516,7 +561,7 @@ function renderGallery() {
   btnWrap.style.color = 'var(--text2)';
   btnWrap.textContent = '+';
   btnWrap.title = 'Add blank image';
-  btnWrap.onclick = () => {
+  btnWrap.onclick = async () => {
     try {
       const cvs = document.createElement('canvas');
       cvs.width = 1920; cvs.height = 1080;
@@ -530,18 +575,42 @@ function renderGallery() {
           const rv = await imageService.uploadImage(file);
           if (rv.url) {
             const newUrl = rv.url;
-            const oT = getOwnerTradeForGalleryImage() || (state.gallery.sourceRow !== null ? state.trades[state.gallery.sourceRow] : null);
-            if (oT) {
-              oT.images = oT.images || []; oT.images.push(newUrl);
-            } else if (state.gallery.date) {
-              const d = state.dayData[state.gallery.date];
-              if (d) { d.images = d.images || []; d.images.push(newUrl); }
+            
+            // Placement logic based on selected separator
+            const selSep = state.gallery.selectedSeparator;
+            const dayKey = state.gallery.date;
+            let targetObj = null;
+            let targetArray = 'images';
+
+            if (selSep === 'OPEN') {
+                targetObj = state.dayData[dayKey];
+                targetArray = 'images';
+            } else if (selSep === 'CLOSE') {
+                targetObj = state.dayData[dayKey];
+                targetArray = 'closeImages';
+            } else if (typeof selSep === 'number') {
+                const dayTrades = getTradesForDate(dayKey);
+                targetObj = dayTrades[selSep];
+                targetArray = 'images';
             }
+
+            if (!targetObj && dayKey) {
+                // Fallback to day level or current trade
+                targetObj = getOwnerTradeForGalleryImage() || state.dayData[dayKey];
+            }
+
+            if (targetObj) {
+                targetObj[targetArray] = targetObj[targetArray] || [];
+                targetObj[targetArray].push(newUrl);
+            }
+
             state.gallery.images = state.gallery.images || [];
             state.gallery.images.push(newUrl);
             state.gallery.currentIndex = state.gallery.images.length - 1;
-            saveTrades();
+            
+            await saveTrades();
             renderGallery();
+            showToast('Blank image added at selected location', 'success');
           }
         } catch (err) { console.error('Failed blank page upload', err); }
       }, 'image/png');
@@ -592,25 +661,36 @@ function renderGallery() {
       _rbEl.style.width = Math.abs(cx - _rbStart.x) + 'px';
       _rbEl.style.height = Math.abs(cy - _rbStart.y) + 'px';
     };
-    const _rbUp = () => {
+    const _rbUp = (ue) => {
       const rbRect = _rbEl.getBoundingClientRect(); // must get BEFORE hiding
       _rbEl.style.display = 'none';
       if (rbRect.width > 4 || rbRect.height > 4) {
         const savedScroll = thumbs.scrollLeft;
-        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+        // If no modifier is held, clear previous selection
+        if (!ue.shiftKey && !ue.ctrlKey && !ue.metaKey) {
+            if (state.gallery.selectedIndices) state.gallery.selectedIndices.clear();
+            else state.gallery.selectedIndices = new Set();
+        } else if (!state.gallery.selectedIndices) {
+            state.gallery.selectedIndices = new Set();
+        }
+
         thumbs.querySelectorAll('.gv2-thumb-wrap').forEach(wrap => {
           if (wrap.dataset.globalIdx === undefined) return;
           const wRect = wrap.getBoundingClientRect();
           const overlaps = !(rbRect.right < wRect.left || rbRect.left > wRect.right || rbRect.bottom < wRect.top || rbRect.top > wRect.bottom);
-          if (overlaps) state.gallery.selectedIndices.add(parseInt(wrap.dataset.globalIdx));
+          if (overlaps) {
+              state.gallery.selectedIndices.add(parseInt(wrap.dataset.globalIdx));
+          }
         });
         renderGallery();
         setTimeout(() => { thumbs.scrollLeft = savedScroll; }, 60);
       } else {
-        // Plain click on empty area → deselect all
-        if (state.gallery.selectedIndices?.size > 0) {
-          state.gallery.selectedIndices.clear();
-          thumbs.querySelectorAll('.selected-thumb').forEach(el => el.classList.remove('selected-thumb'));
+        // Plain click on empty area → deselect all if no modifier
+        if (!ue.shiftKey && !ue.ctrlKey && !ue.metaKey) {
+            if (state.gallery.selectedIndices?.size > 0) {
+              state.gallery.selectedIndices.clear();
+              renderGallery();
+            }
         }
       }
       _rbStart = null;

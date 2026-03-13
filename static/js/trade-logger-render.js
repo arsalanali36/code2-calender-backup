@@ -273,7 +273,7 @@ function _renderTlContent() {
 
     if (heroImgPath) {
         const imgEl = document.createElement('img');
-        imgEl.src = heroImgPath;
+        imgEl.src = resolveImageUrl(heroImgPath);
         imgEl.style.width = '100%';
         imgEl.style.height = '100%';
         imgEl.style.objectFit = 'contain';

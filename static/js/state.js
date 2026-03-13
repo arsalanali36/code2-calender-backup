@@ -217,7 +217,25 @@ function bindSectionOrderDrag() {
  */
 function resolveImageUrl(url) {
   if (!url) return '';
-  const s = String(url).trim();
-  if (s.startsWith('http') || s.startsWith('blob:') || s.startsWith('data:')) return s;
-  return '/uploads/' + s;
+  let s = '';
+  if (typeof url === 'object') {
+    // Check common properties for image objects
+    s = url.url || url.path || url.secure_url || String(url);
+  } else {
+    s = String(url);
+  }
+  s = (s || '').trim();
+  if (!s || s === '[object Object]') return '';
+
+  // Return as-is if it's a full URL, protocol-relative, or a base64/blob
+  if (s.startsWith('http') || s.startsWith('//') || s.startsWith('blob:') || s.startsWith('data:')) {
+    return s;
+  }
+
+  // If it already has the correct root-relative prefix, return it
+  if (s.startsWith('/uploads/')) return s;
+
+  // Otherwise, ensure it starts with /uploads/ and remove any duplicate "uploads/" segment
+  const clean = s.replace(/^(\/)?uploads\//i, '');
+  return '/uploads/' + clean;
 }

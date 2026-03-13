@@ -13,7 +13,7 @@
 function openGalleryForDate(dateStr) {
   const images = getImagesForDate(dateStr);
   if (!images.length) return;
-  state.gallery.images = images; state.gallery.currentIndex = 0;
+  state.gallery.images = images; state.gallery.currentIndex = 0; state.gallery.tagFilter = [];
   state.gallery.date = dateStr; state.gallery.sourceRow = null;
   state.gallery._baseImages = [...images];
   state.gallery.selectedIndices = state.gallery.selectedIndices || new Set();
@@ -31,7 +31,7 @@ function openGalleryForDate(dateStr) {
 }
 
 function openGalleryDirect(images, startIndex, sourceRow = null) {
-  state.gallery.images = images; state.gallery.currentIndex = startIndex;
+  state.gallery.images = images; state.gallery.currentIndex = startIndex; state.gallery.tagFilter = [];
   state.gallery.date = ''; state.gallery.sourceRow = sourceRow;
   state.gallery._baseImages = [...images];
   state.gallery.selectedIndices = state.gallery.selectedIndices || new Set();

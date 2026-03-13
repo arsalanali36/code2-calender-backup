@@ -111,7 +111,7 @@ function startAnnotation() {
     // 2. Legacy fallback to raster overlay
     const overlayUrl = state._localOverlays?.[imgUrl] || getOverlayUrlForImage(imgUrl, annotState.date);
     if (overlayUrl) {
-      fabric.Image.fromURL(overlayUrl, ovImg => {
+      fabric.Image.fromURL(resolveImageUrl(overlayUrl), ovImg => {
         if (!fabricCanvas) return; // annotation may have stopped before async loaded
         ovImg.set({
           left: 0, top: 0, selectable: false, evented: false,

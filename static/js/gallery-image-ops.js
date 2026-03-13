@@ -34,6 +34,12 @@ function getOwnerTradeForImageUrl(imageUrl) {
 }
 
 function syncGalleryImageOrderToTrades() {
+    const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+    if (filterActive) {
+        console.warn('syncGalleryImageOrderToTrades skipped because a filter is active. Persistent reordering is disabled in filter mode.');
+        return;
+    }
+
     const ordered = state.gallery.images || [];
 
     const getSubSet = (t) => {
@@ -44,30 +50,50 @@ function syncGalleryImageOrderToTrades() {
         return s;
     };
 
+    // Helper to sync sub-image order within a trade/dayData object
+    const syncSubOrder = (obj) => {
+        if (!obj || !obj.subImages) return;
+        for (const parentUrl in obj.subImages) {
+            const currentSubs = obj.subImages[parentUrl];
+            // Filter all sub-images that belong to this parent from the ordered gallery list
+            const inTray = ordered.filter(u => currentSubs.includes(u));
+            // If the count matches, it means they are all expanded/visible or we have the full set
+            // Even if not all are visible, we update the ones we found in the order they appeared
+            if (inTray.length > 1) {
+                // We only update if we found multiple, to avoid messing up if some are filtered out
+                // Actually, if we are in filter mode, we should be careful.
+                const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+                if (!filterActive) {
+                    obj.subImages[parentUrl] = inTray;
+                }
+            }
+        }
+    };
+
     if (state.gallery.sourceRow !== null && state.trades[state.gallery.sourceRow]) {
         const t = state.trades[state.gallery.sourceRow];
+        syncSubOrder(t);
         const subs = getSubSet(t);
         t.images = ordered.filter(u => !subs.has(u));
         return;
     }
+
     if (state.gallery.date) {
         const dk = state.gallery.date;
-        if (state.dayData[dk]) {
-            const daySubs = getSubSet(state.dayData[dk]);
-            // For dayData, we want only the ordered items that belong to dayData originally.
-            // Wait, dayData images are those NOT owned by any trade.
-            // If it's owned by a trade, we update the trade.
-            const dayTrades = getTradesForDate(dk);
+        const dayTrades = getTradesForDate(dk);
+        const currentDayData = state.dayData[dk];
 
-            // Re-assign images based on owner.
+        dayTrades.forEach(syncSubOrder);
+        syncSubOrder(currentDayData);
+
+        if (currentDayData) {
+            const daySubs = getSubSet(currentDayData);
             const newDayImages = [];
             const newCloseImages = [];
             const newTradeImages = new Map();
             dayTrades.forEach(t => newTradeImages.set(t, []));
 
             let seenAnyTrade = false;
-            let currentDayData = state.dayData[dk];
-
             ordered.forEach(u => {
                 const owner = getOwnerTradeForImageUrl(u);
                 if (owner && newTradeImages.has(owner)) {
@@ -75,40 +101,29 @@ function syncGalleryImageOrderToTrades() {
                     const subs = getSubSet(owner);
                     if (!subs.has(u)) newTradeImages.get(owner).push(u);
                 } else {
-                    if (!daySubs.has(u)) {
+                    const subs = getSubSet(currentDayData);
+                    if (!subs.has(u)) {
                         if (dayTrades.length > 0) {
                             if (seenAnyTrade) newCloseImages.push(u);
                             else newDayImages.push(u);
                         } else {
-                            if (currentDayData?.closeImages?.includes(u)) {
-                                newCloseImages.push(u);
-                            } else {
-                                newDayImages.push(u);
-                            }
+                            if (currentDayData.closeImages?.includes(u)) newCloseImages.push(u);
+                            else newDayImages.push(u);
                         }
                     }
                 }
             });
 
-            state.dayData[dk].images = newDayImages;
-            state.dayData[dk].closeImages = newCloseImages;
+            currentDayData.images = newDayImages;
+            currentDayData.closeImages = newCloseImages;
             dayTrades.forEach(t => { t.images = newTradeImages.get(t); });
         }
         return;
     }
 
     // Fallback: Global iteration
-    ordered.forEach(u => {
-        const owner = getOwnerTradeForImageUrl(u);
-        if (owner) {
-            const subs = getSubSet(owner);
-            if (!subs.has(u)) {
-                // Push if not present (this part is trickier without a grouped loop, but fallback rarely used)
-                owner.images = owner.images || [];
-                if (!owner.images.includes(u)) owner.images.push(u); // rudimentary sync for fallback
-            }
-        }
-    });
+    state.trades.forEach(syncSubOrder);
+    Object.values(state.dayData || {}).forEach(syncSubOrder);
 }
 
 async function reorderGalleryImages(fromIdx, toIdx) {

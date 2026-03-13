@@ -35,7 +35,7 @@ function renderUploadPreview() {
   const c = document.getElementById('upload-preview'); c.innerHTML = '';
   state.pendingFiles.forEach((url, i) => {
     const item = document.createElement('div'); item.className = 'preview-item';
-    const img = document.createElement('img'); img.src = url;
+    const img = document.createElement('img'); img.src = resolveImageUrl(url);
     const del = document.createElement('button'); del.className = 'remove-preview'; del.textContent = 'âœ•';
     del.addEventListener('click', () => { state.pendingFiles.splice(i, 1); renderUploadPreview(); });
     item.appendChild(img); item.appendChild(del); c.appendChild(item);

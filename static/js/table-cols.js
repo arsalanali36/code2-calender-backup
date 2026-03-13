@@ -288,7 +288,7 @@ function renderImagesCell(td, rowIdx, images) {
   const maxShow = 6;
   images.slice(0, maxShow).forEach((url, i) => {
     const item = document.createElement('div'); item.className = 'img-thumb-wrap';
-    const img = document.createElement('img'); img.className = 'img-thumb'; img.src = url;
+    const img = document.createElement('img'); img.className = 'img-thumb'; img.src = resolveImageUrl(url);
     img.onerror = () => { img.style.opacity = '0.2'; img.style.filter = 'grayscale(1)'; img.title = 'Image not found on server'; };
     img.setAttribute('draggable', 'true');
     img.addEventListener('click', e => { e.stopPropagation(); openGalleryDirect(images, i, rowIdx); });
