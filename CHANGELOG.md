@@ -1,6 +1,18 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 13, 2026
+
+### v2.9.2 — Cloudinary Live Images: Full Debug & Structural Fix
+
+- **Root cause found:** Per-user data file system (`trades_1.json` for user ID 1) was never migrated to Cloudinary — migration script only processed `trades.json`. All 204 local `/uploads/` paths in `trades_1.json` replaced with Cloudinary CDN URLs using existing `cloudinary_migration_map.json`.
+- **JS fix:** 12 locally-modified JS files (including fixed `resolveImageUrl` in `state.js`) were uncommitted — old server version caused `/uploads//uploads/UUID.png` double-prefix 404s. All files committed and deployed.
+- **`migrate_images_to_cloudinary.py`:** Now auto-discovers and processes ALL `data/trades*.json` files (including per-user `trades_N.json`). No user will be missed on future migrations.
+- **`/api/debug-data`:** Now uses `get_user_data_file()` — shows actual file for the logged-in user, plus Cloudinary vs local image counts. Previously was reading the wrong file entirely.
+- **`_bootstrap_persistent_storage()`:** `FORCE_DATA_REFRESH=1` now also copies all per-user `trades_N.json` files to the persistent disk, not just `trades.json`.
+- **Scripts hygiene:** Fixed hardcoded local Windows paths in `Scripts/clean_dead_images.py` and `Scripts/fix_image_arrays.py` to use `BASE_DIR`-relative paths. Added `.gitignore` entries for backup files and temp root scripts.
+- **Dev blog:** Added post `v2.9.2: The 4-Hour Image Debug War` documenting all three walls and structural fixes.
+
 ## EOD Summary - March 12, 2026
 
 ### v2.9.0 â€” Quotes + CSVLog Charts Workspace

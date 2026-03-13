@@ -14,3 +14,7 @@ package-lock.json
 _shadow_repo/
 Docs/AI_Contexts/*_COMPACT.md
 .tmp_restore_bundle*.zip
+data/*.backup
+data/*.backup_before_migration
+check_dates.py
+verify_urls.py
