@@ -35,7 +35,7 @@ function renderGallery() {
   const img = document.getElementById('gallery-img');
   if (!annotState.active) document.getElementById('annot-canvas').style.display = 'none';
   const curUrl = images[currentIndex] || '';
-  img.src = curUrl; img.classList.remove('zoomed', 'dragging'); resetZoom();
+  img.src = resolveImageUrl(curUrl); img.classList.remove('zoomed', 'dragging'); resetZoom();
   img.onerror = () => {
     if (!curUrl) return;
     const idx = state.gallery.images.indexOf(curUrl);
@@ -285,7 +285,7 @@ function renderGallery() {
     }
 
     const t = document.createElement('img');
-    t.src = url;
+    t.src = resolveImageUrl(url);
     t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
     t.onerror = () => {
       const idx = state.gallery.images.indexOf(url);

@@ -209,3 +209,15 @@ function bindSectionOrderDrag() {
   });
 }
 
+/**
+ * Resolves an image path to a full URL.
+ * Handles both local filenames (needs /uploads/) and Cloudinary/external links (http/https).
+ * @param {string} url
+ * @returns {string}
+ */
+function resolveImageUrl(url) {
+  if (!url) return '';
+  const s = String(url).trim();
+  if (s.startsWith('http') || s.startsWith('blob:') || s.startsWith('data:')) return s;
+  return '/uploads/' + s;
+}
