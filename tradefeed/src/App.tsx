@@ -56,14 +56,17 @@ const TableView = ({ trades, onLogTrade }: { trades: Trade[], onLogTrade: () => 
 );
 
 const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (days: any[], dIdx: number, iIdx: number) => void }) => {
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [galleryMode, setGalleryMode] = useState<'tags' | 'day'>('tags');
-  const [cols, setCols] = useState(3);
+  const [selectedTag, setSelectedTag]       = useState<string | null>(null);
+  const [galleryMode, setGalleryMode]       = useState<'tags' | 'day'>('tags');
+  const [cols, setCols]                     = useState(3);
+  const [isSelecting, setIsSelecting]       = useState(false);
+  const [selectedUrls, setSelectedUrls]     = useState<Set<string>>(new Set());
 
-  const galleryRef = React.useRef<HTMLDivElement>(null);
+  const galleryRef     = React.useRef<HTMLDivElement>(null);
   const pinchStartDist = React.useRef(0);
   const pinchStartCols = React.useRef(3);
-  const colsRef = React.useRef(3);
+  const colsRef        = React.useRef(3);
+  const longPressTimer = React.useRef<ReturnType<typeof setTimeout>>();
   React.useEffect(() => { colsRef.current = cols; }, [cols]);
 
   React.useEffect(() => {
@@ -85,7 +88,8 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
         e.touches[0].clientY - e.touches[1].clientY
       );
       const ratio = pinchStartDist.current / dist;
-      const newCols = Math.min(5, Math.max(2, Math.round(pinchStartCols.current * ratio)));
+      // min 1 col (single image), max 10 cols (small thumbnails)
+      const newCols = Math.min(10, Math.max(1, Math.round(pinchStartCols.current * ratio)));
       setCols(newCols);
       colsRef.current = newCols;
     };
@@ -96,6 +100,32 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
       el.removeEventListener('touchmove', onMove);
     };
   }, []);
+
+  const handleLongPressStart = (url: string) => {
+    longPressTimer.current = setTimeout(() => {
+      setIsSelecting(true);
+      setSelectedUrls(new Set([url]));
+    }, 550);
+  };
+  const handleLongPressEnd = () => {
+    clearTimeout(longPressTimer.current);
+  };
+  const toggleSelect = (url: string) => {
+    setSelectedUrls(prev => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url); else next.add(url);
+      return next;
+    });
+  };
+  const cancelSelection = () => { setIsSelecting(false); setSelectedUrls(new Set()); };
+  const deleteSelected = async () => {
+    const urls = [...selectedUrls];
+    await Promise.all(urls.map(url =>
+      fetch('/api/delete-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: url }) }).catch(() => {})
+    ));
+    cancelSelection();
+    window.location.reload();
+  };
 
   const allTags = Array.from(new Set([
     ...trades.flatMap(t => t.emotionTags),
@@ -128,7 +158,16 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
 
   return (
     <div className="pb-24" ref={galleryRef}>
-      <div className="px-4 pt-6 flex items-center justify-between mb-3">
+      {/* Multi-select delete bar */}
+      {isSelecting && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-zinc-900/95 backdrop-blur-sm">
+          <button onClick={cancelSelection} className="text-sm text-zinc-400 font-medium">Cancel</button>
+          <span className="text-sm font-bold text-white">{selectedUrls.size} selected</span>
+          <button onClick={deleteSelected} className="text-sm font-bold text-rose-400">Delete</button>
+        </div>
+      )}
+
+      <div className={`px-4 flex items-center justify-between mb-3 ${isSelecting ? 'pt-16' : 'pt-6'}`}>
         <h1 className="text-2xl font-bold text-zinc-900">Gallery</h1>
         <button
           onClick={() => setGalleryMode(galleryMode === 'tags' ? 'day' : 'tags')}
@@ -160,25 +199,38 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
             ))}
           </div>
           <div style={gridStyle}>
-            {filteredImages.map((img, i) => (
-              <div
-                key={`${img.tradeId}-${i}`}
-                className="aspect-square bg-zinc-100 overflow-hidden group cursor-pointer relative"
-                onClick={() => {
-                  const dayImages = filteredImages.map(f => f.url);
-                  openViewer([{ date: selectedTag || 'Filtered', images: dayImages }], 0, i);
-                }}
-              >
-                <img src={img.url} alt="Gallery" className="w-full h-full object-cover transition-transform group-hover:scale-110" referrerPolicy="no-referrer" />
-                {img.tag && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest drop-shadow-md transform -rotate-12 select-none pointer-events-none">
-                      {img.tag}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+            {filteredImages.map((img, i) => {
+              const sel = selectedUrls.has(img.url);
+              return (
+                <div
+                  key={`${img.tradeId}-${i}`}
+                  className={`aspect-square bg-zinc-100 overflow-hidden group cursor-pointer relative ${sel ? 'ring-2 ring-indigo-500 ring-inset' : ''}`}
+                  onTouchStart={() => handleLongPressStart(img.url)}
+                  onTouchEnd={handleLongPressEnd}
+                  onMouseDown={() => handleLongPressStart(img.url)}
+                  onMouseUp={handleLongPressEnd}
+                  onClick={() => {
+                    if (isSelecting) { toggleSelect(img.url); return; }
+                    const dayImages = filteredImages.map(f => f.url);
+                    openViewer([{ date: selectedTag || 'Filtered', images: dayImages }], 0, i);
+                  }}
+                >
+                  <img src={img.url} alt="Gallery" className="w-full h-full object-cover transition-transform group-hover:scale-110" referrerPolicy="no-referrer" />
+                  {sel && (
+                    <div className="absolute inset-0 bg-indigo-500/30 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow">✓</div>
+                    </div>
+                  )}
+                  {!isSelecting && img.tag && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest drop-shadow-md transform -rotate-12 select-none pointer-events-none">
+                        {img.tag}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           {filteredImages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-zinc-400">

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Trade } from '../types';
 import { TagChip } from './TagChip';
 import {
-  TrendingUp, TrendingDown, Clock, MoreHorizontal,
-  MessageSquare, Share2, Bookmark, ChevronLeft, ChevronRight
+  TrendingUp, TrendingDown, MoreHorizontal,
+  Heart, MessageSquare, ChevronLeft, ChevronRight,
+  Bookmark, Share2, Flag, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -14,6 +15,9 @@ interface DayFeedCardProps {
   onDateClick: () => void;
 }
 
+// Integer amount, no symbol, no sign — color conveys direction
+const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
+
 // Derive a label for each trade position in the day
 function getTradeLabel(index: number, total: number): string {
   if (total === 1) return 'T1';
@@ -22,14 +26,42 @@ function getTradeLabel(index: number, total: number): string {
   return `T${index}`;
 }
 
+const MORE_OPTIONS = [
+  { icon: <Eye className="w-4 h-4" />,      label: 'View fullscreen' },
+  { icon: <Bookmark className="w-4 h-4" />, label: 'Bookmark' },
+  { icon: <Share2 className="w-4 h-4" />,   label: 'Share' },
+  { icon: <Flag className="w-4 h-4" />,     label: 'Mark for review' },
+];
+
 export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems, openViewer, onDateClick }) => {
   const [tradeIndex, setTradeIndex] = useState(0);
   const [imgIndex, setImgIndex]     = useState(0);
+  const [showMenu, setShowMenu]     = useState(false);
   const touchStartX = React.useRef<number>(0);
+
+  const dateKey = trades[0]?.date || '';
+
+  // Favorites persisted in localStorage
+  const [isFav, setIsFav] = useState(() => {
+    try {
+      return !!JSON.parse(localStorage.getItem('tj_favs') || '{}')[dateKey];
+    } catch { return false; }
+  });
+  const toggleFav = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const favs = JSON.parse(localStorage.getItem('tj_favs') || '{}');
+      const next = { ...favs, [dateKey]: !isFav };
+      localStorage.setItem('tj_favs', JSON.stringify(next));
+    } catch {}
+    setIsFav(f => !f);
+  };
 
   const trade    = trades[tradeIndex];
   const isProfit = trade.pnl >= 0;
   const hasImgs  = trade.chartUrls.length > 0;
+  const dayTotal = trades.reduce((s, t) => s + t.pnl, 0);
+  const dayIsProfit = dayTotal >= 0;
 
   const switchTrade = (i: number) => { setTradeIndex(i); setImgIndex(0); };
 
@@ -41,46 +73,71 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
     else          setImgIndex(i => (i - 1 + trade.chartUrls.length) % trade.chartUrls.length);
   };
 
-  // Day total P/L
-  const dayTotal = trades.reduce((s, t) => s + t.pnl, 0);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-white border border-zinc-200 rounded-2xl overflow-hidden mb-6 shadow-sm"
     >
-      {/* Header */}
+      {/* Header — date + pnl + 3-dot menu */}
       <div className="px-3 py-2.5 flex items-center justify-between cursor-pointer active:bg-zinc-50" onClick={onDateClick}>
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isProfit ? 'bg-emerald-100' : 'bg-rose-100'}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isProfit ? 'bg-emerald-100' : 'bg-rose-100'}`}>
             {trade.type === 'Long'
-              ? <TrendingUp className={`w-4 h-4 ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`} />
-              : <TrendingDown className={`w-4 h-4 ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`} />
+              ? <TrendingUp className={`w-3.5 h-3.5 ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`} />
+              : <TrendingDown className={`w-3.5 h-3.5 ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`} />
             }
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-zinc-400" />
-              <span className="text-[10px] text-zinc-400 font-medium">{trade.date}</span>
-              {trade.session && (
-                <>
-                  <span className="text-zinc-300">•</span>
-                  <span className="text-[10px] text-zinc-400 font-medium">{trade.session}</span>
-                </>
+          <span className="text-xs font-bold text-zinc-700">{trade.date}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-bold ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {fmt(trade.pnl)}
+          </span>
+          {/* 3-dot menu */}
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <button
+              className="text-zinc-400 hover:text-zinc-600 p-1"
+              onClick={() => setShowMenu(m => !m)}
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg z-30 w-44 overflow-hidden"
+                >
+                  {MORE_OPTIONS.map(opt => (
+                    <button
+                      key={opt.label}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors text-left"
+                      onClick={() => {
+                        setShowMenu(false);
+                        if (opt.label === 'View fullscreen') {
+                          const dayPnlVal = dayTotal;
+                          const itemsList = allTradeItems || trades.map((t, idx) => ({
+                            date: t.date, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl: dayPnlVal
+                          }));
+                          let targetIdx = 0;
+                          for (let i = 0; i < itemsList.length; i++) {
+                            if (itemsList[i].date === trade.date) { targetIdx = i; break; }
+                          }
+                          openViewer(itemsList, targetIdx, imgIndex);
+                        }
+                      }}
+                    >
+                      {opt.icon}
+                      {opt.label}
+                    </button>
+                  ))}
+                </motion.div>
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-zinc-900 leading-tight truncate max-w-[160px]">{trade.instrument}</h3>
-              <span className={`text-xs font-bold ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {isProfit ? '+' : ''}₹{Math.abs(trade.pnl).toLocaleString()}
-              </span>
-            </div>
+            </AnimatePresence>
           </div>
         </div>
-        <button className="text-zinc-400 hover:text-zinc-600 p-1" onClick={(e) => e.stopPropagation()}>
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
       </div>
 
       {/* Image */}
@@ -140,33 +197,34 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
             </>
           )}
 
-          {/* Image count badge */}
-          <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+          {/* Image count badge — with frosted bg for visibility on white images */}
+          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
             {imgIndex + 1}/{trade.chartUrls.length}
           </div>
         </div>
       ) : (
         <div className="px-4 py-2">
           <span className={`text-base font-bold ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {isProfit ? '+' : ''}₹{Math.abs(trade.pnl).toLocaleString()}
+            {fmt(trade.pnl)}
           </span>
         </div>
       )}
 
-      {/* Trade switcher — O / T1 / T2 / C labels + bookmark */}
+      {/* Trade switcher (O / T1 / T2 / C) + bookmark */}
       <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-3 items-center">
           {trades.map((t, i) => {
             const label = getTradeLabel(i, trades.length);
             const active = i === tradeIndex;
+            const tProfit = t.pnl >= 0;
             return (
               <button
                 key={t.id}
                 onClick={() => switchTrade(i)}
                 className={`text-xs font-bold transition-colors px-1.5 py-0.5 rounded ${
                   active
-                    ? (t.pnl >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500')
-                    : 'text-zinc-500 hover:text-zinc-800'
+                    ? (tProfit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500')
+                    : 'text-zinc-400 hover:text-zinc-700'
                 }`}
               >
                 {label}
@@ -174,23 +232,26 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
             );
           })}
         </div>
-        <button className="text-zinc-700 hover:text-indigo-600 transition-colors">
-          <Bookmark className="w-5 h-5" />
+        <button className="text-zinc-400 hover:text-indigo-600 transition-colors">
+          <Bookmark className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Actions */}
+      {/* Actions row: heart + comment + day total */}
       <div className="px-4 py-2 flex items-center gap-4">
-        <button className="text-zinc-700 hover:text-indigo-600 transition-colors">
+        {/* Heart / favorite */}
+        <button onClick={toggleFav} className="transition-transform active:scale-90">
+          <Heart className={`w-5 h-5 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-zinc-400 hover:text-rose-400'}`} />
+        </button>
+        <button className="text-zinc-400 hover:text-indigo-600 transition-colors">
           <MessageSquare className="w-5 h-5" />
         </button>
-        <button className="text-zinc-700 hover:text-indigo-600 transition-colors">
-          <Share2 className="w-5 h-5" />
-        </button>
-        {/* Day total if multiple trades */}
+        {/* Day total — shown when multiple trades, prominent pill */}
         {trades.length > 1 && (
-          <span className={`ml-auto text-xs font-bold ${dayTotal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-            Day: {dayTotal >= 0 ? '+' : ''}₹{Math.abs(dayTotal).toLocaleString()}
+          <span className={`ml-auto text-xs font-bold px-2.5 py-1 rounded-full ${
+            dayIsProfit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+          }`}>
+            {fmt(dayTotal)}
           </span>
         )}
       </div>

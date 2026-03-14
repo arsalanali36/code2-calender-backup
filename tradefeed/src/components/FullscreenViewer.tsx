@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, MessageCircle, Send, Lock, Unlock, Calendar, MoreVertical, Share2, Copy, Flag, ChevronDown } from 'lucide-react';
 
+const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
+
 interface DayData {
   date: string;
   images: string[];
@@ -204,28 +206,22 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
           transition={{ duration: 0.2, ease: "linear" }}
           className="absolute top-0 left-0 right-0 z-[110] flex items-center justify-between px-4 pt-3 pb-4"
         >
-          {/* Left: Day P/L */}
-          <div className="min-w-[70px]">
-            {dayPnl !== undefined && (
-              <span className={`text-xs font-bold px-2 py-1 rounded-lg ${dayPnl >= 0 ? 'bg-emerald-500/80 text-white' : 'bg-rose-500/80 text-white'}`}>
-                {dayPnl >= 0 ? '+' : ''}₹{Math.abs(dayPnl).toLocaleString()}
-              </span>
-            )}
-          </div>
+            {/* Left: spacer */}
+          <div className="min-w-[60px]" />
 
-          {/* Center: Date picker */}
-          <span className="relative text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 cursor-pointer hover:bg-white/10 active:scale-95 transition-all px-2.5 py-1.5 rounded-lg border border-white/10">
+          {/* Center: Date + trade info — frosted bg so visible on white images */}
+          <span className="relative text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all px-2.5 py-1.5 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 shadow-md">
             <Calendar className="w-3.5 h-3.5 text-indigo-400" />
             <span>{formatDateLabel(currentDay.date)}</span>
-            <span className="text-indigo-500">•</span>
+            <span className="text-indigo-400">•</span>
             <span>T{(currentDay as any).tradeNum || (dayIdx + 1)}</span>
-            <span className="text-indigo-500">•</span>
+            <span className="text-indigo-400">•</span>
             <span>{imgIdx + 1}/{images.length}</span>
-            {tradePnl !== undefined && (
+            {dayPnl !== undefined && (
               <>
-                <span className="text-indigo-500">•</span>
-                <span className={tradePnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                  {tradePnl >= 0 ? '+' : ''}₹{Math.abs(tradePnl).toLocaleString()}
+                <span className="text-indigo-400">•</span>
+                <span className={`text-sm font-bold ${dayPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {fmt(dayPnl)}
                 </span>
               </>
             )}
@@ -459,7 +455,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
             </span>
             {tradePnl !== undefined && (
               <span className={`ml-auto text-sm font-bold ${tradePnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {tradePnl >= 0 ? '+' : ''}₹{Math.abs(tradePnl).toLocaleString()}
+                {fmt(tradePnl)}
               </span>
             )}
           </div>

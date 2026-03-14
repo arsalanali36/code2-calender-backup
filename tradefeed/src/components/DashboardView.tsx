@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trade } from '../types';
 import { X, BarChart2, CheckSquare, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
 
 interface DashboardViewProps {
   trades: Trade[];
@@ -21,9 +23,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate]     = useState('');
   const [showChartPicker, setShowChartPicker] = useState(false);
-  const [enabledCharts, setEnabledCharts] = useState<Set<string>>(
-    new Set(['equity', 'winrate', 'pf', 'avgwin'])
-  );
+  const [enabledCharts, setEnabledCharts] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('tj_stats_charts');
+      if (saved) return new Set(JSON.parse(saved));
+    } catch {}
+    return new Set(['equity', 'winrate', 'pf', 'avgwin']);
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('tj_stats_charts', JSON.stringify([...enabledCharts])); } catch {}
+  }, [enabledCharts]);
 
   const hasRange = fromDate && toDate;
   const clearRange = () => { setFromDate(''); setToDate(''); };
@@ -118,7 +128,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
         )}
 
         <span className={`text-sm font-bold px-3 py-1 rounded-full border ${totalPnl >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
-          {totalPnl >= 0 ? '+' : ''}₹{Math.abs(totalPnl).toLocaleString()}
+          {fmt(totalPnl)}
         </span>
 
         {/* Chart selector button */}
@@ -198,11 +208,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
               <span className="text-[10px] font-bold text-zinc-400 uppercase">Avg Win</span>
-              <p className="text-xl font-bold text-emerald-600">+₹{avgWin.toLocaleString()}</p>
+              <p className="text-xl font-bold text-emerald-600">{fmt(avgWin)}</p>
             </div>
             <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
               <span className="text-[10px] font-bold text-zinc-400 uppercase">Avg Loss</span>
-              <p className="text-xl font-bold text-rose-600">-₹{avgLoss.toLocaleString()}</p>
+              <p className="text-xl font-bold text-rose-600">{fmt(avgLoss)}</p>
             </div>
           </div>
         )}
@@ -218,7 +228,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-zinc-400">{sessionCount[s]} trades</span>
                     <span className={`text-xs font-bold ${sessionPnl[s] >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {sessionPnl[s] >= 0 ? '+' : ''}₹{Math.abs(sessionPnl[s]).toLocaleString()}
+                      {fmt(sessionPnl[s])}
                     </span>
                   </div>
                 </div>
