@@ -19,9 +19,16 @@ export const FeedView: React.FC<FeedViewProps> = ({ trades, openViewer }) => {
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   // Full cross-date item list — one entry per trade, for fullscreen date navigation
-  const allTradeItems = sortedDates.flatMap(d =>
-    grouped[d].map((t, idx) => ({ date: d, images: t.chartUrls, tradeNum: idx + 1 }))
-  );
+  const allTradeItems = sortedDates.flatMap(d => {
+    const dayPnl = grouped[d].reduce((s, t) => s + t.pnl, 0);
+    return grouped[d].map((t, idx) => ({
+      date: d,
+      images: t.chartUrls,
+      tradeNum: idx + 1,
+      pnl: t.pnl,
+      dayPnl
+    }));
+  });
 
   return (
     <div className="max-w-md mx-auto pb-24 pt-6 px-4">

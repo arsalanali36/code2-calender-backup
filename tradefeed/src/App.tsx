@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { FeedView } from './components/FeedView';
 import { BlogView } from './components/BlogView';
 import { BottomNav } from './components/BottomNav';
+import { CalendarView } from './components/CalendarView';
+import { DashboardView } from './components/DashboardView';
 import { ViewType, Trade } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlusSquare, Grid3X3, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -16,249 +18,11 @@ import { TradeLogger } from './components/TradeLogger';
 import { fetchTrades } from './services/api';
 import { FullscreenViewer } from './components/FullscreenViewer';
 
-const CalendarView = ({ trades, openViewer }: { trades: Trade[], openViewer: (days: any[], dIdx: number, iIdx: number) => void }) => {
-  const today = new Date();
-  const [viewYear, setViewYear]   = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
-  // Build day → pnl map from real trades
-  const dayPnl: Record<string, number> = {};
-  trades.forEach(t => {
-    if (!t.date) return;
-    dayPnl[t.date] = (dayPnl[t.date] || 0) + t.pnl;
-  });
-
-  const monthName = new Date(viewYear, viewMonth).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
-  const firstDay  = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  const prevMonth = () => {
-    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
-    else setViewMonth(m => m - 1);
-    setSelectedDate(null);
-  };
-  const nextMonth = () => {
-    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
-    else setViewMonth(m => m + 1);
-    setSelectedDate(null);
-  };
-
-  // Month total
-  const monthTotal = Object.entries(dayPnl)
-    .filter(([d]) => d.startsWith(`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}`))
-    .reduce((sum, [, v]) => sum + v, 0);
-
-  const selectedTrades = selectedDate ? trades.filter(t => t.date === selectedDate) : [];
-  const selectedPnl    = selectedTrades.reduce((s, t) => s + t.pnl, 0);
-
-  return (
-    <div className="max-w-md mx-auto pt-6 px-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-zinc-900">Cal</h1>
-        <span className={`text-sm font-bold px-3 py-1 rounded-full border ${monthTotal >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
-          {monthTotal >= 0 ? '+' : ''}₹{Math.abs(monthTotal).toLocaleString()}
-        </span>
-      </div>
-
-      {/* Month nav */}
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="p-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200">
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <span className="text-sm font-bold text-zinc-700">{monthName}</span>
-        <button onClick={nextMonth} className="p-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200">
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Day labels */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
-        {['S','M','T','W','T','F','S'].map((d, i) => (
-          <div key={i} className="text-center text-[10px] font-bold text-zinc-400">{d}</div>
-        ))}
-      </div>
-
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1 mb-6">
-        {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
-        {Array.from({ length: daysInMonth }).map((_, i) => {
-          const day   = i + 1;
-          const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const pnl   = dayPnl[dateStr];
-          const isToday = dateStr === today.toISOString().split('T')[0];
-          const isSelected = selectedDate === dateStr;
-
-          return (
-            <button
-              key={day}
-              onClick={() => setSelectedDate(isSelected ? null : dateStr)}
-              className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[11px] font-bold transition-all
-                ${pnl !== undefined
-                  ? pnl >= 0
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-rose-500 text-white'
-                  : 'bg-zinc-50 text-zinc-400 border border-zinc-100'}
-                ${isToday && pnl === undefined ? 'border-indigo-400 border-2' : ''}
-                ${isSelected ? 'ring-2 ring-indigo-400 ring-offset-1' : ''}
-              `}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Selected day detail */}
-      {selectedDate && selectedTrades.length > 0 && (
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{selectedDate}</span>
-            <span className={`text-sm font-bold ${selectedPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {selectedPnl >= 0 ? '+' : ''}₹{Math.abs(selectedPnl).toLocaleString()}
-            </span>
-          </div>
-          
-          {/* Images for selected day */}
-          <div className="grid grid-cols-3 gap-1.5 mb-4">
-            {selectedTrades.flatMap(t => t.chartUrls).map((url, i) => (
-              <div 
-                key={i} 
-                className="aspect-square bg-zinc-100 rounded-md overflow-hidden cursor-pointer active:scale-95 transition-transform"
-                onClick={() => {
-                  // Construct the full list of all trades for cross-date navigation
-                  const allItems = trades.map(t => ({
-                    date: t.date,
-                    images: t.chartUrls
-                  }));
-                  
-                  // Find index of current image in the global list
-                  let globalIdx = 0;
-                  let imgInTradeIdx = 0;
-                  for(let j=0; j<trades.length; j++) {
-                    const idx = trades[j].chartUrls.indexOf(url);
-                    if (trades[j].date === selectedDate && idx !== -1) {
-                      globalIdx = j;
-                      imgInTradeIdx = idx;
-                      break;
-                    }
-                  }
-                  openViewer(allItems, globalIdx, imgInTradeIdx);
-                }}
-              >
-                <img src={url} alt="Trade chart" className="w-full h-full object-cover" />
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-2">
-            {selectedTrades.map(t => (
-              <div key={t.id} className="flex items-center justify-between">
-                <span className="text-sm font-medium text-zinc-800">{t.instrument}</span>
-                <span className={`text-xs font-bold ${t.pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {t.pnl >= 0 ? '+' : ''}₹{Math.abs(t.pnl).toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const DashboardView = ({ trades }: { trades: Trade[] }) => {
-  const sorted = [...trades].filter(t => t.date).sort((a, b) => a.date.localeCompare(b.date));
-
-  // Equity curve — cumulative P&L per trade
-  const equity: number[] = [];
-  let cum = 0;
-  sorted.forEach(t => { cum += Number(t.pnl) || 0; equity.push(cum); });
-
-  // Stats
-  const wins   = trades.filter(t => t.pnl > 0);
-  const losses = trades.filter(t => t.pnl < 0);
-  const winRate     = trades.length ? Math.round((wins.length / trades.length) * 100) : 0;
-  const grossWin    = wins.reduce((s, t) => s + t.pnl, 0);
-  const grossLoss   = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
-  const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '∞';
-  const totalPnl    = trades.reduce((s, t) => s + t.pnl, 0);
-  const avgWin      = wins.length ? Math.round(grossWin / wins.length) : 0;
-  const avgLoss     = losses.length ? Math.round(grossLoss / losses.length) : 0;
-
-  // SVG equity curve
-  const W = 300, H = 100, pad = 8;
-  const minE = Math.min(0, ...equity);
-  const maxE = Math.max(0, ...equity);
-  const range = maxE - minE || 1;
-  const toX = (i: number) => pad + (i / Math.max(equity.length - 1, 1)) * (W - pad * 2);
-  const toY = (v: number) => H - pad - ((v - minE) / range) * (H - pad * 2);
-  const zeroY = toY(0);
-
-  const pts = equity.map((v, i) => `${toX(i)},${toY(v)}`).join(' ');
-  const areaPath = equity.length > 1
-    ? `M${toX(0)},${zeroY} ` + equity.map((v, i) => `L${toX(i)},${toY(v)}`).join(' ') + ` L${toX(equity.length - 1)},${zeroY} Z`
-    : '';
-
-  return (
-    <div className="max-w-md mx-auto pt-6 px-4 pb-24">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-zinc-900">Stats</h1>
-        <span className={`text-sm font-bold px-3 py-1 rounded-full border ${totalPnl >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
-          {totalPnl >= 0 ? '+' : ''}₹{Math.abs(totalPnl).toLocaleString()}
-        </span>
-      </div>
-
-      {/* Equity Curve */}
-      <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm mb-4">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Equity Curve</span>
-        {equity.length > 1 ? (
-          <div className="mt-2" style={{ height: 80 }}>
-          <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none">
-            {/* Zero line */}
-            <line x1={pad} y1={zeroY} x2={W - pad} y2={zeroY} stroke="#e4e4e7" strokeWidth="1" />
-            {/* Fill area */}
-            <path d={areaPath} fill={totalPnl >= 0 ? '#10b98120' : '#f43f5e20'} />
-            {/* Line */}
-            <polyline points={pts} fill="none" stroke={totalPnl >= 0 ? '#10b981' : '#f43f5e'} strokeWidth="1.5" strokeLinejoin="round" />
-          </svg>
-          </div>
-        ) : (
-          <p className="text-xs text-zinc-400 mt-2 italic">Not enough data</p>
-        )}
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase">Win Rate</span>
-          <p className="text-xl font-bold text-zinc-900">{winRate}%</p>
-          <p className="text-[10px] text-zinc-400">{wins.length}W / {losses.length}L</p>
-        </div>
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase">Profit Factor</span>
-          <p className="text-xl font-bold text-zinc-900">{profitFactor}</p>
-          <p className="text-[10px] text-zinc-400">{trades.length} trades</p>
-        </div>
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase">Avg Win</span>
-          <p className="text-xl font-bold text-emerald-600">+₹{avgWin.toLocaleString()}</p>
-        </div>
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase">Avg Loss</span>
-          <p className="text-xl font-bold text-rose-600">-₹{avgLoss.toLocaleString()}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const TableView = ({ trades, onLogTrade }: { trades: Trade[], onLogTrade: () => void }) => (
   <div className="max-w-md mx-auto p-6 pb-24">
     <div className="flex items-center justify-between mb-6">
       <h1 className="text-2xl font-bold text-zinc-900">Trade History</h1>
-      <button 
+      <button
         onClick={onLogTrade}
         className="p-2 bg-zinc-900 text-white rounded-full shadow-lg hover:bg-zinc-800 transition-all active:scale-95"
       >
@@ -295,7 +59,7 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [galleryMode, setGalleryMode] = useState<'tags' | 'day'>('tags');
   const [cols, setCols] = useState(3);
-  
+
   const galleryRef = React.useRef<HTMLDivElement>(null);
   const pinchStartDist = React.useRef(0);
   const pinchStartCols = React.useRef(3);
@@ -332,29 +96,24 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
       el.removeEventListener('touchmove', onMove);
     };
   }, []);
-  
-  // Extract all unique tags
+
   const allTags = Array.from(new Set([
     ...trades.flatMap(t => t.emotionTags),
     ...trades.flatMap(t => t.strategyTags),
     ...trades.flatMap(t => t.mistakeTags)
   ])).sort();
 
-  const filteredTrades = trades.filter(t => 
-    !selectedTag || 
-    t.emotionTags.includes(selectedTag) || 
-    t.strategyTags.includes(selectedTag) || 
+  const filteredTrades = trades.filter(t =>
+    !selectedTag ||
+    t.emotionTags.includes(selectedTag) ||
+    t.strategyTags.includes(selectedTag) ||
     t.mistakeTags.includes(selectedTag)
   );
 
-  const filteredImages = filteredTrades
-    .flatMap(t => t.chartUrls.map(url => ({ 
-      url, 
-      tradeId: t.id, 
-      tag: t.strategyTags[0] || t.emotionTags[0] || t.mistakeTags[0] || '' 
-    })));
+  const filteredImages = filteredTrades.flatMap(t => t.chartUrls.map(url => ({
+    url, tradeId: t.id, tag: t.strategyTags[0] || t.emotionTags[0] || t.mistakeTags[0] || ''
+  })));
 
-  // Group by day logic
   const groupedByDay = trades.reduce((acc, trade) => {
     const date = trade.date;
     if (!acc[date]) acc[date] = [];
@@ -365,7 +124,6 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
   }, {} as Record<string, { url: string, tradeId: string, tag: string }[]>);
 
   const sortedDates = Object.keys(groupedByDay).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
   const gridStyle = { display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '2px' };
 
   return (
@@ -382,7 +140,6 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
 
       {galleryMode === 'tags' ? (
         <>
-          {/* Tag Filter Bar */}
           <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar px-4">
             <button
               onClick={() => setSelectedTag(null)}
@@ -393,9 +150,7 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
               All Charts
             </button>
             {allTags.map(tag => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
+              <button key={tag} onClick={() => setSelectedTag(tag)}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
                   selectedTag === tag ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
                 }`}
@@ -404,23 +159,17 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
               </button>
             ))}
           </div>
-
           <div style={gridStyle}>
             {filteredImages.map((img, i) => (
-              <div 
-                key={`${img.tradeId}-${i}`} 
+              <div
+                key={`${img.tradeId}-${i}`}
                 className="aspect-square bg-zinc-100 overflow-hidden group cursor-pointer relative"
                 onClick={() => {
                   const dayImages = filteredImages.map(f => f.url);
                   openViewer([{ date: selectedTag || 'Filtered', images: dayImages }], 0, i);
                 }}
               >
-                <img 
-                  src={img.url} 
-                  alt="Gallery" 
-                  className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                />
+                <img src={img.url} alt="Gallery" className="w-full h-full object-cover transition-transform group-hover:scale-110" referrerPolicy="no-referrer" />
                 {img.tag && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
                     <span className="text-[10px] font-black text-white uppercase tracking-widest drop-shadow-md transform -rotate-12 select-none pointer-events-none">
@@ -442,31 +191,25 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
         <div className="space-y-8">
           {sortedDates.map(date => (
             <div key={date}>
-              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 px-4">
                 <div className="h-px flex-1 bg-zinc-100" />
                 {new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 <div className="h-px flex-1 bg-zinc-100" />
               </h3>
               <div style={gridStyle}>
                 {groupedByDay[date].map((img, i) => (
-                  <div 
-                    key={`${img.tradeId}-${i}`} 
+                  <div
+                    key={`${img.tradeId}-${i}`}
                     className="aspect-square bg-zinc-100 overflow-hidden cursor-pointer"
                     onClick={() => {
-                      const globalTradeList: { date: string, images: string[], tradeNum?: number }[] = [];
-                      let targetTradeIdx = 0;
-                      let targetImgIdx = 0;
-                      
+                      const globalList: { date: string, images: string[], tradeNum?: number, pnl?: number, dayPnl?: number }[] = [];
+                      let targetTradeIdx = 0, targetImgIdx = 0;
                       sortedDates.forEach(d => {
                         const tradesForDay = trades.filter(t => t.date === d);
+                        const dPnl = tradesForDay.reduce((s, t) => s + t.pnl, 0);
                         tradesForDay.forEach((t, tIdx) => {
-                          const currentTIdx = globalTradeList.length;
-                          globalTradeList.push({
-                            date: d,
-                            images: t.chartUrls,
-                            tradeNum: tIdx + 1
-                          });
-                          
+                          const currentTIdx = globalList.length;
+                          globalList.push({ date: d, images: t.chartUrls, tradeNum: tIdx + 1, pnl: t.pnl, dayPnl: dPnl });
                           const foundImgIdx = t.chartUrls.indexOf(img.url);
                           if (d === date && foundImgIdx !== -1) {
                             targetTradeIdx = currentTIdx;
@@ -474,16 +217,10 @@ const GalleryView = ({ trades, openViewer }: { trades: Trade[], openViewer: (day
                           }
                         });
                       });
-                      
-                      openViewer(globalTradeList, targetTradeIdx, targetImgIdx);
+                      openViewer(globalList, targetTradeIdx, targetImgIdx);
                     }}
                   >
-                    <img
-                      src={img.url}
-                      alt="Gallery"
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
+                    <img src={img.url} alt="Gallery" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                 ))}
               </div>
@@ -501,11 +238,11 @@ export default function App() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fullscreen Viewer State (Lifted)
-  const [fsOpen, setFsOpen] = useState(false);
-  const [fsDayIndex, setFsDayIndex] = useState(0);
+  // Fullscreen Viewer State
+  const [fsOpen, setFsOpen]             = useState(false);
+  const [fsDayIndex, setFsDayIndex]     = useState(0);
   const [fsImageIndex, setFsImageIndex] = useState(0);
-  const [fsDays, setFsDays] = useState<{date: string, images: string[]}[]>([]);
+  const [fsDays, setFsDays]             = useState<{date: string, images: string[]}[]>([]);
   const [fsInitialLocked, setFsInitialLocked] = useState(false);
 
   const openViewer = (days: any[], dIdx: number, iIdx: number, locked = false) => {
@@ -514,47 +251,45 @@ export default function App() {
     setFsImageIndex(iIdx);
     setFsInitialLocked(locked);
     setFsOpen(true);
-    // Push state for back button handling
     window.history.pushState({ view: 'fullscreen' }, '');
   };
 
-  // Global Back Gesture / Browser Back Handling
+  // Global Back Gesture + Backspace key
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      if (fsOpen) {
-        setFsOpen(false);
-        return;
-      }
-      
-      // If we are in a non-feed view, go back to feed
-      if (currentView !== 'feed') {
-        setCurrentView('feed');
-      }
+    const handlePopState = () => {
+      if (fsOpen) { setFsOpen(false); return; }
+      if (currentView !== 'feed') setCurrentView('feed');
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [fsOpen, currentView]);
 
-  // Track view changes in history for back gesture
   useEffect(() => {
-    if (currentView !== 'feed') {
-      window.history.pushState({ view: currentView }, '');
-    }
+    if (currentView !== 'feed') window.history.pushState({ view: currentView }, '');
   }, [currentView]);
 
-  // Expose to window for CalendarView hack or we refactor CalendarView properly
-  (window as any)._openFS = openViewer;
+  // Global Backspace = browser back (like edge swipe)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Backspace') return;
+      const target = e.target as HTMLElement;
+      if (target.matches('input, textarea, [contenteditable]')) return;
+      e.preventDefault();
+      window.history.back();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     fetchTrades()
       .then(data => { setTrades(data); setLoading(false); })
       .catch(err => { setFetchError(String(err)); setLoading(false); });
   }, []);
-  
+
   // Creation Flow State
   const [creationImages, setCreationImages] = useState<string[]>([]);
-  const [creationTags, setCreationTags] = useState<{ emotion: string[], strategy: string[], mistake: string[] }>({ emotion: [], strategy: [], mistake: [] });
+  const [creationTags, setCreationTags]     = useState<{ emotion: string[], strategy: string[], mistake: string[] }>({ emotion: [], strategy: [], mistake: [] });
 
   const handleSaveTrade = (tradeData: Partial<Trade>) => {
     const newTrade: Trade = {
@@ -572,60 +307,45 @@ export default function App() {
       stats: tradeData.stats || { rMultiple: 0, riskReward: '1:1', positionSize: 0 },
       currency: '₹'
     };
-    
     setTrades([newTrade, ...trades]);
     setCurrentView('feed');
-    // Reset flow
     setCreationImages([]);
     setCreationTags({ emotion: [], strategy: [], mistake: [] });
   };
 
   const renderView = () => {
     switch (currentView) {
-      case 'feed':
-        return <FeedView trades={trades} openViewer={openViewer} />;
-      case 'calendar':
-        return <CalendarView trades={trades} openViewer={openViewer} />;
-      case 'dashboard':
-        return <DashboardView trades={trades} />;
-      case 'table':
-        return <TableView trades={trades} onLogTrade={() => setCurrentView('import')} />;
-      case 'gallery':
-        return <GalleryView trades={trades} openViewer={openViewer} />;
-      case 'blog':
-        return <BlogView />;
+      case 'feed':      return <FeedView trades={trades} openViewer={openViewer} />;
+      case 'calendar':  return <CalendarView trades={trades} openViewer={openViewer} />;
+      case 'dashboard': return <DashboardView trades={trades} />;
+      case 'table':     return <TableView trades={trades} onLogTrade={() => setCurrentView('import')} />;
+      case 'gallery':   return <GalleryView trades={trades} openViewer={openViewer} />;
+      case 'blog':      return <BlogView />;
       case 'import':
         return (
-          <ImageImport 
-            onNext={(images) => {
-              setCreationImages(images);
-              setCurrentView('tagger');
-            }}
+          <ImageImport
+            onNext={(images) => { setCreationImages(images); setCurrentView('tagger'); }}
             onCancel={() => setCurrentView('feed')}
           />
         );
       case 'tagger':
         return (
-          <Tagger 
+          <Tagger
             images={creationImages}
-            onNext={(tags) => {
-              setCreationTags(tags);
-              setCurrentView('logger');
-            }}
+            onNext={(tags) => { setCreationTags(tags); setCurrentView('logger'); }}
             onBack={() => setCurrentView('import')}
           />
         );
       case 'logger':
         return (
-          <TradeLogger 
+          <TradeLogger
             images={creationImages}
             tags={creationTags}
             onSave={handleSaveTrade}
             onBack={() => setCurrentView('tagger')}
           />
         );
-      default:
-        return <FeedView trades={trades} />;
+      default: return <FeedView trades={trades} openViewer={openViewer} />;
     }
   };
 
@@ -644,7 +364,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      {/* Main Content Area */}
       <main className="relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
@@ -668,10 +387,8 @@ export default function App() {
         initialLocked={fsInitialLocked}
       />
 
-      {/* Persistent Bottom Navigation */}
       <BottomNav currentView={currentView} onViewChange={setCurrentView} />
 
-      {/* Decorative Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
         <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
