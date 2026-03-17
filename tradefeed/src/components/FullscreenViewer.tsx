@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, MessageCircle, Send, Lock, Unlock, Calendar, MoreVertical, Share2, Copy, Flag, ChevronDown, Trash2, Star, Move, Download, Upload, ImagePlus } from 'lucide-react';
-import { AudioPlayer } from './AudioPlayer';
+import { AudioManager } from './AudioManager';
 
 const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
 
@@ -574,18 +574,29 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
             draggable={false}
           />
 
-          {/* Audio player — shown when current image has audio attached */}
-          {currentDay.audios?.[images[imgIdx]] && (
-            <div
-              className="absolute bottom-12 left-4 right-4 z-20"
-              onClick={e => e.stopPropagation()}
-            >
-              <AudioPlayer
-                key={currentDay.audios[images[imgIdx]]}
-                audioUrl={currentDay.audios[images[imgIdx]]}
-              />
-            </div>
-          )}
+          {/* Audio manager — always shown; handles record / playback / delete */}
+          <div
+            className="absolute bottom-12 left-4 right-4 z-20"
+            onTouchStart={e => e.stopPropagation()}
+            onTouchEnd={e => e.stopPropagation()}
+            onTouchMove={e => e.stopPropagation()}
+          >
+            <AudioManager
+              key={`${dayIdx}-${imgIdx}`}
+              audioUrl={currentDay.audios?.[images[imgIdx]]}
+              imageUrl={images[imgIdx]}
+              onAudioChange={(url) => {
+                const newDays = days.map((d, di) => {
+                  if (di !== dayIdx) return d;
+                  const newAudios = { ...(d.audios || {}) };
+                  if (url) newAudios[images[imgIdx]] = url;
+                  else delete newAudios[images[imgIdx]];
+                  return { ...d, audios: newAudios };
+                });
+                onUpdateDays?.(newDays);
+              }}
+            />
+          </div>
 
           {/* Sub-image dot indicators */}
           <motion.div
