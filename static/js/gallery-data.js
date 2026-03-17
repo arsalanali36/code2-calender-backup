@@ -383,6 +383,55 @@ function deleteAudioForCurrentGalleryImage() {
   }
 }
 
+// ── Video per-image ───────────────────────────────────────────────────────────
+
+function getVideoForImage(imageUrl, dateHint = '') {
+  if (!imageUrl) return '';
+  if (dateHint) {
+    for (const t of getTradesForDate(dateHint)) {
+      if (t?.videos?.[imageUrl]) return t.videos[imageUrl];
+    }
+    const dayVideos = state.dayData[dateHint]?.videos;
+    if (dayVideos?.[imageUrl]) return dayVideos[imageUrl];
+  }
+  for (const t of state.trades) {
+    if (t?.videos?.[imageUrl]) return t.videos[imageUrl];
+  }
+  for (const d of Object.values(state.dayData || {})) {
+    if (d?.videos?.[imageUrl]) return d.videos[imageUrl];
+  }
+  return '';
+}
+
+function setVideoForCurrentGalleryImage(videoUrl) {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl || !videoUrl) return false;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!trade.videos) trade.videos = {};
+    trade.videos[imgUrl] = videoUrl;
+    return true;
+  }
+  if (state.gallery.date) {
+    if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+    if (!state.dayData[state.gallery.date].videos) state.dayData[state.gallery.date].videos = {};
+    state.dayData[state.gallery.date].videos[imgUrl] = videoUrl;
+    return true;
+  }
+  return false;
+}
+
+function deleteVideoForCurrentGalleryImage() {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl) return;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade?.videos) {
+    delete trade.videos[imgUrl];
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.videos) {
+    delete state.dayData[state.gallery.date].videos[imgUrl];
+  }
+}
+
 function canvasHasVisibleInk(canvas) {
   if (!canvas || !canvas.width || !canvas.height) return false;
   const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;

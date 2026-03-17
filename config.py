@@ -15,6 +15,7 @@ DATA_FILE          = os.getenv('DATA_FILE',   os.path.join(BASE_DIR, 'data', 'tr
 UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
 TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
+VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
 CSVLOG_SCHEMA_FILE = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 
 # ── App settings ──────────────────────────────────────────────────────────────

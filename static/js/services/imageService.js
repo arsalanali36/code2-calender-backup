@@ -56,5 +56,15 @@ const imageService = (() => {
     return apiClient.post('/api/delete-audio', { url: audioUrl });
   }
 
-  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio };
+  async function uploadVideo(blob) {
+    const fd = new FormData();
+    fd.append('video', blob, 'recording.webm');
+    return apiClient.upload('/api/upload-video', fd);
+  }
+
+  async function deleteVideo(videoUrl) {
+    return apiClient.post('/api/delete-video', { url: videoUrl });
+  }
+
+  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio, uploadVideo, deleteVideo };
 })();

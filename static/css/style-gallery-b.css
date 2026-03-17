@@ -1006,6 +1006,26 @@
   50% { opacity: 0.2; }
 }
 
+/* Bar separator between audio & video sections */
+.gv2-bar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border2, #333);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Collapse toggle button */
+.gv2-bar-collapse-btn {
+  padding: 2px 7px;
+  font-size: 0.65rem;
+  color: var(--text3);
+  border-color: transparent;
+  background: transparent;
+  margin-left: 2px;
+}
+.gv2-bar-collapse-btn:hover { color: var(--text); background: var(--surface3, #2a2a35); border-color: var(--border2); }
+
 /* Audio indicator on thumbnails */
 .gv2-thumb-audio-icon {
   position: absolute;
@@ -1021,4 +1041,101 @@
   padding: 2px 4px;
   font-weight: 700;
   box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+
+/* ── VIDEO BAR ─────────────────────────────────── */
+.gv2-video-bar {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 10, 11, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 5px 12px;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+
+.gv2-video-label {
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-right: 2px;
+}
+
+.gv2-video-btn {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.gv2-video-btn:hover { background: var(--surface3, #2a2a35); }
+
+.gv2-video-rec { border-color: #0066cc; color: #4da6ff; }
+.gv2-video-rec:hover { background: rgba(0,100,220,0.15); }
+
+.gv2-video-stop { border-color: #c0033a; color: #ff4466; }
+.gv2-video-stop:hover { background: rgba(220,0,80,0.15); }
+
+.gv2-video-del { color: var(--text3); padding: 4px 7px; }
+.gv2-video-del:hover { color: #ff4444; border-color: #ff4444; }
+
+.gv2-video-dot {
+  color: #ff2255;
+  font-size: 0.9rem;
+  animation: gv2-audio-blink 1s step-start infinite;
+}
+
+.gv2-video-timer {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: #ff6688;
+  min-width: 80px;
+}
+
+/* Progress bar for recording */
+.gv2-video-progress {
+  width: 120px;
+  height: 6px;
+  background: #2a2a35;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.gv2-video-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c0033a, #ff4466);
+  border-radius: 3px;
+  transition: width 0.9s linear;
+}
+
+/* Inline video player */
+.gv2-video-player {
+  height: 120px;
+  width: 214px;
+  border-radius: 6px;
+  background: #000;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Video indicator on thumbnails */
+.gv2-thumb-video-icon {
+  position: absolute;
+  bottom: 4px;
+  left: 22px;
+  font-size: 0.75rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 10;
 }

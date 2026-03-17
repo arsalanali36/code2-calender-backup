@@ -79,6 +79,7 @@ function renderGallery() {
   if (typeof renderGalleryStats === 'function') renderGalleryStats();
   if (typeof renderLayerPanel === 'function' && state.gallery.layerPanelOpen) renderLayerPanel();
   if (typeof renderAudioBar === 'function') renderAudioBar();
+  if (typeof renderVideoBar === 'function') renderVideoBar();
 
   // Visual clue: filter-active state on tray + filter bar
   const _filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
@@ -525,6 +526,15 @@ function renderGallery() {
       ai.textContent = '▶';
       ai.title = 'Audio note attached';
       wrap.appendChild(ai);
+    }
+
+    // Video indicator badge
+    if (typeof getVideoForImage === 'function' && getVideoForImage(url, itemDate || state.gallery.date || '')) {
+      const vi = document.createElement('span');
+      vi.className = 'gv2-thumb-video-icon';
+      vi.textContent = '📹';
+      vi.title = 'Video recording attached';
+      wrap.appendChild(vi);
     }
 
     if (state.gallery.showTime && state.gallery.imageTimes && state.gallery.imageTimes[url]) {

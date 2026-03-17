@@ -8,6 +8,9 @@
  * AudioContext for the waveform, so we reuse that buffer for playback too.
  */
 
+// ── Media bar collapse state ───────────────────────────────────────────────
+let _mediaBarCollapsed = false;
+
 // ── Recording state ────────────────────────────────────────────────────────
 let _audioRecorder = null;
 let _audioChunks   = [];
@@ -242,6 +245,36 @@ function _bindScrub(canvas, waveData) {
 
 // ── Main render ────────────────────────────────────────────────────────────
 
+// ── Helper: video rec button (shown in every non-recording audio state) ────
+function _appendVideoRecBtn(bar, imgUrl) {
+  const hasVideo     = typeof getVideoForImage === 'function' && getVideoForImage(imgUrl, state.gallery.date || '');
+  const vidRecording = typeof _videoRecorder !== 'undefined' && _videoRecorder && _videoRecorder.state === 'recording';
+  if (hasVideo || vidRecording || typeof startVideoRecording !== 'function') return;
+  const sep = document.createElement('span');
+  sep.className = 'gv2-bar-sep';
+  const vidBtn = document.createElement('button');
+  vidBtn.className   = 'gv2-audio-btn gv2-video-rec';
+  vidBtn.title       = 'Screen record (max 1:30)';
+  vidBtn.textContent = '📹';
+  vidBtn.onclick     = startVideoRecording;
+  bar.appendChild(sep);
+  bar.appendChild(vidBtn);
+}
+
+// ── Helper: collapse toggle button ────────────────────────────────────────
+function _appendCollapseBtn(bar) {
+  const btn = document.createElement('button');
+  btn.className   = 'gv2-audio-btn gv2-bar-collapse-btn';
+  btn.title       = _mediaBarCollapsed ? 'Expand' : 'Collapse';
+  btn.textContent = _mediaBarCollapsed ? '▲' : '▼';
+  btn.onclick = () => {
+    _mediaBarCollapsed = !_mediaBarCollapsed;
+    renderAudioBar();
+    if (typeof renderVideoBar === 'function') renderVideoBar();
+  };
+  bar.appendChild(btn);
+}
+
 function renderAudioBar() {
   const bar = document.getElementById('gv2-audio-bar');
   if (!bar) return;
@@ -255,6 +288,17 @@ function renderAudioBar() {
 
   bar.innerHTML = '';
 
+  // ── Collapsed state ──────────────────────────────────────────────────────
+  if (_mediaBarCollapsed) {
+    const dot = document.createElement('span');
+    dot.className   = 'gv2-audio-label';
+    dot.textContent = audioUrl ? '🔊' : '⏺';
+    bar.appendChild(dot);
+    _appendCollapseBtn(bar);
+    return;
+  }
+
+  // ── Recording audio ──────────────────────────────────────────────────────
   if (isRecording) {
     const dot    = document.createElement('span');
     dot.className = 'gv2-audio-dot';
@@ -279,6 +323,7 @@ function renderAudioBar() {
     bar.appendChild(canvas);
     bar.appendChild(stopBtn);
 
+  // ── Has audio: playback ──────────────────────────────────────────────────
   } else if (audioUrl) {
 
     const playBtn = document.createElement('button');
@@ -286,19 +331,16 @@ function renderAudioBar() {
     playBtn.textContent = _isPlaying ? '⏸' : '▶';
     playBtn.onclick = () => {
       if (_isPlaying) {
-        // Pause: remember position, stop source
         const pausedAt = _getCurrentPlaybackTime();
         _stopSource();
-        _startOffset = pausedAt; // so resume works from here
+        _startOffset = pausedAt;
         _syncPlayBtn(false);
-        // Redraw waveform at paused position
         const wc = document.getElementById('gv2-audio-wave');
         if (wc && wc._waveData) {
           const prog = wc._waveData.duration > 0 ? pausedAt / wc._waveData.duration : 0;
           _drawWaveform(wc, wc._waveData.peaks, prog);
         }
       } else {
-        // Play / Resume
         const wc = document.getElementById('gv2-audio-wave');
         if (wc && wc._waveData) {
           const resumeFrom = Math.min(_startOffset, wc._waveData.duration - 0.01);
@@ -317,13 +359,13 @@ function renderAudioBar() {
 
     const replaceBtn = document.createElement('button');
     replaceBtn.className   = 'gv2-audio-btn';
-    replaceBtn.title       = 'Re-record';
+    replaceBtn.title       = 'Re-record audio';
     replaceBtn.textContent = '⏺';
     replaceBtn.onclick     = startAudioRecording;
 
     const delBtn = document.createElement('button');
     delBtn.className   = 'gv2-audio-btn gv2-audio-del';
-    delBtn.title       = 'Delete';
+    delBtn.title       = 'Delete audio';
     delBtn.textContent = '🗑';
     delBtn.onclick     = _deleteAudio;
 
@@ -332,36 +374,38 @@ function renderAudioBar() {
     bar.appendChild(timeEl);
     bar.appendChild(replaceBtn);
     bar.appendChild(delBtn);
+    _appendVideoRecBtn(bar, imgUrl);   // ← video rec always visible
 
-    // Decode + wire up (uses cache on repeat renders)
     _decodeAudio(audioUrl).then(waveData => {
       if (!waveData) return;
       canvas._waveData = waveData;
-
       const prog = _isPlaying
         ? Math.min(1, _getCurrentPlaybackTime() / waveData.duration)
         : Math.min(1, _startOffset / waveData.duration);
       _drawWaveform(canvas, waveData.peaks, prog);
       timeEl.textContent = `${_fmtTime(_isPlaying ? _getCurrentPlaybackTime() : _startOffset)} / ${_fmtTime(waveData.duration)}`;
-
       if (_isPlaying) _startPlayheadLoop(canvas, waveData);
       _bindScrub(canvas, waveData);
     }).catch(err => console.warn('Waveform decode failed:', err));
 
+  // ── Empty: both rec buttons ──────────────────────────────────────────────
   } else {
     const label = document.createElement('span');
     label.className   = 'gv2-audio-label';
-    label.textContent = 'Audio:';
+    label.textContent = 'Record:';
 
     const recBtn = document.createElement('button');
     recBtn.className   = 'gv2-audio-btn gv2-audio-rec';
-    recBtn.title       = 'Record (max 1 min)';
-    recBtn.textContent = '⏺ Record';
+    recBtn.title       = 'Record audio (max 1 min)';
+    recBtn.textContent = '⏺ Audio';
     recBtn.onclick     = startAudioRecording;
 
     bar.appendChild(label);
     bar.appendChild(recBtn);
+    _appendVideoRecBtn(bar, imgUrl);   // ← video rec always visible
   }
+
+  _appendCollapseBtn(bar);
 }
 
 // ── Recording ─────────────────────────────────────────────────────────────

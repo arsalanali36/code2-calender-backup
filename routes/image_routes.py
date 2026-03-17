@@ -9,7 +9,7 @@ from flask import Blueprint, request, jsonify, send_from_directory, Response
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
 
@@ -66,6 +66,34 @@ def upload_audio():
     fname = f"{uuid.uuid4().hex}{ext}"
     file.save(_os.path.join(AUDIO_DIR, fname))
     return jsonify({'url': f'/uploads/audio/{fname}'})
+
+
+@image_bp.route('/api/upload-video', methods=['POST'])
+def upload_video():
+    if 'video' not in request.files:
+        return jsonify({'error': 'No video'}), 400
+    file = request.files['video']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+    import uuid, os as _os
+    _os.makedirs(VIDEO_DIR, exist_ok=True)
+    ext = _os.path.splitext(file.filename)[1] or '.webm'
+    fname = f"{uuid.uuid4().hex}{ext}"
+    file.save(_os.path.join(VIDEO_DIR, fname))
+    return jsonify({'url': f'/uploads/video/{fname}'})
+
+
+@image_bp.route('/api/delete-video', methods=['POST'])
+def delete_video():
+    import os as _os
+    url = (request.json or {}).get('url', '')
+    if not url:
+        return jsonify({'error': 'No url'}), 400
+    fname = url.split('/')[-1]
+    fpath = _os.path.join(VIDEO_DIR, fname)
+    if _os.path.exists(fpath):
+        _os.remove(fpath)
+    return jsonify({'success': True})
 
 
 @image_bp.route('/api/delete-audio', methods=['POST'])
