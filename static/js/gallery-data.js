@@ -334,6 +334,55 @@ function removeOverlayForImage(imageUrl, dateHint = '', sourceRow = null) {
   return changed;
 }
 
+// ── Audio per-image ───────────────────────────────────────────────────────────
+
+function getAudioForImage(imageUrl, dateHint = '') {
+  if (!imageUrl) return '';
+  if (dateHint) {
+    for (const t of getTradesForDate(dateHint)) {
+      if (t?.audios?.[imageUrl]) return t.audios[imageUrl];
+    }
+    const dayAudios = state.dayData[dateHint]?.audios;
+    if (dayAudios?.[imageUrl]) return dayAudios[imageUrl];
+  }
+  for (const t of state.trades) {
+    if (t?.audios?.[imageUrl]) return t.audios[imageUrl];
+  }
+  for (const d of Object.values(state.dayData || {})) {
+    if (d?.audios?.[imageUrl]) return d.audios[imageUrl];
+  }
+  return '';
+}
+
+function setAudioForCurrentGalleryImage(audioUrl) {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl || !audioUrl) return false;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!trade.audios) trade.audios = {};
+    trade.audios[imgUrl] = audioUrl;
+    return true;
+  }
+  if (state.gallery.date) {
+    if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+    if (!state.dayData[state.gallery.date].audios) state.dayData[state.gallery.date].audios = {};
+    state.dayData[state.gallery.date].audios[imgUrl] = audioUrl;
+    return true;
+  }
+  return false;
+}
+
+function deleteAudioForCurrentGalleryImage() {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl) return;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade?.audios) {
+    delete trade.audios[imgUrl];
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.audios) {
+    delete state.dayData[state.gallery.date].audios[imgUrl];
+  }
+}
+
 function canvasHasVisibleInk(canvas) {
   if (!canvas || !canvas.width || !canvas.height) return false;
   const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;

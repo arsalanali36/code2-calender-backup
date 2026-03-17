@@ -4,12 +4,12 @@ routes/image_routes.py
 API routes for image upload, delete, clipboard copy, timestamps,
 and serving uploaded files.
 """
-from flask import Blueprint, request, jsonify, send_from_directory
+from flask import Blueprint, request, jsonify, send_from_directory, Response
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
 )
-from config import UPLOADS_DIR, TRASH_DIR, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
 
@@ -53,6 +53,34 @@ def image_times():
     return jsonify(get_image_times(urls, UPLOADS_DIR))
 
 
+@image_bp.route('/api/upload-audio', methods=['POST'])
+def upload_audio():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio'}), 400
+    file = request.files['audio']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+    import uuid, os as _os
+    _os.makedirs(AUDIO_DIR, exist_ok=True)
+    ext = _os.path.splitext(file.filename)[1] or '.webm'
+    fname = f"{uuid.uuid4().hex}{ext}"
+    file.save(_os.path.join(AUDIO_DIR, fname))
+    return jsonify({'url': f'/uploads/audio/{fname}'})
+
+
+@image_bp.route('/api/delete-audio', methods=['POST'])
+def delete_audio():
+    import os as _os
+    url = (request.json or {}).get('url', '')
+    if not url:
+        return jsonify({'error': 'No url'}), 400
+    fname = url.split('/')[-1]
+    fpath = _os.path.join(AUDIO_DIR, fname)
+    if _os.path.exists(fpath):
+        _os.remove(fpath)
+    return jsonify({'success': True})
+
+
 @image_bp.route('/api/cloudinary-status')
 def cloudinary_status():
     """Check if Cloudinary is configured and reachable."""
@@ -67,6 +95,29 @@ def cloudinary_status():
         return jsonify({'enabled': True, 'status': 'connected', 'ping': result})
     except Exception as e:
         return jsonify({'enabled': True, 'status': 'error', 'message': str(e)}), 500
+
+
+@image_bp.route('/api/proxy-download')
+def proxy_image_download():
+    """Server-side image proxy — fetches any URL and returns it as a file download.
+    Bypasses browser CORS restrictions (Cloudinary, etc.)."""
+    import urllib.request
+    url = request.args.get('url', '').strip()
+    if not url or not url.startswith('http'):
+        return jsonify({'error': 'Invalid URL'}), 400
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = resp.read()
+            content_type = resp.headers.get('Content-Type', 'image/jpeg').split(';')[0].strip()
+        # Derive filename from URL
+        fname = url.split('?')[0].split('/')[-1] or 'image.jpg'
+        response = Response(data, content_type=content_type)
+        response.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @image_bp.route('/api/copy-image-to-clipboard', methods=['POST'])

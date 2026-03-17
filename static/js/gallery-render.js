@@ -78,6 +78,7 @@ function renderGallery() {
 
   if (typeof renderGalleryStats === 'function') renderGalleryStats();
   if (typeof renderLayerPanel === 'function' && state.gallery.layerPanelOpen) renderLayerPanel();
+  if (typeof renderAudioBar === 'function') renderAudioBar();
 
   // Visual clue: filter-active state on tray + filter bar
   const _filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
@@ -166,11 +167,50 @@ function renderGallery() {
         sep.classList.add('selected-separator');
     }
 
-    sep.addEventListener('click', () => {
+    sep.addEventListener('click', (e) => {
+      e.stopPropagation();
       document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
       sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = idx; // zero-indexed trade index
-      showToast(`Selected Trade ${idx + 1} separator`, 'success');
+      state.gallery.selectedSeparator = idx;
+
+      // Show trade-nav popup
+      document.querySelectorAll('.trade-nav-popup').forEach(p => p.remove());
+      const popup = document.createElement('div');
+      popup.className = 'trade-nav-popup';
+      popup.style.cssText = `position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 0;z-index:99999;min-width:170px;box-shadow:var(--shadow);font-size:0.8rem;`;
+      const rect = sep.getBoundingClientRect();
+      popup.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
+      popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+      dayTrades.forEach((trade, ti) => {
+        const item = document.createElement('div');
+        item.style.cssText = `padding:6px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;`;
+        if (ti === idx) item.style.background = 'var(--hover)';
+        const lbl = document.createElement('span');
+        lbl.textContent = `T${ti + 1}  ${trade['Instrument'] || trade['instrument'] || ''}`;
+        lbl.style.fontWeight = ti === idx ? 'bold' : '';
+        const pnlVal = parseFloat(trade['Net P/L'] || trade['net_pnl'] || 0);
+        const pnlEl = document.createElement('span');
+        if (pnlVal) { pnlEl.textContent = (pnlVal > 0 ? '+' : '') + Math.round(pnlVal); pnlEl.style.color = pnlVal >= 0 ? 'var(--green,#4caf50)' : 'var(--red,#f44336)'; }
+        item.appendChild(lbl); if (pnlVal) item.appendChild(pnlEl);
+        item.onmouseenter = () => item.style.background = 'var(--hover)';
+        item.onmouseleave = () => item.style.background = ti === idx ? 'var(--hover)' : '';
+        item.addEventListener('click', () => {
+          popup.remove();
+          const firstImg = (trade.images || [])[0];
+          if (firstImg) {
+            let imgIdx = state.gallery.images.indexOf(firstImg);
+            if (imgIdx < 0) {
+              // Try resolved URL comparison
+              const resolved = resolveImageUrl(firstImg);
+              imgIdx = state.gallery.images.findIndex(u => resolveImageUrl(u) === resolved);
+            }
+            if (imgIdx >= 0) { state.gallery.currentIndex = imgIdx; state.gallery.selectedIndices = new Set([imgIdx]); renderGallery(); }
+          }
+        });
+        popup.appendChild(item);
+      });
+      document.body.appendChild(popup);
+      setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 0);
     });
 
     return sep;

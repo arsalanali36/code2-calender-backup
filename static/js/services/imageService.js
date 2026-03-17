@@ -46,5 +46,15 @@ const imageService = (() => {
     return apiClient.post('/api/copy-image-to-clipboard', { filename });
   }
 
-  return { uploadImage, deleteImage, getImageTimes, copyToClipboard };
+  async function uploadAudio(blob) {
+    const fd = new FormData();
+    fd.append('audio', blob, 'recording.webm');
+    return apiClient.upload('/api/upload-audio', fd);
+  }
+
+  async function deleteAudio(audioUrl) {
+    return apiClient.post('/api/delete-audio', { url: audioUrl });
+  }
+
+  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio };
 })();

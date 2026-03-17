@@ -919,3 +919,89 @@
   cursor: pointer;
 }
 
+
+
+/* ── AUDIO BAR ─────────────────────────────────── */
+.gv2-audio-bar {
+  position: absolute;
+  bottom: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 10, 11, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 5px 12px;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+
+.gv2-audio-label {
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-right: 2px;
+}
+
+.gv2-audio-btn {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.gv2-audio-btn:hover { background: var(--surface3, #2a2a35); }
+
+.gv2-audio-play {
+  width: 32px;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.gv2-audio-rec { border-color: #c0033a; color: #ff6688; }
+.gv2-audio-rec:hover { background: rgba(220,0,80,0.15); }
+
+.gv2-audio-stop { border-color: #c0033a; color: #ff4466; }
+.gv2-audio-stop:hover { background: rgba(220,0,80,0.15); }
+
+.gv2-audio-del { color: var(--text3); padding: 4px 7px; }
+.gv2-audio-del:hover { color: #ff4444; border-color: #ff4444; }
+
+.gv2-audio-dot {
+  color: #ff2255;
+  font-size: 0.9rem;
+  animation: gv2-audio-blink 1s step-start infinite;
+}
+.gv2-audio-timer {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: #ff6688;
+  min-width: 34px;
+}
+.gv2-audio-time {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text3);
+  min-width: 68px;
+  text-align: center;
+}
+
+/* Waveform canvas hover highlight */
+#gv2-audio-wave {
+  flex-shrink: 0;
+  display: block;
+}
+#gv2-audio-wave:hover { opacity: 0.92; }
+
+@keyframes gv2-audio-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
