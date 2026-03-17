@@ -1,0 +1,364 @@
+/* ── AUDIO BAR ─────────────────────────────────── */
+.gv2-audio-bar {
+  position: absolute;
+  bottom: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 10, 11, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 5px 12px;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+
+.gv2-audio-label {
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-right: 2px;
+}
+
+.gv2-audio-btn {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.gv2-audio-btn:hover { background: var(--surface3, #2a2a35); }
+
+.gv2-audio-play {
+  width: 32px;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.gv2-audio-rec { border-color: #c0033a; color: #ff6688; }
+.gv2-audio-rec:hover { background: rgba(220,0,80,0.15); }
+
+.gv2-audio-stop { border-color: #c0033a; color: #ff4466; }
+.gv2-audio-stop:hover { background: rgba(220,0,80,0.15); }
+
+.gv2-audio-del { color: var(--text3); padding: 4px 7px; }
+.gv2-audio-del:hover { color: #ff4444; border-color: #ff4444; }
+
+.gv2-audio-dot {
+  color: #ff2255;
+  font-size: 0.9rem;
+  animation: gv2-audio-blink 1s step-start infinite;
+}
+.gv2-audio-timer {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: #ff6688;
+  min-width: 34px;
+}
+.gv2-audio-time {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text3);
+  min-width: 68px;
+  text-align: center;
+}
+
+/* Waveform canvas hover highlight */
+#gv2-audio-wave {
+  flex-shrink: 0;
+  display: block;
+}
+#gv2-audio-wave:hover { opacity: 0.92; }
+
+@keyframes gv2-audio-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* Bar separator between audio & video sections */
+.gv2-bar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border2, #333);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Collapse toggle button */
+.gv2-bar-collapse-btn {
+  padding: 2px 7px;
+  font-size: 0.65rem;
+  color: var(--text3);
+  border-color: transparent;
+  background: transparent;
+  margin-left: 2px;
+}
+.gv2-bar-collapse-btn:hover { color: var(--text); background: var(--surface3, #2a2a35); border-color: var(--border2); }
+
+/* Audio indicator on thumbnails */
+.gv2-thumb-audio-icon {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 0.7rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 10;
+  background: #f5c518;
+  color: #000;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+
+/* ── VIDEO BAR ─────────────────────────────────── */
+.gv2-video-bar {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 10, 11, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 5px 12px;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+
+.gv2-video-label {
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-right: 2px;
+}
+
+.gv2-video-btn {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.gv2-video-btn:hover { background: var(--surface3, #2a2a35); }
+
+.gv2-video-rec { border-color: #0066cc; color: #4da6ff; }
+.gv2-video-rec:hover { background: rgba(0,100,220,0.15); }
+
+.gv2-video-stop { border-color: #c0033a; color: #ff4466; }
+.gv2-video-stop:hover { background: rgba(220,0,80,0.15); }
+
+.gv2-video-del { color: var(--text3); padding: 4px 7px; }
+.gv2-video-del:hover { color: #ff4444; border-color: #ff4444; }
+
+.gv2-video-dot {
+  color: #ff2255;
+  font-size: 0.9rem;
+  animation: gv2-audio-blink 1s step-start infinite;
+}
+
+.gv2-video-timer {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: #ff6688;
+  min-width: 80px;
+}
+
+/* Progress bar for recording */
+.gv2-video-progress {
+  width: 120px;
+  height: 6px;
+  background: #2a2a35;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.gv2-video-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c0033a, #ff4466);
+  border-radius: 3px;
+  transition: width 0.9s linear;
+}
+
+/* Play button in video bar */
+.gv2-video-play {
+  border-color: #0066cc;
+  color: #4da6ff;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+}
+.gv2-video-play:hover { background: rgba(0,100,220,0.18); }
+
+/* Video indicator on thumbnails */
+.gv2-thumb-video-icon {
+  position: absolute;
+  bottom: 4px;
+  left: 22px;
+  font-size: 0.75rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── TRAY PILLS (TradingView style) ──────────────── */
+
+/* Day P&L pill */
+.gv2-pnl-pill {
+  background: #e5384f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 11px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s, background 0.15s;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  line-height: 1.55;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.gv2-pnl-pill::before { content: '▼'; font-size: 0.55em; opacity: 0.75; }
+.gv2-pnl-pill:hover { filter: brightness(1.15); }
+.gv2-pnl-pill.positive { background: #1a9c4e; }
+.gv2-pnl-pill.neutral {
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
+/* Trade info pill */
+.gv2-trade-pill {
+  background: #2a2d3a;
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 3px 11px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.55;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.gv2-trade-pill:hover { background: #363a4d; }
+.gv2-trade-pill .gv2-tp-label { color: var(--text2); font-weight: 500; }
+.gv2-trade-pill .gv2-tp-sep { color: var(--text3); margin: 0 1px; }
+.gv2-trade-pill .gv2-tp-val { font-weight: 700; }
+.gv2-trade-pill .gv2-tp-val.pos { color: #2ecc71; }
+.gv2-trade-pill .gv2-tp-val.neg { color: #e74c3c; }
+.gv2-trade-pill::after { content: '▼'; font-size: 0.5em; opacity: 0.5; margin-left: 2px; }
+.gv2-trade-pill-wrap { display: none; position: relative; }
+
+/* Shared dropdown panel */
+.gv2-pnl-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #1e2130;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 4px 0;
+  min-width: 190px;
+  z-index: 9999;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+}
+.gv2-pnl-dropdown.open { display: block; }
+
+.gv2-pnl-trade-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.1s;
+  gap: 10px;
+}
+.gv2-pnl-trade-row:hover { background: rgba(255,255,255,0.06); }
+.gv2-pnl-trade-label { color: var(--text2); font-weight: 500; }
+.gv2-pnl-trade-val {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Tray image counter — plain text on dark overlay */
+.gv2-tray-counter {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.75);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  padding: 0 2px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+/* ── More menu dropdown items ───────────────────── */
+.gv2-di-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.65;
+}
+.gv2-di-icon svg { width: 14px; height: 14px; display: block; }
+.dropdown-item:hover .gv2-di-icon { opacity: 1; }
+
+.gv2-di-danger { color: #e74c3c !important; }
+.gv2-di-danger:hover {
+  background: rgba(231, 76, 60, 0.1) !important;
+  color: #e74c3c !important;
+}
+.gv2-di-danger .gv2-di-icon { opacity: 0.8; }
+
+/* ── Gallery tools dropdown — TradingView style ─── */
+#gallery-tools-panel {
+  background: #1e2130;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+  padding: 4px 0;
+  min-width: 200px;
+}
+#gallery-tools-panel .dropdown-item {
+  color: #c8ccd8;
+  font-size: 0.83rem;
+  padding: 8px 14px;
+  gap: 10px;
+  font-weight: 500;
+}
+#gallery-tools-panel .dropdown-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+}
+#gallery-tools-panel .dropdown-divider {
+  background: rgba(255,255,255,0.08);
+  margin: 3px 0;
+}

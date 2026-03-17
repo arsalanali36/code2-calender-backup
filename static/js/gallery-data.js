@@ -15,6 +15,18 @@
 function getImagesForDate(dateStr) {
   const out = [];
   (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
+
+  // Migrate old dayData.videos dict entries into the array (after their associated image)
+  const dayVideos = state.dayData[dateStr]?.videos;
+  if (dayVideos) {
+    Object.entries(dayVideos).forEach(([imgUrl, videoUrl]) => {
+      if (!videoUrl || out.includes(videoUrl)) return;
+      const idx = out.indexOf(imgUrl);
+      if (idx >= 0) out.splice(idx + 1, 0, videoUrl);
+      else out.push(videoUrl);
+    });
+  }
+
   getTradesForDate(dateStr).forEach(t => {
     if (
       (t['Time'] === '' || t['Time'] === undefined) &&
@@ -29,7 +41,18 @@ function getImagesForDate(dateStr) {
       return;
     }
     (t.images || []).forEach(url => out.push(url));
+
+    // Migrate old trade.videos dict entries into the array (after their associated image)
+    if (t.videos) {
+      Object.entries(t.videos).forEach(([imgUrl, videoUrl]) => {
+        if (!videoUrl || out.includes(videoUrl)) return;
+        const idx = out.indexOf(imgUrl);
+        if (idx >= 0) out.splice(idx + 1, 0, videoUrl);
+        else out.push(videoUrl);
+      });
+    }
   });
+
   (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
   return out;
 }
@@ -381,6 +404,41 @@ function deleteAudioForCurrentGalleryImage() {
   } else if (state.gallery.date && state.dayData[state.gallery.date]?.audios) {
     delete state.dayData[state.gallery.date].audios[imgUrl];
   }
+}
+
+// ── isVideoUrl helper ────────────────────────────────────────────────────────
+function isVideoUrl(url) {
+  return /\.(webm|mp4|mov|avi)(\?|$)/i.test(url || '');
+}
+
+// ── Insert video URL after current gallery image (in images array) ────────────
+function insertVideoAfterCurrentGalleryImage(videoUrl) {
+  const curIdx = state.gallery.currentIndex;
+  const imgUrl = (state.gallery.images || [])[curIdx];
+  if (!imgUrl || !videoUrl) return false;
+
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!Array.isArray(trade.images)) trade.images = [];
+    const idx = trade.images.indexOf(imgUrl);
+    if (idx >= 0) trade.images.splice(idx + 1, 0, videoUrl);
+    else trade.images.push(videoUrl);
+  } else if (state.gallery.date) {
+    const dd = state.dayData[state.gallery.date] || {};
+    state.dayData[state.gallery.date] = dd;
+    if (!Array.isArray(dd.images)) dd.images = [];
+    const idx = dd.images.indexOf(imgUrl);
+    if (idx >= 0) dd.images.splice(idx + 1, 0, videoUrl);
+    else dd.images.push(videoUrl);
+  } else {
+    return false;
+  }
+
+  // Also update state.gallery.images so the gallery reflects immediately
+  if (!Array.isArray(state.gallery.images)) state.gallery.images = [];
+  state.gallery.images.splice(curIdx + 1, 0, videoUrl);
+  state.gallery.currentIndex = curIdx + 1;   // navigate to the new video
+  return true;
 }
 
 // ── Video per-image ───────────────────────────────────────────────────────────

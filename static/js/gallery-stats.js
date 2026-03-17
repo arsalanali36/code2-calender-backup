@@ -105,3 +105,128 @@ function renderGalleryStats() {
         });
     }
 }
+
+// ── P&L pill in tray (total + per-trade dropdown) ─────────────────────────
+function renderGalleryPnlPill() {
+    const wrap = document.getElementById('gv2-pnl-wrap');
+    const pill = document.getElementById('gv2-pnl-pill');
+    const drop = document.getElementById('gv2-pnl-dropdown');
+    if (!wrap || !pill || !drop) return;
+
+    const date = state.gallery.date;
+    if (!date) { wrap.style.display = 'none'; return; }
+
+    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+    if (!trades.length) { wrap.style.display = 'none'; return; }
+
+    let total = 0;
+    const rows = trades.map(t => {
+        const pnl = typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0;
+        total += pnl;
+        return { t, pnl };
+    });
+
+    wrap.style.display = '';
+
+    const fmtPnl = v => (v >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(v)).toLocaleString('en-IN');
+    pill.textContent = fmtPnl(total);
+    pill.className = 'gv2-pnl-pill' + (total > 0 ? ' positive' : total < 0 ? '' : ' neutral');
+
+    // Rebuild dropdown rows (don't clear if open — flickers)
+    drop.innerHTML = '';
+    rows.forEach(({ t, pnl }, i) => {
+        const row = document.createElement('div');
+        row.className = 'gv2-pnl-trade-row';
+        const lbl = document.createElement('span');
+        lbl.className = 'gv2-pnl-trade-label';
+        lbl.textContent = `T${i + 1}  ${t.Instrument || t.Symbol || t.instrument || ''}`;
+        const val = document.createElement('span');
+        val.className = 'gv2-pnl-trade-val';
+        val.textContent = fmtPnl(pnl);
+        val.style.color = pnl > 0 ? 'var(--green,#4caf50)' : pnl < 0 ? 'var(--red,#f44336)' : 'var(--text2)';
+        row.appendChild(lbl);
+        row.appendChild(val);
+        row.addEventListener('click', () => {
+            drop.classList.remove('open');
+            const firstImg = (t.images || [])[0];
+            if (firstImg) {
+                const idx = state.gallery.images.indexOf(firstImg);
+                if (idx >= 0) { state.gallery.currentIndex = idx; renderGallery(); }
+            }
+        });
+        drop.appendChild(row);
+    });
+}
+
+// ── Trade pill (current image's trade + its P/L) ──────────────────────────
+function renderGalleryTradePill() {
+    const wrap = document.getElementById('gv2-trade-pill-wrap');
+    const pill = document.getElementById('gv2-trade-pill');
+    const drop = document.getElementById('gv2-trade-dropdown');
+    if (!wrap || !pill || !drop) return;
+
+    const date = state.gallery.date;
+    if (!date) { wrap.style.display = 'none'; return; }
+
+    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+    if (!trades.length) { wrap.style.display = 'none'; return; }
+
+    const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+    const owner  = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+    const tIdx   = owner ? trades.indexOf(owner) : -1;
+    if (!owner || tIdx < 0) { wrap.style.display = 'none'; return; }
+
+    const pnl    = typeof getTradePnl === 'function' ? (getTradePnl(owner) || 0) : 0;
+    const instr  = owner.Instrument || owner.Symbol || owner.instrument || '';
+    const fmtPnl = v => (v >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(v)).toLocaleString('en-IN');
+    const cls    = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : '';
+
+    wrap.style.display = '';
+    pill.innerHTML =
+        `<span class="gv2-tp-label">T${tIdx + 1}${instr ? ' · ' + instr : ''}</span>`
+      + `<span class="gv2-tp-sep">·</span>`
+      + `<span class="gv2-tp-val ${cls}">${fmtPnl(pnl)}</span>`;
+
+    // Dropdown: all trades for quick jump
+    drop.innerHTML = '';
+    trades.forEach((t, i) => {
+        const p = typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0;
+        const row = document.createElement('div');
+        row.className = 'gv2-pnl-trade-row';
+        if (i === tIdx) row.style.background = 'rgba(255,255,255,0.06)';
+        const lbl = document.createElement('span');
+        lbl.className = 'gv2-pnl-trade-label';
+        lbl.textContent = `T${i + 1}  ${t.Instrument || t.Symbol || t.instrument || ''}`;
+        const val = document.createElement('span');
+        val.className = 'gv2-pnl-trade-val';
+        val.textContent = fmtPnl(p);
+        val.style.color = p > 0 ? '#2ecc71' : p < 0 ? '#e74c3c' : 'var(--text2)';
+        row.appendChild(lbl); row.appendChild(val);
+        row.addEventListener('click', () => {
+            drop.classList.remove('open');
+            const firstImg = (t.images || [])[0];
+            if (firstImg) {
+                const idx = state.gallery.images.indexOf(firstImg);
+                if (idx >= 0) { state.gallery.currentIndex = idx; renderGallery(); }
+            }
+        });
+        drop.appendChild(row);
+    });
+}
+
+// ── Combined tray state update (called from renderGallery) ───────────────
+function renderGalleryTrayState() {
+    renderGalleryPnlPill();
+    renderGalleryTradePill();
+    renderGalleryTrayCounter();
+}
+
+// ── Image count badge in tray ─────────────────────────────────────────────
+function renderGalleryTrayCounter() {
+    const el = document.getElementById('gv2-tray-counter');
+    if (!el) return;
+    const images = state.gallery.images || [];
+    if (!images.length) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.textContent = `${(state.gallery.currentIndex || 0) + 1} / ${images.length}`;
+}

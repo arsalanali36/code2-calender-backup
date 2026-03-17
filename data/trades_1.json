@@ -22,11 +22,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-20",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-20"
+      "trade_date": "2026-02-20",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -50,11 +52,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-18",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-18"
+      "trade_date": "2026-02-18",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -78,12 +82,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "observation": "adasd",
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -107,11 +113,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -135,11 +143,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-20",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-20"
+      "trade_date": "2026-02-20",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -163,11 +173,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-17",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-17"
+      "trade_date": "2026-02-17",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -191,11 +203,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-17",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-17"
+      "trade_date": "2026-02-17",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -219,12 +233,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-25",
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-25"
+      "trade_date": "2026-02-25",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -248,11 +264,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -276,6 +294,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {
           "alertness": 1,
@@ -304,7 +323,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381777/trading_journal/a4500dd7-b69d-4d83-a84f-ec0e9c127ce5.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381761/trading_journal/9eaf6135-3466-4a47-baef-bcae0004221a.png"
       },
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -328,6 +348,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "any_entry_skip": "N",
@@ -345,7 +366,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -369,11 +391,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-18",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-18"
+      "trade_date": "2026-02-18",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -397,11 +421,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-23",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -425,11 +451,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-16",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-16"
+      "trade_date": "2026-02-16",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -453,12 +481,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -482,11 +512,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-25",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-25"
+      "trade_date": "2026-02-25",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -510,6 +542,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-23",
       "imageTags": {},
       "images": [
@@ -519,7 +552,8 @@
         "/uploads/064d8c2a-5b31-4410-a04f-cb9d93668ae3.png": []
       },
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -543,6 +577,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-19",
       "imageTags": {
         "/uploads/1ddc38a9-38ca-4b48-89e2-d201433685e1.png": [
@@ -574,7 +609,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381723/trading_journal/89f72757-b02b-467d-92b3-e857bf8f6506.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381675/trading_journal/63fe9de5-0f35-4d77-b279-e7a5cadc802b.png"
       },
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -598,6 +634,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {
           "alertness": 5,
@@ -622,7 +659,8 @@
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -646,11 +684,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -674,6 +714,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-19",
       "imageTags": {
         "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": [
@@ -690,7 +731,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381633/trading_journal/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381885/trading_journal/ed30d59e-2116-4c12-acf7-d9be9d041799.png"
       },
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -714,11 +756,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-25",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-25"
+      "trade_date": "2026-02-25",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -742,6 +786,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "any_entry_skip": "N",
@@ -762,7 +807,8 @@
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -786,11 +832,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -814,11 +862,13 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -842,6 +892,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {
           "alertness": 1,
@@ -867,7 +918,8 @@
       "images": [],
       "note": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -891,11 +943,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -919,11 +973,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "https://youtu.be/YH9hBE8b16c?t=195",
+      "audios": {},
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -947,11 +1003,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -975,11 +1033,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-19",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1003,6 +1063,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {
           "alertness": 3,
@@ -1029,7 +1090,8 @@
       "images": [],
       "note": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1053,11 +1115,13 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1081,11 +1145,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1109,11 +1175,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1137,11 +1205,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1165,11 +1235,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-19",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1193,6 +1265,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "entry_candle_20": "N"
@@ -1203,7 +1276,8 @@
       "images": [],
       "note": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1227,11 +1301,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "https://youtu.be/YH9hBE8b16c?t=258",
+      "audios": {},
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1255,11 +1331,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-19",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1283,11 +1361,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "https://youtu.be/YH9hBE8b16c?t=296",
+      "audios": {},
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1311,11 +1391,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "https://youtu.be/YH9hBE8b16c?t=373",
+      "audios": {},
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1339,6 +1421,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "imageTags": {},
       "images": [
@@ -1463,7 +1546,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381850/trading_journal/d07d80d1-d410-4244-b284-1cd36941cca6.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381876/trading_journal/e0b7acd8-6e83-4576-ae46-9a6e5627f767.png"
       },
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1487,11 +1571,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1515,11 +1601,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1543,11 +1631,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1571,11 +1661,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-13",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1599,11 +1691,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1627,11 +1721,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-11",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1655,6 +1751,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {},
         "exit": {},
@@ -1664,7 +1761,8 @@
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1688,6 +1786,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "algosignal": "Y",
@@ -1706,7 +1805,8 @@
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1730,6 +1830,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {}
       },
@@ -1737,7 +1838,8 @@
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1761,11 +1863,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1789,11 +1893,13 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-12",
       "imageTags": {},
       "images": [],
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1816,6 +1922,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-26",
       "imageTags": {},
       "images": [
@@ -1839,7 +1946,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381729/trading_journal/8bce6a18-e1a7-4ee0-b5b3-133e78700c74.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381894/trading_journal/f1de66d7-93c5-4cbf-bc6d-783201c48158.png"
       },
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1862,6 +1970,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-26",
       "imageTags": {},
       "images": [
@@ -1874,7 +1983,8 @@
         ]
       },
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1899,6 +2009,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-26",
       "imageTags": {},
       "images": [],
@@ -1906,7 +2017,8 @@
       "tags": [
         "bina zone"
       ],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1929,12 +2041,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-26",
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1957,12 +2071,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-26",
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -1985,6 +2101,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-26",
       "imageTags": {
         "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [
@@ -2042,7 +2159,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381575/trading_journal/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381704/trading_journal/79c8fecd-c3fa-4058-b8a7-1ed822f7630b.png"
       },
       "tags": [],
-      "trade_date": "2026-02-26"
+      "trade_date": "2026-02-26",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2065,6 +2183,7 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-18",
       "fill_count": 2,
       "imageTags": {
@@ -2083,7 +2202,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381640/trading_journal/4f939a2e-9f5e-4a32-8e05-5676185417aa.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381915/trading_journal/fad88f5d-a732-444e-940b-801bb4708e42.png"
       },
       "tags": [],
-      "trade_date": "2026-02-18"
+      "trade_date": "2026-02-18",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2106,13 +2226,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2135,13 +2257,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-13",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2164,13 +2288,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2193,13 +2319,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-23",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-23"
+      "trade_date": "2026-02-23",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2222,13 +2350,15 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2251,13 +2381,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2280,13 +2412,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-05",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-05"
+      "trade_date": "2026-02-05",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2309,13 +2443,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-19",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-19"
+      "trade_date": "2026-02-19",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2338,13 +2474,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-13",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-13"
+      "trade_date": "2026-02-13",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2367,13 +2505,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2396,6 +2536,7 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "csvlog": {},
       "date": "2026-02-04",
       "fill_count": 3,
@@ -2403,7 +2544,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-04"
+      "trade_date": "2026-02-04",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2426,6 +2568,7 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-03",
       "fill_count": 2,
       "imageTags": {
@@ -2534,7 +2677,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381905/trading_journal/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381893/trading_journal/f1dacfb3-9bbe-4a47-9a09-c342babfd18d.png"
       },
       "tags": [],
-      "trade_date": "2026-02-03"
+      "trade_date": "2026-02-03",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2557,13 +2701,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-06",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-06"
+      "trade_date": "2026-02-06",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2586,13 +2732,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-05",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-05"
+      "trade_date": "2026-02-05",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2615,13 +2763,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-03",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-03"
+      "trade_date": "2026-02-03",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2644,13 +2794,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-03",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-03"
+      "trade_date": "2026-02-03",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2673,13 +2825,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2702,13 +2856,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2731,13 +2887,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-24",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-24"
+      "trade_date": "2026-02-24",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2760,13 +2918,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-09",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2789,13 +2949,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-12",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2818,13 +2980,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-11",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-11"
+      "trade_date": "2026-02-11",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2847,13 +3011,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2876,13 +3042,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-09",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2905,13 +3073,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-12",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2934,13 +3104,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-09",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2963,6 +3135,7 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "confused": 34
@@ -2974,7 +3147,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-04"
+      "trade_date": "2026-02-04",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -2997,13 +3171,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-12",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3026,13 +3202,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-10",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-10"
+      "trade_date": "2026-02-10",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3055,13 +3233,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-06",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-06"
+      "trade_date": "2026-02-06",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3084,13 +3264,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-12",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-12"
+      "trade_date": "2026-02-12",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3113,13 +3295,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-02",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-02"
+      "trade_date": "2026-02-02",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3142,13 +3326,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-09",
       "fill_count": 3,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3171,13 +3357,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-05",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-05"
+      "trade_date": "2026-02-05",
+      "videos": {}
     },
     {
       "Broker": "dhan",
@@ -3200,13 +3388,15 @@
       "Total Trades": "",
       "TradeType": "buy",
       "Video": "",
+      "audios": {},
       "date": "2026-02-09",
       "fill_count": 2,
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-02-09"
+      "trade_date": "2026-02-09",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3228,11 +3418,13 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "",
       "imageTags": {},
       "images": [],
       "observation": "",
-      "trade_date": ""
+      "trade_date": "",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3258,6 +3450,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {},
       "date": "2026-02-27",
       "imageTags": {
@@ -3381,7 +3574,8 @@
         "panic",
         "bina zone"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3406,6 +3600,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-27",
       "imageTags": {},
       "images": [],
@@ -3488,7 +3683,8 @@
       "tags": [
         "bina zone"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3514,6 +3710,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-27",
       "imageTags": {},
       "images": [],
@@ -3545,7 +3742,8 @@
         "bina zone",
         "panic"
       ],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3568,6 +3766,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-02-27",
       "imageTags": {},
       "images": [],
@@ -3627,7 +3826,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381828/trading_journal/c6d50359-11f6-4318-88e6-aed1912603bd.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381578/trading_journal/309cf73f-b8fe-4801-97e1-fb981f09e184.png"
       },
       "tags": [],
-      "trade_date": "2026-02-27"
+      "trade_date": "2026-02-27",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3650,11 +3850,13 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "2026-02-28",
       "imageTags": {},
       "images": [],
       "observation": "",
-      "trade_date": "2026-02-28"
+      "trade_date": "2026-02-28",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3677,13 +3879,15 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "2001-03-03",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381615/trading_journal/42f47f71-cb70-4126-b4a3-d305061d832b.png"
       ],
       "observation": "",
-      "trade_date": "2001-03-03"
+      "trade_date": "2001-03-03",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -3706,6 +3910,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "https://youtu.be/LhXrAmzIMmY",
+      "audios": {},
       "date": "2026-03-02",
       "fabricData": {
         "/uploads/30548e21-40b4-4b96-b7ce-4b8eb75eea44.png": {
@@ -11332,7 +11537,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-02"
+      "trade_date": "2026-03-02",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11355,6 +11561,7 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "2026-03-03",
       "fabricData": {
         "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": {
@@ -11389,7 +11596,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-03"
+      "trade_date": "2026-03-03",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11412,6 +11620,7 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "2026-03-04",
       "fabricData": {
         "/uploads/587e4db0-4cef-4a94-9d47-df3f1d2768ed.png": {
@@ -11520,7 +11729,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-04"
+      "trade_date": "2026-03-04",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11543,6 +11753,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-04",
       "imageTags": {},
       "images": [
@@ -11552,7 +11763,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-04"
+      "trade_date": "2026-03-04",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11575,6 +11787,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-05",
       "imageTags": {},
       "images": [
@@ -11603,7 +11816,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-05"
+      "trade_date": "2026-03-05",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11626,6 +11840,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-05",
       "fabricData": {
         "/uploads/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": {
@@ -11665,7 +11880,8 @@
         ]
       },
       "tags": [],
-      "trade_date": "2026-03-05"
+      "trade_date": "2026-03-05",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11688,6 +11904,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-05",
       "imageTags": {},
       "images": [
@@ -11701,7 +11918,8 @@
         ]
       },
       "tags": [],
-      "trade_date": "2026-03-05"
+      "trade_date": "2026-03-05",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11724,6 +11942,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-05",
       "imageTags": {},
       "images": [
@@ -11746,7 +11965,8 @@
         ]
       },
       "tags": [],
-      "trade_date": "2026-03-05"
+      "trade_date": "2026-03-05",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11782,6 +12002,7 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "zone": {}
       },
@@ -11853,7 +12074,8 @@
         ],
         "targ": "25"
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -11886,6 +12108,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "breakoutcandle": "Green"
@@ -12039,7 +12262,8 @@
         ],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12067,6 +12291,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-06",
       "groupNames": {
         "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png": "PRE"
@@ -12141,7 +12366,8 @@
         ],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12167,6 +12393,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-06",
       "heroImage": "/uploads/3c8ae8c0-db78-445a-a093-0cff7cf3fad5.png",
       "imageTags": {},
@@ -12230,7 +12457,8 @@
         ],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12253,6 +12481,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-06",
       "heroImage": "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png",
       "imageTags": {},
@@ -12290,7 +12519,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12313,6 +12543,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {},
       "date": "2026-03-06",
       "groupNames": {
@@ -12335,7 +12566,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12364,6 +12596,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-06",
       "heroImage": "/uploads/30911868-3748-41cd-920f-29a5626028f8.png",
       "imageTags": {},
@@ -12403,7 +12636,8 @@
         ],
         "targ": ""
       },
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12426,11 +12660,13 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "2026-03-06",
       "imageTags": {},
       "images": [],
       "observation": "",
-      "trade_date": "2026-03-06"
+      "trade_date": "2026-03-06",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12453,6 +12689,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {},
         "exit": {},
@@ -12476,7 +12713,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-09"
+      "trade_date": "2026-03-09",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12499,6 +12737,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "zone": {}
       },
@@ -12507,7 +12746,8 @@
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-09"
+      "trade_date": "2026-03-09",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12533,6 +12773,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "confused": 74
@@ -12598,7 +12839,8 @@
         ],
         "targ": ""
       },
-      "trade_date": "2026-03-10"
+      "trade_date": "2026-03-10",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12625,6 +12867,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "confused_algosignal": "Y",
@@ -12667,7 +12910,8 @@
         "tags": [],
         "targ": ""
       },
-      "trade_date": "2026-03-10"
+      "trade_date": "2026-03-10",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12690,6 +12934,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "algosignal": "N",
@@ -12735,7 +12980,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-11"
+      "trade_date": "2026-03-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12758,6 +13004,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "confused": 36
@@ -12788,7 +13035,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-11"
+      "trade_date": "2026-03-11",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12811,6 +13059,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {},
         "entry": {},
@@ -12828,7 +13077,8 @@
       "note": "",
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-12"
+      "trade_date": "2026-03-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12838,11 +13088,13 @@
       "Video": "",
       "_placeholder": true,
       "_placeholderLabel": "x1",
+      "audios": {},
       "csvlog": {},
       "date": "2026-03-16",
       "imageTags": {},
       "images": [],
-      "trade_date": "2026-03-16"
+      "trade_date": "2026-03-16",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12852,6 +13104,7 @@
       "Video": "",
       "_placeholder": true,
       "_placeholderLabel": "x1",
+      "audios": {},
       "csvlog": {
         "body_vitals": {
           "alertness": 0,
@@ -12871,7 +13124,8 @@
       "date": "2026-03-12",
       "imageTags": {},
       "images": [],
-      "trade_date": "2026-03-12"
+      "trade_date": "2026-03-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12894,6 +13148,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-12",
       "imageTags": {},
       "images": [
@@ -12905,7 +13160,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-12"
+      "trade_date": "2026-03-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12915,11 +13171,13 @@
       "Video": "",
       "_placeholder": true,
       "_placeholderLabel": "x2",
+      "audios": {},
       "csvlog": {},
       "date": "2026-03-12",
       "imageTags": {},
       "images": [],
-      "trade_date": "2026-03-12"
+      "trade_date": "2026-03-12",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -12942,6 +13200,7 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {
           "alertness": 2,
@@ -12995,7 +13254,8 @@
       ],
       "note": "sooc kar baitha tha, friday hai, gadbard nahi karene, jab zone bane ga tab hi lenge , aur fir baithey reh gaye!!",
       "tags": [],
-      "trade_date": "2026-03-13"
+      "trade_date": "2026-03-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13018,6 +13278,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "body_vitals": {},
         "entry": {
@@ -13077,7 +13338,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-13"
+      "trade_date": "2026-03-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13100,6 +13362,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "csvlog": {
         "entry": {
           "algosignal": "N",
@@ -13131,7 +13394,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-13"
+      "trade_date": "2026-03-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13154,6 +13418,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-13",
       "heroImage": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419477/trading_journal/b3b31b34-6637-437d-b238-a4d5bea31ac2.png",
       "imageTags": {},
@@ -13166,7 +13431,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-13"
+      "trade_date": "2026-03-13",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13189,12 +13455,14 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-16",
       "imageTags": {},
       "images": [],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-16"
+      "trade_date": "2026-03-16",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13217,10 +13485,13 @@
       "Total Trades": "",
       "TradeType": "",
       "Video": "",
+      "audios": {},
       "date": "2026-03-17",
       "imageTags": {},
       "images": [],
-      "trade_date": "2026-03-17"
+      "observation": "",
+      "trade_date": "2026-03-17",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13243,6 +13514,17 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724544/trading_journal/7a8d4aee-1094-4e77-a9d3-0d54c72d9a4c.png": "/uploads/audio/0ef2ec002ac64372b1abfa73223248fb.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724544/trading_journal/92268079-55e1-4483-b3cf-b8938cac180f.png": "/uploads/audio/97cc64b11c1b4c04aadb686f4c997023.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724545/trading_journal/006b41c2-9df4-4117-8beb-c9c91924f624.png": "/uploads/audio/c5e8628e31cf4bfab46a567f18f1713c.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724549/trading_journal/493ec68c-f7dc-4c9b-b700-4c484923ab10.png": "/uploads/audio/a06806de825a42fb8ad01bc5eb0e26d3.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724550/trading_journal/1144bca3-63c6-4c09-9c9b-fbc1e9e06382.png": "/uploads/audio/1dbec0915c7c4b64a84ed9259dd26356.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724550/trading_journal/da301cb2-34c5-4bb8-b648-8d452fc1f432.png": "/uploads/audio/105b48df3e2940e39e5deff47998aa04.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724608/trading_journal/14107c65-4e9d-4be4-8703-c77b29955a94.png": "/uploads/audio/c09a853a419c41e8a31b9462a132fdf1.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724609/trading_journal/43008f77-8bd8-4562-8f0e-9198e21adcd4.png": "/uploads/audio/85c3e61342d143699407390888c53933.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724610/trading_journal/73b66f61-b1b4-429d-b3a9-2e1100256edc.png": "/uploads/audio/34bf2ecc15c94e52bde9d71ba95bdeeb.webm"
+      },
       "date": "2026-03-17",
       "imageTags": {},
       "images": [
@@ -13251,6 +13533,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724545/trading_journal/006b41c2-9df4-4117-8beb-c9c91924f624.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724546/trading_journal/878f5446-4b7c-4b8b-b10a-70b0c2c54341.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724548/trading_journal/50384b82-5c59-4513-9cb8-59d2d63d7290.png",
+        "/uploads/b30590c4f67a4df7979ac073e790a3e0.webm",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724549/trading_journal/493ec68c-f7dc-4c9b-b700-4c484923ab10.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724550/trading_journal/1144bca3-63c6-4c09-9c9b-fbc1e9e06382.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724550/trading_journal/da301cb2-34c5-4bb8-b648-8d452fc1f432.png",
@@ -13260,7 +13543,13 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-17"
+      "trade_date": "2026-03-17",
+      "videos": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724549/trading_journal/493ec68c-f7dc-4c9b-b700-4c484923ab10.png": "/uploads/video/663c6e3443f34dceb677150bb95100cd.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724550/trading_journal/1144bca3-63c6-4c09-9c9b-fbc1e9e06382.png": "/uploads/video/d9f41630e06e43f8b50581d6168b3263.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724550/trading_journal/da301cb2-34c5-4bb8-b648-8d452fc1f432.png": "/uploads/video/28225c0aee124519852a5e7ea10958c4.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724608/trading_journal/14107c65-4e9d-4be4-8703-c77b29955a94.png": "/uploads/video/190b7db6cba641e38d85f47ac714b992.webm"
+      }
     },
     {
       "Broker": "zerodha",
@@ -13268,7 +13557,7 @@
       "Buy Price (Avg)": 95.333333,
       "Buy Time": "09:56:35",
       "Gross P/L": 2343.25,
-      "Image Tags": "",
+      "Image Tags": "desperate, Mann Nahi, panic, Panicyy",
       "Instrument": "NIFTY2631723500PE",
       "Net P/L": 2258.18,
       "Note": "",
@@ -13283,21 +13572,48 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724612/trading_journal/30df8d61-a5f7-404f-86d6-ae5648993f63.png": "/uploads/audio/f867b38ffbce4786b6684ba020b0cac8.webm"
+      },
       "date": "2026-03-17",
-      "imageTags": {},
+      "imageTags": {
+        "/uploads/f3191d86d4fd4f37ab33c4e2e9c7263f.webm": [
+          "Panicyy"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724611/trading_journal/d8e9cb64-e266-4e28-8a1f-02744ec85a4d.png": [
+          "Panicyy",
+          "desperate",
+          "panic"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724613/trading_journal/d396f149-fc2a-4a9b-8d59-f417b332a705.png": [
+          "Mann Nahi"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724614/trading_journal/5874b250-0a64-42b0-9b81-b56fad4c8068.png": [
+          "Panicyy"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724618/trading_journal/81b66f1b-cb11-40e0-9b8b-38e78dd5b06a.png": [
+          "Panicyy"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724611/trading_journal/d8e9cb64-e266-4e28-8a1f-02744ec85a4d.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724612/trading_journal/30df8d61-a5f7-404f-86d6-ae5648993f63.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724613/trading_journal/d396f149-fc2a-4a9b-8d59-f417b332a705.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724614/trading_journal/5874b250-0a64-42b0-9b81-b56fad4c8068.png",
+        "/uploads/86759fb9bf1f47b581bb6da59c62f178.webm",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724615/trading_journal/16a3c9c3-d589-4289-a8fc-9e4cf861bec2.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724616/trading_journal/5d10c73a-b608-4614-bdd2-76bce861f8b5.png",
+        "/uploads/f3191d86d4fd4f37ab33c4e2e9c7263f.webm",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724617/trading_journal/8b723e7d-8e25-4fd8-b44a-4fb0aa018af4.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724618/trading_journal/81b66f1b-cb11-40e0-9b8b-38e78dd5b06a.png"
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-17"
+      "trade_date": "2026-03-17",
+      "videos": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724611/trading_journal/d8e9cb64-e266-4e28-8a1f-02744ec85a4d.png": "/uploads/video/f5810a53e24b4f80a7100f0c4b522f5d.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724612/trading_journal/30df8d61-a5f7-404f-86d6-ae5648993f63.png": "/uploads/video/3ba9c9c896504793b0c711538382f0e8.webm"
+      }
     },
     {
       "Broker": "zerodha",
@@ -13320,6 +13636,7 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-17",
       "imageTags": {},
       "images": [
@@ -13330,7 +13647,8 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-03-17"
+      "trade_date": "2026-03-17",
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -13353,7 +13671,9 @@
       "Total Trades": "",
       "TradeType": "sell",
       "Video": "",
+      "audios": {},
       "date": "2026-03-17",
+      "heroImage": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724754/trading_journal/704140e4-e78c-4684-9484-f54e666ee8f3.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724746/trading_journal/ba1518ae-78e5-496a-a197-f133766ef45d.png",
@@ -13366,7 +13686,9 @@
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-17",
-      "heroImage": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724754/trading_journal/704140e4-e78c-4684-9484-f54e666ee8f3.png"
+      "videos": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724746/trading_journal/ba1518ae-78e5-496a-a197-f133766ef45d.png": "/uploads/video/dabb96bc663f45b9b874ca50a2259cd7.webm"
+      }
     }
   ],
   "columns": [
@@ -13442,19 +13764,23 @@
   "userColumns": [],
   "dayData": {
     "": {
+      "audios": {},
       "closeImages": [],
       "images": []
     },
     "2001-03-03": {
+      "audios": {},
       "closeImages": [],
       "images": []
     },
     "2026-02-02": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": []
     },
     "2026-02-03": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [],
@@ -13537,6 +13863,7 @@
       "video": "https://youtu.be/b2T_q2edvI0?si=E-SXQypuYMUiRLhl"
     },
     "2026-02-04": {
+      "audios": {},
       "closeImages": [],
       "fabricData": {
         "/uploads/0fca584e-1cfc-417f-9a98-6dbb78a5d20a.png": {
@@ -13763,6 +14090,7 @@
       "video": "https://youtu.be/JVFnakVIcww?si=cJC8Tuqh2Vg7umOE"
     },
     "2026-02-05": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -13806,6 +14134,7 @@
       "video": "https://youtu.be/6l-b6zPihQY?si=Tak1R32Zar3a6Ec3"
     },
     "2026-02-06": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -13817,6 +14146,7 @@
       "video": "https://youtu.be/puTVLWO12oE?si=njeL4CZrk9A5dxS9"
     },
     "2026-02-09": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -13828,6 +14158,7 @@
       "video": "https://youtu.be/IfbQOR8B2n0?si=cCt8rscFyKdVLLDF"
     },
     "2026-02-10": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {
         "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [
@@ -13887,6 +14218,7 @@
       "video": "https://youtu.be/bdu8J9ttEWA?si=lDo2eXiTArnM2ksf"
     },
     "2026-02-11": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [
@@ -14071,6 +14403,7 @@
       "video": "https://youtu.be/YH9hBE8b16c?si=pxTcOfNUrnXxQw8y"
     },
     "2026-02-12": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {
         "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": [
@@ -14091,6 +14424,7 @@
       "video": "https://youtu.be/Yo1GfsC_p8I?si=ZQaGfgNuJP_2iKjg"
     },
     "2026-02-13": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -14104,6 +14438,7 @@
       "video": "https://youtu.be/czV-uKlT5XE?si=rXQE9pK_CXFmPIsy"
     },
     "2026-02-16": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -14115,6 +14450,7 @@
       "video": "https://youtu.be/jLgwsF93jlI?si=2N_7WlAJ1dTft1Nx"
     },
     "2026-02-17": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -14126,12 +14462,14 @@
       "video": "https://youtu.be/z8-DMCKP2NU?si=YxV3eluO_Xk3K4Fh"
     },
     "2026-02-18": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [],
       "video": "https://youtu.be/d_hHomkq7a0?si=Iu1Lx1uzhpn84GfO"
     },
     "2026-02-19": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {
         "/uploads/6c58404a-f566-426d-99be-96ced2a8b36a.png": [
@@ -14151,6 +14489,7 @@
       "video": "https://youtu.be/8jeM--wfWWI?si=tDjkofWHPtOG4krS"
     },
     "2026-02-20": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -14162,12 +14501,14 @@
       "video": "https://youtu.be/95DgYF2elZs?si=JxysMClAtl_gbD3F"
     },
     "2026-02-23": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [],
       "video": "https://youtu.be/Qkvz6mbTp_Q?si=lXN5Mc3leKDDle83"
     },
     "2026-02-24": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {
         "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": [
@@ -14201,6 +14542,7 @@
       "video": "https://youtu.be/sQe00rCxL44?si=-UyWbUH4ONhWVmmZ"
     },
     "2026-02-25": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [
@@ -14212,12 +14554,14 @@
       "video": "https://youtu.be/__VCVg5RWyc?si=pPZxxQrbtNe_yZL2"
     },
     "2026-02-26": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": [],
       "video": "https://youtu.be/-nimfxpVbtU?si=eVHMvbXBsI7Z9EBJ"
     },
     "2026-02-27": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {
         "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
@@ -14428,11 +14772,13 @@
       }
     },
     "2026-02-28": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": []
     },
     "2026-03-02": {
+      "audios": {},
       "closeImages": [],
       "fabricData": {
         "/uploads/1be67dca-180e-453a-a802-d4028c9307a8.png": {
@@ -21998,10 +22344,12 @@
       }
     },
     "2026-03-03": {
+      "audios": {},
       "closeImages": [],
       "images": []
     },
     "2026-03-04": {
+      "audios": {},
       "closeImages": [],
       "fabricData": {
         "/uploads/489c7bf4-d668-4111-a2e5-eca737f36b78.png": {
@@ -22084,6 +22432,7 @@
       }
     },
     "2026-03-05": {
+      "audios": {},
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381657/trading_journal/5bbaaf5d-2a1e-4c59-a0d3-6f09c1cdac9a.png"
       ],
@@ -22298,6 +22647,7 @@
       }
     },
     "2026-03-06": {
+      "audios": {},
       "closeImages": [],
       "fabricData": {
         "/uploads/988f18ac-b4c8-4a1c-95f3-fb2bfe7bb5ce.png": {
@@ -22329,11 +22679,13 @@
       }
     },
     "2026-03-09": {
+      "audios": {},
       "closeImages": [],
       "imageTags": {},
       "images": []
     },
     "2026-03-10": {
+      "audios": {},
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381993/trading_journal/975c00d3-7319-4b86-957c-ebab6f7ed725.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381994/trading_journal/0dba275f-32a7-4322-8ec3-1b55a3cbbd75.png",
@@ -22348,6 +22700,7 @@
       ]
     },
     "2026-03-11": {
+      "audios": {},
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773382024/trading_journal/9dfd2295-f13f-4242-a5c4-509f48678a8a.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773382025/trading_journal/2c791504-ce4c-4cc1-8ae0-c178a583f915.png",
@@ -22366,6 +22719,7 @@
       ]
     },
     "2026-03-12": {
+      "audios": {},
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773382062/trading_journal/c3655bbc-f0e7-417d-b99c-bae24e04e9f9.png"
       ],
@@ -22378,7 +22732,10 @@
       ]
     },
     "2026-03-13": {
-      "closeImages": [],
+      "audios": {},
+      "closeImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773732817/trading_journal/b6428ccb-3350-4c52-9677-8c4576bdffab.png"
+      ],
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419448/trading_journal/1616ddc6-cdc0-4443-bbbf-4ca6f4f8459c.png",
@@ -22388,19 +22745,39 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419452/trading_journal/04987eb8-881d-4fdf-8681-0881da62c4cf.png"
       ]
     },
-    "2026-03-16": {},
+    "2026-03-16": {
+      "audios": {}
+    },
     "2026-03-17": {
-      "images": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724466/trading_journal/e2c2fecd-b855-4787-a0a2-2ca376b25168.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724467/trading_journal/55023764-9f30-4431-b78a-45fcae46d144.png"
-      ],
-      "imageTags": {},
+      "audios": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724467/trading_journal/55023764-9f30-4431-b78a-45fcae46d144.png": "/uploads/audio/4700feff6b3a4d8b9cb03b43835eebd7.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png": "/uploads/audio/81a5318586254e3e9aaa7c1dc75fd706.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773731208/trading_journal/8c617a74-a09d-46cd-9fa5-dd60f6d401ce.png": "/uploads/audio/e740ea1cf6bd469eb674a4bbed2bf0b9.webm"
+      },
       "closeImages": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724753/trading_journal/46f37c16-125a-4bc6-a9a8-c6966a1e104e.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724757/trading_journal/1a974421-f068-4726-9960-bcb63f35a9ea.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724756/trading_journal/cd36ac58-230f-4347-8b3d-37c34c2637f3.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724754/trading_journal/704140e4-e78c-4684-9484-f54e666ee8f3.png"
-      ]
+        "/uploads/663c6e3443f34dceb677150bb95100cd.webm",
+        "/uploads/d9f41630e06e43f8b50581d6168b3263.webm",
+        "/uploads/28225c0aee124519852a5e7ea10958c4.webm",
+        "/uploads/190b7db6cba641e38d85f47ac714b992.webm",
+        "/uploads/f5810a53e24b4f80a7100f0c4b522f5d.webm",
+        "/uploads/3ba9c9c896504793b0c711538382f0e8.webm",
+        "/uploads/dabb96bc663f45b9b874ca50a2259cd7.webm"
+      ],
+      "imageTags": {
+        "/uploads/3ba9c9c896504793b0c711538382f0e8.webm": [
+          "Late",
+          "Distracted"
+        ]
+      },
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png"
+      ],
+      "subImages": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png": [
+          "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724467/trading_journal/55023764-9f30-4431-b78a-45fcae46d144.png",
+          "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773731208/trading_journal/8c617a74-a09d-46cd-9fa5-dd60f6d401ce.png"
+        ]
+      }
     }
   },
   "tagGroups": {

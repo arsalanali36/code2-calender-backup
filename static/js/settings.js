@@ -29,6 +29,8 @@ function readSettingsFromPanel() {
     cellHeight: document.getElementById('s-cell-height').value,
     satSunOff: document.getElementById('s-sat-sun-off').checked,
     showCalTags: document.getElementById('s-show-cal-tags').checked,
+    showTradeCount: !!(document.getElementById('s-show-trade-count')?.checked),
+    showTradingDay: !!(document.getElementById('s-show-trading-day')?.checked),
     tableRows: Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
     groupAColor: document.getElementById('s-group-a-color').value || '#58a6ff',
     groupBColor: document.getElementById('s-group-b-color').value || '#ffffff',
@@ -46,6 +48,8 @@ function populateSettingsPanel(s) {
   document.getElementById('s-cell-height').value = s.cellHeight;
   document.getElementById('s-sat-sun-off').checked = !!s.satSunOff;
   document.getElementById('s-show-cal-tags').checked = !!s.showCalTags;
+  const _tc = document.getElementById('s-show-trade-count'); if (_tc) _tc.checked = !!s.showTradeCount;
+  const _td = document.getElementById('s-show-trading-day'); if (_td) _td.checked = !!s.showTradingDay;
   document.getElementById('s-table-rows').value = String(s.tableRows || 5);
   document.getElementById('s-group-a-color').value = s.groupAColor || '#58a6ff';
   document.getElementById('s-group-b-color').value = s.groupBColor || '#ffffff';
@@ -67,6 +71,8 @@ function applySettingsToDOM(s) {
   window._dayPos = s.dayPos || 'top-left';
   window._satSunOff = !!s.satSunOff;
   window._showCalTags = !!s.showCalTags;
+  window._showTradeCount = !!s.showTradeCount;
+  window._showTradingDay = !!s.showTradingDay;
   const grid = document.getElementById('calendar-grid');
   if (grid) {
     grid.className = `calendar-grid cal-pos-${window._dayPos}`;

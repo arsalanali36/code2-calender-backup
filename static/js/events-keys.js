@@ -46,6 +46,15 @@ function _bindKeyboardEvents() {
     }
 
     if (galleryOpen) {
+      // Arrow nav — must run BEFORE typingInField check because upper-canvas focus
+      // triggers typingInField=true even when not typing. Guard: annotation must be off.
+      if (!annotState.active && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
+        if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
+        if (e.key === 'ArrowUp')    { e.preventDefault(); navigateGallery(-1);     return; }
+        if (e.key === 'ArrowDown')  { e.preventDefault(); navigateGallery(1);      return; }
+      }
+
       if (typingInField && e.key !== 'Escape') return;
       if (typingInField && e.key === 'Escape') {
         // Agar text edit mode me escape dabaya, toh annotate-fabric apna select/exitEditing handle karega.
@@ -184,10 +193,7 @@ function _bindKeyboardEvents() {
         return;
       }
 
-      if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
-      if (e.key === 'ArrowRight' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
-      if (e.key === 'ArrowUp' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
-      if (e.key === 'ArrowDown' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
+      // Arrow keys handled at top of galleryOpen block (before typingInField guard)
       if (e.key === 'r' || e.key === 'R') resetZoom();
       if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
 
@@ -251,20 +257,9 @@ function _bindKeyboardEvents() {
       if ((e.key === 'f' || e.key === 'F') && !e.altKey && !e.ctrlKey) {
         if (annotState.active) return;
         e.preventDefault();
-        const toggleBtn = document.getElementById('gallery-img-tag-filter-btn');
-        if (toggleBtn) {
-          toggleBtn.click();
-          setTimeout(() => {
-            const panel = document.getElementById('gallery-img-tag-filter-panel');
-            if (panel && panel.classList.contains('open')) {
-              const inp = panel.querySelector('.panel-search');
-              if (inp) {
-                inp.focus();
-                inp.select();
-              }
-            }
-          }, 100);
-        }
+        const _fsImages = state.gallery.images || [];
+        const _fsCur = _fsImages[state.gallery.currentIndex];
+        if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur);
         return;
       }
 

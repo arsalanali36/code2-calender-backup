@@ -3,6 +3,19 @@ Here is a complete, date-wise breakdown of all the features, updates, and refact
 
 ## EOD Summary - March 17, 2026
 
+### v2.9.8 — F-Key Fullscreen Viewer: Trading Tray Redesign
+
+- **Dark overlay bug fixed:** Canvas shown before async overlay loaded caused stale/black content. Fix: `canvas.style.display = 'none'` by default, shown only after `clearRect` + draw inside load callback.
+- **Fullscreen viewer (F key) — complete UI redesign:** Replaced Instagram-style header (title, profile images, likes, comments, follow button, caption, comment input) with a trading tray identical to the mobile app. New layout: `←` back | P&L pill | Trade pill | 📅 date | [spacer] | 🔓 lock. All centred, back and lock buttons pinned to edges.
+- **Tray always visible on open:** `uiVisible` now starts as `true`. Click anywhere on image to toggle tray hide/show. Clicking header/buttons excluded from toggle.
+- **P&L pill → dropdown:** Clicking total P&L pill opens a dropdown with one row per trade (T1, T2…). Clicking any row navigates to that trade's first image. Active trade highlighted.
+- **Trade pill — instrument removed:** Shows `T1 · ±₹X,XXX` only — no instrument name cluttering the tray.
+- **Trade pill → dropdown:** Shows individual images in the current trade; clicking navigates directly to that image.
+- **Date label → calendar picker:** Clicking the date label calls `showPicker()` on the hidden date input. Selecting a date jumps the viewer.
+- **CSS split: style-gallery-c.css:** `style-gallery-b.css` exceeded 30 KB; split at `/* AUDIO BAR */` section. New file `style-gallery-c.css` added and linked in `index.html`.
+- **Gallery tray — floating overlay:** `.gv2-tray` changed to `position: absolute` with frosted-glass background (`rgba(0,0,0,0.55)` + `backdrop-filter: blur(6px)`). Tray floats over image; `.gv2-body` uses full height.
+- **Tray layout — mobile parity:** Back arrow, thumbnails toggle, P&L pill, trade pill, date arrows, date label, counter — all in `.gv2-tray-left`. Counter format: `N / Total`.
+
 ### v2.9.7 — Mobile Bug Blitz + Stats→Viewer Navigation + Feed Slider
 
 - **Critical z-index bug fixed (all 5 overlays):** Bottom sheets (filter, menu, chart picker, day detail, tile picker) were trapped behind BottomNav. Root cause: framer-motion `transform` on the page-transition `<motion.div>` creates a permanent stacking context — any `position: fixed` inside is relative to that context (z=10), so BottomNav (z=50 at root) always wins. Fix: all overlays now use `createPortal(<AnimatePresence>...</AnimatePresence>, document.body)` — renders directly into body, bypasses stacking context entirely.

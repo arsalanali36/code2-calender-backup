@@ -233,7 +233,16 @@ function renderDashboard() {
       const instr = t.Instrument || t.Symbol || t.Scrip || t.Name || t.instrument;
       return instr && String(instr).trim() !== '';
     });
-    tradeCount.textContent = validTrades.length.toLocaleString('en-IN');
+    const vWins = validTrades.filter(t => {
+      const p = hasGrossAndNetCols ? parseNumber(t['Net P/L']) : getTradePnl(t);
+      return p !== null && p > 0;
+    }).length;
+    const vLosses = validTrades.filter(t => {
+      const p = hasGrossAndNetCols ? parseNumber(t['Net P/L']) : getTradePnl(t);
+      return p !== null && p < 0;
+    }).length;
+    const total = validTrades.length;
+    tradeCount.innerHTML = `${total.toLocaleString('en-IN')} <span class="dash-wl"><span class="positive">${vWins}W</span> · <span class="negative">${vLosses}L</span></span>`;
   }
 
   const winEl = document.getElementById('dash-winrate');

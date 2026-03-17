@@ -11,11 +11,7 @@ const FullscreenViewer = {
         this.el = document.getElementById('fs-viewer');
         this.img = document.getElementById('fs-img');
         this.closeBtn = document.getElementById('fs-close-btn');
-        this.caption = document.getElementById('fs-caption');
-        this.likes = document.getElementById('fs-likes');
         this.header = this.el.querySelector('.fs-header');
-        this.sidebar = this.el.querySelector('.fs-sidebar');
-        this.bottom = this.el.querySelector('.fs-bottom');
         
         this.scale = 1;
         this.panX = 0;
@@ -27,6 +23,55 @@ const FullscreenViewer = {
 
         if (this.closeBtn) {
             this.closeBtn.onclick = (e) => { e.stopPropagation(); this.close(); };
+        }
+
+        // Desktop click → toggle header visibility (ignore clicks inside header / nav buttons)
+        this.el.addEventListener('click', (e) => {
+            if (!this.isOpen || this.isLocked) return;
+            if (e.target.closest('.fs-header, .fs-side-btn, .fs-corner-btn, .fs-zoom-slider-container')) return;
+            // close any open dropdowns
+            ['fs-pnl-dropdown','fs-trade-dropdown'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('open');
+            });
+            this.uiVisible = !this.uiVisible;
+            this.updateUI();
+        });
+
+        // P&L pill dropdown
+        const fsPnlPill = document.getElementById('fs-pnl-pill');
+        if (fsPnlPill) {
+            fsPnlPill.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dd = document.getElementById('fs-pnl-dropdown');
+                const td = document.getElementById('fs-trade-dropdown');
+                if (dd) dd.classList.toggle('open');
+                if (td) td.classList.remove('open');
+            });
+        }
+
+        // Trade pill dropdown
+        const fsTradePill = document.getElementById('fs-trade-pill');
+        if (fsTradePill) {
+            fsTradePill.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const td = document.getElementById('fs-trade-dropdown');
+                const dd = document.getElementById('fs-pnl-dropdown');
+                if (td) td.classList.toggle('open');
+                if (dd) dd.classList.remove('open');
+            });
+        }
+
+        // Date wrap → open date picker
+        const fsDateWrap = this.el.querySelector('.fs-date-wrap');
+        if (fsDateWrap) {
+            fsDateWrap.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const picker = document.getElementById('fs-date-picker');
+                if (picker) {
+                    try { picker.showPicker(); } catch(_) { picker.click(); }
+                }
+            });
         }
 
         // Touch events
@@ -82,7 +127,7 @@ const FullscreenViewer = {
         this.scale = 1;
         this.panX = 0;
         this.panY = 0;
-        this.uiVisible = false;
+        this.uiVisible = true;
         this.isLocked = false;
         
         this.el.classList.add('open');
@@ -116,33 +161,25 @@ const FullscreenViewer = {
 
         this.renderDots();
         this.renderHeaderInfo();
-
-        this.caption.innerHTML = `<span style="font-weight:900; color:#fff">${day.tradeLabel || 'Trade'}</span> • ${day.date}<br>Live Market Analysis`;
-        
-        if (this.likes) this.likes.textContent = Math.floor(Math.random() * 2000) + 500;
     },
 
     renderHeaderInfo() {
         const infoEl = document.getElementById('fs-header-info');
         if (!infoEl) return;
-        
+
         const day = this.days[this.currentDayIndex];
         const dateParts = day.date.split('-');
         const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        
-        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
-        const month = date.toLocaleDateString('en-US', { month: 'short' });
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+        const month = date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
         const dayNum = date.getDate();
-        const dateStr = `${weekday} ${month} ${dayNum}`;
-        
         const total = day.images.length;
         const current = this.currentImageIndex + 1;
         const tradeLabel = day.tradeLabel || `T${this.currentDayIndex + 1}`;
 
-        const dot = `<span style="color:#6366f1; margin:0 2px">•</span>`;
-        infoEl.innerHTML = `<span>${dateStr}</span> ${dot} <span>${tradeLabel}</span> ${dot} <span>${current}/${total}</span>`;
+        infoEl.textContent = `${weekday} ${month} ${dayNum}  ·  ${tradeLabel}  ·  ${current}/${total}`;
 
-        // Update date picker constraints
+        // Update date picker
         const dp = document.getElementById('fs-date-picker');
         if (dp && this.days.length) {
             dp.value = day.date;
@@ -150,53 +187,113 @@ const FullscreenViewer = {
             dp.min = sorted[0].date;
             dp.max = sorted[sorted.length-1].date;
         }
+
+        // P&L pill + dropdowns
+        const pnlWrap = document.getElementById('fs-pnl-wrap');
+        const pnlPill = document.getElementById('fs-pnl-pill');
+        const tradeWrap = document.getElementById('fs-trade-wrap');
+        const tradePill = document.getElementById('fs-trade-pill');
+        const pnlDd = document.getElementById('fs-pnl-dropdown');
+        const tradeDd = document.getElementById('fs-trade-dropdown');
+
+        if (pnlWrap && pnlPill && day.date && typeof getTradesForDate === 'function') {
+            const trades = getTradesForDate(day.date);
+            if (trades.length && typeof getTradePnl === 'function') {
+                const fmt = v => (v >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(v)).toLocaleString('en-IN');
+                let total = 0;
+                trades.forEach(t => { total += getTradePnl(t) || 0; });
+                pnlPill.textContent = fmt(total);
+                pnlPill.className = 'gv2-pnl-pill' + (total > 0 ? ' positive' : total < 0 ? '' : ' neutral');
+                pnlWrap.style.display = '';
+
+                // P&L dropdown: one row per trade — clicking navigates to that trade
+                if (pnlDd) {
+                    pnlDd.innerHTML = '';
+                    // find all dayIndices that share this date (one per trade)
+                    const sameDateIndices = this.days.reduce((acc, d, idx) => {
+                        if (d.date === day.date) acc.push(idx);
+                        return acc;
+                    }, []);
+                    trades.forEach((t, i) => {
+                        const p = getTradePnl(t) || 0;
+                        const instr = t.Instrument || t.Symbol || t.instrument || '';
+                        const colr = p > 0 ? '#2ecc71' : p < 0 ? '#e74c3c' : 'inherit';
+                        const isActive = sameDateIndices[i] === this.currentDayIndex;
+                        const row = document.createElement('div');
+                        row.className = 'gv2-pnl-trade-row';
+                        row.style.background = isActive ? 'rgba(255,255,255,0.06)' : '';
+                        row.innerHTML = `<span class="gv2-pnl-trade-label">T${i+1}${instr ? ' · '+instr : ''}</span><span class="gv2-pnl-trade-val" style="color:${colr}">${fmt(p)}</span>`;
+                        row.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const targetIdx = sameDateIndices[i];
+                            if (targetIdx !== undefined) {
+                                this.saveCurrentViewState();
+                                this.currentDayIndex = targetIdx;
+                                this.currentImageIndex = 0;
+                                this.restoreViewState(targetIdx, 0);
+                            }
+                            pnlDd.classList.remove('open');
+                            this.render();
+                        });
+                        pnlDd.appendChild(row);
+                    });
+                }
+
+                // Trade pill: current image's trade (no instrument — just T1 · amount)
+                const ownerIdx = trades.findIndex(t => (t.images||[]).includes(day.images[this.currentImageIndex]));
+                if (ownerIdx >= 0 && tradeWrap && tradePill) {
+                    const t = trades[ownerIdx];
+                    const p = getTradePnl(t) || 0;
+                    const cls = p > 0 ? 'pos' : p < 0 ? 'neg' : '';
+                    tradePill.innerHTML = `<span class="gv2-tp-label">T${ownerIdx+1}</span><span class="gv2-tp-sep"> · </span><span class="gv2-tp-val ${cls}">${fmt(p)}</span>`;
+                    tradeWrap.style.display = '';
+
+                    // Trade dropdown: images in this trade
+                    if (tradeDd) {
+                        tradeDd.innerHTML = '';
+                        const instr = t.Instrument || t.Symbol || t.instrument || '';
+                        (t.images||[]).forEach((img, i) => {
+                            const row = document.createElement('div');
+                            row.className = 'gv2-pnl-trade-row';
+                            row.innerHTML = `<span class="gv2-pnl-trade-label">${instr || 'Image'} ${i+1}</span><span class="gv2-pnl-trade-val" style="color:rgba(255,255,255,0.5)">${i === this.currentImageIndex ? '● now' : ''}</span>`;
+                            row.addEventListener('click', (e) => { e.stopPropagation(); this.currentImageIndex = i; tradeDd.classList.remove('open'); this.render(); });
+                            tradeDd.appendChild(row);
+                        });
+                    }
+                } else if (tradeWrap) { tradeWrap.style.display = 'none'; }
+            } else { pnlWrap.style.display = 'none'; if (tradeWrap) tradeWrap.style.display = 'none'; }
+        }
     },
 
     updateUI() {
         if (!this.el) return;
         const header = this.el.querySelector('.fs-header');
-        const sidebar = this.el.querySelector('.fs-sidebar');
-        const bottom = this.el.querySelector('.fs-bottom');
-        
+
         const opacity = (this.uiVisible || this.isLocked) ? '1' : '0';
-        const contentOpacity = (this.uiVisible && !this.isLocked) ? '1' : '0';
         const pointerEvents = (this.uiVisible || this.isLocked) ? 'auto' : 'none';
-        const contentPointerEvents = (this.uiVisible && !this.isLocked) ? 'auto' : 'none';
-        
-        if (header) { 
-            header.style.opacity = opacity; 
-            header.style.pointerEvents = pointerEvents; 
-            header.style.transition = 'opacity 0.2s linear, transform 0.2s linear'; 
-            header.style.transform = (this.uiVisible || this.isLocked) ? 'translateY(0)' : 'translateY(-20px)'; 
-            
+
+        if (header) {
+            header.style.opacity = opacity;
+            header.style.pointerEvents = pointerEvents;
+            header.style.transition = 'opacity 0.2s linear, transform 0.2s linear';
+            header.style.transform = (this.uiVisible || this.isLocked) ? 'translateY(0)' : 'translateY(-20px)';
+
             // Toggle Lock Icon
             const lockBtn = header.querySelector('.fs-lock-btn');
             if (lockBtn) {
                 lockBtn.innerHTML = this.isLocked ? '🔒' : '🔓';
                 lockBtn.style.background = this.isLocked ? 'rgba(79, 70, 229, 0.8)' : 'transparent';
-                lockBtn.onclick = (e) => { 
-                    e.stopPropagation(); 
-                    this.isLocked = !this.isLocked; 
+                lockBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.isLocked = !this.isLocked;
                     if (this.isLocked) {
                         this.el.requestFullscreen?.().catch(err => console.log(err));
                     } else if (document.fullscreenElement) {
                         document.exitFullscreen?.();
                     }
-                    this.updateUI(); 
+                    this.updateUI();
                 };
             }
-        }
-        if (sidebar) { 
-            sidebar.style.opacity = contentOpacity; 
-            sidebar.style.pointerEvents = contentPointerEvents; 
-            sidebar.style.transition = 'opacity 0.2s linear, transform 0.2s linear'; 
-            sidebar.style.transform = (this.uiVisible && !this.isLocked) ? 'translateX(0)' : 'translateX(20px)'; 
-        }
-        if (bottom) { 
-            bottom.style.opacity = contentOpacity; 
-            bottom.style.pointerEvents = contentPointerEvents; 
-            bottom.style.transition = 'opacity 0.2s linear, transform 0.2s linear'; 
-            bottom.style.transform = (this.uiVisible && !this.isLocked) ? 'translateY(0)' : 'translateY(20px)'; 
         }
 
         const dotsContainer = document.getElementById('fs-dots');

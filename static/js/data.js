@@ -39,6 +39,8 @@ function _openGalleryFromUrlParamsOnce() {
     if (!dateKey) return;
     if (typeof openGalleryForDate !== 'function') return;
 
+    const layout = q.get('galleryLayout') || 'new';
+    if (typeof _applyGalleryLayout === 'function') _applyGalleryLayout(layout);
     openGalleryForDate(dateKey);
     if (imgUrl && Array.isArray(state.gallery.images) && state.gallery.images.length) {
       const decodedImg = decodeURIComponent(imgUrl);
@@ -50,6 +52,7 @@ function _openGalleryFromUrlParamsOnce() {
     // Keep URL clean so refresh doesn't keep reopening from stale params.
     q.delete('galleryDate');
     q.delete('galleryImg');
+    q.delete('galleryLayout');
     const clean = `${window.location.pathname}${q.toString() ? `?${q.toString()}` : ''}${window.location.hash || ''}`;
     window.history.replaceState({}, '', clean);
   } catch (e) { }

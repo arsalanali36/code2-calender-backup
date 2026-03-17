@@ -4,15 +4,34 @@
   <!-- ① Slim Top Tray -->
   <div class="gv2-tray">
     <div class="gv2-tray-left">
-      <button class="gv2-thumb-toggle-btn" id="gv2-thumb-toggle-btn" title="Thumbnails">⊞</button>
-      <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
+      <!-- Back / Close -->
+      <button class="gv2-tray-back-btn" id="gallery-close" title="Close (Esc)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M10 3L5 8l5 5"/></svg>
+      </button>
+      <!-- Thumbnails toggle (moved from sidebar) -->
+      <button class="gv2-tray-icon-btn gv2-thumb-toggle-btn" id="gv2-thumb-toggle-btn" title="Thumbnails">&#8862;</button>
+      <div class="gv2-tray-sep"></div>
+      <!-- Day P&L pill (total) -->
+      <div class="gv2-pnl-wrap" id="gv2-pnl-wrap" style="display:none;position:relative;">
+        <button class="gv2-pnl-pill" id="gv2-pnl-pill">0</button>
+        <div class="gv2-pnl-dropdown" id="gv2-pnl-dropdown"></div>
+      </div>
+      <!-- Trade pill (current image's trade) -->
+      <div class="gv2-trade-pill-wrap" id="gv2-trade-pill-wrap" style="display:none;position:relative;">
+        <button class="gv2-trade-pill" id="gv2-trade-pill"></button>
+        <div class="gv2-pnl-dropdown" id="gv2-trade-dropdown"></div>
+      </div>
+      <div class="gv2-tray-sep"></div>
+      <!-- Date navigation -->
+      <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date (&#8592;)">&#8249;</button>
       <span class="gv2-date-label" id="gallery-date"></span>
       <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
-      <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
+      <button class="gv2-date-arrow" id="gallery-date-next" title="Next date (&#8594;)">&#8250;</button>
+      <!-- Image counter "1/17" -->
+      <span class="gv2-tray-counter" id="gv2-tray-counter"></span>
     </div>
     <div class="gv2-tray-right">
       <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
-      <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
     </div>
   </div>
 
@@ -138,6 +157,10 @@
 
     <!-- Right Sidebar Strip -->
     <div class="gv2-sidebar-strip">
+      <button class="gv2-sb-btn" id="gv2-fullscreen-btn" title="Fullscreen (F)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+      </button>
+      <div class="gv2-sb-sep"></div>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags (T)">&#127991;</button>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers (L)">&#10064;</button>
       <button class="gv2-sb-btn" id="gallery-upload-btn" title="Upload">&#11014;</button>
@@ -160,12 +183,48 @@
       <div class="dropdown-wrapper">
         <button class="gv2-sb-btn" id="gallery-tools-btn" title="More options">&#8942;</button>
         <div class="dropdown-menu" id="gallery-tools-panel"
-          style="right:0;left:auto;min-width:190px;z-index:9999;">
-          <button class="dropdown-item gv2-toggle-btn" id="gv2-marquee-btn">&#9633; Marquee</button>
-          <button class="dropdown-item gv2-toggle-btn" id="gv2-time-btn">&#128338; Time</button>
-          <button class="dropdown-item" id="gallery-tag-btn">&#127991; Img Tag</button>
-          <button class="dropdown-item" id="gv2-obs-btn">&#128211; Obs</button>
-          <button class="dropdown-item gv2-stub" id="gv2-annotate-btn" style="opacity:0.4;cursor:not-allowed;" title="Coming soon">&#9998; Annotate (soon)</button>
+          style="right:0;left:auto;min-width:210px;z-index:9999;">
+          <!-- Image actions -->
+          <button class="dropdown-item" id="gv2-download-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 13h12"/></svg></span>Download Image
+          </button>
+          <button class="dropdown-item" id="gv2-replace-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14V6m0 0l-3 3m3-3l3 3M2 3h12"/></svg></span>Upload &amp; Replace
+          </button>
+          <button class="dropdown-item" id="gv2-add-after-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg></span>Add Image After
+          </button>
+          <button class="dropdown-item" id="gv2-copy-img-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M11 5V4a1.5 1.5 0 00-1.5-1.5H3.5A1.5 1.5 0 002 4v7A1.5 1.5 0 003.5 12.5H5"/></svg></span>Copy Image
+          </button>
+          <button class="dropdown-item" id="gv2-share-link-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4v4m0-4L6 10"/><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/></svg></span>Share Link
+          </button>
+          <button class="dropdown-item" id="gv2-mark-review-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10l-2 4 2 4H3V2z"/><line x1="3" y1="14" x2="3" y2="2"/></svg></span>Mark for Review
+          </button>
+          <div class="dropdown-divider"></div>
+          <!-- Tools -->
+          <button class="dropdown-item gv2-toggle-btn" id="gv2-marquee-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2"><rect x="2" y="2" width="12" height="12" rx="1"/></svg></span>Marquee
+          </button>
+          <button class="dropdown-item gv2-toggle-btn" id="gv2-time-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2.5 1.5"/></svg></span>Time
+          </button>
+          <button class="dropdown-item" id="gallery-tag-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2h6l6 6-6 6-6-6V2z"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor" stroke="none"/></svg></span>Img Tag
+          </button>
+          <button class="dropdown-item" id="gv2-obs-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h8M2 12h5"/></svg></span>Obs
+          </button>
+          <button class="dropdown-item gv2-stub" id="gv2-annotate-btn" style="opacity:0.4;cursor:not-allowed;" title="Coming soon">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-8 8H3v-3L11 2z"/></svg></span>Annotate <span style="font-size:0.75em;opacity:0.6">(soon)</span>
+          </button>
+          <div class="dropdown-divider"></div>
+          <!-- Danger -->
+          <button class="dropdown-item gv2-di-danger" id="gv2-delete-img-btn">
+            <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M6 4V2h4v2M5 4l.5 9h5L11 4"/><line x1="6.5" y1="7" x2="6.5" y2="11"/><line x1="9.5" y1="7" x2="9.5" y2="11"/></svg></span>Delete Image
+          </button>
         </div>
       </div>
     </div>
@@ -266,19 +325,31 @@
 
 <!-- ── FULLSCREEN VIEWER (INSTAGRAM REELS STYLE) ── -->
 <div class="fs-viewer" id="fs-viewer">
-  <!-- Header -->
+  <!-- Header — trading tray style (auto-hide, tap to show) -->
   <div class="fs-header">
-    <button class="fs-back-btn" id="fs-close-btn">&#8592;</button>
-    <div class="fs-header-info" style="position:relative;">
-      <div class="fs-header-title">Trade View</div>
-      <div class="fs-header-subtitle" id="fs-header-info" style="cursor:pointer;border-bottom:1px solid transparent;transition:all 0.2s" onmouseover="this.style.borderBottom='1px solid rgba(255,255,255,0.3)'" onmouseout="this.style.borderBottom='1px solid transparent'">Mar 13 Fri &bull; T1 &bull; 1/3</div>
+    <!-- Back / Close -->
+    <button class="fs-back-btn" id="fs-close-btn" title="Close (Esc)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M10 3L5 8l5 5"/></svg>
+    </button>
+    <!-- Day P&L pill -->
+    <div id="fs-pnl-wrap" style="display:none; position:relative;">
+      <button class="gv2-pnl-pill" id="fs-pnl-pill">0</button>
+      <div class="gv2-pnl-dropdown" id="fs-pnl-dropdown"></div>
+    </div>
+    <!-- Trade pill -->
+    <div id="fs-trade-wrap" style="display:none; position:relative;">
+      <button class="gv2-trade-pill" id="fs-trade-pill"></button>
+      <div class="gv2-pnl-dropdown" id="fs-trade-dropdown"></div>
+    </div>
+    <!-- Date (clickable = date picker) -->
+    <div class="fs-date-wrap" style="position:relative;">
+      <span class="fs-date-label" id="fs-header-info">Mar 13 &bull; T1 &bull; 1/3</span>
       <input type="date" id="fs-date-picker" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:5;" onchange="FullscreenViewer.jumpToDate(this.value)" />
     </div>
-    <div class="fs-profiles-top">
-        <img src="/static/img/logo.png" class="fs-profile-small" alt="p1" />
-        <img src="/static/img/logo.png" class="fs-profile-small" alt="p2" />
-        <div class="fs-lock-btn" title="Focus Mode" style="margin-left:15px;cursor:pointer;font-size:1.4rem;padding:4px 8px;border-radius:50%;transition:all 0.2s">🔓</div>
-    </div>
+    <!-- Spacer -->
+    <div style="flex:1"></div>
+    <!-- Lock / Focus mode -->
+    <div class="fs-lock-btn" id="fs-lock-btn" title="Focus Mode (lock nav)">&#128275;</div>
   </div>
 
   <!-- Content -->
@@ -296,42 +367,4 @@
     </div>
   </div>
 
-  <!-- Sidebar -->
-  <div class="fs-sidebar">
-    <button class="fs-action-btn">
-      <span class="fs-action-icon">❤️</span>
-      <span class="fs-action-label" id="fs-likes">155</span>
-    </button>
-    <button class="fs-action-btn">
-      <span class="fs-action-icon">💬</span>
-      <span class="fs-action-label">96</span>
-    </button>
-    <button class="fs-action-btn">
-      <span class="fs-action-icon">✈️</span>
-      <span class="fs-action-label">141</span>
-    </button>
-    <button class="fs-action-btn">
-      <span class="fs-action-icon">📥</span>
-      <span class="fs-action-label">Save</span>
-    </button>
-    <button class="fs-action-btn">
-      <span class="fs-action-icon">⋮</span>
-    </button>
-  </div>
-
-  <!-- Bottom Info -->
-  <div class="fs-bottom">
-    <div class="fs-user-row">
-      <img src="/static/img/logo.png" class="fs-user-avatar" id="fs-bottom-avatar" alt="avatar" />
-      <span class="fs-username" id="fs-bottom-username">trading_journal</span>
-      <button class="fs-follow-btn">Follow</button>
-    </div>
-    <div class="fs-caption" id="fs-caption">
-      Aapko kya lag rha ...
-    </div>
-    <div class="fs-comment-input-row">
-      <span class="fs-emoji-btn">😊</span>
-      <input type="text" class="fs-comment-input" placeholder="Add comment..." />
-    </div>
-  </div>
 </div>

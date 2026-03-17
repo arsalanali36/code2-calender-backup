@@ -41,7 +41,8 @@ function loadOverlayForCurrentImage() {
 
   canvas.style.pointerEvents = 'none'; // view-only, no drawing
   canvas.style.cursor = 'default'; // prevent crosshair from .annot-canvas CSS showing over image
-  canvas.style.display = 'block';
+  // Keep canvas hidden until we're ready to draw — prevents flash of stale content
+  canvas.style.display = 'none';
 
   const boxes = unpackMarqueeBoxes(packedBoxes, w, h);
   const drawBoxes = () => {
@@ -50,7 +51,6 @@ function loadOverlayForCurrentImage() {
 
   if (!overlayUrl && !boxes.length) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.style.display = 'none';
     return;
   }
 
@@ -62,6 +62,7 @@ function loadOverlayForCurrentImage() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(ovImg, 0, 0, canvas.width, canvas.height);
       drawBoxes();
+      canvas.style.display = 'block';
     };
     ovImg.onerror = () => {
       const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex];
@@ -73,17 +74,19 @@ function loadOverlayForCurrentImage() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(retryImg, 0, 0, canvas.width, canvas.height);
           drawBoxes();
+          canvas.style.display = 'block';
         };
         retryImg.src = resolveImageUrl(localUrl);
         return;
       }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (boxes.length) drawBoxes();
+      if (boxes.length) { drawBoxes(); canvas.style.display = 'block'; }
     };
     ovImg.src = resolveImageUrl(overlayUrl);
   } else {
     ctx.clearRect(0, 0, w, h);
     drawBoxes();
+    canvas.style.display = 'block';
   }
 
   applyZoom();
