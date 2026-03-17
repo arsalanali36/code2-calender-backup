@@ -42,6 +42,11 @@ def updates():
     return render_template('updates.html', entries=entries, cache_bust=CACHE_BUST)
 
 
+@page_bp.route('/gallery-classic')
+def gallery_classic():
+    return render_template('gallery_classic_page.html', cache_bust=CACHE_BUST)
+
+
 @page_bp.route('/mobile/')
 @page_bp.route('/mobile')
 def mobile():

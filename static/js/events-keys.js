@@ -322,7 +322,12 @@ function _bindKeyboardEvents() {
         }
         e.preventDefault();
         e.stopPropagation();
-        showGalleryExitConfirm();
+        // Close FS viewer first if open, otherwise show exit confirm for gallery
+        if (typeof FullscreenViewer !== 'undefined' && FullscreenViewer.isOpen) {
+          FullscreenViewer.close();
+        } else {
+          showGalleryExitConfirm();
+        }
       }
     }
     const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal', 'quote-modal']

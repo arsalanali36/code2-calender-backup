@@ -20,7 +20,14 @@ function _bindGalleryEvents() {
 
   setupDropdown('gallery-img-tag-filter-btn', 'gallery-img-tag-filter-panel');
   const galleryFilterPanel = document.getElementById('gallery-img-tag-filter-panel');
-  if (galleryFilterPanel) galleryFilterPanel.addEventListener('click', e => e.stopPropagation());
+  if (galleryFilterPanel) {
+    galleryFilterPanel.addEventListener('click', e => e.stopPropagation());
+    // Populate when opened
+    const _filterBtnEl = document.getElementById('gallery-img-tag-filter-btn');
+    if (_filterBtnEl) _filterBtnEl.addEventListener('click', () => {
+      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+    });
+  }
 
   // Thumbnail panel toggle
   (function () {
@@ -64,40 +71,6 @@ function _bindGalleryEvents() {
       });
     }
   })();
-
-  // Classic toolbar button mirrors (same functions as new layout buttons)
-  setupDropdown('gv2-tools-c', 'gv2-tools-panel-c');
-  setupDropdown('gv2-heads-c', 'gv2-heads-panel-c');
-  setupDropdown('gv2-filter-c', 'gv2-filter-panel-c');
-  document.getElementById('gv2-annotate-c')?.addEventListener('click', () => {
-    if (typeof toggleAnnotation === 'function') toggleAnnotation();
-    document.getElementById('gv2-annotate-c')?.classList.toggle('active', annotState.active);
-  });
-  document.getElementById('gv2-marquee-c')?.addEventListener('click', () => {
-    document.getElementById('gv2-marquee-btn')?.click();
-    setTimeout(() => {
-      const active = document.getElementById('gv2-marquee-btn')?.classList.contains('active');
-      document.getElementById('gv2-marquee-c')?.classList.toggle('active', !!active);
-    }, 50);
-  });
-  document.getElementById('gv2-layer-c')?.addEventListener('click', () => {
-    if (typeof toggleLayerPanel === 'function') toggleLayerPanel();
-    document.getElementById('gv2-layer-c')?.classList.toggle('active',
-      document.getElementById('gv2-layer-panel')?.style.display !== 'none');
-  });
-  document.getElementById('gv2-time-c')?.addEventListener('click', () => {
-    document.getElementById('gv2-time-btn')?.click();
-    setTimeout(() => {
-      const active = document.getElementById('gv2-time-btn')?.classList.contains('active');
-      document.getElementById('gv2-time-c')?.classList.toggle('active', !!active);
-    }, 50);
-  });
-  document.getElementById('gv2-upload-c')?.addEventListener('click', () =>
-    document.getElementById('gallery-upload-btn')?.click());
-  document.getElementById('gv2-obs-c')?.addEventListener('click', () =>
-    document.getElementById('gv2-obs-btn')?.click());
-  document.getElementById('gv2-imgtag-c')?.addEventListener('click', () =>
-    document.getElementById('gallery-tag-btn')?.click());
 
   // Layer panel toggle
   const layerBtn = document.getElementById('gv2-layer-btn');
