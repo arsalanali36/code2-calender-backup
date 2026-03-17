@@ -11,6 +11,7 @@ export interface Trade {
   session: TradeSession;
   chartUrls: string[];
   audios?: Record<string, string>; // resolved imgUrl → resolved audioUrl
+  videos?: Record<string, string>; // resolved imgUrl → resolved videoUrl
   emotionTags: string[];
   strategyTags: string[];
   mistakeTags: string[];

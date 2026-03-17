@@ -32,37 +32,56 @@ function renderGallery() {
   const obsBtn = document.getElementById('gv2-obs-btn');
   if (obsBtn) obsBtn.style.display = date ? '' : 'none';
 
-  const img = document.getElementById('gallery-img');
-  if (!annotState.active) document.getElementById('annot-canvas').style.display = 'none';
-  const curUrl = images[currentIndex] || '';
-  img.src = resolveImageUrl(curUrl); img.classList.remove('zoomed', 'dragging'); resetZoom();
-  img.onerror = () => {
-    if (!curUrl) return;
-    console.error('Failed to load image:', curUrl);
-    // Visual feedback instead of deletion
-    img.style.opacity = '0.3';
-    img.style.filter = 'grayscale(1) contrast(0.5)';
-    img.title = 'Image could not be loaded. Please check your connection or link.';
-    
-    // We only remove if absolutely sure and it helps (e.g. broken thumbnail in filtered view)
-    // But for now, let's play it safe and NOT delete anything automatically to avoid data loss.
-    // if (state.gallery.tagFilter?.length) { ... }
-  };
-  const afterImageReady = () => {
-    loadOverlayForCurrentImage();
-    if (state._carryAnnotTool) {
-      annotState.tool = state._carryAnnotTool;
-      state._carryAnnotTool = '';
-      startAnnotation();
-    }
-  };
-  img.addEventListener('load', afterImageReady, { once: true });
-  if (img.complete && img.naturalWidth) afterImageReady();
+  const img     = document.getElementById('gallery-img');
+  const vidEl   = document.getElementById('gallery-video');
+  const curUrl  = images[currentIndex] || '';
+  const isVid   = typeof isVideoUrl === 'function' && isVideoUrl(curUrl);
 
-  // Fullscreen Viewer trigger
-  img.onclick = () => {
-    openFullscreenFromAppContext(state.gallery.images, images[currentIndex]);
-  };
+  if (!annotState.active) document.getElementById('annot-canvas').style.display = 'none';
+
+  if (isVid) {
+    // ── Show video, hide image ──
+    img.style.display   = 'none';
+    img.src             = '';
+    if (vidEl) {
+      vidEl.style.display = '';
+      const resolvedVidUrl = resolveImageUrl(curUrl);
+      // Browser normalizes vidEl.src to absolute — compare by pathname
+      const currentSrcPath = vidEl.src ? new URL(vidEl.src, location.href).pathname : '';
+      const wantedPath    = new URL(resolvedVidUrl, location.href).pathname;
+      if (currentSrcPath !== wantedPath) {
+        vidEl.src = resolvedVidUrl;
+        vidEl.load();
+      }
+      vidEl.onclick = e => e.stopPropagation();
+    }
+    img.classList.remove('zoomed', 'dragging');
+    resetZoom();
+  } else {
+    // ── Show image, hide video ──
+    if (vidEl) { vidEl.style.display = 'none'; vidEl.pause && vidEl.pause(); vidEl.src = ''; }
+    img.style.display = '';
+    img.src = resolveImageUrl(curUrl);
+    img.classList.remove('zoomed', 'dragging'); resetZoom();
+    img.onerror = () => {
+      if (!curUrl) return;
+      img.style.opacity = '0.3';
+      img.style.filter  = 'grayscale(1) contrast(0.5)';
+      img.title = 'Image could not be loaded.';
+    };
+    const afterImageReady = () => {
+      loadOverlayForCurrentImage();
+      if (state._carryAnnotTool) {
+        annotState.tool = state._carryAnnotTool;
+        state._carryAnnotTool = '';
+        startAnnotation();
+      }
+    };
+    img.addEventListener('load', afterImageReady, { once: true });
+    if (img.complete && img.naturalWidth) afterImageReady();
+    // Fullscreen Viewer trigger
+    img.onclick = () => { openFullscreenFromAppContext(state.gallery.images, images[currentIndex]); };
+  }
 
   document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
   document.getElementById('gallery-prev').disabled = images.length <= 1;
@@ -343,31 +362,24 @@ function renderGallery() {
       }
     }
 
-    const t = document.createElement('img');
-    t.src = resolveImageUrl(url);
-    t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
-    t.onerror = () => {
-      const idx = state.gallery.images.indexOf(url);
-      if (idx < 0) { wrap.style.display = 'none'; return; }
-      
-      // Visual feedback instead of deletion
-      t.style.opacity = '0.3';
-      t.title = 'Image could not be loaded';
-      
-      /* 
-      // Former aggressive deletion logic removed to prevent data loss 
-      if (!state.gallery.tagFilter?.length) {
-          removeGalleryImageAt(globalIdx, true).then(() => {
-              console.warn('Broken thumbnail removed:', url);
-          });
-      } else {
-          state.gallery.images.splice(idx, 1);
-          state.gallery.currentIndex = Math.min(state.gallery.currentIndex, Math.max(0, state.gallery.images.length - 1));
-          clearTimeout(renderGallery._brokenTimer);
-          renderGallery._brokenTimer = setTimeout(() => renderGallery(), 30);
-      }
-      */
-    };
+    const isVidThumb = typeof isVideoUrl === 'function' && isVideoUrl(url);
+    let t;
+    if (isVidThumb) {
+      t = document.createElement('div');
+      t.className = 'gv2-thumb gv2-thumb-video' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
+      t.textContent = '📹';
+      t.title = 'Video recording';
+    } else {
+      t = document.createElement('img');
+      t.src = resolveImageUrl(url);
+      t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
+      t.onerror = () => {
+        const idx = state.gallery.images.indexOf(url);
+        if (idx < 0) { wrap.style.display = 'none'; return; }
+        t.style.opacity = '0.3';
+        t.title = 'Image could not be loaded';
+      };
+    }
     t.addEventListener('click', (e) => {
       // Initialize if needed
       if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
@@ -693,20 +705,4 @@ function renderGallery() {
 
   // Rubber-band selection + pan — delegated to gallery-rubberband.js
   bindGalleryRubberbandAndPan(thumbs);
-}
-
-
-
-function _getGalleryThumbImages() {
-  const { images, tagFilter, _filteredMeta } = state.gallery;
-  const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
-  return (images || []).map((url, i) => {
-    let date = state.gallery.date;
-    let sourceRow = state.gallery.sourceRow;
-    if (filteredMode && _filteredMeta) {
-      const meta = _filteredMeta[i];
-      if (meta && meta.url === url) { date = meta.date || ''; sourceRow = meta.sourceRow ?? null; }
-    }
-    return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow };
-  }).filter(item => !!item.url);
 }

@@ -1,56 +1,51 @@
 <!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
 <div class="modal-overlay gv2-modal" id="gallery-modal">
 
-  <!-- ① Global Button Tray (top, fixed) -->
+  <!-- ① Top Tray -->
   <div class="gv2-tray">
     <div class="gv2-tray-left">
+      <!-- New-mode only: thumbnail toggle -->
+      <button class="gv2-thumb-toggle-btn gv2-new-only" id="gv2-thumb-toggle-btn" title="Thumbnails">⊞</button>
       <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
       <span class="gv2-date-label" id="gallery-date"></span>
       <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
       <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
     </div>
-    <div class="gv2-tray-btns">
-      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-btn" title="Annotation bar (A)">&#9998;
-        Annotate</button>
-      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-marquee-btn" title="Marquee mode (M)">&#9633;
-        Marquee</button>
-      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers panel (L)">&#10064; Layers</button>
-      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-time-btn" title="Show image time">&#128338; Time</button>
+    <!-- Classic-mode only: old toolbar buttons -->
+    <div class="gv2-tray-btns gv2-classic-only">
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-c" title="Annotation bar (A)">&#9998; Annotate</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-marquee-c" title="Marquee mode (M)">&#9633; Marquee</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-layer-c" title="Layers panel (L)">&#10064; Layers</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-time-c" title="Show image time">&#128338; Time</button>
     </div>
     <div class="gv2-tray-right">
-      <!-- Gallery Tools Dropdown -->
-      <div class="dropdown-wrapper">
-        <button class="btn btn-outline" id="gallery-tools-btn"
-          style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Tools
-          &#9660;</button>
-        <div class="dropdown-menu" id="gallery-tools-panel"
-          style="right: 0px; left: auto; min-width: 150px; overflow-y: auto; z-index: 9999;">
-          <button class="dropdown-item" id="gallery-upload-btn">&#11014; Upload</button>
-          <button class="dropdown-item" id="gv2-tags-btn" title="Tags tray (T)">&#127991; Tags</button>
-          <button class="dropdown-item" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
-          <button class="dropdown-item" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
+      <!-- Classic-mode only: old dropdowns -->
+      <div class="gv2-classic-only" style="display:flex;align-items:center;gap:6px;">
+        <div class="dropdown-wrapper">
+          <button class="btn btn-outline" id="gv2-tools-c"
+            style="height:26px;padding:0 8px;font-size:0.8rem;border:1px solid var(--border);">Tools &#9660;</button>
+          <div class="dropdown-menu" id="gv2-tools-panel-c"
+            style="right:0;left:auto;min-width:150px;overflow-y:auto;z-index:9999;">
+            <button class="dropdown-item" id="gv2-upload-c">&#11014; Upload</button>
+            <button class="dropdown-item" id="gv2-obs-c">&#128211; Obs</button>
+            <button class="dropdown-item" id="gv2-imgtag-c">&#127991; Img Tag</button>
+          </div>
+        </div>
+        <div class="dropdown-wrapper">
+          <button class="btn btn-outline" id="gv2-heads-c"
+            style="height:26px;padding:0 8px;font-size:0.8rem;border:1px solid var(--border);">Show Heads &#9660;</button>
+          <div class="dropdown-menu show-heads-panel" id="gv2-heads-panel-c"
+            style="right:0;left:auto;min-width:220px;max-height:400px;overflow-y:auto;z-index:9999;"></div>
+        </div>
+        <div class="dropdown-wrapper">
+          <button class="btn btn-outline" id="gv2-filter-c"
+            style="background:var(--bg2);height:26px;padding:0 8px;font-size:0.8rem;border:1px solid var(--border);">&#127991; Filter Tags &#9660;</button>
+          <div class="dropdown-menu tag-filter-panel" id="gv2-filter-panel-c"
+            style="right:0;left:auto;max-width:280px;max-height:400px;overflow-y:auto;z-index:9999;">
+            <p class="panel-hint" style="padding:10px 8px">No tags available.</p>
+          </div>
         </div>
       </div>
-      <!-- Gallery Show Heads Dropdown -->
-      <div class="dropdown-wrapper">
-        <button class="btn btn-outline" id="gallery-show-heads-btn"
-          style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Show
-          Heads &#9660;</button>
-        <div class="dropdown-menu show-heads-panel" id="gallery-show-heads-panel"
-          style="right: 0px; left: auto; min-width: 220px; max-height: 400px; overflow-y: auto;">
-        </div>
-      </div>
-      <!-- Gallery Tag Filter Dropdown -->
-      <div class="dropdown-wrapper">
-        <button class="btn btn-outline" id="gallery-img-tag-filter-btn" title="Filter Tags (F)"
-          style="background:var(--bg2); height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">&#127991;
-          Filter Tags (F) &#9660;</button>
-        <div class="dropdown-menu tag-filter-panel" id="gallery-img-tag-filter-panel"
-          style="right: 0px; left: auto; max-width: 280px; max-height: 400px; overflow-y: auto;">
-          <p class="panel-hint" style="padding:10px 8px">No tags available.</p>
-        </div>
-      </div>
-
       <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
       <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
     </div>
@@ -59,16 +54,14 @@
   <!-- ② Body -->
   <div class="gv2-body">
 
-    <!-- Annotation Bar (floating left, toggled by A / gv2-annotate-btn) -->
+    <!-- Annotation Bar (floating, absolute positioned) -->
     <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
       <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pen (freehand)">&#9998;</button>
       <button class="annot-tool gv2-ab-btn" id="annot-highlight" title="Highlighter">&#9670;</button>
       <button class="annot-tool gv2-ab-btn" id="gv2-text-btn" title="Text tool">T</button>
       <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Eraser">&#9003;</button>
-      <!-- Shape tool group (right-click = shape picker) -->
       <div class="annot-shape-group" id="annot-shape-group">
-        <button class="annot-tool gv2-ab-btn" id="annot-shape" title="Shape (right-click: switch shape)"
-          data-shape="rect">&#9645;</button>
+        <button class="annot-tool gv2-ab-btn" id="annot-shape" title="Shape (right-click: switch shape)" data-shape="rect">&#9645;</button>
         <div class="annot-shape-menu" id="annot-shape-menu">
           <button class="annot-shape-opt" data-tool="arrow">&#8599; Arrow</button>
           <button class="annot-shape-opt" data-tool="rect">&#9645; Rect</button>
@@ -89,7 +82,7 @@
       <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
     </div>
 
-    <!-- Layer Panel (Photoshop-style, left side) -->
+    <!-- Layer Panel (flex child, shown/hidden) -->
     <div class="gv2-layer-panel" id="gv2-layer-panel" style="display:none">
       <div class="gv2-lp-header">
         <span>Layers</span>
@@ -104,15 +97,21 @@
       <div class="gv2-lp-resize-handle" id="gv2-lp-resize-handle" title="Drag to resize"></div>
     </div>
 
-    <!-- Center column: image + tag cloud + thumbnails -->
+    <!-- Left Thumbnail Panel (collapsible) -->
+    <div class="gv2-thumb-panel" id="gv2-thumb-panel">
+      <div class="gv2-tp-resize-handle" id="gv2-thumb-panel-resize"></div>
+      <div class="gv2-thumbs" id="gallery-thumbs"></div>
+    </div>
+
+    <!-- Center column: image + tag cloud -->
     <div class="gv2-center">
 
       <!-- Main image area -->
       <div class="gv2-img-area" id="gallery-img-wrapper">
         <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
-        <!-- Zoom layer: img + annotation canvas ek saath zoom hote hain -->
         <div id="gallery-zoom-layer">
           <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
+          <video id="gallery-video" class="gallery-img" controls preload="metadata" style="display:none;max-width:100%;max-height:100%;" onloadedmetadata="this.currentTime=0.1"></video>
           <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
         </div>
         <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
@@ -121,7 +120,7 @@
 
         <!-- Heads Display -->
         <div id="gallery-heads-display" class="gallery-heads-display"
-          style="position: absolute; top: 12px; left: 12px; z-index: 40; background: rgba(30, 35, 48, 0.85); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); font-size: 0.85rem; pointer-events: none; display: none; flex-direction: column; gap: 4px; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+          style="position:absolute;top:12px;left:12px;z-index:40;background:rgba(30,35,48,0.85);border:1px solid var(--border);padding:8px 12px;border-radius:6px;color:var(--text);font-size:0.85rem;pointer-events:none;display:none;flex-direction:column;gap:4px;box-shadow:0 4px 12px rgba(0,0,0,0.5);">
         </div>
 
         <!-- Text Bar -->
@@ -129,7 +128,7 @@
           <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#000000" title="Text Color" />
           <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
           <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family"
-            style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
+            style="width:80px;padding:0 4px;appearance:auto;background:var(--bg);border:1px solid var(--border);">
             <option value="Arial" selected>Arial</option>
             <option value="Courier New">Courier</option>
             <option value="Times New Roman">Times</option>
@@ -137,18 +136,18 @@
           </select>
           <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
           <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
-          <button id="gv2-tb-list" class="gv2-ab-btn" style="font-size:0.75rem"
-            title="Bullets / Numbering">&#9776;</button>
+          <button id="gv2-tb-list" class="gv2-ab-btn" style="font-size:0.75rem" title="Bullets / Numbering">&#9776;</button>
           <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
         </div>
+
+        <!-- Marquee Bar -->
         <div class="gv2-marquee-bar" id="gv2-marquee-bar" style="display:none">
           <input type="text" id="gv2-mq-tag-input" class="gv2-mq-input" list="gv2-mq-tag-suggestions"
             placeholder="Tag for selected box..." />
           <datalist id="gv2-mq-tag-suggestions"></datalist>
           <button id="gv2-mq-add" class="gv2-ab-btn" title="Add tag to selected marquee">+ Tag</button>
           <button class="gv2-ab-btn annot-tool" id="annot-vselect" title="Group Select (V)">V</button>
-          <button id="gv2-mq-rebind" class="gv2-ab-btn"
-            title="Remove frozen legacy overlay and keep editable marquee">Rebind</button>
+          <button id="gv2-mq-rebind" class="gv2-ab-btn" title="Remove frozen legacy overlay and keep editable marquee">Rebind</button>
           <button id="gv2-mq-del" class="gv2-ab-btn" title="Close marquee tool">&#10005;</button>
         </div>
 
@@ -159,37 +158,68 @@
         <div class="gv2-video-bar" id="gv2-video-bar" style="display:none"></div>
       </div>
 
-      <!-- Tag Cloud (always visible) -->
+      <!-- Classic-mode: bottom thumbnail tray -->
+      <div class="gv2-thumb-tray-bottom gv2-classic-only" id="gv2-thumb-tray-bottom"></div>
+
+      <!-- Tag Cloud (bottom of center) -->
       <div class="gv2-tag-cloud" id="gv2-tag-cloud">
         <span class="gv2-tc-label">Filter:</span>
         <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
         <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
         <button class="gv2-tc-mode-btn active" id="gv2-grp-filter-btn" title="Filter mode: Grp = entire group if any image matches, Img = only matching image" style="margin-left:4px">Grp</button>
-        <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005;
-          Clear</button>
-        <!-- Shortcuts reference button -->
+        <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005; Clear</button>
         <button class="gv2-tc-mode-btn" id="gv2-shortcuts-btn" title="Keyboard shortcuts" style="margin-left:4px;font-size:0.8rem;padding:2px 7px;">&#9000;</button>
         <div id="gv2-shortcuts-popover" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;max-width:520px;margin:0 auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);z-index:9999;padding:10px 14px;font-size:0.78rem;"></div>
       </div>
 
-      <!-- Thumbnail Tray -->
-      <div class="gv2-thumb-tray">
-        <div class="gv2-tray-resize-handle-horiz" id="gv2-tray-resize-handle-horiz"></div>
-        <div class="gv2-thumbs" id="gallery-thumbs"></div>
-      </div>
-
     </div><!-- /gv2-center -->
 
-    <!-- Tags Tray (right panel, toggled by T) -->
+    <!-- Right Sidebar Strip -->
+    <div class="gv2-sidebar-strip">
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags (T)">&#127991;</button>
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers (L)">&#10064;</button>
+      <button class="gv2-sb-btn" id="gallery-upload-btn" title="Upload">&#11014;</button>
+      <div class="gv2-sb-sep"></div>
+      <!-- More dropdown -->
+      <div class="dropdown-wrapper">
+        <button class="gv2-sb-btn" id="gallery-tools-btn" title="More options">&#8942;</button>
+        <div class="dropdown-menu" id="gallery-tools-panel"
+          style="right:0;left:auto;min-width:190px;overflow-y:auto;z-index:9999;">
+          <button class="dropdown-item gv2-toggle-btn" id="gv2-marquee-btn">&#9633; Marquee</button>
+          <button class="dropdown-item gv2-toggle-btn" id="gv2-time-btn">&#128338; Time</button>
+          <button class="dropdown-item" id="gallery-tag-btn">&#127991; Img Tag</button>
+          <button class="dropdown-item" id="gv2-obs-btn">&#128211; Obs</button>
+          <div class="gv2-ctx-sep" style="margin:4px 0"></div>
+          <!-- Show Heads sub-dropdown -->
+          <div class="dropdown-wrapper" style="position:relative;">
+            <button class="dropdown-item" id="gallery-show-heads-btn" style="width:100%;text-align:left;">&#128065; Show Heads &#9660;</button>
+            <div class="dropdown-menu show-heads-panel" id="gallery-show-heads-panel"
+              style="right:100%;left:auto;top:0;min-width:220px;max-height:400px;overflow-y:auto;z-index:10000;"></div>
+          </div>
+          <!-- Filter Tags sub-dropdown -->
+          <div class="dropdown-wrapper" style="position:relative;">
+            <button class="dropdown-item" id="gallery-img-tag-filter-btn" style="width:100%;text-align:left;background:var(--bg2);">&#127991; Filter Tags &#9660;</button>
+            <div class="dropdown-menu tag-filter-panel" id="gallery-img-tag-filter-panel"
+              style="right:100%;left:auto;top:0;max-width:280px;max-height:400px;overflow-y:auto;z-index:10000;">
+              <p class="panel-hint" style="padding:10px 8px">No tags available.</p>
+            </div>
+          </div>
+          <div class="gv2-ctx-sep" style="margin:4px 0"></div>
+          <button class="dropdown-item gv2-stub" id="gv2-annotate-btn" style="opacity:0.4;cursor:not-allowed;" title="Coming soon">&#9998; Annotate (soon)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags Tray (right panel, toggled by T / Tags button) -->
     <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
       <div class="gv2-tray-resize-handle" id="gv2-tray-resize-handle"></div>
 
       <!-- Video URLs Tray -->
       <div class="gv2-video-url-tray" id="gv2-video-url-tray"
-        style="padding: 10px; border-bottom: 1px solid var(--border); display:none;">
-        <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--text);">Video URLs</div>
+        style="padding:10px;border-bottom:1px solid var(--border);display:none;">
+        <div style="font-size:0.85rem;font-weight:600;margin-bottom:8px;color:var(--text);">Video URLs</div>
         <div id="gv2-video-url-list"
-          style="display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; margin-bottom: 12px;"></div>
+          style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;margin-bottom:12px;"></div>
       </div>
 
       <div class="gv2-tt-hdr">
@@ -251,15 +281,15 @@
       <span>Image Tags</span>
       <button class="close-btn" id="img-tag-close-x">&#10005;</button>
     </div>
-    <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+    <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
       <div class="panel-manage-label" style="margin-bottom:6px">Current Image</div>
       <div id="img-tag-current-list" class="panel-list" style="max-height:180px"></div>
     </div>
-    <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+    <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
       <div class="panel-manage-label" style="margin-bottom:6px">Create Tag</div>
-      <div style="display:flex; gap:6px">
+      <div style="display:flex;gap:6px">
         <input type="text" id="img-tag-new-name" class="tag-picker-inp" placeholder="New tag name..."
-          style="border:1px solid var(--border2); border-radius:6px; padding:7px 9px" />
+          style="border:1px solid var(--border2);border-radius:6px;padding:7px 9px" />
         <button class="btn btn-primary" id="img-tag-add-btn" style="padding:6px 10px">Add</button>
       </div>
     </div>
@@ -281,13 +311,13 @@
     <button class="fs-back-btn" id="fs-close-btn">&#8592;</button>
     <div class="fs-header-info" style="position:relative;">
       <div class="fs-header-title">Trade View</div>
-      <div class="fs-header-subtitle" id="fs-header-info" style="cursor:pointer; border-bottom:1px solid transparent; transition:all 0.2s" onmouseover="this.style.borderBottom='1px solid rgba(255,255,255,0.3)'" onmouseout="this.style.borderBottom='1px solid transparent'">Mar 13 Fri • T1 • 1/3</div>
-      <input type="date" id="fs-date-picker" style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; z-index:5;" onchange="FullscreenViewer.jumpToDate(this.value)" />
+      <div class="fs-header-subtitle" id="fs-header-info" style="cursor:pointer;border-bottom:1px solid transparent;transition:all 0.2s" onmouseover="this.style.borderBottom='1px solid rgba(255,255,255,0.3)'" onmouseout="this.style.borderBottom='1px solid transparent'">Mar 13 Fri &bull; T1 &bull; 1/3</div>
+      <input type="date" id="fs-date-picker" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:5;" onchange="FullscreenViewer.jumpToDate(this.value)" />
     </div>
     <div class="fs-profiles-top">
         <img src="/static/img/logo.png" class="fs-profile-small" alt="p1" />
         <img src="/static/img/logo.png" class="fs-profile-small" alt="p2" />
-        <div class="fs-lock-btn" title="Focus Mode" style="margin-left:15px; cursor:pointer; font-size:1.4rem; padding:4px 8px; border-radius:50%; transition:all 0.2s">🔓</div>
+        <div class="fs-lock-btn" title="Focus Mode" style="margin-left:15px;cursor:pointer;font-size:1.4rem;padding:4px 8px;border-radius:50%;transition:all 0.2s">🔓</div>
     </div>
   </div>
 
@@ -295,13 +325,11 @@
   <div class="fs-content" id="fs-content">
     <img src="" class="fs-main-img" id="fs-img" alt="Fullscreen content" draggable="false" />
     <div class="fs-dots" id="fs-dots"></div>
-    <!-- Lock Mode Navigation: sides = images, corners = dates -->
     <button class="fs-side-btn fs-side-left" id="fs-lock-prev">&#8592;</button>
     <button class="fs-side-btn fs-side-right" id="fs-lock-next">&#8594;</button>
     <button class="fs-corner-btn fs-corner-bl" id="fs-lock-up">&#8593;</button>
     <button class="fs-corner-btn fs-corner-br" id="fs-lock-down">&#8595;</button>
 
-    <!-- Lock Mode Zoom Slider (Left Side) -->
     <div class="fs-zoom-slider-container" id="fs-zoom-slider-container">
         <input type="range" min="1" max="5" step="0.01" value="1" class="fs-zoom-slider" id="fs-zoom-slider">
         <div class="fs-zoom-label" id="fs-zoom-label">1x</div>

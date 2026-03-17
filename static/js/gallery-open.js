@@ -48,6 +48,81 @@ function openGalleryDirect(images, startIndex, sourceRow = null) {
   if (state.gallery.showTime) fetchImageTimesForGallery();
 }
 
+// ── Gallery Layout Toggle (classic ↔ new) ──────────────────────────────────
+const _VP_KEY = 'tj_galleryLayout'; // 'classic' | 'new'
+
+function openGalleryForDateWithPicker(dateStr) {
+  const pref = localStorage.getItem(_VP_KEY);
+  if (pref === 'classic') { _applyGalleryLayout('classic'); openGalleryForDate(dateStr); return; }
+  if (pref === 'new')     { _applyGalleryLayout('new');     openGalleryForDate(dateStr); return; }
+  _showViewerPicker(dateStr);
+}
+
+function _applyGalleryLayout(mode) {
+  const modal = document.getElementById('gallery-modal');
+  if (!modal) return;
+  modal.classList.toggle('layout-classic', mode === 'classic');
+  const thumbs  = document.getElementById('gallery-thumbs');
+  const newHome = document.getElementById('gv2-thumb-panel');
+  const oldHome = document.getElementById('gv2-thumb-tray-bottom');
+  if (!thumbs) return;
+  if (mode === 'classic' && oldHome && !oldHome.contains(thumbs)) oldHome.appendChild(thumbs);
+  if (mode === 'new'     && newHome && !newHome.contains(thumbs)) newHome.appendChild(thumbs);
+}
+
+function _showViewerPicker(dateStr) {
+  document.getElementById('gv2-viewer-picker')?.remove();
+
+  const el = document.createElement('div');
+  el.id = 'gv2-viewer-picker';
+  el.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:99999',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'background:rgba(0,0,0,0.45)', 'backdrop-filter:blur(3px)'
+  ].join(';');
+
+  el.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+                padding:20px 24px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,0.7);
+                display:flex;flex-direction:column;gap:12px;text-align:center;">
+      <div style="font-size:0.8rem;color:var(--text2);letter-spacing:0.04em;">Open ${dateStr} with</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button id="gvp-old" style="flex:1;padding:10px 0;border-radius:7px;
+          border:1px solid var(--border2);background:var(--surface2);
+          color:var(--text);font-size:0.88rem;cursor:pointer;">
+          🖥 Old Gallery
+        </button>
+        <button id="gvp-new" style="flex:1;padding:10px 0;border-radius:7px;
+          border:none;background:var(--blue);
+          color:#fff;font-size:0.88rem;cursor:pointer;font-weight:600;">
+          ✨ New Gallery
+        </button>
+      </div>
+      <label style="display:flex;align-items:center;justify-content:center;gap:6px;
+                    font-size:0.72rem;color:var(--text3);cursor:pointer;">
+        <input type="checkbox" id="gvp-remember" style="cursor:pointer;accent-color:var(--blue);" />
+        Remember my choice
+      </label>
+    </div>`;
+
+  document.body.appendChild(el);
+
+  const choose = (mode) => {
+    if (document.getElementById('gvp-remember')?.checked)
+      localStorage.setItem(_VP_KEY, mode);
+    el.remove();
+    _applyGalleryLayout(mode);
+    openGalleryForDate(dateStr);
+  };
+
+  document.getElementById('gvp-old').addEventListener('click', () => choose('classic'));
+  document.getElementById('gvp-new').addEventListener('click', () => choose('new'));
+  el.addEventListener('click', e => { if (e.target === el) el.remove(); });
+}
+
+// Reset gallery layout preference (browser console: resetViewerPref())
+function resetViewerPref() { localStorage.removeItem(_VP_KEY); }
+
 function lockBodyScroll() {
   document.body.classList.add('modal-open');
 }

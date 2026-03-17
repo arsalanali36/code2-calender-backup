@@ -22,6 +22,83 @@ function _bindGalleryEvents() {
   const galleryFilterPanel = document.getElementById('gallery-img-tag-filter-panel');
   if (galleryFilterPanel) galleryFilterPanel.addEventListener('click', e => e.stopPropagation());
 
+  // Thumbnail panel toggle
+  (function () {
+    const thumbToggleBtn = document.getElementById('gv2-thumb-toggle-btn');
+    const thumbPanel = document.getElementById('gv2-thumb-panel');
+    if (!thumbToggleBtn || !thumbPanel) return;
+    const TP_W_KEY = 'tj_thumbPanelW';
+    const savedW = parseInt(localStorage.getItem(TP_W_KEY) || '74', 10);
+    thumbPanel.style.setProperty('--thumb-panel-w', Math.max(54, Math.min(160, savedW)) + 'px');
+    // Restore open state
+    const wasOpen = localStorage.getItem('tj_thumbPanelOpen') === '1';
+    if (wasOpen) { thumbPanel.classList.add('open'); thumbToggleBtn.classList.add('active'); }
+    thumbToggleBtn.addEventListener('click', () => {
+      const isOpen = thumbPanel.classList.toggle('open');
+      thumbToggleBtn.classList.toggle('active', isOpen);
+      localStorage.setItem('tj_thumbPanelOpen', isOpen ? '1' : '0');
+    });
+    // Resize handle for thumb panel
+    const tpHandle = document.getElementById('gv2-thumb-panel-resize');
+    if (tpHandle) {
+      let _tpResizing = false;
+      tpHandle.addEventListener('mousedown', e => {
+        _tpResizing = true;
+        tpHandle.classList.add('dragging');
+        const startX = e.clientX;
+        const startW = thumbPanel.offsetWidth;
+        const _move = (me) => {
+          if (!_tpResizing) return;
+          const w = Math.max(54, Math.min(160, startW + (me.clientX - startX)));
+          thumbPanel.style.setProperty('--thumb-panel-w', w + 'px');
+          localStorage.setItem(TP_W_KEY, w);
+        };
+        const _up = () => {
+          _tpResizing = false;
+          tpHandle.classList.remove('dragging');
+          document.removeEventListener('mousemove', _move);
+          document.removeEventListener('mouseup', _up);
+        };
+        document.addEventListener('mousemove', _move);
+        document.addEventListener('mouseup', _up);
+      });
+    }
+  })();
+
+  // Classic toolbar button mirrors (same functions as new layout buttons)
+  setupDropdown('gv2-tools-c', 'gv2-tools-panel-c');
+  setupDropdown('gv2-heads-c', 'gv2-heads-panel-c');
+  setupDropdown('gv2-filter-c', 'gv2-filter-panel-c');
+  document.getElementById('gv2-annotate-c')?.addEventListener('click', () => {
+    if (typeof toggleAnnotation === 'function') toggleAnnotation();
+    document.getElementById('gv2-annotate-c')?.classList.toggle('active', annotState.active);
+  });
+  document.getElementById('gv2-marquee-c')?.addEventListener('click', () => {
+    document.getElementById('gv2-marquee-btn')?.click();
+    setTimeout(() => {
+      const active = document.getElementById('gv2-marquee-btn')?.classList.contains('active');
+      document.getElementById('gv2-marquee-c')?.classList.toggle('active', !!active);
+    }, 50);
+  });
+  document.getElementById('gv2-layer-c')?.addEventListener('click', () => {
+    if (typeof toggleLayerPanel === 'function') toggleLayerPanel();
+    document.getElementById('gv2-layer-c')?.classList.toggle('active',
+      document.getElementById('gv2-layer-panel')?.style.display !== 'none');
+  });
+  document.getElementById('gv2-time-c')?.addEventListener('click', () => {
+    document.getElementById('gv2-time-btn')?.click();
+    setTimeout(() => {
+      const active = document.getElementById('gv2-time-btn')?.classList.contains('active');
+      document.getElementById('gv2-time-c')?.classList.toggle('active', !!active);
+    }, 50);
+  });
+  document.getElementById('gv2-upload-c')?.addEventListener('click', () =>
+    document.getElementById('gallery-upload-btn')?.click());
+  document.getElementById('gv2-obs-c')?.addEventListener('click', () =>
+    document.getElementById('gv2-obs-btn')?.click());
+  document.getElementById('gv2-imgtag-c')?.addEventListener('click', () =>
+    document.getElementById('gallery-tag-btn')?.click());
+
   // Layer panel toggle
   const layerBtn = document.getElementById('gv2-layer-btn');
   if (layerBtn) layerBtn.addEventListener('click', () => {

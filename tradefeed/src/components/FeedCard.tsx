@@ -8,6 +8,10 @@ interface FeedCardProps {
   trade: Trade;
 }
 
+function isVideoUrl(url: string): boolean {
+  return /\.(webm|mp4|mov|avi)(\?|$)/i.test(url || '');
+}
+
 export const FeedCard: React.FC<FeedCardProps> = ({ trade }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const isProfit = trade.pnl >= 0;
@@ -59,15 +63,27 @@ export const FeedCard: React.FC<FeedCardProps> = ({ trade }) => {
       {trade.chartUrls.length > 0 && (
         <div className="relative aspect-square bg-zinc-100 group cursor-pointer overflow-hidden">
           <AnimatePresence mode="wait">
-            <motion.img
-              key={currentImageIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              src={trade.chartUrls[currentImageIndex]}
-              alt={`Trade Chart ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover"
-            />
+            {isVideoUrl(trade.chartUrls[currentImageIndex]) ? (
+              <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full h-full flex items-center justify-center bg-zinc-900"
+              >
+                <span className="text-4xl">📹</span>
+              </motion.div>
+            ) : (
+              <motion.img
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                src={trade.chartUrls[currentImageIndex]}
+                alt={`Trade Chart ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover"
+              />
+            )}
           </AnimatePresence>
 
           {/* Carousel Controls */}

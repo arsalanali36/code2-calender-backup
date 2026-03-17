@@ -196,3 +196,16 @@ function getCurrentGalleryPreserveContext() {
   return { url, date: normalizeDate(ctx.date || ''), sourceRow: ctx.sourceRow ?? null };
 }
 
+function _getGalleryThumbImages() {
+  const { images, tagFilter, _filteredMeta } = state.gallery;
+  const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
+  return (images || []).map((url, i) => {
+    let date = state.gallery.date;
+    let sourceRow = state.gallery.sourceRow;
+    if (filteredMode && _filteredMeta) {
+      const meta = _filteredMeta[i];
+      if (meta && meta.url === url) { date = meta.date || ''; sourceRow = meta.sourceRow ?? null; }
+    }
+    return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow };
+  }).filter(item => !!item.url);
+}

@@ -82,6 +82,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ trades, openViewer }) => {
     return grouped[d].map((t, idx) => ({
       date: d, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl, isClose: t.isClose,
       audios: t.audios,
+      videos: t.videos,
     }));
   }), [sortedDates, grouped]);
 

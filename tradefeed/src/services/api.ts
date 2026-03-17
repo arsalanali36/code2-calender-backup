@@ -8,10 +8,26 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 export const resolveUrl = (url: string): string =>
   url.startsWith('http') ? url : `${BASE_URL}/${url.replace(/^\//, '')}`;
 
-// Resolve all keys+values of an audios map { imgUrl → audioUrl }
+// Resolve all keys+values of a media map { imgUrl → mediaUrl }
 function resolveAudios(raw: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(raw)) out[resolveUrl(k)] = resolveUrl(v);
+  return out;
+}
+const resolveVideos = resolveAudios; // same logic
+
+// Inject old-style videos dict (imgUrl → videoUrl) into chartUrls array, after their associated image
+function injectOldVideos(urls: string[], videosDict: Record<string, string>): string[] {
+  const out = [...urls];
+  Object.entries(videosDict).forEach(([imgUrl, videoUrl]) => {
+    if (!videoUrl) return;
+    const rVideo = resolveUrl(videoUrl);
+    if (out.includes(rVideo)) return; // already present (new-style)
+    const rImg = resolveUrl(imgUrl);
+    const idx = out.indexOf(rImg);
+    if (idx >= 0) out.splice(idx + 1, 0, rVideo);
+    else out.push(rVideo);
+  });
   return out;
 }
 
@@ -42,12 +58,14 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
   const note       = (raw['Note'] as string) || '';
   const qty        = (raw['Qty'] as number) || 0;
 
-  // Images: prepend base URL for relative paths
+  // Images: prepend base URL for relative paths; inject old-style videos from trade.videos dict
   const rawImages = (raw['images'] as string[]) || [];
-  const chartUrls = rawImages.map(resolveUrl);
+  const rawVideosDict = (raw['videos'] as Record<string, string>) || {};
+  const chartUrls = injectOldVideos(rawImages.map(resolveUrl), resolveVideos(rawVideosDict));
 
-  // Audios: resolve both key (img URL) and value (audio URL)
-  const audios = resolveAudios((raw['audios'] as Record<string, string>) || {});
+  // Audios + Videos: resolve both key (img URL) and value (media URL)
+  const audios  = resolveAudios((raw['audios']  as Record<string, string>) || {});
+  const videos  = resolveVideos((raw['videos']  as Record<string, string>) || {});
 
   // Tags: categorise by tagGroups
   const allTags = (raw['Tags'] as string[]) || (raw['tags'] as string[]) || [];
@@ -76,6 +94,7 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
     session,
     chartUrls,
     audios,
+    videos,
     emotionTags,
     strategyTags,
     mistakeTags,
@@ -111,11 +130,13 @@ export async function fetchTrades(): Promise<Trade[]> {
       if (extraUrls.length > 0) {
         // FIX: merge dayData.audios so audio badges/playback work for dayData images
         // that were added to a trade's chartUrls
-        const dayAudios = resolveAudios((dayData[mapped.date]?.audios as Record<string, string>) || {});
+        const dayAudios  = resolveAudios((dayData[mapped.date]?.audios  as Record<string, string>) || {});
+        const dayVideos  = resolveVideos((dayData[mapped.date]?.videos  as Record<string, string>) || {});
         return {
           ...mapped,
           chartUrls: [...mapped.chartUrls, ...extraUrls],
           audios: { ...mapped.audios, ...dayAudios },
+          videos: { ...mapped.videos, ...dayVideos },
         };
       }
       return mapped;
@@ -133,9 +154,12 @@ export async function fetchTrades(): Promise<Trade[]> {
       currency: '₹',
       date,
       session: 'Morning' as const,
-      chartUrls: ((day as any).images as string[]).map(resolveUrl),
-      // FIX: map dayData audios so audio badges/playback work for day-only entries
+      chartUrls: injectOldVideos(
+        ((day as any).images as string[]).map(resolveUrl),
+        resolveVideos((day as any).videos || {})
+      ),
       audios: resolveAudios((day as any).audios || {}),
+      videos: resolveVideos((day as any).videos || {}),
       emotionTags: [],
       strategyTags: [],
       mistakeTags: [],
@@ -155,8 +179,8 @@ export async function fetchTrades(): Promise<Trade[]> {
       date,
       session: 'Morning' as const,
       chartUrls: ((day as any).closeImages as string[]).map(resolveUrl),
-      // FIX: map dayData audios for close entries too
       audios: resolveAudios((day as any).audios || {}),
+      videos: resolveVideos((day as any).videos || {}),
       isClose: true,
       emotionTags: [],
       strategyTags: [],

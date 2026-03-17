@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, MessageCircle, Send, Lock, Unlock, Calendar, MoreVertical, Share2, Copy, Flag, ChevronDown, Trash2, Star, Move, Download, Upload, ImagePlus } from 'lucide-react';
 import { AudioManager } from './AudioManager';
+import { VideoManager } from './VideoManager';
 
 const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
+
+function isVideoUrl(url: string): boolean {
+  return /\.(webm|mp4|mov|avi)(\?|$)/i.test(url || '');
+}
 
 interface DayData {
   date: string;
@@ -13,6 +18,7 @@ interface DayData {
   dayPnl?: number;   // total day P/L
   isClose?: boolean;
   audios?: Record<string, string>; // resolved imgUrl → resolved audioUrl
+  videos?: Record<string, string>; // resolved imgUrl → resolved videoUrl
 }
 
 interface FullscreenViewerProps {
@@ -339,6 +345,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
 
   const currentDay = days[dayIdx];
   const images = currentDay.images;
+  const currentIsVideo = isVideoUrl(images[imgIdx] || '');
 
   const resetZoom = () => { setScale(1); setPan({ x: 0, y: 0 }); };
 
@@ -525,7 +532,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
         {/* Main Image */}
         <motion.div
           className="flex-1 relative flex items-center justify-center p-2 touch-none"
-          drag={scale === 1 ? true : false}
+          drag={scale === 1 && !currentIsVideo ? true : false}
           dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
           dragElastic={0.15}
           onDrag={(e, info) => { setDragX(info.offset.x); setDragY(info.offset.y); }}
@@ -554,57 +561,107 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
             }
           }}
         >
-          <motion.img
-            ref={imgRef}
-            src={images[imgIdx]}
-            animate={{ scale, x: scale > 1 ? pan.x : 0, y: scale > 1 ? pan.y : 0 }}
-            transition={{ duration: 0, ease: 'linear' }}
-            drag={scale > 1}
-            dragMomentum={false}
-            onDrag={(e, info) => {
-              if (scale > 1) {
-                const bX = (scale - 1) * 150, bY = (scale - 1) * 250;
-                setPan({
-                  x: Math.max(-bX, Math.min(bX, pan.x + info.delta.x)),
-                  y: Math.max(-bY, Math.min(bY, pan.y + info.delta.y))
-                });
-              }
-            }}
-            className="max-w-full max-h-[85vh] object-contain rounded-sm"
-            draggable={false}
-          />
-
-          {/* Audio manager — always shown; handles record / playback / delete */}
-          <div
-            className="absolute bottom-12 left-4 right-4 z-20"
-            onTouchStart={e => e.stopPropagation()}
-            onTouchEnd={e => e.stopPropagation()}
-            onTouchMove={e => e.stopPropagation()}
-          >
-            <AudioManager
-              key={`${dayIdx}-${imgIdx}`}
-              audioUrl={currentDay.audios?.[images[imgIdx]]}
-              imageUrl={images[imgIdx]}
-              onAudioChange={(url) => {
-                const newDays = days.map((d, di) => {
-                  if (di !== dayIdx) return d;
-                  const newAudios = { ...(d.audios || {}) };
-                  if (url) newAudios[images[imgIdx]] = url;
-                  else delete newAudios[images[imgIdx]];
-                  return { ...d, audios: newAudios };
-                });
-                onUpdateDays?.(newDays);
-              }}
+          {currentIsVideo ? (
+            <video
+              key={images[imgIdx]}
+              src={images[imgIdx]}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full rounded-sm bg-black"
+              style={{ maxHeight: '78vh', objectFit: 'contain' }}
+              onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 0.1; }}
+              onClick={e => e.stopPropagation()}
+              onTouchStart={e => e.stopPropagation()}
             />
-          </div>
+          ) : (
+            <motion.img
+              ref={imgRef}
+              src={images[imgIdx]}
+              animate={{ scale, x: scale > 1 ? pan.x : 0, y: scale > 1 ? pan.y : 0 }}
+              transition={{ duration: 0, ease: 'linear' }}
+              drag={scale > 1}
+              dragMomentum={false}
+              onDrag={(e, info) => {
+                if (scale > 1) {
+                  const bX = (scale - 1) * 150, bY = (scale - 1) * 250;
+                  setPan({
+                    x: Math.max(-bX, Math.min(bX, pan.x + info.delta.x)),
+                    y: Math.max(-bY, Math.min(bY, pan.y + info.delta.y))
+                  });
+                }
+              }}
+              className="max-w-full max-h-[85vh] object-contain rounded-sm"
+              draggable={false}
+            />
+          )}
+
+          {/* Media managers — only shown when current item is an image */}
+          {!currentIsVideo && (
+            <div
+              className="absolute bottom-12 left-4 right-4 z-20 flex flex-col gap-2"
+              onTouchStart={e => e.stopPropagation()}
+              onTouchEnd={e => e.stopPropagation()}
+              onTouchMove={e => e.stopPropagation()}
+            >
+              <VideoManager
+                key={`vid-${dayIdx}-${imgIdx}`}
+                videoUrl={currentDay.videos?.[images[imgIdx]]}
+                imageUrl={images[imgIdx]}
+                onVideoChange={(url) => {
+                  const newDays = days.map((d, di) => {
+                    if (di !== dayIdx) return d;
+                    const newVideos = { ...(d.videos || {}) };
+                    const newImgs = [...d.images];
+                    if (url) {
+                      newVideos[images[imgIdx]] = url;
+                      // Insert video as next item in images[] (new approach)
+                      if (!newImgs.includes(url)) newImgs.splice(imgIdx + 1, 0, url);
+                    } else {
+                      // Remove from images[] too
+                      const vidUrl = d.videos?.[images[imgIdx]];
+                      const vidIdx = vidUrl ? newImgs.indexOf(vidUrl) : -1;
+                      if (vidIdx >= 0) newImgs.splice(vidIdx, 1);
+                      delete newVideos[images[imgIdx]];
+                    }
+                    return { ...d, videos: newVideos, images: newImgs };
+                  });
+                  onUpdateDays?.(newDays);
+                  // Navigate to the new video item
+                  if (url) {
+                    const newImgs = newDays[dayIdx]?.images || [];
+                    const newIdx = newImgs.indexOf(url);
+                    if (newIdx >= 0) setImgIdx(newIdx);
+                  }
+                }}
+              />
+              <AudioManager
+                key={`aud-${dayIdx}-${imgIdx}`}
+                audioUrl={currentDay.audios?.[images[imgIdx]]}
+                imageUrl={images[imgIdx]}
+                onAudioChange={(url) => {
+                  const newDays = days.map((d, di) => {
+                    if (di !== dayIdx) return d;
+                    const newAudios = { ...(d.audios || {}) };
+                    if (url) newAudios[images[imgIdx]] = url;
+                    else delete newAudios[images[imgIdx]];
+                    return { ...d, audios: newAudios };
+                  });
+                  onUpdateDays?.(newDays);
+                }}
+              />
+            </div>
+          )}
 
           {/* Sub-image dot indicators */}
           <motion.div
             animate={{ opacity: isLocked ? 0 : 1 }}
             className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 px-4 pointer-events-none"
           >
-            {images.map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === imgIdx ? 'w-6 bg-white' : 'w-2 bg-white/30'}`} />
+            {images.map((url, i) => (
+              isVideoUrl(url)
+                ? <div key={i} className={`h-2 w-2 rounded-full transition-all duration-300 flex items-center justify-center text-[8px] ${i === imgIdx ? 'bg-violet-400' : 'bg-violet-400/30'}`}>▶</div>
+                : <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === imgIdx ? 'w-6 bg-white' : 'w-2 bg-white/30'}`} />
             ))}
           </motion.div>
         </motion.div>

@@ -138,6 +138,40 @@ function showGalleryContextMenu(x, y) {
             inp.click();
         }));
 
+        menu.appendChild(createOpt('Add Image After', () => {
+            const inp = document.createElement('input');
+            inp.type = 'file'; inp.accept = 'image/*';
+            inp.onchange = async () => {
+                if (!inp.files[0]) return;
+                try {
+                    const rv = await imageService.uploadImage(inp.files[0]);
+                    if (!rv.url) throw new Error();
+                    // Insert new URL right after the right-clicked image in gallery
+                    const imgs = state.gallery.images || [];
+                    const insertAt = selIdx + 1;
+                    imgs.splice(insertAt, 0, rv.url);
+                    state.gallery.images = imgs;
+                    if (state.gallery._baseImages) state.gallery._baseImages.splice(insertAt, 0, rv.url);
+                    // Also insert in the owning trade or dayData
+                    if (ownerTrade) {
+                        const ti = (ownerTrade.images || []).indexOf(url);
+                        if (ti >= 0) ownerTrade.images.splice(ti + 1, 0, rv.url);
+                        else { if (!ownerTrade.images) ownerTrade.images = []; ownerTrade.images.push(rv.url); }
+                    } else if (state.gallery.date && state.dayData[state.gallery.date]) {
+                        const dd = state.dayData[state.gallery.date];
+                        const di = (dd.images || []).indexOf(url);
+                        if (di >= 0) dd.images.splice(di + 1, 0, rv.url);
+                        else { if (!dd.images) dd.images = []; dd.images.push(rv.url); }
+                    }
+                    state.gallery.currentIndex = insertAt;
+                    await saveTrades();
+                    renderGallery();
+                    showToast('Image added', 'success');
+                } catch (e) { showToast('Upload failed', 'error'); }
+            };
+            inp.click();
+        }));
+
         menu.appendChild(createOpt('Set as Hero', async () => {
             if (ownerTrade) {
                 ownerTrade.heroImage = url;
@@ -207,11 +241,11 @@ function showGalleryContextMenu(x, y) {
             if (state.gallery.expandedGroups) toDelete.forEach(u => state.gallery.expandedGroups.delete(u));
 
             const thumbsEl = document.getElementById('gallery-thumbs');
-            const savedScroll = thumbsEl ? thumbsEl.scrollLeft : 0;
+            const savedScroll = thumbsEl ? thumbsEl.scrollTop : 0;
 
             syncGalleryImageOrderToTrades();
             renderGallery(); renderTable(); renderCalendar();
-            setTimeout(() => { const t2 = document.getElementById('gallery-thumbs'); if (t2) t2.scrollLeft = savedScroll; }, 60);
+            setTimeout(() => { const t2 = document.getElementById('gallery-thumbs'); if (t2) t2.scrollTop = savedScroll; }, 60);
             await saveTrades();
 
             window.galleryUndoStack = window.galleryUndoStack || [];
@@ -356,8 +390,12 @@ async function replaceGalleryImageUrl(oldUrl, newUrl) {
         repIn(dd.overlays, oldUrl); repIn(dd.marqueeBoxes, oldUrl);
     }
     state.gallery.images = (state.gallery.images || []).map(u => u === oldUrl ? newUrl : u);
+    if (state.gallery._baseImages) state.gallery._baseImages = state.gallery._baseImages.map(u => u === oldUrl ? newUrl : u);
     if (state.gallery.expandedGroups?.has(oldUrl)) { state.gallery.expandedGroups.delete(oldUrl); state.gallery.expandedGroups.add(newUrl); }
     if (state._localOverlays?.[oldUrl]) { state._localOverlays[newUrl] = state._localOverlays[oldUrl]; delete state._localOverlays[oldUrl]; }
+    // Navigate main viewer to show the replaced image
+    const newIdx = state.gallery.images.indexOf(newUrl);
+    if (newIdx >= 0) state.gallery.currentIndex = newIdx;
     syncGalleryImageOrderToTrades();
     await saveTrades();
     renderGallery(); renderTable();

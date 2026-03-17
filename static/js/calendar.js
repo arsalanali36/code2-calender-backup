@@ -57,6 +57,21 @@ function getMarketHoliday(dateStr) {
   return MARKET_HOLIDAYS[dateStr] || null;
 }
 
+// Returns the trading day index (1-based) for a given date within its month.
+// Trading days = Mon-Fri that are not market holidays.
+function getTradingDayOfMonth(year, month, day) {
+  let count = 0;
+  for (let d = 1; d <= day; d++) {
+    const cellDate = new Date(year, month, d);
+    const dow = cellDate.getDay();
+    if (dow === 0 || dow === 6) continue; // skip weekends
+    const ds = formatDate(cellDate);
+    if (MARKET_HOLIDAYS[ds]) continue; // skip holidays
+    count++;
+  }
+  return count;
+}
+
 function getMuhuratDay(dateStr) {
   return MUHURAT_TRADING[dateStr] || null;
 }
@@ -157,7 +172,15 @@ function renderCalendar() {
     }
 
     const numDiv = document.createElement('div'); numDiv.className = 'day-num';
-    numDiv.textContent = d; cell.appendChild(numDiv);
+    numDiv.textContent = d;
+    if (window._showTradingDay && !isWeekend && !getMarketHoliday(dateStr)) {
+      const tdNum = getTradingDayOfMonth(state.year, state.month, d);
+      const tdBadge = document.createElement('span');
+      tdBadge.className = 'cal-trading-day-badge';
+      tdBadge.textContent = `TD${tdNum}`;
+      numDiv.appendChild(tdBadge);
+    }
+    cell.appendChild(numDiv);
 
     const hlabel = holidayName || muhuratName;
     if (hlabel) {
@@ -170,6 +193,11 @@ function renderCalendar() {
 
     if (dayTrades.length) {
       const dataDiv = document.createElement('div'); dataDiv.className = 'day-data';
+      if (window._showTradeCount) {
+        const tcDiv = document.createElement('div'); tcDiv.className = 'day-data-item day-trade-count';
+        tcDiv.textContent = `${dayTrades.length} trade${dayTrades.length !== 1 ? 's' : ''}`;
+        dataDiv.appendChild(tcDiv);
+      }
       // Abbreviation map for calendar cell labels (keeps cells compact)
       const _CAL_ABBR = {
         'gross p&l':'G','gross p/l':'G','gross':'G',
@@ -317,10 +345,10 @@ function renderCalendar() {
           if (typeof saveTrades === 'function') saveTrades();
           if (typeof renderTable === 'function') renderTable();
           renderCalendar();
-          openGalleryForDate(dateStr);
+          openGalleryForDateWithPicker(dateStr);
         }
       } else {
-        openGalleryForDate(dateStr);
+        openGalleryForDateWithPicker(dateStr);
       }
     });
     grid.appendChild(cell);

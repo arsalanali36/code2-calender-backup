@@ -23,16 +23,16 @@ function bindGalleryRubberbandAndPan(thumbs) {
     // ── Ctrl+click on empty area → rubber-band selection ──
     if (e.ctrlKey || e.metaKey) {
       const dockRect = thumbs.getBoundingClientRect();
-      _rbStart = { x: e.clientX - dockRect.left + thumbs.scrollLeft, y: e.clientY - dockRect.top + thumbs.scrollTop };
+      _rbStart = { x: e.clientX - dockRect.left, y: e.clientY - dockRect.top + thumbs.scrollTop };
       _rbEl.style.display = 'block';
       _rbEl.style.left = _rbStart.x + 'px'; _rbEl.style.top = _rbStart.y + 'px';
       _rbEl.style.width = '0'; _rbEl.style.height = '0';
       const _rbMove = (me) => {
         const dr = thumbs.getBoundingClientRect();
         const EDGE = 50, SPEED = 12;
-        if (me.clientX < dr.left + EDGE) thumbs.scrollLeft -= SPEED;
-        else if (me.clientX > dr.right - EDGE) thumbs.scrollLeft += SPEED;
-        const cx = me.clientX - dr.left + thumbs.scrollLeft;
+        if (me.clientY < dr.top + EDGE) thumbs.scrollTop -= SPEED;
+        else if (me.clientY > dr.bottom - EDGE) thumbs.scrollTop += SPEED;
+        const cx = me.clientX - dr.left;
         const cy = me.clientY - dr.top + thumbs.scrollTop;
         const x = Math.min(cx, _rbStart.x), y = Math.min(cy, _rbStart.y);
         _rbEl.style.left = x + 'px'; _rbEl.style.top = y + 'px';
@@ -43,7 +43,7 @@ function bindGalleryRubberbandAndPan(thumbs) {
         const rbRect = _rbEl.getBoundingClientRect();
         _rbEl.style.display = 'none';
         if (rbRect.width > 4 || rbRect.height > 4) {
-          const savedScroll = thumbs.scrollLeft;
+          const savedScroll = thumbs.scrollTop;
           if (!ue.shiftKey && !ue.ctrlKey && !ue.metaKey) {
             if (state.gallery.selectedIndices) state.gallery.selectedIndices.clear();
             else state.gallery.selectedIndices = new Set();
@@ -57,7 +57,7 @@ function bindGalleryRubberbandAndPan(thumbs) {
             if (overlaps) state.gallery.selectedIndices.add(parseInt(wrap.dataset.globalIdx));
           });
           renderGallery();
-          setTimeout(() => { thumbs.scrollLeft = savedScroll; }, 60);
+          setTimeout(() => { thumbs.scrollTop = savedScroll; }, 60);
         } else {
           if (!ue.shiftKey && !ue.ctrlKey && !ue.metaKey) {
             if (state.gallery.selectedIndices?.size > 0) { state.gallery.selectedIndices.clear(); renderGallery(); }
@@ -74,10 +74,10 @@ function bindGalleryRubberbandAndPan(thumbs) {
 
     // ── Plain left-click on empty area → hand-cursor pan (scroll) ──
     thumbs.style.cursor = 'grabbing';
-    const panStartX = e.clientX;
-    const panStartScroll = thumbs.scrollLeft;
+    const panStartY = e.clientY;
+    const panStartScroll = thumbs.scrollTop;
     const _panMove = (me) => {
-      thumbs.scrollLeft = panStartScroll - (me.clientX - panStartX);
+      thumbs.scrollTop = panStartScroll - (me.clientY - panStartY);
     };
     const _panUp = () => {
       thumbs.style.cursor = '';

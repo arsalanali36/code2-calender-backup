@@ -10,17 +10,16 @@
   display: flex;
 }
 
-/* Global Tray */
+/* Global Tray — slim single row */
 .gv2-tray {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  min-height: 46px;
-  flex-wrap: wrap;
+  min-height: 38px;
 }
 
 .gv2-tray-left {
@@ -41,6 +40,28 @@
   align-items: center;
   gap: 8px;
   margin-left: auto;
+}
+
+/* Thumbnail toggle button in tray */
+.gv2-thumb-toggle-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  border-radius: 5px;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.gv2-thumb-toggle-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.gv2-thumb-toggle-btn.active {
+  background: rgba(88,166,255,0.15);
+  border-color: var(--blue);
+  color: var(--blue);
 }
 
 .gv2-date-arrow {
@@ -529,46 +550,101 @@
   border-color: var(--red);
 }
 
-/* Thumbnail Tray */
-.gv2-thumb-tray {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Left Thumbnail Panel (collapsible) ── */
+.gv2-thumb-panel {
+  width: 0;
   flex-shrink: 0;
-  padding: 6px 8px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  min-height: calc(var(--thumb-size, 54px) + 26px);
-  position: relative;
   overflow: hidden;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.gv2-tray-resize-handle-horiz {
+.gv2-thumb-panel.open {
+  width: var(--thumb-panel-w, 74px);
+}
+
+/* Right-edge resize handle for thumb panel */
+.gv2-tp-resize-handle {
   position: absolute;
-  left: 0;
   right: 0;
   top: 0;
-  height: 6px;
-  cursor: ns-resize;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
   z-index: 10;
   background: transparent;
-  border-top: 2px solid transparent;
+  border-right: 2px solid transparent;
   transition: border-color 0.15s, background 0.15s;
 }
-
-.gv2-tray-resize-handle-horiz:hover,
-.gv2-tray-resize-handle-horiz.dragging {
-  border-top-color: var(--blue);
+.gv2-tp-resize-handle:hover,
+.gv2-tp-resize-handle.dragging {
+  border-right-color: var(--blue);
   background: rgba(88, 166, 255, 0.12);
 }
 
+/* Thumbs: vertical layout */
 .gv2-thumbs {
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  overflow-x: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   align-items: center;
-  padding: 24px 0 4px;
-  touch-action: pan-x;
+  padding: 6px 0 6px;
+  touch-action: pan-y;
+  flex: 1;
+}
+
+/* ── Right Sidebar Strip ── */
+.gv2-sidebar-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
+  width: 40px;
+  position: relative;
+}
+
+.gv2-sb-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.gv2-sb-btn:hover {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+}
+.gv2-sb-btn.active {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.gv2-sb-sep {
+  width: 22px;
+  height: 1px;
+  background: var(--border2);
+  margin: 3px 0;
+  flex-shrink: 0;
 }
 
 .gv2-thumb-wrap {
@@ -602,6 +678,20 @@
 
 .gv2-thumb:hover {
   border-color: var(--text2);
+}
+
+.gv2-thumb-video {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  font-size: 1.4rem;
+  cursor: pointer;
+  border-color: #7c3aed;
+}
+
+.gv2-thumb-video.active {
+  border-color: var(--blue);
 }
 
 .gv2-thumb-del {
@@ -921,6 +1011,33 @@
 
 
 
+/* ── Classic Layout Mode ── */
+.gv2-classic-only { display: none !important; }
+.gv2-new-only     { display: inline-flex; }
+
+.gv2-modal.layout-classic .gv2-classic-only { display: flex !important; }
+.gv2-modal.layout-classic .gv2-new-only     { display: none !important; }
+.gv2-modal.layout-classic .gv2-sidebar-strip { display: none; }
+.gv2-modal.layout-classic .gv2-thumb-panel  { display: none !important; }
+
+/* Classic bottom tray */
+.gv2-thumb-tray-bottom {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  min-height: calc(var(--thumb-size, 54px) + 16px);
+}
+/* In classic mode, thumbs go horizontal inside the bottom tray */
+.gv2-modal.layout-classic .gv2-thumbs {
+  flex-direction: row !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 4px 0 !important;
+  touch-action: pan-x !important;
+}
+
 /* ── AUDIO BAR ─────────────────────────────────── */
 .gv2-audio-bar {
   position: absolute;
@@ -1119,15 +1236,14 @@
   transition: width 0.9s linear;
 }
 
-/* Inline video player */
-.gv2-video-player {
-  height: 120px;
-  width: 214px;
-  border-radius: 6px;
-  background: #000;
-  flex-shrink: 0;
-  display: block;
+/* Play button in video bar */
+.gv2-video-play {
+  border-color: #0066cc;
+  color: #4da6ff;
+  font-size: 0.8rem;
+  padding: 4px 12px;
 }
+.gv2-video-play:hover { background: rgba(0,100,220,0.18); }
 
 /* Video indicator on thumbnails */
 .gv2-thumb-video-icon {

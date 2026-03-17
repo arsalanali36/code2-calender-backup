@@ -186,8 +186,8 @@ function _bindKeyboardEvents() {
 
       if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
       if (e.key === 'ArrowRight' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
-      if (e.key === 'ArrowUp' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
-      if (e.key === 'ArrowDown' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
+      if (e.key === 'ArrowUp' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
+      if (e.key === 'ArrowDown' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
       if (e.key === 'r' || e.key === 'R') resetZoom();
       if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
 
