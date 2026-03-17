@@ -4,6 +4,17 @@ import { Trade, TradeSession, TradeType, BlogPost } from '../types';
 // Set VITE_API_URL in .env.local only if running tradefeed standalone
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
+// Module-level URL resolver — keep at top so fetchTrades can use it too
+export const resolveUrl = (url: string): string =>
+  url.startsWith('http') ? url : `${BASE_URL}/${url.replace(/^\//, '')}`;
+
+// Resolve all keys+values of an audios map { imgUrl → audioUrl }
+function resolveAudios(raw: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) out[resolveUrl(k)] = resolveUrl(v);
+  return out;
+}
+
 // Groups whose tags count as emotions
 const EMOTION_GROUPS = ['emotions', 'emotion'];
 // Groups whose tags count as mistakes
@@ -31,17 +42,12 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
   const note       = (raw['Note'] as string) || '';
   const qty        = (raw['Qty'] as number) || 0;
 
-  const resolveUrl = (url: string) =>
-    url.startsWith('http') ? url : `${BASE_URL}/${url.replace(/^\//, '')}`;
-
   // Images: prepend base URL for relative paths
   const rawImages = (raw['images'] as string[]) || [];
   const chartUrls = rawImages.map(resolveUrl);
 
   // Audios: resolve both key (img URL) and value (audio URL)
-  const rawAudios = (raw['audios'] as Record<string, string>) || {};
-  const audios: Record<string, string> = {};
-  for (const [k, v] of Object.entries(rawAudios)) audios[resolveUrl(k)] = resolveUrl(v);
+  const audios = resolveAudios((raw['audios'] as Record<string, string>) || {});
 
   // Tags: categorise by tagGroups
   const allTags = (raw['Tags'] as string[]) || (raw['tags'] as string[]) || [];
@@ -95,12 +101,23 @@ export async function fetchTrades(): Promise<Trade[]> {
     .filter(t => !!(t['trade_date'] || t['date']))
     .map((t, i) => {
       const mapped = mapTrade(t, i, emotionSet, mistakeSet);
+
       // Also include any dayData images for this date that aren't already in chartUrls
       const dayImgs = (dayData[mapped.date]?.images as string[]) || [];
       const extraUrls = dayImgs
-        .map(img => img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`)
+        .map(resolveUrl)
         .filter(url => !mapped.chartUrls.includes(url));
-      if (extraUrls.length > 0) return { ...mapped, chartUrls: [...mapped.chartUrls, ...extraUrls] };
+
+      if (extraUrls.length > 0) {
+        // FIX: merge dayData.audios so audio badges/playback work for dayData images
+        // that were added to a trade's chartUrls
+        const dayAudios = resolveAudios((dayData[mapped.date]?.audios as Record<string, string>) || {});
+        return {
+          ...mapped,
+          chartUrls: [...mapped.chartUrls, ...extraUrls],
+          audios: { ...mapped.audios, ...dayAudios },
+        };
+      }
       return mapped;
     });
 
@@ -116,9 +133,9 @@ export async function fetchTrades(): Promise<Trade[]> {
       currency: '₹',
       date,
       session: 'Morning' as const,
-      chartUrls: ((day as any).images as string[]).map((img: string) =>
-        img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`
-      ),
+      chartUrls: ((day as any).images as string[]).map(resolveUrl),
+      // FIX: map dayData audios so audio badges/playback work for day-only entries
+      audios: resolveAudios((day as any).audios || {}),
       emotionTags: [],
       strategyTags: [],
       mistakeTags: [],
@@ -137,9 +154,9 @@ export async function fetchTrades(): Promise<Trade[]> {
       currency: '₹',
       date,
       session: 'Morning' as const,
-      chartUrls: ((day as any).closeImages as string[]).map((img: string) =>
-        img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`
-      ),
+      chartUrls: ((day as any).closeImages as string[]).map(resolveUrl),
+      // FIX: map dayData audios for close entries too
+      audios: resolveAudios((day as any).audios || {}),
       isClose: true,
       emotionTags: [],
       strategyTags: [],
