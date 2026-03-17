@@ -31,11 +31,17 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
   const note       = (raw['Note'] as string) || '';
   const qty        = (raw['Qty'] as number) || 0;
 
+  const resolveUrl = (url: string) =>
+    url.startsWith('http') ? url : `${BASE_URL}/${url.replace(/^\//, '')}`;
+
   // Images: prepend base URL for relative paths
   const rawImages = (raw['images'] as string[]) || [];
-  const chartUrls = rawImages.map(img =>
-    img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`
-  );
+  const chartUrls = rawImages.map(resolveUrl);
+
+  // Audios: resolve both key (img URL) and value (audio URL)
+  const rawAudios = (raw['audios'] as Record<string, string>) || {};
+  const audios: Record<string, string> = {};
+  for (const [k, v] of Object.entries(rawAudios)) audios[resolveUrl(k)] = resolveUrl(v);
 
   // Tags: categorise by tagGroups
   const allTags = (raw['Tags'] as string[]) || (raw['tags'] as string[]) || [];
@@ -63,6 +69,7 @@ function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<s
     date,
     session,
     chartUrls,
+    audios,
     emotionTags,
     strategyTags,
     mistakeTags,
@@ -86,7 +93,16 @@ export async function fetchTrades(): Promise<Trade[]> {
 
   const tradeMapped = trades
     .filter(t => !!(t['trade_date'] || t['date']))
-    .map((t, i) => mapTrade(t, i, emotionSet, mistakeSet));
+    .map((t, i) => {
+      const mapped = mapTrade(t, i, emotionSet, mistakeSet);
+      // Also include any dayData images for this date that aren't already in chartUrls
+      const dayImgs = (dayData[mapped.date]?.images as string[]) || [];
+      const extraUrls = dayImgs
+        .map(img => img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`)
+        .filter(url => !mapped.chartUrls.includes(url));
+      if (extraUrls.length > 0) return { ...mapped, chartUrls: [...mapped.chartUrls, ...extraUrls] };
+      return mapped;
+    });
 
   // Add dayData entries that have images but no matching trade
   const tradeDates = new Set(tradeMapped.map(t => t.date));
@@ -110,7 +126,29 @@ export async function fetchTrades(): Promise<Trade[]> {
       stats: { rMultiple: 0, riskReward: '', positionSize: 0 },
     }));
 
-  return [...tradeMapped, ...dayOnlyEntries];
+  // Add close entries from dayData.closeImages — appear as the last tab (C) in each day's card
+  const closeEntries: Trade[] = Object.entries(dayData)
+    .filter(([, day]) => Array.isArray((day as any).closeImages) && (day as any).closeImages.length > 0)
+    .map(([date, day]) => ({
+      id: `close-${date}`,
+      instrument: 'Close',
+      type: 'Long' as const,
+      pnl: 0,
+      currency: '₹',
+      date,
+      session: 'Morning' as const,
+      chartUrls: ((day as any).closeImages as string[]).map((img: string) =>
+        img.startsWith('http') ? img : `${BASE_URL}/${img.replace(/^\//, '')}`
+      ),
+      isClose: true,
+      emotionTags: [],
+      strategyTags: [],
+      mistakeTags: [],
+      note: '',
+      stats: { rMultiple: 0, riskReward: '', positionSize: 0 },
+    }));
+
+  return [...tradeMapped, ...dayOnlyEntries, ...closeEntries];
 }
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {

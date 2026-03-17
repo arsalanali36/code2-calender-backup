@@ -9,11 +9,13 @@ export interface Trade {
   currency: string;
   date: string;
   session: TradeSession;
-  chartUrls: string[]; // Changed from chartUrl to chartUrls
+  chartUrls: string[];
+  audios?: Record<string, string>; // resolved imgUrl → resolved audioUrl
   emotionTags: string[];
   strategyTags: string[];
   mistakeTags: string[];
   note: string;
+  isClose?: boolean;
   stats: {
     rMultiple: number;
     riskReward: string;

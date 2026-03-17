@@ -8,11 +8,24 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Format date as "Mar 13" with weekday on second line (returns {mon, dow})
+function parseDateParts(dateStr: string): { mon: string; dow: string } {
+  try {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return {
+      mon: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      dow: date.toLocaleDateString('en-US', { weekday: 'short' }),
+    };
+  } catch { return { mon: dateStr, dow: '' }; }
+}
+
 interface DayFeedCardProps {
   trades: Trade[];
-  allTradeItems?: { date: string; images: string[]; tradeNum: number; pnl?: number; dayPnl?: number }[];
+  allTradeItems?: { date: string; images: string[]; tradeNum: number; pnl?: number; dayPnl?: number; isClose?: boolean; audios?: Record<string, string> }[];
   openViewer: (days: any[], dIdx: number, iIdx: number, locked?: boolean) => void;
   onDateClick: () => void;
+  onFavToggle?: () => void;
   consolidate?: boolean;
 }
 
@@ -20,10 +33,10 @@ interface DayFeedCardProps {
 const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
 
 // Derive a label for each trade position in the day
-function getTradeLabel(index: number, total: number): string {
+function getTradeLabel(index: number, total: number, isClose?: boolean): string {
+  if (isClose) return 'C';
   if (total === 1) return 'T1';
   if (index === 0) return 'O';
-  if (index === total - 1) return 'C';
   return `T${index}`;
 }
 
@@ -34,7 +47,7 @@ const MORE_OPTIONS = [
   { icon: <Flag className="w-4 h-4" />,     label: 'Mark for review' },
 ];
 
-export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems, openViewer, onDateClick, consolidate }) => {
+export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems, openViewer, onDateClick, onFavToggle, consolidate }) => {
   const [tradeIndex, setTradeIndex] = useState(0);
   const [imgIndex, setImgIndex]     = useState(0);
   const [showMenu, setShowMenu]     = useState(false);
@@ -56,6 +69,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
       localStorage.setItem('tj_favs', JSON.stringify(next));
     } catch {}
     setIsFav(f => !f);
+    onFavToggle?.();
   };
 
   const trade    = trades[tradeIndex];
@@ -80,23 +94,40 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
       animate={{ opacity: 1, y: 0 }}
       className="bg-white border border-zinc-200 rounded-2xl overflow-hidden mb-6 shadow-sm"
     >
-      {/* Header — date + pnl + 3-dot menu */}
-      <div className="px-3 py-2.5 flex items-center justify-between cursor-pointer active:bg-zinc-50" onClick={onDateClick}>
-        <div className="flex items-center gap-2">
+      {/* Header — trade badge | date (clickable) | pnl | 3-dot */}
+      <div className="px-3 py-2.5 flex items-center gap-1.5">
+        {/* Trade number + PnL badge (small, left) */}
+        <button
+          className={`flex-shrink-0 flex flex-col items-center justify-center px-2 py-1 rounded-lg text-[10px] font-black leading-tight ${
+            isProfit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+          }`}
+          onClick={() => switchTrade((tradeIndex + 1) % trades.length)}
+          title="Tap to switch trade"
+        >
+          <span>{getTradeLabel(tradeIndex, trades.length, trade.isClose)}</span>
+          <span>{isProfit ? '+' : '-'}{fmt(trade.pnl)}</span>
+        </button>
+
+        {/* Date (clickable → opens viewer) */}
+        <button
+          className="flex-1 flex items-center gap-2 cursor-pointer active:bg-zinc-50 rounded-xl px-2 py-1 min-w-0"
+          onClick={onDateClick}
+        >
           <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isProfit ? 'bg-emerald-100' : 'bg-rose-100'}`}>
             {trade.type === 'Long'
               ? <TrendingUp className={`w-3.5 h-3.5 ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`} />
               : <TrendingDown className={`w-3.5 h-3.5 ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`} />
             }
           </div>
-          <span className="text-xs font-bold text-zinc-700">{trade.date}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-bold ${isProfit ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {fmt(trade.pnl)}
-          </span>
+          <div className="flex flex-col items-start leading-tight">
+            <span className="text-xs font-bold text-zinc-800">{parseDateParts(trade.date).mon}</span>
+            <span className="text-[10px] text-zinc-400 font-medium">{parseDateParts(trade.date).dow}</span>
+          </div>
+        </button>
+
+        <div className="flex items-center gap-1">
           {/* 3-dot menu */}
-          <div className="relative" onClick={e => e.stopPropagation()}>
+          <div className="relative">
             <button
               className="text-zinc-400 hover:text-zinc-600 p-1"
               onClick={() => setShowMenu(m => !m)}
@@ -120,7 +151,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
                         if (opt.label === 'View fullscreen') {
                           const dayPnlVal = dayTotal;
                           const itemsList = allTradeItems || trades.map((t, idx) => ({
-                            date: t.date, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl: dayPnlVal
+                            date: t.date, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl: dayPnlVal, isClose: t.isClose
                           }));
                           let targetIdx = 0;
                           for (let i = 0; i < itemsList.length; i++) {
@@ -161,7 +192,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
                 const clickedUrl = trade.chartUrls[imgIndex];
                 const dayPnlVal = dayTotal;
                 const itemsList = allTradeItems || trades.map((t, idx) => ({
-                  date: t.date, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl: dayPnlVal
+                  date: t.date, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl: dayPnlVal, isClose: t.isClose
                 }));
                 let targetItemIdx = tradeIndex;
                 let targetImgIdx  = imgIndex;
@@ -202,6 +233,13 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
           <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
             {imgIndex + 1}/{trade.chartUrls.length}
           </div>
+
+          {/* Audio badge — yellow ▶ when this image has an audio note */}
+          {trade.audios?.[trade.chartUrls[imgIndex]] && (
+            <div className="absolute bottom-3 left-3 bg-[#f5c518] text-black text-[10px] font-black px-2 py-0.5 rounded shadow-sm leading-tight select-none">
+              ▶
+            </div>
+          )}
         </div>
       ) : (
         <div className="px-4 py-2">
@@ -215,7 +253,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
       {!consolidate && <div className="px-4 pt-3 pb-1 flex items-center justify-between">
         <div className="flex gap-3 items-center">
           {trades.map((t, i) => {
-            const label = getTradeLabel(i, trades.length);
+            const label = getTradeLabel(i, trades.length, t.isClose);
             const active = i === tradeIndex;
             const tProfit = t.pnl >= 0;
             return (

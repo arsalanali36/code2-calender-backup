@@ -294,7 +294,7 @@ export default function App() {
   const [fsOpen, setFsOpen]             = useState(false);
   const [fsDayIndex, setFsDayIndex]     = useState(0);
   const [fsImageIndex, setFsImageIndex] = useState(0);
-  const [fsDays, setFsDays]             = useState<{date: string, images: string[]}[]>([]);
+  const [fsDays, setFsDays]             = useState<any[]>([]);
   const [fsInitialLocked, setFsInitialLocked] = useState(false);
 
   const openViewer = (days: any[], dIdx: number, iIdx: number, locked = false) => {
@@ -437,6 +437,7 @@ export default function App() {
         isOpen={fsOpen}
         onClose={() => setFsOpen(false)}
         initialLocked={fsInitialLocked}
+        onUpdateDays={setFsDays}
       />
 
       <BottomNav currentView={currentView} onViewChange={setCurrentView} />

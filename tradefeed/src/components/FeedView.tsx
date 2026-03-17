@@ -49,11 +49,13 @@ export const FeedView: React.FC<FeedViewProps> = ({ trades, openViewer }) => {
     return Math.ceil(max / 100) * 100;
   }, [sortedDates, grouped]);
 
-  // Favorited dates from localStorage
+  // Favorited dates from localStorage — refresh counter forces re-read on toggle
+  const [favsVersion, setFavsVersion] = useState(0);
   const favs = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('tj_favs') || '{}') as Record<string, boolean>; }
     catch { return {}; }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [favsVersion]);
 
   // Apply filters
   const filteredDates = useMemo(() => {
@@ -78,7 +80,8 @@ export const FeedView: React.FC<FeedViewProps> = ({ trades, openViewer }) => {
   const allTradeItems = useMemo(() => sortedDates.flatMap(d => {
     const dayPnl = grouped[d].reduce((s, t) => s + t.pnl, 0);
     return grouped[d].map((t, idx) => ({
-      date: d, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl
+      date: d, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl, isClose: t.isClose,
+      audios: t.audios,
     }));
   }), [sortedDates, grouped]);
 
@@ -133,6 +136,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ trades, openViewer }) => {
               allTradeItems={allTradeItems}
               openViewer={openViewer}
               consolidate={consolidate}
+              onFavToggle={() => setFavsVersion(v => v + 1)}
               onDateClick={() => {
                 let targetIdx = 0;
                 for (let i = 0; i < allTradeItems.length; i++) {
