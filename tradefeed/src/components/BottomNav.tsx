@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, CalendarDays, PieChart, Grid3X3, Newspaper, Monitor } from 'lucide-react';
+import { LayoutGrid, CalendarDays, PieChart, Grid3X3, Newspaper, User } from 'lucide-react';
 import { ViewType } from '../types';
 
 interface BottomNavProps {
@@ -40,16 +40,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange 
             </button>
           );
         })}
-        <a
-          href="/"
+        <button
+          onClick={() => onViewChange('feed')}
           className="flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 transition-all"
-          title="Back to Desktop"
         >
           <div className="p-1 rounded-lg">
-            <Monitor className="w-6 h-6 stroke-[1.5px]" />
+            <User className="w-6 h-6 stroke-[1.5px]" />
           </div>
-          <span className="text-[10px] font-bold tracking-tight">Desktop</span>
-        </a>
+          <span className="text-[10px] font-bold tracking-tight">Profile</span>
+        </button>
       </div>
     </nav>
   );

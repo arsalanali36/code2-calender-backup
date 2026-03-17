@@ -85,11 +85,7 @@ export async function fetchTrades(): Promise<Trade[]> {
   const { emotionSet, mistakeSet } = buildTagSets(tagGroups);
 
   const tradeMapped = trades
-    .filter(t => {
-      const hasPnl = typeof t['Net P/L'] === 'number' || typeof t['Gross P/L'] === 'number';
-      const hasDateAndInstrument = !!(t['trade_date'] || t['date']) && !!(t['Instrument'] as string);
-      return hasPnl || hasDateAndInstrument;
-    })
+    .filter(t => !!(t['trade_date'] || t['date']))
     .map((t, i) => mapTrade(t, i, emotionSet, mistakeSet));
 
   // Add dayData entries that have images but no matching trade

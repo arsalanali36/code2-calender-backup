@@ -369,7 +369,7 @@ export default function App() {
     switch (currentView) {
       case 'feed':      return <FeedView trades={trades} openViewer={openViewer} />;
       case 'calendar':  return <CalendarView trades={trades} openViewer={openViewer} />;
-      case 'dashboard': return <DashboardView trades={trades} />;
+      case 'dashboard': return <DashboardView trades={trades} openViewer={openViewer} />;
       case 'table':     return <TableView trades={trades} onLogTrade={() => setCurrentView('import')} />;
       case 'gallery':   return <GalleryView trades={trades} openViewer={openViewer} />;
       case 'blog':      return <BlogView />;

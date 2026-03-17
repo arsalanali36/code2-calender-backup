@@ -7,17 +7,22 @@ import json
 import os
 from datetime import datetime
 
-from flask import Blueprint, render_template, jsonify, send_from_directory
+from flask import Blueprint, render_template, jsonify, send_from_directory, redirect, request
 
 from config import BASE_DIR, CACHE_BUST
 
 MOBILE_DIST = os.path.join(BASE_DIR, 'tradefeed', 'dist')
+
+MOBILE_KEYWORDS = ('Mobile', 'Android', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'IEMobile', 'Opera Mini')
 
 page_bp = Blueprint('page', __name__)
 
 
 @page_bp.route('/')
 def index():
+    ua = request.headers.get('User-Agent', '')
+    if any(k in ua for k in MOBILE_KEYWORDS):
+        return redirect('/mobile/')
     return render_template('index.html', cache_bust=CACHE_BUST)
 
 
@@ -57,7 +62,7 @@ def blog_posts_api():
             entries = json.load(f)
     for i, entry in enumerate(entries):
         dt = datetime.strptime(entry['date'], '%Y-%m-%d')
-        entry['display_date'] = dt.strftime('%B %d, %Y')
+        entry['display_date'] = f"{dt.strftime('%B')} {dt.day}"
         entry['display_day']  = dt.strftime('%A')
     entries.sort(key=lambda x: x['date'], reverse=True)
     return jsonify(entries)

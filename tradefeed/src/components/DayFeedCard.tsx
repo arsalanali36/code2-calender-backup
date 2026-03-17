@@ -11,8 +11,9 @@ import { motion, AnimatePresence } from 'motion/react';
 interface DayFeedCardProps {
   trades: Trade[];
   allTradeItems?: { date: string; images: string[]; tradeNum: number; pnl?: number; dayPnl?: number }[];
-  openViewer: (days: any[], dIdx: number, iIdx: number) => void;
+  openViewer: (days: any[], dIdx: number, iIdx: number, locked?: boolean) => void;
   onDateClick: () => void;
+  consolidate?: boolean;
 }
 
 // Integer amount, no symbol, no sign — color conveys direction
@@ -33,7 +34,7 @@ const MORE_OPTIONS = [
   { icon: <Flag className="w-4 h-4" />,     label: 'Mark for review' },
 ];
 
-export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems, openViewer, onDateClick }) => {
+export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems, openViewer, onDateClick, consolidate }) => {
   const [tradeIndex, setTradeIndex] = useState(0);
   const [imgIndex, setImgIndex]     = useState(0);
   const [showMenu, setShowMenu]     = useState(false);
@@ -168,7 +169,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
                   const idx = itemsList[i].images.indexOf(clickedUrl);
                   if (idx !== -1) { targetItemIdx = i; targetImgIdx = idx; break; }
                 }
-                openViewer(itemsList, targetItemIdx, targetImgIdx);
+                openViewer(itemsList, targetItemIdx, targetImgIdx, true);
               }}
             />
           </AnimatePresence>
@@ -210,8 +211,8 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
         </div>
       )}
 
-      {/* Trade switcher (O / T1 / T2 / C) + bookmark */}
-      <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+      {/* Trade switcher (O / T1 / T2 / C) + bookmark — hidden in consolidate mode */}
+      {!consolidate && <div className="px-4 pt-3 pb-1 flex items-center justify-between">
         <div className="flex gap-3 items-center">
           {trades.map((t, i) => {
             const label = getTradeLabel(i, trades.length);
@@ -235,7 +236,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
         <button className="text-zinc-400 hover:text-indigo-600 transition-colors">
           <Bookmark className="w-4 h-4" />
         </button>
-      </div>
+      </div>}
 
       {/* Actions row: heart + comment + day total */}
       <div className="px-4 py-2 flex items-center gap-4">

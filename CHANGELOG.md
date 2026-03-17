@@ -1,6 +1,18 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 17, 2026
+
+### v2.9.7 — Mobile Bug Blitz + Stats→Viewer Navigation + Feed Slider
+
+- **Critical z-index bug fixed (all 5 overlays):** Bottom sheets (filter, menu, chart picker, day detail, tile picker) were trapped behind BottomNav. Root cause: framer-motion `transform` on the page-transition `<motion.div>` creates a permanent stacking context — any `position: fixed` inside is relative to that context (z=10), so BottomNav (z=50 at root) always wins. Fix: all overlays now use `createPortal(<AnimatePresence>...</AnimatePresence>, document.body)` — renders directly into body, bypasses stacking context entirely.
+- **Feed P&L filter — dual range slider:** Replaced two number input boxes with a styled dual-range slider. Two overlapping `<input type="range">` with CSS thumb pointer-events and an indigo fill track. Max derived from actual data (`maxDayAmt`). Compact, touch-friendly.
+- **Stats W/L combined tile:** Merged separate "Win Rate" tile into a single W/L tile showing wins / losses with win rate % below. Cleaner at a glance.
+- **Stats day detail — swipe + nav arrows:** Day detail sheet is now swipeable left/right (`drag="x"`) to jump between trading days. Added ‹ › arrows in the header. Trade list reformatted: `T# | Lot | P&L | Running Total` grid (no instrument name, running cumulative total per row).
+- **Stats trade row → viewer:** Tapping any trade row in the day detail sheet opens the fullscreen image viewer at that exact trade. Swipe back returns to day detail. `openViewer` prop wired from `App.tsx` → `DashboardView`.
+- **Blog: date instead of version in dropdown/badge:** Dropdown and entry badge now show `display_date` (e.g. "March 9") instead of version string. `page_routes.py` formats as `strftime('%B') + day` (no leading zero, no year).
+- **Fullscreen viewer header redesign:** Day total pill (green/red) shown LEFT of date badge. O/T1/C trade labels in header are clickable to switch trades; hidden if pnl=0. Non-locked nav: dedicated "Nav" button in sidebar toggles ↑←→↓ arrows + zoom slider without entering locked mode.
+
 ## EOD Summary - March 14, 2026
 
 ### v2.9.4 — Mobile Fullscreen UX: Gestures, Per-Trade Count, Landscape Lock

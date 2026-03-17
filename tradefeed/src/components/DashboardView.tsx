@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Trade } from '../types';
 import { X, BarChart2, CheckSquare, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -7,6 +8,7 @@ const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString('en-IN');
 
 interface DashboardViewProps {
   trades: Trade[];
+  openViewer: (days: any[], dIdx: number, iIdx: number, locked?: boolean) => void;
 }
 
 const AVAILABLE_CHARTS = [
@@ -19,9 +21,10 @@ const AVAILABLE_CHARTS = [
   { id: 'streak',   label: 'Win/Loss Streak' },
 ];
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ trades, openViewer }) => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate]     = useState('');
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [showChartPicker, setShowChartPicker] = useState(false);
   const [enabledCharts, setEnabledCharts] = useState<Set<string>>(() => {
     try {
@@ -78,6 +81,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
   filtered.forEach(t => { if (t.date) dayPnlMap[t.date] = (dayPnlMap[t.date] || 0) + t.pnl; });
   const dayEntries = Object.entries(dayPnlMap).sort(([a], [b]) => a.localeCompare(b));
   const maxDayAbs  = Math.max(1, ...dayEntries.map(([, v]) => Math.abs(v)));
+
+  // All trade items for fullscreen viewer (sorted by date desc)
+  const allTradeItems = Object.keys(dayPnlMap).sort((a, b) => b.localeCompare(a)).flatMap(d => {
+    const dTrades = filtered.filter(t => t.date === d);
+    return dTrades.map((t, idx) => ({
+      date: d, images: t.chartUrls, tradeNum: idx + 1, pnl: t.pnl, dayPnl: dayPnlMap[d]
+    }));
+  });
 
   // Session breakdown
   const sessionCount = { Morning: 0, Afternoon: 0, Evening: 0 };
@@ -169,10 +180,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
               {dayEntries.slice(-30).map(([date, pnl]) => {
                 const heightPct = (Math.abs(pnl) / maxDayAbs) * 100;
                 return (
-                  <div key={date} className="flex-1 flex flex-col items-center justify-end" style={{ height: '100%' }}>
+                  <div key={date} className="flex-1 flex flex-col items-center justify-end cursor-pointer" style={{ height: '100%' }}
+                    onClick={() => setSelectedDay(date)}>
                     <div
                       style={{ height: `${heightPct}%`, minHeight: 2 }}
-                      className={`w-full rounded-sm ${pnl >= 0 ? 'bg-emerald-400' : 'bg-rose-400'}`}
+                      className={`w-full rounded-sm transition-all ${pnl >= 0 ? 'bg-emerald-400 hover:bg-emerald-500' : 'bg-rose-400 hover:bg-rose-500'} ${selectedDay === date ? 'ring-2 ring-indigo-400' : ''}`}
                       title={`${date}: ₹${pnl.toLocaleString()}`}
                     />
                   </div>
@@ -188,9 +200,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
           <div className="grid grid-cols-2 gap-3">
             {enabledCharts.has('winrate') && (
               <div className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase">Win Rate</span>
-                <p className="text-xl font-bold text-zinc-900">{winRate}%</p>
-                <p className="text-[10px] text-zinc-400">{wins.length}W / {losses.length}L</p>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase">W / L</span>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <p className="text-xl font-bold text-emerald-600">{wins.length}</p>
+                  <p className="text-sm font-bold text-zinc-300">/</p>
+                  <p className="text-xl font-bold text-rose-600">{losses.length}</p>
+                </div>
+                <p className="text-[10px] text-zinc-400">{winRate}% win rate</p>
               </div>
             )}
             {enabledCharts.has('pf') && (
@@ -263,13 +279,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
       </div>
 
       {/* Chart picker modal */}
-      <AnimatePresence>
-        {showChartPicker && (
-          <motion.div
+      {createPortal(
+        <AnimatePresence>
+          {showChartPicker && <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40"
             onClick={() => setShowChartPicker(false)}
           >
             <motion.div
@@ -277,7 +293,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="w-full max-w-md bg-white rounded-t-2xl p-5 pb-8"
+              className="w-full max-w-md bg-white rounded-t-2xl p-5 pb-8 max-h-[80vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -304,9 +320,104 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ trades }) => {
                 ))}
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </motion.div>}
+        </AnimatePresence>
+      , document.body)}
+
+      {/* Day detail bottom sheet */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedDay && (() => {
+          const dayTrades = filtered.filter(t => t.date === selectedDay);
+          const dayPnlVal = dayTrades.reduce((s, t) => s + t.pnl, 0);
+          const dayWins = dayTrades.filter(t => t.pnl > 0).length;
+          const dayLoss = dayTrades.filter(t => t.pnl < 0).length;
+          const dayLots = dayTrades.reduce((s, t) => s + (t.stats?.positionSize || 0), 0);
+          const dayKeys = Object.keys(dayPnlMap).sort();
+          const curDayIdx = dayKeys.indexOf(selectedDay);
+          return (
+            <motion.div
+              key="day-detail-overlay"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40"
+              onClick={() => setSelectedDay(null)}
+            >
+              <motion.div
+                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(e, info) => {
+                  if (Math.abs(info.offset.x) > 60) {
+                    if (info.offset.x < 0 && curDayIdx < dayKeys.length - 1) setSelectedDay(dayKeys[curDayIdx + 1]);
+                    else if (info.offset.x > 0 && curDayIdx > 0) setSelectedDay(dayKeys[curDayIdx - 1]);
+                  }
+                }}
+                className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-5 pb-20 max-h-[80vh] overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    {curDayIdx > 0 && (
+                      <button onClick={() => setSelectedDay(dayKeys[curDayIdx - 1])} className="text-zinc-400 hover:text-zinc-700 p-1">‹</button>
+                    )}
+                    <h3 className="text-base font-bold text-zinc-900">{selectedDay}</h3>
+                    {curDayIdx < dayKeys.length - 1 && (
+                      <button onClick={() => setSelectedDay(dayKeys[curDayIdx + 1])} className="text-zinc-400 hover:text-zinc-700 p-1">›</button>
+                    )}
+                  </div>
+                  <button onClick={() => setSelectedDay(null)}><X className="w-5 h-5 text-zinc-400" /></button>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-zinc-50 rounded-xl p-3">
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold">P&amp;L</p>
+                    <p className={`text-lg font-bold ${dayPnlVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(dayPnlVal)}</p>
+                  </div>
+                  <div className="bg-zinc-50 rounded-xl p-3">
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold">W / L</p>
+                    <p className="text-lg font-bold text-zinc-900"><span className="text-emerald-600">{dayWins}</span><span className="text-zinc-300 mx-0.5">/</span><span className="text-rose-600">{dayLoss}</span></p>
+                  </div>
+                  <div className="bg-zinc-50 rounded-xl p-3">
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold">Lots</p>
+                    <p className="text-lg font-bold text-zinc-900">{dayLots}</p>
+                  </div>
+                </div>
+                {/* Trade list: T# | Lot | Amt | Running total */}
+                <div className="space-y-1.5">
+                  <div className="grid grid-cols-4 gap-1 px-2 mb-1">
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase">Trade</span>
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase text-right">Lot</span>
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase text-right">P&L</span>
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase text-right">Total</span>
+                  </div>
+                  {dayTrades.map((t, i) => {
+                    const running = dayTrades.slice(0, i + 1).reduce((s, x) => s + x.pnl, 0);
+                    const hasImages = t.chartUrls && t.chartUrls.length > 0;
+                    return (
+                      <div
+                        key={t.id}
+                        className={`grid grid-cols-4 gap-1 px-3 py-2 bg-zinc-50 rounded-lg items-center transition-colors ${hasImages ? 'cursor-pointer active:bg-zinc-200' : ''}`}
+                        onClick={() => {
+                          if (!hasImages) return;
+                          const startIdx = allTradeItems.findIndex(item => item.date === selectedDay && item.tradeNum === i + 1);
+                          if (startIdx !== -1) openViewer(allTradeItems, startIdx, 0);
+                        }}
+                      >
+                        <span className="text-xs font-bold text-zinc-500">T{i + 1}{hasImages ? ' ›' : ''}</span>
+                        <span className="text-xs font-mono text-zinc-600 text-right">{t.stats.positionSize || '—'}</span>
+                        <span className={`text-xs font-bold text-right ${t.pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{t.pnl >= 0 ? '+' : ''}{fmt(t.pnl)}</span>
+                        <span className={`text-xs font-bold text-right ${running >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(running)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+        </AnimatePresence>
+      , document.body)}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trade } from '../types';
 import { ChevronLeft, ChevronRight, X, BarChart2, CheckSquare, Square,
          TrendingUp, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
@@ -125,7 +126,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ trades, openViewer }
   const totalIsProfit = showTotal >= 0;
 
   return (
-    <div className="max-w-md mx-auto pt-6 px-4 pb-24">
+    <div className="max-w-md mx-auto pt-6 px-4 pb-32">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <h1 className="text-2xl font-bold text-zinc-900 mr-1">Cal</h1>
@@ -268,13 +269,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ trades, openViewer }
       )}
 
       {/* Tile picker modal */}
-      <AnimatePresence>
-        {showTilePicker && (
-          <motion.div
+      {createPortal(
+        <AnimatePresence>
+          {showTilePicker && <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40"
             onClick={() => setShowTilePicker(false)}
           >
             <motion.div
@@ -282,7 +283,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ trades, openViewer }
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="w-full max-w-md bg-white rounded-t-2xl p-5 pb-8"
+              className="w-full max-w-md bg-white rounded-t-2xl p-5 pb-8 max-h-[80vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -309,9 +310,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ trades, openViewer }
                 ))}
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </motion.div>}
+        </AnimatePresence>
+      , document.body)}
     </div>
   );
 };

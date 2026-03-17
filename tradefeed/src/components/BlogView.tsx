@@ -17,10 +17,6 @@ export const BlogView: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const postRefs     = useRef<Record<string, HTMLElement | null>>({});
 
-  const [thumbY, setThumbY]         = useState<number | null>(null);
-  const [scrubLabel, setScrubLabel] = useState<string | null>(null);
-  const timelineRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     fetchBlogPosts()
       .then(p => { setPosts(p); setLoading(false); })
@@ -31,32 +27,34 @@ export const BlogView: React.FC = () => {
     <div className="max-w-md mx-auto pt-16 pb-24 px-4 text-center text-zinc-500 text-sm">Loading...</div>
   );
 
-  const timelineDates = posts
-    .map(p => p.date ? p.date.slice(0, 7) : '')
-    .filter((v, i, a) => v && a.indexOf(v) === i);
-
-  const handleTimelineMove = (clientY: number) => {
-    const el = timelineRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const pct  = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    const idx  = Math.round(pct * (timelineDates.length - 1));
-    const label = timelineDates[idx];
-    setThumbY(pct * rect.height);
-    setScrubLabel(label);
-    const matchPost = posts.find(p => p.date && p.date.startsWith(label));
-    if (matchPost && postRefs.current[matchPost.id]) {
-      postRefs.current[matchPost.id]!.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   return (
     <div className="relative min-h-screen bg-zinc-950">
       {/* Main scrollable content */}
-      <div className="max-w-md mx-auto pb-24 pt-6 px-4 pr-10" ref={containerRef}>
+      <div className="max-w-md mx-auto pb-24 pt-6 px-4" ref={containerRef}>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white tracking-tight">Dev Journey</h1>
-          <p className="text-xs text-zinc-500">Building this app — one bug at a time</p>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-bold text-white tracking-tight">Dev Journal</h1>
+            <span className="text-[11px] text-zinc-500 font-bold">{posts.length} entries</span>
+          </div>
+          <div className="relative">
+            <select
+              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-300 text-sm rounded-xl px-3 py-2 outline-none appearance-none cursor-pointer"
+              defaultValue=""
+              onChange={e => {
+                const id = e.target.value;
+                if (id && postRefs.current[id]) {
+                  postRefs.current[id]!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                e.target.value = '';
+              }}
+            >
+              <option value="" disabled>Jump to entry...</option>
+              {posts.map(p => (
+                <option key={p.id} value={p.id}>{p.display_date} — {p.short_title}</option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">▾</div>
+          </div>
         </div>
 
         {posts.map(post => (
@@ -69,9 +67,8 @@ export const BlogView: React.FC = () => {
             <div className="px-4 pt-4 pb-3">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span className="text-[10px] font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-full">
-                  {post.version}
+                  {post.display_date}
                 </span>
-                <span className="text-[10px] text-zinc-500">{post.display_date}</span>
               </div>
               <p className="text-sm font-bold text-white leading-snug">{post.emoji} {post.short_title}</p>
               <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{post.summary}</p>
@@ -95,46 +92,6 @@ export const BlogView: React.FC = () => {
             </div>
           </article>
         ))}
-      </div>
-
-      {/* Timeline scrubber */}
-      <div
-        ref={timelineRef}
-        className="fixed top-0 right-0 bottom-20 w-8 flex flex-col items-center justify-between py-16 z-20 cursor-pointer"
-        onMouseMove={e => handleTimelineMove(e.clientY)}
-        onMouseLeave={() => { setThumbY(null); setScrubLabel(null); }}
-        onTouchMove={e => handleTimelineMove(e.touches[0].clientY)}
-        onTouchEnd={() => { setThumbY(null); setScrubLabel(null); }}
-      >
-        {timelineDates.map((ym, i) => {
-          const isYear = ym.endsWith('-01') || i === 0;
-          return (
-            <div
-              key={ym}
-              className={`w-1 rounded-full transition-all ${isYear ? 'h-2 bg-zinc-600' : 'h-1 bg-zinc-700'}`}
-              onClick={() => {
-                const matchPost = posts.find(p => p.date && p.date.startsWith(ym));
-                if (matchPost && postRefs.current[matchPost.id]) {
-                  postRefs.current[matchPost.id]!.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-            />
-          );
-        })}
-
-        {thumbY !== null && (
-          <div
-            className="absolute right-1 pointer-events-none flex items-center gap-1"
-            style={{ top: thumbY - 10 }}
-          >
-            {scrubLabel && (
-              <span className="text-[10px] font-bold text-white bg-zinc-700 px-2 py-0.5 rounded whitespace-nowrap -translate-x-full">
-                {new Date(scrubLabel + '-01').toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })}
-              </span>
-            )}
-            <div className="w-2.5 h-2.5 rounded-full bg-zinc-400 border-2 border-zinc-900 shadow" />
-          </div>
-        )}
       </div>
 
       <style>{`
