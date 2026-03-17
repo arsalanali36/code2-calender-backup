@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
 import { TagChip } from './TagChip';
+import { AudioPlayer } from './AudioPlayer';
 import {
   TrendingUp, TrendingDown, MoreHorizontal,
   Heart, MessageSquare, ChevronLeft, ChevronRight,
@@ -220,7 +221,7 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              <div className={`absolute ${trade.audios?.[trade.chartUrls[imgIndex]] ? 'bottom-14' : 'bottom-3'} left-1/2 -translate-x-1/2 flex gap-1.5 transition-all`}>
                 {trade.chartUrls.map((_, i) => (
                   <button key={i} onClick={() => setImgIndex(i)}
                     className={`h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/50 w-1.5'}`} />
@@ -234,10 +235,19 @@ export const DayFeedCard: React.FC<DayFeedCardProps> = ({ trades, allTradeItems,
             {imgIndex + 1}/{trade.chartUrls.length}
           </div>
 
-          {/* Audio badge — yellow ▶ when this image has an audio note */}
+          {/* Audio player overlay — shown when this image has an audio note */}
           {trade.audios?.[trade.chartUrls[imgIndex]] && (
-            <div className="absolute bottom-3 left-3 bg-[#f5c518] text-black text-[10px] font-black px-2 py-0.5 rounded shadow-sm leading-tight select-none">
-              ▶
+            <div
+              className="absolute bottom-8 left-2 right-2 z-10"
+              onTouchStart={e => e.stopPropagation()}
+              onTouchEnd={e => e.stopPropagation()}
+              onTouchMove={e => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
+            >
+              <AudioPlayer
+                key={trade.audios[trade.chartUrls[imgIndex]]}
+                audioUrl={trade.audios[trade.chartUrls[imgIndex]]}
+              />
             </div>
           )}
         </div>
