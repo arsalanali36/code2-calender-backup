@@ -1005,3 +1005,20 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.2; }
 }
+
+/* Audio indicator on thumbnails */
+.gv2-thumb-audio-icon {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 0.7rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 10;
+  background: #f5c518;
+  color: #000;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}

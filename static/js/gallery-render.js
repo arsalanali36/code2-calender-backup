@@ -518,6 +518,15 @@ function renderGallery() {
 
     wrap.appendChild(t); wrap.appendChild(del);
 
+    // Audio indicator badge
+    if (typeof getAudioForImage === 'function' && getAudioForImage(url, itemDate || state.gallery.date || '')) {
+      const ai = document.createElement('span');
+      ai.className = 'gv2-thumb-audio-icon';
+      ai.textContent = '▶';
+      ai.title = 'Audio note attached';
+      wrap.appendChild(ai);
+    }
+
     if (state.gallery.showTime && state.gallery.imageTimes && state.gallery.imageTimes[url]) {
       const timeLbl = document.createElement('div');
       timeLbl.textContent = state.gallery.imageTimes[url];
