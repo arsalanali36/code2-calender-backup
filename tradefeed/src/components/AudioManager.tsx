@@ -12,6 +12,35 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 const BASE_URL = (import.meta as any).env?.VITE_API_URL ?? '';
 
+// ─── Recording helpers ────────────────────────────────────────────────────────
+// Pick best supported MIME type: WebM (Chrome/Android) → MP4 (iOS Safari) → fallback
+function getBestMimeType(): string {
+  if (typeof MediaRecorder === 'undefined') return '';
+  const preferred = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4',
+    'audio/ogg;codecs=opus',
+  ];
+  return preferred.find(t => MediaRecorder.isTypeSupported(t)) ?? '';
+}
+
+// Extension for a MIME type (used in filename sent to backend)
+function mimeToExt(mime: string): string {
+  if (mime.includes('mp4'))  return '.mp4';
+  if (mime.includes('ogg'))  return '.ogg';
+  return '.webm';
+}
+
+// Check if recording is possible (requires secure context or localhost)
+function canRecord(): string | null {
+  if (typeof MediaRecorder === 'undefined')
+    return 'Recording not supported in this browser';
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+    return 'Mic unavailable — open app over HTTPS';
+  return null; // ok
+}
+
 // ─── URL helpers ─────────────────────────────────────────────────────────────
 function toRawPath(url: string): string {
   if (!url) return '';
@@ -117,7 +146,9 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
   const recRafRef    = useRef<number>(0);
   const mediaRecRef  = useRef<MediaRecorder | null>(null);
   const chunksRef    = useRef<Blob[]>([]);
+  const mimeTypeRef  = useRef<string>('');
   const [recSecs, setRecSecs] = useState(0);
+  const [recError, setRecError] = useState<string | null>(null);
   const recTimerRef  = useRef<ReturnType<typeof setInterval>>();
 
   // ── Sync prop → state when image changes ───────────────────────────────────
@@ -126,6 +157,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
     stopRecState();
     setCurrentUrl(initUrl);
     setMode('idle');
+    setRecError(null);
     setPbLoaded(false);
     setPbCurrent(0);
     setPbDuration(0);
@@ -336,9 +368,18 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
   async function startRecording(e: React.MouseEvent) {
     e.stopPropagation();
     stopPb();
+    setRecError(null);
+
+    // Check browser compatibility
+    const err = canRecord();
+    if (err) { setRecError(err); return; }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream);
+      const mime = getBestMimeType();
+      mimeTypeRef.current = mime;
+      const recOpts = mime ? { mimeType: mime } : undefined;
+      const rec = new MediaRecorder(stream, recOpts);
       mediaRecRef.current = rec;
       chunksRef.current = [];
       rec.ondataavailable = ev => { if (ev.data.size > 0) chunksRef.current.push(ev.data); };
@@ -356,7 +397,17 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
         });
       }, 1000);
       startRecAnim();
-    } catch { /* mic denied */ }
+    } catch (err: any) {
+      const name = err?.name || '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError')
+        setRecError('Mic permission denied');
+      else if (name === 'NotFoundError' || name === 'DevicesNotFoundError')
+        setRecError('No microphone found');
+      else if (name === 'NotSupportedError')
+        setRecError('Open app over HTTPS to record');
+      else
+        setRecError('Mic unavailable — use HTTPS');
+    }
   }
 
   function stopRecording(e?: React.MouseEvent) {
@@ -375,7 +426,9 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
 
     setMode('saving');
     try {
-      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const mime = mimeTypeRef.current || 'audio/webm';
+      const ext  = mimeToExt(mime);
+      const blob = new Blob(chunks, { type: mime });
 
       // If replacing old audio, delete it first
       if (currentUrl) {
@@ -388,7 +441,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
 
       // Upload new recording
       const fd = new FormData();
-      fd.append('audio', blob, 'recording.webm');
+      fd.append('audio', blob, `recording${ext}`);
       const upRes = await fetch(`${BASE_URL}/api/upload-audio`, { method: 'POST', body: fd, credentials: 'include' });
       if (!upRes.ok) throw new Error('upload failed');
       const { url: newRawUrl } = await upRes.json();
@@ -456,17 +509,27 @@ export const AudioManager: React.FC<AudioManagerProps> = ({ audioUrl: initUrl, i
     );
   }
 
-  // No audio — show record CTA
+  // No audio — show record CTA (or error if mic unavailable)
   if (!currentUrl) {
     return (
-      <div className={pill} onClick={e => e.stopPropagation()}>
-        <button
-          onClickCapture={startRecording}
-          className="flex items-center gap-2 text-white/70 hover:text-white active:scale-95 transition-all w-full justify-center py-0.5"
-        >
-          <span className="text-base leading-none">🎤</span>
-          <span className="text-xs font-medium">Record audio note</span>
-        </button>
+      <div className="flex flex-col gap-1" onClick={e => e.stopPropagation()}>
+        <div className={pill}>
+          <button
+            onClickCapture={startRecording}
+            className="flex items-center gap-2 text-white/70 hover:text-white active:scale-95 transition-all w-full justify-center py-0.5"
+          >
+            <span className="text-base leading-none">🎤</span>
+            <span className="text-xs font-medium">Record audio note</span>
+          </button>
+        </div>
+        {recError && (
+          <div className="bg-red-900/70 backdrop-blur-sm rounded-xl px-3 py-1.5 text-center">
+            <span className="text-[10px] text-red-300 font-medium">{recError}</span>
+            {recError.includes('HTTPS') && (
+              <p className="text-[9px] text-red-400/70 mt-0.5">Recording requires a secure connection</p>
+            )}
+          </div>
+        )}
       </div>
     );
   }
