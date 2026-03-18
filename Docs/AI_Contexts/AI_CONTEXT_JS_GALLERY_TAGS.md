@@ -1,8 +1,8 @@
-# JS — Gallery Tags (tag cloud / filter)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Tags
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-tags.js`
+## File: `static/js/gallery-tags.js`
 ```js
 /**
  * @fileoverview gallery-tags.js
@@ -400,7 +400,7 @@ function renderGalleryTagsTray() {
 
 ```
 
-## File: `static\js\gallery-tags-filter.js`
+## File: `static/js/gallery-tags-filter.js`
 ```js
 /**
  * @fileoverview gallery-tags-filter.js

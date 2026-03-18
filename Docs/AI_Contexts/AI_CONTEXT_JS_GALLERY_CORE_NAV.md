@@ -1,8 +1,8 @@
-# JS — Gallery Core & Nav (core / nav)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Core and Nav
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-core.js`
+## File: `static/js/gallery-core.js`
 ```js
 /**
  * @fileoverview gallery-core.js
@@ -202,10 +202,23 @@ function getCurrentGalleryPreserveContext() {
   return { url, date: normalizeDate(ctx.date || ''), sourceRow: ctx.sourceRow ?? null };
 }
 
+function _getGalleryThumbImages() {
+  const { images, tagFilter, _filteredMeta } = state.gallery;
+  const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
+  return (images || []).map((url, i) => {
+    let date = state.gallery.date;
+    let sourceRow = state.gallery.sourceRow;
+    if (filteredMode && _filteredMeta) {
+      const meta = _filteredMeta[i];
+      if (meta && meta.url === url) { date = meta.date || ''; sourceRow = meta.sourceRow ?? null; }
+    }
+    return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow };
+  }).filter(item => !!item.url);
+}
 
 ```
 
-## File: `static\js\gallery-nav.js`
+## File: `static/js/gallery-nav.js`
 ```js
 /**
  * @fileoverview gallery-nav.js
@@ -250,7 +263,8 @@ function loadOverlayForCurrentImage() {
 
   canvas.style.pointerEvents = 'none'; // view-only, no drawing
   canvas.style.cursor = 'default'; // prevent crosshair from .annot-canvas CSS showing over image
-  canvas.style.display = 'block';
+  // Keep canvas hidden until we're ready to draw — prevents flash of stale content
+  canvas.style.display = 'none';
 
   const boxes = unpackMarqueeBoxes(packedBoxes, w, h);
   const drawBoxes = () => {
@@ -259,7 +273,6 @@ function loadOverlayForCurrentImage() {
 
   if (!overlayUrl && !boxes.length) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.style.display = 'none';
     return;
   }
 
@@ -271,6 +284,7 @@ function loadOverlayForCurrentImage() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(ovImg, 0, 0, canvas.width, canvas.height);
       drawBoxes();
+      canvas.style.display = 'block';
     };
     ovImg.onerror = () => {
       const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex];
@@ -282,17 +296,19 @@ function loadOverlayForCurrentImage() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(retryImg, 0, 0, canvas.width, canvas.height);
           drawBoxes();
+          canvas.style.display = 'block';
         };
-        retryImg.src = localUrl;
+        retryImg.src = resolveImageUrl(localUrl);
         return;
       }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (boxes.length) drawBoxes();
+      if (boxes.length) { drawBoxes(); canvas.style.display = 'block'; }
     };
-    ovImg.src = overlayUrl;
+    ovImg.src = resolveImageUrl(overlayUrl);
   } else {
     ctx.clearRect(0, 0, w, h);
     drawBoxes();
+    canvas.style.display = 'block';
   }
 
   applyZoom();
@@ -358,7 +374,9 @@ function navigateGalleryDate(dir) {
         state.gallery.sourceRow = ctx.sourceRow ?? null;
       }
       state.gallery._skipFilterRescopeOnce = true;
+      state.gallery.imageTimes = {};
       renderGallery(); updateGalleryDateArrows();
+      if (state.gallery.showTime) fetchImageTimesForGallery();
     }
     return;
   }
@@ -390,10 +408,13 @@ function navigateGalleryDate(dir) {
   const images = getImagesForDate(nextDate);
   if (images.length) {
     state.gallery.images = images;
+    state.gallery._baseImages = [...images];
     state.gallery.currentIndex = 0;
     state.gallery.date = nextDate;
     state.gallery.sourceRow = null;
+    state.gallery.imageTimes = {};
     renderGallery(); updateGalleryDateArrows();
+    if (state.gallery.showTime) fetchImageTimesForGallery();
   }
 }
 

@@ -1,6 +1,25 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 18, 2026
+
+### v2.9.9 — Gallery SVG Icons, Colored Sidebar, Fullscreen Fixes, Video Cleanup
+
+- **Gallery sidebar SVG icons:** Replaced emoji/unicode buttons (🏷️, ⊞, ✤, ⬆, 👁, 🏭, ⋮) with proper inline SVG icons — tag, grid, layers, upload, eye, filter, three-dot.
+- **Per-icon colors with hover glow:** Each sidebar icon has its own CSS variable color (blue, cyan, green, purple, orange, teal, grey). Hover triggers subtle `text-shadow` glow matching the icon color.
+- **Active state neutral:** `.gv2-sb-btn.active` changed from always-blue (`rgba(88,166,255,0.15)`) to neutral white tint — works with any icon color.
+- **Dark glass dropdown polish:** `.dropdown-menu` now has frosted glass background (`backdrop-filter: blur(15px)`), dark border, large border-radius, subtle box-shadow. Each dropdown item (download, replace, add, copy, share, mark review, marquee, time, tag, obs, delete) gets its own icon color with glow-on-hover.
+- **Arrow keys → FullscreenViewer:** When fullscreen viewer is open (`#fullscreen-viewer` display=flex), arrow keys (←→↑↓) now route to `FullscreenViewer.prevImg/nextImg/prevDay/nextDay` instead of gallery navigation.
+- **F key → locked fullscreen:** `openFullscreenFromAppContext` now accepts `startLocked=true`. F key passes this — fullscreen opens directly in locked mode.
+- **`startLocked` param in FullscreenViewer.open():** `open(daysData, startDayIdx, startImgIdx, startLocked)` — viewer initialises `isLocked` from param instead of always `false`.
+- **Info bar simplified:** Removed date from the inline info text — now shows `T1 · 2/5` only (date is already in the tray).
+- **Instrument name removed from dropdowns:** P&L dropdown rows and trade dropdown rows no longer show instrument name — cleaner.
+- **Video/audio cleanup on delete:** `removeGalleryImageAt` now deletes associated `videos` and `audios` entries when an image is removed. Batch delete also cleans video/audio by URL or reverse-key lookup.
+- **`isTradeItem` helper:** `getOwnerTradeForImageUrl` now checks `t.videos` object values in addition to `t.images` and `t.subImages` — video-linked images resolve correctly.
+- **Gallery picker — inline open:** "New" gallery layout no longer opens in a new tab with URL params; calls `openGalleryForDate()` directly (same-page, no tab switch).
+- **Left panel + settings tray resize — viewport-aware:** Max resize width is now `min(480, window.innerWidth * 0.45)` instead of hardcoded `400`/`480` — respects narrow screens.
+- **gallery-image-ops.js split (30KB rule):** File was 30.5KB → split into `gallery-image-ops.js` (core: getOwner, syncOrder, reorder, move, undo, remove) + `gallery-image-ops-b.js` (batch: handleReorderBatch, handleDropAsSubImage). Both added to `index.html` load order.
+
 ## EOD Summary - March 17, 2026
 
 ### v2.9.8 — F-Key Fullscreen Viewer: Trading Tray Redesign

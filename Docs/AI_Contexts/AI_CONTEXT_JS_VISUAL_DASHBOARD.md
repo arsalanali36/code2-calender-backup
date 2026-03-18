@@ -1,8 +1,8 @@
-# JS — Visual Dashboard Charts & Render (visual-dashboard.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Visual Dashboard
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\visual-dashboard.js`
+## File: `static/js/visual-dashboard.js`
 ```js
 /**
  * @fileoverview visual-dashboard.js
@@ -149,6 +149,18 @@ function getVdTrades() {
     });
 }
 
+function vdFmtDateLabel(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d)) return dateStr;
+    return `${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}, ${d.toLocaleString('default', { weekday: 'short' })}`;
+}
+
+function vdMakeTooltip(label, value) {
+    return `<div style="padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;">`
+        + `<div><strong>${label}:</strong> ${value}</div></div>`;
+}
+
 function renderVisualDashboard() {
     updateVdRangeLabel();
 
@@ -202,26 +214,31 @@ function renderVisualDashboard() {
         let run = 0;
         sorted.forEach(d => {
             const v = pMap.get(d) || 0;
-            res.dailyPlData.push(v.toFixed(2));
+            res.dailyPlData.push(Math.round(v));
             run += v;
-            res.cumulativeData.push(run.toFixed(2));
+            res.cumulativeData.push(Math.round(run));
             res.dailyTradeCountData.push(cMap.get(d) || 0);
             res.dailyQtyData.push(qMap.get(d) || 0);
-            res.dailyPointsData.push((ptMap.get(d) || 0).toFixed(2));
+            res.dailyPointsData.push(Math.round(ptMap.get(d) || 0));
             res.dailyFcData.push(fMap.get(d) || 0);
             const bps = bpSMap.get(d) || 0, bpc = bpCMap.get(d) || 0;
-            res.avgBuyPriceData.push(bpc > 0 ? (bps / bpc).toFixed(2) : "0.00");
+            res.avgBuyPriceData.push(bpc > 0 ? Math.round(bps / bpc) : 0);
 
             let ds = d;
             if (ds.startsWith('T')) {
                 const m = ds.match(/(T\d+) \((.*)\)/);
                 if (m) {
-                    const dobj = new Date(m[2]);
-                    if (!isNaN(dobj)) ds = `${m[1]} - ${dobj.getDate()} ${dobj.toLocaleString('default', { month: 'short' })}`;
+                    const dobj = new Date(m[2] + 'T00:00:00');
+                    if (!isNaN(dobj)) ds = `${m[1]} - ${dobj.toLocaleString('default', { month: 'short' })} ${dobj.getDate()}`;
                 }
             } else {
-                const dobj = new Date(ds);
-                if (!isNaN(dobj)) ds = `${dobj.getDate()} ${dobj.toLocaleString('default', { month: 'short' })}`;
+                const dobj = new Date(ds + 'T00:00:00');
+                if (!isNaN(dobj)) {
+                    const mon = dobj.toLocaleString('default', { month: 'short' });
+                    const day = dobj.getDate();
+                    const dow = dobj.toLocaleString('default', { weekday: 'short' });
+                    ds = [mon + ' ' + day, dow];
+                }
             }
             res.chartDates.push(ds);
         });
@@ -249,8 +266,9 @@ function renderVisualDashboard() {
         }
 
         const pt = parseFloat(t['Pt'] || t['Points']) || 0;
+        const lot = parseFloat(t['Qty'] || t['quantity'] || t['Qty.']) || 0;
         let d = normalizeDate(extractDateFromTrade(t));
-        pointsPerTradeData.push({ x: `T${totalTradesCount}`, y: pt, date: d || 'Unknown', amt: pnl });
+        pointsPerTradeData.push({ x: `T${totalTradesCount}`, y: pt, date: d || 'Unknown', amt: pnl, lot });
 
         // Strategy Map (Use 'Setup' or 'Tags' column)
         const setupStr = typeof getTradeTagsForColumn === 'function' && state && state.tagColumns && state.tagColumns.length > 0
@@ -307,7 +325,19 @@ function renderVisualDashboard() {
             borderColor: '#30363d',
             strokeDashArray: 4,
             padding: { top: 0, right: 10, bottom: 0, left: 10 }
-        }
+        },
+        dataLabels: { formatter: (val) => Math.round(val) },
+        responsive: [{
+            breakpoint: 769,
+            options: {
+                xaxis: { tickAmount: 5, labels: { rotate: -45, rotateAlways: true, style: { fontSize: '10px' } } },
+                yaxis: { labels: { style: { fontSize: '10px' } } },
+                chart: { toolbar: { show: false }, height: 200 },
+                grid: { padding: { left: 0, right: 0, top: 0, bottom: 0 } },
+                dataLabels: { style: { fontSize: '9px' } },
+                legend: { fontSize: '11px', itemMargin: { horizontal: 4 } }
+            }
+        }]
     };
 
     // Re-create charts instead of trying to update dynamically, to avoid issues
@@ -315,6 +345,17 @@ function renderVisualDashboard() {
     // 1. Cumulative Performance (Area Chart)
     if (vdCharts.cumulative) vdCharts.cumulative.destroy();
     const datCumul = getDat('cumulative');
+    const _vdMakeDateTooltip = (rawDates, values, label, prefix='₹') => ({
+        custom: function({ dataPointIndex }) {
+            const raw = rawDates[dataPointIndex];
+            const dateLbl = Array.isArray(raw) ? raw.join(', ') : vdFmtDateLabel(raw) || raw;
+            const val = values[dataPointIndex];
+            return `<div style="padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;line-height:1.8;">`
+                + `<div><strong>Date:</strong> ${dateLbl}</div>`
+                + `<div><strong>${label}:</strong> ${prefix}${Math.round(val).toLocaleString('en-IN')}</div></div>`;
+        }
+    });
+
     const optionsCumulative = {
         ...commonOptions,
         series: [{ name: 'Cumulative P/L (₹)', data: datCumul.cumulativeData.length ? datCumul.cumulativeData : [0] }],
@@ -327,7 +368,8 @@ function renderVisualDashboard() {
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 2 },
         xaxis: { categories: datCumul.chartDates.length ? datCumul.chartDates : ['No Data'], tooltip: { enabled: false } },
-        yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
+        yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } },
+        tooltip: _vdMakeDateTooltip(datCumul.chartDates, datCumul.cumulativeData, 'Cumulative P/L')
     };
     vdCharts.cumulative = new ApexCharts(document.querySelector("#chart-cumulative"), optionsCumulative);
     vdCharts.cumulative.render();
@@ -353,7 +395,8 @@ function renderVisualDashboard() {
         },
         dataLabels: { enabled: false },
         xaxis: { categories: datDaily.chartDates.length ? datDaily.chartDates : ['No Data'] },
-        yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
+        yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } },
+        tooltip: _vdMakeDateTooltip(datDaily.chartDates, datDaily.dailyPlData, 'Net P/L')
     };
     vdCharts.daily = new ApexCharts(document.querySelector("#chart-daily-pl"), optionsDaily);
     vdCharts.daily.render();
@@ -388,7 +431,7 @@ function renderVisualDashboard() {
     // Sort strategies by profitability
     const sortedStrats = Array.from(strategyPnlMap.entries()).sort((a, b) => b[1] - a[1]);
     let profitLabels = sortedStrats.map(e => e[0]);
-    let profitData = sortedStrats.map(e => e[1].toFixed(2));
+    let profitData = sortedStrats.map(e => Math.round(e[1]));
 
     if (profitData.length === 0) {
         profitLabels = ['No Data'];
@@ -474,7 +517,19 @@ function renderVisualDashboard() {
         yaxis: [
             { title: { text: 'Count' }, labels: { formatter: (val) => Math.floor(val) } },
             { opposite: true, title: { text: 'Quantity' }, labels: { formatter: (val) => Number(val).toLocaleString() } }
-        ]
+        ],
+        tooltip: {
+            custom: function({ dataPointIndex }) {
+                const raw = datQty.chartDates[dataPointIndex];
+                const dateLbl = Array.isArray(raw) ? raw.join(', ') : (vdFmtDateLabel(raw) || raw);
+                const count = datQty.dailyTradeCountData[dataPointIndex] || 0;
+                const qty = datQty.dailyQtyData[dataPointIndex] || 0;
+                return `<div style="padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;line-height:1.8;">`
+                    + `<div><strong>Date:</strong> ${dateLbl}</div>`
+                    + `<div><strong>Trades:</strong> ${count}</div>`
+                    + `<div><strong>Lot:</strong> ${qty}</div></div>`;
+            }
+        }
     });
     vdCharts.dailyQty.render();
 
@@ -490,10 +545,16 @@ function renderVisualDashboard() {
             type: 'gradient',
             gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] }
         },
-        dataLabels: { enabled: false },
+        dataLabels: {
+            enabled: true,
+            formatter: (val) => Math.round(val).toLocaleString('en-IN'),
+            style: { fontSize: '10px', colors: ['#d29922'] },
+            background: { enabled: true, foreColor: '#fff', borderRadius: 3, borderWidth: 0, opacity: 0.6 }
+        },
         stroke: { curve: 'smooth', width: 2 },
         xaxis: { categories: datPat.chartDates.length ? datPat.chartDates : ['No Data'] },
-        yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } }
+        yaxis: { labels: { formatter: (val) => "₹ " + Number(val).toLocaleString() } },
+        tooltip: _vdMakeDateTooltip(datPat.chartDates, datPat.dailyPlData, 'PAT Sum')
     });
     vdCharts.patSum.render();
 
@@ -521,12 +582,17 @@ function renderVisualDashboard() {
             custom: function ({ series, seriesIndex, dataPointIndex, w }) {
                 const data = pointsPerTradeData[dataPointIndex];
                 if (!data) return '';
+                const dobj = data.date && data.date !== 'Unknown' ? new Date(data.date + 'T00:00:00') : null;
+                const dateLbl = dobj && !isNaN(dobj)
+                    ? `${dobj.toLocaleString('default', { month: 'short' })} ${dobj.getDate()}, ${dobj.toLocaleString('default', { weekday: 'short' })}`
+                    : data.date;
                 return `
-                  <div style="padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;">
-                    <div><strong>Date:</strong> ${data.date}</div>
+                  <div style="padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;line-height:1.8;">
+                    <div><strong>Date:</strong> ${dateLbl}</div>
                     <div><strong>Trade:</strong> ${data.x}</div>
-                    <div><strong>PT:</strong> ${data.y}</div>
-                    <div><strong>AMT:</strong> ₹ ${data.amt.toFixed(2)}</div>
+                    <div><strong>PT:</strong> ${Math.round(data.y)}</div>
+                    <div><strong>Amt:</strong> ₹${Math.round(data.amt).toLocaleString('en-IN')}</div>
+                    <div><strong>Lot:</strong> ${data.lot}</div>
                   </div>
                 `;
             }
@@ -538,7 +604,7 @@ function renderVisualDashboard() {
     if (vdCharts.pointsSum) vdCharts.pointsSum.destroy();
     const datPoints = getDat('points_sum');
     let rPoints = 0;
-    const pointsCumulData = datPoints.dailyPointsData.map(p => { rPoints += parseFloat(p); return rPoints.toFixed(2); });
+    const pointsCumulData = datPoints.dailyPointsData.map(p => { rPoints += parseFloat(p); return Math.round(rPoints); });
     vdCharts.pointsSum = new ApexCharts(document.querySelector("#chart-points-sum"), {
         ...commonOptions,
         series: [{ name: 'Cumulative Points Sum', data: pointsCumulData.length ? pointsCumulData : [0] }],
@@ -583,7 +649,7 @@ function renderVisualDashboard() {
 
     applyVdStatVisibility();
     applyVdStatOrder();
-    applyVdCardWidths();
+    applyVdCardWidths(true);
 }
 
 // Ensure parsing PNL dynamically works safely

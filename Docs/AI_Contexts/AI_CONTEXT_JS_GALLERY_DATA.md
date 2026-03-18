@@ -1,8 +1,8 @@
-# JS — Gallery Data (gallery-data.js: overlays / marquee / image-times)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Data
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-data.js`
+## File: `static/js/gallery-data.js`
 ```js
 /**
  * @fileoverview gallery-data.js
@@ -21,6 +21,18 @@ This file contains the consolidated code context for the project to be used with
 function getImagesForDate(dateStr) {
   const out = [];
   (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
+
+  // Migrate old dayData.videos dict entries into the array (after their associated image)
+  const dayVideos = state.dayData[dateStr]?.videos;
+  if (dayVideos) {
+    Object.entries(dayVideos).forEach(([imgUrl, videoUrl]) => {
+      if (!videoUrl || out.includes(videoUrl)) return;
+      const idx = out.indexOf(imgUrl);
+      if (idx >= 0) out.splice(idx + 1, 0, videoUrl);
+      else out.push(videoUrl);
+    });
+  }
+
   getTradesForDate(dateStr).forEach(t => {
     if (
       (t['Time'] === '' || t['Time'] === undefined) &&
@@ -35,7 +47,18 @@ function getImagesForDate(dateStr) {
       return;
     }
     (t.images || []).forEach(url => out.push(url));
+
+    // Migrate old trade.videos dict entries into the array (after their associated image)
+    if (t.videos) {
+      Object.entries(t.videos).forEach(([imgUrl, videoUrl]) => {
+        if (!videoUrl || out.includes(videoUrl)) return;
+        const idx = out.indexOf(imgUrl);
+        if (idx >= 0) out.splice(idx + 1, 0, videoUrl);
+        else out.push(videoUrl);
+      });
+    }
   });
+
   (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
   return out;
 }
@@ -55,16 +78,9 @@ async function fetchImageTimesForGallery() {
   const urls = Array.from(urlSet);
   if (!urls.length) return;
   try {
-    const res = await fetch('/api/image-times', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ urls })
-    });
-    if (res.ok) {
-      const times = await res.json();
-      state.gallery.imageTimes = times;
-      renderGallery();
-    }
+    const times = await imageService.getImageTimes(urls);
+    state.gallery.imageTimes = times;
+    renderGallery();
   } catch (err) {
     console.error('Failed to fetch image times', err);
   }
@@ -347,6 +363,139 @@ function removeOverlayForImage(imageUrl, dateHint = '', sourceRow = null) {
   return changed;
 }
 
+// ── Audio per-image ───────────────────────────────────────────────────────────
+
+function getAudioForImage(imageUrl, dateHint = '') {
+  if (!imageUrl) return '';
+  if (dateHint) {
+    for (const t of getTradesForDate(dateHint)) {
+      if (t?.audios?.[imageUrl]) return t.audios[imageUrl];
+    }
+    const dayAudios = state.dayData[dateHint]?.audios;
+    if (dayAudios?.[imageUrl]) return dayAudios[imageUrl];
+  }
+  for (const t of state.trades) {
+    if (t?.audios?.[imageUrl]) return t.audios[imageUrl];
+  }
+  for (const d of Object.values(state.dayData || {})) {
+    if (d?.audios?.[imageUrl]) return d.audios[imageUrl];
+  }
+  return '';
+}
+
+function setAudioForCurrentGalleryImage(audioUrl) {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl || !audioUrl) return false;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!trade.audios) trade.audios = {};
+    trade.audios[imgUrl] = audioUrl;
+    return true;
+  }
+  if (state.gallery.date) {
+    if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+    if (!state.dayData[state.gallery.date].audios) state.dayData[state.gallery.date].audios = {};
+    state.dayData[state.gallery.date].audios[imgUrl] = audioUrl;
+    return true;
+  }
+  return false;
+}
+
+function deleteAudioForCurrentGalleryImage() {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl) return;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade?.audios) {
+    delete trade.audios[imgUrl];
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.audios) {
+    delete state.dayData[state.gallery.date].audios[imgUrl];
+  }
+}
+
+// ── isVideoUrl helper ────────────────────────────────────────────────────────
+function isVideoUrl(url) {
+  return /\.(webm|mp4|mov|avi)(\?|$)/i.test(url || '');
+}
+
+// ── Insert video URL after current gallery image (in images array) ────────────
+function insertVideoAfterCurrentGalleryImage(videoUrl) {
+  const curIdx = state.gallery.currentIndex;
+  const imgUrl = (state.gallery.images || [])[curIdx];
+  if (!imgUrl || !videoUrl) return false;
+
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!Array.isArray(trade.images)) trade.images = [];
+    const idx = trade.images.indexOf(imgUrl);
+    if (idx >= 0) trade.images.splice(idx + 1, 0, videoUrl);
+    else trade.images.push(videoUrl);
+  } else if (state.gallery.date) {
+    const dd = state.dayData[state.gallery.date] || {};
+    state.dayData[state.gallery.date] = dd;
+    if (!Array.isArray(dd.images)) dd.images = [];
+    const idx = dd.images.indexOf(imgUrl);
+    if (idx >= 0) dd.images.splice(idx + 1, 0, videoUrl);
+    else dd.images.push(videoUrl);
+  } else {
+    return false;
+  }
+
+  // Also update state.gallery.images so the gallery reflects immediately
+  if (!Array.isArray(state.gallery.images)) state.gallery.images = [];
+  state.gallery.images.splice(curIdx + 1, 0, videoUrl);
+  state.gallery.currentIndex = curIdx + 1;   // navigate to the new video
+  return true;
+}
+
+// ── Video per-image ───────────────────────────────────────────────────────────
+
+function getVideoForImage(imageUrl, dateHint = '') {
+  if (!imageUrl) return '';
+  if (dateHint) {
+    for (const t of getTradesForDate(dateHint)) {
+      if (t?.videos?.[imageUrl]) return t.videos[imageUrl];
+    }
+    const dayVideos = state.dayData[dateHint]?.videos;
+    if (dayVideos?.[imageUrl]) return dayVideos[imageUrl];
+  }
+  for (const t of state.trades) {
+    if (t?.videos?.[imageUrl]) return t.videos[imageUrl];
+  }
+  for (const d of Object.values(state.dayData || {})) {
+    if (d?.videos?.[imageUrl]) return d.videos[imageUrl];
+  }
+  return '';
+}
+
+function setVideoForCurrentGalleryImage(videoUrl) {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl || !videoUrl) return false;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade) {
+    if (!trade.videos) trade.videos = {};
+    trade.videos[imgUrl] = videoUrl;
+    return true;
+  }
+  if (state.gallery.date) {
+    if (!state.dayData[state.gallery.date]) state.dayData[state.gallery.date] = {};
+    if (!state.dayData[state.gallery.date].videos) state.dayData[state.gallery.date].videos = {};
+    state.dayData[state.gallery.date].videos[imgUrl] = videoUrl;
+    return true;
+  }
+  return false;
+}
+
+function deleteVideoForCurrentGalleryImage() {
+  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (!imgUrl) return;
+  const trade = getOwnerTradeForGalleryImage();
+  if (trade?.videos) {
+    delete trade.videos[imgUrl];
+  } else if (state.gallery.date && state.dayData[state.gallery.date]?.videos) {
+    delete state.dayData[state.gallery.date].videos[imgUrl];
+  }
+}
+
 function canvasHasVisibleInk(canvas) {
   if (!canvas || !canvas.width || !canvas.height) return false;
   const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
@@ -377,8 +526,7 @@ function autoSaveAnnotationSession(session) {
     const fd = new FormData();
     fd.append('image', blob, 'overlay.png');
     try {
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(fd.get('image'));
       if (!data.url) throw new Error();
       if (setOverlayUrlForImage(imageUrl, data.url, date, sourceRow)) {
         if (state._localOverlays?.[imageUrl]) delete state._localOverlays[imageUrl];

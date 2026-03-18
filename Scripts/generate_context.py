@@ -18,6 +18,8 @@ files_backend_processors = [
 ]
 files_memory_logs = [
     "CHANGELOG.md",
+]
+files_memory_history = [
     "Docs/Update_History.txt",
 ]
 
@@ -56,6 +58,7 @@ files_gallery_data = ["static/js/gallery-data.js"]
 
 # JS: Gallery Ops
 files_gallery_image_ops = ["static/js/gallery-image-ops.js"]
+files_gallery_image_ops_b = ["static/js/gallery-image-ops-b.js"]
 files_gallery_ops = ["static/js/gallery-ops.js"]
 files_gallery_ops_group = ["static/js/gallery-ops-group.js"]
 
@@ -79,7 +82,8 @@ files_visual_dashboard = ["static/js/visual-dashboard.js"]
 
 # JS: Events
 files_events_init = ["static/js/events.js", "static/js/events-keys.js"]
-files_events_ui_gallery = ["static/js/events-ui.js", "static/js/events-gallery.js"]
+files_events_ui = ["static/js/events-ui.js"]
+files_events_gallery = ["static/js/events-gallery.js"]
 files_events_settings = ["static/js/events-settings.js"]
 
 
@@ -87,7 +91,8 @@ def get_targets() -> List[Tuple[str, Sequence[str], str]]:
     return [
         ("AI_CONTEXT_BACKEND_APP.md", files_backend_app, "Backend - App and Config"),
         ("AI_CONTEXT_BACKEND_PROCESSORS.md", files_backend_processors, "Backend - Data Processors"),
-        ("AI_CONTEXT_MEMORY_LOGS.md", files_memory_logs, "Memory Logs - Changelog and Update History"),
+        ("AI_CONTEXT_MEMORY_LOGS.md", files_memory_logs, "Memory Logs - Changelog"),
+        ("AI_CONTEXT_MEMORY_HISTORY.md", files_memory_history, "Memory Logs - Update History"),
         ("AI_CONTEXT_HTML_INDEX.md", files_html_index, "HTML - Main Layout"),
         ("AI_CONTEXT_HTML_GALLERY.md", files_html_gallery, "HTML - Gallery Template"),
         ("AI_CONTEXT_HTML_VISUAL_DASHBOARD.md", files_html_visual_dashboard, "HTML - Visual Dashboard"),
@@ -110,6 +115,7 @@ def get_targets() -> List[Tuple[str, Sequence[str], str]]:
         ("AI_CONTEXT_JS_GALLERY_LAYER.md", files_gallery_layer, "JS - Gallery Layer"),
         ("AI_CONTEXT_JS_GALLERY_DATA.md", files_gallery_data, "JS - Gallery Data"),
         ("AI_CONTEXT_JS_GALLERY_IMAGE_OPS.md", files_gallery_image_ops, "JS - Gallery Image Ops"),
+        ("AI_CONTEXT_JS_GALLERY_IMAGE_OPS_B.md", files_gallery_image_ops_b, "JS - Gallery Image Ops Batch"),
         ("AI_CONTEXT_JS_GALLERY_OPS.md", files_gallery_ops, "JS - Gallery Ops"),
         ("AI_CONTEXT_JS_GALLERY_OPS_GROUP.md", files_gallery_ops_group, "JS - Gallery Group Ops"),
         ("AI_CONTEXT_JS_GALLERY_TAGS.md", files_gallery_tags, "JS - Gallery Tags"),
@@ -123,7 +129,8 @@ def get_targets() -> List[Tuple[str, Sequence[str], str]]:
         ("AI_CONTEXT_JS_VISUAL_DASHBOARD_STATS.md", files_visual_dashboard_stats, "JS - Visual Dashboard Stats"),
         ("AI_CONTEXT_JS_VISUAL_DASHBOARD.md", files_visual_dashboard, "JS - Visual Dashboard"),
         ("AI_CONTEXT_JS_EVENTS_INIT.md", files_events_init, "JS - Events Init and Keyboard"),
-        ("AI_CONTEXT_JS_EVENTS_UI_GALLERY.md", files_events_ui_gallery, "JS - Events UI and Gallery"),
+        ("AI_CONTEXT_JS_EVENTS_UI.md", files_events_ui, "JS - Events UI"),
+        ("AI_CONTEXT_JS_EVENTS_GALLERY.md", files_events_gallery, "JS - Events Gallery"),
         ("AI_CONTEXT_JS_EVENTS_SETTINGS.md", files_events_settings, "JS - Events Settings"),
     ]
 

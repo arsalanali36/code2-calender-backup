@@ -1,22 +1,19 @@
-# HTML — Visual Dashboard Charts (visual_dashboard.html)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# HTML - Visual Dashboard
+Consolidated code context for AI assistants.
 
 
-## File: `templates\visual_dashboard.html`
+## File: `templates/visual_dashboard.html`
 ```html
     <!-- ── VISUAL DASHBOARD ─────────────────── -->
     <section class="section visual-dashboard-section" style="margin-top: 20px;">
       <div class="section-header dashboard-header" style="flex-wrap: wrap; gap: 15px;">
-        <div class="dashboard-title">
-          <div class="section-title">Performance Analytics (Visual Dashboard)</div>
-          <div class="dashboard-subtitle">Sample Data</div>
+        <div class="dashboard-title" style="display: flex; align-items: baseline; gap: 10px;">
+          <div class="section-title" style="margin: 0;">Performance Analytics (Visual Dashboard)</div>
+          <div class="dashboard-subtitle" style="margin: 0;">Sample Data</div>
         </div>
 
         <div class="dashboard-actions">
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="vd-stats-btn">Stats &#9660;</button>
-            <div class="dropdown-menu" id="vd-stats-menu"></div>
-          </div>
+          <button class="btn btn-outline" id="vd-stats-btn">Stats &#9881;</button>
         </div>
       </div>
 
@@ -357,5 +354,18 @@ This file contains the consolidated code context for the project to be used with
         </div>
       </div>
     </section>
+
+    <!-- VD Stats Modal Popup -->
+    <div id="vd-stats-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+      <div class="modal-content" style="background: var(--surface, #161b22); padding: 25px; border-radius: 12px; width: 450px; max-width: 90vw; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border2, #30363d); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 18px; border-bottom: 1px solid var(--border2, #30363d); padding-bottom: 15px; color: var(--text, #e6edf3);">Stats Configuration</h3>
+        <div id="vd-stats-menu-container" style="overflow-y: auto; flex: 1; margin-bottom: 20px; padding-right: 10px;">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border2, #30363d); padding-top: 15px;">
+          <button class="btn btn-outline" id="vd-stats-close-btn" style="padding: 8px 16px;">Cancel</button>
+          <button class="btn btn-primary" id="vd-stats-apply-btn" style="padding: 8px 24px;">Apply</button>
+        </div>
+      </div>
+    </div>
 
 ```

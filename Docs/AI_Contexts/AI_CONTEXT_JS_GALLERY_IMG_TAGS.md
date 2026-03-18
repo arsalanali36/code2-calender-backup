@@ -1,8 +1,8 @@
-# JS — Gallery Image Tags
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Image Tags
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-img-tags.js`
+## File: `static/js/gallery-img-tags.js`
 ```js
 /**
  * @fileoverview gallery-img-tags.js

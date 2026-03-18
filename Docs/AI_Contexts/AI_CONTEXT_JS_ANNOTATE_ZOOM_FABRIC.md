@@ -1,8 +1,8 @@
-# JS — Annotation Zoom/Pan & Fabric.js
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Annotation Zoom and Fabric
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\annotate-zoom.js`
+## File: `static/js/annotate-zoom.js`
 ```js
 /**
  * @fileoverview annotate-zoom.js
@@ -216,7 +216,7 @@ function shouldUseBrushCursor() {
 
 ```
 
-## File: `static\js\annotate-fabric.js`
+## File: `static/js/annotate-fabric.js`
 ```js
 /**
  * @fileoverview annotate-fabric.js
@@ -241,11 +241,8 @@ async function saveAnnotOverlay() {
 
   fabricCanvas.lowerCanvasEl.toBlob(async blob => {
     fabricCanvas.setViewportTransform(origVpt);
-    const fd = new FormData();
-    fd.append('image', blob, 'overlay.png');
     try {
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(new File([blob], 'overlay.png', { type: 'image/png' }));
       if (!data.url) throw new Error();
       if (!setOverlayUrlForCurrentGalleryImage(data.url)) { showToast('Unable to map overlay', 'error'); return; }
       await saveTrades();
@@ -273,11 +270,8 @@ async function saveAnnotMerge() {
   fabricCanvas.setViewportTransform(origVpt);
 
   out.toBlob(async blob => {
-    const fd = new FormData();
-    fd.append('image', blob, 'merged.png');
     try {
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const data = await imageService.uploadImage(new File([blob], 'merged.png', { type: 'image/png' }));
       if (!data.url) throw new Error();
       const imgs = state.gallery.images;
       imgs.push(data.url);

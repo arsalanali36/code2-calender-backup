@@ -1,8 +1,8 @@
-# JS — Events Settings Panel handlers
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Events Settings
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\events-settings.js`
+## File: `static/js/events-settings.js`
 ```js
 /**
  * @fileoverview events-settings.js
@@ -110,7 +110,8 @@ function _bindSettingsEvents() {
     document.addEventListener('mousemove', e => {
       if (!_resizing) return;
       const trayRect = tray.getBoundingClientRect();
-      const newW = Math.max(150, Math.min(480, trayRect.right - e.clientX));
+      const maxW = Math.min(480, window.innerWidth * 0.45);
+      const newW = Math.max(150, Math.min(maxW, trayRect.right - e.clientX));
       tray.style.width = newW + 'px';
     });
     document.addEventListener('mouseup', () => {

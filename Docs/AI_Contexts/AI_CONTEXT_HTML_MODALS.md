@@ -1,8 +1,8 @@
-# HTML — Modals
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# HTML - Modals
+Consolidated code context for AI assistants.
 
 
-## File: `templates\modals.html`
+## File: `templates/modals.html`
 ```html
 <!-- ── SETTINGS PANEL ───────────────────── -->
 <div class="settings-overlay" id="settings-overlay">
@@ -80,6 +80,21 @@ This file contains the consolidated code context for the project to be used with
           <label>Sat/Sun Off</label>
           <input type="checkbox" id="s-sat-sun-off" class="settings-chk" checked />
           <span class="settings-hint">True = hide weekend columns in calendar</span>
+        </div>
+        <div class="settings-row">
+          <label>Show Tags in Calendar</label>
+          <input type="checkbox" id="s-show-cal-tags" class="settings-chk" />
+          <span class="settings-hint">Off by default</span>
+        </div>
+        <div class="settings-row">
+          <label>Show Trade Count</label>
+          <input type="checkbox" id="s-show-trade-count" class="settings-chk" />
+          <span class="settings-hint">Show total trades per day in calendar</span>
+        </div>
+        <div class="settings-row">
+          <label>Show Trading Day #</label>
+          <input type="checkbox" id="s-show-trading-day" class="settings-chk" />
+          <span class="settings-hint">Show trading day of month (e.g. TD:1, TD:2)</span>
         </div>
       </div>
 
@@ -310,6 +325,53 @@ This file contains the consolidated code context for the project to be used with
   </div>
 </div>
 
+<div class="modal-overlay" id="quote-modal">
+  <div class="modal-content quote-modal-content">
+    <div class="modal-header quote-modal-header">
+      <div class="quote-modal-title-wrap">
+        <span class="quote-modal-title">Daily Quotes</span>
+        <span class="quote-modal-counter" id="quote-modal-counter">1 / 1</span>
+      </div>
+      <div class="quote-header-tools">
+        <div class="quote-tools-menu-wrap">
+          <button class="quote-tools-btn" id="quote-tools-btn" title="Quote options">Options &#9662;</button>
+          <div class="quote-tools-menu" id="quote-tools-menu">
+            <button class="quote-tools-menu-item" id="quote-font-minus" type="button">A-</button>
+            <button class="quote-tools-menu-item" id="quote-font-plus" type="button">A+</button>
+            <button class="quote-tools-menu-item" id="quote-upload-btn" type="button">&#8679; Upload CSV</button>
+            <button class="quote-tools-menu-item primary" id="quote-download-btn" type="button">&#8681; Download CSV</button>
+          </div>
+        </div>
+      </div>
+      <button class="close-btn" id="quote-modal-close">&#10005;</button>
+    </div>
+
+    <div class="quote-modal-body">
+      <div class="quote-card">
+        <button class="quote-nav-btn" id="quote-prev-btn" title="Previous quote">&#8592;</button>
+
+        <div class="quote-card-main">
+          <div class="quote-mark quote-mark-left">&#10077;</div>
+          <div class="quote-text" id="quote-text">Loading quote...</div>
+          <div class="quote-mark quote-mark-right">&#10078;</div>
+
+          <div class="quote-actions">
+            <button class="btn btn-outline quote-scheduler-inline-btn" id="quote-scheduler-inline-btn">Auto Popup</button>
+            <div class="quote-rating-inline">
+              <span class="quote-rating-inline-label">Rating</span>
+              <input type="range" id="quote-rating-slider" min="1" max="10" step="1" value="5" />
+              <span id="quote-rating-value">5 / 10</span>
+            </div>
+            <input type="file" id="quote-csv-input" accept=".csv,text/csv" style="display:none" />
+          </div>
+        </div>
+
+        <button class="quote-nav-btn" id="quote-next-btn" title="Next quote">&#8594;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── OBSERVATION MODAL ───────────────────── -->
 <div class="modal-overlay" id="obs-modal">
   <div class="modal-content obs-modal-content">
@@ -378,6 +440,65 @@ This file contains the consolidated code context for the project to be used with
   </div>
 </div>
 
+<!-- ── SHOW HEADS MODAL ───────────────────── -->
+<div class="modal-overlay" id="show-heads-modal">
+  <div class="modal-content stats-config-content">
+    <div class="modal-header">
+      <span id="show-heads-modal-title">Show Heads</span>
+      <button class="close-btn" id="show-heads-modal-close">&#10005;</button>
+    </div>
+    <div class="stats-config-body">
+      <div class="stats-config-search-row">
+        <input type="text" id="show-heads-modal-search" class="panel-search" placeholder="Search columns..." />
+      </div>
+      <div class="stats-config-act-row">
+        <button class="panel-act-btn" id="show-heads-modal-all">All</button>
+        <button class="panel-act-btn" id="show-heads-modal-none">None</button>
+        <button class="panel-act-btn" id="show-heads-modal-pl">P/L Only</button>
+      </div>
+      <div id="show-heads-modal-list" class="stats-config-list"></div>
+    </div>
+    <div class="modal-footer">
+      <label class="decimals-toggle">
+        <input type="checkbox" id="show-heads-decimals-chk" />
+        Show Decimals
+      </label>
+      <div style="flex:1"></div>
+      <button class="btn btn-outline" id="show-heads-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="show-heads-modal-apply">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATS CONFIG MODAL ─────────────────── -->
+<div class="modal-overlay" id="stats-config-modal">
+  <div class="modal-content stats-config-content">
+    <div class="modal-header">
+      <span>Stats Configuration</span>
+      <button class="close-btn" id="stats-config-close">&#10005;</button>
+    </div>
+    <div class="stats-config-body">
+      <div class="stats-config-search-row">
+        <input type="text" id="stats-config-search" class="panel-search" placeholder="Search stats..." />
+      </div>
+      <div class="stats-config-act-row">
+        <button class="panel-act-btn" id="stats-config-all">All</button>
+        <button class="panel-act-btn" id="stats-config-none">None</button>
+      </div>
+      <div id="stats-config-list" class="stats-config-list"></div>
+    </div>
+    <div class="modal-footer">
+      <label class="decimals-toggle">
+        <input type="checkbox" id="stats-decimals-chk" />
+        Show Decimals
+      </label>
+      <div style="flex:1"></div>
+      <button class="btn btn-outline" id="stats-config-cancel">Cancel</button>
+      <button class="btn btn-primary" id="stats-config-apply">Apply</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── ADD COLUMN MODAL ────────────────────── -->
 <div class="modal-overlay" id="add-col-modal">
   <div class="modal-content" style="width:360px">
@@ -413,4 +534,5 @@ This file contains the consolidated code context for the project to be used with
     </div>
   </div>
 </div>
+
 ```

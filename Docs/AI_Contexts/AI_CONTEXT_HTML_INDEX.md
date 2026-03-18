@@ -1,8 +1,8 @@
-# HTML — Main Layout (index.html)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# HTML - Main Layout
+Consolidated code context for AI assistants.
 
 
-## File: `templates\index.html`
+## File: `templates/index.html`
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -11,11 +11,16 @@ This file contains the consolidated code context for the project to be used with
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trading Journal</title>
-  <link rel="stylesheet" href="/static/css/style-base.css" />
-  <link rel="stylesheet" href="/static/css/style-gallery-a.css" />
-  <link rel="stylesheet" href="/static/css/style-gallery-b.css" />
-  <link rel="stylesheet" href="/static/css/style-misc.css" />
-  <link rel="stylesheet" href="/static/css/style-trade.css" />
+  <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-a.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-b.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-c.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-misc.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-csvlog.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-csvlog-charts.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-trade.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-mobile.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-fullscreen.css?v={{ cache_bust }}" />
 </head>
 
 <body>
@@ -23,12 +28,13 @@ This file contains the consolidated code context for the project to be used with
   <!-- HEADER -->
   <header class="app-header">
     <div class="logo">
-      <span class="logo-icon">&#9650;</span>
+      <div class="logo-icon-wrap">
+        <img src="/static/img/logo.png" class="logo-icon-img" alt="logo" />
+      </div>
       <span class="logo-text">Trading Journal</span>
     </div>
 
-    <div class="calendar-nav global-date-nav"
-      style="background:var(--bg2); padding:4px 8px; border-radius:6px; border:1px solid var(--border1);">
+    <div class="calendar-nav global-date-nav">
       <button class="nav-arrow" id="glob-prev">&#8249;</button>
       <select id="glob-month" class="select-box"></select>
       <select id="glob-view" class="select-box">
@@ -39,7 +45,7 @@ This file contains the consolidated code context for the project to be used with
       <button class="nav-arrow" id="glob-next">&#8250;</button>
       <button class="btn btn-outline" id="glob-today">Today</button>
 
-      <span style="color:var(--text2); margin:0 8px;">|</span>
+      <span class="global-date-divider">|</span>
 
       <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
       <span class="date-range-sep">&#8212;</span>
@@ -49,25 +55,101 @@ This file contains the consolidated code context for the project to be used with
     </div>
 
     <div class="header-actions">
-      <div class="dropdown-wrapper">
-        <button class="btn btn-outline" id="broker-filter-btn-top">Broker: Both &#9660;</button>
-        <div class="dropdown-menu" id="broker-filter-menu-top">
-          <button class="dropdown-item broker-filter-item" data-broker="both">Both</button>
-          <button class="dropdown-item broker-filter-item" data-broker="zerodha">Zerodha</button>
-          <button class="dropdown-item broker-filter-item" data-broker="dhan">Dhan</button>
+      <!-- Hidden: kept for JS compatibility -->
+      <button id="calendar-mode-btn" style="display:none">Consolidated</button>
+      <button id="broker-filter-btn-top" style="display:none">Broker: Both</button>
+      <div id="broker-filter-menu-top" style="display:none">
+        <button class="broker-filter-item" data-broker="both">Both</button>
+        <button class="broker-filter-item" data-broker="zerodha">Zerodha</button>
+        <button class="broker-filter-item" data-broker="dhan">Dhan</button>
+      </div>
+
+      <!-- Hidden: settings-btn kept for JS that references it -->
+      <button id="settings-btn" style="display:none"></button>
+
+      <button class="btn btn-outline mobile-view-toggle-btn" id="mobile-view-toggle-btn" title="Switch to Mobile View">📱</button>
+
+      <div class="quote-random-wrap" id="quote-random-wrap">
+        <button class="btn btn-outline quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup">Quote Pop</button>
+        <div class="quote-random-panel" id="quote-random-panel">
+          <label class="quote-random-toggle">
+            <input type="checkbox" id="quote-random-enabled" />
+            Auto popup
+          </label>
+          <div class="quote-random-min-row">
+            <span>Min</span>
+            <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
+            <span>min</span>
+          </div>
         </div>
       </div>
-      <button class="btn btn-outline" id="calendar-mode-btn">Consolidated</button>
-      <button class="btn btn-outline" id="settings-btn" title="Settings">&#9881; Settings</button>
+
+      {% if current_user.is_authenticated %}
+      <div class="profile-menu-wrapper" id="profile-menu-wrapper">
+        <button class="profile-avatar-btn" id="profile-avatar-btn">
+          <img src="/static/img/logo.png" class="profile-avatar-img" alt="avatar" />
+        </button>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div class="profile-user-info">
+            <img src="/static/img/logo.png" class="profile-user-avatar" alt="avatar" />
+            <span class="profile-email">{{ current_user.email }}</span>
+          </div>
+          <div class="profile-divider"></div>
+
+          <button class="profile-menu-item" id="profile-settings-btn">
+            <span class="pmi-icon">&#9881;</span> Settings
+          </button>
+
+          <button class="profile-menu-item" id="profile-quote-btn">
+            <span class="pmi-icon">&#10077;</span> Quote
+          </button>
+
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
+
+          <!-- Broker inline dropdown -->
+          <div class="profile-inline-group" id="profile-broker-group">
+            <div class="profile-menu-item profile-inline-trigger" id="profile-broker-trigger">
+              <span class="pmi-icon">&#9632;</span>
+              <span>Broker</span>
+              <span class="pmi-badge" id="profile-broker-badge">Zerodha</span>
+              <span class="pmi-arrow" id="profile-broker-arrow">&#9660;</span>
+            </div>
+            <div class="profile-inline-dropdown" id="profile-broker-dropdown">
+              <button class="profile-sub-item broker-filter-item" data-broker="both">Both</button>
+              <button class="profile-sub-item broker-filter-item" data-broker="zerodha">Zerodha</button>
+              <button class="profile-sub-item broker-filter-item" data-broker="dhan">Dhan</button>
+            </div>
+          </div>
+
+          <!-- View inline dropdown -->
+          <div class="profile-inline-group" id="profile-view-group">
+            <div class="profile-menu-item profile-inline-trigger" id="profile-view-trigger">
+              <span class="pmi-icon">&#9635;</span>
+              <span>View</span>
+              <span class="pmi-badge" id="profile-view-badge">Consolidated</span>
+              <span class="pmi-arrow" id="profile-view-arrow">&#9660;</span>
+            </div>
+            <div class="profile-inline-dropdown" id="profile-view-dropdown">
+              <button class="profile-sub-item profile-view-item" data-view="consolidated">Consolidated</button>
+              <button class="profile-sub-item profile-view-item" data-view="individual">Individual</button>
+            </div>
+          </div>
+
+          <div class="profile-divider"></div>
+          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item profile-signout">
+            &#8617; Sign Out
+          </a>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </header>
 
   <main class="app-main">
 
-    <!-- ── CALENDAR SECTION ─────────────────── -->
+    <!-- â”€â”€ CALENDAR SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section calendar-section">
-      <div class="section-header">
-
+      <div class="section-header" style="justify-content: flex-end;">
         <div class="show-heads-wrapper">
           <button class="btn btn-outline" id="show-heads-btn">Show Heads &#9660;</button>
           <div class="show-heads-panel" id="show-heads-panel">
@@ -91,7 +173,7 @@ This file contains the consolidated code context for the project to be used with
       <div class="calendar-yearly hidden" id="calendar-year-view"></div>
     </section>
 
-    <!-- ── DASHBOARD SUMMARY ─────────────────── -->
+    <!-- â”€â”€ DASHBOARD SUMMARY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section dashboard-section">
       <div class="section-header dashboard-header">
         <div class="dashboard-title">
@@ -101,7 +183,6 @@ This file contains the consolidated code context for the project to be used with
         <div class="dashboard-actions">
           <div class="dropdown-wrapper">
             <button class="btn btn-outline" id="dashboard-stats-btn">Stats &#9660;</button>
-            <div class="dropdown-menu" id="dashboard-stats-menu"></div>
           </div>
         </div>
       </div>
@@ -109,7 +190,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="overall">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Overall P&amp;L</span>
 
           </div>
@@ -118,7 +199,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="net">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Net P&amp;L</span>
 
           </div>
@@ -127,7 +208,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="trades">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Total Trades</span>
 
           </div>
@@ -136,7 +217,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="charges">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Charges</span>
 
           </div>
@@ -145,7 +226,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="brokerage">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Brokerage</span>
 
           </div>
@@ -154,7 +235,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="totalfees">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Total Fees</span>
 
           </div>
@@ -163,7 +244,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="winrate">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Win %</span>
 
           </div>
@@ -172,7 +253,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="avg">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Avg / Trade</span>
 
           </div>
@@ -181,7 +262,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="avgwin">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Avg Win</span>
 
           </div>
@@ -190,7 +271,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="avgloss">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Avg Loss</span>
 
           </div>
@@ -199,7 +280,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="best">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Best Day</span>
 
           </div>
@@ -209,7 +290,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="worst">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Worst Day</span>
 
           </div>
@@ -219,7 +300,7 @@ This file contains the consolidated code context for the project to be used with
         <div class="dash-card" data-stat="dd">
           <div class="dash-label vd-drag-handle"
             style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
-            <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
             <span>Max Drawdown</span>
 
           </div>
@@ -228,10 +309,7 @@ This file contains the consolidated code context for the project to be used with
       </div>
     </section>
 
-    {% include "visual_dashboard.html" %}
-
-
-    <!-- ── TRADE TABLE SECTION ─────────────── -->
+    <!-- â”€â”€ TRADE TABLE SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <section class="section table-section">
       <div class="section-header">
         <h2 class="section-title">Trade Table</h2>
@@ -242,8 +320,14 @@ This file contains the consolidated code context for the project to be used with
 
           <!-- Note column quick toggle -->
           <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
-          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
-          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
+          <button class="btn btn-outline" id="csvlog-toolbar-btn"
+            title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
+          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn"
+            title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
+          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202;
+            Review</button>
+          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221;
+            Logger</button>
 
           <!-- Column Visibility -->
           <div class="dropdown-wrapper" id="col-vis-wrapper">
@@ -299,6 +383,7 @@ This file contains the consolidated code context for the project to be used with
               <input type="file" id="dhan-csv-input" accept=".csv,text/csv" style="display:none" />
               <button class="dropdown-item" id="export-btn">&#8681; Export Excel</button>
               <button class="dropdown-item" id="export-structured-csv-btn">&#8681; Export Structured CSV</button>
+              <button class="dropdown-item" id="export-logger-excel-btn">&#8681; Export Logger Excel</button>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item" id="backup-btn">&#128190; Backup (Data + Images)</button>
               <button class="dropdown-item" id="restore-btn">&#8635; Restore from Backup</button>
@@ -308,14 +393,18 @@ This file contains the consolidated code context for the project to be used with
 
         </div>
       </div>
-      
+
       <!-- Active Tag Filter Banner -->
-      <div id="active-tag-filter-banner" style="display:none; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--blue); color: var(--blue); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; align-items: center; justify-content: space-between;">
+      <div id="active-tag-filter-banner"
+        style="display:none; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--blue); color: var(--blue); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; align-items: center; justify-content: space-between;">
         <span style="font-size: 0.95rem;">
           <span style="opacity:0.8; margin-right:6px;">&#128269; Currently filtering by tag(s):</span>
           <strong id="active-tag-filter-text">None</strong>
         </span>
-        <button id="clear-tag-filter-btn" style="background:transparent; border:1px solid rgba(88, 166, 255, 0.5); color:var(--blue); padding:4px 10px; border-radius:4px; cursor:pointer;" onmouseover="this.style.background='var(--blue)'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='var(--blue)';">Clear Filter</button>
+        <button id="clear-tag-filter-btn"
+          style="background:transparent; border:1px solid rgba(88, 166, 255, 0.5); color:var(--blue); padding:4px 10px; border-radius:4px; cursor:pointer;"
+          onmouseover="this.style.background='var(--blue)'; this.style.color='#fff';"
+          onmouseout="this.style.background='transparent'; this.style.color='var(--blue)';">Clear Filter</button>
       </div>
 
       <div class="table-wrapper">
@@ -334,6 +423,8 @@ This file contains the consolidated code context for the project to be used with
       </div>
     </section>
 
+    {% include "visual_dashboard.html" %}
+
   </main>
 
   {% include 'modals.html' %}
@@ -341,47 +432,68 @@ This file contains the consolidated code context for the project to be used with
 
   <div class="toast" id="toast"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <script src="/static/js/state.js?v=1772818490"></script>
-  <script src="/static/js/data.js?v=1772818490"></script>
-  <script src="/static/js/settings.js?v=1772818490"></script>
-  <script src="/static/js/dashboard.js?v=1772818490"></script>
-  <script src="/static/js/calendar.js?v=1772818490"></script>
-  <script src="/static/js/table-render.js?v=1772818490"></script>
-  <script src="/static/js/table-cols.js?v=1772818490"></script>
-  <script src="/static/js/table-colops.js?v=1772818490"></script>
-  <script src="/static/js/trade-review.js?v=1772818490"></script>
-  <script src="/static/js/trade-logger.js?v=1772818490"></script>
-  <script src="/static/js/gallery-open.js?v=1772818490"></script>
-  <script src="/static/js/gallery-render.js?v=1772818490"></script>
-  <script src="/static/js/gallery-stats.js?v=1772818490"></script>
-  <script src="/static/js/gallery-core.js?v=1772818490"></script>
-  <script src="/static/js/gallery-image-ops.js?v=1772818490"></script>
-  <script src="/static/js/gallery-ops.js?v=1772818490"></script>
-  <script src="/static/js/gallery-ops-group.js?v=1772818490"></script>
-  <script src="/static/js/gallery-layer.js?v=1772818490"></script>
-  <script src="/static/js/gallery-nav.js?v=1772818490"></script>
-  <script src="/static/js/gallery-tags.js?v=1772818490"></script>
-  <script src="/static/js/gallery-tags-filter.js?v=1772818490"></script>
-  <script src="/static/js/gallery-data.js?v=1772818490"></script>
-  <script src="/static/js/gallery-img-tags.js?v=1772818490"></script>
-  <script src="/static/js/annotate-zoom.js?v=1772818490"></script>
-  <script src="/static/js/annotate-marquee.js?v=1772818490"></script>
-  <script src="/static/js/annotate-tools.js?v=1772818490"></script>
-  <script src="/static/js/annotate-canvas.js?v=1772818490"></script>
-  <script src="/static/js/annotate-ctx-menu.js?v=1772818490"></script>
-  <script src="/static/js/annotate-lifecycle.js?v=1772818490"></script>
-  <script src="/static/js/annotate-fabric.js?v=1772818490"></script>
-  <script src="/static/js/io.js?v=1772818490"></script>
-  <script src="/static/js/events-keys.js?v=1772818490"></script>
-  <script src="/static/js/events-ui.js?v=1772818490"></script>
-  <script src="/static/js/events-gallery.js?v=1772818490"></script>
-  <script src="/static/js/events-settings.js?v=1772818490"></script>
-  <script src="/static/js/events.js?v=1772818490"></script>
+  <!-- ── Service layer (load before all other modules) ── -->
+  <script src="/static/js/services/apiClient.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/tradeService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/imageService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/importService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/csvlogService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/state.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/quotes.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/dashboard.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/calendar.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/table-render.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/table-cols.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/table-colops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-review.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-logger-core.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/trade-logger-render.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-open.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-rubberband.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-render.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-core.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-image-ops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-image-ops-b.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ops-group.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-layer.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-nav.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-tags.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-tags-filter.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-img-tags.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-audio.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-video.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-zoom.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-marquee.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-tools.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-canvas.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-ctx-menu.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-lifecycle.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/io.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-img.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-fields.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-day.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-vitals.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-placeholder.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-charts.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/csvlog-charts-b.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-settings.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events.js?v={{ cache_bust }}"></script>
 
-  <!-- ApexCharts for Visual Dashboard -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="/static/js/visual-dashboard-stats.js?v=1772818490"></script>
-  <script src="/static/js/visual-dashboard.js?v=1772818490"></script>
+  <script src="/static/js/fullscreen-viewer.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/visual-dashboard-stats.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/visual-dashboard.js?v={{ cache_bust }}"></script>
 </body>
 
 </html>

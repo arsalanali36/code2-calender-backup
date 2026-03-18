@@ -1,8 +1,8 @@
-# CSS — Gallery A (gallery modal / annotation toolbar / obs modal)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# CSS - Gallery A
+Consolidated code context for AI assistants.
 
 
-## File: `static\css\style-gallery-a.css`
+## File: `static/css/style-gallery-a.css`
 ```css
 /* ── GALLERY MODAL ────────────────────────────── */
 .modal-overlay {
@@ -203,7 +203,7 @@ This file contains the consolidated code context for the project to be used with
   display: block;
   transform-origin: top left;
   transition: transform 0.05s linear;
-  cursor: zoom-in;
+  cursor: default;
   will-change: transform;
 }
 

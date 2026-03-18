@@ -1,8 +1,8 @@
-# JS — Gallery Render (gallery-render.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Render
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-render.js`
+## File: `static/js/gallery-render.js`
 ```js
 /**
  * @fileoverview gallery-render.js
@@ -29,8 +29,19 @@ function renderGallery() {
     state._carryAnnotTool = annotState.tool;
     stopAnnotation();
   }
-  document.getElementById('gallery-date').textContent = date ? formatDisplayDate(date) : `${images.length} image(s)`;
-  if (date) document.getElementById('gallery-date-picker').value = date;
+  const dateEl = document.getElementById('gallery-date');
+  if (dateEl) {
+    if (date) {
+      dateEl.style.display = 'none';
+    } else {
+      dateEl.style.display = '';
+      dateEl.textContent = `${images.length} image(s)`;
+    }
+  }
+  if (date) {
+    const picker = document.getElementById('gallery-date-picker');
+    if (picker) picker.value = date;
+  }
 
   const uploadBtn = document.getElementById('gallery-upload-btn');
   if (uploadBtn) uploadBtn.style.display = date ? '' : 'none';
@@ -38,28 +49,73 @@ function renderGallery() {
   const obsBtn = document.getElementById('gv2-obs-btn');
   if (obsBtn) obsBtn.style.display = date ? '' : 'none';
 
-  const img = document.getElementById('gallery-img');
+  const img     = document.getElementById('gallery-img');
+  const vidEl   = document.getElementById('gallery-video');
+  const curUrl  = images[currentIndex] || '';
+  const isVid   = typeof isVideoUrl === 'function' && isVideoUrl(curUrl);
+
   if (!annotState.active) document.getElementById('annot-canvas').style.display = 'none';
-  const curUrl = images[currentIndex] || '';
-  img.src = curUrl; img.classList.remove('zoomed', 'dragging'); resetZoom();
-  img.onerror = () => {
-    if (!curUrl) return;
-    const idx = state.gallery.images.indexOf(curUrl);
-    if (idx < 0) return;
-    state.gallery.images.splice(idx, 1);
-    state.gallery.currentIndex = Math.min(state.gallery.currentIndex, Math.max(0, state.gallery.images.length - 1));
-    renderGallery();
-  };
-  const afterImageReady = () => {
-    loadOverlayForCurrentImage();
-    if (state._carryAnnotTool) {
-      annotState.tool = state._carryAnnotTool;
-      state._carryAnnotTool = '';
-      startAnnotation();
+
+  if (isVid) {
+    // ── Show video, hide image ──
+    img.style.display   = 'none';
+      if (vidEl) {
+        vidEl.style.display = '';
+        const resolvedVidUrl = resolveImageUrl(curUrl);
+        // Browser normalizes vidEl.src to absolute — compare by pathname
+        const currentSrcPath = vidEl.src ? new URL(vidEl.src, location.href).pathname : '';
+        const wantedPath    = new URL(resolvedVidUrl, location.href).pathname;
+        if (currentSrcPath !== wantedPath) {
+          vidEl.src = resolvedVidUrl;
+          vidEl.load();
+        }
+        vidEl.muted = true; // Required for autoplay
+        vidEl.classList.add('active-video');
+        // Ensure play is called after load attempt
+        const playPromise = vidEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.warn("Autoplay blocked or failed:", err);
+            // Show controls as fallback if autoplay fails
+            vidEl.controls = true;
+          });
+        }
+        vidEl.onclick = e => e.stopPropagation();
+      }
+    img.classList.remove('zoomed', 'dragging');
+    resetZoom();
+  } else {
+    // ── Show image, hide video ──
+    if (vidEl) { 
+      vidEl.style.display = 'none'; 
+      vidEl.pause && vidEl.pause(); 
+      // Do not clear src here to avoid "flicker" or loading issues when switching back
     }
-  };
-  img.addEventListener('load', afterImageReady, { once: true });
-  if (img.complete && img.naturalWidth) afterImageReady();
+    img.style.display = '';
+    img.style.opacity = '';
+    img.style.filter  = '';
+    img.title = '';
+    img.src = resolveImageUrl(curUrl);
+    img.classList.remove('zoomed', 'dragging'); resetZoom();
+    img.onerror = () => {
+      if (!curUrl) return;
+      img.style.opacity = '0.3';
+      img.style.filter  = 'grayscale(1) contrast(0.5)';
+      img.title = 'Image could not be loaded.';
+    };
+    const afterImageReady = () => {
+      loadOverlayForCurrentImage();
+      if (state._carryAnnotTool) {
+        annotState.tool = state._carryAnnotTool;
+        state._carryAnnotTool = '';
+        startAnnotation();
+      }
+    };
+    img.addEventListener('load', afterImageReady, { once: true });
+    if (img.complete && img.naturalWidth) afterImageReady();
+    // Fullscreen Viewer trigger
+    img.onclick = null; // fullscreen moved to F key / fullscreen button
+  }
 
   document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
   document.getElementById('gallery-prev').disabled = images.length <= 1;
@@ -75,6 +131,9 @@ function renderGallery() {
 
   if (typeof renderGalleryStats === 'function') renderGalleryStats();
   if (typeof renderLayerPanel === 'function' && state.gallery.layerPanelOpen) renderLayerPanel();
+  if (typeof renderAudioBar === 'function') renderAudioBar();
+  if (typeof renderVideoBar === 'function') renderVideoBar();
+  if (typeof renderGalleryTrayState === 'function') renderGalleryTrayState();
 
   // Visual clue: filter-active state on tray + filter bar
   const _filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
@@ -106,64 +165,47 @@ function renderGallery() {
   const createTradeSeparator = (idx) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
-    sep.style.minWidth = '22px';
-    sep.style.height = 'calc(var(--thumb-size, 54px) * 0.85)';
-    sep.style.background = 'var(--surface2)';
-    sep.style.border = '1px dashed var(--border2)';
-    sep.style.margin = '0 6px';
-    sep.style.alignSelf = 'center';
-    sep.style.borderRadius = '3px';
-    sep.style.flexShrink = '0';
-    sep.style.display = 'flex';
-    sep.style.alignItems = 'center';
-    sep.style.justifyContent = 'center';
-    sep.style.fontSize = '0.75rem';
-    sep.style.color = 'var(--text2)';
-    sep.style.fontWeight = 'bold';
-    sep.style.cursor = 'pointer';
-    sep.title = `Trade ${idx + 1} (Drop to move)`;
-    sep.textContent = `${idx + 1}`;
+    sep.title = `Trade ${idx + 1} (Drop to move. Click to collapse)`;
+    const sepKey = 'T' + idx;
+    const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
+    const arrow = isCollapsed ? '▸' : '▾';
+    sep.textContent = `${arrow} T${idx + 1}`;
+    sep.style.color = '#ffd700';
+    sep.style.borderColor = '#ffd700';
 
-    sep.addEventListener('dragover', e => {
-      e.preventDefault();
-      sep.style.background = 'var(--hover)';
-      sep.style.borderColor = '#58a6ff';
-      sep.style.color = '#fff';
-    });
-    sep.addEventListener('dragleave', () => {
-      sep.style.background = 'var(--surface2)';
-      sep.style.borderColor = 'var(--border2)';
-      sep.style.color = 'var(--text2)';
-    });
+    sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
+    sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
     sep.addEventListener('drop', async e => {
-      e.preventDefault();
-      sep.style.background = 'var(--surface2)';
-      sep.style.borderColor = 'var(--border2)';
-      sep.style.color = 'var(--text2)';
+      e.preventDefault(); sep.classList.remove('drag-active');
       try {
         const draggedIndices = JSON.parse(e.dataTransfer.getData('application/json'));
         if (!draggedIndices || draggedIndices.length === 0) return;
-
         if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
         draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
-
         if (typeof moveSelectedToTrade === 'function' && dayTrades[idx]) {
           const tr = dayTrades[idx];
           if (tr.images && tr.images.length > 0 && typeof handleReorderGalleryImagesBatch === 'function') {
             const firstUrl = tr.images[0];
             const insertAt = state.gallery.images.indexOf(firstUrl);
             await handleReorderGalleryImagesBatch(draggedIndices, insertAt, firstUrl);
-          } else {
-            await moveSelectedToTrade(state.gallery.date, tr);
-          }
+          } else { await moveSelectedToTrade(state.gallery.date, tr); }
         }
       } catch (err) { console.error(err); }
     });
-    sep.addEventListener('click', () => {
-      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
-      sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = idx; // zero-indexed trade index
-      showToast(`Selected Trade ${idx + 1} separator`, 'success');
+    if (state.gallery.selectedSeparator === idx) {
+        sep.classList.add('selected-separator');
+    }
+
+    sep.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+      const key = 'T' + idx;
+      if (state.gallery.collapsedSeparators.has(key)) {
+        state.gallery.collapsedSeparators.delete(key);
+      } else {
+        state.gallery.collapsedSeparators.add(key);
+      }
+      renderGallery();
     });
 
     return sep;
@@ -172,47 +214,23 @@ function renderGallery() {
   const createSpecialSeparator = (label, isClose) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
-    sep.style.minWidth = '22px';
-    sep.style.height = 'calc(var(--thumb-size, 54px) * 0.85)';
-    sep.style.background = 'var(--surface2)';
-    sep.style.border = '1px dashed var(--border2)';
-    sep.style.margin = '0 6px';
-    sep.style.alignSelf = 'center';
-    sep.style.borderRadius = '3px';
-    sep.style.flexShrink = '0';
-    sep.style.display = 'flex';
-    sep.style.alignItems = 'center';
-    sep.style.justifyContent = 'center';
-    sep.style.fontSize = '0.75rem';
-    sep.style.color = 'var(--text2)';
-    sep.style.fontWeight = 'bold';
-    sep.style.cursor = 'pointer';
-    sep.title = `${label} (Drop to move)`;
-    sep.textContent = label;
+    sep.title = `${label} (Drop to move. Click to collapse)`;
+    const sepKey = isClose ? 'CLOSE' : 'OPEN';
+    const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
+    const arrow = isCollapsed ? '▸' : '▾';
+    sep.textContent = `${arrow} ${label}`;
+    sep.style.color = '#ffd700';
+    sep.style.borderColor = '#ffd700';
 
-    sep.addEventListener('dragover', e => {
-      e.preventDefault();
-      sep.style.background = 'var(--hover)';
-      sep.style.borderColor = '#58a6ff';
-      sep.style.color = '#fff';
-    });
-    sep.addEventListener('dragleave', () => {
-      sep.style.background = 'var(--surface2)';
-      sep.style.borderColor = 'var(--border2)';
-      sep.style.color = 'var(--text2)';
-    });
+    sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
+    sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
     sep.addEventListener('drop', async e => {
-      e.preventDefault();
-      sep.style.background = 'var(--surface2)';
-      sep.style.borderColor = 'var(--border2)';
-      sep.style.color = 'var(--text2)';
+      e.preventDefault(); sep.classList.remove('drag-active');
       try {
         const draggedIndices = JSON.parse(e.dataTransfer.getData('application/json'));
         if (!draggedIndices || draggedIndices.length === 0) return;
-
         if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
         draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
-
         if (typeof moveSelectedToDayData === 'function') {
           const dData = state.dayData[state.gallery.date];
           let arrToUse = isClose ? dData?.closeImages : dData?.images;
@@ -220,17 +238,23 @@ function renderGallery() {
             const firstUrl = arrToUse[0];
             const insertAt = state.gallery.images.indexOf(firstUrl);
             await handleReorderGalleryImagesBatch(draggedIndices, insertAt, firstUrl);
-          } else {
-            await moveSelectedToDayData(state.gallery.date, isClose);
-          }
+          } else { await moveSelectedToDayData(state.gallery.date, isClose); }
         }
       } catch (err) { console.error(err); }
     });
-    sep.addEventListener('click', () => {
-      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
-      sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = isClose ? 'CLOSE' : 'OPEN';
-      showToast(`Selected ${label} separator`, 'success');
+    if (state.gallery.selectedSeparator === sepKey) {
+        sep.classList.add('selected-separator');
+    }
+
+    sep.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+      if (state.gallery.collapsedSeparators.has(sepKey)) {
+        state.gallery.collapsedSeparators.delete(sepKey);
+      } else {
+        state.gallery.collapsedSeparators.add(sepKey);
+      }
+      renderGallery();
     });
 
     return sep;
@@ -258,6 +282,11 @@ function renderGallery() {
         thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
         lastTradeIdxRendered++;
       }
+      
+      if (state.gallery.collapsedSeparators?.has('T' + targetTradeIdx)) return;
+    } else if (isCurrentDate && !ownerTrade && !isCloseImg) {
+      // It's an OPEN image
+      if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
 
     if (isCurrentDate && isCloseImg && !renderedCloseSep && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
@@ -270,6 +299,10 @@ function renderGallery() {
       }
       thumbs.appendChild(createSpecialSeparator('CLOSE', true));
       renderedCloseSep = true;
+    }
+    
+    if (isCurrentDate && isCloseImg) {
+      if (state.gallery.collapsedSeparators?.has('CLOSE')) return;
     }
 
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
@@ -290,32 +323,70 @@ function renderGallery() {
       }
     }
 
-    const t = document.createElement('img');
-    t.src = url;
-    t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
-    t.onerror = () => {
-      const idx = state.gallery.images.indexOf(url);
-      if (idx < 0) { wrap.style.display = 'none'; return; }
-      state.gallery.images.splice(idx, 1);
-      state.gallery.currentIndex = Math.min(state.gallery.currentIndex, Math.max(0, state.gallery.images.length - 1));
-      clearTimeout(renderGallery._brokenTimer);
-      renderGallery._brokenTimer = setTimeout(() => renderGallery(), 30);
-    };
+    const isVidThumb = typeof isVideoUrl === 'function' && isVideoUrl(url);
+    let t;
+    if (isVidThumb) {
+      t = document.createElement('video');
+      t.src = resolveImageUrl(url);
+      t.preload = 'metadata';
+      t.muted = true;
+      t.loop = true;
+      t.playsInline = true;
+      t.style.objectFit = 'cover';
+      t.className = 'gv2-thumb gv2-thumb-video' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
+      t.title = 'Video recording';
+      t.addEventListener('mouseenter', () => { t.play().catch(()=>{}); });
+      t.addEventListener('mouseleave', () => { t.pause(); });
+      
+      const vIcon = document.createElement('span');
+      vIcon.className = 'gv2-thumb-video-icon';
+      vIcon.innerHTML = '&#9654;'; // Play symbol
+      vIcon.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#fff; font-size:1.2rem; text-shadow:0 0 8px rgba(0,0,0,0.8); pointer-events:none; z-index:2;';
+      wrap.appendChild(vIcon);
+    } else {
+      t = document.createElement('img');
+      t.src = resolveImageUrl(url);
+      t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
+      t.onerror = () => {
+        const idx = state.gallery.images.indexOf(url);
+        if (idx < 0) { wrap.style.display = 'none'; return; }
+        t.style.opacity = '0.3';
+        t.title = 'Image could not be loaded';
+      };
+    }
     t.addEventListener('click', (e) => {
+      // Initialize if needed
+      if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+      
+      const lastIdx = state.gallery.lastClickedIdx ?? currentIndex;
+
       if (e.shiftKey) {
-        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
-        if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
-        else state.gallery.selectedIndices.add(globalIdx);
-        renderGallery();
-        return;
+          // Range selection
+          const start = Math.min(lastIdx, globalIdx);
+          const end = Math.max(lastIdx, globalIdx);
+          for (let i = start; i <= end; i++) {
+              state.gallery.selectedIndices.add(i);
+          }
+          state.gallery.lastClickedIdx = globalIdx;
+          renderGallery();
+          return;
       }
+      
       if (e.ctrlKey || e.metaKey) {
-        if (typeof toggleGalleryGroupExpand === 'function') {
-          if (toggleGalleryGroupExpand(url)) return;
-        }
+          // Individual toggle
+          if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
+          else state.gallery.selectedIndices.add(globalIdx);
+          state.gallery.lastClickedIdx = globalIdx;
+          renderGallery();
+          return;
       }
+
+      // Normal click: select only this
       state.gallery.selectedIndices = new Set([globalIdx]);
       state.gallery.currentIndex = globalIdx;
+      state.gallery.lastClickedIdx = globalIdx;
+      
+      // If double click or secondary action? We'll just stick to single click for navigation
       renderGallery();
     });
     t.addEventListener('contextmenu', async e => {
@@ -434,6 +505,24 @@ function renderGallery() {
 
     wrap.appendChild(t); wrap.appendChild(del);
 
+    // Audio indicator badge
+    if (typeof getAudioForImage === 'function' && getAudioForImage(url, itemDate || state.gallery.date || '')) {
+      const ai = document.createElement('span');
+      ai.className = 'gv2-thumb-audio-icon';
+      ai.textContent = '▶';
+      ai.title = 'Audio note attached';
+      wrap.appendChild(ai);
+    }
+
+    // Video indicator badge
+    if (typeof getVideoForImage === 'function' && getVideoForImage(url, itemDate || state.gallery.date || '')) {
+      const vi = document.createElement('span');
+      vi.className = 'gv2-thumb-video-icon';
+      vi.textContent = '📹';
+      vi.title = 'Video recording attached';
+      wrap.appendChild(vi);
+    }
+
     if (state.gallery.showTime && state.gallery.imageTimes && state.gallery.imageTimes[url]) {
       const timeLbl = document.createElement('div');
       timeLbl.textContent = state.gallery.imageTimes[url];
@@ -515,14 +604,14 @@ function renderGallery() {
   btnWrap.style.background = 'var(--surface2)';
   btnWrap.style.border = '2px dashed var(--border2)';
   btnWrap.style.borderRadius = '5px';
-  btnWrap.style.width = 'var(--thumb-size, 54px)';
-  btnWrap.style.height = 'var(--thumb-size, 54px)';
+  btnWrap.style.width = 'calc(var(--thumb-panel-w, 74px) - 60px)';
+  btnWrap.style.height = 'calc((var(--thumb-panel-w, 74px) - 18px) * 0.62)';
   btnWrap.style.cursor = 'pointer';
   btnWrap.style.fontSize = '1.5rem';
   btnWrap.style.color = 'var(--text2)';
   btnWrap.textContent = '+';
   btnWrap.title = 'Add blank image';
-  btnWrap.onclick = () => {
+  btnWrap.onclick = async () => {
     try {
       const cvs = document.createElement('canvas');
       cvs.width = 1920; cvs.height = 1080;
@@ -533,25 +622,45 @@ function renderGallery() {
         if (!blob) return;
         try {
           const file = new File([blob], 'blank_page_' + Date.now() + '.png', { type: 'image/png' });
-          const fd = new FormData();
-          fd.append('image', file);
-          const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: fd });
-          if (!uploadRes.ok) throw new Error('Upload failed');
-          const rv = await uploadRes.json();
+          const rv = await imageService.uploadImage(file);
           if (rv.url) {
             const newUrl = rv.url;
-            const oT = getOwnerTradeForGalleryImage() || (state.gallery.sourceRow !== null ? state.trades[state.gallery.sourceRow] : null);
-            if (oT) {
-              oT.images = oT.images || []; oT.images.push(newUrl);
-            } else if (state.gallery.date) {
-              const d = state.dayData[state.gallery.date];
-              if (d) { d.images = d.images || []; d.images.push(newUrl); }
+            
+            // Placement logic based on selected separator
+            const selSep = state.gallery.selectedSeparator;
+            const dayKey = state.gallery.date;
+            let targetObj = null;
+            let targetArray = 'images';
+
+            if (selSep === 'OPEN') {
+                targetObj = state.dayData[dayKey];
+                targetArray = 'images';
+            } else if (selSep === 'CLOSE') {
+                targetObj = state.dayData[dayKey];
+                targetArray = 'closeImages';
+            } else if (typeof selSep === 'number') {
+                const dayTrades = getTradesForDate(dayKey);
+                targetObj = dayTrades[selSep];
+                targetArray = 'images';
             }
+
+            if (!targetObj && dayKey) {
+                // Fallback to day level or current trade
+                targetObj = getOwnerTradeForGalleryImage() || state.dayData[dayKey];
+            }
+
+            if (targetObj) {
+                targetObj[targetArray] = targetObj[targetArray] || [];
+                targetObj[targetArray].push(newUrl);
+            }
+
             state.gallery.images = state.gallery.images || [];
             state.gallery.images.push(newUrl);
             state.gallery.currentIndex = state.gallery.images.length - 1;
-            saveTrades();
+            
+            await saveTrades();
             renderGallery();
+            showToast('Blank image added at selected location', 'success');
           }
         } catch (err) { console.error('Failed blank page upload', err); }
       }, 'image/png');
@@ -568,86 +677,8 @@ function renderGallery() {
     }
   }
 
-  // Rubber-band drag-select on empty thumb dock area
-  // Remove previous listener to prevent accumulation across re-renders
-  if (thumbs._rbHandler) thumbs.removeEventListener('mousedown', thumbs._rbHandler);
-
-  let _rbStart = null;
-  let _rbEl = thumbs.querySelector('.gv2-rubberband');
-  if (!_rbEl) {
-    _rbEl = document.createElement('div');
-    _rbEl.className = 'gv2-rubberband';
-    thumbs.style.position = 'relative';
-    thumbs.appendChild(_rbEl);
-  }
-
-  const _rbMousedown = (e) => {
-    if (e.button !== 0 || e.target.closest('.gv2-thumb-wrap')) return;
-    e.preventDefault();
-    const dockRect = thumbs.getBoundingClientRect();
-    _rbStart = { x: e.clientX - dockRect.left + thumbs.scrollLeft, y: e.clientY - dockRect.top + thumbs.scrollTop };
-    _rbEl.style.display = 'block';
-    _rbEl.style.left = _rbStart.x + 'px'; _rbEl.style.top = _rbStart.y + 'px';
-    _rbEl.style.width = '0'; _rbEl.style.height = '0';
-    const _rbMove = (me) => {
-      const dr = thumbs.getBoundingClientRect();
-      // Auto-scroll when mouse near left/right edges
-      const EDGE = 50, SPEED = 12;
-      if (me.clientX < dr.left + EDGE) thumbs.scrollLeft -= SPEED;
-      else if (me.clientX > dr.right - EDGE) thumbs.scrollLeft += SPEED;
-      const cx = me.clientX - dr.left + thumbs.scrollLeft;
-      const cy = me.clientY - dr.top + thumbs.scrollTop;
-      const x = Math.min(cx, _rbStart.x), y = Math.min(cy, _rbStart.y);
-      _rbEl.style.left = x + 'px'; _rbEl.style.top = y + 'px';
-      _rbEl.style.width = Math.abs(cx - _rbStart.x) + 'px';
-      _rbEl.style.height = Math.abs(cy - _rbStart.y) + 'px';
-    };
-    const _rbUp = () => {
-      const rbRect = _rbEl.getBoundingClientRect(); // must get BEFORE hiding
-      _rbEl.style.display = 'none';
-      if (rbRect.width > 4 || rbRect.height > 4) {
-        const savedScroll = thumbs.scrollLeft;
-        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
-        thumbs.querySelectorAll('.gv2-thumb-wrap').forEach(wrap => {
-          if (wrap.dataset.globalIdx === undefined) return;
-          const wRect = wrap.getBoundingClientRect();
-          const overlaps = !(rbRect.right < wRect.left || rbRect.left > wRect.right || rbRect.bottom < wRect.top || rbRect.top > wRect.bottom);
-          if (overlaps) state.gallery.selectedIndices.add(parseInt(wrap.dataset.globalIdx));
-        });
-        renderGallery();
-        setTimeout(() => { thumbs.scrollLeft = savedScroll; }, 60);
-      } else {
-        // Plain click on empty area → deselect all
-        if (state.gallery.selectedIndices?.size > 0) {
-          state.gallery.selectedIndices.clear();
-          thumbs.querySelectorAll('.selected-thumb').forEach(el => el.classList.remove('selected-thumb'));
-        }
-      }
-      _rbStart = null;
-      document.removeEventListener('mousemove', _rbMove);
-      document.removeEventListener('mouseup', _rbUp);
-    };
-    document.addEventListener('mousemove', _rbMove);
-    document.addEventListener('mouseup', _rbUp);
-  };
-  thumbs._rbHandler = _rbMousedown;
-  thumbs.addEventListener('mousedown', _rbMousedown);
-}
-
-
-
-function _getGalleryThumbImages() {
-  const { images, tagFilter, _filteredMeta } = state.gallery;
-  const filteredMode = Array.isArray(tagFilter) && tagFilter.length > 0;
-  return (images || []).map((url, i) => {
-    let date = state.gallery.date;
-    let sourceRow = state.gallery.sourceRow;
-    if (filteredMode && _filteredMeta) {
-      const meta = _filteredMeta[i];
-      if (meta && meta.url === url) { date = meta.date || ''; sourceRow = meta.sourceRow ?? null; }
-    }
-    return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow };
-  }).filter(item => !!item.url);
+  // Rubber-band selection + pan — delegated to gallery-rubberband.js
+  bindGalleryRubberbandAndPan(thumbs);
 }
 
 ```

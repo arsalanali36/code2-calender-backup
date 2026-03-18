@@ -1,8 +1,8 @@
-# JS — Gallery Layer Panel (gallery-layer.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Layer
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-layer.js`
+## File: `static/js/gallery-layer.js`
 ```js
 /**
  * @fileoverview gallery-layer.js
@@ -72,7 +72,7 @@ function renderLayerPanel() {
 
         const thumb = document.createElement('img');
         thumb.className = 'gv2-layer-thumb';
-        thumb.src = url; thumb.loading = 'lazy';
+        thumb.src = resolveImageUrl(url); thumb.loading = 'lazy';
 
         const name = document.createElement('span');
         name.className = 'gv2-layer-name';
@@ -157,7 +157,7 @@ function renderLayerPanel() {
 
                 const subThumb = document.createElement('img');
                 subThumb.className = 'gv2-layer-thumb';
-                subThumb.src = subUrl; subThumb.loading = 'lazy';
+                subThumb.src = resolveImageUrl(subUrl); subThumb.loading = 'lazy';
 
                 const subName = document.createElement('span');
                 subName.className = 'gv2-layer-name';

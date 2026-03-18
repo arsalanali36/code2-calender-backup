@@ -1,58 +1,151 @@
-# CSS — Gallery B (GV2 thumbnails / tags / toolbar)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# CSS - Gallery B
+Consolidated code context for AI assistants.
 
 
-## File: `static\css\style-gallery-b.css`
+## File: `static/css/style-gallery-b.css`
 ```css
 /* ── GALLERY V2 ────────────────────────────────── */
+:root {
+  --icon-blue: #3b82f6;
+  --icon-green: #10b981;
+  --icon-purple: #8b5cf6;
+  --icon-orange: #f59e0b;
+  --icon-cyan: #06b6d4;
+  --icon-teal: #14b8a6;
+  --icon-red: #ef4444;
+  --icon-white: #e5e7eb;
+  --icon-grey: #9ca3af;
+}
+
 .gv2-modal {
   flex-direction: column;
   background: #0a0a0b;
   align-items: stretch;
   justify-content: flex-start;
+  /* position: fixed comes from .modal-overlay — do NOT add relative here */
 }
 
 .gv2-modal.open {
   display: flex;
 }
 
-/* Global Tray */
+/* Floating tray — overlays the image, not a fixed header */
 .gv2-tray {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  z-index: 500;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  min-height: 46px;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: transparent;
+  border-bottom: none;
+  min-height: auto;
+  pointer-events: none;
 }
+.gv2-tray > * { pointer-events: auto; }
 
 .gv2-tray-left {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  flex: 1;
 }
 
-.gv2-tray-btns {
+.gv2-tray-center {
+  flex: 0;
+  background: rgba(15, 15, 20, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .gv2-tray-right {
+  flex: 1;
+}
+
+/* ── Tray back/close arrow (on dark gradient bg) ── */
+.gv2-tray-back-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-left: auto;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.75);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.gv2-tray-back-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+/* ── Tray icon buttons (on dark gradient bg) ── */
+.gv2-tray-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255,255,255,0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.gv2-tray-icon-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
+}
+.gv2-tray-icon-btn.active,
+.gv2-thumb-toggle-btn.active {
+  background: rgba(88,166,255,0.25);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* ── Tray visual separator ── */
+.gv2-tray-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* ── Date label: calendar icon via ::before ── */
+.gv2-date-label::before {
+  content: '';
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='3' width='12' height='11' rx='1.5'/%3E%3Cpath d='M5 1v3M11 1v3M2 7h12'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  margin-right: 5px;
+  opacity: 0.75;
+  position: relative;
+  top: -1px;
 }
 
 .gv2-date-arrow {
   background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--text2);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
   border-radius: 4px;
   padding: 3px 7px;
   cursor: pointer;
@@ -60,8 +153,8 @@ This file contains the consolidated code context for the project to be used with
 }
 
 .gv2-date-arrow:hover {
-  border-color: var(--blue);
-  color: var(--blue);
+  border-color: rgba(255,255,255,0.4);
+  color: #fff;
 }
 
 .gv2-date-arrow:disabled {
@@ -70,11 +163,12 @@ This file contains the consolidated code context for the project to be used with
 }
 
 .gv2-date-label {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  color: var(--text);
+  color: rgba(255,255,255,0.9);
   min-width: 90px;
   text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
 .gv2-date-picker {
@@ -112,9 +206,10 @@ This file contains the consolidated code context for the project to be used with
 }
 
 .gv2-zoom-hint {
-  font-size: 0.68rem;
-  color: var(--text3);
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.35);
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .gv2-close-btn {
@@ -132,12 +227,13 @@ This file contains the consolidated code context for the project to be used with
   background: rgba(248, 81, 73, 0.12);
 }
 
-/* Body layout */
+/* Body layout — takes remaining height after tray */
 .gv2-body {
   display: flex;
   flex: 1;
   overflow: hidden;
   position: relative;
+  min-height: 0;
 }
 
 .gv2-center {
@@ -348,16 +444,7 @@ This file contains the consolidated code context for the project to be used with
 }
 
 .gv2-img-counter {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--text2);
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  pointer-events: none;
+  display: none; /* counter now shown in top tray as "1/17" */
 }
 
 .gv2-img-tags {
@@ -370,7 +457,7 @@ This file contains the consolidated code context for the project to be used with
   gap: 4px;
   justify-content: center;
   max-width: 70%;
-  pointer-events: none;
+  z-index: 10;
 }
 
 /* Text Bar (floating stub) */
@@ -535,52 +622,155 @@ This file contains the consolidated code context for the project to be used with
   border-color: var(--red);
 }
 
-/* Thumbnail Tray */
-.gv2-thumb-tray {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Left Thumbnail Panel (collapsible) ── */
+.gv2-thumb-panel {
+  width: 0;
   flex-shrink: 0;
-  padding: 6px 8px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  min-height: calc(var(--thumb-size, 54px) + 26px);
-  position: relative;
   overflow: hidden;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.gv2-tray-resize-handle-horiz {
+.gv2-thumb-panel.open {
+  width: var(--thumb-panel-w, 74px);
+}
+
+/* Right-edge resize handle for thumb panel */
+.gv2-tp-resize-handle {
   position: absolute;
-  left: 0;
   right: 0;
   top: 0;
-  height: 6px;
-  cursor: ns-resize;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
   z-index: 10;
   background: transparent;
-  border-top: 2px solid transparent;
+  border-right: 2px solid transparent;
   transition: border-color 0.15s, background 0.15s;
 }
-
-.gv2-tray-resize-handle-horiz:hover,
-.gv2-tray-resize-handle-horiz.dragging {
-  border-top-color: var(--blue);
+.gv2-tp-resize-handle:hover,
+.gv2-tp-resize-handle.dragging {
+  border-right-color: var(--blue);
   background: rgba(88, 166, 255, 0.12);
 }
 
+/* Thumbs: vertical layout */
 .gv2-thumbs {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  overflow-x: hidden;
   align-items: center;
-  padding: 24px 0 4px;
-  touch-action: pan-x;
+  padding: 6px 30px;
+  touch-action: pan-y;
+  flex: 1;
+}
+
+/* ── Right Sidebar Strip ── */
+.gv2-sidebar-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
+  width: 40px;
+  position: relative;
+}
+
+.gv2-sb-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.gv2-sb-btn:hover {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+  box-shadow: 0 0 10px rgba(255,255,255,0.05);
+}
+
+/* Specific Sidebar Icon Colors with subtle glows on hover */
+#gv2-fullscreen-btn { color: var(--icon-white); }
+#gv2-tags-btn { color: var(--icon-blue); }
+#gv2-thumb-toggle-btn { color: var(--icon-cyan); }
+#gv2-layer-btn { color: var(--icon-purple); }
+#gallery-upload-btn { color: var(--icon-green); }
+#gallery-show-heads-btn { color: var(--icon-orange); }
+#gallery-img-tag-filter-btn { color: var(--icon-teal); }
+#gallery-tools-btn { color: var(--icon-grey); }
+
+#gv2-tags-btn:hover { text-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+#gv2-thumb-toggle-btn:hover { text-shadow: 0 0 8px rgba(6, 182, 212, 0.4); }
+#gv2-layer-btn:hover { text-shadow: 0 0 8px rgba(139, 92, 246, 0.4); }
+#gallery-upload-btn:hover { text-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+#gallery-show-heads-btn:hover { text-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+#gallery-img-tag-filter-btn:hover { text-shadow: 0 0 8px rgba(20, 184, 166, 0.4); }
+
+.gv2-sb-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.gv2-sb-sep {
+  width: 22px;
+  height: 1px;
+  background: var(--border2);
+  margin: 3px 0;
+  flex-shrink: 0;
 }
 
 .gv2-thumb-wrap {
   position: relative;
   flex-shrink: 0;
   cursor: pointer;
+}
+
+/* ── Thin horizontal separators in thumb panel ── */
+.gv2-thumb-separator {
+  width: calc(var(--thumb-panel-w, 74px) - 60px) !important;
+  height: 14px !important;
+  min-width: unset !important;
+  margin: 1px 0 !important;
+  padding: 0 4px !important;
+  align-self: unset !important;
+  border-radius: 3px !important;
+  border: none !important;
+  color: #ffd700 !important;
+  border-top: 1px solid #ffd700 !important;
+  cursor: pointer;
+}
+.gv2-thumb-separator.selected-separator {
+  border-top-color: var(--blue) !important;
+  background: rgba(88, 166, 255, 0.08) !important;
+  color: var(--blue) !important;
+}
+.gv2-thumb-separator:hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--text2) !important;
+}
+.gv2-thumb-separator.drag-active {
+  border-top-color: var(--blue) !important;
+  background: rgba(88, 166, 255, 0.15) !important;
+  color: #fff !important;
 }
 
 .gv2-thumb-wrap.drag-over {
@@ -592,11 +782,15 @@ This file contains the consolidated code context for the project to be used with
   opacity: 0.4;
 }
 
+.gv2-thumb-wrap {
+  width: calc(var(--thumb-panel-w, 74px) - 60px);
+}
+
 .gv2-thumb {
-  width: var(--thumb-size, 54px);
-  height: var(--thumb-size, 54px);
+  width: calc(var(--thumb-panel-w, 74px) - 60px);
+  height: calc((var(--thumb-panel-w, 74px) - 18px) * 0.62);
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: 4px;
   border: 2px solid var(--border2);
   transition: border-color 0.15s;
   display: block;
@@ -608,6 +802,31 @@ This file contains the consolidated code context for the project to be used with
 
 .gv2-thumb:hover {
   border-color: var(--text2);
+}
+
+.gv2-thumb-video {
+  width: calc(var(--thumb-panel-w, 74px) - 60px);
+  height: calc((var(--thumb-panel-w, 74px) - 18px) * 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border: 1px solid #7c3aed !important;
+  border-radius: 4px;
+}
+.gv2-thumb-video-icon {
+  pointer-events: none;
+  z-index: 5;
+  transition: transform 0.2s;
+}
+.gv2-thumb-video:hover .gv2-thumb-video-icon {
+  transform: scale(1.2);
+}
+
+.gv2-thumb-video.active {
+  border-color: var(--blue);
 }
 
 .gv2-thumb-del {
@@ -925,5 +1144,64 @@ This file contains the consolidated code context for the project to be used with
   cursor: pointer;
 }
 
+/* ── DROPWDOWN & ICON COLORS ────────────────── */
+.dropdown-menu {
+  background: rgba(15, 15, 20, 0.95) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+  padding: 6px !important;
+}
+
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  font-size: 0.82rem !important;
+  transition: all 0.2s !important;
+  background: transparent !important;
+  border: none !important;
+  width: 100% !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.02);
+}
+
+.gv2-di-icon svg {
+  width: 16px;
+  height: 16px;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+.dropdown-item:hover .gv2-di-icon svg {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+/* Individual Item Colors */
+#gv2-download-btn { color: var(--icon-blue) !important; }
+#gv2-replace-btn { color: var(--icon-green) !important; }
+#gv2-add-after-btn { color: var(--icon-purple) !important; }
+#gv2-copy-img-btn { color: var(--icon-cyan) !important; }
+#gv2-share-link-btn { color: var(--icon-orange) !important; }
+#gv2-mark-review-btn { color: var(--icon-white) !important; }
+#gv2-marquee-btn { color: var(--icon-grey) !important; }
+#gv2-time-btn { color: var(--icon-white) !important; }
+#gallery-tag-btn { color: var(--icon-teal) !important; }
+#gv2-obs-btn { color: var(--icon-blue) !important; }
+#gv2-delete-img-btn { color: var(--icon-red) !important; }
+
+.dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 6px 0;
+}
 
 ```

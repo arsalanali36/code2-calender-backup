@@ -1,8 +1,8 @@
-# JS — Settings Panel
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Settings
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\settings.js`
+## File: `static/js/settings.js`
 ```js
 /**
  * @fileoverview settings.js
@@ -34,6 +34,9 @@ function readSettingsFromPanel() {
     showLabels: document.getElementById('s-show-labels').checked,
     cellHeight: document.getElementById('s-cell-height').value,
     satSunOff: document.getElementById('s-sat-sun-off').checked,
+    showCalTags: document.getElementById('s-show-cal-tags').checked,
+    showTradeCount: !!(document.getElementById('s-show-trade-count')?.checked),
+    showTradingDay: !!(document.getElementById('s-show-trading-day')?.checked),
     tableRows: Math.max(3, Math.min(25, parseInt(document.getElementById('s-table-rows').value, 10) || 5)),
     groupAColor: document.getElementById('s-group-a-color').value || '#58a6ff',
     groupBColor: document.getElementById('s-group-b-color').value || '#ffffff',
@@ -50,6 +53,9 @@ function populateSettingsPanel(s) {
   document.getElementById('s-show-labels').checked = s.showLabels;
   document.getElementById('s-cell-height').value = s.cellHeight;
   document.getElementById('s-sat-sun-off').checked = !!s.satSunOff;
+  document.getElementById('s-show-cal-tags').checked = !!s.showCalTags;
+  const _tc = document.getElementById('s-show-trade-count'); if (_tc) _tc.checked = !!s.showTradeCount;
+  const _td = document.getElementById('s-show-trading-day'); if (_td) _td.checked = !!s.showTradingDay;
   document.getElementById('s-table-rows').value = String(s.tableRows || 5);
   document.getElementById('s-group-a-color').value = s.groupAColor || '#58a6ff';
   document.getElementById('s-group-b-color').value = s.groupBColor || '#ffffff';
@@ -70,6 +76,9 @@ function applySettingsToDOM(s) {
   window._showLabels = s.showLabels !== false;
   window._dayPos = s.dayPos || 'top-left';
   window._satSunOff = !!s.satSunOff;
+  window._showCalTags = !!s.showCalTags;
+  window._showTradeCount = !!s.showTradeCount;
+  window._showTradingDay = !!s.showTradingDay;
   const grid = document.getElementById('calendar-grid');
   if (grid) {
     grid.className = `calendar-grid cal-pos-${window._dayPos}`;
@@ -224,6 +233,82 @@ function renderShowHeads() {
     renderList('');
     searchInp.addEventListener('input', () => renderList(searchInp.value));
   });
+}
+
+function openShowHeadsModal() {
+  const modal = document.getElementById('show-heads-modal');
+  if (!modal) return;
+
+  const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+  const isConsolidated = state.calendarMode === 'consolidated';
+
+  // title badge
+  const title = document.getElementById('show-heads-modal-title');
+  if (title) {
+    title.textContent = isConsolidated ? 'Show Heads — Consolidated' : 'Show Heads — Individual';
+    title.style.color = isConsolidated ? 'var(--blue)' : 'var(--green)';
+  }
+
+  // work on a temp copy
+  const src = getActiveShowHeads();
+  const tempHeads = Object.assign({}, src);
+
+  const list = document.getElementById('show-heads-modal-list');
+  const searchInp = document.getElementById('show-heads-modal-search');
+  if (searchInp) searchInp.value = '';
+
+  const renderList = (q) => {
+    list.innerHTML = '';
+    const ql = (q || '').toLowerCase();
+    cols.filter(c => !ql || c.toLowerCase().includes(ql)).forEach(col => {
+      const lbl = document.createElement('label');
+      lbl.className = 'head-checkbox';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = !!tempHeads[col];
+      chk.addEventListener('change', () => { tempHeads[col] = chk.checked; });
+      lbl.appendChild(chk);
+      lbl.appendChild(document.createTextNode(col));
+      list.appendChild(lbl);
+    });
+  };
+
+  if (!cols.length) {
+    list.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>';
+  } else {
+    renderList('');
+    if (searchInp) searchInp.addEventListener('input', () => renderList(searchInp.value));
+  }
+
+  document.getElementById('show-heads-modal-all').onclick = () => {
+    cols.forEach(c => { tempHeads[c] = true; });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  document.getElementById('show-heads-modal-none').onclick = () => {
+    cols.forEach(c => { tempHeads[c] = false; });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  document.getElementById('show-heads-modal-pl').onclick = () => {
+    cols.forEach(c => { tempHeads[c] = isDefaultShowHeadCol(c); });
+    renderList(searchInp ? searchInp.value : '');
+  };
+  const decChk = document.getElementById('show-heads-decimals-chk');
+  if (decChk) decChk.checked = getShowDecimals();
+
+  document.getElementById('show-heads-modal-apply').onclick = () => {
+    if (decChk) localStorage.setItem('tj_show_decimals', decChk.checked ? 'true' : 'false');
+    Object.assign(src, tempHeads);
+    saveShowHeads();
+    renderShowHeads();
+    renderCalendar();
+    renderDashboard();
+    if (typeof renderGalleryStats === 'function') renderGalleryStats();
+    modal.classList.remove('open');
+  };
+  document.getElementById('show-heads-modal-cancel').onclick = () => modal.classList.remove('open');
+  document.getElementById('show-heads-modal-close').onclick  = () => modal.classList.remove('open');
+
+  modal.classList.add('open');
 }
 
 function initTableShowCols() {

@@ -1,8 +1,8 @@
-# CSS — Base (reset / layout / dashboard / calendar / table)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# CSS - Base
+Consolidated code context for AI assistants.
 
 
-## File: `static\css\style-base.css`
+## File: `static/css/style-base.css`
 ```css
 /* ── RESET & BASE ─────────────────────────────── */
 *,
@@ -69,12 +69,13 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 8px 14px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 8px;
 }
 
 .logo {
@@ -85,14 +86,31 @@ body.modal-open {
   font-weight: 700;
 }
 
-.logo-icon {
-  color: var(--green);
-  font-size: 1.4rem;
+.logo-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.logo-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .header-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* ── BUTTONS ──────────────────────────────────── */
@@ -108,6 +126,7 @@ body.modal-open {
   font-weight: 500;
   transition: all 0.15s;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn-primary {
@@ -213,7 +232,7 @@ body.modal-open {
 
 /* ── DASHBOARD SUMMARY ───────────────────────── */
 .dashboard-section {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dashboard-header {
@@ -302,6 +321,14 @@ body.modal-open {
   color: var(--text);
 }
 
+.dash-wl {
+  display: block;
+  font-size: 0.7em;
+  font-weight: 500;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
 @media (max-width: 520px) {
   .dashboard-title {
     flex-direction: column;
@@ -310,11 +337,55 @@ body.modal-open {
   }
 }
 
+/* ── CALENDAR EXTRAS ──────────────────────────── */
+.cal-trading-day-badge {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text2);
+  opacity: 0.65;
+  vertical-align: middle;
+}
+
+.day-trade-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--blue);
+  opacity: 0.9;
+}
+
 /* ── CALENDAR NAV ─────────────────────────────── */
 .calendar-nav {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.global-date-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+#dev-log-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1700px) {
+  #dev-log-btn {
+    padding: 7px 10px;
+    font-size: 0;
+  }
+  #dev-log-btn::before {
+    content: "\1F4D3";
+    font-size: 0.95rem;
+    line-height: 1;
+  }
 }
 
 .calendar-nav #today-btn {
@@ -626,11 +697,21 @@ body.modal-open {
 }
 
 .day-cell.has-profit {
-  border-left: 2px solid var(--green);
+  background: rgba(63, 185, 80, 0.18);
+  border-left: 2px solid rgba(63, 185, 80, 0.75);
+}
+
+.day-cell.has-profit:hover {
+  background: rgba(63, 185, 80, 0.25);
 }
 
 .day-cell.has-loss {
-  border-left: 2px solid var(--red);
+  background: rgba(248, 81, 73, 0.18);
+  border-left: 2px solid rgba(248, 81, 73, 0.75);
+}
+
+.day-cell.has-loss:hover {
+  background: rgba(248, 81, 73, 0.25);
 }
 
 .day-cell.weekend-day>.day-num {
@@ -872,7 +953,8 @@ body.modal-open {
 
 .date-range-input {
   font-size: 0.78rem;
-  padding: 4px 6px;
+  padding: 4px 2px 4px 6px;
+  width: 100px;
   width: 130px;
   transition: border-color 0.15s;
 }
@@ -886,6 +968,12 @@ body.modal-open {
   padding: 4px 7px;
   font-size: 0.75rem;
   display: none;
+}
+
+/* Keep native date picker indicator visible for reliable input across browsers */
+.date-range-input::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+  cursor: pointer;
 }
 
 .table-wrapper {
@@ -1335,5 +1423,29 @@ tr.row-drop-after {
   border-color: var(--blue);
 }
 
+
+
+/* ── Mobile View Toggle Button ─────────────────────────────────────────────── */
+.mobile-view-toggle-btn {
+  font-size: 1.1rem;
+  padding: 4px 10px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.mobile-view-toggle-btn:hover { opacity: 1; }
+.mobile-view-toggle-btn.active {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+/* ── Mobile View Layout (body.mobile-view) ──────────────────────────────────
+   Placeholder — mobile UI will be built here gradually.
+   Currently just flags the state; components can check this class.
+────────────────────────────────────────────────────────────────────────────── */
+body.mobile-view .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
 ```

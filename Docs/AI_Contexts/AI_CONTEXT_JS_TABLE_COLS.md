@@ -1,8 +1,8 @@
-# JS — Table Columns (sort / resize / cell render / tag picker)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Table Columns
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\table-cols.js`
+## File: `static/js/table-cols.js`
 ```js
 /**
  * @fileoverview table-cols.js
@@ -294,7 +294,8 @@ function renderImagesCell(td, rowIdx, images) {
   const maxShow = 6;
   images.slice(0, maxShow).forEach((url, i) => {
     const item = document.createElement('div'); item.className = 'img-thumb-wrap';
-    const img = document.createElement('img'); img.className = 'img-thumb'; img.src = url;
+    const img = document.createElement('img'); img.className = 'img-thumb'; img.src = resolveImageUrl(url);
+    img.onerror = () => { img.style.opacity = '0.2'; img.style.filter = 'grayscale(1)'; img.title = 'Image not found on server'; };
     img.setAttribute('draggable', 'true');
     img.addEventListener('click', e => { e.stopPropagation(); openGalleryDirect(images, i, rowIdx); });
     img.addEventListener('dragstart', e => {
@@ -363,11 +364,7 @@ async function deleteImageFromRow(rowIdx, imageUrl) {
 
   try {
     const filename = String(imageUrl || '').split('/').pop();
-    await fetch('/api/delete-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename })
-    });
+    await imageService.deleteImage('/uploads/' + filename);
   } catch (e) { }
 
   await saveTrades();

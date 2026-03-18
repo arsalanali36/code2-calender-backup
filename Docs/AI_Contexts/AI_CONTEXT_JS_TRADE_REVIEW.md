@@ -1,8 +1,8 @@
-# JS — Trade Review popup (trade-review.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Trade Review
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\trade-review.js`
+## File: `static/js/trade-review.js`
 ```js
 /**
  * @fileoverview trade-review.js

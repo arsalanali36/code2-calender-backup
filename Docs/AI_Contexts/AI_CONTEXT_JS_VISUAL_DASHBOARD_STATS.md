@@ -1,8 +1,8 @@
-# JS — Visual Dashboard Stats & Controls (visual-dashboard-stats.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Visual Dashboard Stats
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\visual-dashboard-stats.js`
+## File: `static/js/visual-dashboard-stats.js`
 ```js
 /**
  * @fileoverview visual-dashboard-stats.js
@@ -154,13 +154,19 @@ function bindVdDragDrop() {
     });
 }
 
+let tempVdStatsMap = null;
+let tempVdStatsOrder = null;
+
 function renderVdStatsMenu() {
-    const menu = document.getElementById('vd-stats-menu');
+    const menu = document.getElementById('vd-stats-menu-container');
     if (!menu) return;
     menu.innerHTML = '';
 
-    const map = getVdStatsState();
-    const order = getVdStatsOrder();
+    if (!tempVdStatsMap) tempVdStatsMap = getVdStatsState();
+    if (!tempVdStatsOrder) tempVdStatsOrder = getVdStatsOrder();
+
+    const map = tempVdStatsMap;
+    const order = tempVdStatsOrder;
 
     const searchRow = document.createElement('div');
     searchRow.className = 'panel-search-row';
@@ -182,15 +188,11 @@ function renderVdStatsMenu() {
     btnNone.textContent = 'None';
     btnAll.addEventListener('click', () => {
         VD_STATS.forEach(s => { map[s.key] = true; });
-        saveVdStatsState(map);
         renderVdStatsMenu();
-        applyVdStatVisibility();
     });
     btnNone.addEventListener('click', () => {
         VD_STATS.forEach(s => { map[s.key] = false; });
-        saveVdStatsState(map);
         renderVdStatsMenu();
-        applyVdStatVisibility();
     });
     actRow.appendChild(btnAll);
     actRow.appendChild(btnNone);
@@ -228,8 +230,6 @@ function renderVdStatsMenu() {
             chk.checked = map[s.key] !== false;
             chk.addEventListener('change', () => {
                 map[s.key] = chk.checked;
-                saveVdStatsState(map);
-                applyVdStatVisibility();
             });
 
             const label = document.createElement('span');
@@ -255,10 +255,8 @@ function renderVdStatsMenu() {
                 const newOrder = order.filter(k => k !== from);
                 const toIdx = newOrder.indexOf(to);
                 newOrder.splice(toIdx, 0, from);
-                saveVdStatsOrder(newOrder);
+                tempVdStatsOrder = newOrder;
                 renderList(searchInp.value);
-                applyVdStatOrder();
-                applyVdCardWidths();
             });
 
             list.appendChild(row);
@@ -276,24 +274,46 @@ document.addEventListener('DOMContentLoaded', function () {
         renderVdStatsMenu(); // render dropdown content
     }, 200);
 
-    // Bind dropdown click behavior
     const statBtn = document.getElementById('vd-stats-btn');
-    if (statBtn) {
+    const modal = document.getElementById('vd-stats-modal');
+    const closeBtn = document.getElementById('vd-stats-close-btn');
+    const applyBtn = document.getElementById('vd-stats-apply-btn');
+
+    if (statBtn && modal) {
         statBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const menu = document.getElementById('vd-stats-menu');
-            if (menu) menu.classList.toggle('open');
+            tempVdStatsMap = getVdStatsState();
+            tempVdStatsOrder = getVdStatsOrder();
+            renderVdStatsMenu();
+            modal.style.display = 'flex';
         });
     }
 
-    // Close on click outside
-    document.addEventListener('click', (e) => {
-        const menu = document.getElementById('vd-stats-menu');
-        const btn = document.getElementById('vd-stats-btn');
-        if (menu && menu.classList.contains('open') && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
-            menu.classList.remove('open');
-        }
-    });
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (applyBtn && modal) {
+        applyBtn.addEventListener('click', () => {
+            saveVdStatsState(tempVdStatsMap);
+            saveVdStatsOrder(tempVdStatsOrder);
+            applyVdStatVisibility();
+            applyVdStatOrder();
+            applyVdCardWidths();
+            modal.style.display = 'none';
+        });
+    }
+
+    // Close on click outside modal content
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
 });
 
 
@@ -329,7 +349,7 @@ function updateVdChartWidth(chartKey, cols) {
 }
 window.updateVdChartWidth = updateVdChartWidth;
 
-function applyVdCardWidths() {
+function applyVdCardWidths(triggerResize) {
     const widths = getVdCardWidths();
     document.querySelectorAll('.visual-dash-grid .dash-card[data-vd-stat]').forEach(card => {
         const key = card.getAttribute('data-vd-stat');
@@ -340,6 +360,10 @@ function applyVdCardWidths() {
         const sel = card.querySelector('.vd-width-select');
         if (sel) sel.value = cols;
     });
+    // After initial render, charts need a resize signal to fill their new container width
+    if (triggerResize) {
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+    }
 }
 
 ```

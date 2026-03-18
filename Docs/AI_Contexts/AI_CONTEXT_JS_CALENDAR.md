@@ -1,8 +1,8 @@
-# JS — Calendar
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Calendar
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\calendar.js`
+## File: `static/js/calendar.js`
 ```js
 /**
  * @fileoverview calendar.js
@@ -61,6 +61,21 @@ const MUHURAT_TRADING = {
 
 function getMarketHoliday(dateStr) {
   return MARKET_HOLIDAYS[dateStr] || null;
+}
+
+// Returns the trading day index (1-based) for a given date within its month.
+// Trading days = Mon-Fri that are not market holidays.
+function getTradingDayOfMonth(year, month, day) {
+  let count = 0;
+  for (let d = 1; d <= day; d++) {
+    const cellDate = new Date(year, month, d);
+    const dow = cellDate.getDay();
+    if (dow === 0 || dow === 6) continue; // skip weekends
+    const ds = formatDate(cellDate);
+    if (MARKET_HOLIDAYS[ds]) continue; // skip holidays
+    count++;
+  }
+  return count;
 }
 
 function getMuhuratDay(dateStr) {
@@ -163,7 +178,15 @@ function renderCalendar() {
     }
 
     const numDiv = document.createElement('div'); numDiv.className = 'day-num';
-    numDiv.textContent = d; cell.appendChild(numDiv);
+    numDiv.textContent = d;
+    if (window._showTradingDay && !isWeekend && !getMarketHoliday(dateStr)) {
+      const tdNum = getTradingDayOfMonth(state.year, state.month, d);
+      const tdBadge = document.createElement('span');
+      tdBadge.className = 'cal-trading-day-badge';
+      tdBadge.textContent = `TD${tdNum}`;
+      numDiv.appendChild(tdBadge);
+    }
+    cell.appendChild(numDiv);
 
     const hlabel = holidayName || muhuratName;
     if (hlabel) {
@@ -176,6 +199,29 @@ function renderCalendar() {
 
     if (dayTrades.length) {
       const dataDiv = document.createElement('div'); dataDiv.className = 'day-data';
+      if (window._showTradeCount) {
+        const tcDiv = document.createElement('div'); tcDiv.className = 'day-data-item day-trade-count';
+        tcDiv.textContent = `${dayTrades.length} trade${dayTrades.length !== 1 ? 's' : ''}`;
+        dataDiv.appendChild(tcDiv);
+      }
+      // Abbreviation map for calendar cell labels (keeps cells compact)
+      const _CAL_ABBR = {
+        'gross p&l':'G','gross p/l':'G','gross':'G',
+        'net p&l':'N','net p/l':'N','net':'N',
+        'total trades':'T#','trade count':'T#','trades':'T#',
+        'charges':'Ch','brokerage':'Br','total fees':'Fee',
+        'win %':'W%','win rate':'W%','winrate':'W%',
+        'avg win':'AW','avg loss':'AL',
+        'avg / trade':'Avg','avg per trade':'Avg',
+        'points':'Pt','rs':'₹','p/l':'P/L',
+        'drawdown':'DD','max drawdown':'DD',
+        'profit':'P','loss':'L','qty':'Q','quantity':'Q',
+        'instrument':'Ins','strategy':'Stg','setup':'Stg',
+        'entry':'En','exit':'Ex','time':'T',
+        'buy price':'BP','sell price':'SP',
+      };
+      const _abbr = col => _CAL_ABBR[col.toLowerCase()] || col;
+
       const cols = state.columns.filter(col => getActiveShowHeads()[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
       if (state.calendarMode === 'individual') {
         dayTrades.forEach((tr, i) => {
@@ -189,11 +235,12 @@ function renderCalendar() {
             if (isProfit) {
               const num = parseFloat(val);
               if (!isNaN(num)) {
-                item.textContent = showLabels ? `${prefix}${col}: ${num > 0 ? '+' : ''}${num}` : `${prefix}${num > 0 ? '+' : ''}${num}`;
+                const fv = getShowDecimals() ? num : Math.round(num);
+                item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${num > 0 ? '+' : ''}${fv}` : `${prefix}${num > 0 ? '+' : ''}${fv}`;
                 item.classList.add(num >= 0 ? 'profit-pos' : 'profit-neg');
-              } else { item.textContent = showLabels ? `${prefix}${col}: ${val}` : `${prefix}${val}`; }
+              } else { item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${val}` : `${prefix}${val}`; }
             } else {
-              item.textContent = showLabels ? `${prefix}${col}: ${val}` : `${prefix}${val}`;
+              item.textContent = showLabels ? `${prefix}${_abbr(col)}: ${val}` : `${prefix}${val}`;
             }
             dataDiv.appendChild(item);
           });
@@ -214,13 +261,13 @@ function renderCalendar() {
             } else {
               outNum = nums.reduce((a, b) => a + b, 0);
             }
-            const out = outNum % 1 === 0 ? outNum : outNum.toFixed(2);
-            item.textContent = showLabels ? `${col}: ${out}` : `${out}`;
+            const out = getShowDecimals() ? (outNum % 1 === 0 ? outNum : outNum.toFixed(2)) : Math.round(outNum);
+            item.textContent = showLabels ? `${_abbr(col)}: ${out}` : `${out}`;
             if (lower.includes('profit') || lower === 'rs') item.classList.add(outNum >= 0 ? 'profit-pos' : 'profit-neg');
           } else {
             const first = String(vals[0]);
             const same = vals.every(v => String(v) === first);
-            item.textContent = same ? (showLabels ? `${col}: ${first}` : first) : (showLabels ? `${col}: ${vals.length} entries` : `${vals.length}`);
+            item.textContent = same ? (showLabels ? `${_abbr(col)}: ${first}` : first) : (showLabels ? `${_abbr(col)}: ${vals.length}x` : `${vals.length}x`);
           }
           dataDiv.appendChild(item);
         });
@@ -231,7 +278,10 @@ function renderCalendar() {
         const tags = Array.from(new Set(dayTrades.flatMap(t => getTradeTagsForColumn(t, col))));
         tags.forEach(tag => dayTagKeys.push(makeTagFilterKey(col, tag)));
       });
-      if (dayTagKeys.length) {
+
+      const imgs = [...(state.dayData[dateStr]?.images || []), ...dayTrades.flatMap(t => t.images || [])];
+
+      if (window._showCalTags && dayTagKeys.length) {
         const tagWrap = document.createElement('div');
         tagWrap.className = 'day-tag-bubbles';
         dayTagKeys.forEach(key => {
@@ -270,14 +320,19 @@ function renderCalendar() {
         if (thumbnailImg) {
           const timg = document.createElement('img');
           timg.className = 'day-thumb-image';
-          timg.src = thumbnailImg;
+          timg.src = resolveImageUrl(thumbnailImg);
           timg.alt = 'thumbnail';
           timg.title = 'Thumbnail tagged image';
+          
+          timg.addEventListener('click', e => {
+            e.stopPropagation();
+            openFullscreenFromAppContext(imgs, thumbnailImg);
+          });
+          
           cell.appendChild(timg);
         }
       }
 
-      const imgs = [...(state.dayData[dateStr]?.images || []), ...dayTrades.flatMap(t => t.images || [])];
       if (imgs.length > 0) {
         const badge = document.createElement('div'); badge.className = 'day-img-badge';
         badge.textContent = `Img ${imgs.length}`; cell.appendChild(badge);
@@ -296,10 +351,10 @@ function renderCalendar() {
           if (typeof saveTrades === 'function') saveTrades();
           if (typeof renderTable === 'function') renderTable();
           renderCalendar();
-          openGalleryForDate(dateStr);
+          openGalleryForDateWithPicker(dateStr);
         }
       } else {
-        openGalleryForDate(dateStr);
+        openGalleryForDateWithPicker(dateStr);
       }
     });
     grid.appendChild(cell);

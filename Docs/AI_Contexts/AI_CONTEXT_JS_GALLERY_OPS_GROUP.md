@@ -1,8 +1,8 @@
-# JS — Gallery Group Ops (delete confirm / expand / move selected)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Group Ops
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-ops-group.js`
+## File: `static/js/gallery-ops-group.js`
 ```js
 /**
  * @fileoverview gallery-ops-group.js
@@ -173,7 +173,11 @@ function toggleGalleryGroupExpand(url) {
 async function moveSelectedToTrade(dateToUse, targetTrade) {
     if (!state.gallery.selectedIndices || state.gallery.selectedIndices.size === 0) return;
     const arr = state.gallery.images || [];
-    const indices = Array.from(state.gallery.selectedIndices).sort((a, b) => b - a); // descending to splice safely
+
+    // Ascending order = original visual order (used when adding to target)
+    const indicesAsc = Array.from(state.gallery.selectedIndices).sort((a, b) => a - b);
+    // Descending order = safe for removal from source
+    const indicesDesc = [...indicesAsc].reverse();
 
     // Backup for undo
     const backupAllTrades = JSON.stringify(state.trades);
@@ -190,9 +194,9 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
         if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
     }
 
-    let movedCount = 0;
-
-    for (let idx of indices) {
+    // Pass 1: collect subs & remove from source (descending so indices stay valid)
+    const movedItems = []; // { imageUrl, ownedSubs } in descending index order
+    for (let idx of indicesDesc) {
         if (idx < 0 || idx >= arr.length) continue;
         const imageUrl = arr[idx];
         const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
@@ -222,6 +226,13 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
             }
         }
 
+        movedItems.push({ imageUrl, ownedSubs });
+    }
+
+    // Pass 2: add to target in original visual order (reverse of descending = ascending)
+    movedItems.reverse();
+    let movedCount = 0;
+    for (const { imageUrl, ownedSubs } of movedItems) {
         // Add to target location (with subImages)
         if (targetTradeObj) {
             if (!targetTradeObj.images) targetTradeObj.images = [];

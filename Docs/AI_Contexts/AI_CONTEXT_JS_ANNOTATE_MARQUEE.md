@@ -1,8 +1,8 @@
-# JS — Annotation Marquee & Tools
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Annotation Marquee and Tools
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\annotate-marquee.js`
+## File: `static/js/annotate-marquee.js`
 ```js
 /**
  * @fileoverview annotate-marquee.js
@@ -252,7 +252,7 @@ function addTagToSelectedMarqueeBox(rawTag) {
 
 ```
 
-## File: `static\js\annotate-tools.js`
+## File: `static/js/annotate-tools.js`
 ```js
 /**
  * @fileoverview annotate-tools.js

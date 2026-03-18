@@ -1,8 +1,8 @@
-# JS — Events Init & Keyboard (events.js / events-keys.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Events Init and Keyboard
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\events.js`
+## File: `static/js/events.js`
 ```js
 /**
  * @fileoverview events.js
@@ -48,10 +48,7 @@ function bindEvents() {
 
     for (const file of imgFiles) {
       try {
-        const fd = new FormData();
-        fd.append('image', file);
-        const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-        const data = await res.json();
+        const data = await imageService.uploadImage(file);
         if (data.url) {
           let addedToGroup = false;
 
@@ -267,7 +264,7 @@ function showGalleryExitConfirm() {
 
 ```
 
-## File: `static\js\events-keys.js`
+## File: `static/js/events-keys.js`
 ```js
 /**
  * @fileoverview events-keys.js
@@ -317,6 +314,22 @@ function _bindKeyboardEvents() {
     }
 
     if (galleryOpen) {
+      // Arrow nav — must run BEFORE typingInField check because upper-canvas focus
+      // triggers typingInField=true even when not typing. Guard: annotation must be off.
+      if (!annotState.active && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        const fsEl = document.getElementById('fullscreen-viewer');
+        if (fsEl && fsEl.style.display === 'flex' && typeof FullscreenViewer !== 'undefined') {
+          if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevImg(); return; }
+          if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextImg(); return; }
+          if (e.key === 'ArrowUp')    { e.preventDefault(); FullscreenViewer.prevDay(); return; }
+          if (e.key === 'ArrowDown')  { e.preventDefault(); FullscreenViewer.nextDay(); return; }
+        }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
+        if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
+        if (e.key === 'ArrowUp')    { e.preventDefault(); navigateGallery(-1);     return; }
+        if (e.key === 'ArrowDown')  { e.preventDefault(); navigateGallery(1);      return; }
+      }
+
       if (typingInField && e.key !== 'Escape') return;
       if (typingInField && e.key === 'Escape') {
         // Agar text edit mode me escape dabaya, toh annotate-fabric apna select/exitEditing handle karega.
@@ -455,10 +468,7 @@ function _bindKeyboardEvents() {
         return;
       }
 
-      if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
-      if (e.key === 'ArrowRight' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
-      if (e.key === 'ArrowUp' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(1); }
-      if (e.key === 'ArrowDown' && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateGallery(-1); }
+      // Arrow keys handled at top of galleryOpen block (before typingInField guard)
       if (e.key === 'r' || e.key === 'R') resetZoom();
       if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
 
@@ -522,20 +532,9 @@ function _bindKeyboardEvents() {
       if ((e.key === 'f' || e.key === 'F') && !e.altKey && !e.ctrlKey) {
         if (annotState.active) return;
         e.preventDefault();
-        const toggleBtn = document.getElementById('gallery-img-tag-filter-btn');
-        if (toggleBtn) {
-          toggleBtn.click();
-          setTimeout(() => {
-            const panel = document.getElementById('gallery-img-tag-filter-panel');
-            if (panel && panel.classList.contains('open')) {
-              const inp = panel.querySelector('.panel-search');
-              if (inp) {
-                inp.focus();
-                inp.select();
-              }
-            }
-          }, 100);
-        }
+        const _fsImages = state.gallery.images || [];
+        const _fsCur = _fsImages[state.gallery.currentIndex];
+        if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur, true);
         return;
       }
 
@@ -593,12 +592,18 @@ function _bindKeyboardEvents() {
         }
         e.preventDefault();
         e.stopPropagation();
-        showGalleryExitConfirm();
+        // Close FS viewer first if open, otherwise show exit confirm for gallery
+        if (typeof FullscreenViewer !== 'undefined' && FullscreenViewer.isOpen) {
+          FullscreenViewer.close();
+        } else {
+          showGalleryExitConfirm();
+        }
       }
     }
-    const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal']
+    const anyModalOpen = ['obs-modal', 'add-col-modal', 'edit-col-modal', 'tag-modal', 'img-tag-modal', 'upload-modal', 'quote-modal']
       .some(id => document.getElementById(id)?.classList.contains('open'));
-    if (!typingInField && !galleryOpen && !anyModalOpen && !e.ctrlKey && !e.altKey) {
+    const chartsModalOpen = !!document.querySelector('.clc-backdrop');
+    if (!typingInField && !galleryOpen && !anyModalOpen && !chartsModalOpen && !e.ctrlKey && !e.altKey) {
       if (e.key === 'f' && !e.shiftKey) {
         e.preventDefault();
         document.body.classList.toggle('calendar-full');
@@ -633,6 +638,7 @@ function _bindKeyboardEvents() {
           : new Date().toISOString().slice(0, 10);
         openObsModal(target);
       } else if (e.key === 'i' && !e.shiftKey) {
+        if (_clBackdrop) return;   // CSVLog modal open — let it handle 'i'
         e.preventDefault();
         const datesWImg = getDatesWithImages();
         if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);
@@ -649,6 +655,18 @@ function _bindKeyboardEvents() {
       if (document.getElementById('tag-modal').classList.contains('open')) closeTagPicker();
       if (document.getElementById('img-tag-modal').classList.contains('open')) closeGalleryImageTagManager();
       if (_notePop) closeNotePopup(true);
+      document.getElementById('show-heads-panel').classList.remove('open');
+      closeAllDropdowns('__none__');
+      const pd = document.getElementById('profile-dropdown');
+      if (pd) pd.classList.remove('open');
+      document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
+      const scm = document.getElementById('stats-config-modal');
+      if (scm) scm.classList.remove('open');
+      const shm = document.getElementById('show-heads-modal');
+      if (shm) shm.classList.remove('open');
+      const qm = document.getElementById('quote-modal');
+      if (qm) qm.classList.remove('open');
+      if (typeof closeCsvLogChartsModal === 'function' && document.querySelector('.clc-backdrop')) closeCsvLogChartsModal();
     }
   });
 }

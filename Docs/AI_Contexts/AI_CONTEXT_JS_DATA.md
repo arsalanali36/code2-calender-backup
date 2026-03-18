@@ -1,8 +1,8 @@
-# JS — Data (data.js: loadTrades / saveTrades / sync)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Data
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\data.js`
+## File: `static/js/data.js`
 ```js
 /**
  * @fileoverview data.js
@@ -27,6 +27,7 @@ async function init() {
   renderDashboardStatsMenu();
   bindEvents();
   await loadTrades();
+  _openGalleryFromUrlParamsOnce();
   setInterval(() => {
     if (!document.hidden) syncFromServerIfChanged(false);
   }, state.syncIntervalMs);
@@ -34,6 +35,33 @@ async function init() {
     if (!document.hidden) syncFromServerIfChanged(true);
   });
   window.addEventListener('focus', () => syncFromServerIfChanged(true));
+}
+
+function _openGalleryFromUrlParamsOnce() {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const dateKey = normalizeDate(q.get('galleryDate') || '');
+    const imgUrl = q.get('galleryImg') || '';
+    if (!dateKey) return;
+    if (typeof openGalleryForDate !== 'function') return;
+
+    const layout = q.get('galleryLayout') || 'new';
+    if (typeof _applyGalleryLayout === 'function') _applyGalleryLayout(layout);
+    openGalleryForDate(dateKey);
+    if (imgUrl && Array.isArray(state.gallery.images) && state.gallery.images.length) {
+      const decodedImg = decodeURIComponent(imgUrl);
+      const idx = state.gallery.images.findIndex(u => String(u) === decodedImg);
+      if (idx >= 0) state.gallery.currentIndex = idx;
+      renderGallery();
+    }
+
+    // Keep URL clean so refresh doesn't keep reopening from stale params.
+    q.delete('galleryDate');
+    q.delete('galleryImg');
+    q.delete('galleryLayout');
+    const clean = `${window.location.pathname}${q.toString() ? `?${q.toString()}` : ''}${window.location.hash || ''}`;
+    window.history.replaceState({}, '', clean);
+  } catch (e) { }
 }
 
 function populateSelects() {
@@ -44,7 +72,7 @@ function populateSelects() {
   if (ms) {
     MONTHS.forEach((m, i) => {
       const o = document.createElement('option');
-      o.value = i; o.textContent = m; if (i === state.month) o.selected = true;
+      o.value = i; o.textContent = m.slice(0, 3); if (i === state.month) o.selected = true;
       ms.appendChild(o);
     });
   }
@@ -62,8 +90,7 @@ function populateSelects() {
 
 async function loadTrades() {
   try {
-    const res = await fetch('/api/trades');
-    const data = await res.json();
+    const data = await tradeService.loadTrades();
     state.trades = data.trades || [];
     state.columns = data.columns || [];
     state.allTags = data.allTags || [];
@@ -105,10 +132,7 @@ async function saveTrades() {
       dayData: state.dayData,
       tagGroups: state.tagGroups
     };
-    await fetch('/api/trades', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    await tradeService.saveTrades(payload);
     state.serverStateHash = hashServerState(payload);
   } catch (e) { showToast('Save failed', 'error'); }
 }
@@ -130,12 +154,15 @@ function hashServerState(data) {
 }
 
 function isUiBusyForSync() {
+  if (window.__csvlogPersisting) return true;
   const ae = document.activeElement;
   const typing = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
   if (typing) return true;
   if (annotState.active) return true;
   if (document.getElementById('obs-modal')?.classList.contains('open')) return true;
   if (document.getElementById('upload-modal')?.classList.contains('open')) return true;
+  if (document.getElementById('quote-modal')?.classList.contains('open')) return true;
+  if (document.querySelector('.clc-backdrop')) return true;
   if (document.getElementById('tag-modal')?.classList.contains('open')) return true;
   if (document.getElementById('img-tag-modal')?.classList.contains('open')) return true;
   if (document.getElementById('gallery-modal')?.classList.contains('open')) return true;
@@ -145,9 +172,7 @@ function isUiBusyForSync() {
 async function syncFromServerIfChanged(force = false) {
   if (!force && isUiBusyForSync()) return;
   try {
-    const res = await fetch('/api/trades');
-    if (!res.ok) return;
-    const data = await res.json();
+    const data = await tradeService.loadTrades();
     const incomingHash = hashServerState(data);
     if (!incomingHash || incomingHash === state.serverStateHash) return;
 

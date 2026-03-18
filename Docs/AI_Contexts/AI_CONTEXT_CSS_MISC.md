@@ -1,9 +1,429 @@
-# CSS — Misc (upload / settings / tags / toast / scrollbar)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# CSS - Misc
+Consolidated code context for AI assistants.
 
 
-## File: `static\css\style-misc.css`
+## File: `static/css/style-misc.css`
 ```css
+/* ── PROFILE AVATAR DROPDOWN ─────────────────── */
+.profile-menu-wrapper { position: relative; }
+
+.profile-avatar-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: var(--surface);
+  cursor: pointer; padding: 2px;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s;
+}
+.profile-avatar-btn:hover { border-color: var(--blue); }
+
+.profile-avatar-img, .profile-user-avatar {
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: 50%;
+}
+
+.profile-dropdown {
+  display: none;
+  position: absolute; right: 0; top: calc(100% + 8px);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  min-width: 230px;
+  box-shadow: var(--shadow);
+  z-index: 500; overflow: visible;
+}
+.profile-dropdown.open { display: block; }
+
+.profile-user-info {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+}
+.profile-user-avatar { width: 34px; height: 34px; flex-shrink: 0; }
+.profile-email { font-size: 0.82rem; color: var(--text1); word-break: break-all; }
+
+.profile-divider { height: 1px; background: var(--border2); margin: 2px 0; }
+
+.profile-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 9px 14px;
+  background: none; border: none;
+  color: var(--text1); font-size: 0.88rem;
+  cursor: pointer; text-align: left; text-decoration: none;
+  box-sizing: border-box;
+}
+.profile-menu-item:hover { background: var(--surface2); }
+.profile-has-sub { justify-content: space-between; }
+
+.pmi-icon { opacity: 0.7; font-size: 0.85rem; }
+
+.pmi-badge {
+  margin-left: auto;
+  color: var(--blue); font-size: 0.76rem;
+  background: rgba(88,166,255,0.12);
+  padding: 2px 8px; border-radius: 10px;
+  border: none; cursor: default;
+}
+
+.pmi-arrow { color: var(--text2); font-size: 1rem; margin-left: 2px; }
+
+.profile-signout { color: #f85149 !important; }
+.profile-signout:hover { background: rgba(248,81,73,0.08) !important; }
+
+/* ── PROFILE INLINE DROPDOWNS ────────────────── */
+.profile-inline-group { width: 100%; }
+
+.profile-inline-dropdown {
+  display: none;
+  background: var(--surface2);
+  border-top: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+  padding: 4px 0;
+}
+.profile-inline-group.open .profile-inline-dropdown { display: block; }
+.profile-inline-group.open .pmi-arrow { transform: rotate(180deg); }
+
+.pmi-arrow { transition: transform 0.15s; display: inline-block; }
+
+.profile-sub-item {
+  display: block; width: 100%;
+  padding: 8px 28px;
+  background: none; border: none;
+  color: var(--text1); font-size: 0.85rem;
+  cursor: pointer; text-align: left;
+}
+.profile-sub-item:hover { background: var(--surface); }
+.profile-sub-item.active { color: var(--blue); font-weight: 600; }
+
+.quote-random-wrap {
+  position: relative;
+}
+
+.quote-random-launch-btn {
+  padding: 7px 10px;
+  min-width: 60px;
+  font-size: 0.78rem;
+}
+
+.quote-random-panel {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 160px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 520;
+}
+
+.quote-random-panel.open {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quote-random-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.quote-random-min-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text2);
+}
+
+.quote-random-min-row input {
+  width: 52px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+/* ── QUOTE MODAL ───────────────────────────────── */
+.quote-modal-content {
+  width: min(920px, 94vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.quote-modal-header {
+  align-items: flex-start;
+}
+
+.quote-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.quote-tools-menu-wrap {
+  position: relative;
+}
+
+.quote-tools-btn {
+  min-width: 104px;
+  height: 34px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.86rem;
+  cursor: pointer;
+  padding: 0 12px;
+}
+
+.quote-tools-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.quote-tools-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: #1b2232;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.42);
+  z-index: 20;
+}
+
+.quote-tools-menu.open {
+  display: flex;
+}
+
+.quote-tools-menu-item {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.quote-tools-menu-item:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.quote-tools-menu-item.primary {
+  background: rgba(88, 166, 255, 0.92);
+  border-color: rgba(88, 166, 255, 0.92);
+  color: #fff;
+}
+
+.quote-tools-menu-item.primary:hover {
+  color: #fff;
+  filter: brightness(1.05);
+}
+
+.quote-modal-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quote-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.quote-modal-counter {
+  font-size: 0.78rem;
+  color: var(--text2);
+}
+
+.quote-modal-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+}
+
+.quote-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.quote-card-main {
+  position: relative;
+  background: linear-gradient(180deg, rgba(88, 166, 255, 0.12), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(88, 166, 255, 0.24);
+  border-radius: 18px;
+  padding: 28px 24px 20px;
+}
+
+.quote-mark {
+  position: absolute;
+  font-size: 3rem;
+  line-height: 1;
+  color: rgba(88, 166, 255, 0.34);
+  pointer-events: none;
+}
+
+.quote-mark-left {
+  top: 10px;
+  left: 14px;
+}
+
+.quote-mark-right {
+  right: 18px;
+  bottom: 76px;
+}
+
+.quote-text {
+  padding: 12px 8px 20px;
+  text-align: center;
+  font-size: var(--quote-font-size, clamp(1.1rem, 2vw, 1.6rem));
+  line-height: 1.7;
+  color: var(--text);
+  min-height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#quote-rating-slider {
+  width: 100%;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.quote-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quote-scheduler-inline-btn {
+  margin-right: auto;
+}
+
+.quote-scheduler-inline-btn.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(63, 185, 80, 0.12);
+}
+
+.quote-rating-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.quote-rating-inline-label {
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+
+.quote-rating-inline #quote-rating-slider {
+  flex: 1;
+}
+
+.quote-rating-inline #quote-rating-value {
+  min-width: 52px;
+  text-align: right;
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+
+.quote-nav-btn {
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 1.35rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quote-nav-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: rgba(88, 166, 255, 0.08);
+}
+
+
+/* ── STATS CONFIG MODAL ──────────────────────── */
+.stats-config-content {
+  width: min(560px, 95vw);
+  display: flex; flex-direction: column;
+  max-height: 85vh;
+}
+.stats-config-body {
+  padding: 20px 24px 8px;
+  display: flex; flex-direction: column; gap: 12px;
+  flex: 1; overflow: hidden;
+}
+.stats-config-search-row .panel-search {
+  width: 100%; box-sizing: border-box;
+}
+.stats-config-act-row {
+  display: flex; gap: 8px;
+}
+.stats-config-list {
+  overflow-y: auto; flex: 1;
+  max-height: 320px;
+  padding-right: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 0 16px;
+}
+.stats-config-list .head-checkbox {
+  padding: 7px 4px;
+  border-radius: 6px;
+  cursor: default;
+}
+.stats-config-list .head-checkbox:hover { background: var(--surface2); }
+.stats-drag-handle {
+  margin-right: 10px; opacity: 0.5;
+  cursor: grab; user-select: none; font-size: 0.8rem;
+}
+.modal-footer {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border2);
+}
+.decimals-toggle {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.85rem; color: var(--text2);
+  cursor: pointer; user-select: none; margin-right: auto;
+}
+.decimals-toggle input { cursor: pointer; accent-color: var(--blue); }
+
 /* ── UPLOAD MODAL ─────────────────────────────── */
 .upload-modal-content {
   width: min(520px, 95vw);

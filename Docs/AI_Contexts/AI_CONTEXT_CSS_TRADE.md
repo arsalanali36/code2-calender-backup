@@ -1,8 +1,8 @@
-# CSS — Trade Review popup + Trade Logger modal (style-trade.css)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# CSS - Trade
+Consolidated code context for AI assistants.
 
 
-## File: `static\css\style-trade.css`
+## File: `static/css/style-trade.css`
 ```css
 /* ── TRADE REVIEW POPUP ──────────────────────── */
 .tr-backdrop {
@@ -867,5 +867,660 @@ input:checked+.tl-slider:after {
 
 .tl-cb-label input:focus-visible {
   outline: 2px solid var(--blue);
+}
+
+/* LOGGER UI refresh (from LOGGER.zip visual mapping) */
+.tl-modal {
+  width: min(1360px, 98vw);
+  border-radius: 16px;
+  border: 1px solid #2f3f57;
+  background: linear-gradient(180deg, #1f2c42 0%, #1a263a 100%);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.7);
+}
+
+.tl-modal .tr-hdr {
+  padding: 16px 22px 12px;
+  background: rgba(18, 29, 45, 0.65);
+  border-bottom: 1px solid #25354c;
+}
+
+.tl-modal .tr-hdr-title {
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #f4f7fc;
+}
+
+.tl-modal .tr-date-nav {
+  margin-top: 8px;
+  gap: 12px;
+}
+
+.tl-modal .tr-date-label {
+  min-width: 128px;
+  color: #f4f7fc;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tl-modal .tr-date-arrow {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #2a3a51;
+  color: #a8b5c6;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tl-modal .tr-date-arrow:hover {
+  background: #24354d;
+  color: #e7edf6;
+}
+
+.tl-modal .tr-close {
+  min-height: 32px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0 10px;
+  color: #c7d0dc;
+}
+
+.tl-modal .tr-close:hover {
+  background: #233248;
+  color: #fff;
+  border-color: #2f415a;
+}
+
+.tl-modal .tr-tabs {
+  padding: 10px 20px 0;
+  gap: 6px;
+  background: rgba(18, 29, 45, 0.58);
+  border-bottom: 1px solid #27384f;
+}
+
+.tl-modal .tr-tab {
+  min-width: 62px;
+  text-align: center;
+  padding: 8px 14px;
+  border-radius: 11px 11px 0 0;
+  font-size: 1.18rem;
+  font-weight: 700;
+  border-color: #31445d;
+  background: #0e1625;
+}
+
+.tl-modal .tr-tab:hover {
+  background: #18273a;
+}
+
+.tl-modal .tr-tab-active {
+  background: #0f1d30;
+  border-color: #3ea8ff;
+  color: #63b7ff;
+  box-shadow: inset 0 -2px 0 #3ea8ff;
+}
+
+.tl-body {
+  background: rgba(17, 25, 39, 0.52);
+  padding: 16px;
+  gap: 14px;
+}
+
+.tl-block {
+  border: 1px solid #2c3e55;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #1f2f46 0%, #1c2b41 100%);
+}
+
+.tl-block-body {
+  padding: 14px;
+  gap: 12px;
+}
+
+.tl-dash-inp {
+  width: 86px;
+  min-height: 32px;
+  background: #22344b;
+  border: 1px solid #2f455f;
+  color: #c6d1df;
+  border-radius: 8px;
+  padding: 4px 8px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.tl-modal .tr-dash-row {
+  gap: 12px;
+}
+
+.tl-modal .tr-dash-box {
+  min-height: 98px;
+  border-radius: 14px;
+  border: 1px solid #2f4159;
+  background: linear-gradient(180deg, #091321 0%, #071120 100%);
+}
+
+.tl-modal .tr-dash-lbl {
+  font-size: 0.84rem;
+  letter-spacing: 0.08em;
+  color: #8ea0b5;
+}
+
+.tl-modal .tr-dash-val {
+  font-size: 2.25rem;
+  font-weight: 800;
+}
+
+.tl-col-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #80bfff;
+  border-bottom: 1px solid #314258;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tl-field {
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tl-label {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #8f9fb2;
+}
+
+.tl-cb-label {
+  gap: 8px;
+  font-size: 1.06rem;
+  color: #dce4ee;
+  cursor: pointer;
+}
+
+.tl-select,
+.tl-input {
+  background: #22344b;
+  border: 1px solid #30445d;
+  color: #e7edf6;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.tl-tristate {
+  background: #0d1828;
+  border: 1px solid #30445d;
+  border-radius: 10px;
+}
+
+.tl-yn-btn {
+  color: #92a1b3;
+  min-width: 64px;
+  padding: 7px 14px;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.tl-yn-btn:not(:last-child) {
+  border-right: 1px solid #2f425b;
+}
+
+.tl-yn-btn.active-y {
+  background: rgba(34, 197, 94, 0.22);
+  color: #3fe37d;
+}
+
+.tl-yn-btn.active-n {
+  background: rgba(248, 81, 73, 0.2);
+  color: #ff6961;
+}
+
+.tl-input:focus,
+.tl-select:focus,
+.tl-dash-inp:focus {
+  border-color: #3ea8ff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(62, 168, 255, 0.2);
+}
+
+.tl-yn-btn:focus-visible {
+  outline: 2px solid #3ea8ff;
+  outline-offset: -2px;
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.tl-cb-label input:focus-visible {
+  outline: 2px solid #3ea8ff;
+}
+
+@media (max-width: 1200px) {
+  .tl-modal .tr-hdr-title { font-size: 1.5rem; }
+  .tl-modal .tr-date-label { font-size: 1.25rem; }
+  .tl-modal .tr-tab { font-size: 1rem; min-width: 52px; }
+  .tl-modal .tr-dash-val { font-size: 1.75rem; }
+}
+
+@media (max-width: 900px) {
+  .tl-grid-3,
+  .tl-grid-2 { grid-template-columns: 1fr; }
+
+  .tl-modal .tr-dash-row { flex-wrap: wrap; }
+
+  .tl-modal .tr-dash-box { min-width: calc(50% - 8px); }
+}
+
+/* LOGGER 1:1 tuning pass */
+.tl-modal {
+  width: min(1500px, 97vw);
+}
+
+.tl-modal .tr-hdr-title {
+  font-size: 3.2rem;
+  font-weight: 800;
+}
+
+.tl-modal .tr-date-label {
+  font-size: 3rem;
+  min-width: 178px;
+}
+
+.tl-modal .tr-close {
+  font-size: 2rem;
+}
+
+.tl-modal .tr-tab {
+  font-size: 2rem;
+  min-width: 86px;
+  padding: 10px 16px;
+}
+
+.tl-modal .tr-block-head {
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
+  padding: 12px 16px;
+}
+
+.tl-head-icon {
+  color: #23b8ff;
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+.tl-head-title {
+  color: #f8fbff;
+  font-weight: 800;
+}
+
+.tl-modal .tr-dash-lbl {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.tl-modal .tr-dash-val {
+  font-size: 2.4rem;
+}
+
+.tl-label {
+  font-size: 1.45rem;
+}
+
+.tl-select,
+.tl-input {
+  font-size: 1.4rem;
+  min-height: 58px;
+}
+
+.tl-tristate {
+  min-height: 54px;
+}
+
+.tl-yn-btn {
+  min-width: 66px;
+  font-size: 1.4rem;
+  padding: 7px 16px;
+}
+
+.tl-em-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.tl-em-row > .tl-block {
+  margin-bottom: 0;
+}
+
+.tl-em-row .tl-grid-3 {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.tl-em-row .tl-grid-2 {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.tl-em-row .tl-col-title {
+  font-size: 1.15rem;
+}
+
+@media (max-width: 1600px) {
+  .tl-modal .tr-hdr-title { font-size: 2.3rem; }
+  .tl-modal .tr-date-label { font-size: 2rem; min-width: 140px; }
+  .tl-modal .tr-close { font-size: 1.25rem; }
+  .tl-modal .tr-tab { font-size: 1.3rem; min-width: 64px; }
+  .tl-label { font-size: 1.05rem; }
+  .tl-select, .tl-input { font-size: 1rem; min-height: 42px; }
+  .tl-tristate { min-height: 40px; }
+  .tl-yn-btn { font-size: 0.98rem; min-width: 48px; }
+}
+
+@media (max-width: 1100px) {
+  .tl-em-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final tune: lucide-like compact sizing */
+.tl-modal {
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.tl-modal .tr-hdr-title {
+  font-size: clamp(1.15rem, 1.4vw, 1.75rem);
+  font-weight: 800;
+}
+
+.tl-modal .tr-date-label {
+  font-size: clamp(0.95rem, 1.2vw, 1.35rem);
+  min-width: 116px;
+}
+
+.tl-modal .tr-close {
+  font-size: 1rem;
+}
+
+.tl-modal .tr-tab {
+  font-size: 1.05rem;
+  min-width: 54px;
+  padding: 8px 12px;
+}
+
+.tl-modal .tr-block-head {
+  font-size: 0.72rem;
+  padding: 10px 14px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tl-head-icon.tl-head-icon-svg {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  opacity: 0.95;
+}
+
+.tl-head-icon.tl-head-icon-svg svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.tl-head-title {
+  color: #f8fafc;
+  font-size: 0.95em;
+}
+
+.tl-modal .tr-dash-lbl {
+  font-size: 0.76rem;
+}
+
+.tl-modal .tr-dash-val {
+  font-size: clamp(1.55rem, 1.8vw, 2rem);
+}
+
+.tl-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tl-select,
+.tl-input {
+  font-size: 0.86rem;
+  min-height: 38px;
+  padding: 7px 10px;
+}
+
+.tl-tristate {
+  min-height: 34px;
+}
+
+.tl-yn-btn {
+  min-width: 44px;
+  font-size: 0.88rem;
+  padding: 5px 10px;
+}
+
+.tl-em-row .tl-grid-3,
+.tl-em-row .tl-grid-2 {
+  gap: 8px;
+}
+
+.tl-col-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+}
+
+@media (max-width: 1280px) {
+  .tl-modal .tr-tab {
+    font-size: 0.95rem;
+    min-width: 50px;
+  }
+
+  .tl-label {
+    font-size: 0.74rem;
+  }
+}
+
+/* Final micro polish after screenshot */
+.tl-modal .tr-hdr { padding: 12px 18px 10px; }
+.tl-modal .tr-tabs { padding: 8px 14px 0; gap: 5px; }
+.tl-modal .tr-tab { min-width: 56px; padding: 6px 10px; border-radius: 10px 10px 0 0; font-size: 1rem; }
+.tl-body { padding: 12px; gap: 12px; }
+.tl-block { border-radius: 12px; background: linear-gradient(180deg, #1d2b41 0%, #1a273c 100%); }
+.tl-block-body { padding: 10px 12px 12px; gap: 9px; }
+.tl-modal .tr-dash-box { min-height: 86px; border-radius: 12px; }
+.tl-field { gap: 5px; margin-bottom: 8px; }
+.tl-label { font-size: 0.76rem; color: #93a4b9; letter-spacing: 0.05em; text-transform: uppercase; }
+.tl-select, .tl-input { font-size: 0.84rem; min-height: 36px; padding: 6px 10px; border-radius: 8px; }
+.tl-tristate { min-height: 32px; }
+.tl-yn-btn { min-width: 42px; font-size: 0.84rem; padding: 4px 10px; }
+.tl-yn-btn.active-y { color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.7); box-shadow: 0 0 18px rgba(34, 197, 94, 0.35); }
+.tl-yn-btn.active-n { color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.72); box-shadow: 0 0 18px rgba(251, 113, 133, 0.35); }
+.tl-head-icon.tl-head-icon-svg { width: 16px; height: 16px; color: #7dd3fc; }
+.tl-head-icon.tl-head-icon-svg svg { width: 16px; height: 16px; }
+
+@media (max-width: 1280px) {
+  .tl-modal .tr-hdr-title { font-size: 1.35rem; }
+  .tl-modal .tr-date-label { font-size: 1.05rem; min-width: 112px; }
+}
+
+/* Psyco (Emotions) block */
+.tl-psy-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tl-psy-card {
+  border: 1px solid #2d4159;
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(7, 18, 34, 0.55);
+}
+
+.tl-psy-title {
+  text-align: center;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 2px 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2c3f58;
+}
+
+.tl-psy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tl-psy-col {
+  border: 1px solid #2a3d55;
+  border-radius: 11px;
+  padding: 10px;
+}
+
+.tl-psy-col-pos {
+  background: linear-gradient(180deg, rgba(16,185,129,0.04), rgba(16,185,129,0.01));
+}
+
+.tl-psy-col-neg {
+  background: linear-gradient(180deg, rgba(244,63,94,0.04), rgba(244,63,94,0.01));
+}
+
+.tl-psy-col-head {
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #2a3d55;
+}
+
+.tl-psy-col-pos .tl-psy-col-head { color: #00f5c3; }
+.tl-psy-col-neg .tl-psy-col-head { color: #ff5f87; }
+
+@media (max-width: 1100px) {
+  .tl-psy-wrap,
+  .tl-psy-grid { grid-template-columns: 1fr; }
+}
+
+/* Compact zoom-out pass */
+.tl-modal {
+  font-size: 0.88rem;
+}
+
+.tl-modal .tr-hdr {
+  padding: 10px 14px 8px;
+}
+
+.tl-modal .tr-hdr-title {
+  font-size: clamp(1rem, 1.1vw, 1.35rem);
+}
+
+.tl-modal .tr-date-label {
+  font-size: clamp(0.88rem, 1vw, 1.1rem);
+  min-width: 96px;
+}
+
+.tl-modal .tr-tabs {
+  padding: 6px 10px 0;
+}
+
+.tl-modal .tr-tab {
+  min-width: 48px;
+  padding: 5px 8px;
+  font-size: 0.9rem;
+}
+
+.tl-body {
+  padding: 10px;
+  gap: 10px;
+}
+
+.tl-block-body {
+  padding: 8px 10px 10px;
+}
+
+.tl-label {
+  font-size: 0.7rem;
+}
+
+.tl-select,
+.tl-input {
+  min-height: 32px;
+  font-size: 0.78rem;
+  padding: 5px 8px;
+}
+
+.tl-tristate {
+  min-height: 29px;
+}
+
+.tl-yn-btn {
+  min-width: 36px;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+}
+
+.tl-modal .tr-dash-lbl {
+  font-size: 0.68rem;
+}
+
+.tl-modal .tr-dash-val {
+  font-size: clamp(1.3rem, 1.4vw, 1.7rem);
+}
+
+.tl-psy-title {
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1280px) {
+  .tl-modal {
+    font-size: 0.84rem;
+  }
+}
+
+/* User requested: popup shell shrink by ~25% for outer margins */
+.tl-modal {
+  width: min(1125px, 74vw) !important;
+  height: 70vh !important;
+  max-height: 70vh !important;
+}
+
+/* Dimension tweak: narrower width, taller height */
+.tl-modal {
+  width: min(980px, 66vw) !important;
+  height: 78vh !important;
+  max-height: 78vh !important;
+}
+
+/* User tweak: increase vertical height further */
+.tl-modal {
+  height: 84vh !important;
+  max-height: 84vh !important;
+}
 
 ```

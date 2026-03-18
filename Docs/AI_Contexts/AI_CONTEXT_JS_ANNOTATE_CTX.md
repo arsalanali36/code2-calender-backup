@@ -1,8 +1,8 @@
-# JS — Annotation Context Menu & Lifecycle
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Annotation Context and Lifecycle
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\annotate-ctx-menu.js`
+## File: `static/js/annotate-ctx-menu.js`
 ```js
 /**
  * @fileoverview annotate-ctx-menu.js
@@ -132,7 +132,7 @@ function _showMarqueeContextMenu(clientX, clientY, idx) {
 
 ```
 
-## File: `static\js\annotate-lifecycle.js`
+## File: `static/js/annotate-lifecycle.js`
 ```js
 /**
  * @fileoverview annotate-lifecycle.js
@@ -247,7 +247,7 @@ function startAnnotation() {
     // 2. Legacy fallback to raster overlay
     const overlayUrl = state._localOverlays?.[imgUrl] || getOverlayUrlForImage(imgUrl, annotState.date);
     if (overlayUrl) {
-      fabric.Image.fromURL(overlayUrl, ovImg => {
+      fabric.Image.fromURL(resolveImageUrl(overlayUrl), ovImg => {
         if (!fabricCanvas) return; // annotation may have stopped before async loaded
         ovImg.set({
           left: 0, top: 0, selectable: false, evented: false,

@@ -1,8 +1,8 @@
-# JS — Table Rendering
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Table Rendering
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\table-render.js`
+## File: `static/js/table-render.js`
 ```js
 /**
  * @fileoverview table-render.js
@@ -411,7 +411,8 @@ function renderTableBodyConsolidated(visibleCols, filtered, body, footRow) {
         const maxConsShow = 6;
         allImages.slice(0, maxConsShow).forEach((url) => {
           const item = document.createElement('div'); item.className = 'img-thumb-wrap';
-          const img = document.createElement('img'); img.className = 'img-thumb'; img.src = url;
+          const img = document.createElement('img'); img.className = 'img-thumb'; img.src = resolveImageUrl(url);
+          img.onerror = () => { img.style.opacity = '0.2'; img.style.filter = 'grayscale(1)'; img.title = 'Image not found on server'; };
           img.addEventListener('click', e => { e.stopPropagation(); openGalleryForDate(dateKey); });
           item.appendChild(img);
           w.appendChild(item);

@@ -1,8 +1,8 @@
-# JS — Annotation Canvas
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Annotation Canvas
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\annotate-canvas.js`
+## File: `static/js/annotate-canvas.js`
 ```js
 /**
  * @fileoverview annotate-canvas.js

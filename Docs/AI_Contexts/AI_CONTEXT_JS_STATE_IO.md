@@ -1,8 +1,8 @@
-# JS — State & IO (state.js / io.js)
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - State and IO
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\state.js`
+## File: `static/js/state.js`
 ```js
 /**
  * @fileoverview state.js
@@ -44,6 +44,10 @@ const state = {
   tagDeleteMode: false,
   uploadRow: null,
   pendingFiles: [],
+  quotes: [],
+  quoteIndex: 0,
+  quoteRatings: {},
+  quoteAutoPopup: { enabled: true, minMinutes: 15, timerId: null },
   obsDate: '',
   allTags: [],   // all defined tag names
   tagFilter: [],   // selected filters in form "Column::Tag"
@@ -51,7 +55,7 @@ const state = {
   tagColumns: [],   // explicit list of tag columns (rename-safe)
   userColumns: [],   // only these columns are deletable
   addTagColumnMode: false,
-  brokerFilter: 'both', // both | zerodha | dhan
+  brokerFilter: 'zerodha', // both | zerodha | dhan
   calendarView: 'month', // month | year
   shortcuts: {},
   dayData: {},   // keyed by YYYY-MM-DD: { images: [], tags: { ColName: [tag,...] } }
@@ -104,7 +108,8 @@ const DEFAULT_SETTINGS = {
   satSunOff: true, tableRows: 5,
   groupAColor: '#58a6ff',
   groupBColor: '#ffffff',
-  groupSepColor: '#58a6ff'
+  groupSepColor: '#58a6ff',
+  showCalTags: false
 };
 
 const DEFAULT_SHORTCUTS = {
@@ -155,8 +160,18 @@ const UNIFIED_STRUCTURED_COLUMNS = [
 const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 function getSectionOrder() {
-  try { const o = JSON.parse(localStorage.getItem('sectionOrder')); if (Array.isArray(o) && o.length === 4) return o; } catch (e) { }
-  return ['calendar', 'dashboard', 'visual-dashboard', 'table'];
+  const preferred = ['calendar', 'dashboard', 'table', 'visual-dashboard'];
+  try {
+    const o = JSON.parse(localStorage.getItem('sectionOrder'));
+    if (Array.isArray(o) && o.length === 4) {
+      // Migrate old default order to new expected order.
+      if (JSON.stringify(o) === JSON.stringify(['calendar', 'dashboard', 'visual-dashboard', 'table'])) {
+        return preferred;
+      }
+      return o;
+    }
+  } catch (e) { }
+  return preferred;
 }
 function saveSectionOrder(order) { try { localStorage.setItem('sectionOrder', JSON.stringify(order)); } catch (e) { } }
 function applySectionOrder() {
@@ -200,10 +215,40 @@ function bindSectionOrderDrag() {
   });
 }
 
+/**
+ * Resolves an image path to a full URL.
+ * Handles both local filenames (needs /uploads/) and Cloudinary/external links (http/https).
+ * @param {string} url
+ * @returns {string}
+ */
+function resolveImageUrl(url) {
+  if (!url) return '';
+  let s = '';
+  if (typeof url === 'object') {
+    // Check common properties for image objects
+    s = url.url || url.path || url.secure_url || String(url);
+  } else {
+    s = String(url);
+  }
+  s = (s || '').trim();
+  if (!s || s === '[object Object]') return '';
+
+  // Return as-is if it's a full URL, protocol-relative, or a base64/blob
+  if (s.startsWith('http') || s.startsWith('//') || s.startsWith('blob:') || s.startsWith('data:')) {
+    return s;
+  }
+
+  // If it already has the correct root-relative prefix, return it
+  if (s.startsWith('/uploads/')) return s;
+
+  // Otherwise, ensure it starts with /uploads/ and remove any duplicate "uploads/" segment
+  const clean = s.replace(/^(\/)?uploads\//i, '');
+  return '/uploads/' + clean;
+}
 
 ```
 
-## File: `static\js\io.js`
+## File: `static/js/io.js`
 ```js
 /**
  * @fileoverview io.js
@@ -242,7 +287,7 @@ function renderUploadPreview() {
   const c = document.getElementById('upload-preview'); c.innerHTML = '';
   state.pendingFiles.forEach((url, i) => {
     const item = document.createElement('div'); item.className = 'preview-item';
-    const img = document.createElement('img'); img.src = url;
+    const img = document.createElement('img'); img.src = resolveImageUrl(url);
     const del = document.createElement('button'); del.className = 'remove-preview'; del.textContent = 'âœ•';
     del.addEventListener('click', () => { state.pendingFiles.splice(i, 1); renderUploadPreview(); });
     item.appendChild(img); item.appendChild(del); c.appendChild(item);
@@ -250,14 +295,33 @@ function renderUploadPreview() {
 }
 
 async function handleImageFiles(files) {
-  for (const file of files) {
+  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+
+  // Show local thumbnails immediately — no waiting for server
+  const localUrls = sorted.map(f => URL.createObjectURL(f));
+  state.pendingFiles.push(...localUrls);
+  renderUploadPreview();
+
+  // Upload all in parallel, replace blob URL with server URL as each finishes
+  let failed = 0;
+  await Promise.all(sorted.map(async (file, i) => {
     try {
-      const fd = new FormData(); fd.append('image', file);
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.url) { state.pendingFiles.push(data.url); renderUploadPreview(); }
-    } catch (e) { showToast('Image upload failed', 'error'); }
-  }
+      const data = await imageService.uploadImage(file);
+      const idx = state.pendingFiles.indexOf(localUrls[i]);
+      if (data.url && idx >= 0) {
+        state.pendingFiles[idx] = data.url;
+        URL.revokeObjectURL(localUrls[i]);
+        renderUploadPreview();
+      }
+    } catch (e) {
+      failed++;
+      const idx = state.pendingFiles.indexOf(localUrls[i]);
+      if (idx >= 0) state.pendingFiles.splice(idx, 1);
+      URL.revokeObjectURL(localUrls[i]);
+      renderUploadPreview();
+    }
+  }));
+  if (failed) showToast(`${failed} image(s) failed to upload`, 'error');
 }
 
 async function uploadImagesToRow(rowIdx, files) {
@@ -266,24 +330,17 @@ async function uploadImagesToRow(rowIdx, files) {
   if (!trade) return;
   if (!trade.images) trade.images = [];
   syncTradeDateField(trade);
-  let added = 0;
-  for (const file of files) {
-    if (!file || !String(file.type || '').startsWith('image/')) continue;
-    try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.url) {
-        trade.images.push(data.url);
-        added++;
-      }
-    } catch (e) { }
-  }
-  if (added > 0) {
+  const sorted = [...files]
+    .filter(f => f && String(f.type || '').startsWith('image/'))
+    .sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  if (!sorted.length) return;
+  const results = await Promise.allSettled(sorted.map(f => imageService.uploadImage(f)));
+  const urls = results.filter(r => r.status === 'fulfilled' && r.value?.url).map(r => r.value.url);
+  if (urls.length) {
+    trade.images.push(...urls);
     await saveTrades();
     render();
-    showToast(`${added} image added to row`, 'success');
+    showToast(`${urls.length} image${urls.length > 1 ? 's' : ''} added to row`, 'success');
   }
 }
 
@@ -291,18 +348,18 @@ async function uploadImagesToDayData(dateKey, files) {
   if (!Array.isArray(files) || !files.length) return;
   if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
   if (!state.dayData[dateKey].images) state.dayData[dateKey].images = [];
-  let added = 0;
-  for (const file of files) {
-    if (!file || !String(file.type || '').startsWith('image/')) continue;
-    try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await fetch('/api/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.url) { state.dayData[dateKey].images.push(data.url); added++; }
-    } catch (e) { }
+  const sorted = [...files]
+    .filter(f => f && String(f.type || '').startsWith('image/'))
+    .sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  if (!sorted.length) return;
+  const results = await Promise.allSettled(sorted.map(f => imageService.uploadImage(f)));
+  const urls = results.filter(r => r.status === 'fulfilled' && r.value?.url).map(r => r.value.url);
+  if (urls.length) {
+    state.dayData[dateKey].images.push(...urls);
+    await saveTrades();
+    render();
+    showToast(`${urls.length} image${urls.length > 1 ? 's' : ''} added`, 'success');
   }
-  if (added > 0) { await saveTrades(); render(); showToast(`${added} image added`, 'success'); }
 }
 
 function bindRowImageDrop(rowEl, rowIdx) {
@@ -389,11 +446,9 @@ function bindTableRowDrag(tr, rowIdx, body) {
 }
 
 async function importExcel(file) {
-  const fd = new FormData(); fd.append('file', file);
   try {
     showToast('Importing Excel...', '');
-    const res = await fetch('/api/import-excel', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importExcel(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     state.trades = data.trades;
     state.columns = data.columns;
@@ -412,12 +467,9 @@ async function importExcel(file) {
 }
 
 async function importRawCsv(file) {
-  const fd = new FormData();
-  fd.append('file', file);
   try {
     showToast('Consolidating Zerodha today CSV...', '');
-    const res = await fetch('/api/import-raw-csv', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importRawCsv(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
       const row = normalizeStructuredTradeRow(t);
@@ -447,12 +499,9 @@ async function importRawCsv(file) {
 }
 
 async function importHistoricalCsv(file) {
-  const fd = new FormData();
-  fd.append('file', file);
   try {
     showToast('Consolidating Zerodha historical CSV...', '');
-    const res = await fetch('/api/import-historical-csv', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importHistoricalCsv(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
       const row = normalizeStructuredTradeRow(t);
@@ -481,12 +530,9 @@ async function importHistoricalCsv(file) {
 }
 
 async function importDhanCsv(file) {
-  const fd = new FormData();
-  fd.append('file', file);
   try {
     showToast('Consolidating Dhan CSV...', '');
-    const res = await fetch('/api/import-dhan-csv', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importDhanCsv(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     const imported = (data.trades || []).map(t => {
       const row = normalizeStructuredTradeRow(t);
@@ -515,11 +561,9 @@ async function importDhanCsv(file) {
 }
 
 async function importJson(file) {
-  const fd = new FormData(); fd.append('file', file);
   try {
     showToast('Restoring backup...', '');
-    const res = await fetch('/api/import-json', { method: 'POST', body: fd });
-    const data = await res.json();
+    const data = await importService.importJsonOrZip(file);
     if (data.error) { showToast(data.error, 'error'); return; }
     state.trades = data.trades;
     state.columns = data.columns;
@@ -539,28 +583,15 @@ async function importJson(file) {
 }
 
 function backupJson() {
-  const name = prompt('Backup name (optional):');
-  let url = '/api/backup';
-  if (name && String(name).trim()) {
-    url += `?name=${encodeURIComponent(String(name).trim())}`;
-  }
-  window.location.href = url;
+  const name = prompt('Backup name (optional):') || '';
+  exportService.downloadBackup(String(name).trim());
 }
 
 async function exportExcel() {
   if (!state.trades.length) { showToast('No data to export', 'error'); return; }
   try {
     showToast('Preparing export...', '');
-    const res = await fetch('/api/export-excel', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trades: state.trades, columns: state.columns })
-    });
-    if (!res.ok) { showToast('Export failed', 'error'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url;
-    a.download = `trading_journal_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    a.click(); URL.revokeObjectURL(url);
+    await exportService.exportExcel({ trades: state.trades, columns: state.columns });
     showToast('Excel exported!', 'success');
   } catch (e) { showToast('Export failed', 'error'); }
 }
@@ -570,23 +601,18 @@ async function exportStructuredCsv() {
   try {
     normalizeStructuredDateColumns();
     showToast('Preparing structured CSV...', '');
-    const res = await fetch('/api/export-structured-csv', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trades: state.trades, columns: state.columns })
-    });
-    if (!res.ok) { showToast('Structured export failed', 'error'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'structured_trades.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    await exportService.exportStructuredCsv({ trades: state.trades, columns: state.columns });
     showToast('Structured CSV exported!', 'success');
-  } catch (e) {
-    showToast('Structured export failed', 'error');
-  }
+  } catch (e) { showToast('Structured export failed', 'error'); }
+}
+
+async function exportLoggerExcel() {
+  if (!state.trades.length) { showToast('No data to export', 'error'); return; }
+  try {
+    showToast('Preparing logger Excel...', '');
+    await exportService.exportLoggerExcel({ trades: state.trades, columns: state.columns });
+    showToast('Logger Excel exported!', 'success');
+  } catch (e) { showToast('Logger export failed', 'error'); }
 }
 
 let toastTimer = null;
@@ -595,15 +621,37 @@ function showToast(msg, type = 'success') {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
 }
 
+function _getMobileBackdrop() {
+  let bd = document.getElementById('_mob-dd-backdrop');
+  if (!bd) {
+    bd = document.createElement('div');
+    bd.id = '_mob-dd-backdrop';
+    bd.style.cssText = 'display:none;position:fixed;inset:0;z-index:7999;background:rgba(0,0,0,0.45);';
+    bd.addEventListener('click', () => closeAllDropdowns('__none__'));
+    document.body.appendChild(bd);
+  }
+  return bd;
+}
+
 function setupDropdown(btnId, menuId) {
   const btn = document.getElementById(btnId);
   const menu = document.getElementById(menuId);
   if (!btn || !menu) return;
-  btn.addEventListener('click', e => { e.stopPropagation(); closeAllDropdowns(menuId); menu.classList.toggle('open'); });
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = menu.classList.contains('open');
+    closeAllDropdowns(menuId);
+    if (!wasOpen) {
+      menu.classList.add('open');
+      if (window.innerWidth <= 768) _getMobileBackdrop().style.display = 'block';
+    }
+  });
 }
 
 function closeAllDropdowns(except) {
   document.querySelectorAll('.dropdown-menu.open').forEach(m => { if (m.id !== except) m.classList.remove('open'); });
+  const bd = document.getElementById('_mob-dd-backdrop');
+  if (bd) bd.style.display = 'none';
 }
 
 

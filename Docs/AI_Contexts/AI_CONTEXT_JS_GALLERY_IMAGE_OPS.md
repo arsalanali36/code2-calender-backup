@@ -1,8 +1,8 @@
-# JS — Gallery Image Ops
-This file contains the consolidated code context for the project to be used with AI assistants like Claude or ChatGPT.
+# JS - Gallery Image Ops
+Consolidated code context for AI assistants.
 
 
-## File: `static\js\gallery-image-ops.js`
+## File: `static/js/gallery-image-ops.js`
 ```js
 /**
  * @fileoverview gallery-image-ops.js
@@ -27,19 +27,35 @@ function getOwnerTradeForImageUrl(imageUrl) {
         }
         return false;
     };
+    const isTradeItem = (t, url) => {
+        if (t.images?.includes(url)) return true;
+        if (t.videos) {
+            if (Object.values(t.videos).includes(url)) return true;
+            // Also check if it's one of the video URLs directly (if they are stored as an array in some versions)
+            if (Array.isArray(t.videos) && t.videos.includes(url)) return true;
+        }
+        return isSub(t, url);
+    };
+
     if (state.gallery.sourceRow !== null && state.trades[state.gallery.sourceRow]) {
         const t = state.trades[state.gallery.sourceRow];
-        if (t.images?.includes(imageUrl) || isSub(t, imageUrl)) return t;
+        if (isTradeItem(t, imageUrl)) return t;
     }
     if (state.gallery.date) {
-        const row = getTradesForDate(state.gallery.date).find(t => (t.images || []).includes(imageUrl) || isSub(t, imageUrl));
+        const row = getTradesForDate(state.gallery.date).find(t => isTradeItem(t, imageUrl));
         if (row) return row;
         return null;
     }
-    return state.trades.find(t => (t.images || []).includes(imageUrl) || isSub(t, imageUrl)) || null;
+    return state.trades.find(t => isTradeItem(t, imageUrl)) || null;
 }
 
 function syncGalleryImageOrderToTrades() {
+    const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+    if (filterActive) {
+        console.warn('syncGalleryImageOrderToTrades skipped because a filter is active. Persistent reordering is disabled in filter mode.');
+        return;
+    }
+
     const ordered = state.gallery.images || [];
 
     const getSubSet = (t) => {
@@ -50,30 +66,50 @@ function syncGalleryImageOrderToTrades() {
         return s;
     };
 
+    // Helper to sync sub-image order within a trade/dayData object
+    const syncSubOrder = (obj) => {
+        if (!obj || !obj.subImages) return;
+        for (const parentUrl in obj.subImages) {
+            const currentSubs = obj.subImages[parentUrl];
+            // Filter all sub-images that belong to this parent from the ordered gallery list
+            const inTray = ordered.filter(u => currentSubs.includes(u));
+            // If the count matches, it means they are all expanded/visible or we have the full set
+            // Even if not all are visible, we update the ones we found in the order they appeared
+            if (inTray.length > 1) {
+                // We only update if we found multiple, to avoid messing up if some are filtered out
+                // Actually, if we are in filter mode, we should be careful.
+                const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+                if (!filterActive) {
+                    obj.subImages[parentUrl] = inTray;
+                }
+            }
+        }
+    };
+
     if (state.gallery.sourceRow !== null && state.trades[state.gallery.sourceRow]) {
         const t = state.trades[state.gallery.sourceRow];
+        syncSubOrder(t);
         const subs = getSubSet(t);
         t.images = ordered.filter(u => !subs.has(u));
         return;
     }
+
     if (state.gallery.date) {
         const dk = state.gallery.date;
-        if (state.dayData[dk]) {
-            const daySubs = getSubSet(state.dayData[dk]);
-            // For dayData, we want only the ordered items that belong to dayData originally.
-            // Wait, dayData images are those NOT owned by any trade.
-            // If it's owned by a trade, we update the trade.
-            const dayTrades = getTradesForDate(dk);
+        const dayTrades = getTradesForDate(dk);
+        const currentDayData = state.dayData[dk];
 
-            // Re-assign images based on owner.
+        dayTrades.forEach(syncSubOrder);
+        syncSubOrder(currentDayData);
+
+        if (currentDayData) {
+            const daySubs = getSubSet(currentDayData);
             const newDayImages = [];
             const newCloseImages = [];
             const newTradeImages = new Map();
             dayTrades.forEach(t => newTradeImages.set(t, []));
 
             let seenAnyTrade = false;
-            let currentDayData = state.dayData[dk];
-
             ordered.forEach(u => {
                 const owner = getOwnerTradeForImageUrl(u);
                 if (owner && newTradeImages.has(owner)) {
@@ -81,40 +117,29 @@ function syncGalleryImageOrderToTrades() {
                     const subs = getSubSet(owner);
                     if (!subs.has(u)) newTradeImages.get(owner).push(u);
                 } else {
-                    if (!daySubs.has(u)) {
+                    const subs = getSubSet(currentDayData);
+                    if (!subs.has(u)) {
                         if (dayTrades.length > 0) {
                             if (seenAnyTrade) newCloseImages.push(u);
                             else newDayImages.push(u);
                         } else {
-                            if (currentDayData?.closeImages?.includes(u)) {
-                                newCloseImages.push(u);
-                            } else {
-                                newDayImages.push(u);
-                            }
+                            if (currentDayData.closeImages?.includes(u)) newCloseImages.push(u);
+                            else newDayImages.push(u);
                         }
                     }
                 }
             });
 
-            state.dayData[dk].images = newDayImages;
-            state.dayData[dk].closeImages = newCloseImages;
+            currentDayData.images = newDayImages;
+            currentDayData.closeImages = newCloseImages;
             dayTrades.forEach(t => { t.images = newTradeImages.get(t); });
         }
         return;
     }
 
     // Fallback: Global iteration
-    ordered.forEach(u => {
-        const owner = getOwnerTradeForImageUrl(u);
-        if (owner) {
-            const subs = getSubSet(owner);
-            if (!subs.has(u)) {
-                // Push if not present (this part is trickier without a grouped loop, but fallback rarely used)
-                owner.images = owner.images || [];
-                if (!owner.images.includes(u)) owner.images.push(u); // rudimentary sync for fallback
-            }
-        }
-    });
+    state.trades.forEach(syncSubOrder);
+    Object.values(state.dayData || {}).forEach(syncSubOrder);
 }
 
 async function reorderGalleryImages(fromIdx, toIdx) {
@@ -239,6 +264,8 @@ async function removeGalleryImageAt(idx, force = false) {
             if (!isExpanded) ownerTrade.images.push(...subImages);
             if (ownerTrade.overlays?.[imageUrl]) delete ownerTrade.overlays[imageUrl];
             if (ownerTrade.marqueeBoxes?.[imageUrl]) delete ownerTrade.marqueeBoxes[imageUrl];
+            if (ownerTrade.videos?.[imageUrl]) delete ownerTrade.videos[imageUrl];
+            if (ownerTrade.audios?.[imageUrl]) delete ownerTrade.audios[imageUrl];
             const store2 = ensureImageTagStore(ownerTrade);
             if (store2[imageUrl]) delete store2[imageUrl];
             delete ownerTrade.subImages[imageUrl];
@@ -248,6 +275,8 @@ async function removeGalleryImageAt(idx, force = false) {
             if (!isExpanded) state.dayData[dayDate].images.push(...subImages);
             if (state.dayData[dayDate].overlays?.[imageUrl]) delete state.dayData[dayDate].overlays[imageUrl];
             if (state.dayData[dayDate].marqueeBoxes?.[imageUrl]) delete state.dayData[dayDate].marqueeBoxes[imageUrl];
+            if (state.dayData[dayDate].videos?.[imageUrl]) delete state.dayData[dayDate].videos[imageUrl];
+            if (state.dayData[dayDate].audios?.[imageUrl]) delete state.dayData[dayDate].audios[imageUrl];
             if (state.dayData[dayDate].subImages?.[imageUrl]) delete state.dayData[dayDate].subImages[imageUrl];
         }
 
@@ -277,7 +306,7 @@ async function removeGalleryImageAt(idx, force = false) {
             if (idx > -1) window.galleryUndoStack.splice(idx, 1); // remove from stack once permanent
             try {
                 const fn = String(imageUrl || '').split('/').pop();
-                await fetch('/api/delete-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: fn }) });
+                await imageService.deleteImage('/' + fn);
             } catch (e) { }
         }, 5000);
         actionBackup.deleteTimer = timerId;
@@ -288,10 +317,7 @@ async function removeGalleryImageAt(idx, force = false) {
         t2.className = 'toast success show';
         setTimeout(() => { t2.className = 'toast'; }, 4000);
         if (!state.gallery.images.length) { document.getElementById('gallery-modal').classList.remove('open'); unlockBodyScroll(); }
-        await fetch('/api/trades', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups })
-        });
+        await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
         return;
     }
 
@@ -315,6 +341,16 @@ async function removeGalleryImageAt(idx, force = false) {
         urlsToDelete.forEach(u => {
             if (ownerTrade.overlays && ownerTrade.overlays[u]) delete ownerTrade.overlays[u];
             if (ownerTrade.marqueeBoxes && ownerTrade.marqueeBoxes[u]) delete ownerTrade.marqueeBoxes[u];
+            if (ownerTrade.videos) {
+                if (ownerTrade.videos[u]) delete ownerTrade.videos[u];
+                const key = Object.keys(ownerTrade.videos).find(k => ownerTrade.videos[k] === u);
+                if (key) delete ownerTrade.videos[key];
+            }
+            if (ownerTrade.audios) {
+                if (ownerTrade.audios[u]) delete ownerTrade.audios[u];
+                const key = Object.keys(ownerTrade.audios).find(k => ownerTrade.audios[k] === u);
+                if (key) delete ownerTrade.audios[key];
+            }
             const store = ensureImageTagStore(ownerTrade);
             if (store[u]) delete store[u];
         });
@@ -338,6 +374,16 @@ async function removeGalleryImageAt(idx, force = false) {
         urlsToDelete.forEach(u => {
             if (state.dayData[dayDate].overlays?.[u]) delete state.dayData[dayDate].overlays[u];
             if (state.dayData[dayDate].marqueeBoxes?.[u]) delete state.dayData[dayDate].marqueeBoxes[u];
+            if (state.dayData[dayDate].videos) {
+                if (state.dayData[dayDate].videos[u]) delete state.dayData[dayDate].videos[u];
+                const key = Object.keys(state.dayData[dayDate].videos).find(k => state.dayData[dayDate].videos[k] === u);
+                if (key) delete state.dayData[dayDate].videos[key];
+            }
+            if (state.dayData[dayDate].audios) {
+                if (state.dayData[dayDate].audios[u]) delete state.dayData[dayDate].audios[u];
+                const key = Object.keys(state.dayData[dayDate].audios).find(k => state.dayData[dayDate].audios[k] === u);
+                if (key) delete state.dayData[dayDate].audios[key];
+            }
         });
         if (state.dayData[dayDate].subImages && state.dayData[dayDate].subImages[imageUrl]) delete state.dayData[dayDate].subImages[imageUrl];
         // Remove deleted URLs from any parent's subImages (handles sub-image deletion)
@@ -380,12 +426,14 @@ async function removeGalleryImageAt(idx, force = false) {
         if (idx > -1) window.galleryUndoStack.splice(idx, 1);
         for (const dictUrl of urlsToDelete) {
             try {
-                const filename = String(dictUrl || '').split('/').pop();
-                await fetch('/api/delete-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename })
-                });
+                if (typeof isVideoUrl === 'function' && isVideoUrl(dictUrl)) {
+                    await imageService.deleteVideo(dictUrl);
+                } else if (dictUrl.endsWith('.webm') || dictUrl.endsWith('.mp3')) {
+                    await imageService.deleteAudio(dictUrl);
+                } else {
+                    const filename = String(dictUrl || '').split('/').pop();
+                    await imageService.deleteImage('/uploads/' + filename);
+                }
             } catch (e) { }
         }
     }, 5000);
@@ -406,208 +454,7 @@ async function removeGalleryImageAt(idx, force = false) {
         unlockBodyScroll();
     }
 
-    await fetch('/api/trades', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            trades: state.trades, columns: state.columns, allTags: state.allTags,
-            tagColumns: state.tagColumns, userColumns: state.userColumns,
-            dayData: state.dayData, tagGroups: state.tagGroups
-        })
-    });
-}
-
-async function handleReorderGalleryImagesBatch(draggedIndicesStr, insertAtGlobalIdx, targetUrl = null) {
-    const arr = state.gallery.images || [];
-    const indices = draggedIndicesStr.sort((a, b) => a - b);
-    if (!indices.length) return;
-
-    // Backup for undo (cross-separator moves only)
-    const backupArr = [...arr];
-    const backupCurrentIndex = state.gallery.currentIndex;
-    const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
-    const backupAllTrades = targetUrl ? JSON.stringify(state.trades) : null;
-    const backupAllDayData = targetUrl ? JSON.stringify(state.dayData) : null;
-    const dayDate = state.gallery.date;
-
-    // gather items
-    const items = indices.map(i => arr[i]);
-    const currentUrl = arr[state.gallery.currentIndex];
-
-    // First, detach moving items from their current groups (if they're sub-images of some parent)
-    const removeFromGroup = (u) => {
-        let p = null;
-        for (const trade of state.trades) {
-            if (trade.subImages) {
-                for (const [parentUrl, subs] of Object.entries(trade.subImages)) {
-                    if (subs.includes(u)) { trade.subImages[parentUrl] = subs.filter(x => x !== u); p = parentUrl; }
-                    if (trade.subImages[parentUrl].length === 0) delete trade.subImages[parentUrl];
-                }
-                if (trade.subImages && Object.keys(trade.subImages).length === 0) delete trade.subImages;
-            }
-        }
-        if (state.gallery.date && state.dayData[state.gallery.date]?.subImages) {
-            const d = state.dayData[state.gallery.date];
-            for (const [parentUrl, subs] of Object.entries(d.subImages)) {
-                if (subs.includes(u)) { d.subImages[parentUrl] = subs.filter(x => x !== u); p = parentUrl; }
-                if (d.subImages[parentUrl].length === 0) delete d.subImages[parentUrl];
-            }
-            if (Object.keys(d.subImages).length === 0) delete d.subImages;
-        }
-        return p;
-    };
-
-    let anyDetached = false;
-    items.forEach(u => {
-        const P = removeFromGroup(u);
-        if (P) anyDetached = true;
-    });
-
-    if (targetUrl) {
-        const targetOwner = getOwnerTradeForImageUrl(targetUrl);
-        const isTargetClose = !targetOwner && state.dayData[state.gallery.date]?.closeImages?.includes(targetUrl);
-        const dayKey = state.gallery.date;
-
-        items.forEach(u => {
-            const owner = getOwnerTradeForImageUrl(u);
-
-            // Collect & detach subImages if this item is a group parent
-            let ownedSubs = null;
-            if (owner && owner.subImages?.[u]) {
-                ownedSubs = [...owner.subImages[u]];
-                delete owner.subImages[u];
-                if (Object.keys(owner.subImages).length === 0) delete owner.subImages;
-            } else if (!owner && dayKey && state.dayData[dayKey]?.subImages?.[u]) {
-                ownedSubs = [...state.dayData[dayKey].subImages[u]];
-                delete state.dayData[dayKey].subImages[u];
-                if (Object.keys(state.dayData[dayKey].subImages).length === 0) delete state.dayData[dayKey].subImages;
-            }
-
-            if (owner) owner.images = (owner.images || []).filter(x => x !== u);
-            else if (dayKey && state.dayData[dayKey]) {
-                if (state.dayData[dayKey].images) state.dayData[dayKey].images = state.dayData[dayKey].images.filter(x => x !== u);
-                if (state.dayData[dayKey].closeImages) state.dayData[dayKey].closeImages = state.dayData[dayKey].closeImages.filter(x => x !== u);
-            }
-
-            if (targetOwner) {
-                if (!targetOwner.images) targetOwner.images = [];
-                targetOwner.images.push(u);
-                if (ownedSubs?.length) {
-                    targetOwner.subImages = targetOwner.subImages || {};
-                    targetOwner.subImages[u] = ownedSubs;
-                }
-            } else if (dayKey) {
-                if (!state.dayData[dayKey]) state.dayData[dayKey] = {};
-                if (isTargetClose) {
-                    if (!state.dayData[dayKey].closeImages) state.dayData[dayKey].closeImages = [];
-                    state.dayData[dayKey].closeImages.push(u);
-                } else {
-                    if (!state.dayData[dayKey].images) state.dayData[dayKey].images = [];
-                    state.dayData[dayKey].images.push(u);
-                }
-                if (ownedSubs?.length) {
-                    state.dayData[dayKey].subImages = state.dayData[dayKey].subImages || {};
-                    state.dayData[dayKey].subImages[u] = ownedSubs;
-                }
-            }
-        });
-    }
-
-    // adjust insertAt index based on items being removed before it
-    let adjustedInsertAt = insertAtGlobalIdx;
-    let removedBeforeInsert = indices.filter(i => i < insertAtGlobalIdx).length;
-    adjustedInsertAt -= removedBeforeInsert;
-
-    // remove items
-    for (let i = indices.length - 1; i >= 0; i--) {
-        arr.splice(indices[i], 1);
-    }
-    // insert items
-    arr.splice(adjustedInsertAt, 0, ...items);
-
-    if (anyDetached) {
-        state.gallery.expandedGroups = state.gallery.expandedGroups || new Set();
-    }
-
-    state.gallery.currentIndex = Math.max(0, arr.indexOf(currentUrl));
-    state.gallery.selectedIndices = new Set();
-    syncGalleryImageOrderToTrades();
-    await saveTrades();
-    renderGallery();
-    renderTable();
-
-    // Push undo entry for cross-separator moves
-    if (targetUrl) {
-        window.galleryUndoStack = window.galleryUndoStack || [];
-        window.galleryUndoStack.push({ backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate });
-        const t = document.getElementById('toast');
-        t.innerHTML = `Image(s) moved. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
-        t.className = 'toast success show';
-        setTimeout(() => { t.className = 'toast'; }, 4000);
-    }
-}
-
-async function handleDropAsSubImage(draggedIndicesStr, targetGlobalIdx) {
-    const arr = state.gallery.images || [];
-    const indices = draggedIndicesStr.sort((a, b) => a - b);
-    if (!indices.length) return;
-
-    let targetThumbUrl = arr[targetGlobalIdx];
-    const items = indices.map(i => arr[i]);
-    const currentUrl = arr[state.gallery.currentIndex];
-    const ownerTrade = getOwnerTradeForImageUrl(targetThumbUrl);
-    const dayDate = state.gallery.date;
-
-    // Backup for undo
-    const backupTradeIdx = ownerTrade ? state.trades.indexOf(ownerTrade) : -1;
-    const backupTradeClone = ownerTrade ? JSON.parse(JSON.stringify(ownerTrade)) : null;
-    const backupDay = dayDate && state.dayData[dayDate] ? JSON.parse(JSON.stringify(state.dayData[dayDate])) : null;
-    const backupArr = [...arr];
-    const backupCurrentIndex = state.gallery.currentIndex;
-    const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
-
-    // Remove items from main view
-    for (let i = indices.length - 1; i >= 0; i--) {
-        arr.splice(indices[i], 1);
-    }
-
-    if (ownerTrade) {
-        ownerTrade.subImages = ownerTrade.subImages || {};
-        ownerTrade.subImages[targetThumbUrl] = ownerTrade.subImages[targetThumbUrl] || [];
-        for (const it of items) {
-            ownerTrade.subImages[targetThumbUrl].push(it);
-            ownerTrade.images = (ownerTrade.images || []).filter(u => u !== it);
-        }
-    } else if (dayDate) {
-        state.dayData[dayDate].subImages = state.dayData[dayDate].subImages || {};
-        state.dayData[dayDate].subImages[targetThumbUrl] = state.dayData[dayDate].subImages[targetThumbUrl] || [];
-        for (const it of items) {
-            state.dayData[dayDate].subImages[targetThumbUrl].push(it);
-            state.dayData[dayDate].images = (state.dayData[dayDate].images || []).filter(u => u !== it);
-        }
-    }
-
-    state.gallery.currentIndex = Math.max(0, arr.indexOf(currentUrl) >= 0 ? arr.indexOf(currentUrl) : targetGlobalIdx);
-    state.gallery.selectedIndices = new Set();
-    syncGalleryImageOrderToTrades();
-    renderGallery();
-    renderTable();
-    await saveTrades();
-
-    // Undo toast
-    const t = document.getElementById('toast');
-    t.innerHTML = `${items.length} image(s) grouped. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;">Undo</button>`;
-    t.className = 'toast success show';
-    let isUndone = false;
-    document.getElementById('undo-del-btn').addEventListener('click', () => {
-        isUndone = true;
-        if (backupTradeIdx >= 0) state.trades[backupTradeIdx] = backupTradeClone;
-        if (dayDate && backupDay) state.dayData[dayDate] = backupDay;
-        state.gallery.images = backupArr; state.gallery.currentIndex = backupCurrentIndex;
-        if (backupExpanded) state.gallery.expandedGroups = backupExpanded;
-        t.innerText = 'Restored.'; setTimeout(() => { t.className = 'toast'; }, 2000);
-        syncGalleryImageOrderToTrades(); renderGallery(); saveTrades(); renderTable(); renderCalendar();
-    });
-    setTimeout(() => { if (!isUndone) t.className = 'toast'; }, 4000);
+    await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
 }
 
 
