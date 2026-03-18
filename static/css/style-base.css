@@ -315,12 +315,38 @@ body.modal-open {
   color: var(--text);
 }
 
+.dash-wl {
+  display: block;
+  font-size: 0.7em;
+  font-weight: 500;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
 @media (max-width: 520px) {
   .dashboard-title {
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
   }
+}
+
+/* ── CALENDAR EXTRAS ──────────────────────────── */
+.cal-trading-day-badge {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text2);
+  opacity: 0.65;
+  vertical-align: middle;
+}
+
+.day-trade-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--blue);
+  opacity: 0.9;
 }
 
 /* ── CALENDAR NAV ─────────────────────────────── */

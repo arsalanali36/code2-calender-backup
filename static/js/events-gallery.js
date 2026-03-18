@@ -132,7 +132,9 @@ function _bindGalleryEvents() {
     document.addEventListener('mousemove', e => {
       if (!_lpResizing) return;
       const panelRect = lpPanel.getBoundingClientRect();
-      _lpSetWidth(Math.max(140, Math.min(400, e.clientX - panelRect.left)));
+      const maxW = Math.min(480, window.innerWidth * 0.45);
+      const newW = panelRect.right - e.clientX;
+      _lpSetWidth(Math.max(140, Math.min(maxW, newW)));
     });
     document.addEventListener('mouseup', () => {
       if (!_lpResizing) return;

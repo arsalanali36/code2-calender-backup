@@ -139,7 +139,7 @@ function renderGalleryPnlPill() {
         row.className = 'gv2-pnl-trade-row';
         const lbl = document.createElement('span');
         lbl.className = 'gv2-pnl-trade-label';
-        lbl.textContent = `T${i + 1}  ${t.Instrument || t.Symbol || t.instrument || ''}`;
+        lbl.textContent = `T${i + 1}`;
         const val = document.createElement('span');
         val.className = 'gv2-pnl-trade-val';
         val.textContent = fmtPnl(pnl);
@@ -183,7 +183,7 @@ function renderGalleryTradePill() {
 
     wrap.style.display = '';
     pill.innerHTML =
-        `<span class="gv2-tp-label">T${tIdx + 1}${instr ? ' · ' + instr : ''}</span>`
+        `<span class="gv2-tp-label">T${tIdx + 1}</span>`
       + `<span class="gv2-tp-sep">·</span>`
       + `<span class="gv2-tp-val ${cls}">${fmtPnl(pnl)}</span>`;
 
@@ -196,7 +196,7 @@ function renderGalleryTradePill() {
         if (i === tIdx) row.style.background = 'rgba(255,255,255,0.06)';
         const lbl = document.createElement('span');
         lbl.className = 'gv2-pnl-trade-label';
-        lbl.textContent = `T${i + 1}  ${t.Instrument || t.Symbol || t.instrument || ''}`;
+        lbl.textContent = `T${i + 1}`;
         const val = document.createElement('span');
         val.className = 'gv2-pnl-trade-val';
         val.textContent = fmtPnl(p);

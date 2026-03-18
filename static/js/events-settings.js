@@ -104,7 +104,8 @@ function _bindSettingsEvents() {
     document.addEventListener('mousemove', e => {
       if (!_resizing) return;
       const trayRect = tray.getBoundingClientRect();
-      const newW = Math.max(150, Math.min(480, trayRect.right - e.clientX));
+      const maxW = Math.min(480, window.innerWidth * 0.45);
+      const newW = Math.max(150, Math.min(maxW, trayRect.right - e.clientX));
       tray.style.width = newW + 'px';
     });
     document.addEventListener('mouseup', () => {

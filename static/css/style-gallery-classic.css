@@ -547,8 +547,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
-  height: 6px;
+  top: -5px;
+  height: 16px;
   cursor: ns-resize;
   z-index: 10;
   background: transparent;

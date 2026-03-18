@@ -21,16 +21,26 @@ function getOwnerTradeForImageUrl(imageUrl) {
         }
         return false;
     };
+    const isTradeItem = (t, url) => {
+        if (t.images?.includes(url)) return true;
+        if (t.videos) {
+            if (Object.values(t.videos).includes(url)) return true;
+            // Also check if it's one of the video URLs directly (if they are stored as an array in some versions)
+            if (Array.isArray(t.videos) && t.videos.includes(url)) return true;
+        }
+        return isSub(t, url);
+    };
+
     if (state.gallery.sourceRow !== null && state.trades[state.gallery.sourceRow]) {
         const t = state.trades[state.gallery.sourceRow];
-        if (t.images?.includes(imageUrl) || isSub(t, imageUrl)) return t;
+        if (isTradeItem(t, imageUrl)) return t;
     }
     if (state.gallery.date) {
-        const row = getTradesForDate(state.gallery.date).find(t => (t.images || []).includes(imageUrl) || isSub(t, imageUrl));
+        const row = getTradesForDate(state.gallery.date).find(t => isTradeItem(t, imageUrl));
         if (row) return row;
         return null;
     }
-    return state.trades.find(t => (t.images || []).includes(imageUrl) || isSub(t, imageUrl)) || null;
+    return state.trades.find(t => isTradeItem(t, imageUrl)) || null;
 }
 
 function syncGalleryImageOrderToTrades() {
@@ -248,6 +258,8 @@ async function removeGalleryImageAt(idx, force = false) {
             if (!isExpanded) ownerTrade.images.push(...subImages);
             if (ownerTrade.overlays?.[imageUrl]) delete ownerTrade.overlays[imageUrl];
             if (ownerTrade.marqueeBoxes?.[imageUrl]) delete ownerTrade.marqueeBoxes[imageUrl];
+            if (ownerTrade.videos?.[imageUrl]) delete ownerTrade.videos[imageUrl];
+            if (ownerTrade.audios?.[imageUrl]) delete ownerTrade.audios[imageUrl];
             const store2 = ensureImageTagStore(ownerTrade);
             if (store2[imageUrl]) delete store2[imageUrl];
             delete ownerTrade.subImages[imageUrl];
@@ -257,6 +269,8 @@ async function removeGalleryImageAt(idx, force = false) {
             if (!isExpanded) state.dayData[dayDate].images.push(...subImages);
             if (state.dayData[dayDate].overlays?.[imageUrl]) delete state.dayData[dayDate].overlays[imageUrl];
             if (state.dayData[dayDate].marqueeBoxes?.[imageUrl]) delete state.dayData[dayDate].marqueeBoxes[imageUrl];
+            if (state.dayData[dayDate].videos?.[imageUrl]) delete state.dayData[dayDate].videos[imageUrl];
+            if (state.dayData[dayDate].audios?.[imageUrl]) delete state.dayData[dayDate].audios[imageUrl];
             if (state.dayData[dayDate].subImages?.[imageUrl]) delete state.dayData[dayDate].subImages[imageUrl];
         }
 
@@ -321,6 +335,16 @@ async function removeGalleryImageAt(idx, force = false) {
         urlsToDelete.forEach(u => {
             if (ownerTrade.overlays && ownerTrade.overlays[u]) delete ownerTrade.overlays[u];
             if (ownerTrade.marqueeBoxes && ownerTrade.marqueeBoxes[u]) delete ownerTrade.marqueeBoxes[u];
+            if (ownerTrade.videos) {
+                if (ownerTrade.videos[u]) delete ownerTrade.videos[u];
+                const key = Object.keys(ownerTrade.videos).find(k => ownerTrade.videos[k] === u);
+                if (key) delete ownerTrade.videos[key];
+            }
+            if (ownerTrade.audios) {
+                if (ownerTrade.audios[u]) delete ownerTrade.audios[u];
+                const key = Object.keys(ownerTrade.audios).find(k => ownerTrade.audios[k] === u);
+                if (key) delete ownerTrade.audios[key];
+            }
             const store = ensureImageTagStore(ownerTrade);
             if (store[u]) delete store[u];
         });
@@ -344,6 +368,16 @@ async function removeGalleryImageAt(idx, force = false) {
         urlsToDelete.forEach(u => {
             if (state.dayData[dayDate].overlays?.[u]) delete state.dayData[dayDate].overlays[u];
             if (state.dayData[dayDate].marqueeBoxes?.[u]) delete state.dayData[dayDate].marqueeBoxes[u];
+            if (state.dayData[dayDate].videos) {
+                if (state.dayData[dayDate].videos[u]) delete state.dayData[dayDate].videos[u];
+                const key = Object.keys(state.dayData[dayDate].videos).find(k => state.dayData[dayDate].videos[k] === u);
+                if (key) delete state.dayData[dayDate].videos[key];
+            }
+            if (state.dayData[dayDate].audios) {
+                if (state.dayData[dayDate].audios[u]) delete state.dayData[dayDate].audios[u];
+                const key = Object.keys(state.dayData[dayDate].audios).find(k => state.dayData[dayDate].audios[k] === u);
+                if (key) delete state.dayData[dayDate].audios[key];
+            }
         });
         if (state.dayData[dayDate].subImages && state.dayData[dayDate].subImages[imageUrl]) delete state.dayData[dayDate].subImages[imageUrl];
         // Remove deleted URLs from any parent's subImages (handles sub-image deletion)
@@ -386,8 +420,14 @@ async function removeGalleryImageAt(idx, force = false) {
         if (idx > -1) window.galleryUndoStack.splice(idx, 1);
         for (const dictUrl of urlsToDelete) {
             try {
-                const filename = String(dictUrl || '').split('/').pop();
-                await imageService.deleteImage('/uploads/' + filename);
+                if (typeof isVideoUrl === 'function' && isVideoUrl(dictUrl)) {
+                    await imageService.deleteVideo(dictUrl);
+                } else if (dictUrl.endsWith('.webm') || dictUrl.endsWith('.mp3')) {
+                    await imageService.deleteAudio(dictUrl);
+                } else {
+                    const filename = String(dictUrl || '').split('/').pop();
+                    await imageService.deleteImage('/uploads/' + filename);
+                }
             } catch (e) { }
         }
     }, 5000);

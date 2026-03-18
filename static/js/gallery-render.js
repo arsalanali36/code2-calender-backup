@@ -23,8 +23,19 @@ function renderGallery() {
     state._carryAnnotTool = annotState.tool;
     stopAnnotation();
   }
-  document.getElementById('gallery-date').textContent = date ? formatDisplayDate(date) : `${images.length} image(s)`;
-  if (date) document.getElementById('gallery-date-picker').value = date;
+  const dateEl = document.getElementById('gallery-date');
+  if (dateEl) {
+    if (date) {
+      dateEl.style.display = 'none';
+    } else {
+      dateEl.style.display = '';
+      dateEl.textContent = `${images.length} image(s)`;
+    }
+  }
+  if (date) {
+    const picker = document.getElementById('gallery-date-picker');
+    if (picker) picker.value = date;
+  }
 
   const uploadBtn = document.getElementById('gallery-upload-btn');
   if (uploadBtn) uploadBtn.style.display = date ? '' : 'none';
@@ -42,24 +53,38 @@ function renderGallery() {
   if (isVid) {
     // ── Show video, hide image ──
     img.style.display   = 'none';
-    img.src             = '';
-    if (vidEl) {
-      vidEl.style.display = '';
-      const resolvedVidUrl = resolveImageUrl(curUrl);
-      // Browser normalizes vidEl.src to absolute — compare by pathname
-      const currentSrcPath = vidEl.src ? new URL(vidEl.src, location.href).pathname : '';
-      const wantedPath    = new URL(resolvedVidUrl, location.href).pathname;
-      if (currentSrcPath !== wantedPath) {
-        vidEl.src = resolvedVidUrl;
-        vidEl.load();
+      if (vidEl) {
+        vidEl.style.display = '';
+        const resolvedVidUrl = resolveImageUrl(curUrl);
+        // Browser normalizes vidEl.src to absolute — compare by pathname
+        const currentSrcPath = vidEl.src ? new URL(vidEl.src, location.href).pathname : '';
+        const wantedPath    = new URL(resolvedVidUrl, location.href).pathname;
+        if (currentSrcPath !== wantedPath) {
+          vidEl.src = resolvedVidUrl;
+          vidEl.load();
+        }
+        vidEl.muted = true; // Required for autoplay
+        vidEl.classList.add('active-video');
+        // Ensure play is called after load attempt
+        const playPromise = vidEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.warn("Autoplay blocked or failed:", err);
+            // Show controls as fallback if autoplay fails
+            vidEl.controls = true;
+          });
+        }
+        vidEl.onclick = e => e.stopPropagation();
       }
-      vidEl.onclick = e => e.stopPropagation();
-    }
     img.classList.remove('zoomed', 'dragging');
     resetZoom();
   } else {
     // ── Show image, hide video ──
-    if (vidEl) { vidEl.style.display = 'none'; vidEl.pause && vidEl.pause(); vidEl.src = ''; }
+    if (vidEl) { 
+      vidEl.style.display = 'none'; 
+      vidEl.pause && vidEl.pause(); 
+      // Do not clear src here to avoid "flicker" or loading issues when switching back
+    }
     img.style.display = '';
     img.style.opacity = '';
     img.style.filter  = '';
@@ -134,8 +159,13 @@ function renderGallery() {
   const createTradeSeparator = (idx) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
-    sep.title = `Trade ${idx + 1} (Drop to move)`;
-    sep.textContent = `T${idx + 1}`;
+    sep.title = `Trade ${idx + 1} (Drop to move. Click to collapse)`;
+    const sepKey = 'T' + idx;
+    const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
+    const arrow = isCollapsed ? '▸' : '▾';
+    sep.textContent = `${arrow} T${idx + 1}`;
+    sep.style.color = '#ffd700';
+    sep.style.borderColor = '#ffd700';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -162,48 +192,14 @@ function renderGallery() {
 
     sep.addEventListener('click', (e) => {
       e.stopPropagation();
-      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
-      sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = idx;
-
-      // Show trade-nav popup
-      document.querySelectorAll('.trade-nav-popup').forEach(p => p.remove());
-      const popup = document.createElement('div');
-      popup.className = 'trade-nav-popup';
-      popup.style.cssText = `position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 0;z-index:99999;min-width:170px;box-shadow:var(--shadow);font-size:0.8rem;`;
-      const rect = sep.getBoundingClientRect();
-      popup.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
-      popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-      dayTrades.forEach((trade, ti) => {
-        const item = document.createElement('div');
-        item.style.cssText = `padding:6px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;`;
-        if (ti === idx) item.style.background = 'var(--hover)';
-        const lbl = document.createElement('span');
-        lbl.textContent = `T${ti + 1}  ${trade['Instrument'] || trade['instrument'] || ''}`;
-        lbl.style.fontWeight = ti === idx ? 'bold' : '';
-        const pnlVal = parseFloat(trade['Net P/L'] || trade['net_pnl'] || 0);
-        const pnlEl = document.createElement('span');
-        if (pnlVal) { pnlEl.textContent = (pnlVal > 0 ? '+' : '') + Math.round(pnlVal); pnlEl.style.color = pnlVal >= 0 ? 'var(--green,#4caf50)' : 'var(--red,#f44336)'; }
-        item.appendChild(lbl); if (pnlVal) item.appendChild(pnlEl);
-        item.onmouseenter = () => item.style.background = 'var(--hover)';
-        item.onmouseleave = () => item.style.background = ti === idx ? 'var(--hover)' : '';
-        item.addEventListener('click', () => {
-          popup.remove();
-          const firstImg = (trade.images || [])[0];
-          if (firstImg) {
-            let imgIdx = state.gallery.images.indexOf(firstImg);
-            if (imgIdx < 0) {
-              // Try resolved URL comparison
-              const resolved = resolveImageUrl(firstImg);
-              imgIdx = state.gallery.images.findIndex(u => resolveImageUrl(u) === resolved);
-            }
-            if (imgIdx >= 0) { state.gallery.currentIndex = imgIdx; state.gallery.selectedIndices = new Set([imgIdx]); renderGallery(); }
-          }
-        });
-        popup.appendChild(item);
-      });
-      document.body.appendChild(popup);
-      setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 0);
+      state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+      const key = 'T' + idx;
+      if (state.gallery.collapsedSeparators.has(key)) {
+        state.gallery.collapsedSeparators.delete(key);
+      } else {
+        state.gallery.collapsedSeparators.add(key);
+      }
+      renderGallery();
     });
 
     return sep;
@@ -212,8 +208,13 @@ function renderGallery() {
   const createSpecialSeparator = (label, isClose) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
-    sep.title = `${label} (Drop to move)`;
-    sep.textContent = label;
+    sep.title = `${label} (Drop to move. Click to collapse)`;
+    const sepKey = isClose ? 'CLOSE' : 'OPEN';
+    const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
+    const arrow = isCollapsed ? '▸' : '▾';
+    sep.textContent = `${arrow} ${label}`;
+    sep.style.color = '#ffd700';
+    sep.style.borderColor = '#ffd700';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -235,16 +236,19 @@ function renderGallery() {
         }
       } catch (err) { console.error(err); }
     });
-    const sepKey = isClose ? 'CLOSE' : 'OPEN';
     if (state.gallery.selectedSeparator === sepKey) {
         sep.classList.add('selected-separator');
     }
 
-    sep.addEventListener('click', () => {
-      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
-      sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = sepKey;
-      showToast(`Selected ${label} separator`, 'success');
+    sep.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+      if (state.gallery.collapsedSeparators.has(sepKey)) {
+        state.gallery.collapsedSeparators.delete(sepKey);
+      } else {
+        state.gallery.collapsedSeparators.add(sepKey);
+      }
+      renderGallery();
     });
 
     return sep;
@@ -272,6 +276,11 @@ function renderGallery() {
         thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
         lastTradeIdxRendered++;
       }
+      
+      if (state.gallery.collapsedSeparators?.has('T' + targetTradeIdx)) return;
+    } else if (isCurrentDate && !ownerTrade && !isCloseImg) {
+      // It's an OPEN image
+      if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
 
     if (isCurrentDate && isCloseImg && !renderedCloseSep && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
@@ -284,6 +293,10 @@ function renderGallery() {
       }
       thumbs.appendChild(createSpecialSeparator('CLOSE', true));
       renderedCloseSep = true;
+    }
+    
+    if (isCurrentDate && isCloseImg) {
+      if (state.gallery.collapsedSeparators?.has('CLOSE')) return;
     }
 
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
@@ -307,10 +320,23 @@ function renderGallery() {
     const isVidThumb = typeof isVideoUrl === 'function' && isVideoUrl(url);
     let t;
     if (isVidThumb) {
-      t = document.createElement('div');
+      t = document.createElement('video');
+      t.src = resolveImageUrl(url);
+      t.preload = 'metadata';
+      t.muted = true;
+      t.loop = true;
+      t.playsInline = true;
+      t.style.objectFit = 'cover';
       t.className = 'gv2-thumb gv2-thumb-video' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
-      t.textContent = '📹';
       t.title = 'Video recording';
+      t.addEventListener('mouseenter', () => { t.play().catch(()=>{}); });
+      t.addEventListener('mouseleave', () => { t.pause(); });
+      
+      const vIcon = document.createElement('span');
+      vIcon.className = 'gv2-thumb-video-icon';
+      vIcon.innerHTML = '&#9654;'; // Play symbol
+      vIcon.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#fff; font-size:1.2rem; text-shadow:0 0 8px rgba(0,0,0,0.8); pointer-events:none; z-index:2;';
+      wrap.appendChild(vIcon);
     } else {
       t = document.createElement('img');
       t.src = resolveImageUrl(url);

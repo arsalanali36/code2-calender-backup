@@ -4,13 +4,26 @@
   <!-- ① Slim Top Tray -->
   <div class="gv2-tray">
     <div class="gv2-tray-left">
-      <!-- Back / Close -->
-      <button class="gv2-tray-back-btn" id="gallery-close" title="Close (Esc)">
+      <!-- Back button hidden per user request; kept in DOM for JS compatibility -->
+      <button class="gv2-tray-back-btn" id="gallery-close" title="Close (Esc)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M10 3L5 8l5 5"/></svg>
       </button>
-      <!-- Thumbnails toggle (moved from sidebar) -->
-      <button class="gv2-tray-icon-btn gv2-thumb-toggle-btn" id="gv2-thumb-toggle-btn" title="Thumbnails">&#8862;</button>
+    </div>
+
+    <div class="gv2-tray-center" id="gv2-tray-center">
+      <!-- Date navigation -->
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date (&#8592;)">&#8249;</button>
+        <span class="gv2-date-label" id="gallery-date"></span>
+        <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
+        <button class="gv2-date-arrow" id="gallery-date-next" title="Next date (&#8594;)">&#8250;</button>
+      </div>
+      
+      <!-- Image counter "1/17" -->
+      <span class="gv2-tray-counter" id="gv2-tray-counter" style="color:var(--text3); font-size:0.85rem; font-variant-numeric:tabular-nums;"></span>
+
       <div class="gv2-tray-sep"></div>
+
       <!-- Day P&L pill (total) -->
       <div class="gv2-pnl-wrap" id="gv2-pnl-wrap" style="display:none;position:relative;">
         <button class="gv2-pnl-pill" id="gv2-pnl-pill">0</button>
@@ -21,17 +34,10 @@
         <button class="gv2-trade-pill" id="gv2-trade-pill"></button>
         <div class="gv2-pnl-dropdown" id="gv2-trade-dropdown"></div>
       </div>
-      <div class="gv2-tray-sep"></div>
-      <!-- Date navigation -->
-      <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date (&#8592;)">&#8249;</button>
-      <span class="gv2-date-label" id="gallery-date"></span>
-      <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
-      <button class="gv2-date-arrow" id="gallery-date-next" title="Next date (&#8594;)">&#8250;</button>
-      <!-- Image counter "1/17" -->
-      <span class="gv2-tray-counter" id="gv2-tray-counter"></span>
     </div>
+
     <div class="gv2-tray-right">
-      <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
+      <!-- Zoom hints removed per user request -->
     </div>
   </div>
 
@@ -95,7 +101,7 @@
         <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
         <div id="gallery-zoom-layer">
           <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
-          <video id="gallery-video" class="gallery-img" controls preload="metadata" style="display:none;max-width:100%;max-height:100%;" onloadedmetadata="this.currentTime=0.1"></video>
+          <video id="gallery-video" class="gallery-img" controls preload="metadata" style="display:none; width:100%; height:100%; object-fit:contain;" onloadedmetadata="this.currentTime=0.1"></video>
           <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
         </div>
         <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
@@ -162,6 +168,7 @@
       </button>
       <div class="gv2-sb-sep"></div>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags (T)">&#127991;</button>
+      <button class="gv2-sb-btn gv2-thumb-toggle-btn" id="gv2-thumb-toggle-btn" title="Thumbnails (G)">&#8862;</button>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers (L)">&#10064;</button>
       <button class="gv2-sb-btn" id="gallery-upload-btn" title="Upload">&#11014;</button>
       <!-- Show Heads dropdown -->

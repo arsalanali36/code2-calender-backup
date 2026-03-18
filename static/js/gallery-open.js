@@ -54,7 +54,7 @@ const _VP_KEY = 'tj_galleryLayout'; // 'classic' | 'new'
 function openGalleryForDateWithPicker(dateStr) {
   const pref = localStorage.getItem(_VP_KEY);
   if (pref === 'classic') { window.open(`/gallery-classic?galleryDate=${dateStr}`, '_blank'); return; }
-  if (pref === 'new')     { window.open(`/?galleryDate=${dateStr}&galleryLayout=new`, '_blank'); return; }
+  if (pref === 'new')     { openGalleryForDate(dateStr); return; }
   _showViewerPicker(dateStr);
 }
 
@@ -100,10 +100,11 @@ function _showViewerPicker(dateStr) {
     if (document.getElementById('gvp-remember')?.checked)
       localStorage.setItem(_VP_KEY, mode);
     el.remove();
-    const url = mode === 'classic'
-      ? `/gallery-classic?galleryDate=${dateStr}`
-      : `/?galleryDate=${dateStr}&galleryLayout=new`;
-    window.open(url, '_blank');
+    if (mode === 'classic') {
+      window.open(`/gallery-classic?galleryDate=${dateStr}`, '_blank');
+    } else {
+      openGalleryForDate(dateStr);
+    }
   };
 
   document.getElementById('gvp-old').addEventListener('click', () => choose('classic'));

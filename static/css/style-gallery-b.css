@@ -14,39 +14,41 @@
 /* Floating tray — overlays the image, not a fixed header */
 .gv2-tray {
   position: absolute;
-  top: 0;
+  top: 15px;
   left: 0;
   right: 0;
   z-index: 500;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  min-height: 44px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: transparent;
+  border-bottom: none;
+  min-height: auto;
+  pointer-events: none;
 }
+.gv2-tray > * { pointer-events: auto; }
 
 .gv2-tray-left {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  flex: 1;
 }
 
-.gv2-tray-btns {
+.gv2-tray-center {
+  flex: 0;
+  background: rgba(15, 15, 20, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .gv2-tray-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
+  flex: 1;
 }
 
 /* ── Tray back/close arrow (on dark gradient bg) ── */
@@ -207,13 +209,13 @@
   background: rgba(248, 81, 73, 0.12);
 }
 
-/* Body layout — takes full modal height (tray floats above it) */
+/* Body layout — takes remaining height after tray */
 .gv2-body {
   display: flex;
   flex: 1;
   overflow: hidden;
   position: relative;
-  height: 100%;
+  min-height: 0;
 }
 
 .gv2-center {
@@ -715,17 +717,8 @@
   align-self: unset !important;
   border-radius: 3px !important;
   border: none !important;
-  border-top: 1px solid var(--border2) !important;
-  background: rgba(255,255,255,0.03) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 3px;
-  font-size: 0.6rem !important;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  font-weight: 700 !important;
-  color: var(--text3) !important;
+  color: #ffd700 !important;
+  border-top: 1px solid #ffd700 !important;
   cursor: pointer;
 }
 .gv2-thumb-separator.selected-separator {
@@ -783,7 +776,16 @@
   background: #1a1a2e;
   font-size: 1.2rem;
   cursor: pointer;
-  border-color: #7c3aed;
+  border: 1px solid #7c3aed !important;
+  border-radius: 4px;
+}
+.gv2-thumb-video-icon {
+  pointer-events: none;
+  z-index: 5;
+  transition: transform 0.2s;
+}
+.gv2-thumb-video:hover .gv2-thumb-video-icon {
+  transform: scale(1.2);
 }
 
 .gv2-thumb-video.active {

@@ -44,12 +44,32 @@ function renderUploadPreview() {
 
 async function handleImageFiles(files) {
   const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
-  for (const file of sorted) {
+
+  // Show local thumbnails immediately — no waiting for server
+  const localUrls = sorted.map(f => URL.createObjectURL(f));
+  state.pendingFiles.push(...localUrls);
+  renderUploadPreview();
+
+  // Upload all in parallel, replace blob URL with server URL as each finishes
+  let failed = 0;
+  await Promise.all(sorted.map(async (file, i) => {
     try {
       const data = await imageService.uploadImage(file);
-      if (data.url) { state.pendingFiles.push(data.url); renderUploadPreview(); }
-    } catch (e) { showToast('Image upload failed', 'error'); }
-  }
+      const idx = state.pendingFiles.indexOf(localUrls[i]);
+      if (data.url && idx >= 0) {
+        state.pendingFiles[idx] = data.url;
+        URL.revokeObjectURL(localUrls[i]);
+        renderUploadPreview();
+      }
+    } catch (e) {
+      failed++;
+      const idx = state.pendingFiles.indexOf(localUrls[i]);
+      if (idx >= 0) state.pendingFiles.splice(idx, 1);
+      URL.revokeObjectURL(localUrls[i]);
+      renderUploadPreview();
+    }
+  }));
+  if (failed) showToast(`${failed} image(s) failed to upload`, 'error');
 }
 
 async function uploadImagesToRow(rowIdx, files) {
@@ -58,19 +78,17 @@ async function uploadImagesToRow(rowIdx, files) {
   if (!trade) return;
   if (!trade.images) trade.images = [];
   syncTradeDateField(trade);
-  let added = 0;
-  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
-  for (const file of sorted) {
-    if (!file || !String(file.type || '').startsWith('image/')) continue;
-    try {
-      const data = await imageService.uploadImage(file);
-      if (data.url) { trade.images.push(data.url); added++; }
-    } catch (e) { }
-  }
-  if (added > 0) {
+  const sorted = [...files]
+    .filter(f => f && String(f.type || '').startsWith('image/'))
+    .sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  if (!sorted.length) return;
+  const results = await Promise.allSettled(sorted.map(f => imageService.uploadImage(f)));
+  const urls = results.filter(r => r.status === 'fulfilled' && r.value?.url).map(r => r.value.url);
+  if (urls.length) {
+    trade.images.push(...urls);
     await saveTrades();
     render();
-    showToast(`${added} image added to row`, 'success');
+    showToast(`${urls.length} image${urls.length > 1 ? 's' : ''} added to row`, 'success');
   }
 }
 
@@ -78,16 +96,18 @@ async function uploadImagesToDayData(dateKey, files) {
   if (!Array.isArray(files) || !files.length) return;
   if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
   if (!state.dayData[dateKey].images) state.dayData[dateKey].images = [];
-  let added = 0;
-  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
-  for (const file of sorted) {
-    if (!file || !String(file.type || '').startsWith('image/')) continue;
-    try {
-      const data = await imageService.uploadImage(file);
-      if (data.url) { state.dayData[dateKey].images.push(data.url); added++; }
-    } catch (e) { }
+  const sorted = [...files]
+    .filter(f => f && String(f.type || '').startsWith('image/'))
+    .sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  if (!sorted.length) return;
+  const results = await Promise.allSettled(sorted.map(f => imageService.uploadImage(f)));
+  const urls = results.filter(r => r.status === 'fulfilled' && r.value?.url).map(r => r.value.url);
+  if (urls.length) {
+    state.dayData[dateKey].images.push(...urls);
+    await saveTrades();
+    render();
+    showToast(`${urls.length} image${urls.length > 1 ? 's' : ''} added`, 'success');
   }
-  if (added > 0) { await saveTrades(); render(); showToast(`${added} image added`, 'success'); }
 }
 
 function bindRowImageDrop(rowEl, rowIdx) {

@@ -118,7 +118,7 @@ const FullscreenViewer = {
         });
     },
 
-    open(daysData, startDayIdx = 0, startImgIdx = 0) {
+    open(daysData, startDayIdx = 0, startImgIdx = 0, startLocked = false) {
         if (!daysData || !daysData.length) return;
         this.days = daysData;
         this.currentDayIndex = startDayIdx;
@@ -128,7 +128,7 @@ const FullscreenViewer = {
         this.panX = 0;
         this.panY = 0;
         this.uiVisible = true;
-        this.isLocked = false;
+        this.isLocked = startLocked;
         
         this.el.classList.add('open');
         this.updateUI();
@@ -170,14 +170,10 @@ const FullscreenViewer = {
         const day = this.days[this.currentDayIndex];
         const dateParts = day.date.split('-');
         const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-        const month = date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-        const dayNum = date.getDate();
-        const total = day.images.length;
         const current = this.currentImageIndex + 1;
         const tradeLabel = day.tradeLabel || `T${this.currentDayIndex + 1}`;
 
-        infoEl.textContent = `${weekday} ${month} ${dayNum}  ·  ${tradeLabel}  ·  ${current}/${total}`;
+        infoEl.textContent = `${tradeLabel}  ·  ${current}/${total}`;
 
         // Update date picker
         const dp = document.getElementById('fs-date-picker');
@@ -216,13 +212,12 @@ const FullscreenViewer = {
                     }, []);
                     trades.forEach((t, i) => {
                         const p = getTradePnl(t) || 0;
-                        const instr = t.Instrument || t.Symbol || t.instrument || '';
                         const colr = p > 0 ? '#2ecc71' : p < 0 ? '#e74c3c' : 'inherit';
                         const isActive = sameDateIndices[i] === this.currentDayIndex;
                         const row = document.createElement('div');
                         row.className = 'gv2-pnl-trade-row';
                         row.style.background = isActive ? 'rgba(255,255,255,0.06)' : '';
-                        row.innerHTML = `<span class="gv2-pnl-trade-label">T${i+1}${instr ? ' · '+instr : ''}</span><span class="gv2-pnl-trade-val" style="color:${colr}">${fmt(p)}</span>`;
+                        row.innerHTML = `<span class="gv2-pnl-trade-label">T${i+1}</span><span class="gv2-pnl-trade-val" style="color:${colr}">${fmt(p)}</span>`;
                         row.addEventListener('click', (e) => {
                             e.stopPropagation();
                             const targetIdx = sameDateIndices[i];
@@ -251,11 +246,10 @@ const FullscreenViewer = {
                     // Trade dropdown: images in this trade
                     if (tradeDd) {
                         tradeDd.innerHTML = '';
-                        const instr = t.Instrument || t.Symbol || t.instrument || '';
                         (t.images||[]).forEach((img, i) => {
                             const row = document.createElement('div');
                             row.className = 'gv2-pnl-trade-row';
-                            row.innerHTML = `<span class="gv2-pnl-trade-label">${instr || 'Image'} ${i+1}</span><span class="gv2-pnl-trade-val" style="color:rgba(255,255,255,0.5)">${i === this.currentImageIndex ? '● now' : ''}</span>`;
+                            row.innerHTML = `<span class="gv2-pnl-trade-label">Image ${i+1}</span><span class="gv2-pnl-trade-val" style="color:rgba(255,255,255,0.5)">${i === this.currentImageIndex ? '● now' : ''}</span>`;
                             row.addEventListener('click', (e) => { e.stopPropagation(); this.currentImageIndex = i; tradeDd.classList.remove('open'); this.render(); });
                             tradeDd.appendChild(row);
                         });
@@ -528,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Helper to open from calendar or gallery
-function openFullscreenFromAppContext(targetImages, currentUrl) {
+function openFullscreenFromAppContext(targetImages, currentUrl, startLocked = false) {
     const allDates = Object.keys(state.dayData || {}).sort((a,b) => new Date(b) - new Date(a));
     const items = []; // flat list of { date, tradeLabel, images } — one entry per trade
 
@@ -553,7 +547,7 @@ function openFullscreenFromAppContext(targetImages, currentUrl) {
     }
 
     if (!items.length) {
-        FullscreenViewer.open([{ date: 'Journal', tradeLabel: 'T1', images: targetImages }], 0, targetImages.indexOf(currentUrl));
+        FullscreenViewer.open([{ date: 'Journal', tradeLabel: 'T1', images: targetImages }], 0, targetImages.indexOf(currentUrl), startLocked);
         return;
     }
 
@@ -570,9 +564,9 @@ function openFullscreenFromAppContext(targetImages, currentUrl) {
     }
 
     if (dayIdx === -1) {
-        FullscreenViewer.open([{ date: 'Journal', tradeLabel: 'T1', images: targetImages }], 0, targetImages.indexOf(currentUrl));
+        FullscreenViewer.open([{ date: 'Journal', tradeLabel: 'T1', images: targetImages }], 0, targetImages.indexOf(currentUrl), startLocked);
     } else {
-        FullscreenViewer.open(items, dayIdx, imgIdx);
+        FullscreenViewer.open(items, dayIdx, imgIdx, startLocked);
     }
 }
 

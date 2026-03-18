@@ -49,6 +49,13 @@ function _bindKeyboardEvents() {
       // Arrow nav — must run BEFORE typingInField check because upper-canvas focus
       // triggers typingInField=true even when not typing. Guard: annotation must be off.
       if (!annotState.active && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        const fsEl = document.getElementById('fullscreen-viewer');
+        if (fsEl && fsEl.style.display === 'flex' && typeof FullscreenViewer !== 'undefined') {
+          if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevImg(); return; }
+          if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextImg(); return; }
+          if (e.key === 'ArrowUp')    { e.preventDefault(); FullscreenViewer.prevDay(); return; }
+          if (e.key === 'ArrowDown')  { e.preventDefault(); FullscreenViewer.nextDay(); return; }
+        }
         if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
         if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
         if (e.key === 'ArrowUp')    { e.preventDefault(); navigateGallery(-1);     return; }
@@ -259,7 +266,7 @@ function _bindKeyboardEvents() {
         e.preventDefault();
         const _fsImages = state.gallery.images || [];
         const _fsCur = _fsImages[state.gallery.currentIndex];
-        if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur);
+        if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur, true);
         return;
       }
 
