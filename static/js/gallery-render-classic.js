@@ -86,7 +86,10 @@ function renderGallery() {
   document.getElementById('gallery-thumbs')?.classList.toggle('filter-active', _filterActive);
   document.getElementById('gv2-tag-cloud')?.classList.toggle('filter-active', _filterActive);
 
-  const thumbs = document.getElementById('gallery-thumbs'); thumbs.innerHTML = '';
+  const thumbs = document.getElementById('gallery-thumbs');
+  const savedScrollTop = thumbs ? thumbs.scrollTop : 0;
+  const savedScrollLeft = thumbs ? thumbs.scrollLeft : 0;
+  if (thumbs) thumbs.innerHTML = '';
   const thumbImages = _getGalleryThumbImages();
   let dragFromIndex = -1;
   const highlightSubImages = new Set();
@@ -127,7 +130,15 @@ function renderGallery() {
     sep.style.fontWeight = 'bold';
     sep.style.cursor = 'pointer';
     sep.title = `Trade ${idx + 1} (Drop to move)`;
-    sep.textContent = `${idx + 1}`;
+    const isCollapsed = state.gallery.collapsedSeparators?.has('T' + idx);
+    const arrow = isCollapsed ? '▸' : '▾';
+    const tr = dayTrades[idx];
+    const pnl = parseFloat(tr?.['Net P/L'] || tr?.net_pnl || 0) || 0;
+    const pt = parseFloat(tr?.['Pt'] || tr?.pt || 0) || 0;
+    const pnlStr = pnl !== 0 ? (pnl > 0 ? '+₹' : '-₹') + Math.abs(Math.round(pnl)) : '';
+    const ptStr = pt !== 0 ? (pt > 0 ? '+' : '') + Math.round(pt) + 'P' : '';
+    sep.textContent = `${arrow} T${idx + 1} ${pnlStr} ${ptStr}`;
+    if (pnl !== 0) sep.style.color = pnl > 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)';
 
     sep.addEventListener('dragover', e => {
       e.preventDefault();
@@ -170,48 +181,15 @@ function renderGallery() {
 
     sep.addEventListener('click', (e) => {
       e.stopPropagation();
-      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
-      sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = idx;
-
-      // Show trade-nav popup
-      document.querySelectorAll('.trade-nav-popup').forEach(p => p.remove());
-      const popup = document.createElement('div');
-      popup.className = 'trade-nav-popup';
-      popup.style.cssText = `position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 0;z-index:99999;min-width:170px;box-shadow:var(--shadow);font-size:0.8rem;`;
-      const rect = sep.getBoundingClientRect();
-      popup.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
-      popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-      dayTrades.forEach((trade, ti) => {
-        const item = document.createElement('div');
-        item.style.cssText = `padding:6px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;`;
-        if (ti === idx) item.style.background = 'var(--hover)';
-        const lbl = document.createElement('span');
-        lbl.textContent = `T${ti + 1}  ${trade['Instrument'] || trade['instrument'] || ''}`;
-        lbl.style.fontWeight = ti === idx ? 'bold' : '';
-        const pnlVal = parseFloat(trade['Net P/L'] || trade['net_pnl'] || 0);
-        const pnlEl = document.createElement('span');
-        if (pnlVal) { pnlEl.textContent = (pnlVal > 0 ? '+' : '') + Math.round(pnlVal); pnlEl.style.color = pnlVal >= 0 ? 'var(--green,#4caf50)' : 'var(--red,#f44336)'; }
-        item.appendChild(lbl); if (pnlVal) item.appendChild(pnlEl);
-        item.onmouseenter = () => item.style.background = 'var(--hover)';
-        item.onmouseleave = () => item.style.background = ti === idx ? 'var(--hover)' : '';
-        item.addEventListener('click', () => {
-          popup.remove();
-          const firstImg = (trade.images || [])[0];
-          if (firstImg) {
-            let imgIdx = state.gallery.images.indexOf(firstImg);
-            if (imgIdx < 0) {
-              // Try resolved URL comparison
-              const resolved = resolveImageUrl(firstImg);
-              imgIdx = state.gallery.images.findIndex(u => resolveImageUrl(u) === resolved);
-            }
-            if (imgIdx >= 0) { state.gallery.currentIndex = imgIdx; state.gallery.selectedIndices = new Set([imgIdx]); renderGallery(); }
-          }
-        });
-        popup.appendChild(item);
-      });
-      document.body.appendChild(popup);
-      setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 0);
+      state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+      const key = 'T' + idx;
+      if (state.gallery.collapsedSeparators.has(key)) {
+        state.gallery.collapsedSeparators.delete(key);
+      } else {
+        state.gallery.collapsedSeparators.add(key);
+      }
+      state.gallery._skipScrollIntoView = true;
+      renderGallery();
     });
 
     return sep;
@@ -235,8 +213,10 @@ function renderGallery() {
     sep.style.color = 'var(--text2)';
     sep.style.fontWeight = 'bold';
     sep.style.cursor = 'pointer';
-    sep.title = `${label} (Drop to move)`;
-    sep.textContent = label;
+    sep.title = `${label} (Drop to move. Click to collapse)`;
+    const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
+    const arrow = isCollapsed ? '▸' : '▾';
+    sep.textContent = `${arrow} ${label}`;
 
     sep.addEventListener('dragover', e => {
       e.preventDefault();
@@ -279,11 +259,16 @@ function renderGallery() {
         sep.classList.add('selected-separator');
     }
 
-    sep.addEventListener('click', () => {
-      document.querySelectorAll('.gv2-thumb-separator').forEach(el => el.classList.remove('selected-separator'));
-      sep.classList.add('selected-separator');
-      state.gallery.selectedSeparator = sepKey;
-      showToast(`Selected ${label} separator`, 'success');
+    sep.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+      if (state.gallery.collapsedSeparators.has(sepKey)) {
+        state.gallery.collapsedSeparators.delete(sepKey);
+      } else {
+        state.gallery.collapsedSeparators.add(sepKey);
+      }
+      state.gallery._skipScrollIntoView = true;
+      renderGallery();
     });
 
     return sep;
@@ -300,7 +285,7 @@ function renderGallery() {
     const ownerTrade = getOwnerTradeForImageUrl(url);
     const isCloseImg = state.gallery.date && state.dayData[state.gallery.date]?.closeImages?.includes(url);
 
-    if (isCurrentDate && dayTrades.length > 0 && !isCloseImg) {
+    if (isCurrentDate && dayTrades.length > 0 && ownerTrade && !isCloseImg) {
       let targetTradeIdx = -1;
       if (ownerTrade) {
         targetTradeIdx = dayTrades.indexOf(ownerTrade);
@@ -311,6 +296,11 @@ function renderGallery() {
         thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
         lastTradeIdxRendered++;
       }
+
+      const key = 'T' + targetTradeIdx;
+      if (state.gallery.collapsedSeparators?.has(key)) return;
+    } else if (isCurrentDate && !ownerTrade && !isCloseImg) {
+      if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
 
     if (isCurrentDate && isCloseImg && !renderedCloseSep && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
@@ -323,6 +313,10 @@ function renderGallery() {
       }
       thumbs.appendChild(createSpecialSeparator('CLOSE', true));
       renderedCloseSep = true;
+    }
+    
+    if (isCurrentDate && isCloseImg) {
+      if (state.gallery.collapsedSeparators?.has('CLOSE')) return;
     }
 
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
@@ -683,13 +677,23 @@ function renderGallery() {
   thumbs.appendChild(btnWrap);
 
   if (thumbs.children.length > 0) {
-    const activeThumb = thumbs.querySelector('.gv2-thumb.active');
-    if (activeThumb) {
+    if (state.gallery._skipScrollIntoView) {
       setTimeout(() => {
-        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }, 50);
+        if (thumbs) {
+          thumbs.scrollTop = savedScrollTop;
+          thumbs.scrollLeft = savedScrollLeft;
+        }
+      }, 0);
+    } else {
+      const activeThumb = thumbs.querySelector('.gv2-thumb.active');
+      if (activeThumb) {
+        setTimeout(() => {
+          activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }, 50);
+      }
     }
   }
+  state.gallery._skipScrollIntoView = false;
 
   // Rubber-band selection + pan — delegated to gallery-rubberband.js
   bindGalleryRubberbandAndPan(thumbs);

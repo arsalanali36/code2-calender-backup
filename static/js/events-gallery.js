@@ -28,16 +28,67 @@ function _bindGalleryEvents() {
       if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
     });
   }
+  // ── Unified Resizing (Touch + Mouse) ──────────────────────────────────
+  const setupPanelResizer = (handleId, panelId, localStorageKey, direction, minW = 140, maxW = 480) => {
+    const handle = document.getElementById(handleId);
+    const panel = document.getElementById(panelId);
+    if (!handle || !panel) return;
 
-  // Thumbnail panel toggle
+    const _setWidth = (w) => {
+      const finalW = Math.max(minW, Math.min(maxW, w));
+      if (panelId === 'gv2-thumb-panel') {
+        panel.style.setProperty('--thumb-panel-w', finalW + 'px');
+      } else {
+        panel.style.width = finalW + 'px';
+      }
+      if (panelId === 'gv2-layer-panel') {
+        panel.style.setProperty('--lp-thumb-w', Math.max(24, Math.min(80, Math.floor(finalW * 0.22))) + 'px');
+      }
+      if (localStorageKey) localStorage.setItem(localStorageKey, finalW);
+    };
+
+    let _resizing = false, _startX = 0, _startW = 0;
+    const _onDown = (e) => {
+      _resizing = true; handle.classList.add('dragging');
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      _startX = cx;
+      _startW = panel.offsetWidth;
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+      e.stopPropagation(); // prevent drag start etc
+    };
+    const _onMove = (e) => {
+      if (!_resizing) return;
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const dx = cx - _startX;
+      let newW = direction === 'right' ? _startW + dx : _startW - dx;
+      _setWidth(newW);
+    };
+    const _onUp = () => {
+      if (!_resizing) return;
+      _resizing = false; handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    handle.addEventListener('mousedown', _onDown);
+    handle.addEventListener('touchstart', _onDown, { passive: false });
+    document.addEventListener('mousemove', _onMove);
+    document.addEventListener('touchmove', _onMove, { passive: false });
+    document.addEventListener('mouseup', _onUp);
+    document.addEventListener('touchend', _onUp);
+  };
+
+  setupPanelResizer('gv2-thumb-panel-resize', 'gv2-thumb-panel', 'tj_thumbPanelW', 'right', 54, 160);
+  setupPanelResizer('gv2-lp-resize-handle', 'gv2-layer-panel', 'tj_layerPanelW', 'right', 140, 480);
+  setupPanelResizer('gv2-tray-resize-handle', 'gv2-tags-tray', 'tj_trayPanelW', 'left', 160, 520);
+  setupPanelResizer('gv2-trades-resize-handle', 'gv2-trades-panel', 'tj_tradesPanelW', 'right', 180, 520);
+
+  // Thumbnail panel open state restore
   (function () {
     const thumbToggleBtn = document.getElementById('gv2-thumb-toggle-btn');
     const thumbPanel = document.getElementById('gv2-thumb-panel');
     if (!thumbToggleBtn || !thumbPanel) return;
-    const TP_W_KEY = 'tj_thumbPanelW';
-    const savedW = parseInt(localStorage.getItem(TP_W_KEY) || '74', 10);
-    thumbPanel.style.setProperty('--thumb-panel-w', Math.max(54, Math.min(160, savedW)) + 'px');
-    // Restore open state
     const wasOpen = localStorage.getItem('tj_thumbPanelOpen') === '1';
     if (wasOpen) { thumbPanel.classList.add('open'); thumbToggleBtn.classList.add('active'); }
     thumbToggleBtn.addEventListener('click', () => {
@@ -45,31 +96,6 @@ function _bindGalleryEvents() {
       thumbToggleBtn.classList.toggle('active', isOpen);
       localStorage.setItem('tj_thumbPanelOpen', isOpen ? '1' : '0');
     });
-    // Resize handle for thumb panel
-    const tpHandle = document.getElementById('gv2-thumb-panel-resize');
-    if (tpHandle) {
-      let _tpResizing = false;
-      tpHandle.addEventListener('mousedown', e => {
-        _tpResizing = true;
-        tpHandle.classList.add('dragging');
-        const startX = e.clientX;
-        const startW = thumbPanel.offsetWidth;
-        const _move = (me) => {
-          if (!_tpResizing) return;
-          const w = Math.max(54, Math.min(160, startW + (me.clientX - startX)));
-          thumbPanel.style.setProperty('--thumb-panel-w', w + 'px');
-          localStorage.setItem(TP_W_KEY, w);
-        };
-        const _up = () => {
-          _tpResizing = false;
-          tpHandle.classList.remove('dragging');
-          document.removeEventListener('mousemove', _move);
-          document.removeEventListener('mouseup', _up);
-        };
-        document.addEventListener('mousemove', _move);
-        document.addEventListener('mouseup', _up);
-      });
-    }
   })();
 
   // Layer panel toggle
@@ -86,7 +112,7 @@ function _bindGalleryEvents() {
     localStorage.setItem('tj_showTime', state.gallery.showTime ? '1' : '0');
     timeBtn.classList.toggle('active', state.gallery.showTime);
     if (state.gallery.showTime) {
-      fetchImageTimesForGallery();
+      if (typeof fetchImageTimesForGallery === 'function') fetchImageTimesForGallery();
     } else {
       renderGallery();
     }
@@ -112,36 +138,6 @@ function _bindGalleryEvents() {
     state.gallery.selectedIndices = new Set(images.map((_, i) => i).filter(i => !cur.has(i)));
     renderGallery();
   });
-
-  // Layer panel resize handle
-  (function () {
-    const lpHandle = document.getElementById('gv2-lp-resize-handle');
-    const lpPanel = document.getElementById('gv2-layer-panel');
-    if (!lpHandle || !lpPanel) return;
-    const LP_W_KEY = 'tj_layerPanelW';
-    const savedW = parseInt(localStorage.getItem(LP_W_KEY) || '200', 10);
-    const _lpSetWidth = (w) => {
-      lpPanel.style.width = w + 'px';
-      lpPanel.style.setProperty('--lp-thumb-w', Math.max(24, Math.min(80, Math.floor(w * 0.22))) + 'px');
-    };
-    _lpSetWidth(Math.max(140, Math.min(400, savedW)));
-    let _lpResizing = false;
-    lpHandle.addEventListener('mousedown', e => {
-      _lpResizing = true; lpHandle.classList.add('dragging'); e.preventDefault();
-    });
-    document.addEventListener('mousemove', e => {
-      if (!_lpResizing) return;
-      const panelRect = lpPanel.getBoundingClientRect();
-      const maxW = Math.min(480, window.innerWidth * 0.45);
-      const newW = panelRect.right - e.clientX;
-      _lpSetWidth(Math.max(140, Math.min(maxW, newW)));
-    });
-    document.addEventListener('mouseup', () => {
-      if (!_lpResizing) return;
-      _lpResizing = false; lpHandle.classList.remove('dragging');
-      localStorage.setItem(LP_W_KEY, String(parseInt(lpPanel.style.width, 10) || 200));
-    });
-  })();
 
   // Gallery modal: prevent browser native context menu (ContextMenu key shows custom menu instead)
   const _galleryModal = document.getElementById('gallery-modal');
@@ -500,4 +496,163 @@ function _bindGalleryEvents() {
       showToast(wasMarked ? 'Review mark removed' : 'Marked for review', 'success');
     });
   })();
+
+  // ── Trades Panel Toggle & Render ──────────────────────────────────────────
+  let _tradesSortMode = 'loss_desc';
+  const tpBtn = document.getElementById('gv2-trades-panel-btn');
+  const tpPanel = document.getElementById('gv2-trades-panel');
+  const tpClose = document.getElementById('gv2-trades-close-btn');
+  const tpSortBtn = document.getElementById('gv2-trades-sort-btn');
+  const tpList = document.getElementById('gv2-trades-list');
+
+  const _renderTradesList = () => {
+    if (!tpList || !state.trades) return;
+    tpList.innerHTML = '';
+    // Collect all trades that have at least one image
+    let allPnlTrades = state.trades.filter(t => t && t.images && t.images.length > 0 && typeof t['Net P/L'] !== 'undefined' && normalizeDate(extractDateFromTrade(t)));
+    
+    allPnlTrades.sort((a, b) => {
+      if (_tradesSortMode === 'loss_desc') {
+        const valA = parseFloat(a['Net P/L']) || 0;
+        const valB = parseFloat(b['Net P/L']) || 0;
+        return valA - valB; // most negative first (max loss)
+      } else if (_tradesSortMode === 'profit_desc') {
+        const valA = parseFloat(a['Net P/L']) || 0;
+        const valB = parseFloat(b['Net P/L']) || 0;
+        return valB - valA; // most positive first
+      } else if (_tradesSortMode === 'pt_loss') {
+        const valA = parseFloat(a['Pt']) || 0;
+        const valB = parseFloat(b['Pt']) || 0;
+        return valA - valB;
+      } else if (_tradesSortMode === 'pt_profit') {
+        const valA = parseFloat(a['Pt']) || 0;
+        const valB = parseFloat(b['Pt']) || 0;
+        return valB - valA;
+      } else {
+        // date desc
+        const da = normalizeDate(extractDateFromTrade(a));
+        const db = normalizeDate(extractDateFromTrade(b));
+        return db.localeCompare(da);
+      }
+    });
+
+    if (allPnlTrades.length === 0) {
+      tpList.innerHTML = '<div style="color:var(--text3);text-align:center;padding:20px;">No trades with images found.</div>';
+      return;
+    }
+
+    allPnlTrades.forEach(t => {
+      const pnl = parseFloat(t['Net P/L']) || 0;
+      const pt = parseFloat(t['Pt']) || 0;
+      const color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--text)');
+      const ptColor = pt > 0 ? 'var(--green)' : (pt < 0 ? 'var(--red)' : 'var(--text2)');
+      const d = normalizeDate(extractDateFromTrade(t));
+      const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(d) : [];
+      let tLabel = 'T?';
+      if (dayTrades.length > 0) {
+        // Because of reference issues, let's find it by equality or matching fields
+        const idx = dayTrades.findIndex(tr => tr === t || (tr.images && tr.images[0] === t.images[0]));
+        if (idx !== -1) tLabel = `T${idx + 1}`;
+      }
+      
+      let dateString = d;
+      try {
+        const dObj = new Date(d);
+        if (!isNaN(dObj.getTime())) {
+          dateString = dObj.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+        }
+      } catch (e) {}
+
+      const isViewingThisDate = (state.gallery.date === d);
+      // t is our trade from allPnlTrades. state.trades[state.gallery.sourceRow] is the currently viewed trade in gallery.
+      const isViewingThisTrade = isViewingThisDate && (state.gallery.sourceRow !== null && (state.trades[state.gallery.sourceRow] === t || (state.trades[state.gallery.sourceRow]?.images && state.trades[state.gallery.sourceRow]?.images[0] === t.images[0])));
+
+      const item = document.createElement('div');
+      item.className = 'gv2-trades-item' + (isViewingThisTrade ? ' active-trade' : '');
+      item.style.cssText = `
+        display:flex; align-items:center; justify-content:space-between;
+        padding:8px 10px; background:${isViewingThisTrade ? 'rgba(255,152,0,0.08)' : 'var(--surface2)'}; 
+        border:1px solid ${isViewingThisTrade ? 'var(--orange,#ff9800)' : 'var(--border)'};
+        border-radius:6px; cursor:pointer; user-select:none; transition:all 0.2s;
+        ${isViewingThisTrade ? 'box-shadow:0 0 12px rgba(255,152,0,0.15);' : ''}
+      `;
+      item.onmouseenter = () => { if (!isViewingThisTrade) item.style.background = 'var(--surface3)'; };
+      item.onmouseleave = () => { if (!isViewingThisTrade) item.style.background = isViewingThisTrade ? 'rgba(255,152,0,0.08)' : 'var(--surface2)'; };
+
+      item.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <span style="font-size:0.85rem; font-weight:600; color:${isViewingThisTrade ? 'var(--orange,#ff9800)' : 'var(--text)'};">${dateString}</span>
+          <span style="font-size:0.75rem; color:var(--text3);"><strong style="color:var(--text2);">${tLabel}</strong> &bull; ${t.images.length} img</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+          <div style="font-weight:700; font-size:0.9rem; color:${color};">
+            ${pnl >= 0 ? '+' : ''}${Math.round(pnl)}
+          </div>
+          <div style="font-size:0.75rem; font-weight:600; color:${ptColor};">
+            Pt: ${pt >= 0 ? '+' : ''}${Math.round(pt)}
+          </div>
+        </div>
+      `;
+      item.onclick = () => {
+        if (typeof openGalleryForDate === 'function') {
+          openGalleryForDate(d);
+          const firstImg = t.images[0];
+          setTimeout(() => {
+            if (state.gallery.images && state.gallery.images.includes(firstImg)) {
+              const globalIdx = state.gallery.images.indexOf(firstImg);
+              state.gallery.currentIndex = globalIdx;
+              state.gallery.selectedIndices = new Set([globalIdx]);
+              // force sourceRow update
+              const globalTradeIdx = state.trades.indexOf(t);
+              if (globalTradeIdx !== -1) state.gallery.sourceRow = globalTradeIdx;
+              
+              renderGallery();
+              _renderTradesList(); // update highlight
+            }
+          }, 150);
+        }
+      };
+      tpList.appendChild(item);
+    });
+  };
+  window.refreshGalleryTradesList = _renderTradesList;
+
+  if (tpBtn && tpPanel) {
+    tpBtn.addEventListener('click', () => {
+      const isOpen = tpPanel.style.display !== 'none';
+      tpPanel.style.display = isOpen ? 'none' : 'flex';
+      tpBtn.classList.toggle('active', !isOpen);
+      if (!isOpen) _renderTradesList();
+    });
+  }
+
+  if (tpClose && tpPanel) {
+    tpClose.addEventListener('click', () => {
+      tpPanel.style.display = 'none';
+      tpBtn?.classList.remove('active');
+    });
+  }
+
+  if (tpSortBtn) {
+    tpSortBtn.innerHTML = 'Sort: Loss &#9660;'; // Default text
+    tpSortBtn.addEventListener('click', () => {
+      if (_tradesSortMode === 'loss_desc') {
+        _tradesSortMode = 'profit_desc';
+        tpSortBtn.innerHTML = 'Sort: Profit &#9660;';
+      } else if (_tradesSortMode === 'profit_desc') {
+        _tradesSortMode = 'pt_loss';
+        tpSortBtn.innerHTML = 'Sort: Pt Loss &#9660;';
+      } else if (_tradesSortMode === 'pt_loss') {
+        _tradesSortMode = 'pt_profit';
+        tpSortBtn.innerHTML = 'Sort: Pt Profit &#9660;';
+      } else if (_tradesSortMode === 'pt_profit') {
+        _tradesSortMode = 'date_desc';
+        tpSortBtn.innerHTML = 'Sort: Date &#9660;';
+      } else {
+        _tradesSortMode = 'loss_desc';
+        tpSortBtn.innerHTML = 'Sort: Loss &#9660;';
+      }
+      _renderTradesList();
+    });
+  }
 }

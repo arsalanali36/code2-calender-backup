@@ -287,6 +287,7 @@ async function removeGalleryImageAt(idx, force = false) {
             state.gallery.currentIndex = Math.max(0, state.gallery.images.length - 1);
 
         syncGalleryImageOrderToTrades();
+        state.gallery._skipScrollIntoView = true;
         renderGallery(); renderTable(); renderCalendar();
 
         const actionBackup = {
@@ -405,6 +406,7 @@ async function removeGalleryImageAt(idx, force = false) {
 
     // UI update FIRST
     syncGalleryImageOrderToTrades();
+    state.gallery._skipScrollIntoView = true;
     renderGallery();
     renderTable();
     renderCalendar();

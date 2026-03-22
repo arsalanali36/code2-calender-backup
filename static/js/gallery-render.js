@@ -187,7 +187,10 @@ function renderGallery() {
   document.getElementById('gallery-thumbs')?.classList.toggle('filter-active', _filterActive);
   document.getElementById('gv2-tag-cloud')?.classList.toggle('filter-active', _filterActive);
 
-  const thumbs = document.getElementById('gallery-thumbs'); thumbs.innerHTML = '';
+  const thumbs = document.getElementById('gallery-thumbs');
+  const savedScrollTop = thumbs ? thumbs.scrollTop : 0;
+  const savedScrollLeft = thumbs ? thumbs.scrollLeft : 0;
+  if (thumbs) thumbs.innerHTML = '';
   const thumbImages = _getGalleryThumbImages();
   let dragFromIndex = -1;
   const highlightSubImages = new Set();
@@ -216,8 +219,14 @@ function renderGallery() {
     const sepKey = 'T' + idx;
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
-    sep.textContent = `${arrow} T${idx + 1}`;
-    sep.style.color = '#ffd700';
+    const tr = dayTrades[idx];
+    const pnl = parseFloat(tr?.['Net P/L'] || tr?.net_pnl || 0) || 0;
+    const pt = parseFloat(tr?.['Pt'] || tr?.pt || 0) || 0;
+    const pnlStr = pnl !== 0 ? (pnl > 0 ? '+₹' : '-₹') + Math.abs(Math.round(pnl)) : '';
+    const ptStr = pt !== 0 ? (pt > 0 ? '+' : '') + Math.round(pt) + 'P' : '';
+    sep.textContent = `${arrow} T${idx + 1} ${pnlStr} ${ptStr}`;
+    if (pnl !== 0) sep.style.color = pnl > 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)';
+    else sep.style.color = '#ffd700';
     sep.style.borderColor = '#ffd700';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
@@ -252,6 +261,7 @@ function renderGallery() {
       } else {
         state.gallery.collapsedSeparators.add(key);
       }
+      state.gallery._skipScrollIntoView = true;
       renderGallery();
     });
 
@@ -301,6 +311,7 @@ function renderGallery() {
       } else {
         state.gallery.collapsedSeparators.add(sepKey);
       }
+      state.gallery._skipScrollIntoView = true;
       renderGallery();
     });
 
@@ -318,7 +329,7 @@ function renderGallery() {
     const ownerTrade = getOwnerTradeForImageUrl(url);
     const isCloseImg = state.gallery.date && state.dayData[state.gallery.date]?.closeImages?.includes(url);
 
-    if (isCurrentDate && dayTrades.length > 0 && !isCloseImg) {
+    if (isCurrentDate && dayTrades.length > 0 && ownerTrade && !isCloseImg) {
       let targetTradeIdx = -1;
       if (ownerTrade) {
         targetTradeIdx = dayTrades.indexOf(ownerTrade);
@@ -716,13 +727,23 @@ function renderGallery() {
   thumbs.appendChild(btnWrap);
 
   if (thumbs.children.length > 0) {
-    const activeThumb = thumbs.querySelector('.gv2-thumb.active');
-    if (activeThumb) {
+    if (state.gallery._skipScrollIntoView) {
       setTimeout(() => {
-        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }, 50);
+        if (thumbs) {
+          thumbs.scrollTop = savedScrollTop;
+          thumbs.scrollLeft = savedScrollLeft;
+        }
+      }, 0);
+    } else {
+      const activeThumb = thumbs.querySelector('.gv2-thumb.active');
+      if (activeThumb) {
+        setTimeout(() => {
+          activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }, 50);
+      }
     }
   }
+  state.gallery._skipScrollIntoView = false;
 
   // Rubber-band selection + pan — delegated to gallery-rubberband.js
   bindGalleryRubberbandAndPan(thumbs);

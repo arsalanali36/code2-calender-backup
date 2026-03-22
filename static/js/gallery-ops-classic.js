@@ -210,8 +210,8 @@ function showGalleryContextMenu(x, y) {
             const savedScroll = thumbsEl ? thumbsEl.scrollLeft : 0;
 
             syncGalleryImageOrderToTrades();
+            state.gallery._skipScrollIntoView = true;
             renderGallery(); renderTable(); renderCalendar();
-            setTimeout(() => { const t2 = document.getElementById('gallery-thumbs'); if (t2) t2.scrollLeft = savedScroll; }, 60);
             await saveTrades();
 
             window.galleryUndoStack = window.galleryUndoStack || [];
@@ -255,10 +255,11 @@ function showGalleryContextMenu(x, y) {
         return opt;
     };
 
-    subMenu.appendChild(createSubOpt('Global (Consolidate)', () => moveSelectedToTrade(dateToUse, null)));
+    subMenu.appendChild(createSubOpt('Open', () => moveSelectedToDayData(dateToUse, false)));
     dayTrades.forEach((tr, i) => {
         subMenu.appendChild(createSubOpt(`Trade ${i + 1}`, () => moveSelectedToTrade(dateToUse, tr)));
     });
+    subMenu.appendChild(createSubOpt('Close', () => moveSelectedToDayData(dateToUse, true)));
 
     parentOpItem.onmouseenter = () => {
         parentOpItem.style.background = 'var(--hover)';

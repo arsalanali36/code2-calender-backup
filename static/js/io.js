@@ -43,7 +43,7 @@ function renderUploadPreview() {
 }
 
 async function handleImageFiles(files) {
-  const sorted = [...files].sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+  const sorted = [...files].sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, {numeric: true, sensitivity: 'base'}));
 
   // Show local thumbnails immediately — no waiting for server
   const localUrls = sorted.map(f => URL.createObjectURL(f));
@@ -80,7 +80,7 @@ async function uploadImagesToRow(rowIdx, files) {
   syncTradeDateField(trade);
   const sorted = [...files]
     .filter(f => f && String(f.type || '').startsWith('image/'))
-    .sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, {numeric: true, sensitivity: 'base'}));
   if (!sorted.length) return;
   const results = await Promise.allSettled(sorted.map(f => imageService.uploadImage(f)));
   const urls = results.filter(r => r.status === 'fulfilled' && r.value?.url).map(r => r.value.url);
@@ -98,7 +98,7 @@ async function uploadImagesToDayData(dateKey, files) {
   if (!state.dayData[dateKey].images) state.dayData[dateKey].images = [];
   const sorted = [...files]
     .filter(f => f && String(f.type || '').startsWith('image/'))
-    .sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, {numeric: true, sensitivity: 'base'}));
   if (!sorted.length) return;
   const results = await Promise.allSettled(sorted.map(f => imageService.uploadImage(f)));
   const urls = results.filter(r => r.status === 'fulfilled' && r.value?.url).map(r => r.value.url);

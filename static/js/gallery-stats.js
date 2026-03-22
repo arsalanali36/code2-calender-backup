@@ -219,6 +219,51 @@ function renderGalleryTrayState() {
     renderGalleryPnlPill();
     renderGalleryTradePill();
     renderGalleryTrayCounter();
+    renderGalleryTradeInfoDisplay();
+
+    // Update 'All Trades' highlight if panel is open
+    const tradesPanel = document.getElementById('gv2-trades-panel');
+    if (tradesPanel && tradesPanel.style.display !== 'none' && typeof window.refreshGalleryTradesList === 'function') {
+        window.refreshGalleryTradesList();
+    }
+}
+
+// ── Overlay over the image showing: T1, P&L, Pt ───────────────────────────
+function renderGalleryTradeInfoDisplay() {
+    const display = document.getElementById('gallery-trade-info-display');
+    if (!display) return;
+    
+    const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+    const owner = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+    const dateToUse = state.gallery.date || (owner ? normalizeDate(extractDateFromTrade(owner)) : null);
+    
+    if (!owner || !dateToUse) {
+        display.style.display = 'none';
+        return;
+    }
+
+    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(dateToUse) : [];
+    const tIdx = trades.indexOf(owner);
+    if (tIdx < 0) {
+        display.style.display = 'none';
+        return;
+    }
+
+    const pnl = parseFloat(owner['Net P/L']) || 0;
+    const pt = parseFloat(owner['Pt']) || 0;
+    
+    const pnlStr = (pnl >= 0 ? '+' : '') + Math.round(pnl);
+    const ptStr = (pt >= 0 ? '+' : '') + Math.round(pt);
+    
+    const pnlColor = pnl > 0 ? '#2ecc71' : (pnl < 0 ? '#e74c3c' : 'var(--text)');
+    const ptColor = pt > 0 ? '#2ecc71' : (pt < 0 ? '#e74c3c' : 'var(--text2)');
+    
+    display.style.display = 'flex';
+    display.innerHTML = `
+        <span style="color:var(--text2);">T${tIdx + 1},</span>
+        <span style="color:${pnlColor}; margin:0 4px;">${pnlStr},</span>
+        <span style="color:${ptColor}; font-size:0.85em; opacity:0.9;">${ptStr} Pt</span>
+    `;
 }
 
 // ── Image count badge in tray ─────────────────────────────────────────────

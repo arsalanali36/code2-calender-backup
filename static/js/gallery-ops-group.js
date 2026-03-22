@@ -164,7 +164,7 @@ function toggleGalleryGroupExpand(url) {
     return true;
 }
 
-async function moveSelectedToTrade(dateToUse, targetTrade) {
+async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
     if (!state.gallery.selectedIndices || state.gallery.selectedIndices.size === 0) return;
     const arr = state.gallery.images || [];
 
@@ -185,7 +185,11 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
     if (!targetTradeObj && dateToUse) {
         // If it's global, we move it out of trades to dayData
         if (!state.dayData[dateToUse]) state.dayData[dateToUse] = {};
-        if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
+        if (isClose) {
+            if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
+        } else {
+            if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
+        }
     }
 
     // Pass 1: collect subs & remove from source (descending so indices stay valid)
@@ -236,7 +240,11 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
                 targetTradeObj.subImages[imageUrl] = ownedSubs;
             }
         } else if (dateToUse) {
-            state.dayData[dateToUse].images.push(imageUrl);
+            if (isClose) {
+                state.dayData[dateToUse].closeImages.push(imageUrl);
+            } else {
+                state.dayData[dateToUse].images.push(imageUrl);
+            }
             if (ownedSubs?.length) {
                 state.dayData[dateToUse].subImages = state.dayData[dateToUse].subImages || {};
                 state.dayData[dateToUse].subImages[imageUrl] = ownedSubs;
@@ -265,50 +273,6 @@ async function moveSelectedToTrade(dateToUse, targetTrade) {
 }
 
 async function moveSelectedToDayData(dateToUse, isClose = false) {
-    if (!state.gallery.selectedIndices || state.gallery.selectedIndices.size === 0) return;
-    const arr = state.gallery.images || [];
-    const indices = Array.from(state.gallery.selectedIndices).sort((a, b) => b - a);
-    let movedCount = 0;
-
-    if (!state.dayData[dateToUse]) state.dayData[dateToUse] = {};
-    if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
-    if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
-
-    for (let idx of indices) {
-        if (idx < 0 || idx >= arr.length) continue;
-        const imageUrl = arr[idx];
-        const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
-
-        // Remove from current location
-        if (ownerTrade) {
-            ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
-        } else if (state.gallery.date && state.dayData[state.gallery.date]) {
-            if (state.dayData[state.gallery.date].images) {
-                state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
-            }
-            if (state.dayData[state.gallery.date].closeImages) {
-                state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(u => u !== imageUrl);
-            }
-        }
-
-        // Add to target location
-        if (isClose) {
-            state.dayData[dateToUse].closeImages.push(imageUrl);
-        } else {
-            state.dayData[dateToUse].images.push(imageUrl);
-        }
-        movedCount++;
-    }
-
-    state.gallery.selectedIndices.clear();
-    if (state.gallery.date === dateToUse) {
-        state.gallery.images = getImagesForDate(dateToUse);
-        state.gallery._baseImages = [...state.gallery.images];
-    }
-    await saveTrades();
-    renderGallery();
-    renderTable();
-    renderCalendar();
-    showToast(`Moved ${movedCount} image(s) to ${isClose ? 'CLOSE' : 'OPEN'}`, 'success');
+    return moveSelectedToTrade(dateToUse, null, isClose);
 }
 
