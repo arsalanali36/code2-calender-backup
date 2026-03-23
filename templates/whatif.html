@@ -149,6 +149,33 @@
     </div>
   </div>
 
+  <!-- ── 3b. Quick Chart Lookup ───────────────────────────── -->
+  <div class="wi-card open" id="card-quick-chart">
+    <div class="wi-card-head" onclick="toggleCard('card-quick-chart')">
+      <span class="wi-card-title">&#128269; Quick Chart Lookup</span>
+      <span class="wi-card-arrow">&#9660;</span>
+    </div>
+    <div class="wi-card-body">
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="wi-field" style="flex:1;min-width:200px;max-width:380px;">
+          <label>Symbol</label>
+          <input id="qc-symbol" type="text" placeholder="e.g. NIFTY2632423650CE"
+                 style="font-family:monospace;text-transform:uppercase;"
+                 oninput="this.value=this.value.toUpperCase()"
+                 onkeydown="if(event.key==='Enter')quickChartOpen()"/>
+        </div>
+        <div class="wi-field" style="max-width:160px;">
+          <label>Date</label>
+          <input id="qc-date" type="date" onkeydown="if(event.key==='Enter')quickChartOpen()"/>
+        </div>
+        <button class="btn-wi btn-primary" onclick="quickChartOpen()" id="btn-qc-open">
+          &#9654; Open Chart
+        </button>
+        <span id="qc-status" class="hint"></span>
+      </div>
+    </div>
+  </div>
+
   <!-- ── 4. OHLC Status ────────────────────────────────────── -->
   <div id="ohlc-status-section" class="hidden">
     <div class="wi-card open" id="card-ohlc">
@@ -211,11 +238,40 @@
 <!-- OHLC Chart Modal -->
 <div id="ohlc-chart-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;">
   <div style="background:#131722;border:1px solid #2a2a3e;border-radius:10px;padding:16px;width:min(960px,96vw);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <span id="ohlc-chart-title" style="font-weight:600;color:#ccc;font-size:13px;font-family:monospace;"></span>
-      <button onclick="closeOhlcChart()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;">&#x2715;</button>
+    <!-- Row 1: title + TF + close -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;">
+      <span id="ohlc-chart-title" style="font-weight:600;color:#ccc;font-size:13px;font-family:monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <label style="color:#888;font-size:11px;white-space:nowrap;cursor:pointer;" title="Lock price-to-bar ratio">
+          <input type="checkbox" id="lock-ratio-chk" onchange="setLockRatio(this.checked)" style="vertical-align:middle;cursor:pointer;"/>
+          Lock Y
+          <input id="lock-ratio-val" type="number" value="6" step="0.5" min="0.1"
+                 style="width:44px;background:#1e2130;border:1px solid #2a2a3e;color:#fff;padding:1px 4px;border-radius:3px;font-size:11px;margin-left:2px;"
+                 onchange="if(document.getElementById('lock-ratio-chk').checked) applyLockRatio()"/>
+        </label>
+      </div>
+      <div id="ohlc-tf-btns" style="display:flex;gap:4px;flex-shrink:0;">
+        <button onclick="setChartTf(1)"  class="tf-btn" data-tf="1">1m</button>
+        <button onclick="setChartTf(3)"  class="tf-btn" data-tf="3">3m</button>
+        <button onclick="setChartTf(5)"  class="tf-btn" data-tf="5">5m</button>
+        <button onclick="setChartTf(15)" class="tf-btn" data-tf="15">15m</button>
+      </div>
+      <button onclick="closeOhlcChart()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;flex-shrink:0;">&#x2715;</button>
     </div>
-    <div id="ohlc-chart-container" style="width:100%;height:460px;"></div>
+    <!-- Row 2: SL / Target inputs (hidden for quick lookup) -->
+    <div id="ohlc-sim-bar" style="display:none;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+      <span style="color:#888;font-size:12px;">Re-sim:</span>
+      <label style="color:#aaa;font-size:12px;">SL <input id="chart-sl"  type="number" step="0.5" style="width:60px;background:#1e2130;border:1px solid #2a2a3e;color:#fff;padding:2px 5px;border-radius:3px;font-size:12px;"/> pts</label>
+      <label style="color:#aaa;font-size:12px;">Target <input id="chart-tgt" type="number" step="0.5" style="width:60px;background:#1e2130;border:1px solid #2a2a3e;color:#fff;padding:2px 5px;border-radius:3px;font-size:12px;"/> pts</label>
+      <button class="btn-wi btn-outline" style="padding:3px 10px;font-size:12px;" onclick="reSimChart()">&#9654; Re-run</button>
+      <span style="color:#888;font-size:11px;margin-left:4px;">← → keys = prev/next trade</span>
+    </div>
+    <style>
+      .tf-btn{background:#1e2130;border:1px solid #2a2a3e;color:#aaa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:12px;}
+      .tf-btn:hover{background:#2a2a3e;color:#fff;}
+      .tf-btn.tf-active{background:#2962ff;border-color:#2962ff;color:#fff;}
+    </style>
+    <div id="ohlc-chart-container" style="width:100%;height:440px;"></div>
   </div>
 </div>
 

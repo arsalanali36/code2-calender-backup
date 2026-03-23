@@ -90,10 +90,30 @@ function _bindGalleryTradesPanelEvents() {
       item.onmouseenter = () => { if (!isViewingThisTrade) item.style.background = 'var(--surface3)'; };
       item.onmouseleave = () => { if (!isViewingThisTrade) item.style.background = isViewingThisTrade ? 'rgba(255,152,0,0.08)' : 'var(--surface2)'; };
 
+      // Derive chart params from raw trade data
+      const instrument = t['Instrument'] || t['instrument'] || '';
+      const buyPrice  = parseFloat(t['Buy Price (Avg)']  || t['Buy Price']  || '') || null;
+      const sellPrice = parseFloat(t['Sell Price (Avg)'] || t['Sell Price'] || '') || null;
+      const buyTime   = (t['Buy Time']  || '').slice(0, 5);
+      const sellTime  = (t['Sell Time'] || '').slice(0, 5);
+      const tradeType = String(t['tradetype'] || t['Trade Type'] || '').toLowerCase();
+      const isShort   = /sell|short/.test(tradeType);
+      const entry     = isShort ? sellPrice : buyPrice;
+      const exitPrice = isShort ? buyPrice  : sellPrice;
+      const entryTime = isShort ? sellTime  : buyTime;
+      const exitTime2 = isShort ? buyTime   : sellTime;
+
+      const chartBtnHtml = instrument ? `
+        <button class="gc-trade-chart-btn" title="Open OHLC chart"
+          style="margin-top:4px;background:#1e2130;border:1px solid #2a2a3e;color:#5599ff;padding:2px 7px;border-radius:4px;cursor:pointer;font-size:0.72rem;align-self:flex-start;">
+          &#128202; Chart
+        </button>` : '';
+
       item.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:2px;">
           <span style="font-size:0.85rem; font-weight:600; color:${isViewingThisTrade ? 'var(--orange,#ff9800)' : 'var(--text)'};">${dateString}</span>
           <span style="font-size:0.75rem; color:var(--text3);"><strong style="color:var(--text2);">${tLabel}</strong> &bull; ${t.images.length} img</span>
+          ${chartBtnHtml}
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
           <div style="font-weight:700; font-size:0.9rem; color:${color};">
@@ -104,7 +124,20 @@ function _bindGalleryTradesPanelEvents() {
           </div>
         </div>
       `;
-      item.onclick = () => {
+
+      // Chart button — attach via addEventListener so stopPropagation is guaranteed
+      if (instrument) {
+        const chartBtn = item.querySelector('.gc-trade-chart-btn');
+        if (chartBtn) {
+          chartBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            openGalleryChart(instrument, d, entry, isShort ? 'SHORT' : 'LONG', entryTime, exitTime2, exitPrice, exitTime2);
+          });
+        }
+      }
+
+      item.onclick = e => {
+        if (e.target.closest('.gc-trade-chart-btn')) return; // chart btn handles itself
         if (typeof openGalleryForDate === 'function') {
           openGalleryForDate(d);
           const firstImg = t.images[0];

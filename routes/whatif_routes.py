@@ -18,7 +18,7 @@ POST /api/whatif/run              → run simulation, return results + summary
 import json
 import math
 import time
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, Response, stream_with_context
 from flask_login import login_required
 
 from config import CACHE_BUST
@@ -315,10 +315,24 @@ def fetch_ohlc():
         parsed    = dhan_service._parse_nse_symbol(sym, date)
         is_option = bool(parsed and parsed.get('instrument') in ('OPTIDX', 'OPTSTK'))
 
-        # Priority: security_id (historical, accurate) > rollingoption (fallback)
+        # Priority: security_id (accurate) > rollingoption (expired-only fallback)
+        # If symbol not in map, try to resolve it from scrip master first.
+        if sym not in symbol_map and is_option:
+            try:
+                mapped = dhan_service.auto_map_instruments({sym: date})
+                info   = mapped.get(sym, {})
+                print(f"[DEBUG fetch-ohlc] auto_map {sym} → {info}")
+                if info.get('security_id'):
+                    symbol_map[sym] = {
+                        'security_id':      info['security_id'],
+                        'exchange_segment': info['exchange_segment'],
+                        'instrument':       info['instrument'],
+                    }
+            except Exception as ex:
+                print(f"[DEBUG fetch-ohlc] auto_map error: {ex}")
+
         if sym in symbol_map:
             info = symbol_map[sym]
-            # For options, pass expiry_date so correct expiryCode is sent to Dhan
             expiry_date = None
             if is_option and parsed:
                 try:
@@ -333,6 +347,7 @@ def fetch_ohlc():
             except Exception as e:
                 results.append({'symbol': sym, 'date': date, 'error': str(e)})
         elif is_option or item.get('type') == 'expired_opt':
+            # Truly expired — not in scrip master, use rollingoption approximation
             try:
                 df = dhan_service.fetch_expired_option_ohlc(sym, date, item.get('entry_time', ''))
                 candles = len(df) if (df is not None and not df.empty) else 0
@@ -358,16 +373,25 @@ def ohlc_data():
     if not symbol or not date:
         return jsonify({'error': 'symbol and date required'}), 400
 
-    symbol_map = dhan_service.load_symbol_map()
-    parsed     = dhan_service._parse_nse_symbol(symbol, date)
-    is_option  = bool(parsed and parsed.get('instrument') in ('OPTIDX', 'OPTSTK'))
-    if symbol in symbol_map:
-        info = symbol_map[symbol]
-        df   = dhan_service.load_cached_ohlc(info['security_id'], date)
-    elif is_option:
+    parsed    = dhan_service._parse_nse_symbol(symbol, date)
+    is_option = bool(parsed and parsed.get('instrument') in ('OPTIDX', 'OPTSTK'))
+
+    # For options: expired-option cache (rollingoption path) takes priority.
+    # The auto-map can return a stale/wrong security_id for expired contracts
+    # (they're no longer in scrip master), which points to the wrong cache file.
+    if is_option:
         df = dhan_service.load_cached_expired_option_ohlc(symbol, date)
+        if df is None or df.empty:
+            # Fallback: check if historical cache exists (active/recent option)
+            symbol_map = dhan_service.load_symbol_map()
+            if symbol in symbol_map:
+                df = dhan_service.load_cached_ohlc(symbol_map[symbol]['security_id'], date)
     else:
-        return jsonify({'error': 'not_mapped'}), 404
+        symbol_map = dhan_service.load_symbol_map()
+        if symbol in symbol_map:
+            df = dhan_service.load_cached_ohlc(symbol_map[symbol]['security_id'], date)
+        else:
+            return jsonify({'error': 'not_mapped'}), 404
 
     if df is None or df.empty:
         return jsonify({'error': 'no_data'}), 404
@@ -375,6 +399,367 @@ def ohlc_data():
     cols = [c for c in ['datetime','time','open','high','low','close','volume'] if c in df.columns]
     records = df[cols].to_dict('records')
     return jsonify({'candles': records})
+
+
+# ── Sync All OHLC (streaming SSE) ────────────────────────────────────────────
+
+@whatif_bp.route('/api/whatif/sync-all-ohlc', methods=['GET'])
+@login_required
+def sync_all_ohlc():
+    """
+    Streams Server-Sent Events with progress for:
+      1. Auto-mapping all unmapped instruments from user's trades
+      2. Fetching OHLC for every (symbol, date) pair that is missing or incomplete
+    Client reads: data: {"msg":"...", "ok":bool, "done":bool}\n\n
+    """
+    def _generate():
+        def evt(msg, ok=True, done=False):
+            return f"data: {json.dumps({'msg': msg, 'ok': ok, 'done': done})}\n\n"
+
+        # ── Load trades ───────────────────────────────────────────
+        try:
+            data_file = get_user_data_file()
+            with open(data_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            trades = data.get('trades', [])
+        except Exception as e:
+            yield evt(f'Error loading trades: {e}', ok=False, done=True)
+            return
+
+        # Collect unique (symbol, date) pairs and earliest date per symbol
+        sym_date_map = {}   # symbol → earliest trade date
+        pairs = []          # list of {symbol, date, entry_time}
+        seen_pairs = set()
+        for t in trades:
+            sym  = t.get('Instrument', '')
+            date = t.get('date', t.get('trade_date', ''))
+            if not sym or not date:
+                continue
+            # track earliest date per symbol for auto-mapping
+            if sym not in sym_date_map or date < sym_date_map[sym]:
+                sym_date_map[sym] = date
+            key = (sym, date)
+            if key not in seen_pairs:
+                seen_pairs.add(key)
+                tt = t.get('TradeType', 'sell').lower()
+                entry_time = str(t.get('Sell Time' if tt == 'sell' else 'Buy Time', '') or '')[:8]
+                pairs.append({'symbol': sym, 'date': date, 'entry_time': entry_time})
+
+        total_symbols = len(sym_date_map)
+        total_pairs   = len(pairs)
+        yield evt(f'Found {total_symbols} instruments across {total_pairs} trade days.')
+
+        if not pairs:
+            yield evt('No trades with instruments found.', done=True)
+            return
+
+        # ── Phase 1: Auto-map all unmapped symbols ────────────────
+        symbol_map = dhan_service.load_symbol_map()
+        unmapped   = {sym: date for sym, date in sym_date_map.items() if sym not in symbol_map}
+
+        if unmapped:
+            yield evt(f'Phase 1/2 — Auto-mapping {len(unmapped)} unmapped instruments…')
+            try:
+                results = dhan_service.auto_map_instruments(unmapped)
+                new_saved = 0
+                for sym, res in results.items():
+                    if res.get('expired_opt'):
+                        symbol_map.pop(sym, None)
+                        continue
+                    if res.get('confidence', 0) >= 70 and res.get('security_id'):
+                        symbol_map[sym] = {
+                            'security_id':      res['security_id'],
+                            'exchange_segment': res['exchange_segment'],
+                            'instrument':       res['instrument'],
+                        }
+                        new_saved += 1
+                dhan_service.save_symbol_map(symbol_map)
+                yield evt(f'Mapped {new_saved}/{len(unmapped)} new instruments.')
+            except Exception as e:
+                yield evt(f'Auto-map error: {e}', ok=False)
+        else:
+            yield evt('Phase 1/2 — All instruments already mapped.')
+
+        # ── Phase 2: Fetch missing OHLC ───────────────────────────
+        yield evt(f'Phase 2/2 — Checking {total_pairs} (symbol, date) pairs…')
+
+        # Identify which pairs are already complete
+        to_fetch = []
+        for p in pairs:
+            sym  = p['symbol']
+            date = p['date']
+            parsed    = dhan_service._parse_nse_symbol(sym, date)
+            is_option = bool(parsed and parsed.get('instrument') in ('OPTIDX', 'OPTSTK'))
+            if sym in symbol_map:
+                info   = symbol_map[sym]
+                status = dhan_service.get_ohlc_status(info['security_id'], date)
+                if status.get('status') != 'complete':
+                    to_fetch.append({**p, 'type': 'mapped'})
+            elif is_option:
+                status = dhan_service.get_expired_option_ohlc_status(sym, date)
+                if status.get('status') != 'complete':
+                    to_fetch.append({**p, 'type': 'expired_opt'})
+            # else: not mapped and not an option — skip
+
+        if not to_fetch:
+            yield evt('All OHLC data already complete! Nothing to fetch.', done=True)
+            return
+
+        yield evt(f'Fetching {len(to_fetch)} missing entries — this may take a while…')
+
+        ok_count  = 0
+        err_count = 0
+        for i, item in enumerate(to_fetch, 1):
+            sym  = item['symbol']
+            date = item['date']
+            try:
+                parsed    = dhan_service._parse_nse_symbol(sym, date)
+                is_option = bool(parsed and parsed.get('instrument') in ('OPTIDX', 'OPTSTK'))
+
+                # Try auto-map once more if still missing (scrip master may have been downloaded)
+                if sym not in symbol_map and is_option:
+                    try:
+                        mapped = dhan_service.auto_map_instruments({sym: date})
+                        info   = mapped.get(sym, {})
+                        if info.get('security_id'):
+                            symbol_map[sym] = {
+                                'security_id':      info['security_id'],
+                                'exchange_segment': info['exchange_segment'],
+                                'instrument':       info['instrument'],
+                            }
+                    except Exception:
+                        pass
+
+                # For options: all trades in the journal are past trades → always expired.
+                # Skip the historical endpoint (always DH-905 for expired) and go directly
+                # to rollingoption. Only use historical for non-option instruments (futures, equities).
+                if is_option:
+                    df = dhan_service.fetch_expired_option_ohlc(sym, date, item.get('entry_time', ''))
+                    candles = len(df) if (df is not None and not df.empty) else 0
+                    if candles == 0:
+                        raise ValueError('0 candles returned')
+                    ok_count += 1
+                    yield evt(f'[{i}/{len(to_fetch)}] {sym} {date} — {candles} candles ✓')
+                elif sym in symbol_map:
+                    info = symbol_map[sym]
+                    df = dhan_service.fetch_and_cache_ohlc(
+                        info['security_id'], info['exchange_segment'], info['instrument'],
+                        date, None)
+                    candles = len(df) if (df is not None and not df.empty) else 0
+                    if candles == 0:
+                        raise ValueError('0 candles returned')
+                    ok_count += 1
+                    yield evt(f'[{i}/{len(to_fetch)}] {sym} {date} — {candles} candles ✓')
+                else:
+                    err_count += 1
+                    yield evt(f'[{i}/{len(to_fetch)}] {sym} {date} — not mapped, skipped', ok=False)
+            except Exception as e:
+                err_count += 1
+                yield evt(f'[{i}/{len(to_fetch)}] {sym} {date} — {e}', ok=False)
+
+            # Small delay to avoid hammering the API
+            time.sleep(0.15)
+
+        summary = f'Done — {ok_count} fetched, {err_count} errors out of {len(to_fetch)} total.'
+        yield evt(summary, done=True)
+
+    return Response(
+        stream_with_context(_generate()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control':     'no-cache',
+            'X-Accel-Buffering': 'no',
+        }
+    )
+
+
+# ── Import Tradebook CSV (Zerodha) for actual expiry dates ───────────────────
+
+@whatif_bp.route('/api/whatif/import-tradebook', methods=['POST'])
+@login_required
+def import_tradebook():
+    """
+    Parse a Zerodha F&O tradebook CSV.
+    Extracts:
+      - symbol → actual expiry_date mapping  (saved to symbol_expiry_map.json)
+      - list of (symbol, trade_date, expiry_date, entry_time) pairs  (saved as sync queue)
+    Returns: {ok, imported, pairs} — UI then auto-starts SSE sync.
+    """
+    import io
+    import csv as _csv
+    from datetime import datetime as _dt
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    f = request.files['file']
+    if not f.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+
+    try:
+        content = f.read().decode('utf-8-sig')
+    except UnicodeDecodeError:
+        try:
+            f.seek(0)
+            content = f.read().decode('latin-1')
+        except Exception as e:
+            return jsonify({'error': f'Cannot decode file: {e}'}), 400
+
+    reader   = _csv.DictReader(io.StringIO(content))
+    fields   = reader.fieldnames or []
+    fl       = [h.strip().lower() for h in fields]
+
+    def _col(*names):
+        for n in names:
+            for i, h in enumerate(fl):
+                if h == n or h.replace(' ', '_') == n:
+                    return fields[i]
+        return None
+
+    sym_col    = _col('tradingsymbol', 'symbol', 'trading_symbol')
+    expiry_col = _col('expiry_date', 'expiry date', 'expiry')
+    date_col   = _col('trade_date', 'order_execution_time', 'date')
+    time_col   = _col('order_execution_time', 'trade_time', 'time')
+
+    if not sym_col or not expiry_col:
+        return jsonify({'error': f'Cannot find symbol/expiry columns. Got: {fields}'}), 400
+
+    def _norm_date(s):
+        for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y', '%Y/%m/%d', '%d-%b-%Y', '%Y-%m-%d %H:%M:%S'):
+            try:
+                return _dt.strptime(s.strip(), fmt).strftime('%Y-%m-%d')
+            except ValueError:
+                continue
+        return s.strip()[:10]   # fallback: take first 10 chars
+
+    def _norm_time(s):
+        # "2026-02-24 09:17:43" → "09:17"; "09:17:43" → "09:17"
+        s = s.strip()
+        if ' ' in s:
+            s = s.split(' ', 1)[1]
+        return s[:5]
+
+    expiry_map = {}   # symbol → actual expiry YYYY-MM-DD
+    pairs_seen = {}   # (symbol, trade_date) → {symbol, trade_date, expiry_date, entry_time}
+
+    for row in reader:
+        sym    = str(row.get(sym_col, '') or '').strip().upper()
+        expiry = str(row.get(expiry_col, '') or '').strip()
+        if not sym or not expiry or expiry.lower() in ('nan', 'none', '', '-'):
+            continue
+        if not (sym.endswith('CE') or sym.endswith('PE')):
+            continue
+
+        expiry = _norm_date(expiry)
+        expiry_map[sym] = expiry
+
+        if date_col:
+            raw_date = str(row.get(date_col, '') or '').strip()
+            trade_date = _norm_date(raw_date) if raw_date else ''
+        else:
+            trade_date = ''
+
+        entry_time = ''
+        if time_col:
+            raw_time = str(row.get(time_col, '') or '').strip()
+            if raw_time:
+                entry_time = _norm_time(raw_time)
+
+        if trade_date:
+            key = (sym, trade_date)
+            if key not in pairs_seen:
+                pairs_seen[key] = {
+                    'symbol':      sym,
+                    'trade_date':  trade_date,
+                    'expiry_date': expiry,
+                    'entry_time':  entry_time,
+                }
+
+    if not expiry_map:
+        return jsonify({'error': 'No option symbols with expiry dates found in file'}), 400
+
+    # Save symbol → expiry map (used by fetch_expired_option_ohlc)
+    existing = dhan_service.load_symbol_expiry_map()
+    existing.update(expiry_map)
+    dhan_service.save_symbol_expiry_map(existing)
+
+    # Save sync queue (used by sync-tradebook-ohlc SSE)
+    queue = list(pairs_seen.values())
+    dhan_service.save_tradebook_queue(queue)
+
+    return jsonify({'ok': True, 'imported': len(expiry_map), 'pairs': len(queue)})
+
+
+@whatif_bp.route('/api/whatif/sync-tradebook-ohlc', methods=['GET'])
+@login_required
+def sync_tradebook_ohlc():
+    """
+    SSE stream: fetch OHLC for every (symbol, trade_date) pair saved in
+    tradebook_sync_queue.json. Uses actual expiry_date from the queue so
+    NSE-holiday-adjusted expiries are handled correctly.
+    """
+    def _generate():
+        def evt(msg, ok=True, done=False):
+            return f"data: {json.dumps({'msg': msg, 'ok': ok, 'done': done})}\n\n"
+
+        queue = dhan_service.load_tradebook_queue()
+        if not queue:
+            yield evt('No sync queue found. Import your tradebook CSV first.', ok=False, done=True)
+            return
+
+        yield evt(f'Loaded {len(queue)} (symbol, date) pairs from tradebook.')
+
+        # Filter already-complete entries
+        to_fetch = []
+        for p in queue:
+            sym  = p['symbol']
+            date = p['trade_date']
+            # Check expired-option cache (rollingoption path)
+            status = dhan_service.get_expired_option_ohlc_status(sym, date)
+            if status.get('status') == 'complete':
+                continue
+            # Also check if there's a security_id mapping (historical path)
+            sym_map = dhan_service.load_symbol_map()
+            if sym in sym_map:
+                info = sym_map[sym]
+                hist_status = dhan_service.get_ohlc_status(info['security_id'], date)
+                if hist_status.get('status') == 'complete':
+                    continue
+            to_fetch.append(p)
+
+        if not to_fetch:
+            yield evt('All OHLC already cached — nothing to fetch!', done=True)
+            return
+
+        yield evt(f'Fetching {len(to_fetch)} missing entries…')
+        ok_count  = 0
+        err_count = 0
+
+        for i, item in enumerate(to_fetch, 1):
+            sym        = item['symbol']
+            trade_date = item['trade_date']
+            expiry_date = item.get('expiry_date', '')
+            entry_time  = item.get('entry_time', '')
+
+            try:
+                df = dhan_service.fetch_expired_option_ohlc(sym, trade_date, entry_time)
+                candles = len(df) if (df is not None and not df.empty) else 0
+                if candles == 0:
+                    raise ValueError('0 candles returned')
+                ok_count += 1
+                yield evt(f'[{i}/{len(to_fetch)}] {sym} {trade_date} — {candles} candles ✓')
+            except Exception as e:
+                err_count += 1
+                yield evt(f'[{i}/{len(to_fetch)}] {sym} {trade_date} — {e}', ok=False)
+
+            time.sleep(0.2)
+
+        yield evt(f'Done — {ok_count} fetched, {err_count} errors out of {len(to_fetch)}.', done=True)
+
+    return Response(
+        stream_with_context(_generate()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'},
+    )
 
 
 # ── Run Simulation ────────────────────────────────────────────────────────────
@@ -472,7 +857,8 @@ def run_simulation():
 
         out.append({
             'date':       date,
-            'time':       r.get('Sell Time') if tt == 'sell' else r.get('Buy Time', ''),
+            'time':            r.get('Sell Time') if tt == 'sell' else r.get('Buy Time', ''),
+            'actual_exit_time': r.get('Buy Time',  '') if tt == 'sell' else r.get('Sell Time', ''),
             'instrument': inst,
             't_num':      t_num,
             'direction':  'SHORT' if tt == 'sell' else 'LONG',

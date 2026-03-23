@@ -16,5 +16,6 @@ Docs/AI_Contexts/*_COMPACT.md
 .tmp_restore_bundle*.zip
 data/*.backup
 data/*.backup_before_migration
+data/dhan_config.json
 check_dates.py
 verify_urls.py

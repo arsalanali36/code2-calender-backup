@@ -1,0 +1,470 @@
+[
+  {
+    "symbol": "NIFTY2621025950CE",
+    "trade_date": "2026-02-10",
+    "expiry_date": "2026-02-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621026000PE",
+    "trade_date": "2026-02-10",
+    "expiry_date": "2026-02-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621025900CE",
+    "trade_date": "2026-02-10",
+    "expiry_date": "2026-02-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725950CE",
+    "trade_date": "2026-02-11",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621726000CE",
+    "trade_date": "2026-02-11",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621726000PE",
+    "trade_date": "2026-02-11",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725900PE",
+    "trade_date": "2026-02-12",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725900CE",
+    "trade_date": "2026-02-12",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725950CE",
+    "trade_date": "2026-02-12",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725850PE",
+    "trade_date": "2026-02-12",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725750CE",
+    "trade_date": "2026-02-12",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725650PE",
+    "trade_date": "2026-02-13",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725600PE",
+    "trade_date": "2026-02-13",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725700PE",
+    "trade_date": "2026-02-13",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725550PE",
+    "trade_date": "2026-02-13",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725550PE",
+    "trade_date": "2026-02-16",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725700PE",
+    "trade_date": "2026-02-17",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2621725650PE",
+    "trade_date": "2026-02-17",
+    "expiry_date": "2026-02-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25750PE",
+    "trade_date": "2026-02-18",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25700CE",
+    "trade_date": "2026-02-18",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25850PE",
+    "trade_date": "2026-02-19",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25750CE",
+    "trade_date": "2026-02-19",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25700PE",
+    "trade_date": "2026-02-19",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25650PE",
+    "trade_date": "2026-02-19",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25450CE",
+    "trade_date": "2026-02-20",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25450PE",
+    "trade_date": "2026-02-20",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25700CE",
+    "trade_date": "2026-02-23",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25750CE",
+    "trade_date": "2026-02-23",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25600CE",
+    "trade_date": "2026-02-23",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25650CE",
+    "trade_date": "2026-02-23",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25650PE",
+    "trade_date": "2026-02-24",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25400CE",
+    "trade_date": "2026-02-24",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25600PE",
+    "trade_date": "2026-02-24",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY26FEB25350CE",
+    "trade_date": "2026-02-24",
+    "expiry_date": "2026-02-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225600CE",
+    "trade_date": "2026-02-25",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225600PE",
+    "trade_date": "2026-02-25",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225650CE",
+    "trade_date": "2026-02-25",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225550PE",
+    "trade_date": "2026-02-26",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225550CE",
+    "trade_date": "2026-02-26",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225400PE",
+    "trade_date": "2026-02-27",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225350CE",
+    "trade_date": "2026-02-27",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630225350PE",
+    "trade_date": "2026-02-27",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2630224850CE",
+    "trade_date": "2026-03-02",
+    "expiry_date": "2026-03-02",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024350CE",
+    "trade_date": "2026-03-04",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024600CE",
+    "trade_date": "2026-03-05",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024550CE",
+    "trade_date": "2026-03-05",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024650CE",
+    "trade_date": "2026-03-05",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024700CE",
+    "trade_date": "2026-03-05",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024600CE",
+    "trade_date": "2026-03-06",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024650CE",
+    "trade_date": "2026-03-06",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024600PE",
+    "trade_date": "2026-03-06",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024550PE",
+    "trade_date": "2026-03-06",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024700CE",
+    "trade_date": "2026-03-06",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631023900PE",
+    "trade_date": "2026-03-09",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631024050CE",
+    "trade_date": "2026-03-10",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631023950CE",
+    "trade_date": "2026-03-10",
+    "expiry_date": "2026-03-10",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631724250CE",
+    "trade_date": "2026-03-11",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631724100CE",
+    "trade_date": "2026-03-11",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723550CE",
+    "trade_date": "2026-03-12",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723600CE",
+    "trade_date": "2026-03-12",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723350CE",
+    "trade_date": "2026-03-13",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723500PE",
+    "trade_date": "2026-03-13",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723400CE",
+    "trade_date": "2026-03-13",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723150PE",
+    "trade_date": "2026-03-16",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723300CE",
+    "trade_date": "2026-03-17",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723500PE",
+    "trade_date": "2026-03-17",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723350CE",
+    "trade_date": "2026-03-17",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2631723250CE",
+    "trade_date": "2026-03-17",
+    "expiry_date": "2026-03-17",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423650CE",
+    "trade_date": "2026-03-18",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423700PE",
+    "trade_date": "2026-03-18",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423600CE",
+    "trade_date": "2026-03-18",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423650PE",
+    "trade_date": "2026-03-18",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423300PE",
+    "trade_date": "2026-03-19",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423300CE",
+    "trade_date": "2026-03-19",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423250PE",
+    "trade_date": "2026-03-19",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423250CE",
+    "trade_date": "2026-03-20",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423250PE",
+    "trade_date": "2026-03-20",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  },
+  {
+    "symbol": "NIFTY2632423350CE",
+    "trade_date": "2026-03-20",
+    "expiry_date": "2026-03-24",
+    "entry_time": "2026-"
+  }
+]

@@ -197,6 +197,14 @@
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-trades-panel-btn" title="All Trades (Sorted)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="4" x2="13" y2="4"/><line x1="3" y1="8" x2="13" y2="8"/><line x1="3" y1="12" x2="13" y2="12"/></svg>
       </button>
+      <!-- Sync All OHLC charts -->
+      <button class="gv2-sb-btn" id="gc-sync-open-btn" onclick="gcOpenSyncPanel()" title="Download All OHLC Charts">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+          <polyline points="1 4 1 1 15 1 15 4"/><line x1="8" y1="1" x2="8" y2="11"/>
+          <polyline points="5 8 8 11 11 8"/>
+          <line x1="1" y1="15" x2="15" y2="15"/>
+        </svg>
+      </button>
       <button class="gv2-sb-btn" id="gallery-upload-btn" title="Upload">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M8 12V2m0 0l-3 3m3-3l3 3M2 14h12"/></svg>
       </button>
@@ -416,3 +424,134 @@
   </div>
 
 </div>
+
+<!-- ── Sync All OHLC Panel ──────────────────────────────────────── -->
+<div id="gc-sync-panel" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;">
+  <div style="background:#131722;border:1px solid #2a2a3e;border-radius:10px;padding:20px;width:min(640px,94vw);display:flex;flex-direction:column;gap:12px;max-height:90vh;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-weight:700;color:#ccc;font-size:14px;">&#8659; Download All OHLC Charts</span>
+      <button onclick="gcCloseSyncPanel()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;">&#x2715;</button>
+    </div>
+
+    <!-- Dhan Credentials (collapsible) -->
+    <details id="gc-creds-details" style="border:1px solid #2a2a3e;border-radius:6px;padding:0;">
+      <summary style="cursor:pointer;padding:8px 12px;color:#aaa;font-size:0.82rem;user-select:none;list-style:none;display:flex;align-items:center;gap:6px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" width="13" height="13"><rect x="3" y="7" width="10" height="8" rx="1"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>
+        <span id="gc-creds-summary-label">Dhan API Credentials</span>
+      </summary>
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:160px;">
+            <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:3px;">Client ID</label>
+            <input id="gc-dhan-client-id" type="text" placeholder="Your Dhan client ID"
+              style="width:100%;background:#0d1017;border:1px solid #2a2a3e;color:#eee;padding:5px 8px;border-radius:4px;font-size:0.82rem;box-sizing:border-box;"/>
+          </div>
+          <div style="flex:2;min-width:200px;">
+            <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:3px;">Access Token</label>
+            <input id="gc-dhan-token" type="password" placeholder="Paste access token"
+              style="width:100%;background:#0d1017;border:1px solid #2a2a3e;color:#eee;padding:5px 8px;border-radius:4px;font-size:0.82rem;box-sizing:border-box;"/>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button onclick="gcSaveDhanConfig()"
+            style="background:#1e4d91;border:1px solid #2962ff;color:#fff;padding:4px 14px;border-radius:4px;cursor:pointer;font-size:0.82rem;">
+            Save Credentials
+          </button>
+          <span id="gc-creds-status" style="font-size:0.78rem;color:#aaa;"></span>
+        </div>
+      </div>
+    </details>
+
+    <!-- Tradebook CSV → one-shot OHLC download -->
+    <div style="border:1px solid #2d6a4f;border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:rgba(27,67,50,0.18);">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="#95d5b2" stroke-width="1.6" width="14" height="14"><path d="M8 2v8M5 7l3 3 3-3"/><rect x="2" y="11" width="12" height="3" rx="1"/></svg>
+        <span style="color:#95d5b2;font-size:0.82rem;font-weight:600;">One-shot: Import Tradebook &amp; Download All Charts</span>
+      </div>
+      <p style="color:#888;font-size:0.75rem;margin:0;">
+        Upload your Zerodha F&amp;O tradebook CSV — actual expiry dates are read directly, then all OHLC data is downloaded automatically.
+      </p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="gc-tradebook-file" type="file" accept=".csv"
+          style="font-size:0.78rem;color:#ccc;background:#0d1017;border:1px solid #2a2a3e;border-radius:4px;padding:4px 8px;cursor:pointer;flex:1;min-width:0;"/>
+        <button id="gc-tradebook-btn" onclick="gcImportAndSync()"
+          style="background:#1b4332;border:1px solid #2d6a4f;color:#95d5b2;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:0.82rem;font-weight:600;white-space:nowrap;">
+          &#9654; Import &amp; Sync
+        </button>
+        <button id="gc-tradebook-stop-btn" onclick="gcStopTradebookSync()" style="display:none;
+          background:#ef5350;border:none;color:#fff;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.82rem;font-weight:600;white-space:nowrap;">
+          &#9632; Stop
+        </button>
+      </div>
+      <span id="gc-tradebook-status" style="font-size:0.78rem;color:#aaa;"></span>
+    </div>
+
+    <p style="color:#888;font-size:0.82rem;margin:0;">
+      Auto-maps all instruments, then downloads candle data for every trade day.
+      Safe to run multiple times — already-cached data is skipped.
+    </p>
+
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button id="gc-sync-btn" onclick="gcStartSync()"
+        style="background:#2962ff;border:none;color:#fff;padding:6px 16px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600;">
+        &#9654; Start Sync
+      </button>
+      <button id="gc-sync-stop-btn" onclick="gcStopSync()" style="display:none;
+        background:#ef5350;border:none;color:#fff;padding:6px 14px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600;">
+        &#9632; Stop
+      </button>
+      <span id="gc-sync-status" style="font-size:0.82rem;color:#aaa;flex:1;"></span>
+    </div>
+
+    <!-- Scrollable log -->
+    <div id="gc-sync-log"
+      style="background:#0d1017;border:1px solid #2a2a3e;border-radius:6px;padding:10px;
+             height:320px;overflow-y:auto;font-family:monospace;font-size:0.78rem;color:#d1d4dc;
+             display:flex;flex-direction:column;gap:1px;">
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Gallery OHLC Chart Modal ─────────────────────────────────── -->
+<div id="gc-chart-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;">
+  <div style="background:#131722;border:1px solid #2a2a3e;border-radius:10px;padding:16px;width:min(980px,96vw);max-height:96vh;overflow:hidden;display:flex;flex-direction:column;gap:0;">
+
+    <!-- Row 1: title + Lock Y + TF buttons + close -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-shrink:0;">
+      <span id="gc-chart-title" style="font-weight:600;color:#ccc;font-size:13px;font-family:monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <label style="color:#888;font-size:11px;white-space:nowrap;cursor:pointer;flex-shrink:0;" title="Lock price-to-bar ratio">
+        <input type="checkbox" id="gc-lock-chk" onchange="gc_setLockRatio(this.checked)" style="vertical-align:middle;cursor:pointer;"/>
+        Lock Y
+        <input id="gc-lock-val" type="number" value="6" step="0.5" min="0.1"
+               style="width:44px;background:#1e2130;border:1px solid #2a2a3e;color:#fff;padding:1px 4px;border-radius:3px;font-size:11px;margin-left:2px;"
+               onchange="if(document.getElementById('gc-lock-chk').checked) _gc_applyLockRatio()"/>
+      </label>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button onclick="setGalleryChartTf(1)"  class="gc-tf-btn gc-tf-active" data-tf="1">1m</button>
+        <button onclick="setGalleryChartTf(3)"  class="gc-tf-btn" data-tf="3">3m</button>
+        <button onclick="setGalleryChartTf(5)"  class="gc-tf-btn" data-tf="5">5m</button>
+        <button onclick="setGalleryChartTf(15)" class="gc-tf-btn" data-tf="15">15m</button>
+      </div>
+      <button onclick="closeGalleryChart()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;flex-shrink:0;">&#x2715;</button>
+    </div>
+
+    <!-- Row 2: SL / Target re-sim bar (shown only when entry price is known) -->
+    <div id="gc-sim-bar" style="display:none;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;flex-shrink:0;">
+      <span style="color:#888;font-size:12px;">Re-sim:</span>
+      <label style="color:#aaa;font-size:12px;">SL <input id="gc-sl-input"  type="number" value="15" step="0.5" style="width:60px;background:#1e2130;border:1px solid #2a2a3e;color:#fff;padding:2px 5px;border-radius:3px;font-size:12px;"/> pts</label>
+      <label style="color:#aaa;font-size:12px;">Target <input id="gc-tgt-input" type="number" value="30" step="0.5" style="width:60px;background:#1e2130;border:1px solid #2a2a3e;color:#fff;padding:2px 5px;border-radius:3px;font-size:12px;"/> pts</label>
+      <button onclick="gc_reSimChart()" style="background:#1e2130;border:1px solid #2a2a3e;color:#aaa;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:12px;">&#9654; Re-run</button>
+    </div>
+
+    <!-- Chart -->
+    <div id="gc-chart-container" style="width:100%;flex:1;min-height:400px;"></div>
+  </div>
+</div>
+
+<style>
+  .gc-tf-btn { background:#1e2130;border:1px solid #2a2a3e;color:#aaa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:12px; }
+  .gc-tf-btn:hover { background:#2a2a3e;color:#fff; }
+  .gc-tf-btn.gc-tf-active { background:#2962ff;border-color:#2962ff;color:#fff; }
+</style>

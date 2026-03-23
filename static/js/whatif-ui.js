@@ -439,19 +439,20 @@ function card(label, val, cls) {
 
 // ── Results Table ─────────────────────────────────────────────
 function renderResults(trades) {
+  _chartTrades = trades || [];   // store for arrow-key nav
   const tbody = document.getElementById('wi-results-body');
   if (!trades || !trades.length) {
     tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;color:var(--text2);padding:20px;">No results</td></tr>';
     return;
   }
-  tbody.innerHTML = trades.map(t => {
+  tbody.innerHTML = trades.map((t, idx) => {
     const hasData = t.exit_reason !== 'no_ohlc';
-    return `<tr>
+    return `<tr data-idx="${idx}">
       <td>${t.date || ''}</td>
       <td class="dim" style="font-weight:600;color:var(--accent)">${t.t_num || ''}</td>
       <td class="dim">${(t.time || '').slice(0,5)}</td>
       <td class="dim">${t.exit_time || '—'}</td>
-      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="${t.instrument}"><span class="wi-inst-link" onclick="openOhlcChart('${t.instrument}','${t.date}',${t.entry||0},'${t.direction||'SHORT'}','${(t.time||'').slice(0,5)}','${t.exit_time||''}')">${t.instrument}</span></td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="${t.instrument}"><span class="wi-inst-link" onclick="openOhlcChart('${t.instrument}','${t.date}',${t.entry||0},'${t.direction||'SHORT'}','${(t.time||'').slice(0,5)}','${t.exit_time||''}',${t.exit_actual||0},'${(t.actual_exit_time||'').slice(0,5)}',${idx})">${t.instrument}</span></td>
       <td><span class="badge ${t.direction==='SHORT'?'badge-red':'badge-green'}">${t.direction||''}</span></td>
       <td>${fmt2(t.entry)}</td>
       <td>${fmt2(t.exit_actual)}</td>
@@ -491,27 +492,98 @@ function setStatus(id, msg, color) {
 }
 
 // ── OHLC Chart Modal (TradingView Lightweight Charts) ─────────
-let _ohlcChart = null;
+let _ohlcChart     = null;
+let _ohlcSeries    = null;   // kept for lock-ratio updates
+let _lockRatioCb   = null;   // subscribed callback reference
+let _rawCandles    = [];
+let _chartMeta     = {};
+let _currentTf     = 1;
+let _chartTrades   = [];
+let _chartTradeIdx = -1;
 
-async function openOhlcChart(symbol, date, entry, direction, entryTime, exitTime) {
+function aggregateCandles(candles, tf) {
+  if (tf <= 1) return candles;
+  // Time-bucket based aggregation anchored to 09:15 — gaps in data don't shift boundaries
+  const buckets = {}, order = [];
+  for (const c of candles) {
+    const t = (c.time || (c.datetime || '').slice(11));
+    const [hh, mm] = t.split(':').map(Number);
+    const off    = hh * 60 + mm - (9 * 60 + 15);
+    const bOff   = Math.floor(off / tf) * tf;
+    const bMin   = 9 * 60 + 15 + bOff;
+    const key    = `${String(Math.floor(bMin/60)).padStart(2,'0')}:${String(bMin%60).padStart(2,'0')}`;
+    if (!buckets[key]) { buckets[key] = []; order.push(key); }
+    buckets[key].push(c);
+  }
+  return order.map(key => {
+    const sl  = buckets[key];
+    const dt  = (sl[0].datetime || '').slice(0, 11);
+    return {
+      datetime: dt + key + ':00',
+      time:     key + ':00',
+      open:     sl[0].open,
+      high:     Math.max(...sl.map(c => +c.high)),
+      low:      Math.min(...sl.map(c => +c.low)),
+      close:    sl[sl.length - 1].close,
+      volume:   sl.reduce((s, c) => s + (+c.volume || 0), 0),
+    };
+  });
+}
+
+function setChartTf(tf) {
+  _currentTf = tf;
+  document.querySelectorAll('.tf-btn').forEach(b =>
+    b.classList.toggle('tf-active', +b.dataset.tf === tf));
+  if (_rawCandles.length)
+    drawOhlcChart(aggregateCandles(_rawCandles, tf),
+      _chartMeta.entry, _chartMeta.slLevel, _chartMeta.tgtLevel,
+      _chartMeta.entryTime, _chartMeta.exitTime,
+      _chartMeta.actualExitPrice, _chartMeta.actualExitTime);
+}
+
+async function openOhlcChart(symbol, date, entry, direction, entryTime, exitTime, actualExitPrice, actualExitTime, tradeIdx) {
   const modal = document.getElementById('ohlc-chart-modal');
   const title = document.getElementById('ohlc-chart-title');
   title.textContent = `${symbol}  ·  ${date}  ·  Loading…`;
   modal.style.display = 'flex';
+  _chartTradeIdx = (tradeIdx !== undefined && tradeIdx >= 0) ? tradeIdx : -1;
+
+  // Show/hide sim-bar and pre-fill SL/Target inputs
+  const simBar = document.getElementById('ohlc-sim-bar');
+  const sl  = parseFloat(document.getElementById('sl-pts').value)  || 15;
+  const tgt = parseFloat(document.getElementById('target-pts').value) || 30;
+  if (entry != null) {
+    simBar.style.display = 'flex';
+    document.getElementById('chart-sl').value  = sl;
+    document.getElementById('chart-tgt').value = tgt;
+  } else {
+    simBar.style.display = 'none';
+  }
 
   try {
     const r = await fetch(`/api/whatif/ohlc-data?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}`);
     const d = await r.json();
     if (d.error) { title.textContent = `${symbol} — ${d.error}`; return; }
 
-    const sl  = parseFloat(document.getElementById('sl-pts').value)     || 15;
-    const tgt = parseFloat(document.getElementById('target-pts').value) || 30;
-    const isShort  = direction === 'SHORT';
-    const slLevel  = isShort ? entry + sl  : entry - sl;
-    const tgtLevel = isShort ? entry - tgt : entry + tgt;
+    // Default TF = strategy candle timeframe selector
+    _rawCandles = d.candles;
+    _currentTf  = entry != null ? (parseInt(document.getElementById('timeframe').value) || 1) : 1;
+    document.querySelectorAll('.tf-btn').forEach(b =>
+      b.classList.toggle('tf-active', +b.dataset.tf === _currentTf));
 
-    title.textContent = `${symbol}  ·  ${date}  ·  Entry ${entry}  ·  ${isShort?'SHORT':'LONG'}  ·  SL ${sl}  ·  Target ${tgt}`;
-    drawOhlcChart(d.candles, entry, slLevel, tgtLevel, entryTime, exitTime);
+    let slLevel = null, tgtLevel = null;
+    if (entry == null) {
+      title.textContent = `${symbol}  ·  ${date}`;
+    } else {
+      const sl  = parseFloat(document.getElementById('sl-pts').value)     || 15;
+      const tgt = parseFloat(document.getElementById('target-pts').value) || 30;
+      const isShort = direction === 'SHORT';
+      slLevel  = isShort ? entry + sl  : entry - sl;
+      tgtLevel = isShort ? entry - tgt : entry + tgt;
+      title.textContent = `${symbol}  ·  ${date}  ·  Entry ${entry}  ·  ${isShort?'SHORT':'LONG'}  ·  SL ${sl}  ·  Target ${tgt}`;
+    }
+    _chartMeta = { entry, slLevel, tgtLevel, entryTime, exitTime, actualExitPrice: actualExitPrice||null, actualExitTime: actualExitTime||'', direction, symbol, date, actualExitPrice2: actualExitPrice||null };
+    drawOhlcChart(aggregateCandles(d.candles, _currentTf), entry, slLevel, tgtLevel, entryTime, exitTime, actualExitPrice||null, actualExitTime||'');
   } catch(e) {
     title.textContent = `${symbol} — Error: ${e.message}`;
   }
@@ -519,10 +591,55 @@ async function openOhlcChart(symbol, date, entry, direction, entryTime, exitTime
 
 function closeOhlcChart() {
   document.getElementById('ohlc-chart-modal').style.display = 'none';
+  if (_lockRatioCb && _ohlcChart) {
+    try { _ohlcChart.timeScale().unsubscribeVisibleLogicalRangeChange(_lockRatioCb); } catch(_){}
+    _lockRatioCb = null;
+  }
   if (_ohlcChart) { _ohlcChart.remove(); _ohlcChart = null; }
+  _ohlcSeries = null;
+  _rawCandles = []; _chartMeta = {};
+  const chk = document.getElementById('lock-ratio-chk');
+  if (chk) chk.checked = false;
 }
 
-function drawOhlcChart(candles, entry, slLevel, tgtLevel, entryTime, exitTime) {
+// ── Quick Chart Lookup ─────────────────────────────────────────
+async function quickChartOpen() {
+  const sym  = (document.getElementById('qc-symbol').value || '').trim().toUpperCase();
+  const date = (document.getElementById('qc-date').value   || '').trim();
+  const st   = document.getElementById('qc-status');
+  const btn  = document.getElementById('btn-qc-open');
+
+  if (!sym)  { st.textContent = 'Enter a symbol'; st.style.color = '#f66'; return; }
+  if (!date) { st.textContent = 'Pick a date';    st.style.color = '#f66'; return; }
+
+  st.textContent = 'Fetching…'; st.style.color = '#aaa';
+  btn.disabled = true;
+
+  try {
+    // 1. Fetch/cache OHLC (no-op if already cached)
+    const fr = await fetch('/api/whatif/fetch-ohlc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ symbol: sym, date }] })
+    });
+    const fd = await fr.json();
+    const res = (fd.results || [])[0] || {};
+    if (res.error) {
+      st.textContent = res.error; st.style.color = '#f66';
+      btn.disabled = false; return;
+    }
+    st.textContent = `${res.candles || 0} candles — opening…`; st.style.color = '#5f5';
+
+    // 2. Open chart (no entry/direction — just raw candles)
+    await openOhlcChart(sym, date, null, null, '', '');
+    st.textContent = '';
+  } catch(e) {
+    st.textContent = e.message; st.style.color = '#f66';
+  }
+  btn.disabled = false;
+}
+
+function drawOhlcChart(candles, entry, slLevel, tgtLevel, entryTime, exitTime, actualExitPrice, actualExitTime) {
   const container = document.getElementById('ohlc-chart-container');
 
   // Destroy previous chart instance
@@ -548,6 +665,11 @@ function drawOhlcChart(candles, entry, slLevel, tgtLevel, entryTime, exitTime) {
     localization: { timeFormatter: i => _timeLabels[i] || '' },
   });
 
+  // Detach any existing lock-ratio listener before rebuilding
+  if (_lockRatioCb && _ohlcChart) {
+    try { _ohlcChart.timeScale().unsubscribeVisibleLogicalRangeChange(_lockRatioCb); } catch(_){}
+    _lockRatioCb = null;
+  }
   const series = _ohlcChart.addCandlestickSeries({
     upColor:          '#26a69a', downColor:       '#ef5350',
     borderUpColor:    '#26a69a', borderDownColor: '#ef5350',
@@ -555,30 +677,129 @@ function drawOhlcChart(candles, entry, slLevel, tgtLevel, entryTime, exitTime) {
   });
 
   series.setData(data);
+  _ohlcSeries = series;
 
-  // Entry / SL / Target price lines
-  series.createPriceLine({ price: entry,    color: '#5599ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,  axisLabelVisible: true, title: 'Entry' });
-  series.createPriceLine({ price: slLevel,  color: '#ff5555', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'SL' });
-  series.createPriceLine({ price: tgtLevel, color: '#44dd88', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'Target' });
+  // Re-apply lock-ratio if checkbox is still checked (e.g. after TF switch)
+  if (document.getElementById('lock-ratio-chk')?.checked) {
+    setTimeout(applyLockRatio, 50);
+  }
 
-  // Entry / exit markers — match by HH:MM label
+  // Price lines
+  if (entry != null)           series.createPriceLine({ price: entry,           color: '#5599ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,  axisLabelVisible: true, title: 'Entry' });
+  if (slLevel != null)         series.createPriceLine({ price: slLevel,         color: '#ff5555', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'SL' });
+  if (tgtLevel != null)        series.createPriceLine({ price: tgtLevel,        color: '#44dd88', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'Target' });
+  if (actualExitPrice != null && actualExitPrice > 0)
+                               series.createPriceLine({ price: actualExitPrice, color: '#ffaa33', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Solid,  axisLabelVisible: true, title: 'Actual Exit' });
+
+  // Markers — match candle by HH:MM label
   const markers = [];
   if (entryTime) {
     const idx = _timeLabels.indexOf(entryTime);
     if (idx >= 0) markers.push({ time: idx, position: 'belowBar', color: '#5599ff', shape: 'arrowUp',   text: 'Entry' });
   }
-  if (exitTime) {
+  if (actualExitTime) {
+    const idx = _timeLabels.indexOf(actualExitTime);
+    if (idx >= 0) markers.push({ time: idx, position: 'aboveBar', color: '#ffaa33', shape: 'arrowDown', text: 'Actual Exit' });
+  }
+  if (exitTime && exitTime !== actualExitTime) {
     const idx = _timeLabels.indexOf(exitTime);
-    if (idx >= 0) markers.push({ time: idx, position: 'aboveBar', color: '#ffaa33', shape: 'arrowDown', text: 'Exit' });
+    if (idx >= 0) markers.push({ time: idx, position: 'aboveBar', color: '#aaaaaa', shape: 'arrowDown', text: 'Sim Exit' });
   }
   if (markers.length) series.setMarkers(markers.sort((a,b) => a.time - b.time));
 
-  _ohlcChart.timeScale().fitContent();
+  // Auto-zoom: if entry+exit known, show trade window ±30 candles padding
+  // Otherwise show full day
+  const entryIdx = entryTime ? _timeLabels.indexOf(entryTime) : -1;
+  const exitIdx  = exitTime  ? _timeLabels.indexOf(exitTime)  : -1;
+  if (entryIdx >= 0) {
+    const pad  = 30;
+    const from = Math.max(0, entryIdx - pad);
+    const to   = Math.min(data.length - 1, (exitIdx >= 0 ? exitIdx : entryIdx) + pad);
+    _ohlcChart.timeScale().setVisibleLogicalRange({ from, to });
+  } else {
+    _ohlcChart.timeScale().fitContent();
+  }
 }
 
-// Close modal on backdrop click
+// ── Lock price-to-bar ratio ────────────────────────────────────
+function applyLockRatio() {
+  if (!_ohlcChart || !_ohlcSeries || !_rawCandles.length) return;
+  const ratio = parseFloat(document.getElementById('lock-ratio-val')?.value) || 6;
+  const range = _ohlcChart.timeScale().getVisibleLogicalRange();
+  if (!range) return;
+  const barCount = Math.max(1, range.to - range.from);
+  const priceSpan = ratio * barCount;
+  const agg = aggregateCandles(_rawCandles, _currentTf);
+  const f = Math.max(0, Math.round(range.from));
+  const t = Math.min(agg.length - 1, Math.round(range.to));
+  const vis = agg.slice(f, t + 1);
+  if (!vis.length) return;
+  const hi  = Math.max(...vis.map(c => +c.high));
+  const lo  = Math.min(...vis.map(c => +c.low));
+  const mid = (hi + lo) / 2;
+  _ohlcSeries.applyOptions({
+    autoscaleInfoProvider: () => ({
+      priceRange: { minValue: mid - priceSpan / 2, maxValue: mid + priceSpan / 2 },
+      margins: { above: 0.05, below: 0.05 },
+    }),
+  });
+}
+
+function setLockRatio(locked) {
+  if (!_ohlcChart) return;
+  if (locked) {
+    applyLockRatio();
+    _lockRatioCb = applyLockRatio;
+    _ohlcChart.timeScale().subscribeVisibleLogicalRangeChange(_lockRatioCb);
+  } else {
+    if (_lockRatioCb) {
+      _ohlcChart.timeScale().unsubscribeVisibleLogicalRangeChange(_lockRatioCb);
+      _lockRatioCb = null;
+    }
+    _ohlcSeries.applyOptions({ autoscaleInfoProvider: undefined });
+    _ohlcChart.priceScale('right').applyOptions({ autoScale: true });
+  }
+}
+
+// Re-run simulation with new SL/Target from chart modal inputs
+function reSimChart() {
+  if (!_chartMeta.entry || _rawCandles.length === 0) return;
+  const sl  = parseFloat(document.getElementById('chart-sl').value)  || 15;
+  const tgt = parseFloat(document.getElementById('chart-tgt').value) || 30;
+  const isShort  = _chartMeta.direction === 'SHORT';
+  const slLevel  = isShort ? _chartMeta.entry + sl  : _chartMeta.entry - sl;
+  const tgtLevel = isShort ? _chartMeta.entry - tgt : _chartMeta.entry + tgt;
+  _chartMeta.slLevel  = slLevel;
+  _chartMeta.tgtLevel = tgtLevel;
+  document.getElementById('ohlc-chart-title').textContent =
+    `${_chartMeta.symbol}  ·  ${_chartMeta.date}  ·  Entry ${_chartMeta.entry}  ·  ${_chartMeta.direction}  ·  SL ${sl}  ·  Target ${tgt}`;
+  drawOhlcChart(aggregateCandles(_rawCandles, _currentTf),
+    _chartMeta.entry, slLevel, tgtLevel,
+    _chartMeta.entryTime, _chartMeta.exitTime,
+    _chartMeta.actualExitPrice, _chartMeta.actualExitTime);
+}
+
+// Arrow-key navigation between trade charts
+function navigateChart(delta) {
+  if (_chartTradeIdx < 0 || !_chartTrades.length) return;
+  const next = _chartTradeIdx + delta;
+  if (next < 0 || next >= _chartTrades.length) return;
+  const t = _chartTrades[next];
+  openOhlcChart(t.instrument, t.date, t.entry||0, t.direction||'SHORT',
+    (t.time||'').slice(0,5), t.exit_time||'',
+    t.exit_actual||0, (t.actual_exit_time||'').slice(0,5), next);
+}
+
+// Close modal on backdrop click + arrow-key navigation
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ohlc-chart-modal').addEventListener('click', function(e) {
     if (e.target === this) closeOhlcChart();
+  });
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('ohlc-chart-modal').style.display === 'none') return;
+    if (e.target.tagName === 'INPUT') return;  // don't intercept when typing in inputs
+    if (e.key === 'ArrowRight') { e.preventDefault(); navigateChart(1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateChart(-1); }
+    if (e.key === 'Escape')     closeOhlcChart();
   });
 });

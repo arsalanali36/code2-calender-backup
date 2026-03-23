@@ -10,7 +10,7 @@ import time
 import pandas as pd
 from datetime import datetime, timedelta
 
-from config import OHLC_CACHE_DIR
+from config import OHLC_CACHE_DIR, DHAN_SCRIP_MASTER, SYMBOL_EXPIRY_MAP_FILE, TRADEBOOK_SYNC_QUEUE_FILE
 from services.dhan_service_core import (
     DHAN_API_BASE,
     _post_json, _dhan_headers,
@@ -20,6 +20,42 @@ from services.dhan_service_core import (
     _parse_nse_symbol, _find_col,
     _INDEX_UNDERLYINGS, _MON_TO_NUM, _MCODE_TO_MON,
 )
+
+
+# ── Symbol → Actual Expiry Map (from Zerodha tradebook import) ───────────────
+
+def load_symbol_expiry_map():
+    """Load { symbol: 'YYYY-MM-DD' } from file (holiday-adjusted actual expiry dates)."""
+    if not os.path.exists(SYMBOL_EXPIRY_MAP_FILE):
+        return {}
+    try:
+        with open(SYMBOL_EXPIRY_MAP_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_symbol_expiry_map(mapping):
+    os.makedirs(os.path.dirname(SYMBOL_EXPIRY_MAP_FILE), exist_ok=True)
+    with open(SYMBOL_EXPIRY_MAP_FILE, 'w', encoding='utf-8') as f:
+        json.dump(mapping, f, indent=2)
+
+
+def load_tradebook_queue():
+    """Load saved tradebook sync queue (list of {symbol, trade_date, expiry_date, entry_time})."""
+    if not os.path.exists(TRADEBOOK_SYNC_QUEUE_FILE):
+        return []
+    try:
+        with open(TRADEBOOK_SYNC_QUEUE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def save_tradebook_queue(pairs):
+    os.makedirs(os.path.dirname(TRADEBOOK_SYNC_QUEUE_FILE), exist_ok=True)
+    with open(TRADEBOOK_SYNC_QUEUE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(pairs, f, indent=2)
 
 
 # ── Expired Options via rollingoption ─────────────────────────────────────────
@@ -119,49 +155,26 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
     strike   = float(parsed['strike'])
     opt_type = 'CALL' if parsed['option_type'] == 'CE' else 'PUT'
 
-    # Get underlying spot to determine ATM
+    # ── Build expiry candidates — try ALL (flag, code) combos ───────────────
+    # Monthly options on a Thursday: expiryCode=1 = today's weekly (wrong!),
+    # expiryCode=2 = the monthly. We don't know which is correct without Dhan's
+    # internal calendar, so just try all 6 combinations.
+    expiry_candidates = [
+        ('WEEK', 1), ('WEEK', 2), ('WEEK', 3),
+        ('MONTH', 1), ('MONTH', 2), ('MONTH', 3),
+    ]
+
+    # ── Get underlying spot to determine ATM → compute N ─────────────────────
     spot = _fetch_underlying_spot(underlying, trade_date, headers, entry_time)
     if spot is not None:
         atm    = round(spot / step) * step
         n_calc = round((strike - atm) / step)
-        # Search around calculated n in case spot was slightly off
-        n_tries = [n_calc, n_calc - 1, n_calc + 1, n_calc - 2, n_calc + 2]
+        # Try exact N ± small window. NO abs cap — the old abs(n)<=15 was wrong
+        # and dropped correct values for strikes that are OTM/ITM > 15 ticks.
+        n_tries = list(dict.fromkeys([n_calc, n_calc-1, n_calc+1, n_calc-2, n_calc+2]))
     else:
-        # Spot fetch failed — treat strike as ATM anchor, search ±3 range
-        atm_guess = round(strike / step) * step
-        n_calc    = round((strike - atm_guess) / step)  # usually 0
-        n_tries   = [n_calc, -1, 1, -2, 2, -3, 3]
-
-    # ── Calculate expiryCode precisely from expiry date vs trade date ────────
-    # Days between trade_date and expiry determines which expiry slot to request
-    expiry_date_str = f"{parsed['year']}-{parsed['month_num']}-{parsed['day'].zfill(2)}"
-    try:
-        from datetime import date as _date
-        t_dt  = _date.fromisoformat(trade_date)
-        e_dt  = _date.fromisoformat(expiry_date_str)
-        days_to_expiry = (e_dt - t_dt).days
-    except Exception:
-        days_to_expiry = 7  # fallback
-
-    # expiryCode 1=nearest, 2=next, 3=far (0 invalid — DH-905)
-    if days_to_expiry <= 7:
-        exp_code = 1
-    elif days_to_expiry <= 14:
-        exp_code = 2
-    else:
-        exp_code = 3
-
-    # ── ATM±N: use spot if available, else try ±1 around strike ─────────────
-    if spot is not None:
-        atm    = round(spot / step) * step
-        n_calc = round((strike - atm) / step)
-        n_tries = [n_calc, n_calc - 1, n_calc + 1]  # best guess + neighbours
-    else:
-        atm_guess = round(strike / step) * step
-        n_calc    = round((strike - atm_guess) / step)  # usually 0
-        n_tries   = [n_calc, -1, 1]  # max 3 tries
-
-    n_tries = [n for n in dict.fromkeys(n_tries) if abs(n) <= 10]
+        # Spot unavailable — search ±10 around 0 (covers near-ATM trades)
+        n_tries = list(range(-10, 11))
 
     # toDate must be exclusive (next day)
     from_dt = datetime.strptime(trade_date, '%Y-%m-%d')
@@ -171,16 +184,18 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
 
     spot_debug = f"spot={'ok:'+str(round(spot)) if spot else 'failed'}"
     last_error = None
-    for n in n_tries:
+    # Outer loop: try each (expiryFlag, expiryCode) combo; inner loop: try each N
+    for expiry_flag, exp_code in expiry_candidates:
+      for n in n_tries:
         strike_str = 'ATM' if n == 0 else (f'ATM+{n}' if n > 0 else f'ATM{n}')
-        time.sleep(0.5)      # stay under Dhan rate limit
+        time.sleep(0.3)      # stay under Dhan rate limit
         payload = {
             "securityId":      sec_id,
             "exchangeSegment": "NSE_FNO",
             "instrument":      parsed['instrument'],
             "interval":        1,
             "expiryCode":      exp_code,
-            "expiryFlag":      parsed.get('expiry_type', 'WEEK'),
+            "expiryFlag":      expiry_flag,
             "strike":          strike_str,
             "drvOptionType":   opt_type,
             "requiredData":    ["open", "high", "low", "close", "volume"],
@@ -201,9 +216,7 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
             last_error = str(e)
             continue
 
-    raise ValueError(f"{spot_debug} | expiryCode={exp_code} | n={n_tries} | {last_error}")
-
-    return pd.DataFrame()
+    raise ValueError(f"{spot_debug} | tried={expiry_candidates} | n={n_tries} | {last_error}")
 
 
 def get_expired_option_ohlc_status(symbol, trade_date):
@@ -308,6 +321,26 @@ def _try_match(symbol, trade_date, df, sym_index, cid, csym, cseg, cinst, cstk, 
             'matched_symbol':   matched_sym or s,
             'expiry':           expiry,
         }
+
+    # 0 ── Construct Dhan custom-symbol format and look up in SEM_CUSTOM_SYMBOL
+    # Dhan stores: "NIFTY 24 MAR 22800 PUT" in SEM_CUSTOM_SYMBOL
+    # We can build this from parsed components.
+    ccustom = _find_col(df, ['SEM_CUSTOM_SYMBOL'])
+    if _parsed and ccustom:
+        try:
+            _mon  = _parsed['month'][:3].upper()  # 'MAR'
+            _day  = _parsed['day'].lstrip('0') or '0'
+            _str  = _parsed['strike']
+            _und  = _parsed['underlying']
+            _ot   = _parsed.get('option_type', '')
+            _cpt  = 'CALL' if _ot in ('CE', 'CALL') else 'PUT' if _ot in ('PE', 'PUT') else ''
+            if _cpt:
+                _custom_q = f"{_und} {_day} {_mon} {_str} {_cpt}"
+                _cm = df[df[ccustom].astype(str).str.upper() == _custom_q.upper()]
+                if not _cm.empty:
+                    return _row_to_result(_cm.iloc[0], 100, str(_cm.iloc[0].get(ccustom, '')))
+        except Exception:
+            pass
 
     # 1 ── Exact match on trading symbol column
     if sym_index is not None and s in sym_index.groups:
@@ -477,6 +510,8 @@ def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_d
             "exchangeSegment": exchange_segment,
             "instrument":      instrument_type,
             "interval":        1,
+            "fromDate":        trade_date,
+            "toDate":          trade_date,
         }
     else:
         # Historical — full day (Dhan historical accepts date-only; filter by date in parser)
@@ -490,6 +525,7 @@ def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_d
                 exp_code = 1
         else:
             exp_code = 0
+        to_date = (datetime.strptime(trade_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
         url = f"{DHAN_API_BASE}/v2/charts/historical"
         payload = {
             "securityId":      str(security_id),
@@ -498,7 +534,7 @@ def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_d
             "expiryCode":      exp_code,
             "interval":        "1",
             "fromDate":        trade_date,
-            "toDate":          trade_date,
+            "toDate":          to_date,
         }
 
     resp = _post_json(url, payload, headers)
