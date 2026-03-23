@@ -212,6 +212,7 @@ function deleteImageTagGlobal(tagToDelete) {
     t[IMAGE_TAG_COLUMN] = getAllImageTagsForTrade(t).join(', ');
   });
   Object.keys(state.dayData || {}).forEach(d => {
+    const day = state.dayData[d];
     const store = ensureDayImageTagStore(d);
     Object.keys(store).forEach(url => {
       const arr = Array.isArray(store[url]) ? store[url] : [];
@@ -221,15 +222,16 @@ function deleteImageTagGlobal(tagToDelete) {
     });
     if (day && day.marqueeBoxes) {
       Object.keys(day.marqueeBoxes).forEach(url => {
-        day.marqueeBoxes[url].forEach(box => {
-          if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
-            box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
-          }
-        });
+        if (day.marqueeBoxes[url]) {
+          day.marqueeBoxes[url].forEach(box => {
+            if (box.tags && box.tags.some(x => String(x).toLowerCase() === tLow)) {
+              box.tags = box.tags.filter(x => String(x).toLowerCase() !== tLow);
+            }
+          });
+        }
       });
     }
 
-    const day = state.dayData[d];
     if (day && day.tags) {
       Object.keys(day.tags).forEach(c => {
         if (typeof day.tags[c] === 'string') {

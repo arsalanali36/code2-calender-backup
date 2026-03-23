@@ -7,13 +7,20 @@
  */
 
 function renderGalleryTagFilterPanel() {
-    const panel = document.getElementById('gallery-img-tag-filter-panel');
-    if (!panel) return;
-    panel.innerHTML = '';
+    const listContainer = document.getElementById('gallery-img-tag-filter-panel');
+    const header = document.getElementById('gallery-img-tag-filter-header');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+    if (header) header.innerHTML = '';
 
-    const allTags = state.allTags || [];
+    // Sanitize tags: ignore empty or symbol-only tags that might cause UI bugs
+    const allTags = (state.allTags || []).filter(t => {
+        const clean = String(t || '').trim();
+        return clean.length > 0 && !['.', '-', '_'].includes(clean);
+    });
+
     if (!allTags.length) {
-        panel.innerHTML = '<p class="panel-hint" style="padding:10px 8px">No tags yet.</p>';
+        listContainer.innerHTML = '<p class="panel-hint" style="padding:10px 8px">No tags yet.</p>';
         const btn = document.getElementById('gallery-img-tag-filter-btn');
         if (btn) {
             btn.style.borderColor = '';
@@ -28,7 +35,7 @@ function renderGalleryTagFilterPanel() {
     searchInp.className = 'panel-search';
     searchInp.placeholder = 'Search tags...';
     searchRow.appendChild(searchInp);
-    panel.appendChild(searchRow);
+    if (header) header.appendChild(searchRow);
 
     const tagUsageCount = new Map();
     const bumpTagCount = (tag) => {
@@ -57,21 +64,39 @@ function renderGalleryTagFilterPanel() {
 
     const actRow = document.createElement('div');
     actRow.className = 'panel-act-row';
+    actRow.style.cssText = 'display:flex; gap:6px; padding:0 8px 8px;';
+
+    const btnMode = document.createElement('button');
+    btnMode.className = 'panel-act-btn';
+    btnMode.style.flex = '1';
+    const isAnd = state.gallery.filterMode === 'and';
+    btnMode.textContent = isAnd ? 'Match: ALL (AND)' : 'Match: ANY (OR)';
+    btnMode.style.color = isAnd ? 'var(--blue)' : 'var(--orange)';
+    btnMode.addEventListener('click', () => {
+        state.gallery.filterMode = state.gallery.filterMode === 'and' ? 'or' : 'and';
+        applyGalleryImageScopeByTagFilter();
+        renderGallery();
+        renderGalleryTagFilterPanel();
+    });
+
     const btnNone = document.createElement('button');
     btnNone.className = 'panel-act-btn';
-    btnNone.textContent = 'Clear Filter';
+    btnNone.style.flex = '1';
+    btnNone.textContent = 'Clear All';
     btnNone.addEventListener('click', () => {
         state.gallery.tagFilter = [];
         applyGalleryImageScopeByTagFilter();
         renderGallery();
         renderGalleryTagCloud();
-        renderGalleryTagFilterPanel(); // Re-render to clear checkboxes
+        renderGalleryTagFilterPanel();
     });
+    actRow.appendChild(btnMode);
     actRow.appendChild(btnNone);
-    panel.appendChild(actRow);
+    if (header) header.appendChild(actRow);
 
     const list = document.createElement('div');
     list.className = 'panel-list';
+    list.style.flex = '1';
 
     // Extract render logic to handle searching
     const renderFilterList = (query) => {
@@ -217,7 +242,7 @@ function renderGalleryTagFilterPanel() {
         }
     });
 
-    panel.appendChild(list);
+    listContainer.appendChild(list);
     _updateFilterBtnColor();
 
     function _updateFilterBtnColor() {

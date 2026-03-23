@@ -31,7 +31,7 @@ const state = {
   calendarMode: 'consolidated',
   gallery: {
     images: [], currentIndex: 0, date: '', sourceRow: null,
-    tagFilter: [], filterMode: 'or',
+    tagFilter: [], filterMode: 'or', tagViewMode: 'grouped',
     hiddenImages: new Set(), layerPanelOpen: false
   },  // V2: tagFilter = selected tag names
   tagGroups: {},  // { groupName: [tagName, ...] } — user-defined groups

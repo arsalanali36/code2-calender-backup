@@ -1478,7 +1478,6 @@
             "tags": [
               "idea",
               "RuleBased",
-              "Conti",
               "darr"
             ]
           }
@@ -1503,7 +1502,6 @@
             "ry": 0.36673773987206826,
             "tags": [
               "idea",
-              "Manual",
               "CloseButNotExactRule"
             ]
           }
@@ -1935,9 +1933,7 @@
             "rw": 0.09495192307692307,
             "rx": 0.17067307692307693,
             "ry": 0.25427350427350426,
-            "tags": [
-              "Bach Gaye"
-            ]
+            "tags": []
           }
         ]
       },
@@ -2106,9 +2102,6 @@
       "imageTags": {
         "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [
           "Panicyy"
-        ],
-        "/uploads/e0b573fd-877b-4f7c-9542-ae88cc61cd19.png": [
-          "Reversal"
         ]
       },
       "images": [
@@ -2186,11 +2179,7 @@
       "audios": {},
       "date": "2026-02-18",
       "fill_count": 2,
-      "imageTags": {
-        "/uploads/4f939a2e-9f5e-4a32-8e05-5676185417aa.png": [
-          "Reversal"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381640/trading_journal/4f939a2e-9f5e-4a32-8e05-5676185417aa.png"
       ],
@@ -2595,9 +2584,7 @@
             "rw": 0.06354916067146282,
             "rx": 0.21822541966426856,
             "ry": 0.34754797441364604,
-            "tags": [
-              "desperate"
-            ]
+            "tags": []
           }
         ],
         "/uploads/36231e0a-8344-4d09-9e3c-192ff2d63cc4.png": [
@@ -2606,10 +2593,7 @@
             "rw": 0.059123343527013254,
             "rx": 0.4437314972501481,
             "ry": 0.34687077962533713,
-            "tags": [
-              "Bach Gaye",
-              "bach gaye"
-            ]
+            "tags": []
           }
         ],
         "/uploads/731da900-ae77-4681-881a-c75c321378e2.png": [
@@ -2630,9 +2614,7 @@
             "rx": 0.21052631578947367,
             "ry": 0.35753176043557167,
             "tags": [
-              "Conti",
-              "RuleBased",
-              "Mann Nahi"
+              "RuleBased"
             ]
           }
         ],
@@ -3459,8 +3441,7 @@
           "panic"
         ],
         "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
-          "Panicyy",
-          "Random"
+          "Panicyy"
         ],
         "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
           "Panicyy",
@@ -3478,8 +3459,7 @@
             "rx": 0.06825354086469662,
             "ry": 0.21391849880618344,
             "tags": [
-              "thumbnail",
-              "Manual"
+              "thumbnail"
             ]
           },
           {
@@ -3549,7 +3529,6 @@
             "rx": 0.6431127012522362,
             "ry": 0.6388384754990926,
             "tags": [
-              "car",
               "thumbnail"
             ]
           },
@@ -3558,9 +3537,7 @@
             "rw": 0.059033989266547404,
             "rx": 0.4660107334525939,
             "ry": 0.3793103448275862,
-            "tags": [
-              "EntryMiss"
-            ]
+            "tags": []
           }
         ]
       },
@@ -3634,9 +3611,7 @@
             "rw": 0.06578947368421052,
             "rx": 0.030510886677617515,
             "ry": 0.2564977219167321,
-            "tags": [
-              "Random"
-            ]
+            "tags": []
           },
           {
             "rh": 0.2016,
@@ -3787,9 +3762,7 @@
             "rw": 0.06904955320877336,
             "rx": 0.07545694619247723,
             "ry": 0.42598684210526316,
-            "tags": [
-              "Reversal"
-            ]
+            "tags": []
           },
           {
             "rh": 0.2631578947368421,
@@ -11652,9 +11625,7 @@
             "rw": 0.06042654028436019,
             "rx": 0.34845971383189706,
             "ry": 0.2545803353654967,
-            "tags": [
-              "Conti"
-            ]
+            "tags": []
           },
           {
             "rh": 0.07753138124122494,
@@ -11672,27 +11643,21 @@
             "rw": 0.02132701421800948,
             "rx": 0.39229857639113874,
             "ry": 0.24738609076118012,
-            "tags": [
-              "Reversal"
-            ]
+            "tags": []
           },
           {
             "rh": 0.10551558752997602,
             "rw": 0.10308056872037914,
             "rx": 0.5167061593295273,
             "ry": 0.6766426854854007,
-            "tags": [
-              "EntryMiss"
-            ]
+            "tags": []
           },
           {
             "rh": 0.07673860911270983,
             "rw": 0.022511848341232227,
             "rx": 0.405331751746589,
             "ry": 0.4895923257731705,
-            "tags": [
-              "EntryMiss"
-            ]
+            "tags": []
           }
         ],
         "/uploads/8be518a5-a699-4e1a-800c-f0482eda6e46.png": []
@@ -11985,18 +11950,13 @@
       "Sell Price (Avg)": "",
       "Sell Time": "",
       "Tags": [
-        "Reversal",
-        "Mann Nahi",
         "panic",
         "Panicyy",
         "Distracted",
-        "bach gaye",
         "new",
         "halkeMeLerahe",
         "Partial Exit",
-        "Premium",
-        "BAT",
-        "HERO"
+        "Premium"
       ],
       "Total Fees": "",
       "Total Trades": "",
@@ -12026,18 +11986,13 @@
         ]
       },
       "tags": [
-        "Reversal",
-        "Mann Nahi",
         "panic",
         "Panicyy",
         "Distracted",
-        "bach gaye",
         "new",
         "halkeMeLerahe",
         "Partial Exit",
-        "Premium",
-        "BAT",
-        "HERO"
+        "Premium"
       ],
       "tradeLogger": {},
       "tradeReview": {
@@ -12095,14 +12050,9 @@
       "Sell Time": "09:39:39",
       "Tags": [
         "Distracted",
-        "bach gaye",
         "halkeMeLerahe",
-        "Mann Nahi",
-        "BAT",
-        "HERO",
         "Late",
-        "news",
-        "desperate"
+        "news"
       ],
       "Total Fees": 136.1,
       "Total Trades": "",
@@ -12204,14 +12154,9 @@
       "observation": "",
       "tags": [
         "Distracted",
-        "bach gaye",
         "halkeMeLerahe",
-        "Mann Nahi",
-        "BAT",
-        "HERO",
         "Late",
-        "news",
-        "desperate"
+        "news"
       ],
       "tradeLogger": {
         "_migrationLog": [
@@ -12282,7 +12227,6 @@
       "Sell Price (Avg)": 217.25,
       "Sell Time": "09:49:59",
       "Tags": [
-        "Mann Nahi",
         "Panicyy",
         "Distracted",
         "new"
@@ -12336,7 +12280,6 @@
         ]
       },
       "tags": [
-        "Mann Nahi",
         "Panicyy",
         "Distracted",
         "new"
@@ -12386,7 +12329,6 @@
       "Sell Price (Avg)": 212.4,
       "Sell Time": "11:00:13",
       "Tags": [
-        "EntryMiss",
         "Distracted"
       ],
       "Total Fees": 122.42,
@@ -12437,7 +12379,6 @@
         ]
       },
       "tags": [
-        "EntryMiss",
         "Distracted"
       ],
       "tradeLogger": {
@@ -12586,11 +12527,8 @@
       "Sell Price (Avg)": 200,
       "Sell Time": "13:37:51",
       "Tags": [
-        "desperate",
         "halkeMeLerahe",
-        "Late",
-        "EntryMiss",
-        "Mann Nahi"
+        "Late"
       ],
       "Total Fees": 71.89,
       "Total Trades": "",
@@ -12605,11 +12543,8 @@
       ],
       "observation": "",
       "tags": [
-        "desperate",
         "halkeMeLerahe",
-        "Late",
-        "EntryMiss",
-        "Mann Nahi"
+        "Late"
       ],
       "tradeLogger": {
         "dur": 10,
@@ -12766,8 +12701,7 @@
       "Sell Price (Avg)": 145.05,
       "Sell Time": "09:30:22",
       "Tags": [
-        "darr",
-        "Mann Nahi"
+        "darr"
       ],
       "Total Fees": 97.2,
       "Total Trades": "",
@@ -12814,8 +12748,7 @@
       ],
       "observation": "",
       "tags": [
-        "darr",
-        "Mann Nahi"
+        "darr"
       ],
       "tradeLogger": {
         "_migrationLog": [
@@ -12859,9 +12792,7 @@
       "Sell Price (Avg)": 220.4,
       "Sell Time": "09:51:12",
       "Tags": [
-        "himmat nahi",
-        "BAT",
-        "Mann Nahi"
+        "himmat nahi"
       ],
       "Total Fees": 73.39,
       "Total Trades": "",
@@ -12898,9 +12829,7 @@
       ],
       "observation": "",
       "tags": [
-        "himmat nahi",
-        "BAT",
-        "Mann Nahi"
+        "himmat nahi"
       ],
       "tradeReview": {
         "dd": "",
@@ -13553,7 +13482,7 @@
       "Buy Price (Avg)": 95.333333,
       "Buy Time": "09:56:35",
       "Gross P/L": 2343.25,
-      "Image Tags": "desperate, Mann Nahi, panic, Panicyy",
+      "Image Tags": "panic, Panicyy",
       "Instrument": "NIFTY2631723500PE",
       "Net P/L": 2258.18,
       "Note": "",
@@ -13578,11 +13507,7 @@
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724611/trading_journal/d8e9cb64-e266-4e28-8a1f-02744ec85a4d.png": [
           "Panicyy",
-          "desperate",
           "panic"
-        ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724613/trading_journal/d396f149-fc2a-4a9b-8d59-f417b332a705.png": [
-          "Mann Nahi"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724614/trading_journal/5874b250-0a64-42b0-9b81-b56fad4c8068.png": [
           "Panicyy"
@@ -13898,7 +13823,23 @@
       "date": "2026-03-20",
       "fill_count": 5,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/fe13f698-c25e-41d6-9610-9ea342f30c82.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/3e2ba602-37bc-4445-90a0-5ba0548b78fb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/9baca5ae-d51d-420e-ba5f-6a9faa67547b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/04790519-e838-449d-a822-3ec05e9f25f0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/9276a6b6-f9d1-4795-8657-77c6a5c08398.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266754/trading_journal/6e947555-d71e-4e95-839e-cdb06e3f1ca5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266757/trading_journal/641cc3c1-6734-4168-9ebd-dbc292b73a4b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266757/trading_journal/b8cf116e-67e3-4d53-8d9d-a0bf1c979db2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266756/trading_journal/2febd55f-fd0a-46c3-854b-08a5d0d1da43.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266757/trading_journal/58d601d6-8808-42cf-842b-564a92fc8222.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266755/trading_journal/141667c1-b5eb-4f94-8828-0041bfe4454d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266756/trading_journal/6411f9e1-2326-41ec-a41a-4d11f1681526.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266756/trading_journal/a39df034-d28a-467e-a9dc-1e9536a16934.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266757/trading_journal/a9bd165c-8540-4b51-a97e-0b021242754b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266757/trading_journal/22938484-cc38-45db-a651-505426e48634.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-20"
@@ -13927,7 +13868,11 @@
       "date": "2026-03-20",
       "fill_count": 4,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266758/trading_journal/68727d2c-6c50-4480-81b4-4942c40673dd.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266758/trading_journal/bb9b186f-d081-4489-a560-2df3020106d0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266760/trading_journal/cfc093a2-56cb-4139-91dd-bf4a92a13339.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-20"
@@ -13956,7 +13901,22 @@
       "date": "2026-03-20",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266760/trading_journal/b3dbaab2-8e4e-49b3-a34f-a347b215c11c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266758/trading_journal/bb9d78cc-2279-4602-a72b-bfe9f8054a89.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266759/trading_journal/7b076da6-8b53-48a1-aaf8-d462237176a0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266761/trading_journal/02521428-b94d-4d89-add7-09d4fe940be0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266759/trading_journal/dbab18f8-f175-414a-aeb7-73c6c9c4963c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266762/trading_journal/c41f5c49-f79c-41f9-a9a6-c55cbe80e484.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266760/trading_journal/47d754e7-40e9-4a7b-a006-67d9ffe18dd8.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266762/trading_journal/40f19752-a4ff-4378-af30-11b4a44eb307.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266761/trading_journal/6416f025-cb5f-425f-b157-be8294c158dc.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266763/trading_journal/a34552d7-cbc0-428a-b58c-ffa9bd5a5dd9.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266763/trading_journal/396ce9cc-b5f4-4e40-b50c-62aa9d893f5d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266762/trading_journal/4985191a-7f2b-46ca-b189-4cde31b3b8ff.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266763/trading_journal/164ab3c6-c7ba-484b-b0fe-45261b52cb96.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266765/trading_journal/f1eef1c5-d313-41c5-8c62-09f807246d1e.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-20"
@@ -13985,7 +13945,23 @@
       "date": "2026-03-19",
       "fill_count": 4,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266944/trading_journal/e112c34a-ef05-4d92-ab4a-d85510d4a554.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266946/trading_journal/6653ee2d-af42-4660-92fa-07ebb4692bc4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266945/trading_journal/13cf7f27-3491-4353-b37f-e316a06286ad.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266947/trading_journal/9bf531fb-f543-4e75-bc57-3537a94aeb62.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266948/trading_journal/5c21bdab-28ba-4909-8727-a429e07ddbf4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266946/trading_journal/65dba381-9063-4658-bb00-d7840d7dfe8b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266947/trading_journal/54fd47fe-f94f-414c-a137-73e3f320ecd8.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266947/trading_journal/fe4e058f-e80b-47b0-a0fd-ac24b181317a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266950/trading_journal/9858d7cf-c5f7-44e4-93e7-ffc46a2744c7.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266950/trading_journal/81277243-8efd-41db-9d53-983b9dd89993.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266948/trading_journal/c03c51c2-433c-4766-91d3-894d270755dd.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266948/trading_journal/d32c6254-cdcb-42a4-aede-0bedb59fe947.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266951/trading_journal/39d685c2-ef35-41c7-8a35-390b11cfa1e1.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266949/trading_journal/ce169047-3afd-4d31-b69b-598766491077.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266949/trading_journal/d9934ae5-f1b4-4bd0-bfab-779ab6165ff3.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-19"
@@ -14014,7 +13990,13 @@
       "date": "2026-03-20",
       "fill_count": 6,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266764/trading_journal/53a0214f-3022-43fb-bdd6-a91a7c0df56d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266764/trading_journal/52667c1f-4282-4b3a-b6f7-1fcda8fa71db.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266766/trading_journal/421b33b8-b260-483c-ad95-921690b6f5b3.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266765/trading_journal/3e1f3f36-1bc4-4704-95bc-6227c3f06bb3.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266767/trading_journal/4a2aa8e8-32ba-4954-b954-ae6fcd3c25bb.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-20"
@@ -14043,7 +14025,14 @@
       "date": "2026-03-19",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266952/trading_journal/57466004-fc2e-48e4-baba-c0df209d7f35.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266950/trading_journal/513a0084-2846-42f7-b750-9e649f85361b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266952/trading_journal/b1e1bba2-cc68-40ce-ab1f-407576b25ca6.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266951/trading_journal/4c12f028-ead0-4be2-9c80-b3dc054aff61.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266952/trading_journal/edaf9d1e-4f9c-40d0-8709-cfa7ddfd3e80.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266952/trading_journal/3951d1f8-9953-42f1-87d4-ce82f11645c2.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-19"
@@ -14072,7 +14061,12 @@
       "date": "2026-03-19",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266954/trading_journal/74f578ce-582b-4c49-9339-d84617bd4073.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266953/trading_journal/816ff0e5-49a0-4683-a180-33b411679657.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266955/trading_journal/0ed4fdc4-1a36-45ac-b9e4-aa5c9d46817e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266955/trading_journal/5cfef6cd-135e-461b-b387-cacc1f620a70.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-19"
@@ -14101,7 +14095,15 @@
       "date": "2026-03-19",
       "fill_count": 5,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266954/trading_journal/d43e3947-884f-4c03-a8e1-bc7b3c3958b2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266954/trading_journal/bae67a9e-ba91-483b-a76d-9a4eb8269a84.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266955/trading_journal/042b1f72-965b-4601-b70b-f0fb85e0ca69.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266957/trading_journal/cbde55c5-2fdb-4400-8301-a36a0460b7f5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266957/trading_journal/4e05a849-4808-41aa-bce1-12e4c7b2f422.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266957/trading_journal/08ef3db0-7134-44f3-abcd-2abee309dc14.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266956/trading_journal/af7e82de-eaae-47ae-b375-7035d88e72bf.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-03-19"
@@ -14451,10 +14453,11 @@
     "kill Switch",
     "almostPerfect",
     "news+",
-    "BAT",
-    "HERO",
     "sdadssdsd",
-    "ide"
+    "ide",
+    "carxx",
+    "dddd",
+    "car"
   ],
   "tagColumns": [
     "Tags"
@@ -14469,7 +14472,8 @@
     "2001-03-03": {
       "audios": {},
       "closeImages": [],
-      "images": []
+      "images": [],
+      "imageTags": {}
     },
     "2026-02-02": {
       "audios": {},
@@ -23044,7 +23048,8 @@
     "2026-03-03": {
       "audios": {},
       "closeImages": [],
-      "images": []
+      "images": [],
+      "imageTags": {}
     },
     "2026-03-04": {
       "audios": {},
@@ -23431,9 +23436,7 @@
     },
     "2026-03-13": {
       "audios": {},
-      "closeImages": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773732817/trading_journal/b6428ccb-3350-4c52-9677-8c4576bdffab.png"
-      ],
+      "closeImages": [],
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419448/trading_journal/1616ddc6-cdc0-4443-bbbf-4ca6f4f8459c.png",
@@ -23444,7 +23447,8 @@
       ]
     },
     "2026-03-16": {
-      "audios": {}
+      "audios": {},
+      "imageTags": {}
     },
     "2026-03-17": {
       "audios": {
@@ -23465,8 +23469,7 @@
         ]
       },
       "images": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773825107/trading_journal/23a4b8d4-7d02-4fc9-a6a4-acd3b20a72dd.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png"
       ],
       "subImages": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png": [
@@ -23485,17 +23488,49 @@
       ]
     },
     "2026-03-19": {
-      "closeImages": [],
+      "closeImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266958/trading_journal/5edd4a27-7220-4947-9e86-190d40969c19.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266959/trading_journal/e141a946-ebe1-4e28-be46-28505defaf7d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266957/trading_journal/d65bfa8f-d4f6-4967-8759-4c61cf633dd5.png"
+      ],
       "imageTags": {},
-      "images": []
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/fa28e359-7d61-4b34-b25d-ab4398714c04.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/7d085b50-321b-478b-9857-fe80c8f5b225.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266939/trading_journal/b44d3d88-3ed2-44a8-ab4f-d4d0e357661a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/071b97a8-509b-447a-8852-172cded9563d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266937/trading_journal/a3e66d94-efa1-4f3f-8b42-7f7cc29068be.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/0a342fdd-78b9-4218-97b0-9d6d91b50a5a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266938/trading_journal/7b59ee41-5bb1-4e08-8196-d16d052c2004.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/c5fac6ab-f635-4778-b6b8-f50f88ca97bc.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266941/trading_journal/e05aa99b-a5c4-4893-b87a-69933cec9ce0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266943/trading_journal/5ed524d7-e0e7-4850-9dee-f999b9caf8cb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266941/trading_journal/45193841-ddf9-4a97-af2c-0f8ec5ab7c8c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266941/trading_journal/b2ad48bd-5d06-4955-98ba-7a709f5cc784.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266944/trading_journal/e1e6d0f6-663c-4196-bc51-9dbd2cc29d62.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266942/trading_journal/f32fd4b7-08f0-4ad2-bdf4-3092f5f1269c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266942/trading_journal/52eea24a-861d-49da-993c-cbc6dd59921d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266947/trading_journal/a8830a06-f2f1-40ae-8136-2ac285e5e4f3.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266943/trading_journal/1118d11d-62c6-4f7e-a1d3-d4db92399ed4.png"
+      ]
     },
-    "2026-03-20": {},
+    "2026-03-20": {
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/6be030e0-80b1-4534-8287-b177e21e930d.png"
+      ]
+    },
     "2026-03-23": {
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774265841/trading_journal/ab7241f1-1858-4bf4-9fb6-fb5ef134ed2c.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774265841/trading_journal/03d50bde-b926-4d37-b300-638fcaf3f64a.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245422/trading_journal/c7e02db0-ff2d-4ab4-9647-2fb6995287b0.png": [
+          "dddd",
+          "car"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245422/trading_journal/c7e02db0-ff2d-4ab4-9647-2fb6995287b0.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245421/trading_journal/f49eab0c-ece9-40d2-a922-321a72e86f63.png",
@@ -23507,10 +23542,7 @@
     }
   },
   "tagGroups": {
-    "BAT": [
-      "BAT",
-      "HERO"
-    ],
+    "BAT": [],
     "Emotions": [
       "darr",
       "Mann Nahi",
@@ -23553,8 +23585,6 @@
     ],
     "TargetType": [
       "Palat Gaya"
-    ],
-    "car": [],
-    "cat": []
+    ]
   }
 }

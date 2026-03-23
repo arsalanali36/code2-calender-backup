@@ -143,6 +143,17 @@ function renderGallery() {
   document.getElementById('gallery-thumbs')?.classList.toggle('filter-active', _filterActive);
   document.getElementById('gv2-tag-cloud')?.classList.toggle('filter-active', _filterActive);
 
+  const filterBar = document.getElementById('gallery-filter-active-bar');
+  if (filterBar) {
+    if (_filterActive) {
+      const modeText = state.gallery.filterMode === 'and' ? 'ALL of' : 'ANY of';
+      filterBar.innerHTML = `<span>FILTER ACTIVE (${modeText}):</span> <span style="background:#000; color:#fff; padding:2px 8px; border-radius:20px; margin-left:6px">${state.gallery.tagFilter.join(', ')}</span>`;
+      filterBar.style.display = 'flex';
+    } else {
+      filterBar.style.display = 'none';
+    }
+  }
+
   const thumbs = document.getElementById('gallery-thumbs');
   const savedScrollTop = thumbs ? thumbs.scrollTop : 0;
   const savedScrollLeft = thumbs ? thumbs.scrollLeft : 0;

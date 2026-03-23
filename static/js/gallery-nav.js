@@ -191,6 +191,16 @@ function navigateGalleryDate(dir) {
     state.gallery.date = nextDate;
     state.gallery.sourceRow = null;
     state.gallery.imageTimes = {};
+    // Auto-select T1: jump to first image of first trade if the date has trades
+    const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(nextDate) : [];
+    if (dayTrades.length > 0 && dayTrades[0].images && dayTrades[0].images.length > 0) {
+      const t1FirstImg = dayTrades[0].images[0];
+      const t1Idx = images.indexOf(t1FirstImg);
+      if (t1Idx >= 0) {
+        state.gallery.currentIndex = t1Idx;
+        state.gallery.selectedSeparator = 0;
+      }
+    }
     renderGallery(); updateGalleryDateArrows();
     if (state.gallery.showTime) fetchImageTimesForGallery();
   }

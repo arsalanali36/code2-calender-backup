@@ -108,6 +108,20 @@
       <div class="gv2-thumbs" id="gallery-thumbs"></div>
     </div>
 
+    <!-- Left Filter Panel (NEW) -->
+    <div class="gv2-layer-panel gv2-filter-panel" id="gv2-filter-panel" style="display:none; width: 280px;">
+      <div class="gv2-lp-header">
+        <span style="display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
+          Filter Tags
+        </span>
+        <button class="gv2-lp-close" id="gv2-filter-close-btn" title="Close">&#10005;</button>
+      </div>
+      <div id="gallery-img-tag-filter-header" style="background:var(--bg2); border-bottom:1px solid var(--border);"></div>
+      <div class="gv2-lp-body" id="gallery-img-tag-filter-panel" style="overflow-y:auto; padding:0; display:flex; flex-direction:column; flex:1; min-height:0;"></div>
+      <div class="gv2-lp-resize-handle" id="gv2-filter-resize-handle" title="Drag to resize"></div>
+    </div>
+
     <!-- Center column: image + tag cloud -->
     <div class="gv2-center">
 
@@ -125,7 +139,12 @@
 
         <!-- Trade Info Overlay -->
         <div id="gallery-trade-info-display"
-          style="position:absolute; top:12px; right:42px; z-index:40; background:rgba(30,35,48,0.85); border:1px solid var(--border); padding:6px 12px; border-radius:6px; color:var(--text); font-size:0.95rem; font-weight:bold; pointer-events:none; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+          style="position:absolute; top:12px; right:42px; z-index:40; background:rgba(30,35,48,0.85); border:1px solid var(--border); padding:6px 12px; border-radius:6px; color:var(--text); font-size:0.95rem; font-weight:bold; pointer-events:none; display:none; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        </div>
+
+        <!-- Filter-Active Bar (Visual Clue) -->
+        <div id="gallery-filter-active-bar"
+          style="display:none; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:100; background:var(--orange, #ffd700); color:#000; padding:4px 14px; border-radius:30px; font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; box-shadow:0 4px 15px rgba(0,0,0,0.4); pointer-events:none; align-items:center; gap:8px;">
         </div>
 
         <!-- Text Bar -->
@@ -216,16 +235,9 @@
         <div class="dropdown-menu show-heads-panel" id="gallery-show-heads-panel"
           style="right:0;left:auto;min-width:220px;max-height:400px;overflow-y:auto;z-index:9999;"></div>
       </div>
-      <!-- Filter Tags dropdown -->
-      <div class="dropdown-wrapper">
-        <button class="gv2-sb-btn" id="gallery-img-tag-filter-btn" title="Filter Tags">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
-        </button>
-        <div class="dropdown-menu tag-filter-panel" id="gallery-img-tag-filter-panel"
-          style="right:0;left:auto;max-width:300px;max-height:400px;overflow-y:auto;z-index:9999;">
-          <p class="panel-hint" style="padding:10px 8px">No tags available.</p>
-        </div>
-      </div>
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gallery-img-tag-filter-btn" title="Filter Tags (F)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
+      </button>
       <div class="gv2-sb-sep"></div>
       <!-- More dropdown -->
       <div class="dropdown-wrapper">
@@ -296,7 +308,9 @@
         <div style="display:flex;gap:4px;align-items:center;">
           <button class="gv2-tt-sz-btn" id="gv2-tag-sz-minus" title="Tag size kam karo">A-</button>
           <button class="gv2-tt-sz-btn" id="gv2-tag-sz-plus" title="Tag size badhao">A+</button>
-          <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
+          <button class="gv2-tt-sz-btn" id="gv2-tag-view-btn" title="Toggle Grouped / Flat view">Grp</button>
+          <button class="gv2-tt-add-grp" id="gv2-add-tag-btn">+ Tag</button>
+          <button class="gv2-tt-add-grp" id="gv2-add-grp-btn" title="Add new group">+ Group</button>
           <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
         </div>
       </div>
@@ -550,8 +564,93 @@
   </div>
 </div>
 
+</style>
+
+<!-- Tag Creation Modal (Centrally defined UI) -->
+<div class="gv2-modal-overlay" id="gv2-tag-create-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10001; backdrop-filter:blur(3px);">
+  <div class="gv2-modal-content" style="width:340px; padding:20px; border-radius:16px; background:rgba(30,30,35,0.95); border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 40px rgba(0,0,0,0.8); backdrop-filter:blur(15px); color:#fff; font-family:inherit;">
+    <h3 style="margin:0 0 16px; font-size:1.15rem; color:#fff; font-weight:700; letter-spacing:0.5px; text-align:center;">CREATE NEW TAG</h3>
+    
+    <div style="margin-bottom:14px;">
+      <label style="display:block; font-size:0.75rem; color:#999; margin-bottom:5px; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Tag Name</label>
+      <input type="text" id="gv2-tag-modal-name" placeholder="Enter tag name..." style="width:100%; height:40px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0 12px; border-radius:8px; font-size:0.95rem; outline:none; box-sizing:border-box; transition:border 0.2s;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block; font-size:0.75rem; color:#999; margin-bottom:5px; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Select Group</label>
+      <div style="position:relative;">
+        <select id="gv2-tag-modal-group-sel" style="width:100%; height:40px; background:#1e1e23; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0 35px 0 12px; border-radius:8px; font-size:0.95rem; outline:none; box-sizing:border-box; cursor:pointer; -webkit-appearance:none; appearance:none;">
+          <option value="" style="background:#1e1e23; color:#fff;">-- No Group / Ungrouped --</option>
+        </select>
+        <div style="position:absolute; right:12px; top:12px; pointer-events:none; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid #aaa;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+      <label style="display:block; font-size:0.75rem; color:#999; margin-bottom:5px; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">OR Type New Group</label>
+      <input type="text" id="gv2-tag-modal-new-grp" placeholder="New group name..." style="width:100%; height:40px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0 12px; border-radius:8px; font-size:0.95rem; outline:none; box-sizing:border-box;">
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button id="gv2-tag-modal-cancel" style="flex:1; height:42px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#ccc; border-radius:10px; cursor:pointer; font-weight:600; font-size:0.9rem; transition:all 0.2s;">Hatao</button>
+      <button id="gv2-tag-modal-create" style="flex:1.8; height:42px; background:var(--blue, #2962ff); border:none; color:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem; transition:all 0.2s; box-shadow:0 4px 20px rgba(41,98,255,0.3);">Create Tag</button>
+    </div>
+  </div>
+</div>
 <style>
-  .gc-tf-btn { background:#1e2130;border:1px solid #2a2a3e;color:#aaa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:12px; }
-  .gc-tf-btn:hover { background:#2a2a3e;color:#fff; }
-  .gc-tf-btn.gc-tf-active { background:#2962ff;border-color:#2962ff;color:#fff; }
+  .gv2-tt-del-tag.active {
+    background: #f85149 !important;
+    border-color: #f85149 !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(248, 81, 73, 0.4);
+  }
+  .gv2-tt-tag-chip.delete-mode {
+    border-color: rgba(248, 81, 73, 0.5) !important;
+    animation: gv2-shake 0.3s ease-in-out infinite alternate;
+  }
+  @keyframes gv2-shake {
+    from { transform: rotate(-1deg); }
+    to { transform: rotate(1deg); }
+  }
+  .gv2-filter-panel {
+    z-index: 1000;
+    background: var(--surface);
+    display: none;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+    min-height: 0;
+    align-self: stretch;
+    box-sizing: border-box;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+  }
+  #gallery-filter-active-bar {
+    animation: gv2-pulse-orange 2s infinite alternate;
+  }
+  @keyframes gv2-pulse-orange {
+    from { box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); opacity: 0.9; }
+    to { box-shadow: 0 4px 25px rgba(255, 215, 0, 0.6); opacity: 1; }
+  }
+  .head-checkbox {
+    display: flex !important;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.88rem;
+    gap: 10px;
+  }
+  .head-checkbox:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  .head-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--blue);
+  }
+  .gv2-filter-panel .panel-list {
+    max-height: none !important;
+    flex: 1;
+    overflow-y: auto;
+  }
 </style>

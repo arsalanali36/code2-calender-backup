@@ -74,7 +74,8 @@ function renderGalleryTagsTray() {
   if (!body) return;
   body.innerHTML = '';
 
-  const allTags = state.allTags || [];
+  if (!state.allTags) state.allTags = [];
+  const allTags = state.allTags;
   const imgInfo = getCurrentGalleryImageTagInfo();
   const imageAssignedSet = new Set(imgInfo.imageTags);
   const selectedMarqueeTagSet = getSelectedMarqueeTagSet();
@@ -156,15 +157,30 @@ function renderGalleryTagsTray() {
     if (isFreq) cnt.style.color = '#ff6b6b';
     chip.appendChild(lbl);
     chip.appendChild(cnt);
-    if (currentImageTagSet.has(tag)) chip.classList.add('selected-on-image');
-    if (marqueeMode) {
-      if (currentImageTagSet.has(tag)) chip.title = 'Tag on selected marquee';
-      else chip.title = 'Add to selected marquee';
-    } else if (imageAssignedSet.has(tag)) chip.title = 'Image tag assigned';
-    else if (currentImageTagSet.has(tag)) chip.title = 'Marquee tag present on this image';
+
+    if (state.tagDeleteMode) {
+      const x = document.createElement('span');
+      x.textContent = '✕';
+      x.style.cssText = 'margin-left:6px; color:var(--red); font-weight:bold; cursor:pointer; opacity:0.8; transition:opacity 0.2s;';
+      x.onmouseover = () => x.style.opacity = '1';
+      x.onmouseout = () => x.style.opacity = '0.8';
+      chip.appendChild(x);
+      chip.style.borderColor = 'rgba(255, 107, 107, 0.4)';
+      chip.style.boxShadow = '0 0 5px rgba(255, 107, 107, 0.2)';
+      chip.classList.add('delete-mode');
+      chip.title = 'Click to DELETE GLOBALLY';
+    } else {
+      if (currentImageTagSet.has(tag)) chip.classList.add('selected-on-image');
+      if (marqueeMode) {
+        if (currentImageTagSet.has(tag)) chip.title = 'Tag on selected marquee';
+        else chip.title = 'Add to selected marquee';
+      } else if (imageAssignedSet.has(tag)) chip.title = 'Image tag assigned';
+      else if (currentImageTagSet.has(tag)) chip.title = 'Marquee tag present on this image';
+    }
     chip.setAttribute('draggable', 'true');
     chip.addEventListener('click', async () => {
       if (state.tagDeleteMode) {
+        if (!confirm(`Kya aap is tag "${tag}" ko poora (globally) delete karna chahte hain?`)) return;
         deleteImageTagGlobal(tag);
         state.allTags = (state.allTags || []).filter(t => t !== tag);
         Object.keys(state.tagGroups).forEach(g => {
@@ -176,6 +192,7 @@ function renderGalleryTagsTray() {
         renderGalleryTagsTray();
         renderTable();
         renderCalendar();
+        showToast(`Tag "${tag}" globally delete ho gaya`, 'success');
         return;
       }
       if (marqueeMode) {
@@ -294,93 +311,119 @@ function renderGalleryTagsTray() {
     hdr.appendChild(lbl);
     grpF.appendChild(hdr);
     const wrap = document.createElement('div');
-    wrap.className = 'gv2-tt-wrap';
+    wrap.className = 'gv2-tt-grp-tags';
     topTags.forEach(t => wrap.appendChild(createTagChip(t, '')));
     grpF.appendChild(wrap);
     body.appendChild(grpF);
   }
 
-  groupNames.forEach(grpName => {
-    const grp = document.createElement('div');
-    grp.className = 'gv2-tt-group';
+  // Toggle button state sync
+  const viewToggle = document.getElementById('gv2-tag-view-btn');
+  if (viewToggle) viewToggle.textContent = state.gallery.tagViewMode === 'grouped' ? 'Grp' : 'All';
 
-    const hdr = document.createElement('div');
-    hdr.className = 'gv2-tt-grp-hdr';
-    const lbl = document.createElement('span');
-    lbl.textContent = grpName;
-    lbl.title = 'Right-click to rename';
-    lbl.style.cursor = 'pointer';
-    lbl.style.color = '#58a6ff';
-    lbl.style.fontWeight = 'bold';
-    lbl.addEventListener('contextmenu', e => {
-      showCtxMenu(e, [{
-        label: '✏ Rename group', action: () => {
-          const newName = prompt('Rename group:', grpName);
-          if (!newName || !newName.trim() || newName.trim() === grpName) return;
-          const n = newName.trim();
-          if (state.tagGroups[n] && n !== grpName) { showToast('Group already exists', 'error'); return; }
-          state.tagGroups[n] = state.tagGroups[grpName] || [];
-          if (n !== grpName) delete state.tagGroups[grpName];
+  if (state.gallery.tagViewMode === 'flat') {
+    // --- Flattened Tags View ---
+    const freqTagsSet = new Set(topTags);
+    const remainingTags = allTags.filter(t => !freqTagsSet.has(t)).sort((a, b) => a.localeCompare(b));
+
+    if (remainingTags.length > 0) {
+      const sec = document.createElement('div');
+      sec.className = 'gv2-tt-group';
+      const hdr = document.createElement('div');
+      hdr.className = 'gv2-tt-grp-hdr';
+      const lbl = document.createElement('span');
+      lbl.textContent = 'ALL TAGS';
+      lbl.style.color = 'var(--text3)';
+      lbl.style.fontWeight = 'bold';
+      hdr.appendChild(lbl);
+      sec.appendChild(hdr);
+
+      const wrap = document.createElement('div');
+      wrap.className = 'gv2-tt-grp-tags';
+      remainingTags.forEach(tag => wrap.appendChild(createTagChip(tag)));
+      sec.appendChild(wrap);
+      body.appendChild(sec);
+    }
+  } else {
+    // --- Original Grouped View ---
+    groupNames.forEach(grpName => {
+      const grp = document.createElement('div');
+      grp.className = 'gv2-tt-group';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'gv2-tt-grp-hdr';
+      const lbl = document.createElement('span');
+      lbl.textContent = grpName;
+      lbl.title = 'Right-click to rename';
+      lbl.style.cursor = 'pointer';
+      lbl.style.color = 'var(--blue)';
+      lbl.style.fontWeight = 'bold';
+      lbl.addEventListener('contextmenu', e => {
+        showCtxMenu(e, [{
+          label: '✏ Rename group', action: () => {
+            const newName = prompt('Rename group:', grpName);
+            if (!newName || !newName.trim() || newName.trim() === grpName) return;
+            const n = newName.trim();
+            if (state.tagGroups[n] && n !== grpName) { showToast('Group already exists', 'error'); return; }
+            state.tagGroups[n] = state.tagGroups[grpName] || [];
+            if (n !== grpName) delete state.tagGroups[grpName];
+            saveTagGroups();
+            renderGalleryTagsTray();
+          }
+        }]);
+      });
+      const delBtn = document.createElement('button');
+      delBtn.className = 'gv2-tt-grp-del';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Delete group';
+      delBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (confirm(`Delete group "${grpName}"? Tags will become ungrouped.`)) {
+          delete state.tagGroups[grpName];
           saveTagGroups();
           renderGalleryTagsTray();
         }
-      }]);
-    });
-    const delBtn = document.createElement('button');
-    delBtn.className = 'gv2-tt-grp-del';
-    delBtn.textContent = '✕';
-    delBtn.title = 'Delete group';
-    delBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (confirm(`Delete group "${grpName}"? Tags will become ungrouped.`)) {
-        delete state.tagGroups[grpName];
-        saveTagGroups();
-        renderGalleryTagsTray();
+      });
+      hdr.appendChild(lbl);
+      hdr.appendChild(delBtn);
+
+      const tagWrap = document.createElement('div');
+      tagWrap.className = 'gv2-tt-grp-tags';
+      bindDropTarget(grp, grpName);
+      bindDropTarget(tagWrap, grpName);
+
+      const tags = (groups[grpName] || []).filter(t => allTags.includes(t));
+      tags.forEach(tag => tagWrap.appendChild(createTagChip(tag, grpName)));
+      if (!tags.length) {
+        const hint = document.createElement('div');
+        hint.className = 'gv2-tt-drop-hint';
+        hint.textContent = 'Drop tags here';
+        tagWrap.appendChild(hint);
       }
+
+      grp.appendChild(hdr);
+      grp.appendChild(tagWrap);
+      body.appendChild(grp);
     });
-    hdr.appendChild(lbl);
-    hdr.appendChild(delBtn);
 
-    const tagWrap = document.createElement('div');
-    tagWrap.className = 'gv2-tt-grp-tags';
-    bindDropTarget(grp, grpName);
-    bindDropTarget(tagWrap, grpName);
-
-    const tags = (groups[grpName] || []).filter(t => allTags.includes(t));
-    tags.forEach(tag => tagWrap.appendChild(createTagChip(tag, grpName)));
-    if (!tags.length) {
-      const hint = document.createElement('div');
-      hint.className = 'gv2-tt-drop-hint';
-      hint.textContent = 'Drop tags here';
-      tagWrap.appendChild(hint);
+    const groupedTags = new Set(Object.values(state.tagGroups).flat());
+    const ungroupedTags = allTags.filter(t => !groupedTags.has(t) && !freqTagsSet.has(t));
+    if (ungroupedTags.length > 0) {
+      const sec = document.createElement('div');
+      sec.className = 'gv2-tt-unassigned';
+      const lbl = document.createElement('div');
+      lbl.className = 'gv2-tt-unassigned-lbl';
+      lbl.textContent = 'Ungrouped';
+      const wrap = document.createElement('div');
+      wrap.className = 'gv2-tt-grp-tags';
+      bindDropTarget(sec, '');
+      bindDropTarget(wrap, '');
+      ungroupedTags.forEach(tag => wrap.appendChild(createTagChip(tag)));
+      sec.appendChild(lbl);
+      sec.appendChild(wrap);
+      body.appendChild(sec);
     }
-
-    grp.appendChild(hdr);
-    grp.appendChild(tagWrap);
-    body.appendChild(grp);
-  });
-
-  const groupedTags = new Set(Object.values(state.tagGroups).flat());
-  const ungroupedTags = allTags.filter(t => !groupedTags.has(t));
-  const sec = document.createElement('div');
-  sec.className = 'gv2-tt-unassigned';
-  const lbl = document.createElement('div');
-  lbl.className = 'gv2-tt-unassigned-lbl';
-  lbl.textContent = 'Ungrouped';
-  const wrap = document.createElement('div');
-  wrap.className = 'gv2-tt-grp-tags';
-  bindDropTarget(sec, '');
-  bindDropTarget(wrap, '');
-  ungroupedTags.forEach(tag => wrap.appendChild(createTagChip(tag)));
-  if (!ungroupedTags.length) {
-    const hint = document.createElement('div');
-    hint.className = 'gv2-tt-drop-hint';
-    hint.textContent = 'Drop tags here';
-    wrap.appendChild(hint);
   }
-  sec.appendChild(lbl);
-  sec.appendChild(wrap);
-  body.appendChild(sec);
 
   if (!allTags.length) {
     const empty = document.createElement('div');
@@ -390,4 +433,74 @@ function renderGalleryTagsTray() {
   }
 }
 
+/**
+ * REUSABLE: Opens a modal to create a tag + group assignment
+ */
+window.openCreateTagModal = () => {
+  const overlay = document.getElementById('gv2-tag-create-overlay');
+  const nameInp = document.getElementById('gv2-tag-modal-name');
+  const grpSel  = document.getElementById('gv2-tag-modal-group-sel');
+  const newGrInp = document.getElementById('gv2-tag-modal-new-grp');
+  const cancelBtn = document.getElementById('gv2-tag-modal-cancel');
+  const createBtn = document.getElementById('gv2-tag-modal-create');
+  if (!overlay || !nameInp || !grpSel || !newGrInp) return;
 
+  // Reset fields
+  nameInp.value = '';
+  newGrInp.value = '';
+  overlay.style.display = 'flex';
+  nameInp.focus();
+
+  // Populate dropdown
+  const groups = Object.keys(state.tagGroups || {}).sort();
+  grpSel.innerHTML = '<option value="">-- No Group / Ungrouped --</option>';
+  groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    opt.style.background = '#1e1e23';
+    opt.style.color = '#fff';
+    grpSel.appendChild(opt);
+  });
+
+  // Cleanup listeners
+  cancelBtn.onclick = () => { overlay.style.display = 'none'; };
+
+  createBtn.onclick = async () => {
+    const t = nameInp.value.trim();
+    if (!t) { showToast('Tag name zaroori hai', 'error'); return; }
+
+    let g = newGrInp.value.trim();
+    if (!g) g = grpSel.value; // Fallback to selected dropdown item
+
+    // 1. Ensure tag exists in state.allTags
+    if (!state.allTags.includes(t)) state.allTags.push(t);
+
+    // 2. Assign to group if specified
+    if (g) {
+      if (!state.tagGroups[g]) state.tagGroups[g] = [];
+      if (!state.tagGroups[g].includes(t)) state.tagGroups[g].push(t);
+      saveTagGroups();
+    }
+
+    // 3. Assign to current image if one is open
+    const info = typeof getCurrentGalleryImageTagInfo === 'function' ? getCurrentGalleryImageTagInfo() : null;
+    if (info && info.imgUrl) {
+      const existing = Array.isArray(info.imageTags) ? [...info.imageTags] : [];
+      if (!existing.includes(t)) {
+        existing.push(t);
+        if (info.ownerType === 'trade' && info.trade) setImageTagsForUrl(info.trade, info.imgUrl, existing);
+        else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, info.imgUrl, existing);
+        if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
+        if (typeof saveTrades === 'function') await saveTrades();
+        if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
+        if (typeof renderTable === 'function') renderTable();
+        if (typeof renderCalendar === 'function') renderCalendar();
+      }
+    }
+
+    overlay.style.display = 'none';
+    renderGalleryTagsTray();
+    showToast(`Tag "${t}" created ${g ? `in group "${g}"` : ''}`, 'success');
+  };
+};

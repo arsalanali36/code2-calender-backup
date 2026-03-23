@@ -203,6 +203,49 @@ function renderGalleryTradePill() {
         });
         drop.appendChild(row);
     });
+
+    // --- NEW: Add Tag / Group options ---
+    if (trades.length > 0) {
+        const sep = document.createElement('div');
+        sep.style.cssText = 'height:1px; background:rgba(255,255,255,0.1); margin:6px 0;';
+        drop.appendChild(sep);
+
+        const addTagRow = document.createElement('div');
+        addTagRow.className = 'gv2-pnl-trade-row';
+        addTagRow.style.color = 'var(--text,#58a6ff)';
+        addTagRow.style.opacity = '0.9';
+        addTagRow.innerHTML = '<span style="font-size:1.1em;margin-right:8px;font-weight:bold;color:var(--blue)">+</span><span>New Tag</span>';
+        addTagRow.onclick = (e) => {
+            e.stopPropagation();
+            drop.classList.remove('open');
+            if (typeof window.openCreateTagModal === 'function') {
+                window.openCreateTagModal();
+            }
+        };
+        drop.appendChild(addTagRow);
+
+        const addGrpRow = document.createElement('div');
+        addGrpRow.className = 'gv2-pnl-trade-row';
+        addGrpRow.style.color = 'var(--text,#58a6ff)';
+        addGrpRow.style.opacity = '0.9';
+        addGrpRow.innerHTML = '<span style="font-size:1.1em;margin-right:8px;font-weight:bold;color:var(--blue)">+</span><span>New Group</span>';
+        addGrpRow.onclick = (e) => {
+            e.stopPropagation();
+            drop.classList.remove('open');
+            const name = prompt('New group name:');
+            if (!name || !name.trim()) return;
+            const g = name.trim();
+            if (!state.tagGroups[g]) {
+                state.tagGroups[g] = [];
+                if (typeof saveTagGroups === 'function') saveTagGroups();
+                if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
+                showToast(`Group "${g}" created`, 'success');
+            } else {
+                showToast('Group already exists', 'info');
+            }
+        };
+        drop.appendChild(addGrpRow);
+    }
 }
 
 // ── Combined tray state update (called from renderGallery) ───────────────

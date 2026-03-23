@@ -18,15 +18,30 @@ function _bindGalleryEvents() {
   const galleryHeadsPanel = document.getElementById('gallery-show-heads-panel');
   if (galleryHeadsPanel) galleryHeadsPanel.addEventListener('click', e => e.stopPropagation());
 
-  setupDropdown('gallery-img-tag-filter-btn', 'gallery-img-tag-filter-panel');
-  const galleryFilterPanel = document.getElementById('gallery-img-tag-filter-panel');
-  if (galleryFilterPanel) {
-    galleryFilterPanel.addEventListener('click', e => e.stopPropagation());
-    // Populate when opened
-    const _filterBtnEl = document.getElementById('gallery-img-tag-filter-btn');
-    if (_filterBtnEl) _filterBtnEl.addEventListener('click', () => {
-      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+  // 21. Tag Filter Panel Toggle (formerly dropdown)
+  const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
+  const filterPanel = document.getElementById('gv2-filter-panel');
+  const filterClose = document.getElementById('gv2-filter-close-btn');
+
+  if (filterBtn && filterPanel) {
+    filterBtn.addEventListener('click', () => {
+      const isOpen = filterPanel.style.display === 'flex';
+      filterPanel.style.display = isOpen ? 'none' : 'flex';
+      filterBtn.classList.toggle('active', !isOpen);
+      if (!isOpen) { 
+        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+        localStorage.setItem('tj_filterPanelOpen', '1');
+      } else {
+        localStorage.setItem('tj_filterPanelOpen', '0');
+      }
     });
+    if (filterClose) {
+      filterClose.addEventListener('click', () => {
+        filterPanel.style.display = 'none';
+        filterBtn.classList.remove('active');
+        localStorage.setItem('tj_filterPanelOpen', '0');
+      });
+    }
   }
   // ── Unified Resizing (Touch + Mouse) ──────────────────────────────────
   const setupPanelResizer = (handleId, panelId, localStorageKey, direction, minW = 140, maxW = 480) => {
@@ -89,6 +104,7 @@ function _bindGalleryEvents() {
   setupPanelResizer('gv2-lp-resize-handle', 'gv2-layer-panel', 'tj_layerPanelW', 'right', 140, 480);
   setupPanelResizer('gv2-tray-resize-handle', 'gv2-tags-tray', 'tj_trayPanelW', 'left', 160, 520);
   setupPanelResizer('gv2-trades-resize-handle', 'gv2-trades-panel', 'tj_tradesPanelW', 'right', 180, 520);
+  setupPanelResizer('gv2-filter-resize-handle', 'gv2-filter-panel', 'tj_filterPanelW', 'right', 180, 520);
 
   // Thumbnail panel open state restore
   (function () {
@@ -364,7 +380,18 @@ function _bindGalleryEvents() {
     }
   });
 
-  document.getElementById('gv2-add-grp-btn').addEventListener('click', () => {
+  document.getElementById('gv2-tag-view-btn')?.addEventListener('click', e => {
+    const btn = e.currentTarget;
+    state.gallery.tagViewMode = state.gallery.tagViewMode === 'grouped' ? 'flat' : 'grouped';
+    if (btn) btn.textContent = state.gallery.tagViewMode === 'grouped' ? 'Grp' : 'All';
+    renderGalleryTagsTray();
+  });
+  document.getElementById('gv2-add-tag-btn')?.addEventListener('click', () => {
+    if (typeof window.openCreateTagModal === 'function') {
+      window.openCreateTagModal();
+    }
+  });
+  document.getElementById('gv2-add-grp-btn')?.addEventListener('click', () => {
     const name = prompt('New group name:');
     if (!name || !name.trim()) return;
     const g = name.trim();
