@@ -224,10 +224,10 @@
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 3px 11px;
-  font-size: 0.82rem;
+  padding: 3px 14px;
+  font-size: 0.95rem;
   font-weight: 700;
-  cursor: pointer;
+  cursor: default;
   transition: filter 0.15s, background 0.15s;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.2px;
@@ -237,7 +237,7 @@
   align-items: center;
   gap: 4px;
 }
-.gv2-pnl-pill::before { content: '▼'; font-size: 0.55em; opacity: 0.75; }
+/*.gv2-pnl-pill::before removed*/
 .gv2-pnl-pill:hover { filter: brightness(1.15); }
 .gv2-pnl-pill.positive { background: #1a9c4e; }
 .gv2-pnl-pill.neutral {
@@ -252,9 +252,9 @@
   color: var(--text);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 6px;
-  padding: 3px 11px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  padding: 3px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
   font-variant-numeric: tabular-nums;
@@ -262,7 +262,7 @@
   line-height: 1.55;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 .gv2-trade-pill:hover { background: #363a4d; }
 .gv2-trade-pill .gv2-tp-label { color: var(--text2); font-weight: 500; }
@@ -271,9 +271,7 @@
 .gv2-trade-pill .gv2-tp-val.pos { color: #2ecc71; }
 .gv2-trade-pill .gv2-tp-val.neg { color: #e74c3c; }
 .gv2-trade-pill::after { content: '▼'; font-size: 0.5em; opacity: 0.5; margin-left: 2px; }
-.gv2-trade-pill-wrap { display: none; position: relative; }
 
-/* Shared dropdown panel */
 .gv2-pnl-dropdown {
   display: none;
   position: absolute;
@@ -293,8 +291,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 14px;
-  font-size: 0.8rem;
+  padding: 8px 16px;
+  font-size: 0.92rem;
   cursor: pointer;
   transition: background 0.1s;
   gap: 10px;

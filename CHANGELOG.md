@@ -1,6 +1,52 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 23, 2026
+
+### v3.0.0 — What-If Simulator + Dhan OHLC Integration
+
+**What-If Simulator (new `/whatif` page):**
+- Full trade simulation engine: given fixed Target/SL pts (and optional trailing trigger), replays each trade forward candle-by-candle from entry time with no hindsight bias.
+- Supports 1/2/3/4/5 min timeframes via resample on 1-min OHLC cache.
+- Direction auto-detected from TradeType (sell=SHORT, buy=LONG) or overridden per-run.
+- Computes: actual PnL, planned PnL, missed PnL (opportunity cost), MFE, MAE, efficiency%, exit reason (target/sl/trail_sl/eod).
+- Trail SL: move SL to break-even when price moves `trail_trigger_pts` in your favour.
+- Exit order: SL checked before target within same candle (pessimistic/realistic).
+- OHLC sanity check: warns if first candle open is >20% away from entry (wrong strike).
+- Summary stats: total trades, actual/planned/missed PnL, avg efficiency, target/sl/trail_sl/eod exit counts, no-OHLC count.
+
+**Dhan API Integration (new `services/dhan_service.py` + `dhan_service_core.py`):**
+- Credential storage: client_id + access_token saved to `data/dhan_config.json` (token masked in UI).
+- Scrip master: download from Dhan CDN, fuzzy column-name search (handles API version differences).
+- Symbol auto-mapper: parses NSE symbols in Zerodha monthly/weekly format, Dhan space format, and futures. Auto-saves high-confidence (≥70%) matches to `data/dhan_symbol_map.json`.
+- Expired options via `/v2/charts/rollingoption`: fetches ATM±N OHLC without needing security_id. Entry time used to pick correct ATM strike.
+- Historical + intraday OHLC endpoints, CSV cache in `data/ohlc_cache/`, with auto-fill for partial days.
+- OHLC status endpoint: reports missing/partial/complete per (symbol, date).
+
+**New backend files:**
+- `routes/whatif_routes.py` — blueprint with 10 routes (config, scrip, symbol-map, auto-map, OHLC status/fetch/data/chart, simulation run)
+- `services/dhan_service_core.py` — config, scrip, symbol-map, NSE parser (split from dhan_service for 30KB rule)
+- `services/dhan_service.py` — expired options, auto-mapper, OHLC cache + fetch
+- `services/whatif_service.py` — simulation engine (no Flask, pure data transform)
+- `config.py` — added OHLC_CACHE_DIR, DHAN_CONFIG_FILE, DHAN_SYMBOL_MAP_FILE, DHAN_SCRIP_MASTER
+
+**Gallery separator improvements:**
+- Trade separator (`T1`, `T2`…) now shows P&L + Pt as styled `<span>` elements with color coding.
+- OPEN/CLOSE separators use `<span class="gv2-sep-label">` for consistent styling.
+- Clicking a separator now toggles `state.gallery.selectedSeparator` so upload button targets correct trade/OPEN/CLOSE.
+
+**Gallery events improvements:**
+- Ctrl+drag scroll rate-limited with `requestAnimationFrame`.
+- Select/deselect logic improved for ctrl+drag in gallery.
+- Fullscreen button in gallery modal: clicking toggles `requestFullscreen`/`exitFullscreen`.
+- Thumb panel resize: max width increased from 160 to 800px.
+- Panel width restored from localStorage on init.
+
+**30KB rule splits (EOD):**
+- `events-gallery.js` (33.6KB) → `events-gallery.js` + `events-gallery-b.js` (trades panel extracted).
+- `gallery-render.js` (31.7KB) → `gallery-render-b.js` (video blob cache) + `gallery-render.js`.
+- `services/dhan_service.py` (33.6KB) → `dhan_service_core.py` + `dhan_service.py`.
+
 ## EOD Summary - March 18, 2026
 
 ### v2.9.9 — Gallery SVG Icons, Colored Sidebar, Fullscreen Fixes, Video Cleanup

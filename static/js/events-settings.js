@@ -191,6 +191,15 @@ function _bindSettingsEvents() {
   dz.addEventListener('drop', async e => { e.preventDefault(); dz.classList.remove('drag-over'); await handleImageFiles(Array.from(e.dataTransfer.files)); });
   document.getElementById('upload-done-btn').addEventListener('click', async () => {
     let savedViaGallerySeparator = false;
+    // Only save server-confirmed URLs — blob: URLs are temporary and expire on reload
+    const readyFiles = state.pendingFiles.filter(u => !String(u).startsWith('blob:'));
+    const pendingCount = state.pendingFiles.length - readyFiles.length;
+    if (pendingCount > 0) showToast(`${pendingCount} image(s) still uploading — wait and try again`, 'error');
+    if (!readyFiles.length && !state.pendingFiles.length) {
+      document.getElementById('upload-modal').classList.remove('open');
+      if (state._galleryUploadCallback) { state._galleryUploadCallback(); state._galleryUploadCallback = null; }
+      return;
+    }
 
     if (state._galleryUploadCallback && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
       const targetDate = state.gallery.date;
@@ -198,18 +207,18 @@ function _bindSettingsEvents() {
       if (sel === 'CLOSE') {
         if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
         if (!state.dayData[targetDate].closeImages) state.dayData[targetDate].closeImages = [];
-        state.dayData[targetDate].closeImages.push(...state.pendingFiles);
+        state.dayData[targetDate].closeImages.push(...readyFiles);
         savedViaGallerySeparator = true;
       } else if (sel === 'OPEN') {
         if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
         if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
-        state.dayData[targetDate].images.push(...state.pendingFiles);
+        state.dayData[targetDate].images.push(...readyFiles);
         savedViaGallerySeparator = true;
       } else if (typeof sel === 'number') {
         const tr = getTradesForDate(targetDate)[sel];
         if (tr) {
           tr.images = tr.images || [];
-          tr.images.push(...state.pendingFiles);
+          tr.images.push(...readyFiles);
           savedViaGallerySeparator = true;
         }
       }
@@ -223,13 +232,13 @@ function _bindSettingsEvents() {
       if (state._dayUploadKey) {
         if (!state.dayData[state._dayUploadKey]) state.dayData[state._dayUploadKey] = {};
         if (!state.dayData[state._dayUploadKey].images) state.dayData[state._dayUploadKey].images = [];
-        state.dayData[state._dayUploadKey].images.push(...state.pendingFiles);
+        state.dayData[state._dayUploadKey].images.push(...readyFiles);
         await saveTrades(); render();
         showToast('Images saved!', 'success');
         state._dayUploadKey = null;
       } else if (state.uploadRow !== null) {
         if (!state.trades[state.uploadRow].images) state.trades[state.uploadRow].images = [];
-        state.trades[state.uploadRow].images.push(...state.pendingFiles);
+        state.trades[state.uploadRow].images.push(...readyFiles);
         cleanupImageTagStore(state.trades[state.uploadRow]);
         syncTradeDateField(state.trades[state.uploadRow]);
         saveTrades();

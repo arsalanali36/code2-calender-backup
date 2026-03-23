@@ -39,7 +39,7 @@ function _brushCursorLeave() {
 
 // ─── B. Zoom / Pan ───────────────────────────────────────────────────────────
 
-function resetZoom() { zoom.scale = 1; zoom.x = 0; zoom.y = 0; applyZoom(); }
+function resetZoom() { zoom.scale = 1; zoom.x = 0; zoom.y = 0; drag.active = false; applyZoom(); }
 
 function applyZoom() {
   const img = document.getElementById('gallery-img');
@@ -141,6 +141,10 @@ function bindZoomPan() {
       document.getElementById('gallery-img').classList.remove('dragging');
       applyZoom();
     }
+  });
+  // Safety: if window loses focus while dragging, release the drag
+  window.addEventListener('blur', () => {
+    if (drag.active) { drag.active = false; document.getElementById('gallery-img')?.classList.remove('dragging'); }
   });
 
   let lastDist = 0, swipeTracking = false;

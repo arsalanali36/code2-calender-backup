@@ -50,7 +50,7 @@ files_table_render = ["static/js/table-render.js"]
 files_table_cols = ["static/js/table-cols.js"]
 
 # JS: Gallery Core
-files_gallery_render = ["static/js/gallery-render.js"]
+files_gallery_render = ["static/js/gallery-render-b.js", "static/js/gallery-render.js"]
 files_gallery_stats_open = ["static/js/gallery-stats.js", "static/js/gallery-open.js"]
 files_gallery_core_nav = ["static/js/gallery-core.js", "static/js/gallery-nav.js"]
 files_gallery_layer = ["static/js/gallery-layer.js"]
@@ -83,8 +83,21 @@ files_visual_dashboard = ["static/js/visual-dashboard.js"]
 # JS: Events
 files_events_init = ["static/js/events.js", "static/js/events-keys.js"]
 files_events_ui = ["static/js/events-ui.js"]
-files_events_gallery = ["static/js/events-gallery.js"]
+files_events_gallery = ["static/js/events-gallery.js", "static/js/events-gallery-b.js"]
 files_events_settings = ["static/js/events-settings.js"]
+
+# What-If feature
+files_whatif_backend = [
+    "routes/whatif_routes.py",
+    "services/dhan_service_core.py",
+    "services/dhan_service.py",
+    "services/whatif_service.py",
+]
+files_whatif_frontend = [
+    "templates/whatif.html",
+    "static/js/whatif-ui.js",
+    "static/css/style-whatif.css",
+]
 
 
 def get_targets() -> List[Tuple[str, Sequence[str], str]]:
@@ -132,6 +145,8 @@ def get_targets() -> List[Tuple[str, Sequence[str], str]]:
         ("AI_CONTEXT_JS_EVENTS_UI.md", files_events_ui, "JS - Events UI"),
         ("AI_CONTEXT_JS_EVENTS_GALLERY.md", files_events_gallery, "JS - Events Gallery"),
         ("AI_CONTEXT_JS_EVENTS_SETTINGS.md", files_events_settings, "JS - Events Settings"),
+        ("AI_CONTEXT_WHATIF_BACKEND.md", files_whatif_backend, "What-If - Backend Routes and Services"),
+        ("AI_CONTEXT_WHATIF_FRONTEND.md", files_whatif_frontend, "What-If - Frontend UI and CSS"),
     ]
 
 

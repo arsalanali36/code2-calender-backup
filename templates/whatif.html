@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>What If — Trading Journal</title>
+  <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}"/>
+  <link rel="stylesheet" href="/static/css/style-whatif.css?v={{ cache_bust }}"/>
+</head>
+<body>
+<div class="wi-wrap">
+
+  <!-- Header -->
+  <div class="wi-header">
+    <button class="wi-back" onclick="window.location='/'">&#8592; Back</button>
+    <h1>&#128200; What If Analysis</h1>
+    <span class="hint" style="margin-left:auto">Simulate fixed SL/Target rules on your real trades</span>
+  </div>
+
+  <!-- ── 1. Dhan API Config ────────────────────────────────── -->
+  <div class="wi-card" id="card-config">
+    <div class="wi-card-head" onclick="toggleCard('card-config')">
+      <span class="wi-card-title">&#9881; Dhan API Credentials</span>
+      <span class="wi-card-arrow">&#9660;</span>
+    </div>
+    <div class="wi-card-body">
+      <div class="wi-row">
+        <div class="wi-field">
+          <label>Client ID</label>
+          <input id="dhan-client-id" type="text" placeholder="Your Dhan client ID"/>
+        </div>
+        <div class="wi-field">
+          <label>Access Token</label>
+          <input id="dhan-token" type="password" placeholder="Paste access token"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn-wi btn-primary" onclick="saveDhanConfig()">Save Credentials</button>
+        <span id="cfg-status" class="hint"></span>
+      </div>
+      <p class="hint" style="margin-top:10px">
+        Credentials are stored locally on the server (data/dhan_config.json) and never sent anywhere else.
+        Get your access token from <strong>Dhan → API → Access Token</strong>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 2. Instrument Mapper ──────────────────────────────── -->
+  <div class="wi-card open" id="card-mapper">
+    <div class="wi-card-head" onclick="toggleCard('card-mapper')">
+      <span class="wi-card-title">&#128279; Instrument Mapper <span id="mapper-count" class="badge badge-gray" style="margin-left:4px">0 mapped</span></span>
+      <span class="wi-card-arrow">&#9660;</span>
+    </div>
+    <div class="wi-card-body">
+      <p class="hint" style="margin-bottom:14px;">
+        Filter by date range, then click <strong>Auto Map</strong> to find Security IDs for
+        instruments traded in that period. High-confidence matches are saved instantly.
+        Use <strong>Fix</strong> for uncertain ones.
+      </p>
+
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px;">
+        <div class="wi-field" style="max-width:150px;">
+          <label>From Date</label>
+          <input id="map-date-from" type="date"/>
+        </div>
+        <div class="wi-field" style="max-width:150px;">
+          <label>To Date</label>
+          <input id="map-date-to" type="date"/>
+        </div>
+        <button class="btn-wi btn-primary" onclick="autoMapAll()" id="btn-auto-map">
+          &#9889; Auto Map
+        </button>
+        <button class="btn-wi btn-outline" onclick="clearMapDates()" title="Clear date filter — map all trades">
+          &#10005; Clear filter
+        </button>
+        <span id="auto-map-status" class="hint"></span>
+      </div>
+
+      <!-- Auto-map results (shown after running) -->
+      <div id="auto-map-results"></div>
+
+      <hr class="divider"/>
+
+      <!-- Saved mappings (always visible) -->
+      <div id="saved-mappings-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ── 3. Strategy Controls ──────────────────────────────── -->
+  <div class="wi-card open" id="card-strategy">
+    <div class="wi-card-head" onclick="toggleCard('card-strategy')">
+      <span class="wi-card-title">&#9881; Strategy & Filters</span>
+      <span class="wi-card-arrow">&#9660;</span>
+    </div>
+    <div class="wi-card-body">
+      <div class="wi-row">
+        <div class="wi-field">
+          <label>Date From</label>
+          <input id="date-from" type="date"/>
+        </div>
+        <div class="wi-field">
+          <label>Date To</label>
+          <input id="date-to" type="date"/>
+        </div>
+        <div class="wi-field" style="max-width:140px;">
+          <label>Target (pts)</label>
+          <input id="target-pts" type="number" value="30" min="1" step="0.5"/>
+        </div>
+        <div class="wi-field" style="max-width:140px;">
+          <label>SL (pts)</label>
+          <input id="sl-pts" type="number" value="15" min="0.5" step="0.5"/>
+        </div>
+        <div class="wi-field" style="max-width:160px;">
+          <label>Trail to BE trigger (pts) <span class="hint" style="display:inline">(0 = off)</span></label>
+          <input id="trail-pts" type="number" value="0" min="0" step="0.5"/>
+        </div>
+        <div class="wi-field" style="max-width:130px;">
+          <label>Candle timeframe</label>
+          <select id="timeframe">
+            <option value="1">1 min</option>
+            <option value="2">2 min</option>
+            <option value="3">3 min</option>
+            <option value="4">4 min</option>
+            <option value="5">5 min</option>
+          </select>
+        </div>
+        <div class="wi-field" style="max-width:130px;">
+          <label>Direction override</label>
+          <select id="direction-override">
+            <option value="">Auto (from trade)</option>
+            <option value="short">Force SHORT</option>
+            <option value="long">Force LONG</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px;">
+        <button class="btn-wi btn-outline" onclick="checkOhlcStatus()">
+          &#128270; Check OHLC Status
+        </button>
+        <button class="btn-wi btn-outline" onclick="fetchAllOhlc()" id="btn-fetch-ohlc">
+          &#8659; Fetch / Complete OHLC
+        </button>
+        <button class="btn-wi btn-primary" onclick="runSimulation()" id="btn-run">
+          &#9654; Run Simulation
+        </button>
+        <span id="run-status" class="hint"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. OHLC Status ────────────────────────────────────── -->
+  <div id="ohlc-status-section" class="hidden">
+    <div class="wi-card open" id="card-ohlc">
+      <div class="wi-card-head" onclick="toggleCard('card-ohlc')">
+        <span class="wi-card-title">&#128190; OHLC Cache Status</span>
+        <span class="wi-card-arrow">&#9660;</span>
+      </div>
+      <div class="wi-card-body">
+        <div id="ohlc-status-grid" class="ohlc-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. Summary Cards ──────────────────────────────────── -->
+  <div id="summary-section" class="hidden">
+    <div class="wi-cards" id="wi-summary-cards"></div>
+  </div>
+
+  <!-- ── 6. Results Table ──────────────────────────────────── -->
+  <div id="results-section" class="hidden">
+    <div class="wi-card open" id="card-results">
+      <div class="wi-card-head" onclick="toggleCard('card-results')">
+        <span class="wi-card-title">&#128202; Trade Results</span>
+        <span class="wi-card-arrow">&#9660;</span>
+      </div>
+      <div class="wi-card-body" style="padding:0;">
+        <div class="wi-table-wrap">
+          <table class="wi-table" id="wi-results-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>T#</th>
+                <th>Time</th>
+                <th>Exit&nbsp;Time</th>
+                <th>Instrument</th>
+                <th>Dir</th>
+                <th>Entry</th>
+                <th>Exit</th>
+                <th>Actual&nbsp;pts</th>
+                <th>Actual&nbsp;₹</th>
+                <th>Planned&nbsp;pts</th>
+                <th>Planned&nbsp;₹</th>
+                <th>Missed&nbsp;pts</th>
+                <th>MFE</th>
+                <th>MAE</th>
+                <th>Eff&nbsp;%</th>
+                <th>Exit</th>
+                <th>Trail</th>
+              </tr>
+            </thead>
+            <tbody id="wi-results-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wi-wrap -->
+
+<!-- OHLC Chart Modal -->
+<div id="ohlc-chart-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;">
+  <div style="background:#131722;border:1px solid #2a2a3e;border-radius:10px;padding:16px;width:min(960px,96vw);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span id="ohlc-chart-title" style="font-weight:600;color:#ccc;font-size:13px;font-family:monospace;"></span>
+      <button onclick="closeOhlcChart()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;">&#x2715;</button>
+    </div>
+    <div id="ohlc-chart-container" style="width:100%;height:460px;"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="/static/js/whatif-ui.js?v={{ cache_bust }}"></script>
+</body>
+</html>

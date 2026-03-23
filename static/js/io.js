@@ -12,12 +12,20 @@
  */
 
 
+function _resetUploadProgress() {
+  const el = document.getElementById('upload-progress');
+  const bar = document.getElementById('upload-progress-bar');
+  if (el) el.style.display = 'none';
+  if (bar) bar.style.width = '0%';
+}
+
 function openUploadModal(rowIdx) {
   syncTradeDateField(state.trades[rowIdx]);
   state.uploadRow = rowIdx;
   state._dayUploadKey = null;
   state.pendingFiles = []; // Start empty instead of existing images
   document.getElementById('upload-modal-title').textContent = `Images â€” ${state.trades[rowIdx].date || `Row ${rowIdx + 1}`}`;
+  _resetUploadProgress();
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
 }
@@ -27,6 +35,7 @@ function openDayUploadModal(dateKey) {
   state._dayUploadKey = dateKey;
   state.pendingFiles = []; // Start empty instead of existing images
   document.getElementById('upload-modal-title').textContent = `Images â€” ${dateKey}`;
+  _resetUploadProgress();
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
 }
@@ -50,8 +59,30 @@ async function handleImageFiles(files) {
   state.pendingFiles.push(...localUrls);
   renderUploadPreview();
 
+  const total = sorted.length;
+  let done = 0, failed = 0;
+
+  const progressWrap = document.getElementById('upload-progress');
+  const progressBar = document.getElementById('upload-progress-bar');
+  const progressText = document.getElementById('upload-progress-text');
+  const updateProgress = () => {
+    if (!progressWrap) return;
+    const pct = Math.round((done / total) * 100);
+    progressWrap.style.display = '';
+    if (progressBar) progressBar.style.width = pct + '%';
+    if (progressText) {
+      if (done < total) {
+        progressText.textContent = `Uploading... ${done} / ${total} (${pct}%)`;
+        progressText.style.color = 'var(--text2)';
+      } else {
+        progressText.textContent = failed ? `${total - failed} / ${total} uploaded (${failed} failed)` : `${total} / ${total} uploaded ✓`;
+        progressText.style.color = failed ? 'var(--red,#e74c3c)' : 'var(--green,#2ecc71)';
+      }
+    }
+  };
+  updateProgress();
+
   // Upload all in parallel, replace blob URL with server URL as each finishes
-  let failed = 0;
   await Promise.all(sorted.map(async (file, i) => {
     try {
       const data = await imageService.uploadImage(file);
@@ -68,6 +99,8 @@ async function handleImageFiles(files) {
       URL.revokeObjectURL(localUrls[i]);
       renderUploadPreview();
     }
+    done++;
+    updateProgress();
   }));
   if (failed) showToast(`${failed} image(s) failed to upload`, 'error');
 }

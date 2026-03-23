@@ -77,9 +77,15 @@ function _bindGalleryEvents() {
     document.addEventListener('touchmove', _onMove, { passive: false });
     document.addEventListener('mouseup', _onUp);
     document.addEventListener('touchend', _onUp);
+
+    // Restore saved width on init
+    if (localStorageKey) {
+      const saved = parseInt(localStorage.getItem(localStorageKey), 10);
+      if (saved) _setWidth(saved);
+    }
   };
 
-  setupPanelResizer('gv2-thumb-panel-resize', 'gv2-thumb-panel', 'tj_thumbPanelW', 'right', 54, 160);
+  setupPanelResizer('gv2-thumb-panel-resize', 'gv2-thumb-panel', 'tj_thumbPanelW', 'right', 54, 800);
   setupPanelResizer('gv2-lp-resize-handle', 'gv2-layer-panel', 'tj_layerPanelW', 'right', 140, 480);
   setupPanelResizer('gv2-tray-resize-handle', 'gv2-tags-tray', 'tj_trayPanelW', 'left', 160, 520);
   setupPanelResizer('gv2-trades-resize-handle', 'gv2-trades-panel', 'tj_tradesPanelW', 'right', 180, 520);
@@ -151,6 +157,7 @@ function _bindGalleryEvents() {
   // Ctrl+drag to select thumbnails, Ctrl+Alt+drag to deselect
   let _ctrlDragPending = false, _ctrlDragActive = false, _ctrlDragMode = 'select';
   let _ctrlDragStartPos = null;
+  let _ctrlDragScrollRaf = null;
   document.addEventListener('mousedown', e => {
     if (!document.getElementById('gallery-modal')?.classList.contains('open')) return;
     if (!e.ctrlKey || e.button !== 0) return;
@@ -169,22 +176,39 @@ function _bindGalleryEvents() {
     }
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const wrap = el?.closest('.gv2-thumb-wrap');
-    if (!wrap || wrap.dataset.globalIdx === undefined) return;
-    const idx = parseInt(wrap.dataset.globalIdx);
-    if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
-    if (_ctrlDragMode === 'select') {
-      if (!state.gallery.selectedIndices.has(idx)) {
-        state.gallery.selectedIndices.add(idx);
-        wrap.querySelector('.gv2-thumb')?.classList.add('selected-thumb');
-      }
-    } else {
-      if (state.gallery.selectedIndices.has(idx)) {
-        state.gallery.selectedIndices.delete(idx);
-        wrap.querySelector('.gv2-thumb')?.classList.remove('selected-thumb');
+    if (wrap && wrap.dataset.globalIdx !== undefined) {
+      const idx = parseInt(wrap.dataset.globalIdx);
+      if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+      if (_ctrlDragMode === 'select') {
+        if (!state.gallery.selectedIndices.has(idx)) {
+          state.gallery.selectedIndices.add(idx);
+          wrap.querySelector('.gv2-thumb')?.classList.add('selected-thumb');
+        }
+      } else {
+        if (state.gallery.selectedIndices.has(idx)) {
+          state.gallery.selectedIndices.delete(idx);
+          wrap.querySelector('.gv2-thumb')?.classList.remove('selected-thumb');
+        }
       }
     }
+    // Auto-scroll thumb panel when dragging near top/bottom edges
+    const thumbs = document.getElementById('gallery-thumbs');
+    if (!thumbs) return;
+    const rect = thumbs.getBoundingClientRect();
+    const ZONE = 50, SPEED = 8;
+    if (_ctrlDragScrollRaf) cancelAnimationFrame(_ctrlDragScrollRaf);
+    if (e.clientY < rect.top + ZONE) {
+      const scroll = () => { thumbs.scrollTop -= SPEED; if (_ctrlDragActive) _ctrlDragScrollRaf = requestAnimationFrame(scroll); };
+      _ctrlDragScrollRaf = requestAnimationFrame(scroll);
+    } else if (e.clientY > rect.bottom - ZONE) {
+      const scroll = () => { thumbs.scrollTop += SPEED; if (_ctrlDragActive) _ctrlDragScrollRaf = requestAnimationFrame(scroll); };
+      _ctrlDragScrollRaf = requestAnimationFrame(scroll);
+    }
   });
-  document.addEventListener('mouseup', () => { _ctrlDragPending = false; _ctrlDragActive = false; });
+  document.addEventListener('mouseup', () => {
+    _ctrlDragPending = false; _ctrlDragActive = false;
+    if (_ctrlDragScrollRaf) { cancelAnimationFrame(_ctrlDragScrollRaf); _ctrlDragScrollRaf = null; }
+  });
 
   // Shortcuts popover toggle
   const scBtn = document.getElementById('gv2-shortcuts-btn');
@@ -203,6 +227,16 @@ function _bindGalleryEvents() {
 
   // Fullscreen button
   document.getElementById('gv2-fullscreen-btn')?.addEventListener('click', () => {
+    const modal = document.getElementById('gallery-modal');
+    if (modal) {
+      if (!document.fullscreenElement) {
+        modal.requestFullscreen?.().catch(err => {
+          console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
     const images = state.gallery.images || [];
     const cur = images[state.gallery.currentIndex];
     if (cur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(images, cur);
@@ -226,16 +260,34 @@ function _bindGalleryEvents() {
   });
   document.getElementById('gallery-upload-btn').addEventListener('click', () => {
     if (!state.gallery.date) return;
-    let rowIdx = state.trades.findIndex(t => normalizeDate(extractDateFromTrade(t)) === state.gallery.date);
+    const sel = state.gallery.selectedSeparator;
+    const dayDate = state.gallery.date;
+
+    // If a separator is selected (OPEN/CLOSE/trade index), route via _galleryUploadCallback
+    if (sel !== undefined && sel !== null) {
+      state._galleryUploadCallback = () => {
+        state.gallery.images = getImagesForDate(dayDate);
+        renderGallery(); updateGalleryDateArrows();
+      };
+      // openUploadModal with a dummy rowIdx; done-handler will use selectedSeparator routing
+      const firstRowIdx = state.trades.findIndex(t => normalizeDate(extractDateFromTrade(t)) === dayDate);
+      openUploadModal(firstRowIdx >= 0 ? firstRowIdx : 0);
+      return;
+    }
+
+    // Otherwise use current image's owner trade
+    const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+    const ownerTrade = curUrl ? getOwnerTradeForImageUrl(curUrl) : null;
+    let rowIdx = ownerTrade ? state.trades.indexOf(ownerTrade) : -1;
+    if (rowIdx === -1) rowIdx = state.trades.findIndex(t => normalizeDate(extractDateFromTrade(t)) === dayDate);
     if (rowIdx === -1) {
-      const trade = getOrCreateTrade(state.gallery.date);
+      const trade = getOrCreateTrade(dayDate);
       rowIdx = state.trades.indexOf(trade);
       saveTrades();
     }
     state._galleryUploadCallback = () => {
-      state.gallery.images = getImagesForDate(state.gallery.date);
-      renderGallery();
-      updateGalleryDateArrows();
+      state.gallery.images = getImagesForDate(dayDate);
+      renderGallery(); updateGalleryDateArrows();
     };
     openUploadModal(rowIdx);
   });
@@ -256,11 +308,13 @@ function _bindGalleryEvents() {
     if (e.target === e.currentTarget) closeGalleryImageTagManager();
   });
 
-  document.getElementById('gallery-close').addEventListener('click', () => {
-    if (annotState.active) stopAnnotation();
-    closeGalleryImageTagManager();
-    document.getElementById('gallery-modal').classList.remove('open');
-    unlockBodyScroll();
+  ['gallery-close', 'gv2-exit-btn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => {
+      if (annotState.active) stopAnnotation();
+      closeGalleryImageTagManager();
+      document.getElementById('gallery-modal').classList.remove('open');
+      unlockBodyScroll();
+    });
   });
 
   document.getElementById('gv2-tags-btn').addEventListener('click', () => {
@@ -270,6 +324,7 @@ function _bindGalleryEvents() {
     const open = tray.style.display === 'none' || !tray.style.display;
     tray.style.display = open ? 'flex' : 'none';
     btn.classList.toggle('active', open);
+    localStorage.setItem('tj_tagsTrayOpen', open ? '1' : '0');
     if (open) {
       if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
       if (typeof renderGalleryVideoUrls === 'function') renderGalleryVideoUrls();
@@ -322,15 +377,11 @@ function _bindGalleryEvents() {
     renderGalleryTagsTray();
   });
 
-  // ── P&L pill dropdown toggle ──────────────────────────────────────────────
+  // P&L pill dropdown removed per user request
   const pnlPill = document.getElementById('gv2-pnl-pill');
   const pnlDrop = document.getElementById('gv2-pnl-dropdown');
-  if (pnlPill && pnlDrop) {
-    pnlPill.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('gv2-trade-dropdown')?.classList.remove('open');
-      pnlDrop.classList.toggle('open');
-    });
+  if (pnlPill) {
+    pnlPill.style.cursor = 'default';
   }
 
   // ── Trade pill dropdown toggle ────────────────────────────────────────────
@@ -497,162 +548,6 @@ function _bindGalleryEvents() {
     });
   })();
 
-  // ── Trades Panel Toggle & Render ──────────────────────────────────────────
-  let _tradesSortMode = 'loss_desc';
-  const tpBtn = document.getElementById('gv2-trades-panel-btn');
-  const tpPanel = document.getElementById('gv2-trades-panel');
-  const tpClose = document.getElementById('gv2-trades-close-btn');
-  const tpSortBtn = document.getElementById('gv2-trades-sort-btn');
-  const tpList = document.getElementById('gv2-trades-list');
-
-  const _renderTradesList = () => {
-    if (!tpList || !state.trades) return;
-    tpList.innerHTML = '';
-    // Collect all trades that have at least one image
-    let allPnlTrades = state.trades.filter(t => t && t.images && t.images.length > 0 && typeof t['Net P/L'] !== 'undefined' && normalizeDate(extractDateFromTrade(t)));
-    
-    allPnlTrades.sort((a, b) => {
-      if (_tradesSortMode === 'loss_desc') {
-        const valA = parseFloat(a['Net P/L']) || 0;
-        const valB = parseFloat(b['Net P/L']) || 0;
-        return valA - valB; // most negative first (max loss)
-      } else if (_tradesSortMode === 'profit_desc') {
-        const valA = parseFloat(a['Net P/L']) || 0;
-        const valB = parseFloat(b['Net P/L']) || 0;
-        return valB - valA; // most positive first
-      } else if (_tradesSortMode === 'pt_loss') {
-        const valA = parseFloat(a['Pt']) || 0;
-        const valB = parseFloat(b['Pt']) || 0;
-        return valA - valB;
-      } else if (_tradesSortMode === 'pt_profit') {
-        const valA = parseFloat(a['Pt']) || 0;
-        const valB = parseFloat(b['Pt']) || 0;
-        return valB - valA;
-      } else {
-        // date desc
-        const da = normalizeDate(extractDateFromTrade(a));
-        const db = normalizeDate(extractDateFromTrade(b));
-        return db.localeCompare(da);
-      }
-    });
-
-    if (allPnlTrades.length === 0) {
-      tpList.innerHTML = '<div style="color:var(--text3);text-align:center;padding:20px;">No trades with images found.</div>';
-      return;
-    }
-
-    allPnlTrades.forEach(t => {
-      const pnl = parseFloat(t['Net P/L']) || 0;
-      const pt = parseFloat(t['Pt']) || 0;
-      const color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--text)');
-      const ptColor = pt > 0 ? 'var(--green)' : (pt < 0 ? 'var(--red)' : 'var(--text2)');
-      const d = normalizeDate(extractDateFromTrade(t));
-      const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(d) : [];
-      let tLabel = 'T?';
-      if (dayTrades.length > 0) {
-        // Because of reference issues, let's find it by equality or matching fields
-        const idx = dayTrades.findIndex(tr => tr === t || (tr.images && tr.images[0] === t.images[0]));
-        if (idx !== -1) tLabel = `T${idx + 1}`;
-      }
-      
-      let dateString = d;
-      try {
-        const dObj = new Date(d);
-        if (!isNaN(dObj.getTime())) {
-          dateString = dObj.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
-        }
-      } catch (e) {}
-
-      const isViewingThisDate = (state.gallery.date === d);
-      // t is our trade from allPnlTrades. state.trades[state.gallery.sourceRow] is the currently viewed trade in gallery.
-      const isViewingThisTrade = isViewingThisDate && (state.gallery.sourceRow !== null && (state.trades[state.gallery.sourceRow] === t || (state.trades[state.gallery.sourceRow]?.images && state.trades[state.gallery.sourceRow]?.images[0] === t.images[0])));
-
-      const item = document.createElement('div');
-      item.className = 'gv2-trades-item' + (isViewingThisTrade ? ' active-trade' : '');
-      item.style.cssText = `
-        display:flex; align-items:center; justify-content:space-between;
-        padding:8px 10px; background:${isViewingThisTrade ? 'rgba(255,152,0,0.08)' : 'var(--surface2)'}; 
-        border:1px solid ${isViewingThisTrade ? 'var(--orange,#ff9800)' : 'var(--border)'};
-        border-radius:6px; cursor:pointer; user-select:none; transition:all 0.2s;
-        ${isViewingThisTrade ? 'box-shadow:0 0 12px rgba(255,152,0,0.15);' : ''}
-      `;
-      item.onmouseenter = () => { if (!isViewingThisTrade) item.style.background = 'var(--surface3)'; };
-      item.onmouseleave = () => { if (!isViewingThisTrade) item.style.background = isViewingThisTrade ? 'rgba(255,152,0,0.08)' : 'var(--surface2)'; };
-
-      item.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:2px;">
-          <span style="font-size:0.85rem; font-weight:600; color:${isViewingThisTrade ? 'var(--orange,#ff9800)' : 'var(--text)'};">${dateString}</span>
-          <span style="font-size:0.75rem; color:var(--text3);"><strong style="color:var(--text2);">${tLabel}</strong> &bull; ${t.images.length} img</span>
-        </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-          <div style="font-weight:700; font-size:0.9rem; color:${color};">
-            ${pnl >= 0 ? '+' : ''}${Math.round(pnl)}
-          </div>
-          <div style="font-size:0.75rem; font-weight:600; color:${ptColor};">
-            Pt: ${pt >= 0 ? '+' : ''}${Math.round(pt)}
-          </div>
-        </div>
-      `;
-      item.onclick = () => {
-        if (typeof openGalleryForDate === 'function') {
-          openGalleryForDate(d);
-          const firstImg = t.images[0];
-          setTimeout(() => {
-            if (state.gallery.images && state.gallery.images.includes(firstImg)) {
-              const globalIdx = state.gallery.images.indexOf(firstImg);
-              state.gallery.currentIndex = globalIdx;
-              state.gallery.selectedIndices = new Set([globalIdx]);
-              // force sourceRow update
-              const globalTradeIdx = state.trades.indexOf(t);
-              if (globalTradeIdx !== -1) state.gallery.sourceRow = globalTradeIdx;
-              
-              renderGallery();
-              _renderTradesList(); // update highlight
-            }
-          }, 150);
-        }
-      };
-      tpList.appendChild(item);
-    });
-  };
-  window.refreshGalleryTradesList = _renderTradesList;
-
-  if (tpBtn && tpPanel) {
-    tpBtn.addEventListener('click', () => {
-      const isOpen = tpPanel.style.display !== 'none';
-      tpPanel.style.display = isOpen ? 'none' : 'flex';
-      tpBtn.classList.toggle('active', !isOpen);
-      if (!isOpen) _renderTradesList();
-    });
-  }
-
-  if (tpClose && tpPanel) {
-    tpClose.addEventListener('click', () => {
-      tpPanel.style.display = 'none';
-      tpBtn?.classList.remove('active');
-    });
-  }
-
-  if (tpSortBtn) {
-    tpSortBtn.innerHTML = 'Sort: Loss &#9660;'; // Default text
-    tpSortBtn.addEventListener('click', () => {
-      if (_tradesSortMode === 'loss_desc') {
-        _tradesSortMode = 'profit_desc';
-        tpSortBtn.innerHTML = 'Sort: Profit &#9660;';
-      } else if (_tradesSortMode === 'profit_desc') {
-        _tradesSortMode = 'pt_loss';
-        tpSortBtn.innerHTML = 'Sort: Pt Loss &#9660;';
-      } else if (_tradesSortMode === 'pt_loss') {
-        _tradesSortMode = 'pt_profit';
-        tpSortBtn.innerHTML = 'Sort: Pt Profit &#9660;';
-      } else if (_tradesSortMode === 'pt_profit') {
-        _tradesSortMode = 'date_desc';
-        tpSortBtn.innerHTML = 'Sort: Date &#9660;';
-      } else {
-        _tradesSortMode = 'loss_desc';
-        tpSortBtn.innerHTML = 'Sort: Loss &#9660;';
-      }
-      _renderTradesList();
-    });
-  }
+  // ── Trades Panel Toggle & Render → events-gallery-b.js ───────────────────
+  _bindGalleryTradesPanelEvents();
 }

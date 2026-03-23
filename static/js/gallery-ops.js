@@ -257,6 +257,24 @@ function showGalleryContextMenu(x, y) {
         }));
     }
 
+    // ── Collapse All / Expand All ────────────────────────────────────────
+    addSep();
+    menu.appendChild(createOpt('Collapse All', () => {
+        state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+        const dayDate = state.gallery.date;
+        const trades = dayDate ? getTradesForDate(dayDate) : [];
+        state.gallery.collapsedSeparators.add('OPEN');
+        state.gallery.collapsedSeparators.add('CLOSE');
+        trades.forEach((_, i) => state.gallery.collapsedSeparators.add('T' + i));
+        state.gallery._skipScrollIntoView = true;
+        renderGallery();
+    }));
+    menu.appendChild(createOpt('Expand All', () => {
+        if (state.gallery.collapsedSeparators) state.gallery.collapsedSeparators.clear();
+        state.gallery._skipScrollIntoView = true;
+        renderGallery();
+    }));
+
     addSep();
 
     const parentOpItem = createOpt('Consolidate \u25B6', () => { });

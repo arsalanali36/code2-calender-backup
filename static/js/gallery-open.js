@@ -23,10 +23,11 @@ function openGalleryForDate(dateStr) {
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
+  const wasTagsOpen = localStorage.getItem('tj_tagsTrayOpen') === '1';
   const tray1 = document.getElementById('gv2-tags-tray');
   const btn1 = document.getElementById('gv2-tags-btn');
-  if (tray1) tray1.style.display = 'flex';
-  if (btn1) btn1.classList.add('active');
+  if (tray1) tray1.style.display = wasTagsOpen ? 'flex' : 'none';
+  if (btn1) btn1.classList.toggle('active', wasTagsOpen);
   if (state.gallery.showTime) fetchImageTimesForGallery();
 }
 
@@ -41,10 +42,11 @@ function openGalleryDirect(images, startIndex, sourceRow = null) {
   document.getElementById('gallery-modal').classList.add('open');
   renderGallery(); updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
+  const wasTagsOpen = localStorage.getItem('tj_tagsTrayOpen') === '1';
   const tray2 = document.getElementById('gv2-tags-tray');
   const btn2 = document.getElementById('gv2-tags-btn');
-  if (tray2) tray2.style.display = 'flex';
-  if (btn2) btn2.classList.add('active');
+  if (tray2) tray2.style.display = wasTagsOpen ? 'flex' : 'none';
+  if (btn2) btn2.classList.toggle('active', wasTagsOpen);
   if (state.gallery.showTime) fetchImageTimesForGallery();
 }
 

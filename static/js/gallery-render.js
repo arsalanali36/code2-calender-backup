@@ -1,49 +1,5 @@
-/**
- * @fileoverview gallery-render.js
- * @description Renders gallery thumbnail strip: OPEN/Trade/CLOSE separators, drag-drop, time labels.
- * @exports renderGallery, _getGalleryThumbImages
- * @reads state.gallery.{images,currentIndex,date,tagFilter,showTime,imageTimes,selectedSeparator},
- *        state.dayData, state.trades, annotState.active
- * @calls loadOverlayForCurrentImage, applyGalleryImageScopeByTagFilter,
- *        renderGalleryStats, resetZoom, stopAnnotation
- */
-
-// gallery-render.js — renderGallery (thumbnails), renderGalleryStats, _getGalleryThumbImages
-
-// ── Video blob cache ─────────────────────────────────────────────────────────
-// Stores server URL → blob URL so each video is only downloaded once per session.
-const _videoBlobCache = new Map();
-const _VIDEO_CACHE_MAX = 8; // keep last N videos in memory
-
-async function _cacheVideo(serverUrl) {
-  if (_videoBlobCache.has(serverUrl)) return _videoBlobCache.get(serverUrl);
-  try {
-    const resp = await fetch(serverUrl);
-    if (!resp.ok) return serverUrl;
-    const blob = await resp.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    // Evict oldest entry if over limit
-    if (_videoBlobCache.size >= _VIDEO_CACHE_MAX) {
-      const oldest = _videoBlobCache.keys().next().value;
-      URL.revokeObjectURL(_videoBlobCache.get(oldest));
-      _videoBlobCache.delete(oldest);
-    }
-    _videoBlobCache.set(serverUrl, blobUrl);
-    return blobUrl;
-  } catch { return serverUrl; }
-}
-
-function _preloadAdjacentVideos() {
-  const { images, currentIndex } = state.gallery;
-  if (!images) return;
-  [-1, 1].forEach(d => {
-    const url = images[currentIndex + d];
-    if (url && typeof isVideoUrl === 'function' && isVideoUrl(url)) {
-      const resolved = resolveImageUrl(url);
-      if (!_videoBlobCache.has(resolved)) _cacheVideo(resolved);
-    }
-  });
-}
+// gallery-render.js — renderGallery + thumbnail strip (OPEN/Trade/CLOSE separators, drag-drop, time labels)
+// Video blob cache → gallery-render-b.js
 
 function renderGallery() {
   if (state.gallery._skipFilterRescopeOnce) {
@@ -223,10 +179,11 @@ function renderGallery() {
     const pnl = parseFloat(tr?.['Net P/L'] || tr?.net_pnl || 0) || 0;
     const pt = parseFloat(tr?.['Pt'] || tr?.pt || 0) || 0;
     const pnlStr = pnl !== 0 ? (pnl > 0 ? '+₹' : '-₹') + Math.abs(Math.round(pnl)) : '';
-    const ptStr = pt !== 0 ? (pt > 0 ? '+' : '') + Math.round(pt) + 'P' : '';
-    sep.textContent = `${arrow} T${idx + 1} ${pnlStr} ${ptStr}`;
-    if (pnl !== 0) sep.style.color = pnl > 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)';
-    else sep.style.color = '#ffd700';
+    const ptStr = pt !== 0 ? (pt > 0 ? '+' : '') + Math.round(pt) + 'Pt' : '';
+    const pnlColor = pnl > 0 ? 'var(--green,#2ecc71)' : (pnl < 0 ? 'var(--red,#e74c3c)' : '#ffd700');
+    sep.innerHTML =
+      `<span class="gv2-sep-label" style="color:${pnlColor}">${arrow} T${idx + 1}</span>` +
+      ((pnlStr || ptStr) ? `<span class="gv2-sep-stats" style="color:${pnlColor}">${[pnlStr, ptStr].filter(Boolean).join(' · ')}</span>` : '');
     sep.style.borderColor = '#ffd700';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
@@ -261,6 +218,8 @@ function renderGallery() {
       } else {
         state.gallery.collapsedSeparators.add(key);
       }
+      // Select this separator so upload button targets this trade
+      state.gallery.selectedSeparator = (state.gallery.selectedSeparator === idx) ? null : idx;
       state.gallery._skipScrollIntoView = true;
       renderGallery();
     });
@@ -275,7 +234,7 @@ function renderGallery() {
     const sepKey = isClose ? 'CLOSE' : 'OPEN';
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
-    sep.textContent = `${arrow} ${label}`;
+    sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
     sep.style.color = '#ffd700';
     sep.style.borderColor = '#ffd700';
 
@@ -311,6 +270,8 @@ function renderGallery() {
       } else {
         state.gallery.collapsedSeparators.add(sepKey);
       }
+      // Select this separator so upload button targets OPEN/CLOSE
+      state.gallery.selectedSeparator = (state.gallery.selectedSeparator === sepKey) ? null : sepKey;
       state.gallery._skipScrollIntoView = true;
       renderGallery();
     });

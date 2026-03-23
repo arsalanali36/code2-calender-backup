@@ -16,7 +16,13 @@ UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', '
 TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
 VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
-CSVLOG_SCHEMA_FILE = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
+CSVLOG_SCHEMA_FILE   = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
+
+# ── What-If / Dhan data ───────────────────────────────────────────────────────
+OHLC_CACHE_DIR       = os.path.join(BASE_DIR, 'data', 'ohlc_cache')
+DHAN_CONFIG_FILE     = os.path.join(BASE_DIR, 'data', 'dhan_config.json')
+DHAN_SYMBOL_MAP_FILE = os.path.join(BASE_DIR, 'data', 'dhan_symbol_map.json')
+DHAN_SCRIP_MASTER    = os.path.join(BASE_DIR, 'data', 'dhan_scrip_master.csv')
 
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7
