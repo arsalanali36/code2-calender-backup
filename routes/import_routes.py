@@ -12,7 +12,7 @@ from services.import_service import (
     import_excel, import_raw_csv, import_historical_csv,
     import_dhan_csv, import_json_or_zip,
 )
-from config import BASE_DIR, UPLOADS_DIR
+from config import BASE_DIR, UPLOADS_DIR, ADMIN_API_KEY
 
 import_bp = Blueprint('import', __name__)
 
@@ -33,6 +33,21 @@ def import_excel_route():
 
 @import_bp.route('/api/import-json', methods=['POST'])
 def import_json_route():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    try:
+        result = import_json_or_zip(request.files['file'], UPLOADS_DIR)
+    except (ValueError, Exception) as e:
+        return jsonify({'error': str(e)}), 400
+    return jsonify(result)
+
+
+@import_bp.route('/api/admin/push-data', methods=['POST'])
+def admin_push_data():
+    """API-key-protected endpoint to push trades data without login session."""
+    key = request.headers.get('X-Api-Key') or request.args.get('api_key', '')
+    if not ADMIN_API_KEY or key != ADMIN_API_KEY:
+        return jsonify({'error': 'Unauthorized'}), 401
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
     try:

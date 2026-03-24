@@ -47,6 +47,7 @@ HOST  = os.getenv('HOST', '0.0.0.0')
 PORT  = int(os.getenv('PORT', '5000'))
 DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', 'yes')
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-for-dev-fallback')
+SECRET_KEY    = os.getenv('SECRET_KEY', 'your-secret-key-for-dev-fallback')
+ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'data', 'users.db'))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
