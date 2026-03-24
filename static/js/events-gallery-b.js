@@ -9,43 +9,63 @@
 
 // events-gallery-b.js — Trades panel toggle, sort, and list render
 
-let _tradesSortMode = 'loss_desc';
+let _tradesSortField = 'date';
+let _tradesSortOrder = 'desc'; // 'desc' = high/recent, 'asc' = low/oldest
 
 function _bindGalleryTradesPanelEvents() {
   const tpBtn    = document.getElementById('gv2-trades-panel-btn');
   const tpPanel  = document.getElementById('gv2-trades-panel');
   const tpClose  = document.getElementById('gv2-trades-close-btn');
-  const tpSortBtn = document.getElementById('gv2-trades-sort-btn');
+  const tpFieldSelect = document.getElementById('gv2-trades-sort-field');
+  const tpOrderBtn = document.getElementById('gv2-trades-sort-order-btn');
   const tpList   = document.getElementById('gv2-trades-list');
 
   const _renderTradesList = () => {
     if (!tpList || !state.trades) return;
     tpList.innerHTML = '';
+    
     // Collect all trades that have at least one image
-    let allPnlTrades = state.trades.filter(t => t && t.images && t.images.length > 0 && typeof t['Net P/L'] !== 'undefined' && normalizeDate(extractDateFromTrade(t)));
+    let allPnlTrades = state.trades.filter(t => t && t.images && t.images.length > 0 && normalizeDate(extractDateFromTrade(t)));
 
     allPnlTrades.sort((a, b) => {
-      if (_tradesSortMode === 'loss_desc') {
-        const valA = parseFloat(a['Net P/L']) || 0;
-        const valB = parseFloat(b['Net P/L']) || 0;
-        return valA - valB; // most negative first (max loss)
-      } else if (_tradesSortMode === 'profit_desc') {
-        const valA = parseFloat(a['Net P/L']) || 0;
-        const valB = parseFloat(b['Net P/L']) || 0;
-        return valB - valA; // most positive first
-      } else if (_tradesSortMode === 'pt_loss') {
-        const valA = parseFloat(a['Pt']) || 0;
-        const valB = parseFloat(b['Pt']) || 0;
-        return valA - valB;
-      } else if (_tradesSortMode === 'pt_profit') {
-        const valA = parseFloat(a['Pt']) || 0;
-        const valB = parseFloat(b['Pt']) || 0;
+      let valA, valB;
+      
+      if (_tradesSortField === 'pnl') {
+        valA = parseFloat(a['Net P/L'] || a.net_pnl || 0) || 0;
+        valB = parseFloat(b['Net P/L'] || b.net_pnl || 0) || 0;
+      } else if (_tradesSortField === 'pt') {
+        valA = parseFloat(a['Pt'] || a.pt || 0) || 0;
+        valB = parseFloat(b['Pt'] || b.pt || 0) || 0;
+      } else if (_tradesSortField === 'lots') {
+        valA = parseFloat(a.Qty || a.qty || a.QTY || 0) || 0;
+        valB = parseFloat(b.Qty || b.qty || b.QTY || 0) || 0;
+      } else if (_tradesSortField === 'duration') {
+        const getMins = (tr) => {
+          const bt = (tr['Buy Time'] || '').slice(0, 5);
+          const st = (tr['Sell Time'] || '').slice(0, 5);
+          if (!bt || !st) return 0;
+          try {
+            const [h1, m1] = bt.split(':').map(Number);
+            const [h2, m2] = st.split(':').map(Number);
+            const d1 = new Date(2000, 0, 1, h1, m1);
+            const d2 = new Date(2000, 0, 1, h2, m2);
+            return Math.abs(d2 - d1) / 60000;
+          } catch(e) { return 0; }
+        };
+        valA = getMins(a);
+        valB = getMins(b);
+      } else {
+        // date
+        valA = normalizeDate(extractDateFromTrade(a));
+        valB = normalizeDate(extractDateFromTrade(b));
+      }
+
+      if (_tradesSortOrder === 'desc') {
+        if (typeof valA === 'string') return valB.localeCompare(valA);
         return valB - valA;
       } else {
-        // date desc
-        const da = normalizeDate(extractDateFromTrade(a));
-        const db = normalizeDate(extractDateFromTrade(b));
-        return db.localeCompare(da);
+        if (typeof valA === 'string') return valA.localeCompare(valB);
+        return valA - valB;
       }
     });
 
@@ -55,8 +75,8 @@ function _bindGalleryTradesPanelEvents() {
     }
 
     allPnlTrades.forEach(t => {
-      const pnl = parseFloat(t['Net P/L']) || 0;
-      const pt = parseFloat(t['Pt']) || 0;
+      const pnl = parseFloat(t['Net P/L'] || t.net_pnl || 0) || 0;
+      const pt = parseFloat(t['Pt'] || t.pt || 0) || 0;
       const color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--text)');
       const ptColor = pt > 0 ? 'var(--green)' : (pt < 0 ? 'var(--red)' : 'var(--text2)');
       const d = normalizeDate(extractDateFromTrade(t));
@@ -109,13 +129,30 @@ function _bindGalleryTradesPanelEvents() {
           &#128202; Chart
         </button>` : '';
 
+      const dur = (() => {
+        if (!buyTime || !sellTime) return '';
+        try {
+          const [h1, m1] = buyTime.split(':').map(Number);
+          const [h2, m2] = sellTime.split(':').map(Number);
+          const d1 = new Date(2000, 0, 1, h1, m1);
+          const d2 = new Date(2000, 0, 1, h2, m2);
+          const diff = Math.abs(d2 - d1);
+          const mins = Math.round(diff / 60000);
+          return mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h' + (mins % 60 > 0 ? ' ' + (mins % 60) + 'm' : '');
+        } catch(e) { return ''; }
+      })();
+      const lot = parseFloat(t.Qty || t.qty || t.QTY || 0) || 0;
+
       item.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:2px;">
+        <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
           <span style="font-size:0.85rem; font-weight:600; color:${isViewingThisTrade ? 'var(--orange,#ff9800)' : 'var(--text)'};">${dateString}</span>
-          <span style="font-size:0.75rem; color:var(--text3);"><strong style="color:var(--text2);">${tLabel}</strong> &bull; ${t.images.length} img</span>
+          <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+            <span style="font-size:0.75rem; color:var(--text3); white-space:nowrap;"><strong style="color:var(--text2);">${tLabel}</strong> &bull; ${t.images.length} img</span>
+            <span style="font-size:0.75rem; color:var(--text3); opacity:0.9; white-space:nowrap;">&bull; ${entryTime}${dur ? ' <span style="font-size:1.15em; font-weight:700; color:#fff; margin:0 2px;">['+dur+']</span>' : ''} <span style="color:var(--text2); margin-left:4px;">${lot}</span></span>
+          </div>
           ${chartBtnHtml}
         </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0;">
           <div style="font-weight:700; font-size:0.9rem; color:${color};">
             ${pnl >= 0 ? '+' : ''}${Math.round(pnl)}
           </div>
@@ -175,25 +212,19 @@ function _bindGalleryTradesPanelEvents() {
     });
   }
 
-  if (tpSortBtn) {
-    tpSortBtn.innerHTML = 'Sort: Loss &#9660;';
-    tpSortBtn.addEventListener('click', () => {
-      if (_tradesSortMode === 'loss_desc') {
-        _tradesSortMode = 'profit_desc';
-        tpSortBtn.innerHTML = 'Sort: Profit &#9660;';
-      } else if (_tradesSortMode === 'profit_desc') {
-        _tradesSortMode = 'pt_loss';
-        tpSortBtn.innerHTML = 'Sort: Pt Loss &#9660;';
-      } else if (_tradesSortMode === 'pt_loss') {
-        _tradesSortMode = 'pt_profit';
-        tpSortBtn.innerHTML = 'Sort: Pt Profit &#9660;';
-      } else if (_tradesSortMode === 'pt_profit') {
-        _tradesSortMode = 'date_desc';
-        tpSortBtn.innerHTML = 'Sort: Date &#9660;';
-      } else {
-        _tradesSortMode = 'loss_desc';
-        tpSortBtn.innerHTML = 'Sort: Loss &#9660;';
-      }
+  if (tpFieldSelect) {
+    tpFieldSelect.value = _tradesSortField;
+    tpFieldSelect.addEventListener('change', (e) => {
+      _tradesSortField = e.target.value;
+      _renderTradesList();
+    });
+  }
+
+  if (tpOrderBtn) {
+    tpOrderBtn.textContent = _tradesSortOrder === 'desc' ? 'High' : 'Low';
+    tpOrderBtn.addEventListener('click', () => {
+      _tradesSortOrder = (_tradesSortOrder === 'desc') ? 'asc' : 'desc';
+      tpOrderBtn.textContent = _tradesSortOrder === 'desc' ? 'High' : 'Low';
       _renderTradesList();
     });
   }

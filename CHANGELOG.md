@@ -1,6 +1,20 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 24, 2026
+
+### Gallery Filter Mode — Multi-Date Fix
+- **Root fix**: `getOwnerTradeForImageUrl` was returning `null` for images from dates other than `state.gallery.date`, causing all cross-date images to land under OPEN separator
+- **Fix**: In filter mode, use `sourceRow` from `_filteredMeta` directly instead of calling `getOwnerTradeForImageUrl`
+- **Fix**: `applyGalleryImageScopeByTagFilter()` (no args) now auto-preserves current context instead of resetting to index 0
+- **Fix**: Per-date separator rendering — OPEN/T1/T2/T3/CLOSE now rendered per date in filter mode
+- **Fix**: Empty trade separators suppressed — only render separator if that trade has matching filter images
+- **Feature**: Date label (e.g. "Mar 20 Fri") shown on trade separators in filter mode
+- **Feature**: `Vid` button moved to sidebar below filter-tags button
+- **Feature**: Admin API key endpoint `/api/admin/push-data` for live data sync without login
+- **Split**: `gallery.html` → `gallery.html` + `gallery-modals.html` (30KB rule)
+- **Split**: `style-gallery-b.css` → split into `b` + `d` (30KB rule)
+
 ## EOD Summary - March 23, 2026
 
 ### v3.0.0 — What-If Simulator + Dhan OHLC Integration

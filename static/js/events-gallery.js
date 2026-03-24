@@ -18,36 +18,73 @@ function _bindGalleryEvents() {
   const galleryHeadsPanel = document.getElementById('gallery-show-heads-panel');
   if (galleryHeadsPanel) galleryHeadsPanel.addEventListener('click', e => e.stopPropagation());
 
-  // 21. Tag Filter Panel Toggle (formerly dropdown)
+  // 21. Tag Filter Panel Toggle (now a tab in unified panel)
   const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
-  const filterPanel = document.getElementById('gv2-filter-panel');
-  const filterClose = document.getElementById('gv2-filter-close-btn');
+  const ulpPanel = document.getElementById('gv2-unified-left-panel');
+  const ulpClose = document.getElementById('gv2-ulp-close-btn');
 
-  if (filterBtn && filterPanel) {
+  const switchULPTab = (tabName) => {
+    if (!ulpPanel) return;
+    const tabs = ulpPanel.querySelectorAll('.gv2-ulp-tab');
+    const panes = ulpPanel.querySelectorAll('.gv2-ulp-pane');
+    
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+    panes.forEach(p => {
+      const isMatch = p.id === `gv2-pane-${tabName}`;
+      p.style.display = isMatch ? 'flex' : 'none';
+      if (isMatch) p.classList.add('active');
+      else p.classList.remove('active');
+    });
+    
+    localStorage.setItem('tj_ulpActiveTab', tabName);
+
+    // If switching to filter tab, render it
+    if (tabName === 'filter' && typeof renderGalleryTagFilterPanel === 'function') {
+      renderGalleryTagFilterPanel();
+    }
+    
+    // Update sidebar button active states
+    const thumbToggleBtn = document.getElementById('gv2-thumb-toggle-btn');
+    const tagFilterBtn = document.getElementById('gallery-img-tag-filter-btn');
+    if (thumbToggleBtn) thumbToggleBtn.classList.toggle('active', ulpPanel.classList.contains('open') && tabName === 'thumbs');
+    if (tagFilterBtn) tagFilterBtn.classList.toggle('active', ulpPanel.classList.contains('open') && tabName === 'filter');
+  };
+  window.switchULPTab = switchULPTab;
+
+
+  if (filterBtn && ulpPanel) {
     filterBtn.addEventListener('click', () => {
-      const isOpen = filterPanel.style.display === 'flex';
-      filterPanel.style.display = isOpen ? 'none' : 'flex';
-      filterBtn.classList.toggle('active', !isOpen);
-      if (!isOpen) { 
-        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
-        localStorage.setItem('tj_filterPanelOpen', '1');
+      const isOpen = ulpPanel.classList.contains('open');
+      const currentTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
+      
+      if (isOpen && currentTab === 'filter') {
+        // Already open on tags tab, so close
+        ulpPanel.classList.remove('open');
+        filterBtn.classList.remove('active');
+        localStorage.setItem('tj_ulpPanelOpen', '0');
       } else {
-        localStorage.setItem('tj_filterPanelOpen', '0');
+        // Open and/or switch to tags tab
+        ulpPanel.classList.add('open');
+        switchULPTab('filter');
+        localStorage.setItem('tj_ulpPanelOpen', '1');
       }
     });
-    if (filterClose) {
-      filterClose.addEventListener('click', () => {
-        filterPanel.style.display = 'none';
-        filterBtn.classList.remove('active');
-        localStorage.setItem('tj_filterPanelOpen', '0');
-        // Clear all active filters when closing the panel
-        state.gallery.tagFilter = [];
-        if (typeof applyGalleryImageScopeByTagFilter === 'function') applyGalleryImageScopeByTagFilter();
-        if (typeof renderGallery === 'function') renderGallery();
-        if (typeof renderGalleryTagCloud === 'function') renderGalleryTagCloud();
+
+    if (ulpClose) {
+      ulpClose.addEventListener('click', () => {
+        ulpPanel.classList.remove('open');
+        document.getElementById('gv2-thumb-toggle-btn')?.classList.remove('active');
+        filterBtn?.classList.remove('active');
+        localStorage.setItem('tj_ulpPanelOpen', '0');
       });
     }
   }
+
+  // Bind individual tab clicks
+  document.querySelectorAll('.gv2-ulp-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchULPTab(btn.dataset.tab));
+  });
+
   // ── Unified Resizing (Touch + Mouse) ──────────────────────────────────
   const setupPanelResizer = (handleId, panelId, localStorageKey, direction, minW = 140, maxW = 480) => {
     const handle = document.getElementById(handleId);
@@ -56,11 +93,13 @@ function _bindGalleryEvents() {
 
     const _setWidth = (w) => {
       const finalW = Math.max(minW, Math.min(maxW, w));
-      if (panelId === 'gv2-thumb-panel') {
-        panel.style.setProperty('--thumb-panel-w', finalW + 'px');
-      } else {
-        panel.style.width = finalW + 'px';
-      }
+    if (panelId === 'gv2-unified-left-panel') {
+      panel.style.setProperty('--ulp-panel-w', finalW + 'px');
+    } else if (panelId === 'gv2-thumb-panel') {
+      panel.style.setProperty('--thumb-panel-w', finalW + 'px');
+    } else {
+      panel.style.width = finalW + 'px';
+    }
       if (panelId === 'gv2-layer-panel') {
         panel.style.setProperty('--lp-thumb-w', Math.max(24, Math.min(80, Math.floor(finalW * 0.22))) + 'px');
       }
@@ -105,23 +144,40 @@ function _bindGalleryEvents() {
     }
   };
 
-  setupPanelResizer('gv2-thumb-panel-resize', 'gv2-thumb-panel', 'tj_thumbPanelW', 'right', 54, 800);
+  setupPanelResizer('gv2-ulp-resize-handle', 'gv2-unified-left-panel', 'tj_ulpPanelW', 'right', 180, 800);
   setupPanelResizer('gv2-lp-resize-handle', 'gv2-layer-panel', 'tj_layerPanelW', 'right', 140, 480);
   setupPanelResizer('gv2-tray-resize-handle', 'gv2-tags-tray', 'tj_trayPanelW', 'left', 160, 520);
   setupPanelResizer('gv2-trades-resize-handle', 'gv2-trades-panel', 'tj_tradesPanelW', 'right', 180, 520);
-  setupPanelResizer('gv2-filter-resize-handle', 'gv2-filter-panel', 'tj_filterPanelW', 'right', 180, 520);
 
-  // Thumbnail panel open state restore
+  // Unified Left Panel open state restore
   (function () {
     const thumbToggleBtn = document.getElementById('gv2-thumb-toggle-btn');
-    const thumbPanel = document.getElementById('gv2-thumb-panel');
-    if (!thumbToggleBtn || !thumbPanel) return;
-    const wasOpen = localStorage.getItem('tj_thumbPanelOpen') === '1';
-    if (wasOpen) { thumbPanel.classList.add('open'); thumbToggleBtn.classList.add('active'); }
+    const ulpPanel = document.getElementById('gv2-unified-left-panel');
+    if (!thumbToggleBtn || !ulpPanel) return;
+    
+    const wasOpen = localStorage.getItem('tj_ulpPanelOpen') === '1';
+    const lastTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
+    
+    if (wasOpen) {
+      ulpPanel.classList.add('open');
+      switchULPTab(lastTab);
+    }
+
     thumbToggleBtn.addEventListener('click', () => {
-      const isOpen = thumbPanel.classList.toggle('open');
-      thumbToggleBtn.classList.toggle('active', isOpen);
-      localStorage.setItem('tj_thumbPanelOpen', isOpen ? '1' : '0');
+      const isOpen = ulpPanel.classList.contains('open');
+      const currentTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
+      
+      if (isOpen && currentTab === 'thumbs') {
+        // Already open on thumbs, so close
+        ulpPanel.classList.remove('open');
+        thumbToggleBtn.classList.remove('active');
+        localStorage.setItem('tj_ulpPanelOpen', '0');
+      } else {
+        // Open and/or switch to thumbs tab
+        ulpPanel.classList.add('open');
+        switchULPTab('thumbs');
+        localStorage.setItem('tj_ulpPanelOpen', '1');
+      }
     });
   })();
 

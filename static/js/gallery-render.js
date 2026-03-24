@@ -223,11 +223,32 @@ function renderGallery() {
     const pnlStr = pnl !== 0 ? (pnl > 0 ? '+₹' : '-₹') + Math.abs(Math.round(pnl)) : '';
     const ptStr = pt !== 0 ? (pt > 0 ? '+' : '') + Math.round(pt) + 'Pt' : '';
     const pnlColor = pnl > 0 ? 'var(--green,#2ecc71)' : (pnl < 0 ? 'var(--red,#e74c3c)' : '#ffd700');
-    const datePart = dateLabel ? `<span style="color:#aaa; font-size:0.62rem; font-weight:400; margin-left:4px;">${dateLabel}</span>` : '';
+    
+    const lotNum = parseFloat(tr?.Qty || tr?.qty || tr?.QTY || 0) || 0;
+    const bTime = (tr?.['Buy Time'] || tr?.buy_time || '').slice(0, 5);
+    const sTime = (tr?.['Sell Time'] || tr?.sell_time || '').slice(0, 5);
+    const tt = String(tr?.TradeType || tr?.tradetype || tr?.['Trade Type'] || '').toLowerCase();
+    const isShort = tt.includes('sell') || tt.includes('short');
+    const eTime = isShort ? sTime : bTime;
+    let dur = '';
+    if (bTime && sTime) {
+      try {
+        const [h1, m1] = bTime.split(':').map(Number);
+        const [h2, m2] = sTime.split(':').map(Number);
+        const d1 = new Date(2000, 0, 1, h1, m1);
+        const d2 = new Date(2000, 0, 1, h2, m2);
+        const diff = Math.abs(d2 - d1);
+        const mins = Math.round(diff / 60000);
+        dur = mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h' + (mins % 60 > 0 ? ' ' + (mins % 60) + 'm' : '');
+      } catch(e) {}
+    }
+
     sep.innerHTML =
-      `<span class="gv2-sep-label" style="color:${pnlColor}">${arrow} T${idx + 1}${datePart ? '' : ''}</span>` +
-      datePart +
-      ((pnlStr || ptStr) ? `<span class="gv2-sep-stats" style="color:${pnlColor}">${[pnlStr, ptStr].filter(Boolean).join(' · ')}</span>` : '');
+      `<div style="display:flex; justify-content:space-between; align-items:center; width:100%;">` +
+        `<span class="gv2-sep-label" style="color:${pnlColor}">${arrow} T${idx + 1}${dateLabel ? ' ('+dateLabel+')' : ''}</span>` +
+        ((pnlStr || ptStr) ? `<span class="gv2-sep-stats" style="color:${pnlColor}">${[pnlStr, ptStr].filter(Boolean).join(' · ')}</span>` : '') +
+      `</div>` +
+      (eTime ? `<div style="font-size:0.8rem; color:rgba(255,255,255,0.5); margin-top:2px; font-weight:500;">${eTime}${dur ? ' <span style="font-size:1.1em; font-weight:700; color:#fff; margin:0 2px;">['+dur+']</span>' : ''} <span style="color:var(--text2); margin-left:4px;">${lotNum}</span></div>` : '');
     sep.style.borderColor = '#ffd700';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
@@ -785,9 +806,10 @@ function renderGallery() {
       const activeThumb = thumbs.querySelector('.gv2-thumb.active');
       if (activeThumb) {
         setTimeout(() => {
-          activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' });
         }, 50);
       }
+
     }
   }
   state.gallery._skipScrollIntoView = false;

@@ -168,39 +168,110 @@ function renderGalleryTradePill() {
 
     // Dropdown: all trades for quick jump
     drop.innerHTML = '';
+    drop.style.minWidth = '380px'; // Increased width to accommodate cumulative column
+    
+    let runningTotal = 0;
     trades.forEach((t, i) => {
         const p = typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0;
+        runningTotal += p;
         const pt = parseFloat(t.Pt || 0) || 0;
+        const lot = parseFloat(t.Qty || t.qty || t.QTY || 0) || 0;
+        const buyTime = (t['Buy Time'] || t['buy_time'] || '').slice(0, 5);
+        const sellTime = (t['Sell Time'] || t['sell_time'] || '').slice(0, 5);
+        const type = String(t['TradeType'] || t['tradetype'] || t['Trade Type'] || '').toLowerCase();
+        const isShort = type.includes('sell') || type.includes('short');
+        const entryTime = isShort ? sellTime : buyTime;
+        
+        let dur = '';
+        if (buyTime && sellTime) {
+            try {
+                const [h1, m1] = buyTime.split(':').map(Number);
+                const [h2, m2] = sellTime.split(':').map(Number);
+                const d1 = new Date(2000, 0, 1, h1, m1);
+                const d2 = new Date(2000, 0, 1, h2, m2);
+                let diff = Math.abs(d2 - d1);
+                const mins = Math.round(diff / 60000);
+                dur = mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h' + (mins % 60 > 0 ? ' ' + (mins % 60) + 'm' : '');
+            } catch(e) {}
+        }
+
         const row = document.createElement('div');
         row.className = 'gv2-pnl-trade-row';
         if (i === tIdx) row.style.background = 'rgba(255,255,255,0.06)';
+        
+        // Structured Grid Layout: Index, Time/Lot, Points, P&L, Cumulative
+        row.style.display = 'grid';
+        row.style.gridTemplateColumns = '32px 1fr 50px 75px 85px';
+        row.style.gap = '8px';
+        row.style.alignItems = 'center';
+        row.style.padding = '8px 14px';
+
         const lbl = document.createElement('span');
         lbl.className = 'gv2-pnl-trade-label';
+        lbl.style.fontWeight = '700';
         lbl.textContent = `T${i + 1}`;
+        
+        const info = document.createElement('span');
+        info.style.cssText = 'font-size:0.75rem; color:var(--text3); opacity:0.9; white-space:nowrap; text-align:left; letter-spacing:0.2px;';
+        info.innerHTML = `<span style="color:var(--text2)">${entryTime}</span>${dur ? ' <span style="font-size:1.1em; font-weight:700; color:#fff; margin:0 2px;">['+dur+']</span>' : ''} <span style="color:var(--text2); margin-left:4px;">${lot}</span>`;
         
         const ptWrap = document.createElement('span');
         ptWrap.className = 'gv2-pnl-trade-pt';
         ptWrap.textContent = Math.abs(Math.round(pt)) + ' Pt';
-        ptWrap.style.margin = '0 8px';
+        ptWrap.style.textAlign = 'right';
         ptWrap.style.color = pt >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)';
-        ptWrap.style.fontSize = '0.85em';
-        ptWrap.style.opacity = '0.8';
+        ptWrap.style.fontSize = '0.82em';
+        ptWrap.style.fontWeight = '600';
 
         const val = document.createElement('span');
         val.className = 'gv2-pnl-trade-val';
         val.textContent = fmtPnl(p);
+        val.style.textAlign = 'right';
+        val.style.fontWeight = '700';
         val.style.color = p > 0 ? '#2ecc71' : p < 0 ? '#e74c3c' : 'var(--text2)';
+
+        const cumVal = document.createElement('span');
+        cumVal.className = 'gv2-pnl-trade-cum';
+        cumVal.textContent = fmtPnl(runningTotal);
+        cumVal.style.textAlign = 'right';
+        cumVal.style.fontWeight = '600';
+        cumVal.style.fontSize = '0.88em';
+        cumVal.style.opacity = '0.85';
+        cumVal.style.paddingLeft = '6px';
+        cumVal.style.borderLeft = '1px solid rgba(255,255,255,0.1)';
+        cumVal.style.color = runningTotal >= 0 ? '#2ecc71' : '#e74c3c';
+        
         row.appendChild(lbl);
+        row.appendChild(info);
         row.appendChild(ptWrap);
         row.appendChild(val);
+        row.appendChild(cumVal);
         row.addEventListener('click', () => {
             drop.classList.remove('open');
             const firstImg = (t.images || [])[0];
             if (firstImg) {
                 const idx = state.gallery.images.indexOf(firstImg);
-                if (idx >= 0) { state.gallery.currentIndex = idx; renderGallery(); }
+                if (idx >= 0) { 
+                    state.gallery.currentIndex = idx; 
+                    state.gallery.selectedIndices = new Set([idx]);
+                    state.gallery.selectedSeparator = i;
+                    // Uncollapse if currently collapsed
+                    if (state.gallery.collapsedSeparators) state.gallery.collapsedSeparators.delete('T' + i);
+                    
+                    // Force jump to thumbnails tab if it's currently on filter tab
+                    const ulpPanel = document.getElementById('gv2-unified-left-panel');
+                    if (ulpPanel && ulpPanel.classList.contains('open')) {
+                        const activeTab = localStorage.getItem('tj_ulpActiveTab');
+                        if (activeTab === 'filter' && typeof switchULPTab === 'function') {
+                            switchULPTab('thumbs');
+                        }
+                    }
+
+                    renderGallery(); 
+                }
             }
         });
+
         drop.appendChild(row);
     });
 

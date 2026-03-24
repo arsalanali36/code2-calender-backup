@@ -28,18 +28,6 @@ function getImagesForDate(dateStr) {
   }
 
   getTradesForDate(dateStr).forEach(t => {
-    if (
-      (t['Time'] === '' || t['Time'] === undefined) &&
-      (t['Ex Time'] === '' || t['Ex Time'] === undefined) &&
-      (t['Buy Time'] === '' || t['Buy Time'] === undefined) &&
-      (t['Sell Time'] === '' || t['Sell Time'] === undefined) &&
-      (t['Gross P/L'] === '' || t['Gross P/L'] === undefined) &&
-      (t['Net P/L'] === '' || t['Net P/L'] === undefined) &&
-      (t['Rs'] === '' || t['Rs'] === undefined) &&
-      (t['Qty'] === '' || t['Qty'] === undefined)
-    ) {
-      return;
-    }
     (t.images || []).forEach(url => out.push(url));
 
     // Migrate old trade.videos dict entries into the array (after their associated image)

@@ -438,21 +438,21 @@ function getTradeForDate(dateStr) {
 function getTradesForDate(dateStr) {
   return state.trades.filter(t => {
     if (normalizeDate(extractDateFromTrade(t)) !== dateStr) return false;
-    if (!tradeMatchesDateRange(t)) return false;
-    // Exclude manual empty rows without actual data
-    if (
-      (t['Time'] === '' || t['Time'] === undefined) &&
-      (t['Ex Time'] === '' || t['Ex Time'] === undefined) &&
-      (t['Buy Time'] === '' || t['Buy Time'] === undefined) &&
-      (t['Sell Time'] === '' || t['Sell Time'] === undefined) &&
-      (t['Gross P/L'] === '' || t['Gross P/L'] === undefined) &&
-      (t['Net P/L'] === '' || t['Net P/L'] === undefined) &&
-      (t['Rs'] === '' || t['Rs'] === undefined) &&
-      (t['Qty'] === '' || t['Qty'] === undefined)
-    ) {
-      return false;
-    }
-    return true;
+    
+    // Check if the trade has any actual data OR images
+    const hasData = (
+      (t['Time'] && String(t['Time']).trim() !== '') ||
+      (t['Ex Time'] && String(t['Ex Time']).trim() !== '') ||
+      (t['Buy Time'] && String(t['Buy Time']).trim() !== '') ||
+      (t['Sell Time'] && String(t['Sell Time']).trim() !== '') ||
+      (t['Gross P/L'] && String(t['Gross P/L']).trim() !== '') ||
+      (t['Net P/L'] && String(t['Net P/L']).trim() !== '') ||
+      (t['Rs'] && String(t['Rs']).trim() !== '') ||
+      (t['Qty'] && String(t['Qty']).trim() !== '') ||
+      (Array.isArray(t.images) && t.images.length > 0)
+    );
+
+    return hasData;
   });
 }
 
