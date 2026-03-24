@@ -75,6 +75,7 @@ function renderGalleryTagFilterPanel() {
     btnMode.addEventListener('click', () => {
         state.gallery.filterMode = state.gallery.filterMode === 'and' ? 'or' : 'and';
         applyGalleryImageScopeByTagFilter();
+        state.gallery._skipFilterRescopeOnce = true;
         renderGallery();
         renderGalleryTagFilterPanel();
     });
@@ -93,6 +94,44 @@ function renderGalleryTagFilterPanel() {
     actRow.appendChild(btnMode);
     actRow.appendChild(btnNone);
     if (header) header.appendChild(actRow);
+
+    // Scope toggle: Image vs Trade
+    const scopeRow = document.createElement('div');
+    scopeRow.style.cssText = 'display:flex; gap:6px; padding:0 8px 8px; align-items:center;';
+    const scopeLbl = document.createElement('span');
+    scopeLbl.textContent = 'Scope:';
+    scopeLbl.style.cssText = 'color:var(--text3); font-size:0.75rem; white-space:nowrap;';
+    const isTradeScope = state.gallery.filterTagScope === 'trade';
+    const btnScopeImg = document.createElement('button');
+    btnScopeImg.className = 'panel-act-btn';
+    btnScopeImg.style.flex = '1';
+    btnScopeImg.textContent = 'Image';
+    btnScopeImg.style.color = !isTradeScope ? 'var(--blue)' : '';
+    btnScopeImg.style.borderColor = !isTradeScope ? 'var(--blue)' : '';
+    btnScopeImg.addEventListener('click', () => {
+        state.gallery.filterTagScope = 'image';
+        applyGalleryImageScopeByTagFilter();
+        state.gallery._skipFilterRescopeOnce = true;
+        renderGallery();
+        renderGalleryTagFilterPanel();
+    });
+    const btnScopeTrade = document.createElement('button');
+    btnScopeTrade.className = 'panel-act-btn';
+    btnScopeTrade.style.flex = '1';
+    btnScopeTrade.textContent = 'Trade';
+    btnScopeTrade.style.color = isTradeScope ? 'var(--green)' : '';
+    btnScopeTrade.style.borderColor = isTradeScope ? 'var(--green)' : '';
+    btnScopeTrade.addEventListener('click', () => {
+        state.gallery.filterTagScope = 'trade';
+        applyGalleryImageScopeByTagFilter();
+        state.gallery._skipFilterRescopeOnce = true;
+        renderGallery();
+        renderGalleryTagFilterPanel();
+    });
+    scopeRow.appendChild(scopeLbl);
+    scopeRow.appendChild(btnScopeImg);
+    scopeRow.appendChild(btnScopeTrade);
+    if (header) header.appendChild(scopeRow);
 
     const list = document.createElement('div');
     list.className = 'panel-list';
@@ -121,10 +160,6 @@ function renderGalleryTagFilterPanel() {
                 return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
             }
 
-            const dot = document.createElement('span');
-            dot.className = 'tag-dot';
-            dot.style.background = _tagColor(tag);
-
             const chk = document.createElement('input');
             chk.type = 'checkbox';
             chk.checked = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.includes(tag);
@@ -137,13 +172,13 @@ function renderGalleryTagFilterPanel() {
                 }
                 state.gallery.tagFilter = filter;
                 applyGalleryImageScopeByTagFilter();
+                state.gallery._skipFilterRescopeOnce = true;
                 renderGallery();
                 renderGalleryTagCloud();
                 _updateFilterBtnColor();
             });
 
             lbl.appendChild(chk);
-            lbl.appendChild(dot);
 
             const tl = document.createElement('span');
             tl.textContent = tag;

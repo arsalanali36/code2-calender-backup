@@ -20,7 +20,8 @@ function renderGalleryImageTags() {
   const tags = info.imageTags || [];
   const marqueeTags = info.marqueeTags || [];
 
-  if (!tags.length && !marqueeTags.length) {
+  const tradeTags = info.tradeTags || [];
+  if (!tags.length && !marqueeTags.length && !tradeTags.length) {
     const hint = document.createElement('span');
     hint.className = 'gallery-tag-empty';
     hint.textContent = 'No image/marquee tags';
@@ -51,6 +52,37 @@ function renderGalleryImageTags() {
         else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
         await saveTrades();
         renderGalleryImageTags();
+        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+        renderTable();
+        renderCalendar();
+      });
+      box.appendChild(chip);
+    });
+  }
+
+  if (tradeTags.length) {
+    if (tags.length || marqueeTags.length) box.appendChild(document.createTextNode(' '));
+    const tradeLbl = document.createElement('span');
+    tradeLbl.className = 'gallery-tag-empty';
+    tradeLbl.textContent = 'Trade:';
+    box.appendChild(tradeLbl);
+    tradeTags.forEach(tag => {
+      const c = '#3fb950';
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'gallery-img-tag-chip';
+      chip.textContent = `${tag} x`;
+      chip.style.color = c;
+      chip.style.borderColor = hexToRgba(c, 0.45);
+      chip.style.background = hexToRgba(c, 0.14);
+      chip.title = 'Remove tag from this trade';
+      chip.addEventListener('click', async () => {
+        if (!info.trade) return;
+        const next = tradeTags.filter(t => t !== tag);
+        setTradeTagsForTrade(info.trade, next);
+        await saveTrades();
+        renderGalleryImageTags();
+        renderGalleryTagsTray();
         renderTable();
         renderCalendar();
       });
@@ -301,6 +333,7 @@ function renderImageTagModal() {
       await saveTrades();
       renderGalleryImageTags();
       renderTagFilterPanel();
+      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
       renderTable();
       renderCalendar();
       renderImageTagModal();
@@ -343,6 +376,7 @@ function renderImageTagModal() {
       await saveTrades();
       renderGalleryImageTags();
       renderTagFilterPanel();
+      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
       renderTable();
       renderCalendar();
       renderImageTagModal();
@@ -359,6 +393,7 @@ function renderImageTagModal() {
       await saveTrades();
       renderGalleryImageTags();
       renderTagFilterPanel();
+      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
       renderTable();
       renderCalendar();
       renderImageTagModal();
@@ -416,6 +451,7 @@ document.addEventListener('keydown', e => {
         saveTrades().then(() => {
           if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
           if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+          if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
           if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
           renderTable();
           renderCalendar();
@@ -433,6 +469,7 @@ document.addEventListener('keydown', e => {
         saveTrades().then(() => {
           if (typeof renderGalleryImageTags === 'function') renderGalleryImageTags();
           if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+          if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
           if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
           if (typeof renderImageTagModal === 'function') {
             const modal = document.getElementById('img-tag-modal');

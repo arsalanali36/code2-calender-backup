@@ -1274,6 +1274,12 @@
   background: rgba(140, 145, 155, 0.24) !important;
 }
 
+.gv2-tt-tag-chip.selected-on-trade {
+  color: #3fb950 !important;
+  border-color: rgba(63, 185, 80, 0.6) !important;
+  background: rgba(63, 185, 80, 0.14) !important;
+}
+
 .gv2-tt-grp-ungrouped {
   font-size: 0.72rem;
   color: var(--text3);

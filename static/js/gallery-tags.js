@@ -17,8 +17,8 @@ function renderGalleryTagCloud() {
   const info = getCurrentGalleryImageTagInfo();
   const availableSet = new Set(info.all);
   const allTagNames = info.all;
-  const selected = state.gallery.tagFilter || [];
-  state.gallery.tagFilter = selected.filter(t => availableSet.has(t));
+  // Do NOT clear active filters just because current image doesn't have them —
+  // user may be viewing a trade-filtered result where other images hold the tag
   const grouped = state.tagGroups || {};
 
   const renderChip = (tag) => {
@@ -73,6 +73,39 @@ function renderGalleryTagsTray() {
   const body = document.getElementById('gv2-tags-tray-body');
   if (!body) return;
   body.innerHTML = '';
+
+  // Assign-mode toggle (Image vs Trade)
+  const assignRow = document.createElement('div');
+  assignRow.style.cssText = 'display:flex; gap:6px; padding:6px 8px 6px; border-bottom:1px solid var(--border); align-items:center;';
+  const assignLbl = document.createElement('span');
+  assignLbl.textContent = 'Assign to:';
+  assignLbl.style.cssText = 'color:var(--text3); font-size:0.75rem; white-space:nowrap;';
+  const isTradeMode = state.gallery.tagAssignMode === 'trade';
+  const assignImgBtn = document.createElement('button');
+  assignImgBtn.className = 'panel-act-btn';
+  assignImgBtn.style.cssText = 'flex:1; font-size:0.75rem; padding:3px 6px;' + (!isTradeMode ? 'color:var(--blue);border-color:var(--blue);' : '');
+  assignImgBtn.textContent = 'Image';
+  assignImgBtn.addEventListener('click', () => { state.gallery.tagAssignMode = 'image'; renderGalleryTagsTray(); });
+  const assignTradeBtn = document.createElement('button');
+  assignTradeBtn.className = 'panel-act-btn';
+  assignTradeBtn.style.cssText = 'flex:1; font-size:0.75rem; padding:3px 6px;' + (isTradeMode ? 'color:var(--green);border-color:var(--green);' : '');
+  assignTradeBtn.textContent = 'Trade';
+  assignTradeBtn.addEventListener('click', () => { state.gallery.tagAssignMode = 'trade'; renderGalleryTagsTray(); });
+  assignRow.appendChild(assignLbl);
+  assignRow.appendChild(assignImgBtn);
+  assignRow.appendChild(assignTradeBtn);
+  body.appendChild(assignRow);
+
+  // Search input
+  const searchRow = document.createElement('div');
+  searchRow.style.cssText = 'padding:4px 8px 5px; border-bottom:1px solid var(--border);';
+  const searchInp = document.createElement('input');
+  searchInp.className = 'panel-search';
+  searchInp.placeholder = 'Search tags...';
+  searchInp.value = state.gallery._tagTraySearch || '';
+  searchInp.style.cssText = 'width:100%; box-sizing:border-box;';
+  searchRow.appendChild(searchInp);
+  body.appendChild(searchRow);
 
   if (!state.allTags) state.allTags = [];
   const allTags = state.allTags;
@@ -158,6 +191,7 @@ function renderGalleryTagsTray() {
     chip.appendChild(lbl);
     chip.appendChild(cnt);
 
+    const currentTradeTags = imgInfo.trade ? getTradeTagsForTrade(imgInfo.trade) : [];
     if (state.tagDeleteMode) {
       const x = document.createElement('span');
       x.textContent = '✕';
@@ -171,9 +205,12 @@ function renderGalleryTagsTray() {
       chip.title = 'Click to DELETE GLOBALLY';
     } else {
       if (currentImageTagSet.has(tag)) chip.classList.add('selected-on-image');
+      if (currentTradeTags.includes(tag)) chip.classList.add('selected-on-trade');
       if (marqueeMode) {
         if (currentImageTagSet.has(tag)) chip.title = 'Tag on selected marquee';
         else chip.title = 'Add to selected marquee';
+      } else if (state.gallery.tagAssignMode === 'trade') {
+        chip.title = currentTradeTags.includes(tag) ? 'Trade tag — click to remove' : 'Assign to current trade';
       } else if (imageAssignedSet.has(tag)) chip.title = 'Image tag assigned';
       else if (currentImageTagSet.has(tag)) chip.title = 'Marquee tag present on this image';
     }
@@ -190,6 +227,7 @@ function renderGalleryTagsTray() {
         await saveTrades();
         renderGalleryTagCloud();
         renderGalleryTagsTray();
+        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
         renderTable();
         renderCalendar();
         showToast(`Tag "${tag}" globally delete ho gaya`, 'success');
@@ -200,6 +238,26 @@ function renderGalleryTagsTray() {
         renderGalleryImageTags();
         renderGalleryTagCloud();
         renderGalleryTagsTray();
+        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+        return;
+      }
+      // Trade assign mode
+      if (state.gallery.tagAssignMode === 'trade') {
+        if (!imgInfo.trade) {
+          showToast('No trade found for current image', 'error');
+          return;
+        }
+        const tradeTags = getTradeTagsForTrade(imgInfo.trade);
+        const hasTag = tradeTags.includes(tag);
+        setTradeTagsForTrade(imgInfo.trade, hasTag ? tradeTags.filter(t => t !== tag) : [...tradeTags, tag]);
+        normalizeAllTagsFromTrades();
+        await saveTrades();
+        renderGalleryImageTags();
+        renderGalleryTagCloud();
+        renderGalleryTagsTray();
+        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+        renderTable();
+        renderCalendar();
         return;
       }
       if (!imgInfo.imgUrl) {
@@ -220,6 +278,7 @@ function renderGalleryTagsTray() {
       renderGalleryImageTags();
       renderGalleryTagCloud();
       renderGalleryTagsTray();
+      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
       renderTable();
       renderCalendar();
     });
@@ -256,6 +315,7 @@ function renderGalleryTagsTray() {
                 await saveTrades();
                 renderGalleryTagCloud();
                 renderGalleryTagsTray();
+                if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
                 renderTable();
                 renderCalendar();
               }
@@ -321,9 +381,10 @@ function renderGalleryTagsTray() {
   const viewToggle = document.getElementById('gv2-tag-view-btn');
   if (viewToggle) viewToggle.textContent = state.gallery.tagViewMode === 'grouped' ? 'Grp' : 'All';
 
+  const freqTagsSet = new Set(topTags);
+
   if (state.gallery.tagViewMode === 'flat') {
     // --- Flattened Tags View ---
-    const freqTagsSet = new Set(topTags);
     const remainingTags = allTags.filter(t => !freqTagsSet.has(t)).sort((a, b) => a.localeCompare(b));
 
     if (remainingTags.length > 0) {
@@ -431,6 +492,31 @@ function renderGalleryTagsTray() {
     empty.textContent = 'No tags created yet.';
     body.appendChild(empty);
   }
+
+  // Live filter: show/hide chips and collapse empty groups
+  const _applyTagFilter = (q) => {
+    const ql = (q || '').toLowerCase().trim();
+    body.querySelectorAll('.gv2-tt-tag-chip').forEach(chip => {
+      const label = chip.querySelector('span')?.textContent || '';
+      chip.style.display = (!ql || label.toLowerCase().includes(ql)) ? '' : 'none';
+    });
+    body.querySelectorAll('.gv2-tt-group, .gv2-tt-unassigned').forEach(grp => {
+      const anyVisible = Array.from(grp.querySelectorAll('.gv2-tt-tag-chip')).some(c => c.style.display !== 'none');
+      grp.style.display = anyVisible ? '' : 'none';
+    });
+  };
+  _applyTagFilter(searchInp.value);
+  searchInp.addEventListener('input', () => {
+    state.gallery._tagTraySearch = searchInp.value;
+    _applyTagFilter(searchInp.value);
+  });
+  searchInp.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      searchInp.value = '';
+      state.gallery._tagTraySearch = '';
+      _applyTagFilter('');
+    }
+  });
 }
 
 /**

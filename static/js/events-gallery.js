@@ -40,6 +40,11 @@ function _bindGalleryEvents() {
         filterPanel.style.display = 'none';
         filterBtn.classList.remove('active');
         localStorage.setItem('tj_filterPanelOpen', '0');
+        // Clear all active filters when closing the panel
+        state.gallery.tagFilter = [];
+        if (typeof applyGalleryImageScopeByTagFilter === 'function') applyGalleryImageScopeByTagFilter();
+        if (typeof renderGallery === 'function') renderGallery();
+        if (typeof renderGalleryTagCloud === 'function') renderGalleryTagCloud();
       });
     }
   }
@@ -346,6 +351,19 @@ function _bindGalleryEvents() {
       if (typeof renderGalleryVideoUrls === 'function') renderGalleryVideoUrls();
     }
   });
+
+  // Vid button — toggle Video URLs tray
+  const vidUrlBtn = document.getElementById('gv2-video-url-btn');
+  if (vidUrlBtn) {
+    vidUrlBtn.addEventListener('click', () => {
+      const tray = document.getElementById('gv2-video-url-tray');
+      if (!tray) return;
+      const isOpen = tray.style.display !== 'none';
+      tray.style.display = isOpen ? 'none' : 'block';
+      vidUrlBtn.classList.toggle('active', !isOpen);
+      if (!isOpen && typeof renderGalleryVideoUrls === 'function') renderGalleryVideoUrls();
+    });
+  }
 
   // gv2-text-btn click is handled by bindAnnotationCanvas() in annotate-fabric.js
 

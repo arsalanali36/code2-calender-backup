@@ -238,6 +238,7 @@
       <button class="gv2-sb-btn gv2-toggle-btn" id="gallery-img-tag-filter-btn" title="Filter Tags (F)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
       </button>
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-video-url-btn" title="Video URLs" style="display:none; font-size:0.65rem; font-weight:600;">Vid</button>
       <div class="gv2-sb-sep"></div>
       <!-- More dropdown -->
       <div class="dropdown-wrapper">
@@ -295,14 +296,6 @@
     <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
       <div class="gv2-tray-resize-handle" id="gv2-tray-resize-handle"></div>
 
-      <!-- Video URLs Tray -->
-      <div class="gv2-video-url-tray" id="gv2-video-url-tray"
-        style="padding:10px;border-bottom:1px solid var(--border);display:none;">
-        <div style="font-size:0.85rem;font-weight:600;margin-bottom:8px;color:var(--text);">Video URLs</div>
-        <div id="gv2-video-url-list"
-          style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;margin-bottom:12px;"></div>
-      </div>
-
       <div class="gv2-tt-hdr">
         <span class="gv2-tt-title">Tags</span>
         <div style="display:flex;gap:4px;align-items:center;">
@@ -313,6 +306,13 @@
           <button class="gv2-tt-add-grp" id="gv2-add-grp-btn" title="Add new group">+ Group</button>
           <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
         </div>
+      </div>
+
+      <!-- Video URLs Tray (collapsed by default, toggled by Vid button) -->
+      <div class="gv2-video-url-tray" id="gv2-video-url-tray"
+        style="padding:8px 10px;border-bottom:1px solid var(--border);display:none;">
+        <div id="gv2-video-url-list"
+          style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;"></div>
       </div>
       <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
     </div>

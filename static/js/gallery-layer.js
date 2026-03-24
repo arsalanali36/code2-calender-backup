@@ -274,18 +274,24 @@ function renderGalleryVideoUrls() {
     const ctx = getCurrentGalleryPreserveContext();
     const dateToUse = state.gallery.date || ctx.date;
 
+    const vidBtn = document.getElementById('gv2-video-url-btn');
     if (!dateToUse) {
         trayElem.style.display = 'none';
+        if (vidBtn) vidBtn.style.display = 'none';
         return;
     }
 
     const dayTrades = getTradesForDate(dateToUse);
     if (!dayTrades || dayTrades.length === 0) {
         trayElem.style.display = 'none';
+        if (vidBtn) vidBtn.style.display = 'none';
         return;
     }
 
-    trayElem.style.display = 'block';
+    // Show the Vid button; tray stays hidden until user clicks it
+    if (vidBtn) vidBtn.style.display = '';
+    // Only render content if the tray is open
+    if (trayElem.style.display === 'none') return;
     container.innerHTML = '';
 
     container.style.display = 'flex';

@@ -23,8 +23,29 @@ function _getTagsForImageUrl(url) {
 }
 
 function getImageTagsForGalleryItem(item) {
-  const tags = new Set();
   if (!item || !item.url) return [];
+  const filterScope = state.gallery.filterTagScope || 'image';
+  if (filterScope === 'trade') {
+    // Aggregate ALL tags from ALL images of this trade
+    // so that if ANY image has the tag, ALL images of that trade match the filter
+    if (item.sourceRow !== null && item.sourceRow !== undefined && state.trades[item.sourceRow]) {
+      const trade = state.trades[item.sourceRow];
+      const tags = new Set();
+      (trade.images || []).forEach(url => {
+        getImageTagsForUrl(trade, url).forEach(t => tags.add(t));
+        const boxes = trade.marqueeBoxes?.[url];
+        (Array.isArray(boxes) ? boxes : []).forEach(b =>
+          (Array.isArray(b?.tags) ? b.tags : []).forEach(t => tags.add(t))
+        );
+      });
+      // Also include explicitly set trade-level tags
+      getTradeTagsForTrade(trade).forEach(t => tags.add(t));
+      return Array.from(tags);
+    }
+    return [];
+  }
+  // Image scope (default): only this image's tags
+  const tags = new Set();
   if (item.sourceRow !== null && state.trades[item.sourceRow]) {
     getImageTagsForUrl(state.trades[item.sourceRow], item.url).forEach(t => tags.add(t));
   } else if (item.date) {
@@ -120,10 +141,13 @@ function findGalleryContextByImageUrl(imageUrl) {
   return { date: '', sourceRow: null };
 }
 
-function applyGalleryImageScopeByTagFilter(preserveUrl = '') {
-  const preserve = (typeof preserveUrl === 'object' && preserveUrl)
-    ? preserveUrl
-    : { url: preserveUrl || '' };
+function applyGalleryImageScopeByTagFilter(preserveUrl = null) {
+  // When called with no args, auto-capture current context so currentIndex is preserved
+  const preserve = (preserveUrl === null || preserveUrl === undefined)
+    ? (typeof getCurrentGalleryPreserveContext === 'function' ? getCurrentGalleryPreserveContext() : { url: '' })
+    : (typeof preserveUrl === 'object' && preserveUrl)
+      ? preserveUrl
+      : { url: preserveUrl || '' };
   const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
   let nextImages;
   let nextMeta = null;

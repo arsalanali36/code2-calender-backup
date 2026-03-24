@@ -116,6 +116,15 @@ function getOwnerTradeForGalleryImage() {
   return state.trades.find(t => Array.isArray(t.images) && t.images.includes(imgUrl)) || null;
 }
 
+function getTradeTagsForTrade(trade) {
+  return Array.isArray(trade?.tradeTags) ? [...trade.tradeTags] : [];
+}
+
+function setTradeTagsForTrade(trade, tags) {
+  if (!trade) return;
+  trade.tradeTags = Array.isArray(tags) ? [...tags] : [];
+}
+
 function getMarqueeTagsForImage(imageUrl, dateHint = '', sourceRow = null) {
   if (!imageUrl) return [];
   const boxes = getMarqueeBoxesForImage(imageUrl, dateHint, sourceRow);
@@ -152,8 +161,9 @@ function getCurrentGalleryImageTagInfo() {
     }
   }
   const marqueeTags = getMarqueeTagsForImage(imgUrl, state.gallery.date || '', state.gallery.sourceRow);
+  const tradeTags = getTradeTagsForTrade(trade);
   const all = Array.from(new Set([...imageTags, ...marqueeTags]));
-  return { imgUrl, trade, ownerType, dateKey, imageTags, marqueeTags, all };
+  return { imgUrl, trade, ownerType, dateKey, imageTags, marqueeTags, tradeTags, all };
 }
 
 function getOverlayUrlForImage(imageUrl, dateHint = '') {

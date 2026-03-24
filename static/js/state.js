@@ -32,6 +32,7 @@ const state = {
   gallery: {
     images: [], currentIndex: 0, date: '', sourceRow: null,
     tagFilter: [], filterMode: 'or', tagViewMode: 'grouped',
+    filterTagScope: 'image', tagAssignMode: 'image',
     hiddenImages: new Set(), layerPanelOpen: false
   },  // V2: tagFilter = selected tag names
   tagGroups: {},  // { groupName: [tagName, ...] } — user-defined groups

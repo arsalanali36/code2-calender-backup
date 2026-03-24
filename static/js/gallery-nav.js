@@ -100,6 +100,8 @@ function navigateGallery(dir) {
   else if (next < 0) next = 0;
   if (next === currentIndex) return;
   state.gallery.currentIndex = next;
+  // Clear multi-selection so only the active (blue) border shows on the new thumb
+  state.gallery.selectedIndices = new Set();
   renderGallery();
 }
 

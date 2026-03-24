@@ -175,25 +175,58 @@ function renderGallery() {
   }
 
   let lastTradeIdxRendered = -1;
-  const dayTrades = (state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0))
-    ? getTradesForDate(state.gallery.date)
-    : [];
+  const dayTrades = state.gallery.date ? getTradesForDate(state.gallery.date) : [];
+  const _filterActive3 = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+  const _perDateLastIdx = new Map();   // filter mode: per-date lastTradeIdxRendered
+  const _perDateRenderedSeps = new Set(); // filter mode: "date:OPEN" / "date:CLOSE" rendered flags
 
-  const createTradeSeparator = (idx) => {
+  // Pre-compute which trade indices (0-based) per date have matching filter images,
+  // and which dates have OPEN (dayData) images — so we skip empty separators.
+  const _filteredTradeIdxPerDate = new Map(); // date → Set of 0-based trade indices
+  const _filteredOpenDates = new Set();       // dates that have a non-close dayData image in filter
+  if (_filterActive3 && state.gallery._filteredMeta) {
+    state.gallery._filteredMeta.forEach(meta => {
+      const d = meta.date || '';
+      if (!d) return;
+      if (meta.sourceRow !== null && meta.sourceRow !== undefined) {
+        const trade = state.trades[meta.sourceRow];
+        if (!trade) return;
+        const trades = (d !== state.gallery.date) ? getTradesForDate(d) : dayTrades;
+        const idx = trades.indexOf(trade);
+        if (idx < 0) return;
+        if (!_filteredTradeIdxPerDate.has(d)) _filteredTradeIdxPerDate.set(d, new Set());
+        _filteredTradeIdxPerDate.get(d).add(idx);
+      } else if (!state.dayData[d]?.closeImages?.includes(meta.url)) {
+        _filteredOpenDates.add(d);
+      }
+    });
+  }
+
+  const _fmtSepDate = (d) => {
+    if (!d) return '';
+    const _mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const _dy = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const _dt = new Date(d + 'T00:00:00');
+    return _mo[_dt.getMonth()] + ' ' + String(_dt.getDate()).padStart(2,'0') + ' ' + _dy[_dt.getDay()];
+  };
+
+  const createTradeSeparator = (idx, tradeObj, dateLabel) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
     sep.title = `Trade ${idx + 1} (Drop to move. Click to collapse)`;
     const sepKey = 'T' + idx;
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
-    const tr = dayTrades[idx];
+    const tr = tradeObj !== undefined ? tradeObj : dayTrades[idx];
     const pnl = parseFloat(tr?.['Net P/L'] || tr?.net_pnl || 0) || 0;
     const pt = parseFloat(tr?.['Pt'] || tr?.pt || 0) || 0;
     const pnlStr = pnl !== 0 ? (pnl > 0 ? '+₹' : '-₹') + Math.abs(Math.round(pnl)) : '';
     const ptStr = pt !== 0 ? (pt > 0 ? '+' : '') + Math.round(pt) + 'Pt' : '';
     const pnlColor = pnl > 0 ? 'var(--green,#2ecc71)' : (pnl < 0 ? 'var(--red,#e74c3c)' : '#ffd700');
+    const datePart = dateLabel ? `<span style="color:#aaa; font-size:0.62rem; font-weight:400; margin-left:4px;">${dateLabel}</span>` : '';
     sep.innerHTML =
-      `<span class="gv2-sep-label" style="color:${pnlColor}">${arrow} T${idx + 1}</span>` +
+      `<span class="gv2-sep-label" style="color:${pnlColor}">${arrow} T${idx + 1}${datePart ? '' : ''}</span>` +
+      datePart +
       ((pnlStr || ptStr) ? `<span class="gv2-sep-stats" style="color:${pnlColor}">${[pnlStr, ptStr].filter(Boolean).join(' · ')}</span>` : '');
     sep.style.borderColor = '#ffd700';
 
@@ -206,8 +239,7 @@ function renderGallery() {
         if (!draggedIndices || draggedIndices.length === 0) return;
         if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
         draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
-        if (typeof moveSelectedToTrade === 'function' && dayTrades[idx]) {
-          const tr = dayTrades[idx];
+        if (typeof moveSelectedToTrade === 'function' && tr) {
           if (tr.images && tr.images.length > 0 && typeof handleReorderGalleryImagesBatch === 'function') {
             const firstUrl = tr.images[0];
             const insertAt = state.gallery.images.indexOf(firstUrl);
@@ -290,48 +322,79 @@ function renderGallery() {
     return sep;
   };
 
-  if (state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+  if (state.gallery.date && !_filterActive3) {
     thumbs.appendChild(createSpecialSeparator('OPEN', false));
   }
 
   let renderedCloseSep = false;
 
-  thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate }, currentIterIdx) => {
+  thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow }, currentIterIdx) => {
 
-    const ownerTrade = getOwnerTradeForImageUrl(url);
-    const isCloseImg = state.gallery.date && state.dayData[state.gallery.date]?.closeImages?.includes(url);
+    // In filter mode, use sourceRow from _filteredMeta to bypass getOwnerTradeForImageUrl's
+    // single-date limitation (it only searches state.gallery.date's trades, returning null for
+    // images from other dates — which incorrectly places them under OPEN).
+    const ownerTrade = (_filterActive3 && itemSourceRow !== null && itemSourceRow !== undefined)
+      ? (state.trades[itemSourceRow] || null)
+      : getOwnerTradeForImageUrl(url);
 
-    if (isCurrentDate && dayTrades.length > 0 && ownerTrade && !isCloseImg) {
-      let targetTradeIdx = -1;
-      if (ownerTrade) {
-        targetTradeIdx = dayTrades.indexOf(ownerTrade);
+    // In filter mode use per-image date; in normal mode use gallery date
+    const _effDate = (_filterActive3 && itemDate) ? itemDate : (state.gallery.date || '');
+    const _effTrades = (_filterActive3 && itemDate && itemDate !== state.gallery.date)
+      ? getTradesForDate(itemDate) : dayTrades;
+
+    const isCloseImg = _effDate && state.dayData[_effDate]?.closeImages?.includes(url);
+
+    // In filter mode: render OPEN separator once per date, only if that date has OPEN images
+    if (_filterActive3 && _effDate && !_perDateRenderedSeps.has(_effDate + ':OPEN')) {
+      if (_filteredOpenDates.has(_effDate)) {
+        thumbs.appendChild(createSpecialSeparator('OPEN', false));
       }
+      _perDateRenderedSeps.add(_effDate + ':OPEN'); // mark as processed regardless
+    }
 
-      // Add missing separators for any intervening or current trades
-      while (lastTradeIdxRendered < targetTradeIdx) {
-        thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
-        lastTradeIdxRendered++;
+    if (_effTrades.length > 0 && ownerTrade && !isCloseImg) {
+      const targetTradeIdx = _effTrades.indexOf(ownerTrade);
+      if (targetTradeIdx >= 0) {
+        let _lastIdx = _filterActive3 ? (_perDateLastIdx.get(_effDate) ?? -1) : lastTradeIdxRendered;
+        while (_lastIdx < targetTradeIdx) {
+          const _sepIdx = _lastIdx + 1;
+          // In filter mode, only render separator if that trade has matching images
+          if (!_filterActive3 || _filteredTradeIdxPerDate.get(_effDate)?.has(_sepIdx)) {
+            thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx], _filterActive3 ? _fmtSepDate(_effDate) : ''));
+          }
+          _lastIdx++;
+        }
+        if (_filterActive3) { _perDateLastIdx.set(_effDate, _lastIdx); }
+        else { lastTradeIdxRendered = _lastIdx; }
       }
-      
-      if (state.gallery.collapsedSeparators?.has('T' + targetTradeIdx)) return;
-    } else if (isCurrentDate && !ownerTrade && !isCloseImg) {
+      if (state.gallery.collapsedSeparators?.has('T' + _effTrades.indexOf(ownerTrade))) return;
+    } else if (_effDate && !ownerTrade && !isCloseImg) {
       // It's an OPEN image
       if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
 
-    if (isCurrentDate && isCloseImg && !renderedCloseSep && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+    const _closeSepKey = _effDate + ':CLOSE';
+    const _closeSepAlreadyDone = _filterActive3 ? _perDateRenderedSeps.has(_closeSepKey) : renderedCloseSep;
+    if (isCloseImg && !_closeSepAlreadyDone) {
       // Catch up any remaining trade separators before switching to CLOSE
-      if (dayTrades.length > 0) {
-        while (lastTradeIdxRendered < dayTrades.length - 1) {
-          thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
-          lastTradeIdxRendered++;
+      let _lastIdx = _filterActive3 ? (_perDateLastIdx.get(_effDate) ?? -1) : lastTradeIdxRendered;
+      if (_effTrades.length > 0) {
+        while (_lastIdx < _effTrades.length - 1) {
+          const _sepIdx = _lastIdx + 1;
+          if (!_filterActive3 || _filteredTradeIdxPerDate.get(_effDate)?.has(_sepIdx)) {
+            thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx], _filterActive3 ? _fmtSepDate(_effDate) : ''));
+          }
+          _lastIdx++;
         }
+        if (_filterActive3) { _perDateLastIdx.set(_effDate, _lastIdx); }
+        else { lastTradeIdxRendered = _lastIdx; }
       }
       thumbs.appendChild(createSpecialSeparator('CLOSE', true));
-      renderedCloseSep = true;
+      if (_filterActive3) { _perDateRenderedSeps.add(_closeSepKey); }
+      else { renderedCloseSep = true; }
     }
-    
-    if (isCurrentDate && isCloseImg) {
+
+    if (isCloseImg) {
       if (state.gallery.collapsedSeparators?.has('CLOSE')) return;
     }
 
@@ -588,6 +651,18 @@ function renderGallery() {
       wrap.appendChild(nameLbl);
     }
 
+    // Date badge — lower-right of thumbnail, shown in filter mode or all-images mode
+    const _filterActive2 = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+    if (itemDate && (_filterActive2 || !state.gallery.date)) {
+      const _d = new Date(itemDate + 'T00:00:00');
+      const _months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const _days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dateBadge = document.createElement('div');
+      dateBadge.textContent = _months[_d.getMonth()] + ' ' + String(_d.getDate()).padStart(2,'0') + ' ' + _days[_d.getDay()];
+      dateBadge.style.cssText = 'position:absolute; bottom:3px; right:3px; background:rgba(0,0,0,0.72); color:#ddd; font-size:0.58rem; padding:1px 4px; border-radius:3px; pointer-events:none; white-space:nowrap; z-index:11; letter-spacing:0.01em;';
+      wrap.appendChild(dateBadge);
+    }
+
     if (subCount > 0) {
       const isExpanded = state.gallery.expandedGroups?.has(url);
       const badge = document.createElement('div');
@@ -615,14 +690,14 @@ function renderGallery() {
   });
 
   // Append any remaining separators for trailing empty trades if CLOSE hasn't triggered it
-  if (dayTrades.length > 0) {
+  if (!_filterActive3 && dayTrades.length > 0) {
     while (lastTradeIdxRendered < dayTrades.length - 1) {
       thumbs.appendChild(createTradeSeparator(lastTradeIdxRendered + 1));
       lastTradeIdxRendered++;
     }
   }
 
-  if (!renderedCloseSep && state.gallery.date && (!Array.isArray(state.gallery.tagFilter) || state.gallery.tagFilter.length === 0)) {
+  if (!_filterActive3 && !renderedCloseSep && state.gallery.date) {
     thumbs.appendChild(createSpecialSeparator('CLOSE', true));
   }
 
