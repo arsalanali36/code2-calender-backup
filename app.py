@@ -72,7 +72,7 @@ def add_cors(response):
 @app.before_request
 def require_login():
     from flask_login import current_user
-    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler']
+    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler', 'import.admin_push_data']
     if request.endpoint and request.endpoint not in allowed_endpoints:
         if not current_user.is_authenticated:
             if request.path.startswith('/api/'):
