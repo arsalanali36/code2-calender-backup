@@ -22,12 +22,10 @@ function renderGalleryImageTags() {
 
   const tradeTags = info.tradeTags || [];
   if (!tags.length && !marqueeTags.length && !tradeTags.length) {
-    const hint = document.createElement('span');
-    hint.className = 'gallery-tag-empty';
-    hint.textContent = 'No image/marquee tags';
-    box.appendChild(hint);
+    box.style.display = 'none';
     return;
   }
+  box.style.display = 'flex';
 
   if (tags.length) {
     const imgLbl = document.createElement('span');
@@ -40,7 +38,16 @@ function renderGalleryImageTags() {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'gallery-img-tag-chip';
-      chip.textContent = `${tag} x`;
+      const imgUrlMap = (state.tagImages || {})[tag];
+      if (imgUrlMap) {
+        const img = document.createElement('img');
+        img.src = resolveImageUrl(imgUrlMap);
+        img.style.cssText = 'height:28px; width:auto; vertical-align:middle; border-radius:3px; margin-right:6px; border:1px solid rgba(255,255,255,0.15); background:#000;';
+        chip.appendChild(img);
+      }
+      const txt = document.createElement('span');
+      txt.textContent = `${tag} x`;
+      chip.appendChild(txt);
       chip.style.color = c;
       chip.style.borderColor = hexToRgba(c, 0.45);
       chip.style.background = isRed ? 'rgba(255, 107, 107, 0.16)' : hexToRgba(c, 0.16);
@@ -71,7 +78,16 @@ function renderGalleryImageTags() {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'gallery-img-tag-chip';
-      chip.textContent = `${tag} x`;
+      const imgUrlMap = (state.tagImages || {})[tag];
+      if (imgUrlMap) {
+        const img = document.createElement('img');
+        img.src = resolveImageUrl(imgUrlMap);
+        img.style.cssText = 'height:28px; width:auto; vertical-align:middle; border-radius:3px; margin-right:6px; border:1px solid rgba(255,255,255,0.15); background:#000;';
+        chip.appendChild(img);
+      }
+      const txt = document.createElement('span');
+      txt.textContent = `${tag} x`;
+      chip.appendChild(txt);
       chip.style.color = c;
       chip.style.borderColor = hexToRgba(c, 0.45);
       chip.style.background = hexToRgba(c, 0.14);
@@ -101,7 +117,16 @@ function renderGalleryImageTags() {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'gallery-img-tag-chip';
-      chip.textContent = `${tag} x`;
+      const imgUrlMap = (state.tagImages || {})[tag];
+      if (imgUrlMap) {
+        const img = document.createElement('img');
+        img.src = resolveImageUrl(imgUrlMap);
+        img.style.cssText = 'height:28px; width:auto; vertical-align:middle; border-radius:3px; margin-right:6px; border:1px solid rgba(255,255,255,0.15); background:#000;';
+        chip.appendChild(img);
+      }
+      const txt = document.createElement('span');
+      txt.textContent = `${tag} x`;
+      chip.appendChild(txt);
       chip.style.color = c;
       chip.style.borderColor = hexToRgba(c, 0.45);
       chip.style.background = hexToRgba(c, 0.12);
@@ -284,6 +309,11 @@ function deleteImageTagGlobal(tagToDelete) {
       state.tagGroups[g] = (state.tagGroups[g] || []).filter(x => String(x).toLowerCase() !== tLow);
     });
   }
+  // Remove image association
+  Object.keys(state.tagImages || {}).forEach(k => {
+    if (k.toLowerCase() === tLow) delete state.tagImages[k];
+  });
+  saveTagGroups();
 }
 
 function openGalleryImageTagManager() {
@@ -324,6 +354,15 @@ function renderImageTagModal() {
     const dot = document.createElement('span');
     dot.className = 'tag-dot';
     dot.style.background = tagColor(tag);
+    
+    const imgUrlMap = (state.tagImages || {})[tag];
+    if (imgUrlMap) {
+      const img = document.createElement('img');
+      img.src = resolveImageUrl(imgUrlMap);
+      img.style.cssText = 'height:16px; width:auto; vertical-align:middle; border-radius:2px; margin-right:6px; border:1px solid rgba(255,255,255,0.1); background:#000;';
+      row.appendChild(img);
+    }
+    
     const txt = document.createTextNode(tag);
     chk.addEventListener('change', async () => {
       const next = chk.checked ? [...assigned, tag] : assigned.filter(t => t !== tag);

@@ -283,12 +283,17 @@ def ohlc_status():
                 entry_time = str(t.get('Sell Time' if tt == 'sell' else 'Buy Time', '') or '')[:8]
                 break
 
-        # Priority: security_id (historical) > rollingoption (fallback)
         parsed = dhan_service._parse_nse_symbol(sym, date)
         is_option = bool(parsed and parsed.get('instrument') in ('OPTIDX', 'OPTSTK'))
         if sym in symbol_map:
             info   = symbol_map[sym]
             status = dhan_service.get_ohlc_status(info['security_id'], date)
+            # For options: also check expired-option cache — data may have been
+            # fetched via the rollingoption path and stored as EXP_*.csv
+            if status.get('status') != 'complete' and is_option:
+                exp_status = dhan_service.get_expired_option_ohlc_status(sym, date)
+                if exp_status.get('status') == 'complete':
+                    status = exp_status
             result.append({'symbol': sym, 'date': date, 'entry_time': entry_time, **status})
         elif is_option:
             status = dhan_service.get_expired_option_ohlc_status(sym, date)
@@ -493,6 +498,12 @@ def sync_all_ohlc():
             if sym in symbol_map:
                 info   = symbol_map[sym]
                 status = dhan_service.get_ohlc_status(info['security_id'], date)
+                # Also check EXP_ cache — expired options may have been fetched
+                # via rollingoption and stored there instead of historical path
+                if status.get('status') != 'complete' and is_option:
+                    exp_st = dhan_service.get_expired_option_ohlc_status(sym, date)
+                    if exp_st.get('status') == 'complete':
+                        status = exp_st
                 if status.get('status') != 'complete':
                     to_fetch.append({**p, 'type': 'mapped'})
             elif is_option:

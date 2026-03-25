@@ -173,3 +173,38 @@ def copy_image_to_clipboard_route():
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+@image_bp.route('/api/upload-tag-image', methods=['POST'])
+def upload_tag_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image'}), 400
+    file = request.files['image']
+    tag_name = request.form.get('tag_name')
+    if not tag_name:
+        return jsonify({'error': 'No tag name'}), 400
+    
+    import os, uuid
+    target_dir = os.path.join(UPLOADS_DIR, 'tag_images')
+    os.makedirs(target_dir, exist_ok=True)
+    
+    ext = os.path.splitext(file.filename)[1] or '.png'
+    # Use tag name as part of filename for easier debugging, but sanitize it
+    safe_name = "".join([c for c in tag_name if c.isalnum() or c in (' ', '.', '_')]).rstrip()
+    fname = f"{safe_name}_{uuid.uuid4().hex[:8]}{ext}"
+    file.save(os.path.join(target_dir, fname))
+    
+    return jsonify({'url': f'/uploads/tag_images/{fname}'})
+
+
+@image_bp.route('/api/delete-tag-image', methods=['POST'])
+def delete_tag_image():
+    data = request.json or {}
+    url = data.get('url', '')
+    if not url or 'tag_images' not in url:
+        return jsonify({'error': 'Invalid URL'}), 400
+    
+    import os
+    fname = url.split('/')[-1]
+    fpath = os.path.join(UPLOADS_DIR, 'tag_images', fname)
+    if os.path.exists(fpath):
+        os.remove(fpath)
+    return jsonify({'success': True})

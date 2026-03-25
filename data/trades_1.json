@@ -3727,7 +3727,7 @@
       "Buy Time": "10:26:31",
       "Gross P/L": 1670.5,
       "Image Tags": "",
-      "Instrument": "NIFTYccCc2630225350PE",
+      "Instrument": "NIFTY2630225350PE",
       "Net P/L": 1591.48,
       "Note": "<font dir=\"auto\" style=\"vertical-align: inherit;\"><font dir=\"auto\" style=\"vertical-align: inherit;\">bahut hi zyada dar ke saaye me tha!!</font></font>",
       "Other Charges": 39.02,
@@ -11790,7 +11790,7 @@
       "Buy Price (Avg)": 239.45,
       "Buy Time": "09:41:15",
       "Gross P/L": -45.5,
-      "Image Tags": "",
+      "Image Tags": "palat gaya",
       "Instrument": "NIFTY2631024550CE",
       "Net P/L": -150.51,
       "Note": "",
@@ -11824,7 +11824,11 @@
           "version": "5.3.0"
         }
       },
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381562/trading_journal/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": [
+          "palat gaya"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381562/trading_journal/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png"
       ],
@@ -13539,7 +13543,7 @@
       "Buy Price (Avg)": 154.033333,
       "Buy Time": "09:58:03",
       "Gross P/L": -815.75,
-      "Image Tags": "",
+      "Image Tags": "Momentum Slow ka intezar karna cahiye",
       "Instrument": "NIFTY2631723350CE",
       "Net P/L": -917.64,
       "Note": "",
@@ -13556,7 +13560,11 @@
       "Video": "",
       "audios": {},
       "date": "2026-03-17",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724707/trading_journal/c3c14642-e014-451b-b62f-970a9c8700b0.png": [
+          "Momentum Slow ka intezar karna cahiye"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724707/trading_journal/c3c14642-e014-451b-b62f-970a9c8700b0.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724709/trading_journal/97492a6c-713d-4b13-9f5c-d4d5adae401d.png",
@@ -13575,7 +13583,7 @@
       "Buy Price (Avg)": 294.516667,
       "Buy Time": "10:15:16",
       "Gross P/L": -6652.75,
-      "Image Tags": "",
+      "Image Tags": "Momentum Slow ka intezar karna cahiye",
       "Instrument": "NIFTY2631723250CE",
       "Net P/L": -6797.31,
       "Note": "",
@@ -13593,7 +13601,11 @@
       "audios": {},
       "date": "2026-03-17",
       "heroImage": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724754/trading_journal/704140e4-e78c-4684-9484-f54e666ee8f3.png",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724746/trading_journal/ba1518ae-78e5-496a-a197-f133766ef45d.png": [
+          "Momentum Slow ka intezar karna cahiye"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724746/trading_journal/ba1518ae-78e5-496a-a197-f133766ef45d.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724747/trading_journal/843c2971-9558-4773-b11d-354a7b143272.png",
@@ -13876,7 +13888,7 @@
       "Buy Price (Avg)": 249.2,
       "Buy Time": "10:00:54",
       "Gross P/L": -1046.5,
-      "Image Tags": "",
+      "Image Tags": "Momentum Slow ka intezar karna cahiye",
       "Instrument": "NIFTY2632423250PE",
       "Net P/L": -1199.65,
       "Note": "",
@@ -13893,7 +13905,11 @@
       "Video": "",
       "date": "2026-03-20",
       "fill_count": 4,
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266758/trading_journal/68727d2c-6c50-4480-81b4-4942c40673dd.png": [
+          "Momentum Slow ka intezar karna cahiye"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266758/trading_journal/68727d2c-6c50-4480-81b4-4942c40673dd.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266758/trading_journal/bb9b186f-d081-4489-a560-2df3020106d0.png",
@@ -14147,7 +14163,7 @@
       "Buy Price (Avg)": 194.283333,
       "Buy Time": "09:35:30",
       "Gross P/L": -1495,
-      "Image Tags": "car, dddd",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2632422750CE",
       "Net P/L": -1610.52,
       "Note": "",
@@ -14163,7 +14179,11 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-03-23",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245424/trading_journal/a846f0f0-a556-460f-aa8c-736cf17f613b.png": [
+          "NO ZONE"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245424/trading_journal/a846f0f0-a556-460f-aa8c-736cf17f613b.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245424/trading_journal/4de5fd84-701d-4e42-b2f5-4dd60613a89c.png",
@@ -14182,7 +14202,7 @@
       "Buy Price (Avg)": 271.633333,
       "Buy Time": "09:42:35",
       "Gross P/L": -1998.75,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422800PE",
       "Net P/L": -2141.59,
       "Note": "",
@@ -14217,7 +14237,7 @@
       "Buy Price (Avg)": 161.8,
       "Buy Time": "09:56:05",
       "Gross P/L": 2951,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422750CE",
       "Net P/L": 2860.52,
       "Note": "",
@@ -14258,7 +14278,7 @@
       "Buy Price (Avg)": 277.2,
       "Buy Time": "09:42:35",
       "Gross P/L": -357.5,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422800PE",
       "Net P/L": -471.19,
       "Note": "",
@@ -14286,7 +14306,7 @@
       "Buy Price (Avg)": 213,
       "Buy Time": "10:15:51",
       "Gross P/L": 1774.5,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": 1673.31,
       "Note": "",
@@ -14322,7 +14342,7 @@
       "Buy Price (Avg)": 248.3,
       "Buy Time": "10:39:04",
       "Gross P/L": 221,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422600PE",
       "Net P/L": 113.48,
       "Note": "",
@@ -14358,7 +14378,7 @@
       "Buy Price (Avg)": 223.95,
       "Buy Time": "11:07:23",
       "Gross P/L": 2255.5,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422550PE",
       "Net P/L": 2150.99,
       "Note": "",
@@ -14395,7 +14415,7 @@
       "Buy Price (Avg)": 169.45,
       "Buy Time": "12:24:45",
       "Gross P/L": 2645.5,
-      "Image Tags": "car, dddd",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": 2553.61,
       "Note": "",
@@ -14429,7 +14449,7 @@
       "Buy Price (Avg)": 110.533333,
       "Buy Time": "10:46:17",
       "Gross P/L": 1215.5,
-      "Image Tags": "car, dddd, NO ZONE, ZONE ENTRY",
+      "Image Tags": "chotu, dddd, NO ZONE, pintu, ZONE ENTRY",
       "Instrument": "NIFTY2632422700PE",
       "Net P/L": 1126.51,
       "Note": "",
@@ -14449,8 +14469,11 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/462f9718-57f4-4216-92db-c8c6486423d5.png": [
           "ZONE ENTRY",
           "NO ZONE",
-          "car",
-          "dddd"
+          "dddd",
+          "chotu"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/86890efb-648f-47fe-995e-262786d07139.png": [
+          "pintu"
         ]
       },
       "images": [
@@ -14471,7 +14494,7 @@
       "Buy Price (Avg)": 150.375,
       "Buy Time": "11:16:01",
       "Gross P/L": -4611.75,
-      "Image Tags": "NO ZONE, SL Nahi lagya",
+      "Image Tags": "NO ZONE, pintu, SL Nahi lagya",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": -4688.77,
       "Note": "",
@@ -14490,6 +14513,9 @@
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774331276/trading_journal/afc1dca9-6ef2-4e3b-9e85-fb9c4a9cf9c4.png": [
           "NO ZONE"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774331277/trading_journal/ee7f5e9b-f7be-477b-b2e8-3de40f639dd6.png": [
+          "pintu"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774334041/trading_journal/cf707061-8a40-49f6-835d-b6b32cce9a85.png": [
           "SL Nahi lagya"
@@ -14530,7 +14556,7 @@
       "Buy Price (Avg)": 154.9,
       "Buy Time": "11:16:01",
       "Gross P/L": -263.25,
-      "Image Tags": "NO ZONE",
+      "Image Tags": "NO ZONE, palat gaya",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": -328.8,
       "Note": "",
@@ -14547,6 +14573,9 @@
       "Video": "",
       "date": "2026-03-24",
       "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774333726/trading_journal/3002baaa-a586-472a-812a-5d74bfebac8d.png": [
+          "palat gaya"
+        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774333726/trading_journal/756d4384-77f7-426b-ab4d-6834a6f68da3.png": [
           "NO ZONE"
         ]
@@ -14970,12 +14999,14 @@
     "ide",
     "carxx",
     "dddd",
-    "car",
     "SL Nahi lagya",
     "ZONE ENTRY",
     "NO ZONE",
     "Over-Confidence",
-    "Momentum Slow ka intezar karna cahiye"
+    "Momentum Slow ka intezar karna cahiye",
+    "palat gaya",
+    "chotu",
+    "pintu"
   ],
   "tagColumns": [
     "Tags"
@@ -24045,8 +24076,7 @@
       ],
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245422/trading_journal/c7e02db0-ff2d-4ab4-9647-2fb6995287b0.png": [
-          "dddd",
-          "car"
+          "dddd"
         ]
       },
       "images": [
@@ -24070,7 +24100,10 @@
     }
   },
   "tagGroups": {
-    "BAT": [],
+    "BAT": [
+      "chotu",
+      "pintu"
+    ],
     "Emotions": [
       "darr",
       "Mann Nahi",
@@ -24089,7 +24122,8 @@
       "Distracted",
       "ZONE ENTRY",
       "NO ZONE",
-      "Momentum Slow ka intezar karna cahiye"
+      "Momentum Slow ka intezar karna cahiye",
+      "palat gaya"
     ],
     "Exit Type": [
       "Partial Exit",

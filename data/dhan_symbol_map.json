@@ -193,5 +193,25 @@
     "security_id": "62437",
     "exchange_segment": "NSE_FNO",
     "instrument": "OPTIDX"
+  },
+  "NIFTY2632422700PE": {
+    "security_id": "62556",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422700CE": {
+    "security_id": "62555",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422900CE": {
+    "security_id": "62566",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422950CE": {
+    "security_id": "62568",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
   }
 }

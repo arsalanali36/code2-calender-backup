@@ -11,12 +11,14 @@
 
 let _tradesSortField = 'date';
 let _tradesSortOrder = 'desc'; // 'desc' = high/recent, 'asc' = low/oldest
+let _tradesFilterType = 'both'; // 'both', 'gain', 'loss'
 
 function _bindGalleryTradesPanelEvents() {
   const tpBtn    = document.getElementById('gv2-trades-panel-btn');
   const tpPanel  = document.getElementById('gv2-trades-panel');
   const tpClose  = document.getElementById('gv2-trades-close-btn');
   const tpFieldSelect = document.getElementById('gv2-trades-sort-field');
+  const tpFilterSelect = document.getElementById('gv2-trades-filter-type');
   const tpOrderBtn = document.getElementById('gv2-trades-sort-order-btn');
   const tpList   = document.getElementById('gv2-trades-list');
 
@@ -26,6 +28,14 @@ function _bindGalleryTradesPanelEvents() {
     
     // Collect all trades that have at least one image
     let allPnlTrades = state.trades.filter(t => t && t.images && t.images.length > 0 && normalizeDate(extractDateFromTrade(t)));
+
+    // Apply Filter (Both/Gain/Loss)
+    if (_tradesFilterType !== 'both') {
+      allPnlTrades = allPnlTrades.filter(t => {
+        const pnl = parseFloat(t['Net P/L'] || t.net_pnl || 0) || 0;
+        return (_tradesFilterType === 'gain') ? (pnl > 0) : (pnl < 0);
+      });
+    }
 
     allPnlTrades.sort((a, b) => {
       let valA, valB;
@@ -216,6 +226,14 @@ function _bindGalleryTradesPanelEvents() {
     tpFieldSelect.value = _tradesSortField;
     tpFieldSelect.addEventListener('change', (e) => {
       _tradesSortField = e.target.value;
+      _renderTradesList();
+    });
+  }
+
+  if (tpFilterSelect) {
+    tpFilterSelect.value = _tradesFilterType;
+    tpFilterSelect.addEventListener('change', (e) => {
+      _tradesFilterType = e.target.value;
       _renderTradesList();
     });
   }

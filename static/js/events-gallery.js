@@ -319,6 +319,18 @@ function _bindGalleryEvents() {
     if (cur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(images, cur);
   });
 
+  // Popout Button: opens current image in a new window using existing Share Link logic
+  document.getElementById('gv2-popout-btn')?.addEventListener('click', () => {
+    const images = state.gallery.images || [];
+    const cur = images[state.gallery.currentIndex];
+    const date = state.gallery.date;
+    if (!date || !cur) return;
+
+    const params = new URLSearchParams({ galleryDate: date, galleryImg: cur });
+    const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    window.open(url, 'gallery_popout', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no');
+  });
+
   document.getElementById('gallery-prev').addEventListener('click', () => navigateGallery(-1));
   document.getElementById('gallery-next').addEventListener('click', () => navigateGallery(1));
   document.getElementById('gallery-date-prev').addEventListener('click', () => navigateGalleryDate(-1));
@@ -423,7 +435,7 @@ function _bindGalleryEvents() {
 
   // gv2-text-btn click is handled by bindAnnotationCanvas() in annotate-fabric.js
 
-  document.getElementById('gv2-tc-mode-btn').addEventListener('click', () => {
+  document.getElementById('gv2-tc-mode-btn')?.addEventListener('click', () => {
     state.gallery.filterMode = state.gallery.filterMode === 'or' ? 'and' : 'or';
     applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
     renderGalleryTagCloud(); renderGallery();
@@ -439,7 +451,7 @@ function _bindGalleryEvents() {
     if (Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length) renderGallery();
   });
 
-  document.getElementById('gv2-tc-clear-btn').addEventListener('click', () => {
+  document.getElementById('gv2-tc-clear-btn')?.addEventListener('click', () => {
     state.gallery.tagFilter = [];
     applyGalleryImageScopeByTagFilter((state.gallery.images || [])[state.gallery.currentIndex] || '');
     renderGalleryTagCloud(); renderGallery();
@@ -648,6 +660,33 @@ function _bindGalleryEvents() {
       showToast(wasMarked ? 'Review mark removed' : 'Marked for review', 'success');
     });
   })();
+
+
+  // ── Recording Tools Toggle (Relocated to Tray) ──────────────────────────
+  const recToggleBtn = document.getElementById('gv2-record-toggle-btn');
+  const recBars = document.getElementById('gv2-tray-record-bars');
+  const recSep = document.querySelector('.recording-sep');
+  
+  if (recToggleBtn && recBars) {
+    const wasOpen = localStorage.getItem('tj_gv2RecOpen') === '1';
+    const setRecState = (open) => {
+      recBars.style.display = open ? 'flex' : 'none';
+      if (recSep) recSep.style.display = open ? 'block' : 'none';
+      recToggleBtn.classList.toggle('active', open);
+      localStorage.setItem('tj_gv2RecOpen', open ? '1' : '0');
+      if (open) {
+        if (typeof renderAudioBar === 'function') renderAudioBar();
+        if (typeof renderVideoBar === 'function') renderVideoBar();
+      }
+    };
+
+    recToggleBtn.addEventListener('click', () => {
+      const isOpen = recBars.style.display !== 'none';
+      setRecState(!isOpen);
+    });
+
+    if (wasOpen) setRecState(true);
+  }
 
   // ── Trades Panel Toggle & Render → events-gallery-b.js ───────────────────
   _bindGalleryTradesPanelEvents();

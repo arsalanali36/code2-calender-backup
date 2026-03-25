@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/static/css/style-gallery-c.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-gallery-d.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-misc.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-ohlc-manager.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-csvlog.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-csvlog-charts.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-trade.css?v={{ cache_bust }}" />
@@ -101,6 +102,9 @@
 
           <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
           <a href="/whatif" class="profile-menu-item" target="_blank">&#128200; What If</a>
+          <button class="profile-menu-item" id="profile-ohlc-btn">
+            <span class="pmi-icon">&#128202;</span> OHLC
+          </button>
 
           <!-- Broker inline dropdown -->
           <div class="profile-inline-group" id="profile-broker-group">
@@ -462,6 +466,7 @@
   <script src="/static/js/gallery-tags.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-tags-filter.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-sync.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-img-tags.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-audio.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-video.js?v={{ cache_bust }}"></script>
@@ -481,6 +486,7 @@
   <script src="/static/js/csvlog-placeholder.js?v={{ cache_bust }}"></script>
   <script src="/static/js/csvlog-charts.js?v={{ cache_bust }}"></script>
   <script src="/static/js/csvlog-charts-b.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/ohlc-manager.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
   <script src="/static/js/events-gallery-b.js?v={{ cache_bust }}"></script>

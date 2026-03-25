@@ -152,18 +152,45 @@ function applyGalleryImageScopeByTagFilter(preserveUrl = null) {
   let nextImages;
   let nextMeta = null;
   if (filterActive) {
-    nextMeta = getFilteredGalleryImagesByTagSelection();
+    const rawMatches = getFilteredGalleryImagesByTagSelection();
+    const expanded = [];
+    const processedTrades = new Set(); // To ensure only one image per non-expanded trade
+
+    for (const item of rawMatches) {
+      const tradeKey = (item.date || '') + ':' + (item.sourceRow !== null ? item.sourceRow : 'OPENCLOSE');
+      const isExpanded = state.gallery.expandedFilterTrades?.has(tradeKey);
+
+      if (isExpanded) {
+        if (processedTrades.has(tradeKey)) continue; // Already added all images
+        processedTrades.add(tradeKey);
+        // Include ALL images of this trade
+        if (item.sourceRow !== null && state.trades[item.sourceRow]) {
+          const t = state.trades[item.sourceRow];
+          (t.images || []).forEach(url => expanded.push({ url, date: item.date, sourceRow: item.sourceRow }));
+        } else if (item.date) {
+            // OPEN/CLOSE case: just include matching ones for now, OR include all OPEN?
+            // Usually trades are the focus. For OPEN/CLOSE, we just include the matching one.
+            expanded.push(item);
+        }
+      } else {
+        if (processedTrades.has(tradeKey)) continue;
+        processedTrades.add(tradeKey);
+        expanded.push({ ...item, isCollapsedTrade: true });
+      }
+    }
+    nextMeta = expanded;
+
     // In Grp mode: if any group parents are expanded, insert their sub-images after the parent
     if (state.gallery.filterGroupMode !== 'image' && state.gallery.expandedGroups?.size) {
-      const expanded = [];
+      const groupExpanded = [];
       for (const item of nextMeta) {
-        expanded.push(item);
+        groupExpanded.push(item);
         if (state.gallery.expandedGroups.has(item.url)) {
           const subs = _getSubImagesForParent(item.url, item.date, item.sourceRow);
-          subs.forEach(subUrl => expanded.push({ url: subUrl, date: item.date, sourceRow: item.sourceRow }));
+          subs.forEach(subUrl => groupExpanded.push({ url: subUrl, date: item.date, sourceRow: item.sourceRow }));
         }
       }
-      nextMeta = expanded;
+      nextMeta = groupExpanded;
     }
     nextImages = nextMeta.map(x => x.url);
   } else if (Array.isArray(state.gallery._baseImages) && state.gallery._baseImages.length) {

@@ -40,6 +40,14 @@
   color: var(--icon-white);
 }
 
+#gv2-popout-btn {
+  color: var(--icon-orange);
+}
+
+#gv2-popout-btn:hover {
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
 #gv2-tags-btn {
   color: var(--icon-blue);
 }

@@ -24,15 +24,28 @@
 
       <div class="gv2-tray-sep"></div>
 
+      <!-- Relocated Recording Bars -->
+      <div id="gv2-tray-record-wrap" class="gv2-tray-record-wrap">
+        <button id="gv2-record-toggle-btn" class="gv2-record-toggle-btn" title="Toggle Recording Tools">
+          <span class="rec-icon">●</span> <span class="rec-lbl">Record</span>
+        </button>
+        <div id="gv2-tray-record-bars" class="gv2-tray-record-bars" style="display:none">
+          <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
+          <div class="gv2-video-bar" id="gv2-video-bar"></div>
+        </div>
+      </div>
+
+      <div class="gv2-tray-sep recording-sep" style="display:none"></div>
+
       <!-- Day P&L pill (total) -->
       <div class="gv2-pnl-wrap" id="gv2-pnl-wrap" style="display:none;position:relative;">
         <button class="gv2-pnl-pill" id="gv2-pnl-pill">0</button>
-        <div class="gv2-pnl-dropdown" id="gv2-pnl-dropdown"></div>
+        <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-pnl-dropdown"></div>
       </div>
       <!-- Trade pill (current image's trade) -->
       <div class="gv2-trade-pill-wrap" id="gv2-trade-pill-wrap" style="display:none;position:relative;">
         <button class="gv2-trade-pill" id="gv2-trade-pill"></button>
-        <div class="gv2-pnl-dropdown" id="gv2-trade-dropdown"></div>
+        <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-trade-dropdown"></div>
       </div>
     </div>
 
@@ -95,6 +108,11 @@
         <span>All Trades</span>
         <div style="display:flex;gap:3px;align-items:center;">
           <div class="gv2-sort-container" style="display:flex; gap:4px; align-items:center;">
+            <select id="gv2-trades-filter-type" class="gv2-sort-select" title="Filter by PnL status">
+              <option value="both">Both</option>
+              <option value="gain">Gain</option>
+              <option value="loss">Loss</option>
+            </select>
             <select id="gv2-trades-sort-field" class="gv2-sort-select" title="Sort by">
               <option value="date">Date</option>
               <option value="pt">Pt</option>
@@ -197,26 +215,13 @@
           <button id="gv2-mq-del" class="gv2-ab-btn" title="Close marquee tool">&#10005;</button>
         </div>
 
-        <!-- Audio Bar -->
-        <div class="gv2-audio-bar" id="gv2-audio-bar" style="display:none"></div>
-
-        <!-- Video Bar -->
-        <div class="gv2-video-bar" id="gv2-video-bar" style="display:none"></div>
       </div>
 
-      <!-- Heads Display (stats bar — below image, not overlapping) -->
-      <div id="gallery-heads-display" class="gallery-heads-display" style="display:none"></div>
+      <!-- Heads Display (stats bar — below image) -->
+      <div id="gallery-heads-display" class="gallery-heads-display"></div>
 
-      <!-- Tag Cloud (bottom of center) -->
-      <div class="gv2-tag-cloud" id="gv2-tag-cloud">
-        <span class="gv2-tc-label">Filter:</span>
-        <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
-        <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
-        <button class="gv2-tc-mode-btn active" id="gv2-grp-filter-btn" title="Filter mode: Grp = entire group if any image matches, Img = only matching image" style="margin-left:4px">Grp</button>
-        <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005; Clear</button>
-        <button class="gv2-tc-mode-btn" id="gv2-shortcuts-btn" title="Keyboard shortcuts" style="margin-left:4px;font-size:0.8rem;padding:2px 7px;">&#9000;</button>
-        <div id="gv2-shortcuts-popover" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;max-width:520px;margin:0 auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);z-index:9999;padding:10px 14px;font-size:0.78rem;"></div>
-      </div>
+      <!-- Tag Cloud (bottom filter section — removed per user request) -->
+      <div class="gv2-tag-cloud" id="gv2-tag-cloud" style="display:none"></div>
 
     </div><!-- /gv2-center -->
 
@@ -224,6 +229,11 @@
     <div class="gv2-sidebar-strip">
       <button class="gv2-sb-btn" id="gv2-fullscreen-btn" title="Fullscreen (F)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
+      </button>
+      <button class="gv2-sb-btn" id="gv2-popout-btn" title="Popout (New Window)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+          <path d="M9 1L15 1V7M15 1L8 8M5 1H2V14H15V11"/>
+        </svg>
       </button>
       <div class="gv2-sb-sep"></div>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags (T)">
@@ -336,6 +346,7 @@
         <div id="gv2-video-url-list"
           style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;"></div>
       </div>
+      <div id="gv2-tags-tray-fixed"></div>
       <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
     </div>
 

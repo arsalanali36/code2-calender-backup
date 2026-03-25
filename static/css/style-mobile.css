@@ -131,7 +131,7 @@
   .gv2-tray {
     flex-wrap: nowrap !important;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 4px;

@@ -71,10 +71,12 @@ function renderGalleryTagCloud() {
 
 function renderGalleryTagsTray() {
   const body = document.getElementById('gv2-tags-tray-body');
+  const fixed = document.getElementById('gv2-tags-tray-fixed');
   if (!body) return;
   body.innerHTML = '';
+  if (fixed) fixed.innerHTML = '';
 
-  // Assign-mode toggle (Image vs Trade)
+  // 1. Assign model toggle (Image vs Trade)
   const assignRow = document.createElement('div');
   assignRow.style.cssText = 'display:flex; gap:6px; padding:6px 8px 6px; border-bottom:1px solid var(--border); align-items:center;';
   const assignLbl = document.createElement('span');
@@ -94,7 +96,8 @@ function renderGalleryTagsTray() {
   assignRow.appendChild(assignLbl);
   assignRow.appendChild(assignImgBtn);
   assignRow.appendChild(assignTradeBtn);
-  body.appendChild(assignRow);
+  if (fixed) fixed.appendChild(assignRow);
+  else body.appendChild(assignRow);
 
   // Search input
   const searchRow = document.createElement('div');
@@ -105,7 +108,8 @@ function renderGalleryTagsTray() {
   searchInp.value = state.gallery._tagTraySearch || '';
   searchInp.style.cssText = 'width:100%; box-sizing:border-box;';
   searchRow.appendChild(searchInp);
-  body.appendChild(searchRow);
+  if (fixed) fixed.appendChild(searchRow);
+  else body.appendChild(searchRow);
 
   if (!state.allTags) state.allTags = [];
   const allTags = state.allTags;
@@ -181,15 +185,51 @@ function renderGalleryTagsTray() {
     chip.className = 'gv2-tt-tag-chip';
     const countVal = tagUsageCount.get(tag) || 0;
     const isFreq = countVal > 5;
+
     const lbl = document.createElement('span');
     lbl.textContent = tag;
     if (isFreq) lbl.style.color = '#ff6b6b';
+
     const cnt = document.createElement('span');
     cnt.className = 'gv2-tt-tag-count';
     cnt.textContent = String(countVal);
     if (isFreq) cnt.style.color = '#ff6b6b';
-    chip.appendChild(lbl);
-    chip.appendChild(cnt);
+
+    const imgUrl = state.tagImages[tag];
+    if (imgUrl) {
+      const img = document.createElement('img');
+      img.src = resolveImageUrl(imgUrl);
+      img.style.cssText = 'height:60px; width:100%; object-fit:contain; border-radius:6px; margin-bottom:6px; background:#000; border:1px solid rgba(255,255,255,0.1);';
+      chip.prepend(img);
+      chip.style.flexDirection = 'column';
+      chip.style.alignItems = 'center';
+      chip.style.padding = '8px 10px';
+      chip.style.width = '84px'; // fixed width for card look
+      chip.style.minHeight = '100px'; 
+      chip.style.justifyContent = 'flex-start';
+      chip.style.textAlign = 'center';
+      
+      lbl.style.fontSize = '0.78rem';
+      lbl.style.fontWeight = '600';
+      lbl.style.marginBottom = '4px';
+      lbl.style.display = 'block';
+      lbl.style.width = '100%';
+      lbl.style.overflow = 'hidden';
+      lbl.style.textOverflow = 'ellipsis';
+      lbl.style.whiteSpace = 'nowrap';
+      
+      cnt.style.fontSize = '0.7rem';
+      cnt.style.background = 'rgba(255,255,255,0.1)';
+      cnt.style.padding = '1px 6px';
+      cnt.style.borderRadius = '10px';
+      cnt.style.marginTop = 'auto';
+      
+      chip.appendChild(lbl);
+      chip.appendChild(cnt);
+    } else {
+      chip.appendChild(lbl);
+      chip.appendChild(cnt);
+    }
 
     const currentTradeTags = imgInfo.trade ? getTradeTagsForTrade(imgInfo.trade) : [];
     if (state.tagDeleteMode) {
@@ -537,6 +577,68 @@ window.openCreateTagModal = () => {
   overlay.style.display = 'flex';
   nameInp.focus();
 
+  // Draw Logic
+  const drawContainer = document.getElementById('gv2-tag-draw-container');
+  const drawToggle = document.getElementById('gv2-tag-draw-toggle');
+  const canvas = document.getElementById('gv2-tag-draw-canvas');
+  const clearBtn = document.getElementById('gv2-tag-draw-clear');
+  let isDrawing = false;
+  let ctx = null;
+
+  if (canvas) {
+    ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Draw Listeners
+    const getPos = e => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+    };
+    const start = e => { isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); };
+    const move = e => { if (!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); };
+    const stop = () => { isDrawing = false; };
+    
+    canvas.onmousedown = start; canvas.onmousemove = move; window.onmouseup = stop;
+    canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = stop;
+    
+    if (clearBtn) clearBtn.onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  if (drawToggle) {
+    drawToggle.style.display = '';
+    drawToggle.onclick = () => {
+      const isHidden = drawContainer.style.display === 'none';
+      drawContainer.style.display = isHidden ? 'block' : 'none';
+      drawToggle.textContent = isHidden ? '- Text Only' : '+ Draw Pattern Tag';
+    };
+    drawContainer.style.display = 'none'; // reset
+    drawToggle.textContent = '+ Draw Pattern Tag';
+  }
+
+  const uploadBtn = document.getElementById('gv2-tag-upload-btn');
+  const uploadInp = document.getElementById('gv2-tag-upload-input');
+  if (uploadBtn && uploadInp) {
+    uploadBtn.onclick = () => uploadInp.click();
+    uploadInp.onchange = () => {
+      if (uploadInp.files.length) {
+        uploadBtn.textContent = `Attached: ${uploadInp.files[0].name.slice(0, 10)}...`;
+        uploadBtn.style.color = 'var(--blue)';
+        // Hide draw container if it was open
+        if (drawContainer) drawContainer.style.display = 'none';
+        if (drawToggle) drawToggle.textContent = '+ Draw Pattern Tag';
+      }
+    };
+    uploadBtn.textContent = '+ Upload Image Tag';
+    uploadBtn.style.color = '';
+    uploadInp.value = '';
+  }
+
   // Populate dropdown
   const groups = Object.keys(state.tagGroups || {}).sort();
   grpSel.innerHTML = '<option value="">-- No Group / Ungrouped --</option>';
@@ -561,6 +663,34 @@ window.openCreateTagModal = () => {
 
     // 1. Ensure tag exists in state.allTags
     if (!state.allTags.includes(t)) state.allTags.push(t);
+
+    // 1.5 Handle Image Pattern (Draw or Upload)
+    const drawContainer = document.getElementById('gv2-tag-draw-container');
+    const canvas = document.getElementById('gv2-tag-draw-canvas');
+    const uploadInp = document.getElementById('gv2-tag-upload-input');
+    
+    let blobToUpload = null;
+    if (uploadInp && uploadInp.files.length) {
+      blobToUpload = uploadInp.files[0];
+    } else if (drawContainer && drawContainer.style.display !== 'none' && canvas) {
+      if (typeof canvasHasVisibleInk === 'function' && canvasHasVisibleInk(canvas)) {
+        blobToUpload = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      }
+    }
+
+    if (blobToUpload) {
+      const fd = new FormData();
+      fd.append('image', blobToUpload, 'tag_pattern.png');
+      fd.append('tag_name', t);
+      try {
+        const res = await fetch('/api/upload-tag-image', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.url) {
+          state.tagImages[t] = data.url;
+          saveTagGroups();
+        }
+      } catch (e) { console.error('Tag image upload failed', e); }
+    }
 
     // 2. Assign to group if specified
     if (g) {

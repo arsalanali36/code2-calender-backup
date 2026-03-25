@@ -468,11 +468,39 @@ function renderGallery() {
         t.title = 'Image could not be loaded';
       };
     }
+    // Add visual distinction for expanded/collapsed trade in filter mode
+    if (Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0) {
+      const tradeKey = (_effDate || '') + ':' + (ownerTrade ? itemSourceRow : 'OPENCLOSE');
+      if (state.gallery.expandedFilterTrades?.has(tradeKey)) {
+        wrap.classList.add('expanded-trade');
+      } else {
+        // Find if this is a singleton representant of a trade
+        const meta = state.gallery._filteredMeta?.[globalIdx];
+        if (meta?.isCollapsedTrade) wrap.classList.add('collapsed-trade-preview');
+      }
+    }
+
     t.addEventListener('click', (e) => {
       // Initialize if needed
       if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
       
       const lastIdx = state.gallery.lastClickedIdx ?? currentIndex;
+
+      // TRADE EXPANSION TOGGLE (Ctrl+Click in Filter Mode)
+      if ((e.ctrlKey || e.metaKey) && Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        const tradeKey = (_effDate || '') + ':' + (ownerTrade ? itemSourceRow : 'OPENCLOSE');
+        state.gallery.expandedFilterTrades = state.gallery.expandedFilterTrades || new Set();
+        if (state.gallery.expandedFilterTrades.has(tradeKey)) {
+          state.gallery.expandedFilterTrades.delete(tradeKey);
+        } else {
+          state.gallery.expandedFilterTrades.add(tradeKey);
+        }
+        applyGalleryImageScopeByTagFilter();
+        renderGallery();
+        return;
+      }
 
       if (e.shiftKey) {
           // Range selection
@@ -487,7 +515,7 @@ function renderGallery() {
       }
       
       if (e.ctrlKey || e.metaKey) {
-          // Individual toggle
+          // Individual toggle (Standard behavior)
           if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
           else state.gallery.selectedIndices.add(globalIdx);
           state.gallery.lastClickedIdx = globalIdx;
@@ -816,4 +844,9 @@ function renderGallery() {
 
   // Rubber-band selection + pan — delegated to gallery-rubberband.js
   bindGalleryRubberbandAndPan(thumbs);
+
+  // Cross-window sync if not triggered by an incoming sync message
+  if (!state._isSyncUpdate && typeof syncGalleryToOthers === 'function') {
+    syncGalleryToOthers();
+  }
 }

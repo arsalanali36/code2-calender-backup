@@ -203,10 +203,15 @@ function loadTagGroups() {
   try {
     const saved = JSON.parse(localStorage.getItem('tj_tagGroups') || '{}');
     if (saved && typeof saved === 'object') state.tagGroups = saved;
+    const imgs = JSON.parse(localStorage.getItem('tj_tagImages') || '{}');
+    if (imgs && typeof imgs === 'object') state.tagImages = imgs;
   } catch (e) { }
 }
 function saveTagGroups() {
-  try { localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); } catch (e) { }
+  try { 
+    localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); 
+    localStorage.setItem('tj_tagImages', JSON.stringify(state.tagImages));
+  } catch (e) { }
 }
 
 function showCtxMenu(e, items) {
@@ -254,6 +259,10 @@ async function renameTagEverywhere(oldTag, newTag) {
   };
   renameInArr(state.allTags);
   Object.values(state.tagGroups).forEach(renameInArr);
+  if (state.tagImages && state.tagImages[oldTag]) {
+    state.tagImages[n] = state.tagImages[oldTag];
+    delete state.tagImages[oldTag];
+  }
   state.trades.forEach(tr => {
     if (tr.imageTags) Object.values(tr.imageTags).forEach(renameInArr);
     if (tr.marqueeBoxes) Object.values(tr.marqueeBoxes).forEach(boxes =>

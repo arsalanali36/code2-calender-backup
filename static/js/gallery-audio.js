@@ -8,8 +8,6 @@
  * AudioContext for the waveform, so we reuse that buffer for playback too.
  */
 
-// ── Media bar collapse state ───────────────────────────────────────────────
-let _mediaBarCollapsed = false;
 
 // ── Recording state ────────────────────────────────────────────────────────
 let _audioRecorder = null;
@@ -261,19 +259,6 @@ function _appendVideoRecBtn(bar, imgUrl) {
   bar.appendChild(vidBtn);
 }
 
-// ── Helper: collapse toggle button ────────────────────────────────────────
-function _appendCollapseBtn(bar) {
-  const btn = document.createElement('button');
-  btn.className   = 'gv2-audio-btn gv2-bar-collapse-btn';
-  btn.title       = _mediaBarCollapsed ? 'Expand' : 'Collapse';
-  btn.textContent = _mediaBarCollapsed ? '▲' : '▼';
-  btn.onclick = () => {
-    _mediaBarCollapsed = !_mediaBarCollapsed;
-    renderAudioBar();
-    if (typeof renderVideoBar === 'function') renderVideoBar();
-  };
-  bar.appendChild(btn);
-}
 
 function renderAudioBar() {
   const bar = document.getElementById('gv2-audio-bar');
@@ -288,15 +273,6 @@ function renderAudioBar() {
 
   bar.innerHTML = '';
 
-  // ── Collapsed state ──────────────────────────────────────────────────────
-  if (_mediaBarCollapsed) {
-    const dot = document.createElement('span');
-    dot.className   = 'gv2-audio-label';
-    dot.textContent = audioUrl ? '🔊' : '⏺';
-    bar.appendChild(dot);
-    _appendCollapseBtn(bar);
-    return;
-  }
 
   // ── Recording audio ──────────────────────────────────────────────────────
   if (isRecording) {
@@ -405,7 +381,6 @@ function renderAudioBar() {
     _appendVideoRecBtn(bar, imgUrl);   // ← video rec always visible
   }
 
-  _appendCollapseBtn(bar);
 }
 
 // ── Recording ─────────────────────────────────────────────────────────────

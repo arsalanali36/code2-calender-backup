@@ -40,9 +40,6 @@ function renderVideoBar() {
   const bar = document.getElementById('gv2-video-bar');
   if (!bar) return;
 
-  if (typeof _mediaBarCollapsed !== 'undefined' && _mediaBarCollapsed) {
-    bar.style.display = 'none'; return;
-  }
 
   const isRecording = _videoRecorder && _videoRecorder.state === 'recording';
   if (!isRecording) { bar.style.display = 'none'; return; }

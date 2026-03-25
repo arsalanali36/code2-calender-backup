@@ -1,0 +1,129 @@
+/* ── OHLC Manager Modal ──────────────────────────────────── */
+
+.ohlc-mgr-section {
+  background: var(--surface-1, #161b22);
+  border: 1px solid var(--border, #30363d);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.ohlc-mgr-section-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #8b949e);
+  margin-bottom: 10px;
+}
+
+.ohlc-mgr-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-left: 8px;
+}
+
+/* Credentials */
+.ohlc-cred-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  min-height: 28px;
+}
+
+.ohlc-cred-ok {
+  color: var(--green, #3fb950);
+  font-weight: 600;
+}
+
+.ohlc-cred-age {
+  color: var(--text-muted, #8b949e);
+  font-size: 0.78rem;
+}
+
+.ohlc-cred-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border, #30363d);
+}
+
+/* Instruments table */
+.ohlc-instruments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.ohlc-instruments-table th {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border, #30363d);
+  color: var(--text-muted, #8b949e);
+  font-weight: 600;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.ohlc-instruments-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+  vertical-align: middle;
+}
+
+.ohlc-instruments-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ohlc-sym-cell {
+  font-family: monospace;
+  font-size: 0.8rem;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status dots */
+.ohlc-status-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.ohlc-status-ok      { background: rgba(63, 185, 80, 0.15); color: var(--green, #3fb950); }
+.ohlc-status-partial { background: rgba(210, 153, 34, 0.15); color: #d29922; }
+.ohlc-status-missing { background: rgba(248, 81, 73, 0.12); color: var(--red, #f85149); }
+.ohlc-status-unmapped{ background: rgba(139, 148, 158, 0.12); color: var(--text-muted, #8b949e); }
+
+/* Sync log */
+.ohlc-sync-log {
+  background: var(--bg, #0d1117);
+  border: 1px solid var(--border, #30363d);
+  border-radius: 6px;
+  padding: 8px 10px;
+  height: 160px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.ohlc-log-line     { color: var(--text, #c9d1d9); }
+.ohlc-log-err      { color: var(--red, #f85149); }
+
+/* btn-sm helper (reuse what exists, add if missing) */
+.btn-sm {
+  padding: 4px 10px !important;
+  font-size: 0.78rem !important;
+}

@@ -33,12 +33,14 @@ const state = {
     images: [], currentIndex: 0, date: '', sourceRow: null,
     tagFilter: [], filterMode: 'or', tagViewMode: 'grouped',
     filterTagScope: 'image', tagAssignMode: 'image',
-    hiddenImages: new Set(), layerPanelOpen: false
+    hiddenImages: new Set(), layerPanelOpen: false,
+    expandedFilterTrades: new Set()
   },  // V2: tagFilter = selected tag names
   tagGroups: {},  // { groupName: [tagName, ...] } — user-defined groups
   tagDeleteMode: false,
   uploadRow: null,
   pendingFiles: [],
+  tagImages: {},   // { tagName: imageURL } — for image-based tags
   quotes: [],
   quoteIndex: 0,
   quoteRatings: {},

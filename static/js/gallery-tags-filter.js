@@ -183,6 +183,26 @@ function renderGalleryTagFilterPanel() {
             const tl = document.createElement('span');
             tl.textContent = tag;
             tl.style.flex = 1;
+
+            const imgUrl = state.tagImages[tag];
+            if (imgUrl) {
+                const img = document.createElement('img');
+                img.src = resolveImageUrl(imgUrl);
+                img.style.cssText = 'height:60px; width:100%; object-fit:contain; border-radius:4px; margin:4px 0; border:1px solid rgba(255,255,255,0.1); background:#000; display:block;';
+                lbl.appendChild(img);
+                lbl.style.flexDirection = 'column';
+                lbl.style.alignItems = 'flex-start';
+                lbl.style.padding = '8px';
+                lbl.style.background = 'rgba(255,255,255,0.03)';
+                lbl.style.borderRadius = '8px';
+                lbl.style.border = '1px solid rgba(255,255,255,0.1)';
+                lbl.style.width = '120px'; // larger card for filter
+                tl.style.fontSize = '0.78rem';
+                tl.style.fontWeight = '600';
+                tl.style.marginTop = '4px';
+                chk.style.alignSelf = 'flex-end'; // put checkbox at top right?
+            }
+
             lbl.appendChild(tl);
 
             if (window._tagCountMap && window._tagCountMap.has(tag)) {
