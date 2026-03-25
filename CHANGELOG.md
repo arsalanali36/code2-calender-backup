@@ -1,6 +1,37 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - March 25, 2026
+
+### v3.0.2 — Tag Images, Gallery Sync, OHLC Manager UI, Stash Restore
+
+**Tag Images Feature:**
+- Tags can now have images assigned (uploaded or drawn pattern canvas)
+- Tag chips in gallery show thumbnail of assigned image
+- New routes: `/api/upload-tag-image`, `/api/delete-tag-image`
+- `state.tagImages` added to state for image-URL mapping per tag
+
+**Gallery Enhancements:**
+- Recording tools toolbar relocated to tray with toggle button (localStorage persisted)
+- Popout button: opens current image in new window via share-link URL params
+- Trades panel: Gain/Loss filter dropdown added
+- Filter mode: Ctrl+Click on thumbnail expands/collapses all images for that trade
+- `gallery-sync.js`: cross-window gallery sync (multi-monitor support)
+
+**OHLC Manager UI:**
+- New modal: `/static/js/ohlc-manager.js` + `style-ohlc-manager.css`
+- OHLC button added to profile menu
+- Tradebook CSV import, instrument status table, sync log
+
+**OHLC Backend:**
+- `whatif_routes.py`: EXP_ cache fallback check for expired options in status/sync endpoints
+
+**Stash Restore + Bug Fixes (2026-03-25):**
+- Fixed: `events-gallery.js` crash — `gv2-tc-mode-btn` null addEventListener (added `?.`)
+- Fixed: `gallery-image-tags` div was relocated to top-tags-band (overlapped thumbnails) → moved back inside `gv2-img-area`
+- Fixed: `gallery-heads-display` had `display:none` removed to restore trade stats bar
+- Setup: `auto_git_backup.ps1` + Windows Task Scheduler every 2 hours
+
 ## EOD Summary - March 24, 2026
 
 ### Gallery Filter Mode — Multi-Date Fix
@@ -323,6 +354,8 @@ Here is a complete, date-wise breakdown of all the features, updates, and refact
 ## 🏁 Version 1.0.0 (Genesis Release)
 **Date:** `February 26, 2026`
 - **Initial Backup & Inception:** The foundational framework elements. The core calendar interface tied tightly with the core Trade tables alongside the earliest version of the interactive gallery and core tagging mechanics.
-D a s h b o a r d   T o o l t i p   F i x e d ,   C o n s o l i d a t e   c o n t e x t   m e n u   i m p l e m e n t e d ,   p l a c e h o l d e r   p r o m p t   i m p l e m e n t e d  
- A d d e d   I n d i v i d u a l   /   C o n s o l i d a t e d   m o d e s   p e r   c h a r t ,   w i t h   d r o p - d o w n s   i n   c h a r t   h e a d e r s .  
+D a s h b o a r d   T o o l t i p   F i x e d ,   C o n s o l i d a t e   c o n t e x t   m e n u   i m p l e m e n t e d ,   p l a c e h o l d e r   p r o m p t   i m p l e m e n t e d 
+ 
+ A d d e d   I n d i v i d u a l   /   C o n s o l i d a t e d   m o d e s   p e r   c h a r t ,   w i t h   d r o p - d o w n s   i n   c h a r t   h e a d e r s . 
+ 
  
