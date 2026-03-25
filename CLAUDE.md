@@ -235,3 +235,21 @@ The annotation system must support (target: Fabric.js integration):
 If the user ever says **"Aap EOD dekh lijye"** or asks you to **"do the EOD routine"**, it means you must:
 1. Immediately read the contents of `Docs/EOD_AI_PROMPT.md` (it lives in the `Docs/` folder, not root).
 2. Execute the exact End of Day Optimization, Refactoring, Context updating, and Git Push routine documented inside that file.
+
+
+---
+
+## 🔐 Auto-Commit Rule (STRICT — always follow)
+
+After **any significant work session** (feature added, bug fixed, refactor done), Claude must:
+1. **Immediately ask the user to commit** — do not wait for EOD
+2. If user says yes, run `git add` + `git commit` with a descriptive message
+3. Never let more than ~1 hour of code changes go uncommitted
+
+**Trigger phrases to auto-commit:**
+- After fixing a bug
+- After adding a new feature
+- After restoring/reverting code
+- Before switching to a different task
+
+**Auto-backup script:** `auto_git_backup.ps1` runs every 2 hours via Windows Task Scheduler (task: `KhazanaAutoBackup`) — commits code + data changes automatically.
