@@ -274,6 +274,9 @@ async function importRawCsv(file) {
     await saveTrades();
     render();
     showToast(`Zerodha Today CSV merged: ${mergedResult.added} new trade(s)`, 'success');
+    setTimeout(() => {
+      if (typeof showTargetTrackerModal === 'function') showTargetTrackerModal(imported);
+    }, 500);
   } catch (e) {
     showToast('Zerodha Today CSV import failed', 'error');
   }

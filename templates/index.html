@@ -65,7 +65,10 @@
 
       <button class="btn btn-outline mobile-view-toggle-btn" id="mobile-view-toggle-btn" title="Switch to Mobile View">📱</button>
 
-      <div class="quote-random-wrap" id="quote-random-wrap">
+      <!-- Target Tracker Manual Button -->
+      <button class="btn btn-outline" id="tt-manual-btn" title="Target Tracker Dashboard" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🎯 Tracker</button>
+
+      <div class="quote-random-wrap" id="quote-random-wrap" style="margin-left:8px;">
         <button class="btn btn-outline quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup">Quote Pop</button>
         <div class="quote-random-panel" id="quote-random-panel">
           <label class="quote-random-toggle">
@@ -316,6 +319,7 @@
         <div class="table-header-actions">
 
           <!-- Date Range Filter -->
+          <button class="btn btn-outline" id="table-tt-btn" title="Open Target Tracker">🎯 Tracker</button>
 
 
           <!-- Note column quick toggle -->
@@ -501,6 +505,7 @@
   <script src="/static/js/fullscreen-viewer.js?v={{ cache_bust }}"></script>
   <script src="/static/js/visual-dashboard-stats.js?v={{ cache_bust }}"></script>
   <script src="/static/js/visual-dashboard.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/target-tracker.js?v={{ cache_bust }}"></script>
 </body>
 
 </html>
