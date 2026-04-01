@@ -14,6 +14,7 @@ import os
 import time
 import json
 import shutil
+import logging
 import threading
 from datetime import datetime, timedelta
 
@@ -24,8 +25,15 @@ try:
 except ImportError:
     pass  # python-dotenv not installed — env vars must be set manually
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
+
 from flask import Flask, request, redirect, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
+from extensions import limiter
 
 from config import (
     BASE_DIR, DATA_FILE, UPLOADS_DIR, TRASH_DIR,
@@ -53,6 +61,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 db.init_app(app)
+
+limiter.init_app(app)
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'

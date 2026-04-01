@@ -1,9 +1,6 @@
 import pandas as pd
 import json
 import os
-import time
-import shutil
-from datetime import datetime
 from urllib.parse import urlparse, unquote
 # File lives at processors/data_processors.py → go up one level to reach project root
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -57,34 +54,14 @@ def load_trades(user_id=None):
     }
 
 
-LAST_BACKUP_TIME = 0
-
 def save_trades_to_file(data, user_id=None):
-    global LAST_BACKUP_TIME
+    from services.backup_service import auto_backup
     data = _normalize_trade_payload(data)
     data_file = get_user_data_file(user_id)
     os.makedirs(os.path.dirname(data_file), exist_ok=True)
     with open(data_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-
-    current_time = time.time()
-    if current_time - LAST_BACKUP_TIME > 300:  # Backup every 5 minutes if there are changes
-        LAST_BACKUP_TIME = current_time
-        try:
-            backup_dir = os.path.join(os.path.dirname(data_file), 'backups')
-            os.makedirs(backup_dir, exist_ok=True)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            user_prefix = f'user_{user_id}_' if user_id is not None else ''
-            backup_file = os.path.join(backup_dir, f'trades_backup_{user_prefix}{timestamp}.json')
-            shutil.copy2(data_file, backup_file)
-
-            # Keep only the last 30 backups to avoid filling up disk
-            backups = sorted([os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.startswith(f'trades_backup_{user_prefix}')])
-            if len(backups) > 30:
-                for b in backups[:-30]:
-                    os.remove(b)
-        except Exception as e:
-            print(f"Auto backup failed: {e}")
+    auto_backup(data_file, user_id=user_id)
 
 
 def _normalize_upload_url(value):

@@ -1,10 +1,14 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
+from services.auth_service import migrate_default_data_for_first_user
+from extensions import limiter
 
 auth_bp = Blueprint('auth', __name__)
 
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit('10 per minute')
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('page.index'))
@@ -50,18 +54,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        # Migrate existing data for the first user
-        if new_user.id == 1:
-            import os
-            import shutil
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            default_trades = os.path.join(base_dir, 'data', 'trades.json')
-            user_trades = os.path.join(base_dir, 'data', f'trades_1.json')
-            if os.path.exists(default_trades) and not os.path.exists(user_trades):
-                try:
-                    shutil.copy2(default_trades, user_trades)
-                except Exception as e:
-                    print(f"Migration error: {e}")
+        migrate_default_data_for_first_user(new_user.id)
 
         login_user(new_user, remember=True)
         return redirect(url_for('page.index'))

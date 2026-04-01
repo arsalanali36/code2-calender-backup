@@ -7,8 +7,9 @@ Routes for CSVLog schema management.
 """
 import os
 from flask import Blueprint, request, jsonify, send_file
+from flask_login import current_user
 from services.csvlog_service import load_schema, export_csvlog_excel, generate_logger_template
-from processors.data_processors import load_trades
+from services.trade_service import get_all_trades
 from config import CSVLOG_SCHEMA_FILE
 
 csvlog_bp = Blueprint('csvlog', __name__)
@@ -65,7 +66,8 @@ def download_template():
 
 @csvlog_bp.route('/api/csvlog-export', methods=['GET'])
 def export_trades():
-    data = load_trades()
+    user_id = current_user.id if current_user.is_authenticated else None
+    data = get_all_trades(user_id=user_id)
     trades = data.get('trades', []) if isinstance(data, dict) else (data or [])
     out, err = export_csvlog_excel(trades, CSVLOG_SCHEMA_FILE)
     if err:

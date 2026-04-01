@@ -3,19 +3,20 @@ routes/page_routes.py
 ---------------------
 HTML page routes: main app and dev-blog updates.
 """
-import json
 import os
-from datetime import datetime
 
 from flask import Blueprint, render_template, jsonify, send_from_directory, redirect, request
 
 from config import BASE_DIR, CACHE_BUST
+from services.page_service import get_blog_entries_for_template, get_blog_entries_for_api
 
 MOBILE_DIST = os.path.join(BASE_DIR, 'tradefeed', 'dist')
 
 MOBILE_KEYWORDS = ('Mobile', 'Android', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'IEMobile', 'Opera Mini')
 
 page_bp = Blueprint('page', __name__)
+
+BLOG_PATH = os.path.join(BASE_DIR, 'data', 'dev-blog.json')
 
 
 @page_bp.route('/')
@@ -28,17 +29,7 @@ def index():
 
 @page_bp.route('/updates')
 def updates():
-    blog_path = os.path.join(BASE_DIR, 'data', 'dev-blog.json')
-    entries = []
-    if os.path.exists(blog_path):
-        with open(blog_path, 'r', encoding='utf-8') as f:
-            entries = json.load(f)
-    for i, entry in enumerate(entries):
-        dt = datetime.strptime(entry['date'], '%Y-%m-%d')
-        entry['display_date'] = dt.strftime('%B %d, %Y')
-        entry['display_day']  = dt.strftime('%A')
-        entry['_idx'] = i
-    entries.sort(key=lambda x: (x['date'], x['_idx']), reverse=True)
+    entries = get_blog_entries_for_template(BLOG_PATH)
     return render_template('updates.html', entries=entries, cache_bust=CACHE_BUST)
 
 
@@ -60,14 +51,4 @@ def mobile_assets(filename):
 
 @page_bp.route('/api/blog-posts')
 def blog_posts_api():
-    blog_path = os.path.join(BASE_DIR, 'data', 'dev-blog.json')
-    entries = []
-    if os.path.exists(blog_path):
-        with open(blog_path, 'r', encoding='utf-8') as f:
-            entries = json.load(f)
-    for i, entry in enumerate(entries):
-        dt = datetime.strptime(entry['date'], '%Y-%m-%d')
-        entry['display_date'] = f"{dt.strftime('%B')} {dt.day}"
-        entry['display_day']  = dt.strftime('%A')
-    entries.sort(key=lambda x: x['date'], reverse=True)
-    return jsonify(entries)
+    return jsonify(get_blog_entries_for_api(BLOG_PATH))
