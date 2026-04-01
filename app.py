@@ -32,6 +32,7 @@ logging.basicConfig(
 )
 
 from flask import Flask, request, redirect, url_for
+from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import limiter
 
@@ -54,6 +55,7 @@ from flask_login import LoginManager
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
+Compress(app)
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
