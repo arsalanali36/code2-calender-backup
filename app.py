@@ -30,7 +30,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from config import (
     BASE_DIR, DATA_FILE, UPLOADS_DIR, TRASH_DIR,
     TRASH_EXPIRY_DAYS, MAX_CONTENT_LENGTH, HOST, PORT, DEBUG,
-    SECRET_KEY, SQLALCHEMY_DATABASE_URI, SQLALCHEMY_TRACK_MODIFICATIONS
+    SECRET_KEY, SQLALCHEMY_DATABASE_URI, SQLALCHEMY_TRACK_MODIFICATIONS,
+    ALLOWED_ORIGINS,
 )
 from routes.page_routes   import page_bp
 from routes.trade_routes  import trade_bp
@@ -63,10 +64,12 @@ def load_user(user_id):
 
 @app.after_request
 def add_cors(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response.headers['X-App-Cors'] = 'active'
+    origin = request.headers.get('Origin', '')
+    if origin in ALLOWED_ORIGINS:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Api-Key'
+        response.headers['Vary'] = 'Origin'
     return response
 
 @app.before_request
@@ -82,10 +85,13 @@ def require_login():
 @app.route('/api/<path:path>', methods=['OPTIONS'])
 def options_handler(path):
     from flask import make_response
+    origin = request.headers.get('Origin', '')
     r = make_response('', 204)
-    r.headers['Access-Control-Allow-Origin'] = '*'
-    r.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    r.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    if origin in ALLOWED_ORIGINS:
+        r.headers['Access-Control-Allow-Origin'] = origin
+        r.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        r.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Api-Key'
+        r.headers['Vary'] = 'Origin'
     return r
 
 # Ensure required directories exist
@@ -148,6 +154,7 @@ def _bootstrap_persistent_storage():
 
 def _cleanup_trash():
     """Delete files from _trash older than TRASH_EXPIRY_DAYS. Runs daily in background."""
+    import logging
     while True:
         try:
             cutoff = datetime.now() - timedelta(days=TRASH_EXPIRY_DAYS)
@@ -157,8 +164,8 @@ def _cleanup_trash():
                     mtime = datetime.fromtimestamp(os.path.getmtime(fpath))
                     if mtime < cutoff:
                         os.remove(fpath)
-        except Exception:
-            pass
+        except Exception as e:
+            logging.exception('[cleanup_trash] Unexpected error: %s', e)
         time.sleep(86400)  # check every 24 hours
 
 
@@ -184,8 +191,10 @@ app.register_blueprint(whatif_bp)
 def debug_data():
     """Debug route: shows the actual data file being used for the current user."""
     from processors.data_processors import get_user_data_file
+    from flask_login import current_user as cu
     try:
-        actual_file = get_user_data_file()
+        uid = cu.id if cu.is_authenticated else None
+        actual_file = get_user_data_file(uid)
         with open(actual_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         trades = data.get('trades', [])

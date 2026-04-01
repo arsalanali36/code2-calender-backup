@@ -4,15 +4,14 @@ routes/import_routes.py
 API routes for all import variants: Excel, JSON/ZIP, raw CSV,
 Zerodha historical CSV, and Dhan CSV.
 """
-import os
-
 from flask import Blueprint, request, jsonify
+from flask_login import current_user
 
 from services.import_service import (
     import_excel, import_raw_csv, import_historical_csv,
     import_dhan_csv, import_json_or_zip,
 )
-from config import BASE_DIR, UPLOADS_DIR, ADMIN_API_KEY
+from config import UPLOADS_DIR, ADMIN_API_KEY, STRUCTURED_TRADES_CSV
 
 import_bp = Blueprint('import', __name__)
 
@@ -35,8 +34,9 @@ def import_excel_route():
 def import_json_route():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
+    user_id = current_user.id if current_user.is_authenticated else None
     try:
-        result = import_json_or_zip(request.files['file'], UPLOADS_DIR)
+        result = import_json_or_zip(request.files['file'], UPLOADS_DIR, user_id=user_id)
     except (ValueError, Exception) as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)
@@ -45,13 +45,14 @@ def import_json_route():
 @import_bp.route('/api/admin/push-data', methods=['POST'])
 def admin_push_data():
     """API-key-protected endpoint to push trades data without login session."""
-    key = request.headers.get('X-Api-Key') or request.args.get('api_key', '')
+    key = request.headers.get('X-Api-Key', '')
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
+    # Admin push uses no user session — saves to default data file
     try:
-        result = import_json_or_zip(request.files['file'], UPLOADS_DIR)
+        result = import_json_or_zip(request.files['file'], UPLOADS_DIR, user_id=None)
     except (ValueError, Exception) as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)
@@ -79,7 +80,7 @@ def import_historical_csv_route():
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
     try:
-        result = import_historical_csv(file, os.path.join(BASE_DIR, 'structured_trades.csv'))
+        result = import_historical_csv(file, STRUCTURED_TRADES_CSV)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)
@@ -93,7 +94,7 @@ def import_dhan_csv_route():
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
     try:
-        result = import_dhan_csv(file, os.path.join(BASE_DIR, 'structured_trades.csv'))
+        result = import_dhan_csv(file, STRUCTURED_TRADES_CSV)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)

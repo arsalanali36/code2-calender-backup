@@ -5,6 +5,7 @@ API routes for image upload, delete, clipboard copy, timestamps,
 and serving uploaded files.
 """
 from flask import Blueprint, request, jsonify, send_from_directory, Response
+from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
@@ -24,7 +25,7 @@ def upload_image():
     try:
         last_modified_ms = request.form.get('last_modified_ms')
         last_modified_s = float(last_modified_ms) / 1000.0 if last_modified_ms else None
-        original_filename = request.form.get('original_filename', '')
+        original_filename = secure_filename(request.form.get('original_filename', ''))
         result = save_uploaded_image(file, UPLOADS_DIR, last_modified_s, original_filename)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -74,7 +75,7 @@ def upload_audio():
         return jsonify({'error': 'Empty filename'}), 400
     import uuid, os as _os
     _os.makedirs(AUDIO_DIR, exist_ok=True)
-    ext = _os.path.splitext(file.filename)[1] or '.webm'
+    ext = _os.path.splitext(secure_filename(file.filename))[1] or '.webm'
     fname = f"{uuid.uuid4().hex}{ext}"
     file.save(_os.path.join(AUDIO_DIR, fname))
     return jsonify({'url': f'/uploads/audio/{fname}'})
@@ -89,7 +90,7 @@ def upload_video():
         return jsonify({'error': 'Empty filename'}), 400
     import uuid, os as _os
     _os.makedirs(VIDEO_DIR, exist_ok=True)
-    ext = _os.path.splitext(file.filename)[1] or '.webm'
+    ext = _os.path.splitext(secure_filename(file.filename))[1] or '.webm'
     fname = f"{uuid.uuid4().hex}{ext}"
     file.save(_os.path.join(VIDEO_DIR, fname))
     return jsonify({'url': f'/uploads/video/{fname}'})
@@ -186,7 +187,7 @@ def upload_tag_image():
     target_dir = os.path.join(UPLOADS_DIR, 'tag_images')
     os.makedirs(target_dir, exist_ok=True)
     
-    ext = os.path.splitext(file.filename)[1] or '.png'
+    ext = os.path.splitext(secure_filename(file.filename))[1] or '.png'
     # Use tag name as part of filename for easier debugging, but sanitize it
     safe_name = "".join([c for c in tag_name if c.isalnum() or c in (' ', '.', '_')]).rstrip()
     fname = f"{safe_name}_{uuid.uuid4().hex[:8]}{ext}"

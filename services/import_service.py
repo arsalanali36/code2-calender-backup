@@ -135,7 +135,7 @@ def import_dhan_csv(file_storage, output_csv_path: str | None = None) -> dict:
 
 # ── JSON / ZIP restore ────────────────────────────────────────────────────────
 
-def import_json_or_zip(file_storage, uploads_dir: str) -> dict:
+def import_json_or_zip(file_storage, uploads_dir: str, user_id=None) -> dict:
     """
     Restore from a .json or .zip backup file.
     Returns {'success': True, 'trades': [...], 'columns': [...]}.
@@ -150,7 +150,7 @@ def import_json_or_zip(file_storage, uploads_dir: str) -> dict:
                 data = json.load(jf)
             if 'trades' not in data:
                 raise ValueError('Invalid backup file')
-            save_trades_to_file(data)
+            save_trades_to_file(data, user_id)
             os.makedirs(uploads_dir, exist_ok=True)
             for name in zf.namelist():
                 if name.startswith('uploads/') and not name.endswith('/'):
@@ -164,7 +164,7 @@ def import_json_or_zip(file_storage, uploads_dir: str) -> dict:
         data = json.load(file_storage)
         if 'trades' not in data:
             raise ValueError('Invalid backup file')
-        save_trades_to_file(data)
+        save_trades_to_file(data, user_id)
 
     return {
         'success': True,

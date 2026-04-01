@@ -209,7 +209,11 @@ def copy_image_to_clipboard(filename: str, uploads_dir: str):
     if not os.path.exists(filepath):
         raise FileNotFoundError(f'File not found: {safe_name}')
 
-    import win32clipboard
+    try:
+        import win32clipboard
+    except ImportError:
+        raise ImportError('win32clipboard is not available on this platform (Windows only)')
+
     import struct
 
     # CF_HDROP: DROPFILES struct (20 bytes) + UTF-16LE double-null-terminated path

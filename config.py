@@ -16,7 +16,8 @@ UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', '
 TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
 VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
-CSVLOG_SCHEMA_FILE   = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
+CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
+STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
 
 # ── What-If / Dhan data ───────────────────────────────────────────────────────
 OHLC_CACHE_DIR       = os.path.join(BASE_DIR, 'data', 'ohlc_cache')
@@ -49,5 +50,11 @@ DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', '
 
 SECRET_KEY    = os.getenv('SECRET_KEY', 'your-secret-key-for-dev-fallback')
 ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+# Comma-separated list of allowed origins. Example env value:
+#   ALLOWED_ORIGINS=https://code2-calender.onrender.com,http://localhost:5000
+_raw_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000')
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(',') if o.strip()]
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'data', 'users.db'))
 SQLALCHEMY_TRACK_MODIFICATIONS = False

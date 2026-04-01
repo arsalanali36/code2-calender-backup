@@ -5,16 +5,13 @@ import time
 import shutil
 from datetime import datetime
 from urllib.parse import urlparse, unquote
-from flask import has_request_context
-from flask_login import current_user
-
 # File lives at processors/data_processors.py → go up one level to reach project root
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 
-def get_user_data_file():
-    if has_request_context() and current_user and current_user.is_authenticated:
-        return os.path.join(BASE_DIR, 'data', f'trades_{current_user.id}.json')
+def get_user_data_file(user_id=None):
+    if user_id is not None:
+        return os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
     return DATA_FILE
 
 STRUCTURED_COLUMNS = [
@@ -44,8 +41,8 @@ HISTORICAL_STRUCTURED_COLUMNS = [
 ]
 
 
-def load_trades():
-    data_file = get_user_data_file()
+def load_trades(user_id=None):
+    data_file = get_user_data_file(user_id)
     if os.path.exists(data_file):
         with open(data_file, 'r', encoding='utf-8') as f:
             return _normalize_trade_payload(json.load(f))
@@ -62,10 +59,10 @@ def load_trades():
 
 LAST_BACKUP_TIME = 0
 
-def save_trades_to_file(data):
+def save_trades_to_file(data, user_id=None):
     global LAST_BACKUP_TIME
     data = _normalize_trade_payload(data)
-    data_file = get_user_data_file()
+    data_file = get_user_data_file(user_id)
     os.makedirs(os.path.dirname(data_file), exist_ok=True)
     with open(data_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
@@ -77,7 +74,7 @@ def save_trades_to_file(data):
             backup_dir = os.path.join(os.path.dirname(data_file), 'backups')
             os.makedirs(backup_dir, exist_ok=True)
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            user_prefix = f'user_{current_user.id}_' if (has_request_context() and current_user and current_user.is_authenticated) else ''
+            user_prefix = f'user_{user_id}_' if user_id is not None else ''
             backup_file = os.path.join(backup_dir, f'trades_backup_{user_prefix}{timestamp}.json')
             shutil.copy2(data_file, backup_file)
 
