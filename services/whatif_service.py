@@ -12,6 +12,42 @@ Rules:
 import pandas as pd
 
 
+# ── Brokerage calculation ─────────────────────────────────────────────────────
+
+def net_pnl(buy_price, sell_price, qty, broker='', fill_count=2):
+    """Mirror of JS computeTradeCharges — returns (gross, fees, net)."""
+    if not buy_price or not sell_price or not qty:
+        return None, None, None
+    buy_price  = float(buy_price)
+    sell_price = float(sell_price)
+    qty        = float(qty)
+    fill_count = max(int(fill_count or 0), 2)
+    broker     = str(broker).lower().strip()
+
+    buy_turn  = buy_price  * qty
+    sell_turn = sell_price * qty
+    total     = buy_turn + sell_turn
+
+    stt   = sell_turn * 0.001
+    exch  = total * 0.0003503
+    sebi  = total * 0.000001
+    stamp = buy_turn * 0.00003
+
+    brokerage = fill_count * 20
+    if broker == 'dhan':
+        ipft          = total * 0.000001
+        gst           = (brokerage + exch + sebi + ipft) * 0.18
+        other_charges = stt + exch + sebi + ipft + stamp + gst
+    else:
+        gst           = (brokerage + exch + sebi) * 0.18
+        other_charges = stt + exch + sebi + stamp + gst
+
+    gross = round((sell_price - buy_price) * qty, 2)
+    net   = round(gross - (brokerage + other_charges), 2)
+    fees  = round(brokerage + other_charges, 2)
+    return gross, fees, net
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def simulate_trades(trades, ohlc_map, params):

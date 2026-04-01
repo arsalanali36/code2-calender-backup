@@ -23,43 +23,17 @@ from flask_login import login_required
 
 from config import CACHE_BUST
 from services import dhan_service, whatif_service
-from processors.data_processors import get_user_data_file
+from services.whatif_service import net_pnl as _net_pnl
+from services.trade_service import get_all_trades
+from flask_login import current_user as _current_user
+
+
+def _load_trades_for_current_user():
+    """Helper: load trades respecting the logged-in user."""
+    user_id = _current_user.id if _current_user.is_authenticated else None
+    return get_all_trades(user_id=user_id).get('trades', [])
 
 whatif_bp = Blueprint('whatif', __name__)
-
-
-def _net_pnl(buy_price, sell_price, qty, broker='', fill_count=2):
-    """Mirror of JS computeTradeCharges — returns (gross, charges, net)."""
-    if not buy_price or not sell_price or not qty:
-        return None, None, None
-    buy_price  = float(buy_price)
-    sell_price = float(sell_price)
-    qty        = float(qty)
-    fill_count = max(int(fill_count or 0), 2)
-    broker     = str(broker).lower().strip()
-
-    buy_turn  = buy_price  * qty
-    sell_turn = sell_price * qty
-    total     = buy_turn + sell_turn
-
-    stt   = sell_turn * 0.001
-    exch  = total * 0.0003503
-    sebi  = total * 0.000001
-    stamp = buy_turn * 0.00003
-
-    brokerage = fill_count * 20
-    if broker == 'dhan':
-        ipft          = total * 0.000001
-        gst           = (brokerage + exch + sebi + ipft) * 0.18
-        other_charges = stt + exch + sebi + ipft + stamp + gst
-    else:
-        gst           = (brokerage + exch + sebi) * 0.18
-        other_charges = stt + exch + sebi + stamp + gst
-
-    gross = round((sell_price - buy_price) * qty, 2)
-    net   = round(gross - (brokerage + other_charges), 2)
-    fees  = round(brokerage + other_charges, 2)
-    return gross, fees, net
 
 
 # ── Page ─────────────────────────────────────────────────────────────────────
@@ -158,10 +132,7 @@ def auto_map():
 
     # If not provided, collect from trades with earliest trade_date per symbol
     if not symbols_in:
-        data_file = get_user_data_file()
-        with open(data_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        trades = data.get('trades', [])
+        trades = _load_trades_for_current_user()
 
         # Apply date range filter if given
         if date_from:
@@ -255,10 +226,7 @@ def ohlc_status():
     date_from = request.args.get('date_from', '')
     date_to   = request.args.get('date_to',   '')
 
-    data_file  = get_user_data_file()
-    with open(data_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    trades     = data.get('trades', [])
+    trades = _load_trades_for_current_user()
 
     if date_from:
         trades = [t for t in trades if t.get('date', t.get('trade_date', '')) >= date_from]
@@ -423,10 +391,7 @@ def sync_all_ohlc():
 
         # ── Load trades ───────────────────────────────────────────
         try:
-            data_file = get_user_data_file()
-            with open(data_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            trades = data.get('trades', [])
+            trades = _load_trades_for_current_user()
         except Exception as e:
             yield evt(f'Error loading trades: {e}', ok=False, done=True)
             return
@@ -798,10 +763,7 @@ def run_simulation():
     }
 
     # Load trades
-    data_file = get_user_data_file()
-    with open(data_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    trades = data.get('trades', [])
+    trades = _load_trades_for_current_user()
 
     # Filter by date range
     if date_from:
