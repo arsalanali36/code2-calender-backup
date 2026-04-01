@@ -1,6 +1,44 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - April 01, 2026
+
+### v3.0.3 — Target Tracker Weekly View + Module Split
+
+**Weekly Performance Breakdown (Target Tracker):**
+- New "Weekly Target" tab added to Target Tracker modal
+- Weekly progress bars with actual vs target P&L per week, color-coded by pacing %
+- Monthly total bar at bottom with full-month pacing %
+- Hover tooltip on weekly rows: shows trades, avg duration, tax, avg pts
+- Metric comparison chart (SVG bar chart) with toggles: Points / Avg Pt / Trades / Tax / Avg Duration
+- Chart type toggles: BAR (week comparison) and BELL (trade distribution histogram)
+- Aggregation mode toggles: TOTAL / AVG
+
+**Target Tracker Enhancements:**
+- `getMonthlyPerformance()` now collects per-day: tradeCount, points, fees, duration (via Buy/Sell Time)
+- `getAvailableDates()` now also includes dayData dates and uses `extractDateFromTrade` helper
+- Date counter + nav arrows (prev/next day) now disabled correctly at boundaries
+- Monthly chart tooltip: shared `tt-chart-tooltip` element, hidden on chart type switch
+- Monthly chart: improved SVG styling (drop-shadow filter, thinner expected line)
+- Net total color in Numbers tab changed to neutral `var(--text2)`
+
+**Module Split (30KB enforcement):**
+- `target-tracker.js` (87KB) split into 5 focused modules:
+  - `target-tracker-data.js` — state vars + pure data functions
+  - `target-tracker-monthly.js` — `renderTtMonthlySection()` (monthly tab + chart)
+  - `target-tracker-weekly.js` — `renderTtWeeklyView()` + bell curve + comparison chart + tooltip helpers
+  - `target-tracker.js` — `renderTargetTracker()` core orchestrator (Numbers + Daily tabs)
+  - `target-tracker-init.js` — `showTargetTrackerModal()` + DOMContentLoaded bindings
+- `modals.html` (57.6KB) split into 3 Jinja2 includes:
+  - `modals.html` — Settings + Observation + Stats Config
+  - `modals-ohlc.html` — Add Column + OHLC Manager + Edit Column
+  - `modals-target-tracker.html` — Target Tracker Modal (full)
+- Also fixed: `diff` variable undefined in weekly tooltip (now correctly set to `actual - target`)
+
+**Outstanding (needs future split):**
+- `gallery-render.js` still 37.7KB (not touched today)
+- `style-misc.css` still 30.2KB (not touched today)
+
 ## EOD Summary - March 25, 2026
 
 ### v3.0.2 — Tag Images, Gallery Sync, OHLC Manager UI, Stash Restore

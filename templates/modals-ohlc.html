@@ -1,0 +1,122 @@
+<!-- ── ADD COLUMN MODAL ────────────────────── -->
+<div class="modal-overlay" id="add-col-modal">
+  <div class="modal-content" style="width:360px">
+    <div class="modal-header">
+      <span>Add New Column</span>
+      <button class="close-btn" id="add-col-close">&#10005;</button>
+    </div>
+    <div style="padding:16px">
+      <input type="text" id="new-col-name" class="col-name-input" placeholder="Column name (e.g. Setup, Notes, RR)" />
+    </div>
+    <div class="upload-actions">
+      <button class="btn btn-outline" id="add-col-cancel">Cancel</button>
+      <button class="btn btn-primary" id="add-col-confirm">Add Column</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── OHLC MANAGER MODAL ─────────────────────── -->
+<div class="modal-overlay" id="ohlc-mgr-modal">
+  <div class="modal-content" style="width:680px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <span>&#128200; OHLC Data Manager</span>
+      <button class="close-btn" id="ohlc-mgr-close">&#10005;</button>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- ── Dhan Credentials ── -->
+      <div class="ohlc-mgr-section">
+        <div class="ohlc-mgr-section-title">Dhan Credentials</div>
+        <div id="ohlc-cred-status" class="ohlc-cred-status">
+          <span style="opacity:0.4">Loading...</span>
+        </div>
+        <div id="ohlc-cred-form" class="ohlc-cred-form" style="display:none">
+          <input type="text" id="ohlc-client-id" class="col-name-input" placeholder="Client ID" autocomplete="off" />
+          <input type="password" id="ohlc-access-token" class="col-name-input" placeholder="Access Token" autocomplete="off" />
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline" id="ohlc-cred-cancel">Cancel</button>
+            <button class="btn btn-primary" id="ohlc-cred-save">Save Credentials</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tradebook CSV Upload ── -->
+      <div class="ohlc-mgr-section">
+        <div class="ohlc-mgr-section-title">
+          Tradebook Import
+          <span class="ohlc-mgr-hint">Upload Zerodha tradebook CSV for accurate expiry dates</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input type="file" id="ohlc-tradebook-input" accept=".csv,text/csv" style="display:none" />
+          <button class="btn btn-outline" id="ohlc-tradebook-btn">Choose File</button>
+          <span id="ohlc-tradebook-fname" style="font-size:0.8rem;opacity:0.5;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">No file chosen</span>
+          <button class="btn btn-primary" id="ohlc-tradebook-import" disabled>Import</button>
+        </div>
+      </div>
+
+      <!-- ── Instruments Status Table ── -->
+      <div class="ohlc-mgr-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+          <div class="ohlc-mgr-section-title" style="margin:0">Instruments</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" id="ohlc-scrip-dl-btn">Download Scrip Master</button>
+            <button class="btn btn-outline btn-sm" id="ohlc-status-refresh-btn">Refresh</button>
+          </div>
+        </div>
+        <div id="ohlc-instruments-wrap" style="overflow-x:auto;max-height:260px;overflow-y:auto;">
+          <table class="ohlc-instruments-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th style="text-align:center">Dates</th>
+                <th style="text-align:center">Mapped</th>
+                <th style="text-align:center">OHLC</th>
+                <th style="text-align:center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="ohlc-instruments-tbody">
+              <tr><td colspan="5" style="text-align:center;opacity:0.4;padding:14px;">
+                Click "Refresh" to load instruments
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Sync Log ── -->
+      <div class="ohlc-mgr-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="ohlc-mgr-section-title" style="margin:0">Sync Log</div>
+          <button class="btn btn-outline btn-sm" id="ohlc-log-clear-btn">Clear</button>
+        </div>
+        <div id="ohlc-sync-log" class="ohlc-sync-log"></div>
+      </div>
+
+    </div><!-- /scroll area -->
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="ohlc-mgr-close-btn">Close</button>
+      <button class="btn btn-primary" id="ohlc-sync-all-btn">&#9654; Sync All OHLC</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EDIT COLUMN MODAL ────────────────────── -->
+<div class="modal-overlay" id="edit-col-modal">
+  <div class="modal-content" style="width:380px">
+    <div class="modal-header">
+      <span>Edit Column Name</span>
+      <button class="close-btn" id="edit-col-close">&#10005;</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <select id="edit-col-select" class="select-box"></select>
+      <input type="text" id="edit-col-name" class="col-name-input" placeholder="New column name" />
+    </div>
+    <div class="upload-actions">
+      <button class="btn btn-outline" id="edit-col-delete">Delete Column</button>
+      <button class="btn btn-outline" id="edit-col-cancel">Cancel</button>
+      <button class="btn btn-primary" id="edit-col-confirm">Save Name</button>
+    </div>
+  </div>
+</div>
