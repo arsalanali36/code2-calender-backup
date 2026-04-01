@@ -13,6 +13,12 @@ def get_all_trades(user_id=None):
     return _load(user_id=user_id)
 
 
+def get_date_image_map(user_id=None) -> dict:
+    """Return {date: images_list} for all trades — lightweight read for import operations."""
+    payload = _load(user_id=user_id)
+    return {t.get('date', ''): t.get('images', []) for t in payload.get('trades', [])}
+
+
 def save_trades(data: dict, user_id=None):
     """Persist the trades payload. Raises if data is missing 'trades' key."""
     if not isinstance(data, dict) or 'trades' not in data:

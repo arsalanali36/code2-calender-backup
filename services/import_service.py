@@ -19,12 +19,12 @@ from processors.data_processors import (
     consolidate_dhan_csv,
     save_trades_to_file,
 )
-from services.trade_service import get_all_trades
+from services.trade_service import get_date_image_map
 
 
 # ── Excel ────────────────────────────────────────────────────────────────────
 
-def import_excel(file_bytes: bytes) -> dict:
+def import_excel(file_bytes: bytes, user_id=None) -> dict:
     """
     Parse an .xlsx file, normalize columns, preserve existing images.
     Returns {'trades': [...], 'columns': [...]}.
@@ -46,8 +46,7 @@ def import_excel(file_bytes: bytes) -> dict:
     except Exception as e:
         raise ValueError(f'Excel read error: {e}')
 
-    existing = get_all_trades()
-    existing_by_date = {t.get('date', ''): t for t in existing.get('trades', [])}
+    existing_by_date = get_date_image_map(user_id=user_id)
     columns = list(df.columns)
     trades = []
 
@@ -70,7 +69,7 @@ def import_excel(file_bytes: bytes) -> dict:
                 date_key = str(trade.get(col, ''))
                 break
         trade['date'] = date_key
-        trade['images'] = existing_by_date.get(date_key, {}).get('images', [])
+        trade['images'] = existing_by_date.get(date_key, [])
         trades.append(trade)
 
     return {'trades': trades, 'columns': columns}

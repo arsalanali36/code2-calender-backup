@@ -23,8 +23,9 @@ def import_excel_route():
     file = request.files['file']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
+    user_id = current_user.id if current_user.is_authenticated else None
     try:
-        result = import_excel(file.read())
+        result = import_excel(file.read(), user_id=user_id)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)

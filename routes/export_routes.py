@@ -44,10 +44,9 @@ def export_excel():
     columns = data.get('columns', [])
     if not trades:
         return jsonify({'error': 'No data to export'}), 400
-    excel_bytes = export_simple_excel(trades, columns)
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     return send_file(
-        io.BytesIO(excel_bytes),
+        export_simple_excel(trades, columns),
         as_attachment=True,
         download_name=f'trading_journal_{timestamp_str}.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -61,9 +60,8 @@ def export_structured_csv_route():
     req_cols = data.get('columns', [])
     if not trades:
         return jsonify({'error': 'No data to export'}), 400
-    csv_bytes = export_structured_csv(trades, req_cols)
     return send_file(
-        io.BytesIO(csv_bytes),
+        export_structured_csv(trades, req_cols),
         as_attachment=True,
         download_name='structured_trades.csv',
         mimetype='text/csv',
@@ -76,10 +74,9 @@ def export_logger_excel_route():
     trades = data.get('trades', [])
     if not trades:
         return jsonify({'error': 'No data to export'}), 400
-    excel_bytes = export_logger_excel(trades)
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     return send_file(
-        io.BytesIO(excel_bytes),
+        export_logger_excel(trades),
         as_attachment=True,
         download_name=f'trade_logger_export_{timestamp_str}.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

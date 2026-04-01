@@ -20,8 +20,8 @@ from processors.data_processors import STRUCTURED_COLUMNS, HISTORICAL_STRUCTURED
 
 # ── Excel export ─────────────────────────────────────────────────────────────
 
-def build_excel_bytes(data: dict) -> bytes:
-    """Full journal Excel: all trade columns + Image URLs + Image Tags."""
+def build_excel_bytes(data: dict) -> io.BytesIO:
+    """Full journal Excel: all trade columns + Image URLs + Image Tags. Returns BytesIO at pos 0."""
     trades = data.get('trades', [])
     columns = data.get('columns', [])
 
@@ -56,31 +56,28 @@ def build_excel_bytes(data: dict) -> bytes:
         for col_cells in ws.columns:
             max_len = max((len(str(c.value)) if c.value else 0) for c in col_cells)
             ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 4, 60)
-    return out.getvalue()
+    out.seek(0)
+    return out
 
 
-def export_simple_excel(trades: list, columns: list) -> bytes:
-    """Simple trades-only Excel (no image metadata)."""
-    rows = []
-    for trade in trades:
-        row = {col: trade.get(col, '') for col in columns}
-        rows.append(row)
-
+def export_simple_excel(trades: list, columns: list) -> io.BytesIO:
+    """Simple trades-only Excel (no image metadata). Returns BytesIO at pos 0."""
+    rows = [{ col: trade.get(col, '') for col in columns } for trade in trades]
     df = pd.DataFrame(rows, columns=columns if columns else None)
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+    out = io.BytesIO()
+    with pd.ExcelWriter(out, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Trades')
         ws = writer.sheets['Trades']
         for col_cells in ws.columns:
             max_len = max((len(str(c.value)) if c.value else 0) for c in col_cells)
             ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 4, 40)
-    output.seek(0)
-    return output.read()
+    out.seek(0)
+    return out
 
 
 # ── Structured CSV export ─────────────────────────────────────────────────────
 
-def export_structured_csv(trades: list, req_cols: list) -> bytes:
+def export_structured_csv(trades: list, req_cols: list) -> io.BytesIO:
     """Export trades as a structured CSV using the canonical column set."""
     export_cols = STRUCTURED_COLUMNS
     if isinstance(req_cols, list) and req_cols:
@@ -90,9 +87,9 @@ def export_structured_csv(trades: list, req_cols: list) -> bytes:
     rows = [{col: trade.get(col, '') for col in export_cols} for trade in trades]
     df = pd.DataFrame(rows, columns=export_cols)
 
-    output = io.StringIO()
-    df.to_csv(output, index=False)
-    return output.getvalue().encode('utf-8')
+    csv_str = df.to_csv(index=False)
+    out = io.BytesIO(csv_str.encode('utf-8'))
+    return out
 
 
 # ── Logger Excel export ───────────────────────────────────────────────────────
@@ -140,7 +137,7 @@ _LOGGER_HEADER_MAP = {
 }
 
 
-def export_logger_excel(trades: list) -> bytes:
+def export_logger_excel(trades: list) -> io.BytesIO:
     """Logger-specific Excel with two sheets: full export + logger-only rows."""
     logger_keys = set()
     for t in trades:
@@ -185,7 +182,7 @@ def export_logger_excel(trades: list) -> bytes:
                 ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 3, 44)
 
     output.seek(0)
-    return output.read()
+    return output
 
 
 # ── Backup ZIP ────────────────────────────────────────────────────────────────
