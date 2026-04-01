@@ -5,8 +5,8 @@ Central configuration for the Trading Journal app.
 All environment variable reads and path defaults live here.
 Import this module wherever you need DATA_FILE, UPLOADS_DIR, etc.
 """
+import hashlib
 import os
-import time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,7 +30,25 @@ TRADEBOOK_SYNC_QUEUE_FILE  = os.path.join(BASE_DIR, 'data', 'tradebook_sync_queu
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7
 MAX_CONTENT_LENGTH  = 100 * 1024 * 1024          # 100 MB upload limit
-CACHE_BUST          = int(time.time())
+def _compute_static_hash() -> str:
+    """
+    Return a short hash of all JS and CSS file contents under static/.
+    Changes only when a file is modified — not on every server restart.
+    """
+    h = hashlib.md5()
+    static_dir = os.path.join(BASE_DIR, 'static')
+    for root, _, files in sorted(os.walk(static_dir)):
+        for fname in sorted(files):
+            if fname.endswith(('.js', '.css')):
+                fpath = os.path.join(root, fname)
+                try:
+                    with open(fpath, 'rb') as f:
+                        h.update(f.read())
+                except OSError:
+                    pass
+    return h.hexdigest()[:10]
+
+CACHE_BUST = _compute_static_hash()
 
 # ── Cloudinary ────────────────────────────────────────────────────────────────
 CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
