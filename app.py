@@ -106,10 +106,21 @@ def options_handler(path):
         r.headers['Vary'] = 'Origin'
     return r
 
-# Ensure required directories exist
-os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-os.makedirs(UPLOADS_DIR, exist_ok=True)
-os.makedirs(TRASH_DIR, exist_ok=True)
+# Ensure required directories exist.
+# If a path is a broken symlink (e.g. Google Drive not mounted), replace it with a
+# real local folder so the app can still start without the external drive.
+def _ensure_dir(path):
+    try:
+        os.makedirs(path, exist_ok=True)
+    except (FileExistsError, OSError):
+        # Broken symlink → remove it and create a real directory in its place
+        if os.path.islink(path) and not os.path.exists(path):
+            print(f"[startup] WARNING: broken symlink {path!r} — replacing with local folder")
+            os.unlink(path)
+            os.makedirs(path, exist_ok=True)
+
+for _d in [os.path.dirname(DATA_FILE), UPLOADS_DIR, TRASH_DIR]:
+    _ensure_dir(_d)
 
 
 # ── Startup tasks ─────────────────────────────────────────────────────────────

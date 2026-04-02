@@ -18,7 +18,6 @@ function showTargetTrackerModal(importedTrades = null) {
     const ptsInp = document.getElementById('tt-max-pts-inp');
     const lossInp = document.getElementById('tt-max-loss-inp');
     const expWinInp = document.getElementById('tt-exp-win-inp');
-    const expLossInp = document.getElementById('tt-exp-loss-inp');
 
     if (goalInp) goalInp.value = _targetConfig.goalStr;
     if (lotInp) lotInp.value = _targetConfig.lotSizeStr;
@@ -26,7 +25,6 @@ function showTargetTrackerModal(importedTrades = null) {
     if (ptsInp) ptsInp.value = _targetConfig.maxPtsStr;
     if (lossInp) lossInp.value = _targetConfig.maxLossStr;
     if (expWinInp) expWinInp.value = _targetConfig.expWinStr;
-    if (expLossInp) expLossInp.value = _targetConfig.expLossStr;
     const avgTrInp = document.getElementById('tt-avg-trades-inp');
     if (avgTrInp) avgTrInp.value = _targetConfig.avgTradesStr;
 
@@ -45,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ptsInp = document.getElementById('tt-max-pts-inp');
     const lossInp = document.getElementById('tt-max-loss-inp');
     const expWinInp = document.getElementById('tt-exp-win-inp');
-    const expLossInp = document.getElementById('tt-exp-loss-inp');
 
     function switchTab(tab) {
         const numBtn = document.getElementById('tt-tab-numbers');
@@ -73,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (numBtn) { numBtn.style.borderBottomColor = 'var(--blue)'; numBtn.style.color = 'var(--text)'; }
             if (numView) numView.style.display = 'flex';
         } else if (tab === 'daily') {
-            if (ttModalContent) ttModalContent.style.maxWidth = '450px';
+            if (ttModalContent) ttModalContent.style.maxWidth = '900px';
             if (dailyBtn) { dailyBtn.style.borderBottomColor = 'var(--blue)'; dailyBtn.style.color = 'var(--text)'; }
-            if (dailyView) dailyView.style.display = 'block';
+            if (dailyView) dailyView.style.display = 'flex';
         } else if (tab === 'weekly') {
             if (ttModalContent) ttModalContent.style.maxWidth = '900px';
             if (weeklyBtn) { weeklyBtn.style.borderBottomColor = 'var(--blue)'; weeklyBtn.style.color = 'var(--text)'; }
@@ -204,12 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTargetTracker();
         });
     }
-    if (expLossInp) {
-        expLossInp.addEventListener('input', (e) => {
-            _targetConfig.expLossStr = e.target.value;
-            renderTargetTracker();
-        });
-    }
     const avgTrInp = document.getElementById('tt-avg-trades-inp');
     if (avgTrInp) {
         avgTrInp.addEventListener('input', (e) => {
@@ -228,7 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('tt_maxpts', _targetConfig.maxPtsStr);
             localStorage.setItem('tt_maxloss', _targetConfig.maxLossStr);
             localStorage.setItem('tt_expwin', _targetConfig.expWinStr);
-            localStorage.setItem('tt_exploss', _targetConfig.expLossStr);
             localStorage.setItem('tt_avgtrades', _targetConfig.avgTradesStr);
 
             const oldHtml = saveBtn.innerHTML;
@@ -246,11 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (perfStatsBox) {
         perfStatsBox.addEventListener('click', () => {
             const msg = `Stability (P/L Strike Rate) Breakdown:\n\n` +
-                        `\u2022 1.00+: Superb (Over-performing)\n` +
-                        `\u2022 0.80 - 1.00: Steady (On Track)\n` +
-                        `\u2022 0.00 - 0.80: Under Pace (Catch up)\n` +
-                        `\u2022 Negative: Critical (Drawdown)\n\n` +
-                        `Strike Rate = Actual Net / Expected Target`;
+                `\u2022 1.00+: Superb (Over-performing)\n` +
+                `\u2022 0.80 - 1.00: Steady (On Track)\n` +
+                `\u2022 0.00 - 0.80: Under Pace (Catch up)\n` +
+                `\u2022 Negative: Critical (Drawdown)\n\n` +
+                `Strike Rate = Actual Net / Expected Target`;
             alert(msg);
         });
     }
@@ -281,6 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('target-tracker-modal');
             if (modal) modal.classList.remove('open');
             if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
+        });
+    }
+
+    const importBtn = document.getElementById('tt-import-zerodha-btn');
+    if (importBtn) {
+        importBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rawInp = document.getElementById('raw-csv-input');
+            if (rawInp) rawInp.click();
         });
     }
 
@@ -334,8 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableTtBtn = document.getElementById('table-tt-btn');
     if (tableTtBtn) {
         tableTtBtn.addEventListener('click', () => {
-             _ttCurrentDate = null;
-             showTargetTrackerModal(null);
+            _ttCurrentDate = null;
+            showTargetTrackerModal(null);
         });
     }
 });
