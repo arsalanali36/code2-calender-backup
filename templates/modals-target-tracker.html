@@ -1,4 +1,8 @@
 <!-- ── TARGET TRACKER MODAL ────────────────────── -->
+<style>
+  .tt-trade-row { transition: background 0.1s; border-radius: 4px; padding: 2px 4px; }
+  .tt-trade-row:hover { background: rgba(255,255,255,0.04); }
+</style>
 <div class="modal-overlay" id="target-tracker-modal">
   <div class="modal-content" id="tt-modal-content" style="width:100%; max-width:450px;">
     <div class="modal-header">
@@ -278,6 +282,9 @@
                 <div style="font-size:0.8rem; color:var(--text2); display:flex; flex-direction:column; gap:4px;">
                   <span>Today's Current P/L:</span>
                   <span id="tt-achieved" style="font-weight:bold; font-size:1.4rem; color:var(--text);">₹ 0</span>
+                  <div style="font-size:0.7rem; color:var(--text2); display:flex; align-items:center; gap:4px; margin-top:2px; opacity:0.8;">
+                    GROSS: <span id="tt-gross-amt" style="font-weight:bold; color:var(--text2);">₹ 0</span>
+                  </div>
                 </div>
                 <div
                   style="font-size:0.8rem; color:var(--text2); text-align:right; display:flex; flex-direction:column; gap:4px;">

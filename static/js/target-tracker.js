@@ -281,6 +281,14 @@ function renderTargetTracker() {
     // Render Actual Points Chart
     const barsContainer = document.getElementById('tt-actual-bars');
     const todayTrades = getTodayTrades();
+
+    // Reset fields first
+    const grossAmtEl = document.getElementById('tt-gross-amt');
+    if (grossAmtEl) {
+        grossAmtEl.textContent = `\u20B9 0`;
+        grossAmtEl.style.color = 'var(--text2)';
+    }
+
     if (graphWrap && barsContainer && todayTrades && todayTrades.length > 0) {
         let maxAchievedPts = 0;
         const validTrades = [];
@@ -336,6 +344,11 @@ function renderTargetTracker() {
 
         if (todayTaxEl) {
             todayTaxEl.textContent = `- \u20B9 ${Math.round(sumActualTax).toLocaleString('en-IN')}`;
+        }
+
+        if (grossAmtEl) {
+            grossAmtEl.textContent = `\u20B9 ${Math.round(sumActualGross).toLocaleString('en-IN')}`;
+            grossAmtEl.style.color = sumActualGross >= 0 ? 'var(--green)' : 'var(--red)';
         }
 
         // Override the 'achieved' display with actual Net P/L if trades exist
@@ -406,18 +419,40 @@ function renderTargetTracker() {
 
                 const tooltip = `Trade ${idx + 1}\nPoints: ${roundedRawPts}\nQty: ${qty}\nLot: ${multStr}\nP&L: \u20B9 ${roundedPl}`;
 
-                barsHtml += `
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; width:100%;">
-                        <div style="font-size:0.75rem; color:var(--text2); width:45px; text-align:right;">Trade ${idx + 1}</div>
-                        <div style="flex:1; height:20px; background:var(--bg3); border-radius:4px; overflow:hidden; position:relative; border:1px solid rgba(255,255,255,0.05);">
-                            <div title="${tooltip}" style="height:100%; width:${w}%; background:${color}; cursor:pointer; opacity:0.85;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'"></div>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:6px; min-width:65px;">
-                            <div style="font-size:0.8rem; color:var(--text); width:28px; font-weight:bold; text-align:right;">${roundedRawPts}</div>
-                            <div style="font-size:0.7rem; padding:2px 6px; border-radius:4px; ${badgeStyle}">${multStr}</div>
-                        </div>
-                    </div>
-                `;
+                const rawInst = item.trade['Instrument'] || '—';
+                const instUpper = rawInst.toUpperCase();
+                
+                // Strict Formatting: Prefix, YY(2), M(1), DD(2), Strike, Type
+                const im = instUpper.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
+                // Format: SYMBOL YY M DD STRIKE TYPE
+                const instStr = im ? `${im[1]} ${im[2]} ${im[3]} ${im[4]} ${im[5]} ${im[6]}` : instUpper;
+
+                let instColor = '#ffd700'; // Default gold
+                if (instUpper.endsWith('CE')) instColor = '#c084fc'; // Purple
+                else if (instUpper.endsWith('PE')) instColor = 'var(--text3, #8b949e)'; // Grey
+
+                barsHtml += (() => {
+                    const trade = item.trade;
+                    const hasImages = trade.images && trade.images.length > 0;
+                    const firstImg = hasImages ? trade.images[0] : '';
+                    const clickAttr = hasImages
+                        ? `onclick="document.getElementById('target-tracker-modal').classList.remove('open'); openGalleryForDate('${_ttCurrentDate}', decodeURIComponent('${encodeURIComponent(firstImg)}')); return false;"`
+                        : `onclick="if(typeof showToast==='function') showToast('No images for this trade', 'info'); return false;"`;
+
+                    return `
+                        <a href="javascript:void(0)" ${clickAttr} style="display:flex; align-items:center; gap:8px; margin-bottom:8px; width:100%; cursor:pointer; text-decoration:none; color:inherit;" class="tt-trade-row">
+                            <div style="font-size:0.75rem; color:var(--text2); width:25px; text-align:left; font-weight:bold;">T${idx + 1}</div>
+                            <div style="font-size:0.65rem; color:${instColor}; width:135px; text-align:left; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${instStr}">${instStr}</div>
+                            <div style="flex:1; height:20px; background:var(--bg3); border-radius:4px; overflow:hidden; position:relative; border:1px solid rgba(255,255,255,0.05);">
+                                <div title="${tooltip}" style="height:100%; width:${w}%; background:${color}; opacity:0.85;"></div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px; min-width:65px;">
+                                <div style="font-size:0.8rem; color:var(--text); width:28px; font-weight:bold; text-align:right;">${roundedRawPts}</div>
+                                <div style="font-size:0.7rem; padding:2px 6px; border-radius:4px; ${badgeStyle}">${multStr}</div>
+                            </div>
+                        </a>
+                    `;
+                })();
             });
             barsContainer.innerHTML = barsHtml;
             barsContainer.style.cssText = 'display:flex; flex-direction:column; gap:4px; width:100%; max-height:450px; overflow-y:auto; overflow-x:hidden;';

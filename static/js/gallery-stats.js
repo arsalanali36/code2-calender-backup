@@ -169,7 +169,7 @@ function renderGalleryTradePill() {
     // Dropdown: all trades for quick jump
     drop.innerHTML = '';
     drop.style.minWidth = '380px'; // Increased width to accommodate cumulative column
-    
+
     let runningTotal = 0;
     trades.forEach((t, i) => {
         const p = typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0;
@@ -199,9 +199,9 @@ function renderGalleryTradePill() {
         row.className = 'gv2-pnl-trade-row';
         if (i === tIdx) row.style.background = 'rgba(255,255,255,0.06)';
         
-        // Structured Grid Layout: Index, Time/Lot, Points, P&L, Cumulative
+        // Structured Grid Layout: Index, Instrument, Time/Lot, Points, P&L, Cumulative
         row.style.display = 'grid';
-        row.style.gridTemplateColumns = '32px 1fr 50px 75px 85px';
+        row.style.gridTemplateColumns = '32px 130px 1fr 50px 75px 85px';
         row.style.gap = '8px';
         row.style.alignItems = 'center';
         row.style.padding = '8px 14px';
@@ -210,6 +210,23 @@ function renderGalleryTradePill() {
         lbl.className = 'gv2-pnl-trade-label';
         lbl.style.fontWeight = '700';
         lbl.textContent = `T${i + 1}`;
+
+        const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
+        const instNum = rawInst.toUpperCase();
+        
+        // Strict Formatting: Prefix, YY(2), M(1), DD(2), Strike, Type
+        const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
+        // Format: SYMBOL YY M DD STRIKE TYPE
+        const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : instNum;
+
+        let instColor = '#ffd700'; // Gold default
+        if (instNum.endsWith('CE')) instColor = '#c084fc'; // Purple
+        else if (instNum.endsWith('PE')) instColor = 'var(--text3, #8b949e)'; // Grey
+
+        const inst = document.createElement('span');
+        inst.className = 'gv2-pnl-trade-inst';
+        inst.style.cssText = `font-size:0.72rem; color:${instColor}; font-weight:700; text-align:left; white-space:nowrap;`;
+        inst.textContent = instText || '—';
         
         const info = document.createElement('span');
         info.style.cssText = 'font-size:0.75rem; color:var(--text3); opacity:0.9; white-space:nowrap; text-align:left; letter-spacing:0.2px;';
@@ -242,6 +259,7 @@ function renderGalleryTradePill() {
         cumVal.style.color = runningTotal >= 0 ? '#2ecc71' : '#e74c3c';
         
         row.appendChild(lbl);
+        row.appendChild(inst);
         row.appendChild(info);
         row.appendChild(ptWrap);
         row.appendChild(val);

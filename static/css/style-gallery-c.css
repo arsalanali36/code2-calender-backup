@@ -525,3 +525,28 @@
   content: 'CTRL+CLICK';
   opacity: 1;
 }
+ 
+/* ── TARGET PILL ── */
+.gv2-target-pill {
+  width: 24px;
+  height: 24px;
+  background: #ff007f; /* Pink like the circle in user image */
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  box-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
+  line-height: 1;
+}
+.gv2-target-pill:hover {
+  background: #ff3399;
+  transform: scale(1.15) rotate(15deg);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+}
+.gv2-target-pill:active { transform: scale(0.9); }

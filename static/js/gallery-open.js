@@ -10,18 +10,32 @@
 
 // gallery-open.js — openGalleryForDate, openGalleryDirect, openGalleryForDateWithTagFilter, lock/unlockBodyScroll
 
-function openGalleryForDate(dateStr) {
+function openGalleryForDate(dateStr, targetImgUrl = null) {
   const images = getImagesForDate(dateStr);
   if (!images.length) return;
-  state.gallery.images = images; state.gallery.currentIndex = 0; state.gallery.tagFilter = [];
-  state.gallery.date = dateStr; state.gallery.sourceRow = null;
+  state.gallery.images = images; 
+  state.gallery.currentIndex = 0; 
+  state.gallery.tagFilter = [];
+  
+  if (targetImgUrl) {
+    const raw = String(targetImgUrl || '').trim();
+    const idx = images.findIndex(u => String(u) === raw || String(u).endsWith(raw) || raw.endsWith(String(u)));
+    if (idx >= 0) state.gallery.currentIndex = idx;
+    state.gallery.selectedIndices = new Set([state.gallery.currentIndex]);
+  } else {
+    state.gallery.selectedIndices = state.gallery.selectedIndices || new Set();
+  }
+
+  state.gallery.date = dateStr; 
+  state.gallery.sourceRow = null;
   state.gallery._baseImages = [...images];
-  state.gallery.selectedIndices = state.gallery.selectedIndices || new Set();
   state.gallery._baseDate = dateStr;
   state.gallery._baseSourceRow = null;
+  
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
-  renderGallery(); updateGalleryDateArrows();
+  renderGallery(); 
+  updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();
   const wasTagsOpen = localStorage.getItem('tj_tagsTrayOpen') === '1';
   const tray1 = document.getElementById('gv2-tags-tray');

@@ -41,13 +41,7 @@ function _openGalleryFromUrlParamsOnce() {
 
     const layout = q.get('galleryLayout') || 'new';
     if (typeof _applyGalleryLayout === 'function') _applyGalleryLayout(layout);
-    openGalleryForDate(dateKey);
-    if (imgUrl && Array.isArray(state.gallery.images) && state.gallery.images.length) {
-      const decodedImg = decodeURIComponent(imgUrl);
-      const idx = state.gallery.images.findIndex(u => String(u) === decodedImg);
-      if (idx >= 0) state.gallery.currentIndex = idx;
-      renderGallery();
-    }
+    openGalleryForDate(dateKey, imgUrl);
 
     // Keep URL clean so refresh doesn't keep reopening from stale params.
     q.delete('galleryDate');

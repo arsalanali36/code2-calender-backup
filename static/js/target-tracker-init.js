@@ -337,4 +337,25 @@ document.addEventListener('DOMContentLoaded', () => {
             showTargetTrackerModal(null);
         });
     }
+ 
+    // Gallery Tray Target Button
+    const galleryTargetBtn = document.getElementById('gv2-target-pill');
+    if (galleryTargetBtn) {
+        galleryTargetBtn.addEventListener('click', () => {
+            // Sync date from gallery
+            if (state.gallery && state.gallery.date) {
+                _ttCurrentDate = state.gallery.date;
+            }
+            // Close gallery first (same z-index as TT modal — would hide behind it)
+            const galleryModal = document.getElementById('gallery-modal');
+            if (galleryModal) galleryModal.classList.remove('open');
+            if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
+
+            showTargetTrackerModal(null);
+
+            // Auto switch to daily tab
+            const dailyBtn = document.getElementById('tt-tab-daily');
+            if (dailyBtn) dailyBtn.click();
+        });
+    }
 });
