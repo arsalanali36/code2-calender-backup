@@ -216,12 +216,18 @@ function renderCalendar() {
       };
       const _abbr = col => _CAL_ABBR[col.toLowerCase()] || col;
 
-      const cols = state.columns.filter(col => getActiveShowHeads()[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
+      const allHeads = ['Total Trades', ...state.columns.filter(c => c !== 'Total Trades')];
+      const cols = allHeads.filter(col => getActiveShowHeads()[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
       if (state.calendarMode === 'individual') {
         dayTrades.forEach((tr, i) => {
           cols.forEach(col => {
             if (col.toLowerCase() === 'thumbnail') return;
-            const val = tr[col];
+            let val;
+            if (col === 'Total Trades') {
+                val = dayTrades.length;
+            } else {
+                val = tr[col];
+            }
             if (val === '' || val == null) return;
             const item = document.createElement('div'); item.className = 'day-data-item';
             const isProfit = col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs';
@@ -242,6 +248,12 @@ function renderCalendar() {
       } else {
         cols.forEach(col => {
           if (col.toLowerCase() === 'thumbnail') return;
+          if (col === 'Total Trades') {
+            const item = document.createElement('div'); item.className = 'day-data-item';
+            item.textContent = showLabels ? `${_abbr(col)}: ${dayTrades.length}` : `${dayTrades.length}`;
+            dataDiv.appendChild(item);
+            return;
+          }
           const lower = col.toLowerCase();
           if (lower === 'sell time' || lower === 'buy time') return;
           const vals = dayTrades.map(t => t[col]).filter(v => v !== '' && v != null);

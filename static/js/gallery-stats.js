@@ -12,7 +12,8 @@ function renderGalleryStats() {
     const display = document.getElementById('gallery-heads-display');
     if (!display) return;
     const heads = getActiveShowHeads();
-    const cols = state.columns.filter(col => heads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
+    const allHeads = ['Total Trades', ...state.columns.filter(c => c !== 'Total Trades')];
+    const cols = allHeads.filter(col => heads[col] && col.toLowerCase() !== 'date' && !isTagColumn(col));
     if (cols.length === 0) {
         display.style.display = 'none';
         return;
@@ -56,6 +57,14 @@ function renderGalleryStats() {
         cols.forEach(col => {
             const lower = col.toLowerCase();
             if (lower === 'thumbnail' || lower === 'sell time' || lower === 'buy time') return;
+
+            if (col === 'Total Trades') {
+                const item = document.createElement('div');
+                item.textContent = `Total Trades: ${trades.length}`;
+                display.appendChild(item);
+                return;
+            }
+
             const vals = trades.map(t => t[col]).filter(v => v !== '' && v != null);
             if (!vals.length) return;
             const item = document.createElement('div');
@@ -87,7 +96,9 @@ function renderGalleryStats() {
 
             cols.forEach(col => {
                 if (col.toLowerCase() === 'thumbnail') return;
-                const val = tr[col];
+                let val;
+                if (col === 'Total Trades') val = 1;
+                else val = tr[col];
                 if (val === '' || val == null) return;
                 const item = document.createElement('div');
                 const isProfit = col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs';

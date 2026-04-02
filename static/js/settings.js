@@ -174,7 +174,8 @@ function loadShowHeads() {
 
 function initShowHeads() {
   loadShowHeads();
-  state.columns.forEach(col => {
+  const allHeads = ['Total Trades', ...state.columns.filter(c => c !== 'Total Trades')];
+  allHeads.forEach(col => {
     if (col.toLowerCase() === 'date') return;
     const def = isDefaultShowHeadCol(col);
     if (!(col in state.showHeadsConsolidated)) state.showHeadsConsolidated[col] = def;
@@ -188,7 +189,7 @@ function renderShowHeads() {
     const panel = document.getElementById(panelId);
     if (!panel) return;
     panel.innerHTML = '';
-    const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+    const cols = ['Total Trades', ...state.columns.filter(c => c !== 'Total Trades')].filter(c => c.toLowerCase() !== 'date');
     if (!cols.length) { panel.innerHTML = '<p class="panel-hint">Import Excel to see columns</p>'; return; }
 
     const badge = document.createElement('div');
@@ -233,7 +234,7 @@ function openShowHeadsModal() {
   const modal = document.getElementById('show-heads-modal');
   if (!modal) return;
 
-  const cols = state.columns.filter(c => c.toLowerCase() !== 'date');
+  const cols = ['Total Trades', ...state.columns.filter(c => c !== 'Total Trades')].filter(c => c.toLowerCase() !== 'date');
   const isConsolidated = state.calendarMode === 'consolidated';
 
   // title badge
