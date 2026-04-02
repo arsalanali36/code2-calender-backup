@@ -85,6 +85,13 @@ function _bindGalleryEvents() {
     btn.addEventListener('click', () => switchULPTab(btn.dataset.tab));
   });
 
+  document.getElementById('gv2-ulp-expand-all')?.addEventListener('click', () => {
+    if (typeof galleryExpandAll === 'function') galleryExpandAll();
+  });
+  document.getElementById('gv2-ulp-collapse-all')?.addEventListener('click', () => {
+    if (typeof galleryCollapseAll === 'function') galleryCollapseAll();
+  });
+
   // ── Unified Resizing (Touch + Mouse) ──────────────────────────────────
   const setupPanelResizer = (handleId, panelId, localStorageKey, direction, minW = 140, maxW = 480) => {
     const handle = document.getElementById(handleId);

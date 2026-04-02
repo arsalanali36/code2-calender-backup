@@ -3,14 +3,16 @@
  * @description Gallery context menu (right-click), group/ungroup images, move to trade/dayData.
  * @exports showGalleryContextMenu, replaceGalleryImageUrl, groupAllGalleryImages,
  *          ungroupAllGalleryImages, moveGalleryTile, showGalleryGroupDeleteConfirm,
- *          toggleGalleryGroupExpand, moveSelectedToTrade, moveSelectedToDayData
+ *          toggleGalleryGroupExpand, moveSelectedToTrade, moveSelectedToDayData,
+ *          galleryCollapseAll, galleryExpandAll
  * @reads state.gallery, state.trades, state.dayData
  * @writes trade.subImages, dayData.subImages, state.gallery (context updates)
  * @calls saveTrades, renderGallery, showToast
  */
 
 // gallery-ops.js — Context menu, image replace, group/ungroup/tile ops,
-//   showGalleryGroupDeleteConfirm, toggleGalleryGroupExpand, moveSelectedToTrade.
+//   showGalleryGroupDeleteConfirm, toggleGalleryGroupExpand, moveSelectedToTrade,
+//   galleryCollapseAll, galleryExpandAll.
 
 function showGalleryContextMenu(x, y) {
     const existing = document.getElementById('gv2-context-menu');
@@ -259,21 +261,8 @@ function showGalleryContextMenu(x, y) {
 
     // ── Collapse All / Expand All ────────────────────────────────────────
     addSep();
-    menu.appendChild(createOpt('Collapse All', () => {
-        state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
-        const dayDate = state.gallery.date;
-        const trades = dayDate ? getTradesForDate(dayDate) : [];
-        state.gallery.collapsedSeparators.add('OPEN');
-        state.gallery.collapsedSeparators.add('CLOSE');
-        trades.forEach((_, i) => state.gallery.collapsedSeparators.add('T' + i));
-        state.gallery._skipScrollIntoView = true;
-        renderGallery();
-    }));
-    menu.appendChild(createOpt('Expand All', () => {
-        if (state.gallery.collapsedSeparators) state.gallery.collapsedSeparators.clear();
-        state.gallery._skipScrollIntoView = true;
-        renderGallery();
-    }));
+    menu.appendChild(createOpt('Collapse All', galleryCollapseAll));
+    menu.appendChild(createOpt('Expand All', galleryExpandAll));
 
     addSep();
 
@@ -503,3 +492,20 @@ async function moveGalleryTile(dir) {
     renderGallery(); renderTable();
 }
 
+
+function galleryCollapseAll() {
+    state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
+    const dayDate = state.gallery.date;
+    const trades = dayDate ? getTradesForDate(dayDate) : [];
+    state.gallery.collapsedSeparators.add('OPEN');
+    state.gallery.collapsedSeparators.add('CLOSE');
+    trades.forEach((_, i) => state.gallery.collapsedSeparators.add('T' + i));
+    state.gallery._skipScrollIntoView = true;
+    renderGallery();
+}
+
+function galleryExpandAll() {
+    if (state.gallery.collapsedSeparators) state.gallery.collapsedSeparators.clear();
+    state.gallery._skipScrollIntoView = true;
+    renderGallery();
+}
