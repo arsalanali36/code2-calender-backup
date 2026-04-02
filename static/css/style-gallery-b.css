@@ -791,6 +791,7 @@
   flex: 1;
   scrollbar-width: thin;
   scrollbar-color: var(--border2) transparent;
+  overscroll-behavior: contain;
 }
 
 

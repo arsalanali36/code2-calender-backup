@@ -2,7 +2,7 @@
 // Called from renderGallery() after the thumb strip is built.
 
 function bindGalleryRubberbandAndPan(thumbs) {
-  if (!thumbs) return;
+  if (!thumbs || (typeof IS_TOUCH_DEVICE !== 'undefined' && IS_TOUCH_DEVICE)) return;
 
   // Remove previous listener to prevent accumulation across re-renders
   if (thumbs._rbHandler) thumbs.removeEventListener('mousedown', thumbs._rbHandler);

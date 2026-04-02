@@ -427,6 +427,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .gv2-tt-group {

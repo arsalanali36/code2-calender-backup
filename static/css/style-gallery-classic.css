@@ -569,6 +569,8 @@
   align-items: center;
   padding: 24px 0 4px;
   touch-action: pan-x;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .gv2-thumb-wrap {

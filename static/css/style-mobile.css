@@ -136,6 +136,7 @@
     scrollbar-width: none;
     gap: 4px;
     padding: 6px 8px;
+    overscroll-behavior: contain;
   }
 
   .gv2-tray::-webkit-scrollbar {
