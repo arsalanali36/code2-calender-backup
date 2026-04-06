@@ -71,7 +71,12 @@
     const dayData = state.dayData[date];
     const trades = getTradesForDate(date);
 
-    // 1. OPEN Group
+    // 1. NEWS Group (Contextual market news / reports)
+    if (dayData && dayData.newsImages && dayData.newsImages.length > 0) {
+      renderGroup('NEWS (Context)', dayData.newsImages, null);
+    }
+
+    // 2. OPEN Group (Initial trade analysis)
     if (dayData && dayData.images && dayData.images.length > 0) {
       renderGroup('OPEN (Analysis)', dayData.images, null);
     }
@@ -94,6 +99,13 @@
   function renderGroup(title, images, statsHtml, pnl, tradeRef, tradeIdx, cumPnl) {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'gv2-grid-group';
+    if (title === 'OPEN (Analysis)') groupDiv.id = 'grid-group-open';
+    else if (title === 'NEWS (Context)') {
+      groupDiv.id = 'grid-group-news';
+      groupDiv.classList.add('gv2-grid-group--portrait');
+    }
+    else if (title === 'CLOSE (Post-Market)') groupDiv.id = 'grid-group-close';
+    else if (tradeIdx !== undefined) groupDiv.id = 'grid-group-trade-' + tradeIdx;
 
     const hdr = document.createElement('div');
     hdr.className = 'gv2-grid-group-hdr';

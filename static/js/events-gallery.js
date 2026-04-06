@@ -515,10 +515,27 @@ function _bindGalleryEvents() {
     });
   }
 
-  // Close both dropdowns on outside click
+  // ── MTM (Equity Curve) toggle ──────────────────────────────────────────
+  const mtmBtn = document.getElementById('gv2-mtm-btn');
+  const mtmPanel = document.getElementById('gv2-mtm-panel');
+  if (mtmBtn && mtmPanel) {
+    mtmBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = mtmPanel.classList.contains('open');
+      document.querySelectorAll('.dropdown-menu.open').forEach(d => d.classList.remove('open'));
+      if (!isOpen) {
+        mtmPanel.classList.add('open');
+        if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
+      }
+    });
+  }
+
+  // Close dropdowns on outside click
   document.addEventListener('mousedown', (e) => {
     if (pnlPill && !pnlPill.closest('#gv2-pnl-wrap')?.contains(e.target)) pnlDrop?.classList.remove('open');
     if (tradePill && !tradePill.closest('#gv2-trade-pill-wrap')?.contains(e.target)) tradeDrop?.classList.remove('open');
+    // MTM Panel: Persistent by default (removes auto-hide on outside click per user request)
+    // if (mtmBtn && !mtmBtn.closest('#gv2-mtm-btn-wrap')?.contains(e.target)) mtmPanel?.classList.remove('open');
   });
 
   _bindGalleryDropdownEvents();

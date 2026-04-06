@@ -8,7 +8,7 @@
   flex-direction: column;
   animation: gridFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
-  padding-top: 60px; /* Space for the floating tray turned header */
+  padding-top: 48px; /* Space for the floating tray turned header */
 }
 
 @keyframes gridFadeIn {
@@ -125,7 +125,7 @@
 .gv2-grid-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 24px 24px;
+  padding: 8px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -209,6 +209,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-img-size, 220px), 1fr));
   gap: 16px;
+}
+
+/* ── Portrait Mode for News Section ── */
+.gv2-grid-group--portrait .gv2-grid-container {
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--grid-img-size, 220px) * 0.65), 1fr));
+}
+.gv2-grid-group--portrait .gv2-grid-item {
+  aspect-ratio: 9 / 16;
 }
 
 .gv2-grid-item {

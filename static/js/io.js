@@ -454,7 +454,9 @@ function setupDropdown(btnId, menuId) {
 }
 
 function closeAllDropdowns(except) {
-  document.querySelectorAll('.dropdown-menu.open').forEach(m => { if (m.id !== except) m.classList.remove('open'); });
+  document.querySelectorAll('.dropdown-menu.open').forEach(m => { 
+    if (m.id !== except && !m.classList.contains('mtm-panel')) m.classList.remove('open'); 
+  });
   const bd = document.getElementById('_mob-dd-backdrop');
   if (bd) bd.style.display = 'none';
 }

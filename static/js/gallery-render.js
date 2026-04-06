@@ -889,4 +889,10 @@ function renderGallery() {
   if (typeof isGridViewOpen === 'function' && isGridViewOpen() && typeof renderGridContent === 'function') {
     renderGridContent();
   }
+
+  // ── REFRESH MTM PANEL IF OPEN ──────────────────────────────────────────
+  const mtmPanel = document.getElementById('gv2-mtm-panel');
+  if (mtmPanel && mtmPanel.classList.contains('open')) {
+    if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
+  }
 }
