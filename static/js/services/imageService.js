@@ -8,14 +8,61 @@ const imageService = (() => {
   /**
    * Upload a single image File object to the server.
    * @param {File} file
-   * @returns {Promise<{url: string, filename: string}>}
+   * @param {number} [quality] - Optional compression quality (0-1)
+   * @returns {Promise<{url: string, filename: string, originalSize: number, compressedSize: number}>}
    */
-  async function uploadImage(file) {
+  async function uploadImage(file, quality) {
+    let fileToUpload = file;
+    let originalSize = file.size;
+    let compressedSize = file.size;
+
+    if (quality && quality < 1 && file.type.startsWith('image/')) {
+        try {
+            fileToUpload = await compressImage(file, quality);
+            compressedSize = fileToUpload.size;
+            console.log(`[Compression] q=${quality}, ${originalSize} -> ${compressedSize} bytes`);
+        } catch (e) {
+            console.warn("Compression failed, uploading original:", e);
+        }
+    }
     const fd = new FormData();
-    fd.append('image', file);
+    fd.append('image', fileToUpload);
     if (file.lastModified) fd.append('last_modified_ms', String(file.lastModified));
     if (file.name) fd.append('original_filename', file.name);
-    return apiClient.upload('/api/upload-image', fd);
+    const result = await apiClient.upload('/api/upload-image', fd);
+    return { ...result, originalSize, compressedSize };
+  }
+
+  /**
+   * Compress image using canvas
+   * @param {File} file
+   * @param {number} quality
+   * @returns {Promise<File>}
+   */
+  async function compressImage(file, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error('Canvas blob failed'));
+            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+            const newFile = new File([blob], newName, { type: 'image/jpeg', lastModified: Date.now() });
+            resolve(newFile);
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   /**

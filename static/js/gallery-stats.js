@@ -34,6 +34,10 @@ function renderGalleryStats() {
     } else {
         const owner = getOwnerTradeForImageUrl(activeUrl);
         if (owner) trades = [owner];
+        else if (dateToUse) {
+            // Fallback for day-level images (OPEN/CLOSE) in individual mode
+            trades = getTradesForDate(dateToUse);
+        }
     }
 
     if (trades.length === 0) {

@@ -320,6 +320,7 @@ function renderGalleryTagsTray() {
       renderGalleryTagCloud();
       renderGalleryTagsTray();
       if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+      renderGallery();
       renderTable();
       renderCalendar();
     });

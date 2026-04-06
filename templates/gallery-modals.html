@@ -414,20 +414,26 @@
       .im-count.missing { background: rgba(248,81,73,0.12); color: #f85149; border-color: rgba(248,81,73,0.1); opacity: 0.6; }
       .im-trade-cell { text-align: left; min-width: 250px; font-weight: 500; font-size: 0.75rem; color: #8b949e; }
       .im-trade-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
-      .im-trade-item { 
-        background: #21262d; color: #8b949e; border: 1px solid #30363d; 
+      .im-trade-item {
+        background: #21262d; color: #8b949e; border: 1px solid #30363d;
         padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
         display: flex; align-items: center; gap: 4px;
       }
-      .im-trade-item.has-img { 
-        background: rgba(88, 166, 255, 0.05); color: #fff; border-color: #58a6ff; 
+      .im-trade-item.has-img {
+        background: rgba(88, 166, 255, 0.05); color: #c9d1d9; border-color: #30363d;
       }
-      .im-trade-item.missing { 
-        background: rgba(248,81,73,0.15); color: #f85149; border-color: rgba(248,81,73,0.3);
+      .im-trade-item.no-img {
+        background: rgba(139,148,158,0.07); color: #555d69; border: 1px dashed #30363d; opacity: 0.7;
       }
-      .im-trade-total { 
-        color: #3fb950; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; display: block;
+      .im-trade-item.pnl-win {
+        background: rgba(63,185,80,0.12); color: #3fb950; border-color: rgba(63,185,80,0.4);
       }
+      .im-trade-item.pnl-loss {
+        background: rgba(248,81,73,0.12); color: #f85149; border-color: rgba(248,81,73,0.35);
+      }
+      .im-trade-item.no-img.pnl-win { color: #2a7a38; border-color: rgba(63,185,80,0.2); }
+      .im-trade-item.no-img.pnl-loss { color: #8b3530; border-color: rgba(248,81,73,0.2); }
+      .im-trade-img-count { opacity: 0.55; font-size: 0.65rem; }
       
       .im-sort-icon { cursor: pointer; margin-left: 6px; opacity: 0.5; transition: opacity 0.2s; }
       .im-sort-icon:hover, .im-sort-icon.active { opacity: 1; color: #58a6ff; }

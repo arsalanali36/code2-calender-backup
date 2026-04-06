@@ -470,9 +470,7 @@
 }
 
 /* Adjust filter active bar to not overlap if on left */
-#gallery-filter-active-bar {
-  top: 10px !important;
-}
+
 
 .top-tags-band .gallery-tag-empty {
   font-size: 0.72rem;
@@ -550,3 +548,21 @@
   box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
 }
 .gv2-target-pill:active { transform: scale(0.9); }
+.gv2-news-thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  padding: 5px 6px;
+  background: rgba(255, 165, 0, 0.03);
+  border-left: 2px solid rgba(255, 165, 0, 0.2);
+  margin: 5px 0;
+}
+.gv2-news-thumbnail-grid .gv2-thumb-wrap {
+  width: 100% !important;
+  margin: 0 !important;
+}
+.gv2-news-thumbnail-grid .gv2-thumb {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 9 / 20; /* Matching Inshorts screenshots */
+}

@@ -49,6 +49,8 @@ function getImageTagsForGalleryItem(item) {
   if (item.sourceRow !== null && state.trades[item.sourceRow]) {
     getImageTagsForUrl(state.trades[item.sourceRow], item.url).forEach(t => tags.add(t));
   } else if (item.date) {
+    const day = state.dayData[item.date];
+    if (day?.newsImages?.includes(item.url)) tags.add('News');
     getDayImageTagsForUrl(item.date, item.url).forEach(t => tags.add(t));
   }
   getMarqueeTagsForImage(item.url, item.date || '', item.sourceRow).forEach(t => tags.add(t));
@@ -156,42 +158,54 @@ function applyGalleryImageScopeByTagFilter(preserveUrl = null) {
   let nextImages;
   let nextMeta = null;
   if (filterActive) {
-    const rawMatches = getFilteredGalleryImagesByTagSelection();
-    const expanded = [];
-    const processedTrades = new Set(); // To ensure only one image per non-expanded trade
+    const tagFilter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+    const mode = state.gallery.filterMode === 'and' ? 'and' : 'or';
+    const norm = t => (typeof t === 'string' ? t : String(t)).toLowerCase().trim();
+    const normFilter = tagFilter.map(norm);
+    const matchesFilter = (item) => {
+      const arr = getImageTagsForGalleryItem(item).map(norm);
+      return mode === 'and' ? normFilter.every(t => arr.includes(t)) : normFilter.some(t => arr.includes(t));
+    };
 
+    const rawMatches = getFilteredGalleryImagesByTagSelection();
+    const groupedMatches = new Map();
     for (const item of rawMatches) {
       const tradeKey = (item.date || '') + ':' + (item.sourceRow !== null ? item.sourceRow : 'OPENCLOSE');
-      const isExpanded = state.gallery.expandedFilterTrades?.has(tradeKey);
+      if (!groupedMatches.has(tradeKey)) {
+        groupedMatches.set(tradeKey, []);
+      }
+      groupedMatches.get(tradeKey).push(item);
+    }
 
+    const expanded = [];
+    for (const [tradeKey, items] of groupedMatches.entries()) {
+      const isExpanded = state.gallery.expandedFilterTrades?.has(tradeKey);
       if (isExpanded) {
-        if (processedTrades.has(tradeKey)) continue; // Already added all images
-        processedTrades.add(tradeKey);
-        // Include ALL images of this trade
-        if (item.sourceRow !== null && state.trades[item.sourceRow]) {
-          const t = state.trades[item.sourceRow];
-          (t.images || []).forEach(url => expanded.push({ url, date: item.date, sourceRow: item.sourceRow }));
-        } else if (item.date) {
-            // OPEN/CLOSE case: just include matching ones for now, OR include all OPEN?
-            // Usually trades are the focus. For OPEN/CLOSE, we just include the matching one.
-            expanded.push(item);
-        }
+        items.forEach(item => expanded.push(item));
       } else {
-        if (processedTrades.has(tradeKey)) continue;
-        processedTrades.add(tradeKey);
-        expanded.push({ ...item, isCollapsedTrade: true });
+        const item = items[0];
+        if (items.length > 1) {
+          expanded.push({ ...item, isCollapsedTrade: true });
+        } else {
+          expanded.push(item);
+        }
       }
     }
     nextMeta = expanded;
 
-    // In Grp mode: if any group parents are expanded, insert their sub-images after the parent
+    // In Grp mode: if any group parents are expanded, insert their matching sub-images after the parent
     if (state.gallery.filterGroupMode !== 'image' && state.gallery.expandedGroups?.size) {
       const groupExpanded = [];
       for (const item of nextMeta) {
         groupExpanded.push(item);
         if (state.gallery.expandedGroups.has(item.url)) {
           const subs = _getSubImagesForParent(item.url, item.date, item.sourceRow);
-          subs.forEach(subUrl => groupExpanded.push({ url: subUrl, date: item.date, sourceRow: item.sourceRow }));
+          subs.forEach(subUrl => {
+            const subItem = { url: subUrl, date: item.date, sourceRow: item.sourceRow };
+            if (matchesFilter(subItem)) {
+              groupExpanded.push(subItem);
+            }
+          });
         }
       }
       nextMeta = groupExpanded;
@@ -261,6 +275,7 @@ function _getGalleryThumbImages() {
       const meta = _filteredMeta[i];
       if (meta && meta.url === url) { date = meta.date || ''; sourceRow = meta.sourceRow ?? null; }
     }
-    return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow };
+    const isNews = date && state.dayData[date]?.newsImages?.includes(url);
+    return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow, isNews };
   }).filter(item => !!item.url);
 }

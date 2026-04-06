@@ -53,13 +53,17 @@ function renderGalleryImageTags() {
       chip.style.background = isRed ? 'rgba(255, 107, 107, 0.16)' : hexToRgba(c, 0.16);
       chip.title = 'Remove tag from this image';
       chip.addEventListener('click', async () => {
-        window._lastDeletedImageTag = { tag, imgUrl, ownerType: info.ownerType, trade: info.trade, dateKey: info.dateKey, origTags: [...tags] };
+        window._tagUndoStack = window._tagUndoStack || [];
+        window._tagUndoStack.push({ tag, imgUrl, ownerType: info.ownerType, trade: info.trade, dateKey: info.dateKey, origTags: [...tags] });
+        if (window._tagUndoStack.length > 20) window._tagUndoStack.shift();
+
         const next = tags.filter(t => t !== tag);
         if (info.ownerType === 'trade' && info.trade) setImageTagsForUrl(info.trade, imgUrl, next);
         else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
         await saveTrades();
         renderGalleryImageTags();
         if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+        renderGallery();
         renderTable();
         renderCalendar();
       });
@@ -99,6 +103,7 @@ function renderGalleryImageTags() {
         await saveTrades();
         renderGalleryImageTags();
         renderGalleryTagsTray();
+        renderGallery();
         renderTable();
         renderCalendar();
       });
@@ -390,8 +395,6 @@ function renderImageTagModal() {
     currentWrap.appendChild(hint);
   }
 
-
-
   all.forEach(tag => {
     const row = document.createElement('div');
     row.className = 'tag-manage-row';
@@ -463,7 +466,9 @@ async function addImageTagFromModal() {
   normalizeAllTagsFromTrades();
   await saveTrades();
   renderGalleryImageTags();
-  renderTagFilterPanel();
+  if (typeof renderTagFilterPanel === 'function') renderTagFilterPanel();
+  if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+  renderGallery();
   renderTable();
   renderCalendar();
   inp.value = '';
@@ -524,3 +529,40 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/**
+ * Restore most recently deleted image tag (Undo)
+ */
+async function restoreLastDeletedImageTag() {
+    if (!window._tagUndoStack || !window._tagUndoStack.length) return false;
+    const item = window._tagUndoStack.pop();
+    if (!item) return false;
+
+    const { tag, imgUrl, ownerType, trade, dateKey } = item;
+    
+    // Determine current tags
+    let currentTags = [];
+    if (ownerType === 'trade' && trade) {
+        currentTags = getImageTagsForUrl(trade, imgUrl);
+    } else if (ownerType === 'day' && dateKey) {
+        currentTags = getDayImageTagsForUrl(dateKey, imgUrl);
+    }
+
+    if (!currentTags.includes(tag)) {
+        const next = [...currentTags, tag];
+        if (ownerType === 'trade' && trade) setImageTagsForUrl(trade, imgUrl, next);
+        else if (ownerType === 'day' && dateKey) setDayImageTagsForUrl(dateKey, imgUrl, next);
+        
+        if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
+        await saveTrades();
+        renderGalleryImageTags();
+        if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+        renderGallery();
+        renderTable();
+        renderCalendar();
+        if (typeof showToast === 'function') showToast(`Restored tag: ${tag}`, 'success');
+        return true;
+    }
+    return false;
+}
+
+window.restoreLastDeletedImageTag = restoreLastDeletedImageTag;

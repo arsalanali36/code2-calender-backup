@@ -100,8 +100,38 @@ function applyTagFilter() {
 
       textEl.textContent = displayTags;
       banner.style.display = 'flex';
+      
+      const statsEl = document.getElementById('active-tag-filter-stats');
+      const countEl = document.getElementById('active-tag-filter-count');
+      if (statsEl && countEl) {
+        let totalMatched = 0;
+        state.trades.forEach(tr => {
+          (tr.images || []).forEach(url => {
+            const trTags = getImageTagsForUrl(tr, url);
+            const matches = state.tagFilter.some(filterKey => {
+              const { tag: fTag } = parseTagFilterKey(filterKey);
+              return trTags.includes(fTag);
+            });
+            if (matches) totalMatched++;
+          });
+        });
+        Object.entries(state.dayData || {}).forEach(([d, day]) => {
+          [...(day.images || []), ...(day.closeImages || [])].forEach(url => {
+            const dayTags = getDayImageTagsForUrl(d, url);
+            const matches = state.tagFilter.some(filterKey => {
+              const { tag: fTag } = parseTagFilterKey(filterKey);
+              return dayTags.includes(fTag);
+            });
+            if (matches) totalMatched++;
+          });
+        });
+        countEl.textContent = totalMatched;
+        statsEl.style.display = 'block';
+      }
     } else {
       banner.style.display = 'none';
+      const statsEl = document.getElementById('active-tag-filter-stats');
+      if (statsEl) statsEl.style.display = 'none';
     }
   }
 

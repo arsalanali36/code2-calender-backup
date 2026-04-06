@@ -21,20 +21,22 @@ function _resetUploadProgress() {
 
 function openUploadModal(rowIdx) {
   syncTradeDateField(state.trades[rowIdx]);
+  const isNews = (state.gallery?.selectedSeparator === 'NEWS');
   state.uploadRow = rowIdx;
   state._dayUploadKey = null;
   state.pendingFiles = []; // Start empty instead of existing images
-  document.getElementById('upload-modal-title').textContent = `Images â€” ${state.trades[rowIdx].date || `Row ${rowIdx + 1}`}`;
+  document.getElementById('upload-modal-title').textContent = `Images — ${state.trades[rowIdx].date || `Row ${rowIdx + 1}`} ${isNews ? '(NEWS MODE)' : ''}`;
   _resetUploadProgress();
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
 }
 
 function openDayUploadModal(dateKey) {
+  const isNews = (state.gallery?.selectedSeparator === 'NEWS');
   state.uploadRow = null;
   state._dayUploadKey = dateKey;
   state.pendingFiles = []; // Start empty instead of existing images
-  document.getElementById('upload-modal-title').textContent = `Images â€” ${dateKey}`;
+  document.getElementById('upload-modal-title').textContent = `Images — ${dateKey} ${isNews ? '(NEWS MODE)' : ''}`;
   _resetUploadProgress();
   renderUploadPreview();
   document.getElementById('upload-modal').classList.add('open');
@@ -83,9 +85,17 @@ async function handleImageFiles(files) {
   updateProgress();
 
   // Upload all in parallel, replace blob URL with server URL as each finishes
+  let totalOrig = 0, totalComp = 0;
+  const isNewsUpload = (state.gallery?.selectedSeparator === 'NEWS');
+  
   await Promise.all(sorted.map(async (file, i) => {
     try {
-      const data = await imageService.uploadImage(file);
+      const q = isNewsUpload ? 0.25 : null;
+      if (isNewsUpload) console.log(`[Upload] News mode active, applying 0.25 quality to ${file.name}`);
+      
+      const data = await imageService.uploadImage(file, q);
+      totalOrig += data.originalSize || 0;
+      totalComp += data.compressedSize || 0;
       const idx = state.pendingFiles.indexOf(localUrls[i]);
       if (data.url && idx >= 0) {
         state.pendingFiles[idx] = data.url;
@@ -102,6 +112,17 @@ async function handleImageFiles(files) {
     done++;
     updateProgress();
   }));
+
+  if (isNewsUpload) {
+     if (totalComp < totalOrig) {
+        const saved = ((totalOrig - totalComp) / 1024).toFixed(0);
+        const pct = ((1 - totalComp / totalOrig) * 100).toFixed(0);
+        showToast(`NEWS COMPRESSED: Saved ${saved} KB (${pct}%)`, 'success');
+     } else {
+        showToast(`News upload: but no size change matched.`, 'info');
+     }
+  }
+
   if (failed) showToast(`${failed} image(s) failed to upload`, 'error');
 }
 

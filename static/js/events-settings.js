@@ -204,7 +204,12 @@ function _bindSettingsEvents() {
     if (state._galleryUploadCallback && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
       const targetDate = state.gallery.date;
       const sel = state.gallery.selectedSeparator;
-      if (sel === 'CLOSE') {
+      if (sel === 'NEWS') {
+        if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+        if (!state.dayData[targetDate].newsImages) state.dayData[targetDate].newsImages = [];
+        state.dayData[targetDate].newsImages.push(...readyFiles);
+        savedViaGallerySeparator = true;
+      } else if (sel === 'CLOSE') {
         if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
         if (!state.dayData[targetDate].closeImages) state.dayData[targetDate].closeImages = [];
         state.dayData[targetDate].closeImages.push(...readyFiles);

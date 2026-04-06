@@ -77,24 +77,12 @@
     }
 
     // 2. Trade Groups
+    let cumPnl = 0;
     trades.forEach((tr, i) => {
-      const pnl   = parseFloat(tr?.['Net P/L'] || tr?.net_pnl || 0) || 0;
-      const pt    = parseFloat(tr?.['Pt'] || tr?.pt || 0) || 0;
-      const pnlStr = (pnl !== 0 || pt !== 0) 
-        ? `${pnl > 0 ? '+₹' : '-₹'}${Math.abs(Math.round(pnl))} · ${pt > 0 ? '+' : ''}${Math.round(pt)}Pt`
-        : '';
-        
-      const instrument = tr?.Instrument || tr?.instrument || '';
-      const bTime = (tr?.['Buy Time'] || tr?.buy_time || '').slice(0, 5);
-      const sTime = (tr?.['Sell Time'] || tr?.sell_time || '').slice(0, 5);
-      const timeStr = bTime && sTime ? `${bTime}-${sTime}` : (bTime || sTime || '');
-      
-      const title = `T${i+1} : ${instrument}${timeStr ? ' ('+timeStr+')' : ''}`;
-      
+      const pnl = (typeof getTradePnl === 'function' ? getTradePnl(tr) : 0) || 0;
+      cumPnl += pnl;
       const imgs = tr.images || [];
-      if (imgs.length > 0) {
-        renderGroup(title, imgs, pnlStr, pnl);
-      }
+      renderGroup(null, imgs, null, pnl, tr, i, cumPnl);
     });
 
     // 3. CLOSE Group
@@ -103,40 +91,111 @@
     }
   }
 
-  function renderGroup(title, images, statsHtml, pnl) {
+  function renderGroup(title, images, statsHtml, pnl, tradeRef, tradeIdx, cumPnl) {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'gv2-grid-group';
 
     const hdr = document.createElement('div');
     hdr.className = 'gv2-grid-group-hdr';
-    
-    const titleEl = document.createElement('span');
-    titleEl.className = 'gv2-grid-group-title';
-    titleEl.textContent = title;
-    hdr.appendChild(titleEl);
 
-    if (statsHtml) {
-      const statsEl = document.createElement('span');
-      statsEl.className = 'gv2-grid-group-pnl';
-      statsEl.textContent = statsHtml;
-      statsEl.style.color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--orange)');
-      hdr.appendChild(statsEl);
+    if (tradeRef && tradeIdx !== undefined) {
+      // ── Structured trade header row ──────────────────────────────────
+      const rawInst = (tradeRef.Instrument || tradeRef.instrument || '').toUpperCase();
+      const m = rawInst.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
+      const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : rawInst;
+      const instColor = rawInst.endsWith('CE') ? '#c084fc' : rawInst.endsWith('PE') ? 'var(--text3,#8b949e)' : '#ffd700';
+
+      const buyTime  = (tradeRef['Buy Time']  || tradeRef.buy_time  || '').slice(0, 5);
+      const sellTime = (tradeRef['Sell Time'] || tradeRef.sell_time || '').slice(0, 5);
+      const type = String(tradeRef['TradeType'] || tradeRef.tradetype || '').toLowerCase();
+      const entryTime = (type.includes('sell') || type.includes('short')) ? sellTime : buyTime;
+
+      let dur = '';
+      if (buyTime && sellTime) {
+        try {
+          const [h1,m1] = buyTime.split(':').map(Number);
+          const [h2,m2] = sellTime.split(':').map(Number);
+          const mins = Math.round(Math.abs(new Date(2000,0,1,h2,m2) - new Date(2000,0,1,h1,m1)) / 60000);
+          dur = mins < 60 ? mins + 'm' : Math.floor(mins/60) + 'h' + (mins%60 > 0 ? ' '+mins%60+'m' : '');
+        } catch(e) {}
+      }
+
+      const qty = parseFloat(tradeRef['Qty'] || tradeRef.qty || 0) || 0;
+      const pt  = parseFloat(tradeRef['Pt']  || tradeRef.pt  || 0) || 0;
+      const fmtPnl = v => (v >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(v)).toLocaleString('en-IN');
+
+      hdr.className += ' gv2-grid-group-hdr--trade';
+      hdr.innerHTML = `
+        <span class="ggr-idx">T${tradeIdx + 1}</span>
+        <span class="ggr-inst" style="color:${instColor}">${instText || '—'}</span>
+        <span class="ggr-time">${entryTime}${dur ? ` <b>[${dur}]</b>` : ''}${qty ? ` <span class="ggr-qty">${qty}</span>` : ''}</span>
+        <span class="ggr-pt" style="color:${pt >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)'}">${Math.abs(Math.round(pt))} Pt</span>
+        <span class="ggr-pnl" style="color:${pnl > 0 ? 'var(--green,#2ecc71)' : pnl < 0 ? 'var(--red,#e74c3c)' : 'var(--text2)'}">${fmtPnl(pnl)}</span>
+        <span class="ggr-cum" style="color:${cumPnl >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)'}">${fmtPnl(cumPnl)}</span>
+      `;
+    } else {
+      // ── Simple header (OPEN / CLOSE / fallback) ───────────────────────
+      const titleEl = document.createElement('span');
+      titleEl.className = 'gv2-grid-group-title';
+      titleEl.textContent = title || '';
+      hdr.appendChild(titleEl);
+      if (statsHtml) {
+        const statsEl = document.createElement('span');
+        statsEl.className = 'gv2-grid-group-pnl';
+        statsEl.textContent = statsHtml;
+        statsEl.style.color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--orange)');
+        hdr.appendChild(statsEl);
+      }
     }
 
     groupDiv.appendChild(hdr);
 
     const container = document.createElement('div');
     container.className = 'gv2-grid-container';
-    
+
+    if (images.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'gv2-grid-empty';
+      empty.innerHTML = `<span class="gv2-grid-empty-icon">＋</span> No images &nbsp;<span class="gv2-grid-empty-hint">click to add</span>`;
+      if (tradeRef) {
+        empty.style.cursor = 'pointer';
+        empty.onclick = () => {
+          const inp = document.createElement('input');
+          inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+          inp.onchange = async () => {
+            if (!inp.files.length) return;
+            try {
+              for (const file of Array.from(inp.files)) {
+                const rv = await imageService.uploadImage(file);
+                if (!rv.url) throw new Error('upload failed');
+                if (!tradeRef.images) tradeRef.images = [];
+                tradeRef.images.push(rv.url);
+              }
+              await saveTrades();
+              renderGridContent();
+              if (typeof showToast === 'function') showToast(`${inp.files.length} image(s) added`, 'success');
+            } catch(e) {
+              if (typeof showToast === 'function') showToast('Upload failed', 'error');
+            }
+          };
+          inp.click();
+        };
+      }
+      container.appendChild(empty);
+      groupDiv.appendChild(container);
+      gv.body.appendChild(groupDiv);
+      return;
+    }
+
     images.forEach(url => {
       const item = document.createElement('div');
       item.className = 'gv2-grid-item';
-      
+
       const img = document.createElement('img');
       img.className = 'gv2-grid-img';
       img.src = resolveImageUrl(url);
       img.loading = 'lazy';
-      
+
       item.appendChild(img);
 
       // Meta: Time label if exists
@@ -150,16 +209,63 @@
           item.appendChild(meta);
       }
 
-      item.onclick = () => {
-        // Find index of this image in the main images array
-        const idx = state.gallery.images.indexOf(url);
-        if (idx >= 0) {
-          state.gallery.currentIndex = idx;
-          state.gallery.selectedIndices = new Set([idx]);
-          toggleGridView(false);
-          renderGallery();
+      const idx = state.gallery.images.indexOf(url);
+      if (idx >= 0) {
+        item.dataset.globalIdx = idx;
+        // Show selected state immediately on render
+        if (state.gallery.selectedIndices?.has(idx)) {
+          item.classList.add('gv2-grid-item--selected');
         }
+      }
+
+      item.onclick = (e) => {
+        const itemIdx = parseInt(item.dataset.globalIdx);
+        if (isNaN(itemIdx) || itemIdx < 0) return;
+
+        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+
+        if (e.shiftKey) {
+          // Range select
+          const last = state.gallery.lastClickedIdx ?? itemIdx;
+          const start = Math.min(last, itemIdx);
+          const end = Math.max(last, itemIdx);
+          for (let i = start; i <= end; i++) state.gallery.selectedIndices.add(i);
+          state.gallery.lastClickedIdx = itemIdx;
+          _gridRefreshSelection();
+          return;
+        }
+
+        if (e.ctrlKey || e.metaKey) {
+          // Toggle individual
+          if (state.gallery.selectedIndices.has(itemIdx)) state.gallery.selectedIndices.delete(itemIdx);
+          else state.gallery.selectedIndices.add(itemIdx);
+          state.gallery.lastClickedIdx = itemIdx;
+          _gridRefreshSelection();
+          return;
+        }
+
+        // Normal click → navigate to image
+        state.gallery.currentIndex = itemIdx;
+        state.gallery.selectedIndices = new Set([itemIdx]);
+        state.gallery.lastClickedIdx = itemIdx;
+        toggleGridView(false);
+        renderGallery();
       };
+
+      item.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const itemIdx = parseInt(item.dataset.globalIdx);
+        if (isNaN(itemIdx) || itemIdx < 0) return;
+        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
+        if (!state.gallery.selectedIndices.has(itemIdx)) {
+          state.gallery.selectedIndices = new Set([itemIdx]);
+          state.gallery.lastClickedIdx = itemIdx;
+          _gridRefreshSelection();
+        }
+        if (typeof showGalleryContextMenu === 'function') {
+          showGalleryContextMenu(e.clientX, e.clientY);
+        }
+      });
 
       container.appendChild(item);
     });
@@ -168,10 +274,51 @@
     gv.body.appendChild(groupDiv);
   }
 
+  // Refresh selected-state CSS on all grid items without full re-render
+  function _gridRefreshSelection() {
+    if (!gv.body) return;
+    const sel = state.gallery.selectedIndices || new Set();
+    gv.body.querySelectorAll('.gv2-grid-item[data-global-idx]').forEach(el => {
+      const i = parseInt(el.dataset.globalIdx);
+      el.classList.toggle('gv2-grid-item--selected', sel.has(i));
+    });
+  }
+
+  // Click on grid backdrop (not on an item) clears selection
+  function _initGridBodyClickToClear() {
+    if (!gv.body) return;
+    gv.body.addEventListener('click', (e) => {
+      if (!e.target.closest('.gv2-grid-item') && !e.target.closest('#gv2-context-menu')) {
+        if (state.gallery.selectedIndices?.size > 0) {
+          state.gallery.selectedIndices.clear();
+          _gridRefreshSelection();
+        }
+      }
+    });
+  }
+
+  // Highlight whichever trade header is currently stuck at the top
+  function _initStickyActiveDetection() {
+    if (!gv.body) return;
+    gv.body.addEventListener('scroll', () => {
+      const bodyTop = gv.body.getBoundingClientRect().top;
+      let stuckHdr = null;
+      gv.body.querySelectorAll('.gv2-grid-group-hdr').forEach(hdr => {
+        const top = hdr.getBoundingClientRect().top;
+        // Header is "stuck" when its top ≈ the body top (within 2px)
+        if (top <= bodyTop + 2) stuckHdr = hdr;
+      });
+      gv.body.querySelectorAll('.gv2-grid-group-hdr').forEach(hdr => {
+        hdr.classList.toggle('ggr-is-stuck', hdr === stuckHdr);
+      });
+    }, { passive: true });
+  }
+
   // Hook into modal opening
   window.addEventListener('load', () => {
-    // Initial hook
     initGrid();
+    _initGridBodyClickToClear();
+    _initStickyActiveDetection();
   });
 
   // Re-hook if needed or just handle ESC

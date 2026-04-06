@@ -13118,7 +13118,7 @@
       "Buy Price (Avg)": "",
       "Buy Time": "",
       "Gross P/L": "",
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "",
       "Net P/L": "",
       "Note": "sooc kar baitha tha, friday hai, gadbard nahi karene, jab zone bane ga tab hi lenge , aur fir baithey reh gaye!!",
@@ -13196,7 +13196,7 @@
       "Buy Price (Avg)": 250.5,
       "Buy Time": "10:11:03",
       "Gross P/L": -409.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2631723350CE",
       "Net P/L": -546.93,
       "Note": "",
@@ -13280,7 +13280,7 @@
       "Buy Price (Avg)": 309.666667,
       "Buy Time": "10:30:18",
       "Gross P/L": 2405,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2631723500PE",
       "Net P/L": 2242.14,
       "Note": "",
@@ -13336,7 +13336,7 @@
       "Buy Price (Avg)": 234.8,
       "Buy Time": "10:53:43",
       "Gross P/L": -825.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2631723400CE",
       "Net P/L": -899.91,
       "Note": "",
@@ -13432,7 +13432,7 @@
       "Buy Price (Avg)": 159.1,
       "Buy Time": "09:35:30",
       "Gross P/L": -7400.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2631723300CE",
       "Net P/L": -7494.66,
       "Note": "",
@@ -13459,7 +13459,11 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724610/trading_journal/73b66f61-b1b4-429d-b3a9-2e1100256edc.png": "/uploads/audio/34bf2ecc15c94e52bde9d71ba95bdeeb.webm"
       },
       "date": "2026-03-17",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724544/trading_journal/7a8d4aee-1094-4e77-a9d3-0d54c72d9a4c.png": [
+          "Day Open"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724544/trading_journal/92268079-55e1-4483-b3cf-b8938cac180f.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724544/trading_journal/7a8d4aee-1094-4e77-a9d3-0d54c72d9a4c.png",
@@ -13625,7 +13629,7 @@
       "Buy Price (Avg)": 271.016667,
       "Buy Time": "09:49:49",
       "Gross P/L": -3337.75,
-      "Image Tags": "Momentum Slow ka intezar karna cahiye",
+      "Image Tags": "Day Open, Momentum Slow ka intezar karna cahiye",
       "Instrument": "NIFTY2632423650CE",
       "Net P/L": -3525.68,
       "Note": "",
@@ -13646,6 +13650,9 @@
       "date": "2026-03-18",
       "fill_count": 4,
       "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773821793/trading_journal/a20ca818-5f53-426d-949f-b04f243b9fc1.png": [
+          "Day Open"
+        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773821795/trading_journal/94fb1574-5847-4160-8442-ef0930e1f84e.png": [
           "Momentum Slow ka intezar karna cahiye"
         ]
@@ -13843,7 +13850,7 @@
       "Buy Price (Avg)": 251.95,
       "Buy Time": "09:50:21",
       "Gross P/L": 1764.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632423250CE",
       "Net P/L": 1552.92,
       "Note": "",
@@ -13860,7 +13867,11 @@
       "Video": "",
       "date": "2026-03-20",
       "fill_count": 5,
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/fe13f698-c25e-41d6-9610-9ea342f30c82.png": [
+          "Day Open"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/fe13f698-c25e-41d6-9610-9ea342f30c82.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/3e2ba602-37bc-4445-90a0-5ba0548b78fb.png",
@@ -13976,7 +13987,7 @@
       "Buy Price (Avg)": 257.166667,
       "Buy Time": "10:55:56",
       "Gross P/L": 91,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632423300PE",
       "Net P/L": -96.76,
       "Note": "",
@@ -14056,7 +14067,7 @@
       "Buy Price (Avg)": 206.9,
       "Buy Time": "11:02:13",
       "Gross P/L": 107.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632423300CE",
       "Net P/L": 34.9,
       "Note": "",
@@ -14092,7 +14103,7 @@
       "Buy Price (Avg)": 259.35,
       "Buy Time": "11:14:25",
       "Gross P/L": -1833,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632423250PE",
       "Net P/L": -1963.89,
       "Note": "",
@@ -14126,7 +14137,7 @@
       "Buy Price (Avg)": 251.3,
       "Buy Time": "11:55:40",
       "Gross P/L": -458.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632423250PE",
       "Net P/L": -666.7,
       "Note": "",
@@ -14163,7 +14174,7 @@
       "Buy Price (Avg)": 194.283333,
       "Buy Time": "09:35:30",
       "Gross P/L": -1495,
-      "Image Tags": "dddd, NO ZONE",
+      "Image Tags": "Day Open, dddd, NO ZONE",
       "Instrument": "NIFTY2632422750CE",
       "Net P/L": -1610.52,
       "Note": "",
@@ -14202,7 +14213,7 @@
       "Buy Price (Avg)": 271.633333,
       "Buy Time": "09:42:35",
       "Gross P/L": -1998.75,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422800PE",
       "Net P/L": -2141.59,
       "Note": "",
@@ -14237,7 +14248,7 @@
       "Buy Price (Avg)": 161.8,
       "Buy Time": "09:56:05",
       "Gross P/L": 2951,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422750CE",
       "Net P/L": 2860.52,
       "Note": "",
@@ -14278,7 +14289,7 @@
       "Buy Price (Avg)": 277.2,
       "Buy Time": "09:42:35",
       "Gross P/L": -357.5,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422800PE",
       "Net P/L": -471.19,
       "Note": "",
@@ -14306,7 +14317,7 @@
       "Buy Price (Avg)": 213,
       "Buy Time": "10:15:51",
       "Gross P/L": 1774.5,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": 1673.31,
       "Note": "",
@@ -14342,7 +14353,7 @@
       "Buy Price (Avg)": 248.3,
       "Buy Time": "10:39:04",
       "Gross P/L": 221,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422600PE",
       "Net P/L": 113.48,
       "Note": "",
@@ -14378,7 +14389,7 @@
       "Buy Price (Avg)": 223.95,
       "Buy Time": "11:07:23",
       "Gross P/L": 2255.5,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422550PE",
       "Net P/L": 2150.99,
       "Note": "",
@@ -14415,7 +14426,7 @@
       "Buy Price (Avg)": 169.45,
       "Buy Time": "12:24:45",
       "Gross P/L": 2645.5,
-      "Image Tags": "dddd",
+      "Image Tags": "Day Open, dddd",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": 2553.61,
       "Note": "",
@@ -14938,7 +14949,7 @@
       "Buy Price (Avg)": 370.7,
       "Buy Time": "10:28:21",
       "Gross P/L": 292.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23150CE",
       "Net P/L": 110.5,
       "Note": "",
@@ -14989,7 +15000,7 @@
       "Buy Price (Avg)": 320.25,
       "Buy Time": "11:51:07",
       "Gross P/L": -1462.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23350CE",
       "Net P/L": -1585.03,
       "Note": "",
@@ -15052,7 +15063,7 @@
       "Buy Price (Avg)": 252.6,
       "Buy Time": "12:24:48",
       "Gross P/L": 3146,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23350PE",
       "Net P/L": 3033.3,
       "Note": "",
@@ -15100,7 +15111,7 @@
       "Buy Price (Avg)": 314.55,
       "Buy Time": "12:33:07",
       "Gross P/L": -2210,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23400CE",
       "Net P/L": -2330.09,
       "Note": "",
@@ -15136,7 +15147,7 @@
       "Buy Price (Avg)": 245.9,
       "Buy Time": "12:37:30",
       "Gross P/L": -45.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23350PE",
       "Net P/L": -152.06,
       "Note": "",
@@ -15170,7 +15181,7 @@
       "Buy Price (Avg)": 214.6,
       "Buy Time": "13:00:30",
       "Gross P/L": 4163.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23500CE",
       "Net P/L": 4032.36,
       "Note": "",
@@ -15210,7 +15221,7 @@
       "Buy Price (Avg)": 254.275,
       "Buy Time": "13:26:07",
       "Gross P/L": -1075.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23450CE",
       "Net P/L": -1182.88,
       "Note": "",
@@ -15251,7 +15262,7 @@
       "Buy Price (Avg)": 237.975,
       "Buy Time": "13:45:58",
       "Gross P/L": 1907.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23350PE",
       "Net P/L": 1800.34,
       "Note": "",
@@ -15293,7 +15304,7 @@
       "Buy Price (Avg)": 232,
       "Buy Time": "13:45:58",
       "Gross P/L": 182,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23350PE",
       "Net P/L": 106.51,
       "Note": "",
@@ -15332,7 +15343,7 @@
       "Buy Price (Avg)": 193.8,
       "Buy Time": "14:18:36",
       "Gross P/L": 1404,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR23550CE",
       "Net P/L": 1307.98,
       "Note": "",
@@ -15386,7 +15397,7 @@
       "Buy Price (Avg)": 181.816667,
       "Buy Time": "09:57:07",
       "Gross P/L": 2869.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR22500CE",
       "Net P/L": 2752.58,
       "Note": "",
@@ -15425,7 +15436,7 @@
       "Buy Price (Avg)": 79.825,
       "Buy Time": "10:09:30",
       "Gross P/L": 2200.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR22650CE",
       "Net P/L": 2130.65,
       "Note": "",
@@ -15461,7 +15472,7 @@
       "Buy Price (Avg)": 40.85,
       "Buy Time": "10:25:50",
       "Gross P/L": 614.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY26MAR22700CE",
       "Net P/L": 556.31,
       "Note": "",
@@ -15499,7 +15510,7 @@
       "Buy Price (Avg)": 290.516667,
       "Buy Time": "10:29:56",
       "Gross P/L": 3926,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722850CE",
       "Net P/L": 3767.93,
       "Note": "",
@@ -15531,7 +15542,7 @@
       "Buy Price (Avg)": 283.375,
       "Buy Time": "10:48:25",
       "Gross P/L": -1179.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722900CE",
       "Net P/L": -1293.77,
       "Note": "",
@@ -15567,7 +15578,7 @@
       "Buy Price (Avg)": 266.5,
       "Buy Time": "11:00:13",
       "Gross P/L": 799.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722900CE",
       "Net P/L": 686.76,
       "Note": "",
@@ -15598,7 +15609,7 @@
       "Buy Price (Avg)": 221.35,
       "Buy Time": "11:27:54",
       "Gross P/L": -1313,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640723000CE",
       "Net P/L": -1411.84,
       "Note": "",
@@ -15631,7 +15642,7 @@
       "Buy Price (Avg)": 309.65,
       "Buy Time": "12:00:12",
       "Gross P/L": -1358.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722800CE",
       "Net P/L": -1478.61,
       "Note": "",
@@ -15669,7 +15680,7 @@
       "Buy Price (Avg)": 316.2,
       "Buy Time": "12:00:12",
       "Gross P/L": 97.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722800CE",
       "Net P/L": 11.95,
       "Note": "",
@@ -15701,7 +15712,7 @@
       "Buy Price (Avg)": 284,
       "Buy Time": "12:03:49",
       "Gross P/L": 4914,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722850PE",
       "Net P/L": 4756.89,
       "Note": "",
@@ -15733,7 +15744,7 @@
       "Buy Price (Avg)": 317.74,
       "Buy Time": "10:17:04",
       "Gross P/L": -1748.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722250PE",
       "Net P/L": -1985.2,
       "Note": "",
@@ -15770,7 +15781,7 @@
       "Buy Price (Avg)": 285.133333,
       "Buy Time": "10:25:48",
       "Gross P/L": 666.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722250CE",
       "Net P/L": 514.74,
       "Note": "",
@@ -15801,7 +15812,7 @@
       "Buy Price (Avg)": 294.25,
       "Buy Time": "10:34:26",
       "Gross P/L": -968.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722200PE",
       "Net P/L": -1085.44,
       "Note": "",
@@ -15838,7 +15849,7 @@
       "Buy Price (Avg)": 285.825,
       "Buy Time": "10:41:40",
       "Gross P/L": 282.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722200PE",
       "Net P/L": 166.07,
       "Note": "",
@@ -15872,7 +15883,7 @@
       "Buy Price (Avg)": 266.933333,
       "Buy Time": "10:54:07",
       "Gross P/L": -1829.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722300CE",
       "Net P/L": -1971.13,
       "Note": "",
@@ -15906,7 +15917,7 @@
       "Buy Price (Avg)": 323.133333,
       "Buy Time": "10:58:41",
       "Gross P/L": 1647.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722300PE",
       "Net P/L": 1481.08,
       "Note": "",
@@ -15942,7 +15953,7 @@
       "Buy Price (Avg)": 310.683333,
       "Buy Time": "11:18:02",
       "Gross P/L": 997.75,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722200CE",
       "Net P/L": 836.51,
       "Note": "",
@@ -15974,7 +15985,7 @@
       "Buy Price (Avg)": 232.6,
       "Buy Time": "11:58:32",
       "Gross P/L": 2450.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722150PE",
       "Net P/L": 2343.62,
       "Note": "",
@@ -16009,7 +16020,7 @@
       "Buy Price (Avg)": 224.725,
       "Buy Time": "12:24:09",
       "Gross P/L": -653.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722400CE",
       "Net P/L": -753.84,
       "Note": "",
@@ -16044,7 +16055,7 @@
       "Buy Price (Avg)": 215.433333,
       "Buy Time": "12:31:42",
       "Gross P/L": 1524.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722100PE",
       "Net P/L": 1396.8,
       "Note": "",
@@ -16081,7 +16092,7 @@
       "Buy Price (Avg)": 236.8,
       "Buy Time": "13:02:18",
       "Gross P/L": 643.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722250PE",
       "Net P/L": 538.16,
       "Note": "",
@@ -16113,7 +16124,7 @@
       "Buy Price (Avg)": 247.5,
       "Buy Time": "13:08:03",
       "Gross P/L": 500.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722450CE",
       "Net P/L": 392.78,
       "Note": "",
@@ -16141,7 +16152,7 @@
       "Buy Price (Avg)": 147.05,
       "Buy Time": "13:16:39",
       "Gross P/L": -227.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640721950PE",
       "Net P/L": -309.92,
       "Note": "",
@@ -16172,7 +16183,7 @@
       "Buy Price (Avg)": 261.6,
       "Buy Time": "13:17:58",
       "Gross P/L": -1508,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722450CE",
       "Net P/L": -1616.29,
       "Note": "",
@@ -16200,7 +16211,7 @@
       "Buy Price (Avg)": 137.95,
       "Buy Time": "13:21:48",
       "Gross P/L": 575.25,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640721950PE",
       "Net P/L": 477.23,
       "Note": "",
@@ -16228,7 +16239,7 @@
       "Buy Price (Avg)": 334.75,
       "Buy Time": "13:58:45",
       "Gross P/L": 71.5,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722450CE",
       "Net P/L": -56.7,
       "Note": "",
@@ -16256,7 +16267,7 @@
       "Buy Price (Avg)": 333.5,
       "Buy Time": "14:08:38",
       "Gross P/L": -3071.25,
-      "Image Tags": "",
+      "Image Tags": "Day Close, Day Open, news",
       "Instrument": "NIFTY2640722500CE",
       "Net P/L": -3235.01,
       "Note": "",
@@ -16272,7 +16283,14 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-02",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775119586/trading_journal/9b7e8def-04a3-4cf7-8a06-6ff77daf53f3.png": [
+          "news"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775119815/trading_journal/8a865c8f-b429-462d-93e3-cef4d714e9fe.png": [
+          "Day Close"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775119815/trading_journal/8a865c8f-b429-462d-93e3-cef4d714e9fe.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775119586/trading_journal/9b7e8def-04a3-4cf7-8a06-6ff77daf53f3.png"
@@ -16287,7 +16305,7 @@
       "Buy Price (Avg)": 253.35,
       "Buy Time": "14:43:55",
       "Gross P/L": 1222,
-      "Image Tags": "",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2640722650CE",
       "Net P/L": 1111.84,
       "Note": "",
@@ -16332,7 +16350,13 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467011/trading_journal/21056414-29ac-4909-8dbf-bea83309872a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467011/trading_journal/da1e6729-a640-403b-a0f4-63af4ab9de5c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467012/trading_journal/b09fb193-f567-4625-ae5b-ebf9bb5ffaf1.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467014/trading_journal/1ce91982-210c-489a-bddf-9d5b02e66769.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467015/trading_journal/7c8d721f-5161-4813-b4f8-9b5d31a265ee.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16360,7 +16384,13 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467015/trading_journal/41027030-7ebd-45ba-94c8-b64b129c2072.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467014/trading_journal/e5ff2a6a-ebe7-4b08-a697-f7f33acc3c39.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467015/trading_journal/eb90c21c-e868-41a6-83b9-c499d31adb13.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467016/trading_journal/421776b2-ccee-4ef1-b271-b244e6809164.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467018/trading_journal/d85911a1-c58a-43f7-9793-028ec76f8941.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16388,7 +16418,17 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467018/trading_journal/a917f855-2e9a-458b-a4fd-5f2e9a9d2a43.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467018/trading_journal/244b0e21-5b78-4731-bd88-4212dc0685aa.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467018/trading_journal/29c6fcfc-0bb1-4983-a2b7-62b0cb38511c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467016/trading_journal/e9162ad1-8815-401b-984a-7960d68b9301.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467017/trading_journal/f0e1943e-11ac-40f8-9e96-cfbd54112d80.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467018/trading_journal/a40c3b26-b672-475e-b2d1-deb7020c360e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467018/trading_journal/f9ad31bc-b6f9-432f-85df-7fc1c1d2ec47.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467019/trading_journal/1fac093d-bbe3-4345-b8fb-45fe099f97fe.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467022/trading_journal/30f6e3f2-7889-49e9-9109-5c75c45695ad.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16416,7 +16456,11 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467022/trading_journal/03d71eb9-f085-4b89-a8a4-ad1dd2d93b6b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467021/trading_journal/318aff25-a3c0-40f1-b587-361d93190f78.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467022/trading_journal/bab662ea-d4bc-43aa-89e7-69bace6436a7.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16444,7 +16488,12 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467022/trading_journal/5a176de9-e86b-475b-8e57-818b253853fc.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467020/trading_journal/669c08cc-8942-4510-9054-7a160da2137b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467021/trading_journal/bec9ff45-8440-4c66-ade6-2284bae20c6f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467022/trading_journal/3d87e333-2999-406c-85f9-b15ce7c522ad.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16472,7 +16521,18 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467023/trading_journal/82349fc8-ff96-47e6-9df7-7a74c315eaae.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467023/trading_journal/12046847-08e2-48b3-aeb9-66f00d3567fb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467025/trading_journal/8ada1162-c5bc-4cef-8457-a6c83d1bb169.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467025/trading_journal/0456d56c-f406-49e8-bd1c-0858057fd15f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467024/trading_journal/ace9cfc7-6b7b-4811-bca7-9bee06fb8435.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467026/trading_journal/67bb1186-0c21-41a4-84f2-c19a3660e7df.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467024/trading_journal/cefe1962-6159-4818-bea1-8be49961eb2b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467026/trading_journal/3923d75c-5aa6-470d-8a72-3e4fa60e7c64.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467025/trading_journal/be7a79f5-00e5-4b1e-863b-809fe5cd59db.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467027/trading_journal/bc181cc2-75a0-4a22-8dd2-e8e7cd637615.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16500,7 +16560,11 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467026/trading_journal/89a462d2-3988-4049-a083-335eeb531e70.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467028/trading_journal/80c90d02-3728-476c-ad3c-a09411dba907.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467026/trading_journal/b6608000-3bd2-471c-97b3-04b529eb941e.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16528,7 +16592,10 @@
       "Video": "",
       "date": "2026-04-06",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467029/trading_journal/67558e52-6f3a-43ff-92e3-6e14ca1fceeb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467028/trading_journal/eaf53c8b-0f39-40c1-9797-058213ae8ce1.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-06"
@@ -16562,32 +16629,160 @@
       "trade_date": "2026-04-06"
     },
     {
-      "Instrument": "NIFTY2640722700PE",
       "Broker": "zerodha",
-      "TradeType": "sell",
-      "Qty": 130,
-      "Sell Time": "11:42:37",
-      "Sell Price (Avg)": 225.5,
-      "Buy Time": "11:50:57",
+      "Brokerage": 40,
       "Buy Price (Avg)": 218.35,
+      "Buy Time": "11:50:57",
+      "Gross P/L": 929.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2640722700PE",
+      "Net P/L": 828.21,
+      "Note": "",
+      "Other Charges": 61.29,
       "Pt": 7.15,
+      "Qty": 130,
       "Rs": 929.5,
-      "trade_date": "2026-04-06",
+      "Sell Price (Avg)": 225.5,
+      "Sell Time": "11:42:37",
+      "Tags": [],
+      "Total Fees": 101.29,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
       "date": "2026-04-06",
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467031/trading_journal/f3fd986c-d2a9-4a3e-a3a4-ba2da3e7ca2a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467031/trading_journal/fa11d9ce-93b4-4443-aa70-75a4b6008fb4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467033/trading_journal/b8755e32-33ee-4452-ab89-4d9d4a31541e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467033/trading_journal/551b9dd9-1d6c-4cb6-ad5b-8d59441a56fc.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 211.225,
+      "Buy Time": "12:20:21",
+      "Gross P/L": -1758.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2640722650CE",
+      "Net P/L": -1854.01,
+      "Note": "",
+      "Other Charges": 55.76,
+      "Pt": -13.525,
+      "Qty": 130,
+      "Rs": -1758.25,
+      "Sell Price (Avg)": 197.7,
+      "Sell Time": "12:15:08",
+      "Tags": [],
+      "Total Fees": 95.76,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-06",
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467034/trading_journal/f8e8419d-b04d-4da7-90ce-30350c560c0f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467033/trading_journal/b42a31d0-7a20-4c3d-8f88-e00250029abb.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 196.9,
+      "Buy Time": "12:24:47",
+      "Gross P/L": -1696.5,
+      "Image Tags": "",
+      "Instrument": "NIFTY2640722700PE",
+      "Net P/L": -1788.89,
+      "Note": "",
+      "Other Charges": 52.39,
+      "Pt": -13.05,
+      "Qty": 130,
+      "Rs": -1696.5,
+      "Sell Price (Avg)": 183.85,
+      "Sell Time": "12:21:15",
+      "Tags": [],
+      "Total Fees": 92.39,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-06",
+      "imageTags": {},
       "images": [],
       "observation": "",
-      "imageTags": {},
-      "Tags": [],
+      "tags": [],
+      "trade_date": "2026-04-06"
+    },
+    {
+      "Broker": "zerodha",
       "Brokerage": 40,
-      "Other Charges": 61.29,
-      "Gross P/L": 929.5,
-      "Net P/L": 828.21,
-      "Total Fees": 101.29,
+      "Buy Price (Avg)": 290.3,
+      "Buy Time": "12:35:42",
+      "Gross P/L": 2983.5,
       "Image Tags": "",
+      "Instrument": "NIFTY2640722500CE",
+      "Net P/L": 2826.84,
       "Note": "",
-      "Video": "",
+      "Other Charges": 116.66,
+      "Pt": 15.3,
+      "Qty": 195,
+      "Rs": 2983.5,
+      "Sell Price (Avg)": 305.6,
+      "Sell Time": "12:33:07",
+      "Tags": [],
+      "Total Fees": 156.66,
       "Total Trades": "",
-      "tags": []
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-06",
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467033/trading_journal/185f1b12-ab0d-4d5c-b5ab-5f05347d4efc.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467034/trading_journal/f80c177f-3c52-430d-8d74-fbfea563167e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467037/trading_journal/9cff5579-882d-46d4-b86b-cc62f3c28182.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-06"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 312.25,
+      "Buy Time": "12:45:46",
+      "Gross P/L": -3753.75,
+      "Image Tags": "",
+      "Instrument": "NIFTY2640722500CE",
+      "Net P/L": -3871.1,
+      "Note": "",
+      "Other Charges": 77.35,
+      "Pt": -28.875,
+      "Qty": 130,
+      "Rs": -3753.75,
+      "Sell Price (Avg)": 283.375,
+      "Sell Time": "12:41:39",
+      "Tags": [],
+      "Total Fees": 117.35,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-06",
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467036/trading_journal/e7527a87-a4b1-4538-8a65-b178f0975ab2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467037/trading_journal/4dc0e7dd-776d-418c-aa4e-d8a8e9f5413c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467035/trading_journal/2a850e3a-e69d-45db-898c-71a61734e1b4.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-06"
     }
   ],
   "columns": [
@@ -16663,7 +16858,12 @@
     "Momentum Slow ka intezar karna cahiye",
     "palat gaya",
     "chotu",
-    "pintu"
+    "pintu",
+    "Day Open",
+    "Day Close",
+    "Clean",
+    "War",
+    "Politics"
   ],
   "tagColumns": [
     "Tags"
@@ -25643,7 +25843,11 @@
     "2026-03-13": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419449/trading_journal/8693d4e8-f929-4f65-a0cb-c37ec9a7633f.png": [
+          "Day Open"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419448/trading_journal/1616ddc6-cdc0-4443-bbbf-4ca6f4f8459c.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773419449/trading_journal/8693d4e8-f929-4f65-a0cb-c37ec9a7633f.png",
@@ -25699,7 +25903,11 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266959/trading_journal/e141a946-ebe1-4e28-be46-28505defaf7d.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266957/trading_journal/d65bfa8f-d4f6-4967-8759-4c61cf633dd5.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/fa28e359-7d61-4b34-b25d-ab4398714c04.png": [
+          "Day Open"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/fa28e359-7d61-4b34-b25d-ab4398714c04.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266940/trading_journal/7d085b50-321b-478b-9857-fe80c8f5b225.png",
@@ -25733,7 +25941,8 @@
       ],
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245422/trading_journal/c7e02db0-ff2d-4ab4-9647-2fb6995287b0.png": [
-          "dddd"
+          "dddd",
+          "Day Open"
         ]
       },
       "images": [
@@ -25752,7 +25961,11 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774351995/trading_journal/590b26db-d028-4ac2-a391-1e9aa57baa84.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774351995/trading_journal/5fb8463b-d40c-48ba-827c-4e5bf98fe635.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774351995/trading_journal/5fb8463b-d40c-48ba-827c-4e5bf98fe635.png": [
+          "Clean"
+        ]
+      },
       "images": []
     },
     "2026-03-25": {
@@ -25761,14 +25974,29 @@
         "/uploads/c654edb3-2f32-4794-a090-b51ce5b63287.png",
         "/uploads/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "/uploads/7fa61dec-5be6-4c19-bee5-68c15462add9.png": [
+          "Day Open"
+        ],
+        "/uploads/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png": [
+          "Day Close",
+          "Clean"
+        ],
+        "/uploads/c654edb3-2f32-4794-a090-b51ce5b63287.png": [
+          "Day Close"
+        ]
+      },
       "images": [
         "/uploads/7fa61dec-5be6-4c19-bee5-68c15462add9.png"
       ]
     },
     "2026-03-30": {
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774845139/trading_journal/75e79153-bfa6-4632-b656-426d36d08f0f.png": [
+          "Day Open"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774845139/trading_journal/75e79153-bfa6-4632-b656-426d36d08f0f.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774845139/trading_journal/86c879b0-c295-41b5-b1fb-5fd7e9111efe.png",
@@ -25796,7 +26024,18 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037085/trading_journal/25fa145f-da31-42a5-b255-54c7da82a1b5.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037086/trading_journal/ba46612f-a98e-4b26-9f5c-9b3b8dc3645c.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775031614/trading_journal/dc5810ac-286b-49a0-82ee-d0fff07d564e.png": [
+          "Day Open"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037085/trading_journal/4eac5a6a-222c-45db-9701-b16ada2a9e7a.png": [
+          "RuleBased",
+          "Day Close"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037086/trading_journal/ba46612f-a98e-4b26-9f5c-9b3b8dc3645c.png": [
+          "Day Close"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775031614/trading_journal/dc5810ac-286b-49a0-82ee-d0fff07d564e.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775031614/trading_journal/3d7bb836-6f80-4b98-8723-055de3971df5.png",
@@ -25817,7 +26056,15 @@
     },
     "2026-04-02": {
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117885/trading_journal/fc35d91a-bf45-496d-8c33-dc82161a7ba1.png": [
+          "Day Open"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775473863/trading_journal/ee4a92f3-2730-4410-a753-be8d0c18cf62.jpg": [
+          "War",
+          "Politics"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117885/trading_journal/fc35d91a-bf45-496d-8c33-dc82161a7ba1.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117885/trading_journal/d32a2292-5307-43f6-bdbc-0b7b2b55cf1d.png",
@@ -25833,9 +26080,39 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117888/trading_journal/44ee7ae4-792a-4237-8b62-59b948a37433.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117889/trading_journal/bc06c29f-485b-4bb5-a406-cb4f683f9e78.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117891/trading_journal/85108bfa-4970-46cb-b426-df706b19dbcd.png"
-      ]
+      ],
+      "newsImages": []
     },
-    "2026-04-06": {}
+    "2026-04-06": {
+      "closeImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470363/trading_journal/223bdb7e-29b4-49b0-9917-519ecc654785.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470364/trading_journal/769b2ec8-48c0-42f2-9cb2-68c470ac35d4.png"
+      ],
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470246/trading_journal/1d5937d6-b846-401c-b193-d302a30af7d0.png": [
+          "Day Close"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470247/trading_journal/437aca49-9adf-45d2-9ded-10a126311b95.png": [
+          "Day Close"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470252/trading_journal/1c662d12-9013-450a-b41b-ccd88d642b4e.png": [
+          "Day Close"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470364/trading_journal/769b2ec8-48c0-42f2-9cb2-68c470ac35d4.png": [
+          "Clean",
+          "Day Close"
+        ]
+      },
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467011/trading_journal/2902614c-b2e2-49c6-adcf-5ff60c4c4568.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467011/trading_journal/f0227e27-7951-49c2-996d-30aaceb63a06.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467011/trading_journal/b12af0ae-8149-4f76-a501-4916a7203796.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775467011/trading_journal/f793ad49-b4b2-43a8-819f-2c06cae1af2c.png"
+      ],
+      "newsImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775474620/trading_journal/67673876-82f9-4972-8fd9-baea4995aa80.jpg"
+      ]
+    }
   },
   "tagGroups": {
     "BAT": [
@@ -25875,6 +26152,14 @@
       "new",
       "news",
       "Realisation"
+    ],
+    "Img Manager": [
+      "Day Open",
+      "Day Close",
+      "Clean"
+    ],
+    "NEWS": [
+      "War"
     ],
     "Rule": [
       "RuleBased",

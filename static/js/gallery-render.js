@@ -144,13 +144,20 @@ function renderGallery() {
   document.getElementById('gv2-tag-cloud')?.classList.toggle('filter-active', _filterActive);
 
   const filterBar = document.getElementById('gallery-filter-active-bar');
+  const countBar = document.getElementById('gallery-filter-count-bar');
   if (filterBar) {
     if (_filterActive) {
       const modeText = state.gallery.filterMode === 'and' ? 'ALL of' : 'ANY of';
       filterBar.innerHTML = `<span>FILTER ACTIVE (${modeText}):</span> <span style="background:#000; color:#fff; padding:2px 8px; border-radius:20px; margin-left:6px">${state.gallery.tagFilter.join(', ')}</span>`;
       filterBar.style.display = 'flex';
+      
+      if (countBar) {
+        document.getElementById('gallery-filter-count-text').textContent = images.length;
+        countBar.style.display = 'block';
+      }
     } else {
       filterBar.style.display = 'none';
+      if (countBar) countBar.style.display = 'none';
     }
   }
 
@@ -291,16 +298,18 @@ function renderGallery() {
     return sep;
   };
 
-  const createSpecialSeparator = (label, isClose) => {
+  const createSpecialSeparator = (label, type) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
-    sep.title = `${label} (Drop to move. Click to collapse)`;
-    const sepKey = isClose ? 'CLOSE' : 'OPEN';
+    const isClose = type === true;
+    const isNews = type === 'NEWS';
+    const sepKey = isNews ? 'NEWS' : (isClose ? 'CLOSE' : 'OPEN');
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
     sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
-    sep.style.color = '#ffd700';
-    sep.style.borderColor = '#ffd700';
+    sep.title = `${label} images section`;
+    sep.style.color = isNews ? '#ffa500' : '#ffd700';
+    sep.style.borderColor = isNews ? '#ffa500' : '#ffd700';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -309,16 +318,15 @@ function renderGallery() {
       try {
         const draggedIndices = JSON.parse(e.dataTransfer.getData('application/json'));
         if (!draggedIndices || draggedIndices.length === 0) return;
-        if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
-        draggedIndices.forEach(id => state.gallery.selectedIndices.add(id));
         if (typeof moveSelectedToDayData === 'function') {
-          const dData = state.dayData[state.gallery.date];
-          let arrToUse = isClose ? dData?.closeImages : dData?.images;
-          if (arrToUse && arrToUse.length > 0 && typeof handleReorderGalleryImagesBatch === 'function') {
-            const firstUrl = arrToUse[0];
-            const insertAt = state.gallery.images.indexOf(firstUrl);
-            await handleReorderGalleryImagesBatch(draggedIndices, insertAt, firstUrl);
-          } else { await moveSelectedToDayData(state.gallery.date, isClose); }
+           const dData = state.dayData[state.gallery.date];
+           let arrToUse = isNews ? dData?.newsImages : (isClose ? dData?.closeImages : dData?.images);
+           if (!arrToUse) {
+             if (isNews) dData.newsImages = [];
+             else if (isClose) dData.closeImages = [];
+             else dData.images = [];
+           }
+           await moveSelectedToDayData(state.gallery.date, isNews ? 'NEWS' : isClose);
         }
       } catch (err) { console.error(err); }
     });
@@ -334,7 +342,6 @@ function renderGallery() {
       } else {
         state.gallery.collapsedSeparators.add(sepKey);
       }
-      // Select this separator so upload button targets OPEN/CLOSE
       state.gallery.selectedSeparator = (state.gallery.selectedSeparator === sepKey) ? null : sepKey;
       state.gallery._skipScrollIntoView = true;
       renderGallery();
@@ -343,13 +350,25 @@ function renderGallery() {
     return sep;
   };
 
+  let newsGrid = null;
   if (state.gallery.date && !_filterActive3) {
+    thumbs.appendChild(createSpecialSeparator('NEWS', 'NEWS'));
+    if (!state.gallery.collapsedSeparators?.has('NEWS')) {
+      newsGrid = document.createElement('div');
+      newsGrid.className = 'gv2-news-thumbnail-grid';
+      thumbs.appendChild(newsGrid);
+    }
     thumbs.appendChild(createSpecialSeparator('OPEN', false));
   }
 
   let renderedCloseSep = false;
 
-  thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow }, currentIterIdx) => {
+  thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow, isNews }, currentIterIdx) => {
+
+    // In filter mode use per-image date; in normal mode use gallery date
+    const _effDate = (_filterActive3 && itemDate) ? itemDate : (state.gallery.date || '');
+    const _effTrades = (_filterActive3 && itemDate && itemDate !== state.gallery.date)
+      ? getTradesForDate(itemDate) : dayTrades;
 
     // In filter mode, use sourceRow from _filteredMeta to bypass getOwnerTradeForImageUrl's
     // single-date limitation (it only searches state.gallery.date's trades, returning null for
@@ -358,10 +377,19 @@ function renderGallery() {
       ? (state.trades[itemSourceRow] || null)
       : getOwnerTradeForImageUrl(url);
 
-    // In filter mode use per-image date; in normal mode use gallery date
-    const _effDate = (_filterActive3 && itemDate) ? itemDate : (state.gallery.date || '');
-    const _effTrades = (_filterActive3 && itemDate && itemDate !== state.gallery.date)
-      ? getTradesForDate(itemDate) : dayTrades;
+    if (isNews && state.gallery.collapsedSeparators?.has('NEWS')) return;
+    if (isNews && _filterActive3) {
+      // Filter mode: handle per-date NEWS separator if it doesn't exist
+      if (!_perDateRenderedSeps.has(_effDate + ':NEWS')) {
+        thumbs.appendChild(createSpecialSeparator('NEWS', 'NEWS'));
+        _perDateRenderedSeps.add(_effDate + ':NEWS');
+        if (!state.gallery.collapsedSeparators?.has('NEWS')) {
+          newsGrid = document.createElement('div');
+          newsGrid.className = 'gv2-news-thumbnail-grid';
+          thumbs.appendChild(newsGrid);
+        }
+      }
+    }
 
     const isCloseImg = _effDate && state.dayData[_effDate]?.closeImages?.includes(url);
 
@@ -389,7 +417,7 @@ function renderGallery() {
         else { lastTradeIdxRendered = _lastIdx; }
       }
       if (state.gallery.collapsedSeparators?.has('T' + _effTrades.indexOf(ownerTrade))) return;
-    } else if (_effDate && !ownerTrade && !isCloseImg) {
+    } else if (_effDate && !ownerTrade && !isNews && !isCloseImg) {
       // It's an OPEN image
       if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
@@ -735,7 +763,11 @@ function renderGallery() {
       wrap.appendChild(badge);
     }
 
-    thumbs.appendChild(wrap);
+    if (isNews && newsGrid) {
+      newsGrid.appendChild(wrap);
+    } else {
+      thumbs.appendChild(wrap);
+    }
   });
 
   // Append any remaining separators for trailing empty trades if CLOSE hasn't triggered it
@@ -776,7 +808,8 @@ function renderGallery() {
         if (!blob) return;
         try {
           const file = new File([blob], 'blank_page_' + Date.now() + '.png', { type: 'image/png' });
-          const rv = await imageService.uploadImage(file);
+          const q = (state.gallery.selectedSeparator === 'NEWS') ? 0.25 : null;
+          const rv = await imageService.uploadImage(file, q);
           if (rv.url) {
             const newUrl = rv.url;
             
@@ -786,7 +819,10 @@ function renderGallery() {
             let targetObj = null;
             let targetArray = 'images';
 
-            if (selSep === 'OPEN') {
+            if (selSep === 'NEWS') {
+                targetObj = state.dayData[dayKey];
+                targetArray = 'newsImages';
+            } else if (selSep === 'OPEN') {
                 targetObj = state.dayData[dayKey];
                 targetArray = 'images';
             } else if (selSep === 'CLOSE') {

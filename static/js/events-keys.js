@@ -30,12 +30,20 @@ function _bindKeyboardEvents() {
         performGalleryUndo();
         return;
       }
-      const undoBtn = document.getElementById('undo-del-btn');
-      if (undoBtn) {
-        e.preventDefault();
-        undoBtn.click();
-        return;
-      }
+        const undoBtn = document.getElementById('undo-del-btn');
+        if (undoBtn) {
+            e.preventDefault();
+            undoBtn.click();
+            return;
+        }
+
+        if (window._tagUndoStack && window._tagUndoStack.length > 0) {
+            e.preventDefault();
+            if (typeof restoreLastDeletedImageTag === 'function') {
+                restoreLastDeletedImageTag();
+                return;
+            }
+        }
     }
 
     const obsModalOpen = document.getElementById('obs-modal').classList.contains('open');

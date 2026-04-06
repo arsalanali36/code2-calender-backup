@@ -76,7 +76,7 @@ function getManagerAllTags() {
     });
     Object.entries(state.dayData || {}).forEach(([d, day]) => {
         (Array.isArray(day.tags) ? day.tags : []).forEach(tag => tags.add(tag));
-        (Array.isArray(day.images) ? day.images : []).forEach(url => {
+        [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || [])].forEach(url => {
             (Array.isArray(day.imageTags?.[url]) ? day.imageTags[url] : []).forEach(tag => tags.add(tag));
         });
     });
@@ -126,7 +126,7 @@ function buildManagerTagCountMap() {
             });
         });
         Object.values(state.dayData || {}).forEach(day => {
-            [...(day.images || []), ...(day.closeImages || [])].forEach(url => {
+            [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || [])].forEach(url => {
                 ((day.imageTags || {})[url] || []).forEach(bump);
                 ((day.marqueeBoxes || {})[url] || []).forEach(b => (b.tags || []).forEach(bump));
             });
@@ -345,14 +345,21 @@ function renderImageManagerTable() {
     addImgs(entry, tr, tradeImgs, false);
   });
 
-  // From DayData (images not tied to a specific trade row, including close images)
+  // From DayData
   Object.entries(state.dayData || {}).forEach(([d, day]) => {
     if (!dateMap.has(d)) dateMap.set(d, { dateKey: d, images: [], tradesInfo: [] });
     const entry = dateMap.get(d);
-    const dayImgs = [...(day.images || []), ...(day.closeImages || [])];
-    if (dayImgs.length) {
-        addImgs(entry, null, dayImgs, true);
-    }
+    
+    // Virtual items for News, Open, Close status in breakdown
+    entry._dayStatus = {
+        news: day.newsImages?.length || 0,
+        open: day.images?.length || 0,
+        close: day.closeImages?.length || 0
+    };
+
+    addImgs(entry, null, day.newsImages || [], true);
+    addImgs(entry, null, day.images || [], true);
+    addImgs(entry, null, day.closeImages || [], true);
   });
 
   // Sort dates
@@ -404,6 +411,10 @@ function renderImageManagerTable() {
                   document.getElementById('img-manager-overlay').style.display = 'none';
               }
           };
+      } else {
+          td.style.cursor = 'pointer';
+          td.title = `Click to upload image and tag with "${tagName}"`;
+          td.onclick = () => uploadImageForManager(dateKey, tagName, null);
       }
 
       td.appendChild(span);
@@ -414,23 +425,50 @@ function renderImageManagerTable() {
     const tdTrades = document.createElement('td');
     tdTrades.className = 'im-trade-cell';
     
-    if (entry.tradesInfo.length > 0) {
-        const total = entry.tradesInfo.length;
-        const totalSpan = document.createElement('span');
-        totalSpan.className = 'im-trade-total';
-        totalSpan.textContent = total + (total === 1 ? ' Trade' : ' Trades');
-        tdTrades.appendChild(totalSpan);
-
+    if (entry.tradesInfo.length > 0 || entry._dayStatus) {
         const list = document.createElement('div');
         list.className = 'im-trade-list';
-        
+
+        // 1. News
+        if (entry._dayStatus) {
+            const newsItem = document.createElement('div');
+            newsItem.className = 'im-trade-item' + (entry._dayStatus.news > 0 ? ' has-img' : ' no-img');
+            newsItem.innerHTML = `<span>News</span>${entry._dayStatus.news > 0 ? `<span class="im-trade-img-count">(${entry._dayStatus.news})</span>` : ''}`;
+            newsItem.style.cursor = 'pointer';
+            newsItem.style.color = '#ffa500';
+            newsItem.onclick = () => {
+                if (typeof openGalleryForDateWithTagFilter === 'function') {
+                    openGalleryForDateWithTagFilter(dateKey, ['News']);
+                    document.getElementById('img-manager-overlay').style.display = 'none';
+                }
+            };
+            list.appendChild(newsItem);
+
+            const openItem = document.createElement('div');
+            openItem.className = 'im-trade-item' + (entry._dayStatus.open > 0 ? ' has-img' : ' no-img');
+            openItem.innerHTML = `<span>Open</span>${entry._dayStatus.open > 0 ? `<span class="im-trade-img-count">(${entry._dayStatus.open})</span>` : ''}`;
+            openItem.style.cursor = 'pointer';
+            openItem.onclick = () => {
+                if (typeof openGalleryForDate === 'function') {
+                    openGalleryForDate(dateKey);
+                    document.getElementById('img-manager-overlay').style.display = 'none';
+                }
+            };
+            list.appendChild(openItem);
+        }
+
         entry.tradesInfo.forEach(tInfo => {
             const item = document.createElement('div');
             item.className = 'im-trade-item';
-            // If it has images, show count
+
+            // Determine P/L color
+            const pnl = parseFloat(tInfo.originalTrade?.['Net P/L'] ?? tInfo.originalTrade?.['Rs'] ?? 0);
+            if (pnl > 0) item.classList.add('pnl-win');
+            else if (pnl < 0) item.classList.add('pnl-loss');
+
             if (tInfo.imgCount > 0) {
                 item.classList.add('has-img');
-                item.innerHTML = `<span>${tInfo.id}</span> <span style="opacity:0.6;">(</span>${tInfo.imgCount}<span style="opacity:0.6;">)</span>`;
+                item.innerHTML = `<span>${tInfo.id}</span><span class="im-trade-img-count">(${tInfo.imgCount})</span>`;
                 item.style.cursor = 'pointer';
                 item.onclick = () => {
                     const idx = state.trades.indexOf(tInfo.originalTrade);
@@ -440,11 +478,28 @@ function renderImageManagerTable() {
                     }
                 };
             } else {
-                item.classList.add('missing');
+                item.classList.add('no-img');
                 item.textContent = tInfo.id;
+                item.style.cursor = 'pointer';
+                item.title = `Click to upload missing image for ${tInfo.id}`;
+                item.onclick = () => uploadImageForManager(dateKey, null, tInfo.originalTrade);
             }
             list.appendChild(item);
         });
+
+        if (entry._dayStatus) {
+            const closeItem = document.createElement('div');
+            closeItem.className = 'im-trade-item' + (entry._dayStatus.close > 0 ? ' has-img' : ' no-img');
+            closeItem.innerHTML = `<span>Close</span>${entry._dayStatus.close > 0 ? `<span class="im-trade-img-count">(${entry._dayStatus.close})</span>` : ''}`;
+            closeItem.style.cursor = 'pointer';
+            closeItem.onclick = () => {
+                if (typeof openGalleryForDate === 'function') {
+                    openGalleryForDate(dateKey); // Will show close images too
+                    document.getElementById('img-manager-overlay').style.display = 'none';
+                }
+            };
+            list.appendChild(closeItem);
+        }
         tdTrades.appendChild(list);
     } else {
         tdTrades.textContent = '-';
@@ -486,7 +541,7 @@ function openHeaderMenu(event, tagName) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Export to PDF
         </div>
-        <div class="im-header-menu-item" onclick="hideHeaderMenu()">
+        <div class="im-header-menu-item" onclick="removeManagerColumn('${tagName}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             Close
         </div>
@@ -504,6 +559,13 @@ function openHeaderMenu(event, tagName) {
 function hideHeaderMenu() {
     const menu = document.getElementById('im-header-menu');
     if (menu) menu.style.display = 'none';
+}
+
+function removeManagerColumn(tagName) {
+    hideHeaderMenu();
+    state.gallery.managerTags = (state.gallery.managerTags || []).filter(t => t !== tagName);
+    saveTagGroups();
+    renderImageManagerTable();
 }
 
 async function exportColumnToPdf(tagName) {
@@ -531,7 +593,7 @@ async function exportColumnToPdf(tagName) {
     });
 
     Object.entries(state.dayData || {}).forEach(([d, day]) => {
-        [...(day.images || []), ...(day.closeImages || [])].forEach(url => {
+        [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || [])].forEach(url => {
             const tags = getDayImageTagsForUrl(d, url);
             if (tags.includes(tagName)) {
                 metaToExport.push({ url, date: d, sourceRow: null });
@@ -557,3 +619,65 @@ async function exportColumnToPdf(tagName) {
 
 document.addEventListener('DOMContentLoaded', initImageManager);
 
+/**
+ * Click-to-upload helper for missing images in Manager
+ * @param {string} dateKey 
+ * @param {string|null} tagName 
+ * @param {object|null} tradeObj 
+ */
+async function uploadImageForManager(dateKey, tagName, tradeObj = null) {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+    inp.onchange = async () => {
+        const files = Array.from(inp.files);
+        if (!files.length) return;
+        if (typeof showToast === 'function') showToast(`Uploading ${files.length} image(s)...`, 'info');
+        
+        let added = 0;
+        for (const file of files) {
+            try {
+                const res = await imageService.uploadImage(file);
+                if (res.url) {
+                    const url = res.url;
+                    // Add to data
+                    if (tradeObj) {
+                        if (!tradeObj.images) tradeObj.images = [];
+                        tradeObj.images.push(url);
+                    } else {
+                        if (!state.dayData[dateKey]) state.dayData[dateKey] = {};
+                        if (!state.dayData[dateKey].images) state.dayData[dateKey].images = [];
+                        state.dayData[dateKey].images.push(url);
+                    }
+                    
+                    // Assign tag if provided
+                    if (tagName) {
+                        if (tradeObj) {
+                            if (typeof setImageTagsForUrl === 'function') setImageTagsForUrl(tradeObj, url, [tagName]);
+                        } else {
+                            if (typeof setDayImageTagsForUrl === 'function') setDayImageTagsForUrl(dateKey, url, [tagName]);
+                        }
+                    }
+                    added++;
+                }
+            } catch (e) { console.error('Upload failed', e); }
+        }
+        
+        if (added) {
+            if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
+            if (typeof saveTrades === 'function') await saveTrades();
+            if (typeof showToast === 'function') showToast(`Added ${added} image(s)`, 'success');
+            
+            // Re-render everything
+            renderImageManagerTable();
+            if (typeof renderTable === 'function') renderTable();
+            if (typeof renderCalendar === 'function') renderCalendar();
+            
+            // Refresh gallery if it's open (it might be open behind the manager)
+            const galModal = document.getElementById('gallery-modal');
+            if (galModal && galModal.classList.contains('open') && typeof renderGallery === 'function') {
+                renderGallery();
+            }
+        }
+    };
+    inp.click();
+}

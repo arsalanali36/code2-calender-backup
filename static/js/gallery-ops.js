@@ -296,6 +296,9 @@ function showGalleryContextMenu(x, y) {
         return opt;
     };
 
+    if (state.dayData[dateToUse]) {
+        subMenu.appendChild(createSubOpt('News', () => moveSelectedToDayData(dateToUse, 'NEWS')));
+    }
     subMenu.appendChild(createSubOpt('Open', () => moveSelectedToDayData(dateToUse, false)));
     dayTrades.forEach((tr, i) => {
         subMenu.appendChild(createSubOpt(`Trade ${i + 1}`, () => moveSelectedToTrade(dateToUse, tr)));

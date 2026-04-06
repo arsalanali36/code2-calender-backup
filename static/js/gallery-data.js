@@ -14,6 +14,8 @@
 
 function getImagesForDate(dateStr) {
   const out = [];
+  (state.dayData[dateStr]?.newsImages || []).forEach(url => out.push(url));
+
   (state.dayData[dateStr]?.images || []).forEach(url => out.push(url));
 
   // Migrate old dayData.videos dict entries into the array (after their associated image)

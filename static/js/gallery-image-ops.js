@@ -98,6 +98,7 @@ function syncGalleryImageOrderToTrades() {
 
         if (currentDayData) {
             const daySubs = getSubSet(currentDayData);
+            const newNewsImages = [];
             const newDayImages = [];
             const newCloseImages = [];
             const newTradeImages = new Map();
@@ -113,7 +114,11 @@ function syncGalleryImageOrderToTrades() {
                 } else {
                     const subs = getSubSet(currentDayData);
                     if (!subs.has(u)) {
-                        if (dayTrades.length > 0) {
+                        // Priority: News -> Open -> Close
+                        const isNews = currentDayData.newsImages?.includes(u);
+                        if (isNews && !seenAnyTrade) {
+                            newNewsImages.push(u);
+                        } else if (dayTrades.length > 0) {
                             if (seenAnyTrade) newCloseImages.push(u);
                             else newDayImages.push(u);
                         } else {
@@ -124,6 +129,7 @@ function syncGalleryImageOrderToTrades() {
                 }
             });
 
+            currentDayData.newsImages = newNewsImages;
             currentDayData.images = newDayImages;
             currentDayData.closeImages = newCloseImages;
             dayTrades.forEach(t => { t.images = newTradeImages.get(t); });
@@ -265,8 +271,11 @@ async function removeGalleryImageAt(idx, force = false) {
             delete ownerTrade.subImages[imageUrl];
             cleanupImageTagStore(ownerTrade);
         } else if (dayDate && state.dayData[dayDate]) {
-            state.dayData[dayDate].images = (state.dayData[dayDate].images || []).filter(u => u !== imageUrl);
-            if (!isExpanded) state.dayData[dayDate].images.push(...subImages);
+            const d = state.dayData[dayDate];
+            d.images = (d.images || []).filter(u => u !== imageUrl);
+            d.newsImages = (d.newsImages || []).filter(u => u !== imageUrl);
+            d.closeImages = (d.closeImages || []).filter(u => u !== imageUrl);
+            if (!isExpanded) d.images.push(...subImages);
             if (state.dayData[dayDate].overlays?.[imageUrl]) delete state.dayData[dayDate].overlays[imageUrl];
             if (state.dayData[dayDate].marqueeBoxes?.[imageUrl]) delete state.dayData[dayDate].marqueeBoxes[imageUrl];
             if (state.dayData[dayDate].videos?.[imageUrl]) delete state.dayData[dayDate].videos[imageUrl];
@@ -365,7 +374,10 @@ async function removeGalleryImageAt(idx, force = false) {
         }
         cleanupImageTagStore(ownerTrade);
     } else if (dayDate && state.dayData[dayDate]) {
-        state.dayData[dayDate].images = (state.dayData[dayDate].images || []).filter(u => !urlsToDelete.includes(u));
+        const d = state.dayData[dayDate];
+        d.images = (d.images || []).filter(u => !urlsToDelete.includes(u));
+        d.newsImages = (d.newsImages || []).filter(u => !urlsToDelete.includes(u));
+        d.closeImages = (d.closeImages || []).filter(u => !urlsToDelete.includes(u));
         urlsToDelete.forEach(u => {
             if (state.dayData[dayDate].overlays?.[u]) delete state.dayData[dayDate].overlays[u];
             if (state.dayData[dayDate].marqueeBoxes?.[u]) delete state.dayData[dayDate].marqueeBoxes[u];

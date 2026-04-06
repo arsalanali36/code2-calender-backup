@@ -78,6 +78,8 @@ const exportService = (() => {
     if (typeof showToast === 'function') showToast('Generating PDF... Please wait.', 'info');
 
     try {
+      let newsOnCurrentPage = 0; // 0=none, 1=left, 2=right
+
       for (let i = 0; i < metaList.length; i++) {
         const item = metaList[i];
         const url = (typeof item === 'string') ? item : (item.url || '');
@@ -86,10 +88,28 @@ const exportService = (() => {
         const urlForExport = (typeof resolveImageUrl === 'function') ? resolveImageUrl(url) : url;
         if (typeof isVideoUrl === 'function' && isVideoUrl(urlForExport)) continue;
 
+        // Peak ahead to see if it's News
+        const itags = (typeof getImageTagsForGalleryItem === 'function') ? getImageTagsForGalleryItem(item) : [];
+        const isNews = Array.isArray(itags) && itags.includes('News');
+
         const imgData = await _getImageDataUrl(urlForExport);
         if (!imgData) continue;
 
-        if (i > 0) doc.addPage('a4', 'l');
+        // Manage pagination
+        if (isNews) {
+          if (newsOnCurrentPage === 0) {
+            if (i > 0) doc.addPage('a4', 'l');
+            newsOnCurrentPage = 1;
+          } else if (newsOnCurrentPage === 1) {
+            newsOnCurrentPage = 2;
+          } else {
+            doc.addPage('a4', 'l');
+            newsOnCurrentPage = 1;
+          }
+        } else {
+          if (i > 0) doc.addPage('a4', 'l');
+          newsOnCurrentPage = 0;
+        }
 
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -147,47 +167,66 @@ const exportService = (() => {
           const exitTime = isShort ? bt : st;
           statsLabel = `${pnl > 0 ? '+' : ''}₹${Math.round(pnl)}  |  ${pt > 0 ? '+' : ''}${Math.round(pt)} Pt  |  ${entryTime}-${exitTime}  |  ${dur || '-'}  |  ${qty} Qty`;
         } else if (dDate) {
-          tradeLabel = `Date: ${dDate}`;
-        }
-
-        // 2. Get Individual Image Tags
-        if (typeof getImageTagsForGalleryItem === 'function') {
-          const itags = getImageTagsForGalleryItem(item);
-          if (Array.isArray(itags) && itags.length) {
-            imageTagsStr = `Tags: ${itags.join(', ')}`;
+          tradeLabel = isNews ? `News - ${dDate}` : `Day Summary - ${dDate}`;
+          
+          // Calculate cumulative totals for the day
+          const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(dDate) : [];
+          if (!isNews && dayTrades.length > 0) {
+            let totalPnl = 0;
+            let totalPt = 0;
+            let totalQty = 0;
+            
+            dayTrades.forEach(t => {
+              totalPnl += parseFloat(t['Net P/L'] || t.net_pnl || 0) || 0;
+              totalPt += parseFloat(t['Pt'] || t.pt || 0) || 0;
+              totalQty += parseFloat(t.Qty || t.qty || t.QTY || 0) || 0;
+            });
+            
+            isProfit = totalPnl > 0;
+            isLoss = totalPnl < 0;
+            statsLabel = `${totalPnl > 0 ? '+' : ''}₹${Math.round(totalPnl)}  |  ${totalPt > 0 ? '+' : ''}${Math.round(totalPt)} Pt  |  ${dayTrades.length} Trades  |  -  |  ${totalQty} Qty`;
           }
         }
 
-        // 3. Header (at top)
+        // 2. Individual Image Tags
+        if (itags.length) imageTagsStr = `Tags: ${itags.join(', ')}`;
+
+        // 3. Header (Top)
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
+        doc.setFontSize(isNews ? 9 : 11);
         doc.setTextColor(60, 60, 60);
-        doc.text(tradeLabel, margin, 11);
+        
+        let headerX = margin;
+        if (newsOnCurrentPage === 2) headerX = (pageWidth / 2) + (margin / 2);
+        
+        doc.text(tradeLabel, headerX, 11);
 
         const currentLabelWidth = doc.getTextWidth(tradeLabel);
 
-        // Add Clickable Source Link — opens gallery at exact image
+        // [View Source] link
         const itemDate = (typeof item === 'object' && item.date) ? item.date : '';
         const itemRawUrl = (typeof item === 'object' && item.url) ? item.url : url;
         const sourceUrl = itemDate
             ? `${window.location.origin}/?galleryDate=${encodeURIComponent(itemDate)}&galleryImg=${encodeURIComponent(itemRawUrl)}`
             : (urlForExport.startsWith('/') ? window.location.origin + urlForExport : urlForExport);
         
-        doc.setFontSize(9);
+        doc.setFontSize(isNews ? 7 : 9);
         doc.setTextColor(0, 102, 204);
-        doc.textWithLink('[View Source]', margin + currentLabelWidth + 5, 11, { url: sourceUrl });
+        doc.textWithLink('[View Source]', headerX + currentLabelWidth + 4, 11, { url: sourceUrl });
 
-        if (Array.isArray(globalFilterTags) && globalFilterTags.length) {
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            const globalTagsStr = `Tag Filter: ${globalFilterTags.join(', ')}`;
-            doc.text(globalTagsStr, pageWidth - margin, 10, { align: 'right' });
+        if (!newsOnCurrentPage || newsOnCurrentPage === 2) {
+            if (Array.isArray(globalFilterTags) && globalFilterTags.length) {
+                doc.setFontSize(isNews ? 7 : 9);
+                doc.setTextColor(100, 100, 100);
+                const globalTagsStr = `Filter: ${globalFilterTags.join(', ')}`;
+                doc.text(globalTagsStr, pageWidth - margin, 10, { align: 'right' });
+            }
         }
 
-        // 4. Image (centered)
+        // 4. Image calculations
         const imgProps = doc.getImageProperties(imgData);
-        const availableWidth = pageWidth - (margin * 2);
-        const availableHeight = pageHeight - 38; 
+        let availableWidth = newsOnCurrentPage ? (pageWidth / 2) - (margin * 1.5) : pageWidth - (margin * 2);
+        let availableHeight = isNews ? pageHeight - 28 : pageHeight - 38;
 
         const ratio = imgProps.width / imgProps.height;
         let finalWidth = availableWidth;
@@ -198,13 +237,15 @@ const exportService = (() => {
           finalWidth = finalHeight * ratio;
         }
 
-        const x = margin + (availableWidth - finalWidth) / 2;
-        const y = 12 + (availableHeight - finalHeight) / 2;
+        let imgX = (newsOnCurrentPage === 2) 
+                   ? (pageWidth / 2) + (margin / 2) + (availableWidth - finalWidth) / 2
+                   : margin + (availableWidth - finalWidth) / 2;
+        let imgY = 14 + (availableHeight - finalHeight) / 2;
 
-        doc.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight);
+        doc.addImage(imgData, 'JPEG', imgX, imgY, finalWidth, finalHeight);
 
-        // 5. Footer Data (at bottom)
-        const footerY = y + finalHeight + 8;
+        // 5. Footer Data
+        const footerY = imgY + finalHeight + 6;
         if (statsLabel) {
           doc.setFontSize(13);
           if (isProfit) doc.setTextColor(46, 204, 113);
@@ -214,10 +255,11 @@ const exportService = (() => {
         }
         
         if (imageTagsStr) {
-          doc.setFontSize(9);
+          doc.setFontSize(isNews ? 8 : 9);
           doc.setFont('helvetica', 'italic');
           doc.setTextColor(120, 120, 120);
-          doc.text(imageTagsStr, pageWidth / 2, footerY + 6, { align: 'center' });
+          let tagX = newsOnCurrentPage ? (newsOnCurrentPage === 2 ? (pageWidth * 0.75) : (pageWidth * 0.25)) : (pageWidth / 2);
+          doc.text(imageTagsStr, tagX, footerY + (isNews ? 4 : 6), { align: 'center' });
         }
       }
 

@@ -185,7 +185,9 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
     if (!targetTradeObj && dateToUse) {
         // If it's global, we move it out of trades to dayData
         if (!state.dayData[dateToUse]) state.dayData[dateToUse] = {};
-        if (isClose) {
+        if (isClose === 'NEWS') {
+            if (!state.dayData[dateToUse].newsImages) state.dayData[dateToUse].newsImages = [];
+        } else if (isClose) {
             if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
         } else {
             if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
@@ -216,12 +218,10 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
         if (ownerTrade) {
             ownerTrade.images = (ownerTrade.images || []).filter(u => u !== imageUrl);
         } else if (state.gallery.date && state.dayData[state.gallery.date]) {
-            if (state.dayData[state.gallery.date].images) {
-                state.dayData[state.gallery.date].images = state.dayData[state.gallery.date].images.filter(u => u !== imageUrl);
-            }
-            if (state.dayData[state.gallery.date].closeImages) {
-                state.dayData[state.gallery.date].closeImages = state.dayData[state.gallery.date].closeImages.filter(u => u !== imageUrl);
-            }
+            const dd = state.dayData[state.gallery.date];
+            if (dd.newsImages) dd.newsImages = dd.newsImages.filter(u => u !== imageUrl);
+            if (dd.images) dd.images = dd.images.filter(u => u !== imageUrl);
+            if (dd.closeImages) dd.closeImages = dd.closeImages.filter(u => u !== imageUrl);
         }
 
         movedItems.push({ imageUrl, ownedSubs });
@@ -240,7 +240,9 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
                 targetTradeObj.subImages[imageUrl] = ownedSubs;
             }
         } else if (dateToUse) {
-            if (isClose) {
+            if (isClose === 'NEWS') {
+                state.dayData[dateToUse].newsImages.push(imageUrl);
+            } else if (isClose) {
                 state.dayData[dateToUse].closeImages.push(imageUrl);
             } else {
                 state.dayData[dateToUse].images.push(imageUrl);
