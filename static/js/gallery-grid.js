@@ -55,6 +55,12 @@
     }
   }
 
+  function _filterByImgType(imgs) {
+    const f = state.gallery.imgTypeFilter || 'both';
+    if (f === 'both') return imgs;
+    return imgs.filter(u => (state.imgTypes || {})[u] === f);
+  }
+
   function renderGridContent() {
     if (!gv.body) return;
     gv.body.innerHTML = '';
@@ -63,7 +69,7 @@
 
     if (!date) {
       if (images.length > 0) {
-        renderGroup('Gallery Images', images, null);
+        renderGroup('Gallery Images', _filterByImgType(images), null);
       }
       return;
     }
@@ -73,12 +79,14 @@
 
     // 1. NEWS Group (Contextual market news / reports)
     if (dayData && dayData.newsImages && dayData.newsImages.length > 0) {
-      renderGroup('NEWS (Context)', dayData.newsImages, null);
+      const filtered = _filterByImgType(dayData.newsImages);
+      if (filtered.length) renderGroup('NEWS (Context)', filtered, null);
     }
 
     // 2. OPEN Group (Initial trade analysis)
     if (dayData && dayData.images && dayData.images.length > 0) {
-      renderGroup('OPEN (Analysis)', dayData.images, null);
+      const filtered = _filterByImgType(dayData.images);
+      if (filtered.length) renderGroup('OPEN (Analysis)', filtered, null);
     }
 
     // 2. Trade Groups
@@ -86,13 +94,14 @@
     trades.forEach((tr, i) => {
       const pnl = (typeof getTradePnl === 'function' ? getTradePnl(tr) : 0) || 0;
       cumPnl += pnl;
-      const imgs = tr.images || [];
-      renderGroup(null, imgs, null, pnl, tr, i, cumPnl);
+      const filtered = _filterByImgType(tr.images || []);
+      renderGroup(null, filtered, null, pnl, tr, i, cumPnl);
     });
 
     // 3. CLOSE Group
     if (dayData && dayData.closeImages && dayData.closeImages.length > 0) {
-      renderGroup('CLOSE (Post-Market)', dayData.closeImages, null);
+      const filtered = _filterByImgType(dayData.closeImages);
+      if (filtered.length) renderGroup('CLOSE (Post-Market)', filtered, null);
     }
   }
 

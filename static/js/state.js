@@ -36,8 +36,10 @@ const state = {
     hiddenImages: new Set(), layerPanelOpen: false,
     expandedFilterTrades: new Set(),
     managerTags: [],
-    managerSortDir: 'desc'
-  },  // V2: tagFilter = selected tag names
+    managerSortDir: 'desc',
+    imgTypeFilter: 'both'  // 'both' | 'index' | 'premium'
+  },
+  imgTypes: {},  // { [imgUrl]: 'index' | 'premium' } — persisted with trades  // V2: tagFilter = selected tag names
   tagGroups: {},  // { groupName: [tagName, ...] } — user-defined groups
   tagDeleteMode: false,
   uploadRow: null,

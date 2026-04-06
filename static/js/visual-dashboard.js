@@ -16,7 +16,9 @@ const vdState = {
     view: 'month', // 'month' or 'year'
     chartModes: {},
     mtmMonthFilter: 'all', // New: for local MTM filter
-    mtmValueType: 'net' // New: for MTM curve value type (net, gross, pt)
+    mtmValueType: 'net', // New: for MTM curve value type (net, gross, pt)
+    pptMonthFilter: 'all', // Points-Per-Trade month filter
+    pptHideNoImg: false    // Points-Per-Trade: hide trades with no images
 };
 
 function updateVdChartMode(chartKey, mode) {
@@ -283,7 +285,7 @@ function renderVisualDashboard() {
         const pt = parseFloat(t['Pt'] || t['Points']) || 0;
         const lot = parseFloat(t['Qty'] || t['quantity'] || t['Qty.']) || 0;
         let d = normalizeDate(extractDateFromTrade(t));
-        pointsPerTradeData.push({ x: `T${totalTradesCount}`, y: pt, date: d || 'Unknown', amt: pnl, lot });
+        pointsPerTradeData.push({ x: `T${totalTradesCount}`, y: pt, date: d || 'Unknown', amt: pnl, lot, trade: t });
 
         // Strategy Map (Use 'Setup' or 'Tags' column)
         const setupStr = typeof getTradeTagsForColumn === 'function' && state && state.tagColumns && state.tagColumns.length > 0
@@ -574,13 +576,45 @@ function renderVisualDashboard() {
     vdCharts.patSum.render();
 
     // 8. Points - Per Trade
+    // Store full unfiltered data for month tab availability
+    window._vdPptAllData = pointsPerTradeData;
+
+    // Apply month filter
+    let pptFiltered = pointsPerTradeData;
+    if (vdState.pptMonthFilter !== 'all') {
+        pptFiltered = pptFiltered.filter(p => {
+            if (!p.date || p.date === 'Unknown') return false;
+            return (parseInt(p.date.split('-')[1], 10) - 1) === vdState.pptMonthFilter;
+        });
+    }
+    // Apply hide-no-image filter
+    if (vdState.pptHideNoImg) {
+        pptFiltered = pptFiltered.filter(p => p.trade?.images?.length > 0);
+    }
+
+    // Render controls (month tabs + toggle button)
+    _renderVdPptControls();
+
     if (vdCharts.pointsPerTrade) vdCharts.pointsPerTrade.destroy();
     vdCharts.pointsPerTrade = new ApexCharts(document.querySelector("#chart-points-per-trade"), {
         ...commonOptions,
-        series: [{ name: 'Points', data: pointsPerTradeData.map(p => p.y).length ? pointsPerTradeData.map(p => p.y) : [0] }],
-        chart: { ...commonOptions.chart, type: 'bar', height: 250 },
+        series: [{ name: 'Points', data: pptFiltered.length ? pptFiltered.map(p => p.y) : [0] }],
+        chart: {
+            ...commonOptions.chart, type: 'bar', height: 250,
+            events: {
+                dataPointSelection: function (event, chartContext, config) {
+                    const data = pptFiltered[config.dataPointIndex];
+                    if (!data || !data.date || data.date === 'Unknown') return;
+                    if (typeof openGalleryForDate !== 'function') return;
+                    const firstImg = data.trade?.images?.[0] || null;
+                    if (!firstImg) { showToast('Is trade ki koi image nahi hai', 'info'); return; }
+                    openGalleryForDate(data.date, firstImg);
+                }
+            }
+        },
         plotOptions: {
             bar: {
+                cursor: 'pointer',
                 colors: {
                     ranges: [
                         { from: -10000000, to: -0.01, color: '#f85149' },
@@ -589,13 +623,13 @@ function renderVisualDashboard() {
                 }
             }
         },
-        xaxis: { categories: pointsPerTradeData.map(p => p.x).length ? pointsPerTradeData.map(p => p.x) : ['No Data'], labels: { show: false } }, // hides large number of trade labels
+        xaxis: { categories: pptFiltered.length ? pptFiltered.map(p => p.x) : ['No Data'], labels: { show: false } },
         yaxis: { labels: { formatter: (val) => Number(val).toLocaleString() } },
         dataLabels: { enabled: false },
         tooltip: {
             theme: 'dark',
             custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-                const data = pointsPerTradeData[dataPointIndex];
+                const data = pptFiltered[dataPointIndex];
                 if (!data) return '';
                 const dobj = data.date && data.date !== 'Unknown' ? new Date(data.date + 'T00:00:00') : null;
                 const dateLbl = dobj && !isNaN(dobj)
@@ -665,6 +699,32 @@ function renderVisualDashboard() {
     applyVdStatVisibility();
     applyVdStatOrder();
     applyVdCardWidths(true);
+}
+
+
+function setVdMtmSummaryType(type) {
+    vdState.mtmSummaryType = type;
+    renderVdMtmThumbs(getVdTrades());
+}
+
+function _vdDayDuration(trades) {
+    if (typeof parseTimeToMinutes !== 'function') return '';
+    let minT = Infinity, maxT = -Infinity;
+    trades.forEach(t => {
+        const times = [
+            t['Buy Time'] || t['buy_time'] || t['buyTime'] || t['Time'] || t['Entry Time'] || t['entry_time'] || t['entryTime'],
+            t['Sell Time'] || t['sell_time'] || t['sellTime'] || t['Ex Time'] || t['Exit Time'] || t['exit_time'] || t['exitTime']
+        ];
+        times.forEach(ts => {
+            const m = parseTimeToMinutes(ts);
+            if (m !== null) { if (m < minT) minT = m; if (m > maxT) maxT = m; }
+        });
+    });
+    if (!isFinite(minT) || !isFinite(maxT) || maxT <= minT) return '';
+    const diff = maxT - minT;
+    const h = Math.floor(diff / 60), m = diff % 60;
+    const dur = h > 0 ? `${h}h ${m}m` : `${m}m`;
+    return ` · ${dur}`;
 }
 
 // ── DAILY MTM THUMBS (GRID OF MINI SVG CHARTS) ───────────────────────────
@@ -807,15 +867,58 @@ function renderVdMtmThumbs(allFilteredTrades) {
         grid.appendChild(thumbWrap);
 
         const container = thumbWrap.querySelector('.mini-mtm-svg-container');
-        renderVdMiniMtmChart(container, dateTrades, color, date);
+        renderVdMiniMtmChart(container, dateTrades, color, date, vdState.mtmSummaryType || 'curve');
     });
 }
 
-function renderVdMiniMtmChart(container, trades, color, date) {
+function renderVdMiniMtmChart(container, trades, color, date, chartType = 'curve') {
     if (!container) return;
     const w = container.clientWidth || 130;
     const h = 80;
-    
+    const pad = 10;
+    const gradId = 'mini-grad-' + Math.random().toString(36).substr(2, 9);
+
+    if (chartType === 'bar') {
+        // Bar mode: each trade as an individual bar (its own P&L, green/red)
+        const barVals = trades.map(t => getVdTradeValue(t));
+        const absMax = Math.max(...barVals.map(v => Math.abs(v)), 1);
+        const zeroY = h / 2;
+        const bw = Math.max(2, (w / (trades.length || 1)) * 0.7);
+        const gap = w / (trades.length || 1);
+        let barsHtml = '';
+        barVals.forEach((v, i) => {
+            const bColor = v >= 0 ? '#3fb950' : '#f85149';
+            const barH = Math.max(2, (Math.abs(v) / absMax) * (h / 2 - pad));
+            const bx = gap * i + (gap - bw) / 2;
+            const by = v >= 0 ? zeroY - barH : zeroY;
+            barsHtml += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${barH.toFixed(1)}" fill="${bColor}" rx="1"/>`;
+        });
+        container.innerHTML = `
+            <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;">
+                <line x1="0" y1="${zeroY}" x2="${w}" y2="${zeroY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                ${barsHtml}
+                <line id="mini-track-line" x1="0" y1="0" x2="0" y2="${h}" stroke="rgba(255,255,255,0.3)" stroke-width="1" style="display:none;"/>
+            </svg>`;
+
+        // hover: show trade P&L in header
+        const thumbWrap = container.closest('.vd-mini-mtm-thumb');
+        const pnlVal = thumbWrap?.querySelector('.mini-pnl-val');
+        const trackLine = container.querySelector('#mini-track-line');
+        container.onmousemove = (e) => {
+            const rect = container.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) * (w / rect.width);
+            const idx = Math.min(trades.length - 1, Math.max(0, Math.floor(mx / gap)));
+            if (trackLine) { trackLine.setAttribute('x1', (gap * idx + gap / 2).toFixed(1)); trackLine.setAttribute('x2', (gap * idx + gap / 2).toFixed(1)); trackLine.style.display = ''; }
+            if (pnlVal) { const v = barVals[idx]; pnlVal.textContent = `₹${Math.round(v).toLocaleString('en-IN')}`; pnlVal.style.color = v >= 0 ? '#3fb950' : '#f85149'; }
+        };
+        container.onmouseleave = () => {
+            if (trackLine) trackLine.style.display = 'none';
+            if (pnlVal) { pnlVal.textContent = pnlVal.dataset.orig; pnlVal.style.color = color; }
+        };
+        return;
+    }
+
+    // Curve mode (default) — cumulative P&L line
     let run = 0;
     const trajData = [{ val: 0, inst: 'Start', trade: null }];
     trades.forEach(t => {
@@ -827,7 +930,6 @@ function renderVdMiniMtmChart(container, trades, color, date) {
     const min = Math.min(...trajArr);
     const max = Math.max(...trajArr);
     const range = (max - min) || 1;
-    const pad = 10;
 
     const pts = trajData.map((d, i) => {
         const x = (i / (trajData.length - 1)) * w;
@@ -837,8 +939,7 @@ function renderVdMiniMtmChart(container, trades, color, date) {
 
     const pathData = pts.map((p, i) => (i === 0 ? 'M' : 'L') + `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     const zeroY = h - pad - ((0 - min) / range) * (h - (pad * 2));
-    const gradId = 'mini-grad-' + Math.random().toString(36).substr(2, 9);
-    
+
     container.innerHTML = `
         <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;">
             <defs>
@@ -929,6 +1030,65 @@ function renderVdMiniMtmChart(container, trades, color, date) {
             pnlVal.style.color = isNeg ? '#f85149' : '#3fb950';
         }
     };
+}
+
+function setVdPptMonthFilter(m) {
+    vdState.pptMonthFilter = m;
+    _renderVdPptControls();
+    _applyVdPptFiltersAndRender();
+}
+
+function toggleVdPptHideNoImg() {
+    vdState.pptHideNoImg = !vdState.pptHideNoImg;
+    _renderVdPptControls();
+    _applyVdPptFiltersAndRender();
+}
+
+function _applyVdPptFiltersAndRender() {
+    // Re-render only the pointsPerTrade chart without full dashboard re-render
+    if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
+}
+
+function _renderVdPptControls() {
+    const chartDiv = document.getElementById('chart-points-per-trade');
+    if (!chartDiv) return;
+    const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    let cont = document.getElementById('vd-ppt-controls');
+    if (!cont) {
+        cont = document.createElement('div');
+        cont.id = 'vd-ppt-controls';
+        chartDiv.parentNode.insertBefore(cont, chartDiv);
+    }
+
+    // Build month tabs from existing pointsPerTradeData (if available)
+    const availableMonths = new Set();
+    if (window._vdPptAllData) {
+        window._vdPptAllData.forEach(p => {
+            if (p.date && p.date !== 'Unknown') {
+                const m = parseInt(p.date.split('-')[1], 10) - 1;
+                availableMonths.add(m);
+            }
+        });
+    }
+
+    let html = `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:8px;">`;
+    html += `<div class="vd-month-tab ${vdState.pptMonthFilter === 'all' ? 'active' : ''}" onclick="setVdPptMonthFilter('all')" style="font-size:11px;padding:2px 7px;">ALL</div>`;
+    MONTHS_SHORT.forEach((mName, idx) => {
+        const hasData = availableMonths.has(idx);
+        const isActive = vdState.pptMonthFilter === idx;
+        html += `<div class="vd-month-tab ${isActive ? 'active' : ''} ${hasData ? 'has-data' : 'no-data'}"
+            onclick="${hasData ? `setVdPptMonthFilter(${idx})` : ''}"
+            style="font-size:11px;padding:2px 7px;">${mName}</div>`;
+    });
+    const btnStyle = vdState.pptHideNoImg
+        ? 'background:var(--accent);color:#fff;border-color:var(--accent);'
+        : 'background:transparent;color:var(--text2);';
+    html += `<button onclick="toggleVdPptHideNoImg()" title="Hide trades with no image"
+        style="margin-left:auto;font-size:11px;padding:2px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;${btnStyle}">
+        No-Img Hide</button>`;
+    html += `</div>`;
+    cont.innerHTML = html;
 }
 
 function setVdMtmMonthFilter(m) {

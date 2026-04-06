@@ -49,6 +49,14 @@
         <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-trade-dropdown"></div>
       </div>
 
+      <!-- Index / Premium filter toggle -->
+      <div class="gv2-tray-sep"></div>
+      <div style="display:flex;align-items:center;gap:2px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:20px;padding:2px 4px;">
+        <button id="gv2-imgtype-both"    onclick="setGalleryImgTypeFilter('both')"    class="gv2-imgtype-btn active" title="Show all images">Both</button>
+        <button id="gv2-imgtype-index"   onclick="setGalleryImgTypeFilter('index')"   class="gv2-imgtype-btn"        title="Show Index images only">Index</button>
+        <button id="gv2-imgtype-premium" onclick="setGalleryImgTypeFilter('premium')" class="gv2-imgtype-btn"        title="Show Premium images only">Prem</button>
+      </div>
+
       <!-- Target Tracker Button -->
       <div class="gv2-tray-sep"></div>
       <div class="gv2-target-btn-wrap" id="gv2-target-btn-wrap" style="position:relative;">

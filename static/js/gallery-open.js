@@ -13,24 +13,33 @@
 function openGalleryForDate(dateStr, targetImgUrl = null) {
   const images = getImagesForDate(dateStr);
   if (!images.length) return;
-  state.gallery.images = images; 
-  state.gallery.currentIndex = 0; 
+  state.gallery.currentIndex = 0;
   state.gallery.tagFilter = [];
-  
+  state.gallery.date = dateStr;
+  state.gallery.sourceRow = null;
+  state.gallery._baseImages = [...images];
+  state.gallery._baseDate = dateStr;
+  state.gallery._baseSourceRow = null;
+
+  // Apply index/premium filter (sets state.gallery.images from _baseImages)
+  if (typeof applyImgTypeFilter === 'function') applyImgTypeFilter();
+  else state.gallery.images = [...images];
+
+  // Sync pill UI
+  ['both','index','premium'].forEach(t => {
+    const btn = document.getElementById('gv2-imgtype-' + t);
+    if (btn) btn.classList.toggle('active', t === (state.gallery.imgTypeFilter || 'both'));
+  });
+
+  // Resolve targetImgUrl in the (possibly filtered) images list
   if (targetImgUrl) {
-    const raw = String(targetImgUrl || '').trim();
-    const idx = images.findIndex(u => String(u) === raw || String(u).endsWith(raw) || raw.endsWith(String(u)));
+    const raw = String(targetImgUrl).trim();
+    const idx = state.gallery.images.findIndex(u => String(u) === raw || String(u).endsWith(raw) || raw.endsWith(String(u)));
     if (idx >= 0) state.gallery.currentIndex = idx;
     state.gallery.selectedIndices = new Set([state.gallery.currentIndex]);
   } else {
     state.gallery.selectedIndices = state.gallery.selectedIndices || new Set();
   }
-
-  state.gallery.date = dateStr; 
-  state.gallery.sourceRow = null;
-  state.gallery._baseImages = [...images];
-  state.gallery._baseDate = dateStr;
-  state.gallery._baseSourceRow = null;
   
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');

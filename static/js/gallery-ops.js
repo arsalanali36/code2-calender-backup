@@ -183,6 +183,45 @@ function showGalleryContextMenu(x, y) {
                 showToast('Image does not belong to a specific trade', 'info');
             }
         }));
+
+        addSep();
+    }
+
+    // ── Mark as Index / Premium (single or multi-select) ──────────────────
+    if (selectedIdxArr.length >= 1) {
+        const selUrls = selectedIdxArr.map(i => (state.gallery.images || [])[i]).filter(Boolean);
+        // For single: show ✓ on current type; for multi: show type if all same
+        const allSameType = selUrls.every(u => getImgType(u) === getImgType(selUrls[0])) ? getImgType(selUrls[0]) : null;
+
+        const markMenu = createOpt('Mark as \u25B6', () => {});
+        markMenu.style.position = 'relative';
+        const markSub = document.createElement('div');
+        markSub.style.cssText = 'display:none;position:absolute;left:100%;top:0;background:var(--surface2);border:1px solid var(--border);z-index:100001;padding:4px 0;min-width:130px;border-radius:var(--radius);box-shadow:var(--shadow);';
+        const mkOpt = (label, val, color) => {
+            const o = document.createElement('div');
+            o.textContent = (allSameType === val ? '✓ ' : '') + label;
+            o.style.cssText = `cursor:pointer;padding:7px 16px;font-size:0.85rem;white-space:nowrap;color:${color};`;
+            o.onmouseenter = () => { o.style.background = 'var(--hover)'; };
+            o.onmouseleave = () => { o.style.background = ''; };
+            o.onclick = async (e) => {
+                e.stopPropagation();
+                cleanup();
+                const newType = allSameType === val ? null : val;
+                if (!state.imgTypes) state.imgTypes = {};
+                selUrls.forEach(u => { if (newType) state.imgTypes[u] = newType; else delete state.imgTypes[u]; });
+                await saveTrades();
+                if (typeof applyImgTypeFilter === 'function') applyImgTypeFilter();
+                renderGallery();
+                showToast(newType ? `${selUrls.length} image(s) marked as ${label}` : `Type cleared (${selUrls.length})`, 'success');
+            };
+            return o;
+        };
+        markSub.appendChild(mkOpt('Index',   'index',   '#58a6ff'));
+        markSub.appendChild(mkOpt('Premium', 'premium', '#d29922'));
+        markMenu.appendChild(markSub);
+        markMenu.onmouseenter = () => { markSub.style.display = 'block'; };
+        markMenu.onmouseleave = () => { markSub.style.display = 'none'; };
+        menu.appendChild(markMenu);
         addSep();
     }
 

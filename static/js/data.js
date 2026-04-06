@@ -66,6 +66,7 @@ function _applyBroadcastData(data) {
   state.dayData     = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
   state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
   state.tagGroups   = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+  state.imgTypes    = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
   syncTagColumnRegistry();
   state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
   syncImageTagColumnValues();
@@ -165,6 +166,7 @@ async function loadTrades() {
     state.dayData = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
     state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
     state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+    state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -197,7 +199,8 @@ async function saveTrades() {
       userColumns: state.userColumns,
       dayData: state.dayData,
       importedPdfs: state.importedPdfs,
-      tagGroups: state.tagGroups
+      tagGroups: state.tagGroups,
+      imgTypes: state.imgTypes
     };
     await tradeService.saveTrades(payload);
     state.serverStateHash = hashServerState(payload);

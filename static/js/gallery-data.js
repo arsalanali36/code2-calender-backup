@@ -532,3 +532,48 @@ function autoSaveAnnotationSession(session) {
   }, 'image/png');
 }
 
+// ── Image Type (Index / Premium) ──────────────────────────────────────────
+
+function getImgType(url) {
+  return (state.imgTypes || {})[url] || null;
+}
+
+async function setImgType(url, type) {
+  if (!url) return;
+  if (!state.imgTypes) state.imgTypes = {};
+  if (type) state.imgTypes[url] = type;
+  else delete state.imgTypes[url];
+  await saveTrades();
+  _updateImgTypePill(url);
+}
+
+function applyImgTypeFilter() {
+  const filter = state.gallery.imgTypeFilter || 'both';
+  const base = state.gallery._baseImages || [];
+  if (filter === 'both') {
+    state.gallery.images = [...base];
+  } else {
+    state.gallery.images = base.filter(u => (state.imgTypes || {})[u] === filter);
+  }
+  // Keep currentIndex in bounds
+  if (state.gallery.currentIndex >= state.gallery.images.length)
+    state.gallery.currentIndex = Math.max(0, state.gallery.images.length - 1);
+}
+
+function setGalleryImgTypeFilter(f) {
+  state.gallery.imgTypeFilter = f;
+  // Update pill UI
+  ['both', 'index', 'premium'].forEach(t => {
+    const btn = document.getElementById('gv2-imgtype-' + t);
+    if (btn) btn.classList.toggle('active', t === f);
+  });
+  applyImgTypeFilter();
+  renderGallery();
+}
+
+function _updateImgTypePill(url) {
+  // Update the badge on the current image if it's the one being changed
+  const cur = (state.gallery.images || [])[state.gallery.currentIndex];
+  if (cur === url) renderGallery();
+}
+

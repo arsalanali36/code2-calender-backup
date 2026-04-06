@@ -24,6 +24,11 @@
               <span style="opacity: 0.5; margin-right: 8px;">⋮⋮</span>
               <span>Daily MTM Curves</span>
               <select class="select-box" style="margin-left:auto; padding: 2px 5px; font-size:12px;"
+                onchange="setVdMtmSummaryType(this.value)">
+                <option value="curve" selected>Curve</option>
+                <option value="bar">Bar</option>
+              </select>
+              <select class="select-box" style="margin-left:5px; padding: 2px 5px; font-size:12px;"
                 onchange="updateVdMtmValueType(this.value)">
                 <option value="net">Net</option>
                 <option value="gross">Gross</option>

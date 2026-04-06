@@ -566,3 +566,19 @@
   height: auto !important;
   aspect-ratio: 9 / 20; /* Matching Inshorts screenshots */
 }
+
+
+/* ── Index / Premium toggle pill ── */
+.gv2-imgtype-btn {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.gv2-imgtype-btn:hover { background: var(--hover); color: var(--text1); }
+.gv2-imgtype-btn.active { background: var(--accent, #58a6ff); color: #fff; font-weight: 600; }
