@@ -133,6 +133,30 @@ function renderGalleryTagFilterPanel() {
     scopeRow.appendChild(btnScopeTrade);
     if (header) header.appendChild(scopeRow);
 
+    // Export PDF Button
+    const pdfRow = document.createElement('div');
+    pdfRow.style.cssText = 'padding: 0 8px 8px;';
+    const btnExportPdf = document.createElement('button');
+    btnExportPdf.className = 'panel-act-btn';
+    btnExportPdf.style.cssText = 'width:100%; border-color:var(--red,#f85149); color:var(--red,#f85149); font-weight:700; background:rgba(248,81,73,0.05);';
+    btnExportPdf.innerHTML = '&#128196; Export Filtered to PDF';
+    btnExportPdf.addEventListener('click', async () => {
+        const metaToExport = state.gallery._filteredMeta || (state.gallery.images || []).map(url => ({ url, date: state.gallery.date, sourceRow: state.gallery.sourceRow }));
+        if (!metaToExport.length) {
+            if (typeof showToast === 'function') showToast('No images to export.', 'error');
+            return;
+        }
+        
+        const tagFilter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+        if (tagFilter.length) {
+            filename = `filtered_${tagFilter.join('_')}`.slice(0, 50);
+        }
+        
+        await exportService.exportImagesToPdf(metaToExport, `${filename}.pdf`, tagFilter);
+    });
+    pdfRow.appendChild(btnExportPdf);
+    if (header) header.appendChild(pdfRow);
+
     const list = document.createElement('div');
     list.className = 'panel-list';
     list.style.flex = '1';
