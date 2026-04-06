@@ -14,12 +14,27 @@ const vdState = {
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
     view: 'month', // 'month' or 'year'
-    chartModes: {}
+    chartModes: {},
+    mtmMonthFilter: 'all', // New: for local MTM filter
+    mtmValueType: 'net' // New: for MTM curve value type (net, gross, pt)
 };
 
 function updateVdChartMode(chartKey, mode) {
     vdState.chartModes[chartKey] = mode;
     renderVisualDashboard();
+}
+
+function updateVdMtmValueType(type) {
+    vdState.mtmValueType = type;
+    renderVdMtmThumbs(getVdTrades());
+}
+
+function getVdTradeValue(t, type) {
+    const tp = type || vdState.mtmValueType || 'net';
+    if (tp === 'gross') return parseFloat(t['Gross P/L'] || t['Gross']) || 0;
+    if (tp === 'pt') return parseFloat(t['Pt'] || t['Points']) || 0;
+    // Default: Net
+    return typeof getTradePnl === 'function' ? getTradePnl(t) : (parseFloat(t['Net P/L'] || t['Net']) || 0);
 }
 
 let vdCharts = {};
@@ -120,6 +135,11 @@ function getVdTrades() {
     // Fall back to empty array if state doesn't exist yet
     const allTrades = typeof state !== 'undefined' && Array.isArray(state.trades) ? state.trades : [];
     return allTrades.filter(t => {
+        // Exclude manual empty rows without actual trade data
+        if (!t['Time'] && !t['Ex Time'] && !t['Buy Time'] && !t['Sell Time'] && !t['Gross P/L'] && !t['Net P/L'] && !t['Rs'] && !t['Qty'] && !t['Qty.'] && !t['quantity'] && !t['Points'] && !t['Pt']) {
+            return false;
+        }
+
         // Check if the trade matches the broker filter if it's there
         if (typeof tradeMatchesBrokerFilter === 'function' && !tradeMatchesBrokerFilter(t)) return false;
         if (typeof tradeMatchesDateRange === 'function' && !tradeMatchesDateRange(t)) return false;
@@ -648,19 +668,76 @@ function renderVisualDashboard() {
 }
 
 // ── DAILY MTM THUMBS (GRID OF MINI SVG CHARTS) ───────────────────────────
-function renderVdMtmThumbs(trades) {
+function renderVdMtmThumbs(allFilteredTrades) {
     const grid = document.getElementById('vd-mtm-thumbs-grid');
     if (!grid) return;
+    
+    // Group all available trades by month for the year (to show available months)
+    const yearTrades = typeof state !== 'undefined' && Array.isArray(state.trades) 
+        ? state.trades.filter(t => {
+            const d = normalizeDate(extractDateFromTrade(t));
+            if (!d) return false;
+            return parseInt(d.split('-')[0], 10) === vdState.year;
+        }) 
+        : [];
+
+    const monthDataMap = new Map();
+    yearTrades.forEach(t => {
+        const d = normalizeDate(extractDateFromTrade(t));
+        const m = parseInt(d.split('-')[1], 10) - 1;
+        if (!monthDataMap.has(m)) monthDataMap.set(m, []);
+        monthDataMap.get(m).push(t);
+    });
+
+    // Render Tabs
+    let tabsHtml = `<div class="vd-month-tabs-container">`;
+    tabsHtml += `<div class="vd-month-tab ${vdState.mtmMonthFilter === 'all' ? 'active' : ''}" onclick="setVdMtmMonthFilter('all')">ALL</div>`;
+    
+    const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    MONTHS_SHORT.forEach((mName, idx) => {
+        const hasData = monthDataMap.has(idx);
+        const isActive = vdState.mtmMonthFilter === idx;
+        tabsHtml += `<div class="vd-month-tab ${isActive ? 'active' : ''} ${hasData ? 'has-data' : 'no-data'}" 
+                          onclick="${hasData ? `setVdMtmMonthFilter(${idx})` : ''}">${mName}</div>`;
+    });
+    tabsHtml += `</div>`;
+
+    // Inject tabs container if missing, else update
+    let tabsCont = document.getElementById('vd-mtm-tabs');
+    if (!tabsCont) {
+        tabsCont = document.createElement('div');
+        tabsCont.id = 'vd-mtm-tabs';
+        grid.parentNode.insertBefore(tabsCont, grid);
+    }
+    tabsCont.innerHTML = tabsHtml;
+
+    // Filter trades for the grid
+    let displayTrades = allFilteredTrades;
+    if (vdState.mtmMonthFilter !== 'all') {
+        displayTrades = allFilteredTrades.filter(t => {
+            const d = normalizeDate(extractDateFromTrade(t));
+            return d && (parseInt(d.split('-')[1], 10) - 1) === vdState.mtmMonthFilter;
+        });
+        
+        // If we are in Year view but month filter is active, we use yearTrades filtered
+        if (vdState.view === 'year') {
+             displayTrades = yearTrades.filter(t => {
+                const d = normalizeDate(extractDateFromTrade(t));
+                return d && (parseInt(d.split('-')[1], 10) - 1) === vdState.mtmMonthFilter;
+            });
+        }
+    }
+
     grid.innerHTML = '';
 
-    if (!trades || trades.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text3); font-size:12px; padding:10px;">No trades to display</div>';
+    if (!displayTrades || displayTrades.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text3); font-size:12px; padding:10px;">No trades for this period</div>';
         return;
     }
 
     // Group by Date
     const dateMap = new Map();
-    trades.forEach(t => {
+    displayTrades.forEach(t => {
         const d = normalizeDate(extractDateFromTrade(t));
         if (d) {
             if (!dateMap.has(d)) dateMap.set(d, []);
@@ -668,7 +745,7 @@ function renderVdMtmThumbs(trades) {
         }
     });
 
-    const dates = Array.from(dateMap.keys()).sort().reverse();
+    const dates = Array.from(dateMap.keys()).sort();
 
     dates.forEach(date => {
         const dateTrades = dateMap.get(date);
@@ -687,18 +764,20 @@ function renderVdMtmThumbs(trades) {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         `;
         
-        let totalPnl = 0;
-        dateTrades.forEach(t => totalPnl += (getTradePnl(t) || 0));
-        const color = totalPnl >= 0 ? '#3fb950' : '#f85149';
+        let totalVol = 0;
+        dateTrades.forEach(t => totalVol += getVdTradeValue(t));
+        const color = totalVol >= 0 ? '#3fb950' : '#f85149';
         
         const dobj = new Date(date + 'T00:00:00');
         const dateStr = !isNaN(dobj) ? `${dobj.toLocaleString('default', { month: 'short' })} ${dobj.getDate()}` : date;
-        const pnlStr = '₹' + Math.abs(Math.round(totalPnl)).toLocaleString('en-IN');
+        const prefix = vdState.mtmValueType === 'pt' ? '' : '₹';
+        const formattedVal = Math.abs(Math.round(totalVol)).toLocaleString('en-IN');
+        const displayVal = `${totalVol < 0 ? '-' : ''}${prefix}${formattedVal}`;
         
         thumbWrap.innerHTML = `
             <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700;">
                 <span style="color:var(--text3);">${dateStr}</span>
-                <span class="mini-pnl-val" data-orig="${totalPnl < 0 ? '-' : ''}${pnlStr}" style="color:${color};">${totalPnl < 0 ? '-' : ''}${pnlStr}</span>
+                <span class="mini-pnl-val" data-orig="${displayVal}" style="color:${color};">${displayVal}</span>
             </div>
             <div class="mini-mtm-svg-container" style="width:100%; height:80px; position:relative; overflow:hidden;"></div>
             <div class="mini-mtm-info" style="font-size:8px; color:var(--text3); opacity:0.6; margin-top:-2px;">${dateTrades.length} Trades</div>
@@ -740,7 +819,7 @@ function renderVdMiniMtmChart(container, trades, color, date) {
     let run = 0;
     const trajData = [{ val: 0, inst: 'Start', trade: null }];
     trades.forEach(t => {
-        run += (getTradePnl(t) || 0);
+        run += getVdTradeValue(t);
         trajData.push({ val: run, inst: t.Symbol || t.Instrument || '', trade: t });
     });
 
@@ -810,7 +889,8 @@ function renderVdMiniMtmChart(container, trades, color, date) {
 
         if (pnlVal) {
             const val = Math.round(closest.val);
-            pnlVal.textContent = '₹' + (val < 0 ? '-' : '') + Math.abs(val).toLocaleString('en-IN');
+            const prefix = vdState.mtmValueType === 'pt' ? '' : '₹';
+            pnlVal.textContent = (val < 0 ? '-' : '') + prefix + Math.abs(val).toLocaleString('en-IN');
             pnlVal.style.color = val >= 0 ? '#3fb950' : '#f85149';
         }
     };
@@ -849,4 +929,21 @@ function renderVdMiniMtmChart(container, trades, color, date) {
             pnlVal.style.color = isNeg ? '#f85149' : '#3fb950';
         }
     };
+}
+
+function setVdMtmMonthFilter(m) {
+    vdState.mtmMonthFilter = m;
+    // If not 'all', sync global month too? 
+    // Usually user expects the whole dashboard to reflect what they clicked
+    if (m !== 'all') {
+        vdState.month = m;
+        vdState.view = 'month';
+        syncVdSelects();
+        renderVisualDashboard();
+    } else {
+        // If switching back to ALL, maybe switch to year view?
+        vdState.view = 'year';
+        syncVdSelects();
+        renderVisualDashboard();
+    }
 }

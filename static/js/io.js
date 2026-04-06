@@ -15,8 +15,10 @@
 function _resetUploadProgress() {
   const el = document.getElementById('upload-progress');
   const bar = document.getElementById('upload-progress-bar');
+  const txt = document.getElementById('upload-progress-text');
   if (el) el.style.display = 'none';
   if (bar) bar.style.width = '0%';
+  if (txt) txt.textContent = '';
 }
 
 function openUploadModal(rowIdx) {

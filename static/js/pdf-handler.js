@@ -10,6 +10,8 @@ const PdfHandler = (() => {
   let pageCanvases = [];
   let currentFileName = '';
   let currentFile = null;
+  let sortCol = 'timestamp'; // 'name', 'timestamp', 'size'
+  let sortDir = -1; // 1 = asc, -1 = desc (desc default for date)
 
   function init() {
     console.log('[PdfHandler] Initializing...');
@@ -58,6 +60,14 @@ const PdfHandler = (() => {
     if (viewerDoneBtn) viewerDoneBtn.onclick = () => importSelected();
 
     if (listCloseBtn) listCloseBtn.onclick = () => closeListModal();
+
+    // Bind Header Sorting
+    const hName = document.querySelector('.pdf-head-name');
+    const hDate = document.querySelector('.pdf-head-date');
+    const hSize = document.querySelector('.pdf-head-size');
+    if (hName) hName.onclick = () => toggleSort('name');
+    if (hDate) hDate.onclick = () => toggleSort('timestamp');
+    if (hSize) hSize.onclick = () => toggleSort('size');
 
     // Direct PDF upload (store file only, no page preview)
     const listUploadBtn = document.getElementById('pdf-list-upload-btn');
@@ -325,6 +335,22 @@ const PdfHandler = (() => {
 
     if (listCount) listCount.textContent = `${serverPdfs.length} File${serverPdfs.length !== 1 ? 's' : ''}`;
 
+    // Apply Sorting
+    serverPdfs.sort((a, b) => {
+      let valA = a[sortCol];
+      let valB = b[sortCol];
+      
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      
+      if (valA < valB) return -1 * sortDir;
+      if (valA > valB) return 1 * sortDir;
+      return 0;
+    });
+
+    // Update Header Arrows
+    updateHeaderArrows();
+
     if (serverPdfs.length === 0) {
       listBody.innerHTML = `
         <div class="pdf-empty-state">
@@ -339,28 +365,89 @@ const PdfHandler = (() => {
 
     listBody.innerHTML = serverPdfs.map((pdf) => {
       const sizeMB = (pdf.size / 1024 / 1024).toFixed(2);
-      const dateStr = new Date(pdf.timestamp).toLocaleString();
+      const d = new Date(pdf.timestamp);
+      const dateStr = d.toLocaleDateString() + ', ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const safeName = pdf.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const safeFilename = encodeURIComponent(pdf.filename);
+      
       return `
         <div class="pdf-item-row">
-          <div class="pdf-item-icon">📄</div>
-          <div class="pdf-item-info">
-            <div class="pdf-item-name">${safeName}</div>
-            <div class="pdf-item-meta">
-              <span>💾 ${sizeMB} MB</span>
-              <span>🕒 ${dateStr}</span>
+          <div class="pdf-item-icon" style="font-size: 1.2rem;">📄</div>
+          <div class="pdf-item-name" title="${safeName}">${safeName}</div>
+          <div class="pdf-item-date">${dateStr}</div>
+          <div class="pdf-item-size">${sizeMB} MB</div>
+          <div class="pdf-menu-container">
+            <button class="pdf-menu-btn" onclick="event.stopPropagation(); PdfHandler.togglePdfMenu(this)">⋮</button>
+            <div class="pdf-dropdown-menu">
+              <a class="pdf-menu-item" href="${pdf.url}" target="_blank">
+                <span>👁️</span> View
+              </a>
+              <a class="pdf-menu-item" href="${pdf.url}" download="${safeName}">
+                <span>⬇️</span> Download
+              </a>
+              <div class="pdf-menu-item delete" onclick="PdfHandler.deletePdfFile('${safeFilename}', this)">
+                <span>🗑️</span> Delete
+              </div>
             </div>
-          </div>
-          <div class="pdf-item-actions">
-            <a class="pdf-action-btn view" href="${pdf.url}" target="_blank" title="Open PDF">👁️ View</a>
-            <a class="pdf-action-btn view" href="${pdf.url}" download="${safeName}" title="Download PDF">⬇️ Download</a>
-            <button class="pdf-action-btn delete" onclick="PdfHandler.deletePdfFile('${safeFilename}', this)" title="Delete PDF">🗑️ Delete</button>
           </div>
         </div>
       `;
     }).join('');
   }
+
+  function toggleSort(col) {
+    if (sortCol === col) {
+      sortDir *= -1;
+    } else {
+      sortCol = col;
+      sortDir = (col === 'timestamp' ? -1 : 1); // Default to desc for dates, asc for others
+    }
+    renderPdfList();
+  }
+
+  function updateHeaderArrows() {
+    const heads = {
+      name: document.querySelector('.pdf-head-name'),
+      timestamp: document.querySelector('.pdf-head-date'),
+      size: document.querySelector('.pdf-head-size')
+    };
+    
+    Object.keys(heads).forEach(k => {
+      if (!heads[k]) return;
+      // Remove existing arrow if any
+      const existing = heads[k].querySelector('.sort-arrow');
+      if (existing) existing.remove();
+      
+      if (k === sortCol) {
+        const arrow = document.createElement('span');
+        arrow.className = 'sort-arrow';
+        arrow.style.marginLeft = '8px';
+        arrow.style.fontSize = '0.7rem';
+        arrow.style.color = 'var(--blue, #58a6ff)';
+        arrow.textContent = sortDir === 1 ? '▲' : '▼';
+        heads[k].appendChild(arrow);
+      }
+    });
+  }
+
+  function togglePdfMenu(btn) {
+    const menu = btn.nextElementSibling;
+    const isVisible = menu.classList.contains('show');
+    
+    // Close all other menus first
+    document.querySelectorAll('.pdf-dropdown-menu').forEach(m => m.classList.remove('show'));
+    
+    if (!isVisible) {
+      menu.classList.add('show');
+    }
+  }
+
+  // Global click listener to close dropdowns
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.pdf-menu-container')) {
+      document.querySelectorAll('.pdf-dropdown-menu').forEach(m => m.classList.remove('show'));
+    }
+  });
 
   async function deletePdfFile(encodedFilename, btnEl) {
     if (!confirm('Delete this PDF file permanently?')) return;
@@ -383,7 +470,8 @@ const PdfHandler = (() => {
     init,
     deletePdfFile,
     openListModal,
-    closeListModal
+    closeListModal,
+    togglePdfMenu
   };
 
   // Assign to window for global access

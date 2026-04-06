@@ -26081,35 +26081,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117889/trading_journal/bc06c29f-485b-4bb5-a406-cb4f683f9e78.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117891/trading_journal/85108bfa-4970-46cb-b426-df706b19dbcd.png"
       ],
-      "newsImages": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477423/trading_journal/3df87433-19e9-48d1-aa2e-a8c21fe1327c.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477426/trading_journal/fe337845-b740-459b-959f-aa6e0016a0ad.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477426/trading_journal/ba4d6d70-9dfb-4d26-aa4f-71880f832a97.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477426/trading_journal/5671646f-8331-4fab-9127-957938e0266a.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477426/trading_journal/ac8debf8-d207-402a-8a4f-21862f0a9432.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477426/trading_journal/beefeed4-d36b-4c0e-baac-5fbac994058e.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477425/trading_journal/4b082bbe-26b0-4bc1-9244-8ecf04ca4262.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477426/trading_journal/65b26332-8df2-49ff-baed-e17726d9205c.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477427/trading_journal/2135a17e-daff-445f-a340-ccbadfdcae46.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477427/trading_journal/2e986332-9a87-43b2-bd98-070a3f097615.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477428/trading_journal/211641c3-6de8-4a5c-8fc2-ca588f781f17.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477430/trading_journal/a8ff762c-bc92-4c70-a0f6-fb4e976e29d3.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477430/trading_journal/3c68ce7e-56c8-492e-aef3-1ad299879021.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477430/trading_journal/267172a7-8125-4152-abb4-3469679f8980.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477431/trading_journal/c521f865-3c65-451c-bd9b-9d64d0424fc3.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477434/trading_journal/bad0e9c6-fa7e-4b37-802d-576d2f0f35a8.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477432/trading_journal/13bdd8a1-ed79-4d23-b26d-deb1957e9d11.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477432/trading_journal/dad2acfc-fbad-448a-b634-5783d4953159.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477431/trading_journal/f87a416b-6f9a-4942-a81e-5f4778d923d3.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477432/trading_journal/e79fa140-ab65-4286-9aef-97c3e3cd3acb.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477437/trading_journal/411cb290-9765-422d-904a-56ba70202a8e.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477435/trading_journal/4d450859-7a7b-45b4-b8ee-813ae153134e.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477435/trading_journal/95596f2d-ad67-448a-a926-7a70ba385720.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477433/trading_journal/f823831f-5a4d-447a-8ff8-e1b9d5c0e1a2.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477430/trading_journal/9de2d4ed-2837-4cec-b2b9-5fd412f05763.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477429/trading_journal/c040b41f-38a4-4c66-b069-2c59aae8ffa1.jpg",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775477430/trading_journal/6d8188e6-4d32-490f-bc9d-5d7284b87a0d.jpg"
-      ]
+      "newsImages": []
     },
     "2026-04-06": {
       "closeImages": [
@@ -26165,13 +26137,13 @@
   },
   "importedPdfs": [
     {
-      "name": "dashboard_export_pintu.pdf",
       "date": "2026-04-06",
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775485386/trading_journal/3e2d4fad-3bb4-4757-8d48-d73fd8c5b43f.jpg",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775485388/trading_journal/161c3586-aa70-4ff2-992d-a8a4c91e78b1.jpg",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775485388/trading_journal/1cb7d102-aa0c-40db-9130-81e509b36770.jpg"
       ],
+      "name": "dashboard_export_pintu.pdf",
       "timestamp": 1775485390275
     }
   ],
