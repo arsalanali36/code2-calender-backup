@@ -82,6 +82,9 @@ def add_cors(response):
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Api-Key'
         response.headers['Vary'] = 'Origin'
+    # Long cache for versioned static assets (?v=CACHE_BUST guarantees freshness on change)
+    if request.path.startswith('/static/') and request.args.get('v'):
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     return response
 
 @app.before_request

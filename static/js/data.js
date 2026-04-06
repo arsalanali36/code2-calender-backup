@@ -10,6 +10,73 @@
  * @calls render, fetch /api/trades (GET + POST)
  */
 
+// ── BroadcastChannel tab sync ─────────────────────────────────────────────────
+// Lets a new tab receive state from an already-loaded tab instantly,
+// skipping the server fetch when opened via a deep link (e.g. PDF View Source).
+const _TJ_CHANNEL = typeof BroadcastChannel !== 'undefined'
+  ? new BroadcastChannel('tj_tab_sync') : null;
+
+if (_TJ_CHANNEL) {
+  _TJ_CHANNEL.addEventListener('message', ev => {
+    if (ev.data?.type === 'REQUEST_DATA' && state.trades?.length) {
+      _TJ_CHANNEL.postMessage({
+        type: 'DATA_RESPONSE',
+        trades:      state.trades,
+        columns:     state.columns,
+        allTags:     state.allTags,
+        tagColumns:  state.tagColumns,
+        userColumns: state.userColumns,
+        dayData:     state.dayData,
+        tagGroups:   state.tagGroups,
+      });
+    }
+  });
+}
+
+function _tryGetDataFromBroadcast() {
+  return new Promise(resolve => {
+    if (!_TJ_CHANNEL) { resolve(null); return; }
+    let done = false;
+    function handler(ev) {
+      if (ev.data?.type === 'DATA_RESPONSE' && !done) {
+        done = true;
+        _TJ_CHANNEL.removeEventListener('message', handler);
+        resolve(ev.data);
+      }
+    }
+    _TJ_CHANNEL.addEventListener('message', handler);
+    _TJ_CHANNEL.postMessage({ type: 'REQUEST_DATA' });
+    setTimeout(() => {
+      if (!done) {
+        done = true;
+        _TJ_CHANNEL.removeEventListener('message', handler);
+        resolve(null);
+      }
+    }, 350);
+  });
+}
+
+function _applyBroadcastData(data) {
+  state.trades      = data.trades      || [];
+  state.columns     = data.columns     || [];
+  state.allTags     = data.allTags     || [];
+  IMAGE_PERMANENT_TAGS.forEach(t => { if (!state.allTags.includes(t)) state.allTags.push(t); });
+  state.tagColumns  = Array.isArray(data.tagColumns)  ? data.tagColumns  : [];
+  state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+  state.dayData     = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
+  state.tagGroups   = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+  syncTagColumnRegistry();
+  state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
+  syncImageTagColumnValues();
+  saveTagGroups();
+  syncAllTradeDates();
+  state.serverStateHash = hashServerState(data);
+  initShowHeads();
+  initTableShowCols();
+  render();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function init() {
   loadSettingsFromStorage();
   loadShortcutsFromStorage();
@@ -20,7 +87,16 @@ async function init() {
   populateSelects();
   renderDashboardStatsMenu();
   bindEvents();
-  await loadTrades();
+
+  // Deep-link tab (opened from PDF/external link): try sibling tab first
+  const hasDeepLink = new URLSearchParams(window.location.search).has('galleryDate');
+  let loadedFromBroadcast = false;
+  if (hasDeepLink) {
+    const cached = await _tryGetDataFromBroadcast();
+    if (cached) { _applyBroadcastData(cached); loadedFromBroadcast = true; }
+  }
+  if (!loadedFromBroadcast) await loadTrades();
+
   _openGalleryFromUrlParamsOnce();
   setInterval(() => {
     if (!document.hidden) syncFromServerIfChanged(false);
