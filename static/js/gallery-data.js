@@ -134,13 +134,14 @@ function getCurrentGalleryImageTagInfo() {
   let imageTags = getImageTagsForUrl(trade, imgUrl);
   if (!trade && imgUrl) {
     dateKey = normalizeDate(state.gallery.date || '');
-    if (!dateKey || !(state.dayData[dateKey]?.images || []).includes(imgUrl)) {
+    const _inDayImages = (dk) => (state.dayData[dk]?.images || []).includes(imgUrl) || (state.dayData[dk]?.closeImages || []).includes(imgUrl);
+    if (!dateKey || !_inDayImages(dateKey)) {
       const fromMeta = state.gallery._filteredMeta && state.gallery._filteredMeta[state.gallery.currentIndex];
       dateKey = normalizeDate(fromMeta?.date || dateKey || '');
     }
     if (!dateKey) {
       for (const [d, v] of Object.entries(state.dayData || {})) {
-        if ((v?.images || []).includes(imgUrl)) { dateKey = d; break; }
+        if ((v?.images || []).includes(imgUrl) || (v?.closeImages || []).includes(imgUrl)) { dateKey = d; break; }
       }
     }
     if (dateKey) {

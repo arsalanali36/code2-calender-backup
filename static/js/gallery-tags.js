@@ -141,7 +141,8 @@ function renderGalleryTagsTray() {
     });
   });
   Object.entries(state.dayData || {}).forEach(([dateKey, day]) => {
-    (day?.images || []).forEach(url => {
+    const allDayUrls = [...(day?.images || []), ...(day?.closeImages || [])];
+    allDayUrls.forEach(url => {
       getDayImageTagsForUrl(dateKey, url).forEach(bumpTagCount);
       const boxes = day?.marqueeBoxes?.[url];
       (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
@@ -361,11 +362,25 @@ function renderGalleryTagsTray() {
               }
             }
           }
+        },
+        {
+          label: (state.gallery.managerTags || []).includes(tag) ? '❌ Hide from manager' : '📊 Show in manager', 
+          action: () => {
+            if (!state.gallery.managerTags) state.gallery.managerTags = [];
+            const idx = state.gallery.managerTags.indexOf(tag);
+            if (idx === -1) state.gallery.managerTags.push(tag);
+            else state.gallery.managerTags.splice(idx, 1);
+            saveTagGroups(); // Persist manager tags choice too
+            showToast(tag + (idx === -1 ? ' added to' : ' removed from') + ' manager', 'success');
+            if (document.getElementById('img-manager-modal')?.style.display === 'flex') {
+              renderImageManagerTable();
+            }
+          }
         }
       ];
       if (availableGroups.length) {
         items.push('sep');
-        items.push({ header: 'Move to group:' });
+        items.push({ header: 'MOVE TO GROUP:' });
         availableGroups.forEach(g => items.push({ label: '→ ' + g, action: () => moveTagToGroup(tag, g) }));
       }
       if (inGroups.length) {

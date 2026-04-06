@@ -205,12 +205,18 @@ function loadTagGroups() {
     if (saved && typeof saved === 'object') state.tagGroups = saved;
     const imgs = JSON.parse(localStorage.getItem('tj_tagImages') || '{}');
     if (imgs && typeof imgs === 'object') state.tagImages = imgs;
+    const mTags = JSON.parse(localStorage.getItem('tj_managerTags') || '[]');
+    if (Array.isArray(mTags)) state.gallery.managerTags = mTags;
+    const mSort = localStorage.getItem('tj_managerSortDir') || 'desc';
+    state.gallery.managerSortDir = mSort;
   } catch (e) { }
 }
 function saveTagGroups() {
   try { 
     localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); 
     localStorage.setItem('tj_tagImages', JSON.stringify(state.tagImages));
+    localStorage.setItem('tj_managerTags', JSON.stringify(state.gallery.managerTags || []));
+    localStorage.setItem('tj_managerSortDir', state.gallery.managerSortDir || 'desc');
   } catch (e) { }
 }
 

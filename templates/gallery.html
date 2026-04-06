@@ -8,6 +8,7 @@
       <button class="gv2-tray-back-btn" id="gallery-close" title="Close (Esc)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M10 3L5 8l5 5"/></svg>
       </button>
+      <span class="gv2-grid-title gv2-grid-only" style="display:none; margin-left:12px;">Organized Grid View</span>
     </div>
 
     <div class="gv2-tray-center" id="gv2-tray-center">
@@ -53,9 +54,22 @@
       <div class="gv2-target-btn-wrap" id="gv2-target-btn-wrap" style="position:relative;">
         <button class="gv2-target-pill" id="gv2-target-pill" title="Open Target Tracker">🎯</button>
       </div>
+      <div class="gv2-target-btn-wrap" id="gv2-img-manager-btn-wrap" style="position:relative;">
+        <button class="gv2-target-pill" id="gv2-img-manager-btn" title="Open Image Manager" style="background:var(--blue); border-color:var(--blue); margin-left:4px;">📊</button>
+      </div>
+
+      <!-- Grid Size Slider (shown only when Grid View is open) -->
+      <div class="gv2-tray-sep gv2-grid-only" style="display:none"></div>
+      <div class="gv2-grid-size-ctrl gv2-grid-only" id="gv2-tray-size-ctrl" style="display:none">
+        <span class="gv2-grid-sz-icon">SIZE</span>
+        <input type="range" id="gv2-grid-size-slider-tray" min="100" max="450" value="220" title="Adjust thumbnail size" />
+      </div>
     </div>
 
     <div class="gv2-tray-right">
+      <button class="gv2-grid-close-btn gv2-grid-only" id="gv2-grid-close-btn-tray" title="Close Grid View (G)" style="display:none; margin-right:8px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 4L4 12M4 4l8 8"/></svg>
+      </button>
       <button class="gv2-exit-btn" id="gv2-exit-btn" title="Exit Gallery (Esc)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 4L4 12M4 4l8 8"/></svg>
       </button>
@@ -250,6 +264,13 @@
       <button class="gv2-sb-btn gv2-thumb-toggle-btn" id="gv2-thumb-toggle-btn" title="Thumbnails (G)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
       </button>
+      <button class="gv2-sb-btn" id="gv2-grid-btn" title="Grid View (All Images)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+          <rect x="1" y="1" width="3.2" height="3.2" rx="0.5"/><rect x="6.4" y="1" width="3.2" height="3.2" rx="0.5"/><rect x="11.8" y="1" width="3.2" height="3.2" rx="0.5"/>
+          <rect x="1" y="6.4" width="3.2" height="3.2" rx="0.5"/><rect x="6.4" y="6.4" width="3.2" height="3.2" rx="0.5"/><rect x="11.8" y="6.4" width="3.2" height="3.2" rx="0.5"/>
+          <rect x="1" y="11.8" width="3.2" height="3.2" rx="0.5"/><rect x="6.4" y="11.8" width="3.2" height="3.2" rx="0.5"/><rect x="11.8" y="11.8" width="3.2" height="3.2" rx="0.5"/>
+        </svg>
+      </button>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers (L)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 11l6 3 6-3M2 7l6 3 6-3M8 2L2 5l6 3 6-3-6-3z"/></svg>
       </button>
@@ -356,6 +377,24 @@
       </div>
       <div id="gv2-tags-tray-fixed"></div>
       <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
+    </div>
+
+    <!-- ── GRID VIEW (All images organized by trade) ── -->
+    <div class="gv2-grid-view" id="gv2-grid-view" style="display:none">
+      <div class="gv2-grid-hdr">
+        <div class="gv2-grid-hdr-left">
+          <span class="gv2-grid-title">Organized Grid View</span>
+        </div>
+        <div class="gv2-grid-hdr-center"></div>
+        <div class="gv2-grid-hdr-right">
+          <button class="gv2-grid-close-btn" id="gv2-grid-close-btn" title="Close Grid View (Esc)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 4L4 12M4 4l8 8"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="gv2-grid-body" id="gv2-grid-body">
+        <!-- Rendered groups here -->
+      </div>
     </div>
 
   </div><!-- /gv2-body -->

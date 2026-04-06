@@ -845,8 +845,12 @@ function renderGallery() {
   // Rubber-band selection + pan — delegated to gallery-rubberband.js
   bindGalleryRubberbandAndPan(thumbs);
 
-  // Cross-window sync if not triggered by an incoming sync message
   if (!state._isSyncUpdate && typeof syncGalleryToOthers === 'function') {
     syncGalleryToOthers();
+  }
+
+  // REFRESH GRID VIEW IF OPEN
+  if (typeof isGridViewOpen === 'function' && isGridViewOpen() && typeof renderGridContent === 'function') {
+    renderGridContent();
   }
 }

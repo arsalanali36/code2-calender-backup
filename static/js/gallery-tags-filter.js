@@ -53,7 +53,8 @@ function renderGalleryTagFilterPanel() {
         });
     });
     Object.entries(state.dayData || {}).forEach(([dateKey, day]) => {
-        (day?.images || []).forEach(url => {
+        const allDayUrls = [...(day?.images || []), ...(day?.closeImages || [])];
+        allDayUrls.forEach(url => {
             getDayImageTagsForUrl(dateKey, url).forEach(bumpTagCount);
             const boxes = day?.marqueeBoxes?.[url];
             (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));

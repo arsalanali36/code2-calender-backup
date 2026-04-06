@@ -34,6 +34,7 @@ function openGalleryForDate(dateStr, targetImgUrl = null) {
   
   lockBodyScroll();
   document.getElementById('gallery-modal').classList.add('open');
+  if (typeof toggleGridView === 'function') toggleGridView(false);
   renderGallery(); 
   updateGalleryDateArrows();
   renderGalleryTagCloud(); renderGalleryTagsTray(); renderGalleryTagFilterPanel();

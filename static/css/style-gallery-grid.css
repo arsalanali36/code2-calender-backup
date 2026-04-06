@@ -1,0 +1,248 @@
+/* ── GRID VIEW (FULL PAGE OVERLAY) ── */
+.gv2-grid-view {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  animation: gridFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  padding-top: 60px; /* Space for the floating tray turned header */
+}
+
+@keyframes gridFadeIn {
+  from { opacity: 0; transform: scale(1.02); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Tray Header Adaptation for Grid ── */
+.gv2-tray {
+  z-index: 2000 !important; /* Always on top */
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gv2-modal.grid-open .gv2-tray {
+  top: 0;
+  padding: 8px 12px;
+  background: #0d0d0f;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+  left: 0;
+}
+
+.gv2-modal.grid-open .gv2-tray-center {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding: 0;
+  gap: 12px;
+}
+
+.gv2-modal.grid-open .gv2-grid-only {
+  display: flex !important;
+}
+
+/* Hide main Exit button when Grid is open, use Grid Close instead */
+.gv2-modal.grid-open .gv2-exit-btn {
+  display: none !important;
+}
+
+.gv2-grid-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--blue);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gv2-grid-hdr {
+  display: none; /* Use main tray instead */
+}
+
+/* ── Grid Close Button (Tray) ── */
+.gv2-grid-close-btn {
+  background: rgba(255, 255, 255, 0.08); /* Matches other tray icons */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px; /* Align with tray-center elements */
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gv2-grid-close-btn:hover {
+  background: rgba(248, 81, 73, 0.18);
+  border-color: rgba(248, 81, 73, 0.4);
+  color: #ff6b6b;
+  transform: translateY(-1px);
+}
+
+/* ── Grid Body ── */
+.gv2-grid-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  scroll-behavior: smooth;
+}
+
+.gv2-grid-sz-icon {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+#gv2-grid-size-slider {
+  width: 200px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.gv2-grid-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text2);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.gv2-grid-close-btn:hover {
+  background: rgba(248, 81, 73, 0.15);
+  color: #ff6b6b;
+  border-color: rgba(248, 81, 73, 0.3);
+}
+
+.gv2-grid-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  scroll-behavior: smooth;
+}
+
+/* ── Grid Groups ── */
+.gv2-grid-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gv2-grid-group-hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border2);
+}
+
+.gv2-grid-group-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffd700;
+}
+
+.gv2-grid-group-pnl {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gv2-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-img-size, 220px), 1fr));
+  gap: 16px;
+}
+
+.gv2-grid-item {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: var(--surface2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gv2-grid-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: var(--blue);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--blue);
+}
+
+.gv2-grid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
+}
+
+.gv2-grid-item:hover .gv2-grid-img {
+  filter: brightness(1.1);
+}
+
+.gv2-grid-item-meta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gv2-grid-item:hover .gv2-grid-item-meta {
+  opacity: 1;
+}
+
+.gv2-grid-time {
+  font-size: 0.7rem;
+  color: #eee;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Scrollbar Style */
+.gv2-grid-body::-webkit-scrollbar {
+  width: 8px;
+}
+.gv2-grid-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.gv2-grid-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+.gv2-grid-body::-webkit-scrollbar-thumb:hover {
+  background: var(--border2);
+}

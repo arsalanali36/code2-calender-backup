@@ -66,6 +66,9 @@ function getAllGalleryImagesAcrossDates() {
       if (normalizeDate(extractDateFromTrade(t)) !== d) continue;
       (t.images || []).forEach(url => out.push({ url, date: d, sourceRow: i }));
     }
+    (state.dayData[d]?.closeImages || []).forEach(url => {
+      out.push({ url, date: d, sourceRow: null });
+    });
   });
   return out;
 }
@@ -137,6 +140,7 @@ function findGalleryContextByImageUrl(imageUrl) {
   }
   for (const [d, v] of Object.entries(state.dayData || {})) {
     if ((v?.images || []).includes(imageUrl)) return { date: d, sourceRow: null };
+    if ((v?.closeImages || []).includes(imageUrl)) return { date: d, sourceRow: null };
   }
   return { date: '', sourceRow: null };
 }
