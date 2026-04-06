@@ -159,6 +159,7 @@ function renderVisualDashboard() {
     updateVdRangeLabel();
 
     const trades = getVdTrades();
+    renderVdMtmThumbs(trades);
 
     // Basic metrics
     let totalWin = 0;
@@ -646,4 +647,181 @@ function renderVisualDashboard() {
     applyVdCardWidths(true);
 }
 
-// Ensure parsing PNL dynamically works safely
+// ── DAILY MTM THUMBS (GRID OF MINI SVG CHARTS) ───────────────────────────
+function renderVdMtmThumbs(trades) {
+    const grid = document.getElementById('vd-mtm-thumbs-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    if (!trades || trades.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text3); font-size:12px; padding:10px;">No trades to display</div>';
+        return;
+    }
+
+    // Group by Date
+    const dateMap = new Map();
+    trades.forEach(t => {
+        const d = normalizeDate(extractDateFromTrade(t));
+        if (d) {
+            if (!dateMap.has(d)) dateMap.set(d, []);
+            dateMap.get(d).push(t);
+        }
+    });
+
+    const dates = Array.from(dateMap.keys()).sort().reverse();
+
+    dates.forEach(date => {
+        const dateTrades = dateMap.get(date);
+        const thumbWrap = document.createElement('div');
+        thumbWrap.classList.add('vd-mini-mtm-thumb');
+        thumbWrap.style.cssText = `
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border2, #30363d);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        `;
+        
+        let totalPnl = 0;
+        dateTrades.forEach(t => totalPnl += (getTradePnl(t) || 0));
+        const color = totalPnl >= 0 ? '#3fb950' : '#f85149';
+        
+        const dobj = new Date(date + 'T00:00:00');
+        const dateStr = !isNaN(dobj) ? `${dobj.toLocaleString('default', { month: 'short' })} ${dobj.getDate()}` : date;
+        const pnlStr = '₹' + Math.abs(Math.round(totalPnl)).toLocaleString('en-IN');
+        
+        thumbWrap.innerHTML = `
+            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700;">
+                <span style="color:var(--text3);">${dateStr}</span>
+                <span class="mini-pnl-val" data-orig="${totalPnl < 0 ? '-' : ''}${pnlStr}" style="color:${color};">${totalPnl < 0 ? '-' : ''}${pnlStr}</span>
+            </div>
+            <div class="mini-mtm-svg-container" style="width:100%; height:80px; position:relative; overflow:hidden;"></div>
+            <div class="mini-mtm-info" style="font-size:8px; color:var(--text3); opacity:0.6; margin-top:-2px;">${dateTrades.length} Trades</div>
+        `;
+
+        thumbWrap.addEventListener('mouseenter', () => {
+            thumbWrap.style.transform = 'translateY(-3px)';
+            thumbWrap.style.background = 'rgba(255,255,255,0.06)';
+            thumbWrap.style.borderColor = 'var(--blue, #58a6ff)';
+            thumbWrap.style.boxShadow = '0 4px 15px rgba(0,0,0,0.4)';
+        });
+        thumbWrap.addEventListener('mouseleave', () => {
+            thumbWrap.style.transform = 'translateY(0)';
+            thumbWrap.style.background = 'rgba(0,0,0,0.25)';
+            thumbWrap.style.borderColor = 'var(--border2, #30363d)';
+            thumbWrap.style.boxShadow = 'none';
+        });
+
+        thumbWrap.onclick = () => {
+             if (typeof state !== 'undefined') {
+                state.gallery.date = date;
+                if (typeof window.openUnifiedGallery === 'function') window.openUnifiedGallery(date);
+                else if (typeof renderGallery === 'function') renderGallery();
+            }
+        };
+
+        grid.appendChild(thumbWrap);
+
+        const container = thumbWrap.querySelector('.mini-mtm-svg-container');
+        renderVdMiniMtmChart(container, dateTrades, color);
+    });
+}
+
+function renderVdMiniMtmChart(container, trades, color) {
+    if (!container) return;
+    const w = container.clientWidth || 130;
+    const h = 80;
+    
+    let run = 0;
+    const trajData = [{ val: 0, inst: 'Start' }];
+    trades.forEach(t => {
+        run += (getTradePnl(t) || 0);
+        trajData.push({ val: run, inst: t.Symbol || t.Instrument || '' });
+    });
+
+    const trajArr = trajData.map(d => d.val);
+    const min = Math.min(...trajArr);
+    const max = Math.max(...trajArr);
+    const range = (max - min) || 1;
+    const pad = 10;
+
+    const pts = trajData.map((d, i) => {
+        const x = (i / (trajData.length - 1)) * w;
+        const y = h - pad - ((d.val - min) / range) * (h - (pad * 2));
+        return { x, y, ...d };
+    });
+
+    const pathData = pts.map((p, i) => (i === 0 ? 'M' : 'L') + `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const zeroY = h - pad - ((0 - min) / range) * (h - (pad * 2));
+    const gradId = 'mini-grad-' + Math.random().toString(36).substr(2, 9);
+    
+    container.innerHTML = `
+        <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;">
+            <defs>
+                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:${color}; stop-opacity:0.2" />
+                    <stop offset="100%" style="stop-color:${color}; stop-opacity:0" />
+                </linearGradient>
+                <filter id="mini-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="1" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            <line x1="0" y1="${zeroY}" x2="${w}" y2="${zeroY}" stroke="rgba(255,255,255,0.06)" stroke-width="1" />
+            <path d="${pathData} L${w},${h} L0,${h} Z" fill="url(#${gradId})" />
+            <path d="${pathData}" stroke="${color}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#mini-glow)" />
+            <line id="mini-track-line" x1="0" y1="0" x2="0" y2="${h}" stroke="rgba(255,255,255,0.3)" stroke-width="1" style="display:none;" />
+            <circle id="mini-track-dot" r="3" fill="#fff" stroke="${color}" stroke-width="1.5" style="display:none;" />
+        </svg>
+    `;
+
+    const thumbWrap = container.closest('.vd-mini-mtm-thumb');
+    const trackLine = container.querySelector('#mini-track-line');
+    const trackDot = container.querySelector('#mini-track-dot');
+    const pnlVal = thumbWrap.querySelector('.mini-pnl-val');
+
+    container.onmousemove = (e) => {
+        const rect = container.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        
+        // Final scale adjustment if viewBox is used
+        const sx = mx * (w / rect.width);
+        
+        let closest = pts[0];
+        let minDist = Math.abs(sx - pts[0].x);
+        for(let i=1; i < pts.length; i++) {
+            const d = Math.abs(sx - pts[i].x);
+            if (d < minDist) { minDist = d; closest = pts[i]; }
+        }
+
+        if (trackLine && trackDot) {
+            trackLine.setAttribute('x1', closest.x);
+            trackLine.setAttribute('x2', closest.x);
+            trackLine.style.display = 'block';
+            trackDot.setAttribute('cx', closest.x);
+            trackDot.setAttribute('cy', closest.y);
+            trackDot.style.display = 'block';
+        }
+
+        if (pnlVal) {
+            const val = Math.round(closest.val);
+            pnlVal.textContent = '₹' + (val < 0 ? '-' : '') + Math.abs(val).toLocaleString('en-IN');
+            pnlVal.style.color = val >= 0 ? '#3fb950' : '#f85149';
+        }
+    };
+
+    container.onmouseleave = () => {
+        if (trackLine) trackLine.style.display = 'none';
+        if (trackDot) trackDot.style.display = 'none';
+        if (pnlVal) {
+            pnlVal.textContent = pnlVal.dataset.orig;
+            const isNeg = pnlVal.textContent.startsWith('-');
+            pnlVal.style.color = isNeg ? '#f85149' : '#3fb950';
+        }
+    };
+}

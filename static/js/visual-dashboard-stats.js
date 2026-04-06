@@ -24,6 +24,7 @@ function getTradePnl(t) {
 // ──────────────────────────────────────────────
 const VD_STATS = [
     { key: 'cumulative', label: 'Cumulative Performance' },
+    { key: 'mtm_thumbs', label: 'Daily MTM Curves' },
     { key: 'daily', label: 'Daily Net P/L' },
     { key: 'distribution', label: 'Strategy Distribution' },
     { key: 'profitability', label: 'Strategy Profitability' },
