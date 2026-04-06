@@ -16,6 +16,7 @@ UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', '
 TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
 VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
+PDF_DIR            = os.path.join(UPLOADS_DIR, 'pdfs')
 CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
 

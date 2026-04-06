@@ -113,5 +113,19 @@ const imageService = (() => {
     return apiClient.post('/api/delete-video', { url: videoUrl });
   }
 
-  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio, uploadVideo, deleteVideo };
+  async function uploadPdf(file) {
+    const fd = new FormData();
+    fd.append('pdf', file, file.name);
+    return apiClient.upload('/api/upload-pdf', fd);
+  }
+
+  async function listPdfs() {
+    return apiClient.get('/api/list-pdfs');
+  }
+
+  async function deletePdf(filename) {
+    return apiClient.post('/api/delete-pdf', { filename });
+  }
+
+  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio, uploadVideo, deleteVideo, uploadPdf, listPdfs, deletePdf };
 })();

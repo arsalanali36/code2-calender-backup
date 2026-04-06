@@ -78,6 +78,10 @@
       <!-- Target Tracker Manual Button -->
       <button class="btn btn-outline" id="tt-manual-btn" title="Target Tracker Dashboard" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🎯 Tracker</button>
 
+      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="margin-left:8px; display:flex; align-items:center; gap:4px;">📄 PDF Import</button>
+      <button class="btn btn-outline" id="pdf-list-btn" title="View Imported PDF List" style="margin-left:4px; display:flex; align-items:center; gap:4px;">🗂️ PDF List</button>
+      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
+
       <div class="quote-random-wrap" id="quote-random-wrap" style="margin-left:8px;">
         <button class="btn btn-outline quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup">Quote Pop</button>
         <div class="quote-random-panel" id="quote-random-panel">
@@ -527,6 +531,8 @@
   <script src="/static/js/target-tracker-weekly.js?v={{ cache_bust }}"></script>
   <script src="/static/js/target-tracker.js?v={{ cache_bust }}"></script>
   <script src="/static/js/target-tracker-init.js?v={{ cache_bust }}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="/static/js/pdf-handler.js?v={{ cache_bust }}"></script>
 </body>
 
 </html>

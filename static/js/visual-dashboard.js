@@ -728,20 +728,20 @@ function renderVdMtmThumbs(trades) {
         grid.appendChild(thumbWrap);
 
         const container = thumbWrap.querySelector('.mini-mtm-svg-container');
-        renderVdMiniMtmChart(container, dateTrades, color);
+        renderVdMiniMtmChart(container, dateTrades, color, date);
     });
 }
 
-function renderVdMiniMtmChart(container, trades, color) {
+function renderVdMiniMtmChart(container, trades, color, date) {
     if (!container) return;
     const w = container.clientWidth || 130;
     const h = 80;
     
     let run = 0;
-    const trajData = [{ val: 0, inst: 'Start' }];
+    const trajData = [{ val: 0, inst: 'Start', trade: null }];
     trades.forEach(t => {
         run += (getTradePnl(t) || 0);
-        trajData.push({ val: run, inst: t.Symbol || t.Instrument || '' });
+        trajData.push({ val: run, inst: t.Symbol || t.Instrument || '', trade: t });
     });
 
     const trajArr = trajData.map(d => d.val);
@@ -812,6 +812,31 @@ function renderVdMiniMtmChart(container, trades, color) {
             const val = Math.round(closest.val);
             pnlVal.textContent = '₹' + (val < 0 ? '-' : '') + Math.abs(val).toLocaleString('en-IN');
             pnlVal.style.color = val >= 0 ? '#3fb950' : '#f85149';
+        }
+    };
+
+    container.onclick = (e) => {
+        e.stopPropagation();
+        const rect = container.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const sx = mx * (w / rect.width);
+        
+        let closest = pts[0];
+        let minDist = Math.abs(sx - pts[0].x);
+        for(let i=1; i < pts.length; i++) {
+            const d = Math.abs(sx - pts[i].x);
+            if (d < minDist) { minDist = d; closest = pts[i]; }
+        }
+
+        if (closest && closest.trade) {
+            const img = (closest.trade.images && closest.trade.images.length > 0) ? closest.trade.images[0] : null;
+            if (typeof openGalleryForDate === 'function') {
+                openGalleryForDate(date, img);
+            }
+        } else {
+            if (typeof openGalleryForDate === 'function') {
+                openGalleryForDate(date);
+            }
         }
     };
 

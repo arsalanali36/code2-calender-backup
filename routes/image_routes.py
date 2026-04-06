@@ -4,13 +4,17 @@ routes/image_routes.py
 API routes for image upload, delete, clipboard copy, timestamps,
 and serving uploaded files.
 """
+import os
+import uuid
+import time
+
 from flask import Blueprint, request, jsonify, send_from_directory, Response
 from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
 
@@ -202,10 +206,72 @@ def delete_tag_image():
     url = data.get('url', '')
     if not url or 'tag_images' not in url:
         return jsonify({'error': 'Invalid URL'}), 400
-    
+
     import os
     fname = url.split('/')[-1]
     fpath = os.path.join(UPLOADS_DIR, 'tag_images', fname)
+    if os.path.exists(fpath):
+        os.remove(fpath)
+    return jsonify({'success': True})
+
+
+# ── PDF file storage routes ────────────────────────────────────────────────────
+
+@image_bp.route('/api/upload-pdf', methods=['POST'])
+def upload_pdf():
+    """Store the raw PDF file on the server and return its URL + metadata."""
+    if 'pdf' not in request.files:
+        return jsonify({'error': 'No pdf'}), 400
+    file = request.files['pdf']
+    if not file.filename:
+        return jsonify({'error': 'Empty filename'}), 400
+    os.makedirs(PDF_DIR, exist_ok=True)
+    original_name = secure_filename(file.filename)
+    fname = f"{uuid.uuid4().hex}_{original_name}"
+    fpath = os.path.join(PDF_DIR, fname)
+    file.save(fpath)
+    size = os.path.getsize(fpath)
+    return jsonify({
+        'url': f'/uploads/pdfs/{fname}',
+        'name': file.filename,
+        'filename': fname,
+        'size': size,
+        'timestamp': int(time.time() * 1000)
+    })
+
+
+@image_bp.route('/api/list-pdfs', methods=['GET'])
+def list_pdfs():
+    """Return metadata for all stored PDF files."""
+    os.makedirs(PDF_DIR, exist_ok=True)
+    result = []
+    for fname in os.listdir(PDF_DIR):
+        if not fname.lower().endswith('.pdf'):
+            continue
+        fpath = os.path.join(PDF_DIR, fname)
+        stat = os.stat(fpath)
+        # Original name is everything after the first underscore (uuid_ prefix)
+        parts = fname.split('_', 1)
+        display_name = parts[1] if len(parts) == 2 else fname
+        result.append({
+            'filename': fname,
+            'name': display_name,
+            'url': f'/uploads/pdfs/{fname}',
+            'size': stat.st_size,
+            'timestamp': int(stat.st_mtime * 1000)
+        })
+    result.sort(key=lambda x: x['timestamp'], reverse=True)
+    return jsonify(result)
+
+
+@image_bp.route('/api/delete-pdf', methods=['POST'])
+def delete_pdf():
+    """Permanently delete a stored PDF file."""
+    data = request.json or {}
+    filename = data.get('filename', '')
+    if not filename or '/' in filename or '\\' in filename:
+        return jsonify({'error': 'Invalid filename'}), 400
+    fpath = os.path.join(PDF_DIR, filename)
     if os.path.exists(fpath):
         os.remove(fpath)
     return jsonify({'success': True})

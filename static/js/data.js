@@ -64,6 +64,7 @@ function _applyBroadcastData(data) {
   state.tagColumns  = Array.isArray(data.tagColumns)  ? data.tagColumns  : [];
   state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
   state.dayData     = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
+  state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
   state.tagGroups   = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
   syncTagColumnRegistry();
   state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
@@ -162,6 +163,7 @@ async function loadTrades() {
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : [];
     state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
     state.dayData = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
+    state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
     state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
@@ -194,6 +196,7 @@ async function saveTrades() {
       tagColumns: state.tagColumns,
       userColumns: state.userColumns,
       dayData: state.dayData,
+      importedPdfs: state.importedPdfs,
       tagGroups: state.tagGroups
     };
     await tradeService.saveTrades(payload);
@@ -210,6 +213,7 @@ function hashServerState(data) {
       tagColumns: data?.tagColumns || [],
       userColumns: data?.userColumns || [],
       dayData: data?.dayData || {},
+      importedPdfs: data?.importedPdfs || [],
       tagGroups: data?.tagGroups || {}
     });
   } catch (e) {
@@ -246,6 +250,7 @@ async function syncFromServerIfChanged(force = false) {
     IMAGE_PERMANENT_TAGS.forEach(t => { if (!state.allTags.includes(t)) state.allTags.push(t); });
     state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : [];
     state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
     state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
     ensurePermanentColumns();
     normalizeStructuredDateColumns();

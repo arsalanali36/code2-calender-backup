@@ -161,7 +161,6 @@ function renderVdStatsMenu() {
     if (!tempVdStatsOrder) tempVdStatsOrder = getVdStatsOrder();
 
     const map = tempVdStatsMap;
-    const order = tempVdStatsOrder;
 
     const searchRow = document.createElement('div');
     searchRow.className = 'panel-search-row';
@@ -201,7 +200,7 @@ function renderVdStatsMenu() {
     const renderList = (q) => {
         list.innerHTML = '';
         const ql = (q || '').toLowerCase();
-        const items = order
+        const items = tempVdStatsOrder
             .map(k => VD_STATS.find(s => s.key === k))
             .filter(Boolean)
             .filter(s => !ql || s.label.toLowerCase().includes(ql));
@@ -247,7 +246,7 @@ function renderVdStatsMenu() {
                 const from = e.dataTransfer.getData('text/plain');
                 const to = s.key;
                 if (!from || from === to) return;
-                const newOrder = order.filter(k => k !== from);
+                const newOrder = tempVdStatsOrder.filter(k => k !== from);
                 const toIdx = newOrder.indexOf(to);
                 newOrder.splice(toIdx, 0, from);
                 tempVdStatsOrder = newOrder;
