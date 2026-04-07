@@ -258,6 +258,7 @@
   flex-direction: column;
   gap: 16px;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .quote-card {
@@ -389,6 +390,7 @@
 }
 .stats-config-list {
   overflow-y: auto; flex: 1;
+  -webkit-overflow-scrolling: touch;
   max-height: 320px;
   padding-right: 4px;
   display: grid;
@@ -526,6 +528,7 @@
   padding: 0 14px 10px;
   max-height: 200px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .preview-item {
@@ -661,6 +664,7 @@
 .settings-body {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 14px;
   display: flex;
   flex-direction: column;

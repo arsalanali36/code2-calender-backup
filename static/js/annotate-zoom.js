@@ -147,27 +147,84 @@ function bindZoomPan() {
     if (drag.active) { drag.active = false; document.getElementById('gallery-img')?.classList.remove('dragging'); }
   });
 
-  let lastDist = 0, swipeTracking = false;
+  // ─── Touch: pinch-to-zoom (toward center) + touch-pan + swipe-nav + double-tap ───
+  let lastDist = 0, lastMidX = 0, lastMidY = 0;
+  let swipeTracking = false, touchPanActive = false;
   let swipeStartX = 0, swipeStartY = 0, swipeLastX = 0, swipeLastY = 0;
+  let touchPanStartX = 0, touchPanStartY = 0;
+  let _lastTapTime = 0, _lastTapX = 0, _lastTapY = 0;
+
   wrapper.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
+      swipeTracking = false; touchPanActive = false;
       lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      swipeTracking = false; return;
-    }
-    if (e.touches.length === 1 && zoom.scale <= 1 && !annotState.active) {
-      swipeTracking = true;
-      swipeStartX = swipeLastX = e.touches[0].clientX;
-      swipeStartY = swipeLastY = e.touches[0].clientY;
+      lastMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      lastMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
       return;
     }
-    swipeTracking = false;
+    if (e.touches.length === 1) {
+      const tx = e.touches[0].clientX, ty = e.touches[0].clientY;
+      if (zoom.scale > 1 && !annotState.active) {
+        // Single-finger pan when zoomed in
+        touchPanActive = true; swipeTracking = false;
+        touchPanStartX = tx - zoom.x;
+        touchPanStartY = ty - zoom.y;
+        return;
+      }
+      if (!annotState.active) {
+        // Swipe navigation + double-tap detection
+        swipeTracking = true; touchPanActive = false;
+        swipeStartX = swipeLastX = tx;
+        swipeStartY = swipeLastY = ty;
+        // Double-tap: zoom in toward tap point, or reset if already zoomed
+        const now = Date.now();
+        if (now - _lastTapTime < 300 && Math.abs(tx - _lastTapX) < 35 && Math.abs(ty - _lastTapY) < 35) {
+          if (zoom.scale > 1) {
+            resetZoom();
+          } else {
+            const wRect = wrapper.getBoundingClientRect();
+            const pX = tx - wRect.left, pY = ty - wRect.top;
+            const newScale = 2.5;
+            zoom.x = pX - (pX / zoom.scale) * newScale;
+            zoom.y = pY - (pY / zoom.scale) * newScale;
+            zoom.scale = newScale;
+            applyZoom();
+          }
+          _lastTapTime = 0; swipeTracking = false;
+          return;
+        }
+        _lastTapTime = now; _lastTapX = tx; _lastTapY = ty;
+      }
+    }
   }, { passive: true });
+
   wrapper.addEventListener('touchmove', e => {
     if (e.touches.length === 2) {
       e.preventDefault();
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      zoom.scale = Math.min(Math.max(zoom.scale * (dist / lastDist), 1), 8);
-      lastDist = dist; applyZoom(); return;
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      // Zoom toward pinch midpoint (same math as wheel zoom toward cursor)
+      const wRect = wrapper.getBoundingClientRect();
+      const pX = midX - wRect.left, pY = midY - wRect.top;
+      const newScale = Math.min(Math.max(zoom.scale * (dist / lastDist), 1), 8);
+      if (newScale <= 1) {
+        zoom.scale = 1; zoom.x = 0; zoom.y = 0;
+      } else {
+        const imgX = (pX - zoom.x) / zoom.scale;
+        const imgY = (pY - zoom.y) / zoom.scale;
+        zoom.x = pX - imgX * newScale + (midX - lastMidX);
+        zoom.y = pY - imgY * newScale + (midY - lastMidY);
+        zoom.scale = newScale;
+      }
+      lastDist = dist; lastMidX = midX; lastMidY = midY;
+      applyZoom(); return;
+    }
+    if (touchPanActive && e.touches.length === 1) {
+      e.preventDefault();
+      zoom.x = e.touches[0].clientX - touchPanStartX;
+      zoom.y = e.touches[0].clientY - touchPanStartY;
+      applyZoom(); return;
     }
     if (swipeTracking && e.touches.length === 1) {
       swipeLastX = e.touches[0].clientX; swipeLastY = e.touches[0].clientY;
@@ -175,7 +232,9 @@ function bindZoomPan() {
       if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) e.preventDefault();
     }
   }, { passive: false });
+
   wrapper.addEventListener('touchend', () => {
+    touchPanActive = false;
     if (!swipeTracking) return;
     const dx = swipeLastX - swipeStartX, dy = swipeLastY - swipeStartY;
     swipeTracking = false;

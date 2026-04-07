@@ -7,6 +7,11 @@
   padding: 0;
 }
 
+/* Remove 300ms tap delay on all interactive elements */
+a, button, [role="button"], input, select, textarea, label {
+  touch-action: manipulation;
+}
+
 :root {
   --bg: #0d1117;
   --surface: #161b22;
@@ -120,6 +125,7 @@ body.modal-open {
   font-weight: 500;
   transition: all 0.15s;
   white-space: nowrap;
+  touch-action: manipulation;
   text-decoration: none;
 }
 
@@ -364,6 +370,7 @@ body.modal-open {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 #dev-log-btn {
@@ -563,6 +570,7 @@ body.modal-open {
 .panel-list {
   max-height: 220px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── CALENDAR GRID — TRANSPARENT ─────────────── */
@@ -975,6 +983,7 @@ body.modal-open {
   overflow-y: auto;
   max-height: calc(var(--table-head-height) + (var(--table-row-height) * var(--table-visible-rows)) + var(--table-foot-height));
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  -webkit-overflow-scrolling: touch;
 }
 
 .trade-table {
