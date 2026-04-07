@@ -31,8 +31,8 @@
           <span class="rec-icon">●</span> <span class="rec-lbl">Record</span>
         </button>
         <div id="gv2-tray-record-bars" class="gv2-tray-record-bars" style="display:none">
-          <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
-          <div class="gv2-video-bar" id="gv2-video-bar"></div>
+            <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
+            <div class="gv2-video-bar" id="gv2-video-bar"></div>
         </div>
       </div>
 
@@ -49,13 +49,15 @@
         <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-trade-dropdown"></div>
       </div>
 
-      <!-- Index / Premium filter toggle -->
+      <!-- Index / Premium filter pills (Pill Style restored for Normal View) -->
       <div class="gv2-tray-sep"></div>
-      <div style="display:flex;align-items:center;gap:2px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:20px;padding:2px 4px;">
-        <button id="gv2-imgtype-both"    onclick="setGalleryImgTypeFilter('both')"    class="gv2-imgtype-btn active" title="Show all images">Both</button>
-        <button id="gv2-imgtype-index"   onclick="setGalleryImgTypeFilter('index')"   class="gv2-imgtype-btn"        title="Show Index images only">Index</button>
-        <button id="gv2-imgtype-premium" onclick="setGalleryImgTypeFilter('premium')" class="gv2-imgtype-btn"        title="Show Premium images only">Prem</button>
+      <div class="gv2-imgtype-pills">
+        <button class="gv2-imgtype-btn active" id="gv2-imgtype-both" onclick="setGalleryImgTypeFilter('both')">Both</button>
+        <button class="gv2-imgtype-btn" id="gv2-imgtype-index" onclick="setGalleryImgTypeFilter('index')">Index</button>
+        <button class="gv2-imgtype-btn" id="gv2-imgtype-premium" onclick="setGalleryImgTypeFilter('premium')">Premium</button>
       </div>
+
+      <!-- Organized Grid Sidebar is now the control center for Grid View -->
 
       <!-- Target Tracker Button -->
       <div class="gv2-tray-sep"></div>
@@ -395,23 +397,75 @@
       <div id="gv2-tags-tray-fixed"></div>
       <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
     </div>
-
-    <!-- ── GRID VIEW (All images organized by trade) ── -->
+    <!-- ── GRID VIEW (FULL PAGE OVERLAY) ── -->
     <div class="gv2-grid-view" id="gv2-grid-view" style="display:none">
-      <div class="gv2-grid-hdr">
-        <div class="gv2-grid-hdr-left">
-          <span class="gv2-grid-title">Organized Grid View</span>
+      
+      <!-- LEFT SIDEBAR (Instagram Style) -->
+      <div class="gv2-grid-sidebar">
+        <div class="gv2-sidebar-top">
+          <div class="gv2-sidebar-logo" title="Organized Grid">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+          </div>
+
+          <div class="gv2-sidebar-nav">
+            <!-- Labels for Filters -->
+            <div class="gv2-sidebar-item" id="gv2-sidebar-filter-both" onclick="setGalleryImgTypeFilter('both')" title="Show All Images">
+              <span class="gv2-si-icon">🌐</span>
+              <span class="gv2-si-label">All Types</span>
+            </div>
+            <div class="gv2-sidebar-item" id="gv2-sidebar-filter-index" onclick="setGalleryImgTypeFilter('index')" title="Index Images Only">
+              <span class="gv2-si-icon">📖</span>
+              <span class="gv2-si-label">Index</span>
+            </div>
+            <div class="gv2-sidebar-item" id="gv2-sidebar-filter-premium" onclick="setGalleryImgTypeFilter('premium')" title="Premium Images Only">
+              <span class="gv2-si-icon">⭐</span>
+              <span class="gv2-si-label">Premium</span>
+            </div>
+
+            <div class="gv2-sidebar-sep"></div>
+
+            <!-- Rec & Wrap Tools -->
+            <div class="gv2-sidebar-item" id="gv2-sidebar-record" onclick="document.getElementById('gv2-record-toggle-btn').click()" title="Recording Tools">
+              <span class="gv2-si-icon">⏺</span>
+              <span class="gv2-si-label">Record</span>
+            </div>
+            <div class="gv2-sidebar-item" onclick="toggleGridWrap(event)" title="Toggle Wrapping">
+              <span class="gv2-si-icon">🏁</span>
+              <span class="gv2-si-label">Wrap Grid</span>
+            </div>
+          </div>
         </div>
-        <div class="gv2-grid-hdr-center"></div>
-        <div class="gv2-grid-hdr-right">
-          <button class="gv2-grid-close-btn" id="gv2-grid-close-btn" title="Close Grid View (Esc)">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 4L4 12M4 4l8 8"/></svg>
-          </button>
+
+        <div class="gv2-sidebar-bottom">
+           <div class="gv2-sidebar-item" onclick="toggleGridView(false)" title="Exit Grid View">
+              <span class="gv2-si-icon">✖</span>
+              <span class="gv2-si-label">Exit</span>
+           </div>
         </div>
       </div>
-      <div class="gv2-grid-body" id="gv2-grid-body">
-        <!-- Rendered groups here -->
+
+      <!-- MAIN CONTENT -->
+      <div class="gv2-grid-main">
+        <div class="gv2-grid-tray-simple">
+           <div class="gv2-grid-info">
+              <span id="gv2-grid-main-counter" style="color:var(--text3); font-size:12px; font-weight:700; background:rgba(255,255,255,0.05); padding:3px 8px; border-radius:6px;"></span>
+           </div>
+
+           <!-- TOP CENTER DATE NAV (Relocated from Sidebar) -->
+           <div class="gv2-grid-top-date-nav">
+              <button class="gv2-date-arrow" onclick="gridMenuNavigateDate(-1)">&#8249;</button>
+              <div class="gv2-sidebar-date-pill" id="gv2-sidebar-date-pill" style="min-width:110px; cursor:default;">Date</div>
+              <button class="gv2-date-arrow" onclick="gridMenuNavigateDate(1)">&#8250;</button>
+           </div>
+
+           <div class="gv2-grid-size-wrap">
+              <span class="gv2-grid-sz-icon">SIZE</span>
+              <input type="range" id="gv2-grid-size-slider-main" min="120" max="600" step="10" value="220" />
+           </div>
+        </div>
+        <div class="gv2-grid-body" id="gv2-grid-body"></div>
       </div>
+
     </div>
 
   </div><!-- /gv2-body -->

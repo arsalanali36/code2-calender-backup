@@ -4,6 +4,13 @@
  */
 
 function _bindGalleryDropdownEvents() {
+  // Setup the new Image Type filter dropdown (Pill to Dropdown change)
+  if (typeof setupDropdown === 'function') {
+    setupDropdown('gv2-imgtype-dropdown-btn', 'gv2-imgtype-menu');
+    const menuEl = document.getElementById('gv2-imgtype-menu');
+    if (menuEl) menuEl.addEventListener('click', e => e.stopPropagation());
+  }
+
   // ── Dropdown: Delete Image ────────────────────────────────────────────────
   document.getElementById('gv2-delete-img-btn')?.addEventListener('click', () => {
     document.getElementById('gallery-tools-panel')?.classList.remove('open');
@@ -163,6 +170,17 @@ function _bindGalleryDropdownEvents() {
       recBars.style.display = open ? 'flex' : 'none';
       if (recSep) recSep.style.display = open ? 'block' : 'none';
       recToggleBtn.classList.toggle('active', open);
+
+      // Sync Grid Sidebar Button if it exists
+      const sidebarRec = document.getElementById('gv2-sidebar-record');
+      if (sidebarRec) {
+        sidebarRec.classList.toggle('active', open);
+        const iconEl = sidebarRec.querySelector('.gv2-si-icon');
+        if (iconEl) iconEl.textContent = open ? '⏹' : '⏺';
+        const labelEl = sidebarRec.querySelector('.gv2-si-label');
+        if (labelEl) labelEl.textContent = open ? 'Stop Rec' : 'Record';
+      }
+
       localStorage.setItem('tj_gv2RecOpen', open ? '1' : '0');
       if (open) {
         if (typeof renderAudioBar === 'function') renderAudioBar();

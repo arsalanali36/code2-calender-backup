@@ -11,15 +11,33 @@
     currentSize: 220
   };
 
-  function initGrid() {
+  function _syncGridRefs() {
     gv.btn     = document.getElementById('gv2-grid-btn');
     gv.overlay = document.getElementById('gv2-grid-view');
     gv.closer  = document.getElementById('gv2-grid-close-btn-tray');
-    gv.slider  = document.getElementById('gv2-grid-size-slider-tray');
-    gv.body    = document.getElementById('gv2-grid-body');
-    gv.modal   = document.getElementById('gallery-modal');
+    gv.slider     = document.getElementById('gv2-grid-size-slider-tray');
+    gv.sliderMain = document.getElementById('gv2-grid-size-slider-main');
+    gv.body       = document.getElementById('gv2-grid-body');
+    gv.modal      = document.getElementById('gallery-modal');
+  }
 
+  function initGrid() {
+    _syncGridRefs();
     if (!gv.btn || !gv.overlay) return;
+
+    // Load wrap setting
+    if (state.gallery.gridWrap === undefined) {
+      state.gallery.gridWrap = localStorage.getItem('tj_gridWrap') !== '0';
+    }
+    const wrapChk = document.getElementById('gv2-grid-wrap-chk');
+    if (wrapChk) wrapChk.checked = state.gallery.gridWrap;
+
+    // Use our global dropdown helper for the new menu
+    if (typeof setupDropdown === 'function') {
+      setupDropdown('gv2-grid-options-btn', 'gv2-grid-options-menu');
+      const menu = document.getElementById('gv2-grid-options-menu');
+      if (menu) menu.addEventListener('click', e => e.stopPropagation());
+    }
 
     gv.btn.onclick = () => {
       toggleGridView(!gv.isOpen);
@@ -31,29 +49,73 @@
       };
     }
 
-    if (gv.slider) {
-      gv.slider.addEventListener('input', (e) => {
-        gv.currentSize = e.target.value;
-        gv.body.style.setProperty('--grid-img-size', gv.currentSize + 'px');
-      });
-      // Set initial
-      gv.body.style.setProperty('--grid-img-size', gv.currentSize + 'px');
-      gv.slider.value = gv.currentSize;
-    }
+    const _onSliderInput = (e) => {
+      gv.currentSize = e.target.value;
+      if (gv.slider) gv.slider.value = gv.currentSize;
+      if (gv.sliderMain) gv.sliderMain.value = gv.currentSize;
+      
+      const main = document.querySelector('.gv2-grid-main');
+      if (main) main.style.setProperty('--grid-img-size', gv.currentSize + 'px');
+    };
+
+    if (gv.slider) gv.slider.addEventListener('input', _onSliderInput);
+    if (gv.sliderMain) gv.sliderMain.addEventListener('input', _onSliderInput);
+
+    // Initial sync
+    const main = document.querySelector('.gv2-grid-main');
+    if (main) main.style.setProperty('--grid-img-size', gv.currentSize + 'px');
+    if (gv.slider) gv.slider.value = gv.currentSize;
+    if (gv.sliderMain) gv.sliderMain.value = gv.currentSize;
   }
 
   function toggleGridView(show) {
+    _syncGridRefs(); // Always get fresh refs before rendering
     gv.isOpen = show;
     if (gv.overlay) {
       gv.overlay.style.display = show ? 'flex' : 'none';
       gv.btn.classList.toggle('active', show);
       if (gv.modal) gv.modal.classList.toggle('grid-open', show);
       
+      // Move recording bars into sidebar for Grid View, or back to tray for Normal View
+      const recBars = document.getElementById('gv2-tray-record-bars');
+      if (recBars) {
+        if (show) {
+          const sidebarRecord = document.getElementById('gv2-sidebar-record');
+          if (sidebarRecord) sidebarRecord.after(recBars);
+        } else {
+          const trayRecWrap = document.getElementById('gv2-tray-record-wrap');
+          if (trayRecWrap) trayRecWrap.appendChild(recBars);
+        }
+      }
+
+      // Toggle tray options visibility
+      document.querySelectorAll('.gv2-grid-only').forEach(el => {
+        el.style.display = show ? 'flex' : 'none';
+      });
+
       if (show) {
         renderGridContent();
       }
     }
   }
+
+  function gridMenuNavigateDate(dir) {
+    if (typeof navigateGalleryDate === 'function') {
+      navigateGalleryDate(dir);
+      renderGridContent();
+    }
+  }
+  window.gridMenuNavigateDate = gridMenuNavigateDate;
+
+  function toggleGridWrap(e) {
+    if (e) e.stopPropagation();
+    state.gallery.gridWrap = !state.gallery.gridWrap;
+    localStorage.setItem('tj_gridWrap', state.gallery.gridWrap ? '1' : '0');
+    const chk = document.getElementById('gv2-grid-wrap-chk');
+    if (chk) chk.checked = state.gallery.gridWrap;
+    renderGridContent();
+  }
+  window.toggleGridWrap = toggleGridWrap;
 
   function _filterByImgType(imgs) {
     const f = state.gallery.imgTypeFilter || 'both';
@@ -63,6 +125,41 @@
 
   function renderGridContent() {
     if (!gv.body) return;
+
+    try {
+      // Sync Sidebar & Main Content Labels
+      const sidebarDate = document.getElementById('gv2-sidebar-date-pill');
+      const mainCounter = document.getElementById('gv2-grid-main-counter');
+      const sidebarRec = document.getElementById('gv2-sidebar-record');
+      
+      if (sidebarDate) sidebarDate.textContent = state.gallery.date || 'No Date';
+      if (mainCounter) {
+        const total = (state.gallery.images || []).length;
+        const cur = (state.gallery.currentIndex || 0) + 1;
+        mainCounter.textContent = total > 0 ? `${cur} / ${total} images` : 'No images';
+      }
+      if (sidebarRec) {
+        const mainRec = document.getElementById('gv2-record-toggle-btn');
+        if (mainRec) {
+          const isActive = mainRec.classList.contains('active');
+          sidebarRec.classList.toggle('active', isActive);
+          const iconEl = sidebarRec.querySelector('.gv2-si-icon');
+          if (iconEl) iconEl.textContent = isActive ? '⏹' : '⏺';
+          const labelEl = sidebarRec.querySelector('.gv2-si-label');
+          if (labelEl) labelEl.textContent = isActive ? 'Stop Rec' : 'Record';
+        }
+      }
+
+      // Sync Sidebar Filters active state
+      const curFilter = state.gallery.imgTypeFilter || 'both';
+      ['both', 'index', 'premium'].forEach(t => {
+        const el = document.getElementById('gv2-sidebar-filter-' + t);
+        if (el) el.classList.toggle('active', curFilter === t);
+      });
+    } catch (err) {
+      console.error('Grid Sidebar sync failed:', err);
+    }
+
     gv.body.innerHTML = '';
     const date = state.gallery.date;
     const images = state.gallery.images || [];
@@ -174,6 +271,52 @@
     const container = document.createElement('div');
     container.className = 'gv2-grid-container';
 
+    // APPLY WRAP SETTING
+    if (state.gallery.gridWrap === false) {
+      container.classList.add('gv2-grid-container--nowrap');
+      
+      // Mouse drag scrolling helper for PC
+      let _isDown = false, _startX, _scrollLeft, _hasMoved = false;
+      const _onDown = (e) => {
+        _isDown = true;
+        _hasMoved = false;
+        container.classList.add('dragging');
+        _startX = (e.pageX || e.touches?.[0]?.pageX) - container.offsetLeft;
+        _scrollLeft = container.scrollLeft;
+      };
+      const _onMove = (e) => {
+        if (!_isDown) return;
+        const x = (e.pageX || e.touches?.[0]?.pageX) - container.offsetLeft;
+        const walk = (x - _startX);
+        if (Math.abs(walk) > 5) _hasMoved = true;
+        if (_hasMoved) {
+          e.preventDefault();
+          container.scrollLeft = _scrollLeft - walk * 1.5;
+        }
+      };
+      const _onUp = () => {
+        _isDown = false;
+        container.classList.remove('dragging');
+      };
+
+      container.addEventListener('mousedown', _onDown);
+      window.addEventListener('mousemove', _onMove);
+      window.addEventListener('mouseup', _onUp);
+      
+      // Touch support
+      container.addEventListener('touchstart', _onDown, {passive: true});
+      container.addEventListener('touchmove', _onMove, {passive: false});
+      container.addEventListener('touchend', _onUp);
+
+      // Prevent click if dragged
+      container.addEventListener('click', (e) => {
+        if (_hasMoved) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+    }
+
     if (images.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'gv2-grid-empty';
@@ -265,12 +408,13 @@
           return;
         }
 
-        // Normal click → navigate to image
-        state.gallery.currentIndex = itemIdx;
+        // Normal click → update state and selection but DO NOT close grid (user requested)
+        state.gallery.currentIndex = itemIdx; // Needed for tray tools (delete/share/etc.)
         state.gallery.selectedIndices = new Set([itemIdx]);
         state.gallery.lastClickedIdx = itemIdx;
-        toggleGridView(false);
-        renderGallery();
+        _gridRefreshSelection();
+        // toggleGridView(false); // Grid stays open
+        // renderGallery();       // Don't shift focus to underlying viewer
       };
 
       item.addEventListener('contextmenu', (e) => {

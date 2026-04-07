@@ -562,13 +562,18 @@ function applyImgTypeFilter() {
 
 function setGalleryImgTypeFilter(f) {
   state.gallery.imgTypeFilter = f;
-  // Update pill UI
+  
+  // Update pill active states in tray
   ['both', 'index', 'premium'].forEach(t => {
     const btn = document.getElementById('gv2-imgtype-' + t);
     if (btn) btn.classList.toggle('active', t === f);
   });
+
   applyImgTypeFilter();
   renderGallery();
+
+  // If grid is open, refresh it too
+  if (typeof renderGridContent === 'function') renderGridContent();
 }
 
 function _updateImgTypePill(url) {

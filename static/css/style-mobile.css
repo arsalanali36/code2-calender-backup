@@ -101,10 +101,9 @@
   }
 }
 
-/* ── HEADER DATE RANGE → SHOW ON MOBILE (scrollable) */
-/* Un-hide date inputs on mobile but put them in the scrollable nav row */
 @media (max-width: 768px) {
-  /* Re-show the date inputs so user can swipe to reach them */
+  /* HEADER DATE RANGE → SHOW ON MOBILE (scrollable) */
+  /* Un-hide date inputs on mobile but put them in the scrollable nav row */
   #glob-date-from,
   #glob-date-to,
   .date-range-sep {
@@ -123,6 +122,25 @@
     font-size: 0.75rem;
     padding: 4px 2px 4px 4px;
   }
+}
+
+/* ── Organized Grid Tablet/Mobile Specifics ── */
+@media (max-width: 1100px) {
+  .gv2-modal.grid-open .gv2-tray-center > *:not(#gv2-imgtype-dropdown-btn):not(.gv2-tray-sep-mobile) {
+    display: none !important;
+  }
+  .gv2-modal.grid-open .gv2-tray-center {
+    display: flex !important;
+    min-width: unset !important;
+    max-width: unset !important;
+  }
+}
+
+.gv2-grid-only {
+  display: none;
+}
+.gv2-modal.grid-open .gv2-grid-only {
+  display: flex !important;
 }
 
 /* ── GALLERY TRAY MOBILE SWIPE ────────────────── */
@@ -202,6 +220,46 @@
   .dashboard-grid {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 8px;
+  }
+}
+
+@media (max-width: 1100px) {
+  /* Condensed Gallery V2 UI for iPad resolution */
+  .gv2-unified-left-panel.open {
+    width: 180px !important; 
+  }
+
+  /* Allow the center to maintain focus and prevent squashing */
+  .gv2-center {
+    min-width: 300px !important;
+  }
+
+  /* ── GALLERY TRAY RESPONSIVE (BACK TO DEFAULT) ── */
+  .gv2-tray {
+    top: 15px !important;
+    padding: 0 10px !important;
+  }
+
+  /* Tray center is a scrollable horizontal row if too wide */
+  .gv2-tray-center {
+    flex: 0 1 auto !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 10px 18px !important;
+    max-width: calc(100vw - 40px) !important;
+    border-radius: 14px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .gv2-tray-center::-webkit-scrollbar { display: none; }
+
+  /* Condensed Pills */
+  .gv2-pnl-pill, .gv2-trade-pill {
+    padding: 4px 12px !important;
+    font-size: 0.85rem !important;
   }
 }
 
@@ -753,4 +811,113 @@
   .obs-trade-note-editor {
     font-size: 16px;
   }
+}
+
+/* ──────── IMAGE TYPE DROPDOWN (Pill to Dropdown change) ──────── */
+.gv2-imgtype-dropdown-btn {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 32px;
+  min-width: 80px;
+  justify-content: space-between;
+}
+.gv2-imgtype-dropdown-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--text3);
+}
+.gv2-imgtype-menu {
+  min-width: 160px;
+  background: rgba(15, 15, 20, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  z-index: 1000;
+}
+.gv2-imgtype-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text2);
+  width: 100%;
+}
+.gv2-imgtype-menu .dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.gv2-imgtype-menu .dropdown-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  font-weight: 700;
+}
+.gv2-imgtype-menu .gv2-di-icon {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .gv2-imgtype-dropdown-btn {
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    height: 28px;
+  }
+}
+
+/* ──────── GRID MENU SECTION STYLES ──────── */
+.gv2-grid-menu-section {
+  padding: 8px 12px;
+}
+.gv2-grid-menu-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text3);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+.gv2-tray-mobile-controls {
+  display: block;
+}
+
+.gv2-tray-mobile-controls {
+  display: block;
+}
+
+/* ──────── RESTORED PILL STYLES FOR NORMAL TRAY ──────── */
+.gv2-imgtype-pills {
+  display: flex !important;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 2px;
+}
+.gv2-imgtype-pills .gv2-imgtype-btn {
+  border: none !important;
+  background: transparent !important;
+  padding: 6px 16px !important;
+  font-size: 0.8rem !important;
+  border-radius: 9px !important;
+  color: var(--text3) !important;
+  cursor: pointer;
+  height: auto !important;
+  line-height: normal !important;
+}
+.gv2-imgtype-pills .gv2-imgtype-btn.active {
+  background: var(--blue) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }

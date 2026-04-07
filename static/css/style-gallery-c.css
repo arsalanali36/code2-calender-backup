@@ -407,12 +407,13 @@
 }
 
 .gv2-tray-record-bars {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  z-index: 2200 !important;
 }
 
-/* Overrides for bars when inside tray */
+/* Overrides for bars when inside tray-record-bars wrapper */
 .gv2-tray-record-bars .gv2-audio-bar,
 .gv2-tray-record-bars .gv2-video-bar {
   position: relative !important;

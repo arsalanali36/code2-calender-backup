@@ -1,14 +1,12 @@
-/* ── GRID VIEW (FULL PAGE OVERLAY) ── */
+/* ── GRID VIEW (HORIZONTAL LAYOUT WITH SIDEBAR) ── */
 .gv2-grid-view {
   position: absolute;
   inset: 0;
   z-index: 1000;
   background: var(--bg);
-  display: flex;
-  flex-direction: column;
+  flex-direction: row;
   animation: gridFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
-  padding-top: 48px; /* Space for the floating tray turned header */
 }
 
 @keyframes gridFadeIn {
@@ -16,21 +14,254 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-/* ── Tray Header Adaptation for Grid ── */
-.gv2-tray {
-  z-index: 2000 !important; /* Always on top */
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── SIDEBAR (INSTAGRAM STYLE) ── */
+.gv2-grid-sidebar {
+  width: 72px;
+  background: #0d0d0f;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 12px;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2000;
+  flex-shrink: 0;
 }
 
-.gv2-modal.grid-open .gv2-tray {
-  top: 0;
-  padding: 8px 12px;
-  background: #0d0d0f;
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+.gv2-grid-sidebar:hover {
+  width: 200px;
+}
+
+.gv2-sidebar-logo {
+  color: var(--blue);
+  margin-bottom: 30px;
+  padding-left: 10px;
+}
+
+.gv2-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gv2-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.gv2-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transform: translateX(4px);
+}
+.gv2-sidebar-item.no-hover {
+  cursor: default;
+}
+.gv2-sidebar-item.no-hover:hover {
+  background: transparent;
+  transform: none;
+}
+.gv2-sidebar-item.active {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.gv2-si-icon {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.gv2-si-label {
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.gv2-grid-sidebar:hover .gv2-si-label {
+  opacity: 1;
+}
+
+.gv2-sidebar-date-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text3);
+  background: rgba(255,255,255,0.05);
+  padding: 4px 10px;
+  border-radius: 20px;
   width: 100%;
-  left: 0;
+  text-align: center;
+}
+
+.gv2-sidebar-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 10px;
+  opacity: 0.5;
+}
+
+/* ── SIDEBAR RECORDING TOOLS INTEGRATION ── */
+.gv2-grid-sidebar .gv2-tray-record-bars {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 10px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  position: static !important;
+}
+
+.gv2-grid-sidebar .gv2-audio-bar,
+.gv2-grid-sidebar .gv2-video-bar {
+  position: relative !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 8px !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  transition: all 0.3s !important;
+  overflow: hidden !important;
+  min-height: 44px;
+}
+
+.gv2-grid-sidebar .gv2-bar-sep {
+  width: 20px !important;
+  height: 1px !important;
+  margin: 4px 0 !important;
+}
+
+.gv2-grid-sidebar:not(:hover) .gv2-audio-bar,
+.gv2-grid-sidebar:not(:hover) .gv2-video-bar {
+  background: transparent !important;
+  border-color: transparent !important;
+  padding: 8px 0 !important;
+}
+
+/* Hide text/labels/waveforms when sidebar is collapsed */
+.gv2-grid-sidebar:not(:hover) .gv2-audio-label,
+.gv2-grid-sidebar:not(:hover) .gv2-audio-timer,
+.gv2-grid-sidebar:not(:hover) .gv2-audio-time,
+.gv2-grid-sidebar:not(:hover) .gv2-video-label,
+.gv2-grid-sidebar:not(:hover) .gv2-video-timer,
+.gv2-grid-sidebar:not(:hover) .gv2-audio-btn span,
+.gv2-grid-sidebar:not(:hover) #gv2-audio-wave,
+.gv2-grid-sidebar:not(:hover) .gv2-video-progress {
+  display: none !important;
+}
+
+.gv2-grid-sidebar:not(:hover) .gv2-audio-btn,
+.gv2-grid-sidebar:not(:hover) .gv2-video-btn {
+  font-size: 1.1rem !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.gv2-grid-sidebar .gv2-audio-btn:hover,
+.gv2-grid-sidebar .gv2-video-btn:hover {
+  background: rgba(255,255,255,0.1) !important;
+  border-radius: 8px !important;
+}
+
+.gv2-grid-sidebar .gv2-audio-dot {
+  font-size: 1.2rem !important;
+  margin-bottom: 4px;
+}
+
+/* ── MAIN CONTENT ── */
+.gv2-grid-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.gv2-grid-tray-simple {
+  height: 60px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: #0d0d0f;
+  position: relative;
+}
+
+.gv2-grid-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+/* ── TOP CENTER DATE NAV ── */
+.gv2-grid-top-date-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  padding: 6px 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.gv2-grid-top-date-nav .gv2-date-arrow {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+.gv2-grid-top-date-nav .gv2-date-arrow:hover {
+  color: var(--blue);
+}
+
+.gv2-grid-main-title {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--blue);
+  letter-spacing: 1.5px;
+}
+
+.gv2-grid-size-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Hide main tray in grid open if it overlaps */
+.gv2-modal.grid-open .gv2-tray {
+  display: none !important;
 }
 
 .gv2-modal.grid-open .gv2-tray-center {
@@ -209,6 +440,50 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-img-size, 220px), 1fr));
   gap: 16px;
+}
+
+/* ── NOWRAP / HORIZONTAL FLOW MODE ── */
+.gv2-grid-container--nowrap {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  gap: 15px !important;
+  padding: 4px 4px 12px 4px !important; /* Space for scrollbar and glow */
+  cursor: grab;
+  scroll-behavior: smooth;
+  user-select: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gv2-grid-container--nowrap.dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+.gv2-grid-container--nowrap::-webkit-scrollbar {
+  height: 6px;
+}
+.gv2-grid-container--nowrap::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+.gv2-grid-container--nowrap::-webkit-scrollbar-thumb {
+  background: rgba(88, 166, 255, 0.3);
+  border-radius: 10px;
+}
+.gv2-grid-container--nowrap::-webkit-scrollbar-thumb:hover {
+  background: var(--blue);
+}
+
+.gv2-grid-container--nowrap .gv2-grid-item {
+  flex-shrink: 0;
+  width: var(--grid-img-size, 220px);
+}
+
+/* ── Portrait Mode for News Section ── */
+.gv2-grid-group--portrait .gv2-grid-container--nowrap .gv2-grid-item {
+  width: calc(var(--grid-img-size, 220px) * 0.65);
 }
 
 /* ── Portrait Mode for News Section ── */
