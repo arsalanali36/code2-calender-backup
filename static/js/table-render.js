@@ -286,8 +286,15 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
     const handle = document.createElement('span'); handle.className = 'row-drag-handle';
     handle.textContent = '⠿'; handle.title = 'Drag to reorder';
     handle.addEventListener('mousedown', () => { _rowDragFromHandle = true; });
+    const thumbBtn = document.createElement('span'); thumbBtn.className = 'row-thumb-btn';
+    thumbBtn.textContent = '📷'; thumbBtn.title = 'View trade images';
+    thumbBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof openTradeSidebar === 'function') openTradeSidebar(trade);
+    });
     tdHandle.appendChild(delMini);
     tdHandle.appendChild(handle);
+    tdHandle.appendChild(thumbBtn);
     tr.appendChild(tdHandle);
 
     visibleCols.forEach(col => {
@@ -351,12 +358,6 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
       tr.appendChild(td);
     });
 
-    // OPEN SIDEBAR ON DOUBLE CLICK
-    tr.addEventListener('dblclick', () => {
-      if (typeof openTradeSidebar === 'function') {
-        openTradeSidebar(trade);
-      }
-    });
 
     bindRowImageDrop(tr, rowIdx);
     bindTableRowDrag(tr, rowIdx, body);

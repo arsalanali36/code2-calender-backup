@@ -1120,6 +1120,7 @@ body.modal-open {
 
 .trade-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
 }
 
 .trade-table tbody tr.row-drop-target {
@@ -1367,6 +1368,25 @@ tr:hover .del-row-mini {
 .del-row-mini:hover {
   color: var(--red) !important;
   background: rgba(248, 81, 73, 0.12);
+}
+
+.row-thumb-btn {
+  display: none;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  user-select: none;
+  padding: 2px;
+  line-height: 1;
+}
+
+tr:hover .row-thumb-btn {
+  display: inline;
+}
+
+.row-thumb-btn:hover {
+  opacity: 1;
 }
 
 .delete-row-btn {

@@ -88,6 +88,7 @@ async function init() {
   bindSectionOrderDrag();
   populateSelects();
   renderDashboardStatsMenu();
+  if (typeof initTradeSidebar === 'function') initTradeSidebar();
   bindEvents();
 
   // Deep-link tab (opened from PDF/external link): try sibling tab first

@@ -10,7 +10,7 @@
         isOpen: false,
         currentTrade: null,
         currentWidth: 450,
-        thumbSize: 180
+        thumbSize: 120
     };
 
     function _initRefs() {
@@ -38,7 +38,7 @@
                     </div>
                     <div class="ts-controls">
                         <span style="font-size:0.75rem; color:#8b949e;">Size:</span>
-                        <input type="range" class="ts-size-slider" id="ts-size-slider" min="80" max="400" value="180">
+                        <input type="range" class="ts-size-slider" id="ts-size-slider" min="60" max="400" value="120">
                         <span class="ts-size-label" id="ts-size-label">180px</span>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
         const savedThumbSz = localStorage.getItem('tj_ts_thumbSz');
         if (savedThumbSz) {
             ts.thumbSize = parseInt(savedThumbSz);
-            if (ts.slider) ts.slider.value = ts.thumbSize;
+            if (ts.slider) { ts.slider.value = ts.thumbSize; ts.slider.min = '60'; }
         }
     }
 
@@ -112,34 +112,57 @@
         if (!ts.overlay) initTradeSidebar();
         
         // Populate Title
-        const inst = (trade.Instrument || trade.instrument || 'Trade').toUpperCase();
-        ts.title.textContent = inst + ' Thumbnails';
+        const isDay = !!trade._dayTrades;
+        const inst = isDay ? (trade.trade_date || trade.Date || 'Day') : (trade.Instrument || trade.instrument || 'Trade').toUpperCase();
+        ts.title.textContent = (isDay ? inst : inst) + ' — Thumbnails';
 
         // Populate Info Card
         const infoCont = document.getElementById('ts-info-container');
         if (infoCont) {
-            const pnl = typeof getTradePnl === 'function' ? getTradePnl(trade) : 0;
-            const pnlClass = pnl >= 0 ? 'ts-pnl-win' : 'ts-pnl-loss';
             const date = trade.trade_date || trade.Date || '';
-            const qty = trade.Qty || trade.quantity || '-';
-            const pt = trade.Pt || trade.Points || '-';
-
-            infoCont.innerHTML = `
-                <div class="ts-info-card">
-                    <div class="ts-info-row">
-                        <span class="ts-info-label">Date</span>
-                        <span class="ts-info-value">${date}</span>
-                    </div>
-                    <div class="ts-info-row">
-                        <span class="ts-info-label">Qty / Pt</span>
-                        <span class="ts-info-value">${qty} / ${pt} pt</span>
-                    </div>
-                    <div class="ts-info-row">
-                        <span class="ts-info-label">P&L</span>
-                        <span class="ts-info-value ${pnlClass}">₹${Math.round(pnl).toLocaleString('en-IN')}</span>
-                    </div>
-                </div>
-            `;
+            if (isDay) {
+                const dayTrades = trade._dayTrades;
+                const totalPnl = dayTrades.reduce((s, t) => {
+                    const p = typeof getTradePnl === 'function' ? getTradePnl(t) : 0;
+                    return s + (p || 0);
+                }, 0);
+                const pnlClass = totalPnl >= 0 ? 'ts-pnl-win' : 'ts-pnl-loss';
+                infoCont.innerHTML = `
+                    <div class="ts-info-card">
+                        <div class="ts-info-row">
+                            <span class="ts-info-label">Date</span>
+                            <span class="ts-info-value">${date}</span>
+                        </div>
+                        <div class="ts-info-row">
+                            <span class="ts-info-label">Trades</span>
+                            <span class="ts-info-value">${dayTrades.length}</span>
+                        </div>
+                        <div class="ts-info-row">
+                            <span class="ts-info-label">Day P&L</span>
+                            <span class="ts-info-value ${pnlClass}">₹${Math.round(totalPnl).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>`;
+            } else {
+                const pnl = typeof getTradePnl === 'function' ? getTradePnl(trade) : 0;
+                const pnlClass = (pnl || 0) >= 0 ? 'ts-pnl-win' : 'ts-pnl-loss';
+                const qty = trade.Qty || trade.quantity || '-';
+                const pt = trade.Pt || trade.Points || '-';
+                infoCont.innerHTML = `
+                    <div class="ts-info-card">
+                        <div class="ts-info-row">
+                            <span class="ts-info-label">Date</span>
+                            <span class="ts-info-value">${date}</span>
+                        </div>
+                        <div class="ts-info-row">
+                            <span class="ts-info-label">Qty / Pt</span>
+                            <span class="ts-info-value">${qty} / ${pt} pt</span>
+                        </div>
+                        <div class="ts-info-row">
+                            <span class="ts-info-label">P&L</span>
+                            <span class="ts-info-value ${pnlClass}">₹${Math.round(pnl || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>`;
+            }
         }
 
         // Populate Grid

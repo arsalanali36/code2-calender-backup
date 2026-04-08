@@ -154,36 +154,59 @@
     if (_drillChart) { try { _drillChart.destroy(); } catch(e){} _drillChart = null; }
     if (!filteredTrades.length) { wrap.style.display = 'none'; return; }
 
-    let labels = [], values = [], sorted = [];
+    let labels = [], values = [], sorted = [], dayKeys = [], hasImgFlags = [];
+    const baseColor = sliceColor || '#58a6ff';
+    const noImgColor = '#3a3f4a';
+
     if (aggregateByDay) {
       const dMap = {};
       filteredTrades.forEach(t => {
         const d = t.trade_date || t.date || '';
         if (d) { dMap[d] = (dMap[d]||0) + parseFloat(t['Net P/L'] || t['Rs'] || 0); }
       });
-      const dayKeys = Object.keys(dMap).sort();
+      dayKeys = Object.keys(dMap).sort();
       labels = dayKeys.map(k => k.replace(/20\d\d-/, ''));
       values = dayKeys.map(k => dMap[k]);
+      hasImgFlags = dayKeys.map(dk => filteredTrades.filter(t => (t.trade_date||t.date||'') === dk).some(t => (t.images||[]).length > 0));
     } else {
       sorted = [...filteredTrades].sort((a, b) => (a.date||'').localeCompare(b.date||'') || (a['Buy Time']||'').localeCompare(b['Buy Time']||''));
       labels = sorted.map(t => (t.trade_date || t.date || '').replace(/20\d\d-/, ''));
       values = sorted.map(t => parseFloat(t['Net P/L'] || t['Rs'] || 0));
+      hasImgFlags = sorted.map(t => (t.images||[]).length > 0);
     }
+
+    const barColors = hasImgFlags.map(hasImg => hasImg ? baseColor : noImgColor);
 
     titleEl.textContent = `Drilldown — ${sliceLabel} (${filteredTrades.length} trades)`;
     if (document.getElementById('qs-drilldown-close')) document.getElementById('qs-drilldown-close').style.visibility = 'visible';
     chartEl.innerHTML = '';
 
     _drillChart = new ApexCharts(chartEl, {
-      chart: { type: 'bar', height: 400, background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 400 } },
+      chart: {
+        type: 'bar', height: 400, background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 400 },
+        events: {
+          dataPointSelection: (e, chart, opts) => {
+            if (typeof openTradeSidebar !== 'function') return;
+            const idx = opts.dataPointIndex;
+            if (aggregateByDay) {
+              const dk = dayKeys[idx];
+              const dayTrades = filteredTrades.filter(t => (t.trade_date || t.date || '') === dk);
+              const allImages = dayTrades.reduce((arr, t) => arr.concat(t.images || []), []);
+              openTradeSidebar({ trade_date: dk, images: allImages, Instrument: dk, _dayTrades: dayTrades });
+            } else {
+              openTradeSidebar(sorted[idx]);
+            }
+          }
+        }
+      },
       series: [{ name: 'Net P/L', data: values }],
-      xaxis: { 
-        categories: labels, 
-        labels: { show: false }, // Hide irrelevant numbers/dates on X
-        axisBorder: { show: false }, axisTicks: { show: false } 
+      xaxis: {
+        categories: labels,
+        labels: { show: false },
+        axisBorder: { show: false }, axisTicks: { show: false }
       },
       yaxis: { labels: { style: { colors: '#666' }, formatter: v => v >= 1000 || v <= -1000 ? (v/1000).toFixed(1)+'k' : Math.round(v) } },
-      colors: [sliceColor || '#58a6ff'],
+      colors: barColors,
       plotOptions: { bar: { distributed: true, borderRadius: 4, columnWidth: '70%' } },
       dataLabels: { enabled: false },
       legend: { show: false },
@@ -193,9 +216,10 @@
         custom: ({ dataPointIndex }) => {
           const v = values[dataPointIndex];
           const clr = v >= 0 ? '#4caf7d' : '#e05c5c';
-          if (aggregateByDay) return `<div style="padding:10px;font-size:12px;background:#161c2e;">Date: ${labels[dataPointIndex]}<br/><b style="color:${clr};font-size:14px;">Net: ₹${v.toFixed(0)}</b></div>`;
+          const noImg = !hasImgFlags[dataPointIndex] ? '<br/><span style="color:#555;font-size:10px;">📷 no images</span>' : '';
+          if (aggregateByDay) return `<div style="padding:10px;font-size:12px;background:#161c2e;">Date: ${labels[dataPointIndex]}<br/><b style="color:${clr};font-size:14px;">Net: ₹${v.toFixed(0)}</b>${noImg}</div>`;
           const t = sorted[dataPointIndex];
-          return `<div style="padding:10px;font-size:12px;background:#161c2e;">${t.trade_date || t.date}<br/>${t.Instrument || 'Trade'}<br/><b style="color:${clr};font-size:14px;">₹${v.toFixed(0)}</b></div>`;
+          return `<div style="padding:10px;font-size:12px;background:#161c2e;">${t.trade_date || t.date}<br/>${t.Instrument || 'Trade'}<br/><b style="color:${clr};font-size:14px;">₹${v.toFixed(0)}</b>${noImg}</div>`;
         }
       }
     });
