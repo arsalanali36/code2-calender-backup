@@ -604,11 +604,10 @@ function renderVisualDashboard() {
             events: {
                 dataPointSelection: function (event, chartContext, config) {
                     const data = pptFiltered[config.dataPointIndex];
-                    if (!data || !data.date || data.date === 'Unknown') return;
-                    if (typeof openGalleryForDate !== 'function') return;
-                    const firstImg = data.trade?.images?.[0] || null;
-                    if (!firstImg) { showToast('Is trade ki koi image nahi hai', 'info'); return; }
-                    openGalleryForDate(data.date, firstImg);
+                    if (!data || !data.trade) return;
+                    if (typeof openTradeSidebar === 'function') {
+                        openTradeSidebar(data.trade);
+                    }
                 }
             }
         },
@@ -1010,9 +1009,8 @@ function renderVdMiniMtmChart(container, trades, color, date, chartType = 'curve
         }
 
         if (closest && closest.trade) {
-            const img = (closest.trade.images && closest.trade.images.length > 0) ? closest.trade.images[0] : null;
-            if (typeof openGalleryForDate === 'function') {
-                openGalleryForDate(date, img);
+            if (typeof openTradeSidebar === 'function') {
+                openTradeSidebar(closest.trade);
             }
         } else {
             if (typeof openGalleryForDate === 'function') {

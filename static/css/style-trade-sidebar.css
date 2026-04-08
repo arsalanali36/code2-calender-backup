@@ -1,0 +1,165 @@
+/* style-trade-sidebar.css - Premium Side Panel for Trade Thumbnails */
+
+.trade-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 0; /* Animated */
+    height: 100%;
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.trade-sidebar-overlay.open {
+    width: 400px; /* Default width */
+}
+
+.trade-sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(22, 27, 34, 0.8);
+}
+
+.trade-sidebar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.trade-sidebar-close {
+    background: none;
+    border: none;
+    color: #8b949e;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.trade-sidebar-close:hover {
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+.trade-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* RESIZER */
+.trade-sidebar-resizer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    cursor: ew-resize;
+    z-index: 10001;
+    transition: background 0.2s;
+}
+
+.trade-sidebar-resizer:hover {
+    background: rgba(88, 166, 255, 0.3);
+}
+
+/* THUMBNAILS */
+.trade-sidebar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--thumb-size, 180px), 1fr));
+    gap: 12px;
+}
+
+.ts-thumb-wrap {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+    aspect-ratio: 16/9;
+}
+
+.ts-thumb-wrap:hover {
+    transform: scale(1.03);
+    border-color: #58a6ff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+.ts-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* SIZE CONTROLS */
+.ts-controls {
+    padding: 10px 20px;
+    background: rgba(22, 27, 34, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.ts-size-slider {
+    flex: 1;
+    accent-color: #58a6ff;
+    cursor: pointer;
+}
+
+.ts-size-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* TRADE INFO CARD */
+.ts-info-card {
+    background: rgba(88, 166, 255, 0.05);
+    border: 1px solid rgba(88, 166, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.ts-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+.ts-info-label {
+    color: #8b949e;
+}
+
+.ts-info-value {
+    color: #f0f6fc;
+    font-weight: 600;
+}
+
+.ts-pnl-win { color: #3fb950; }
+.ts-pnl-loss { color: #f85149; }
+
+@media (max-width: 600px) {
+    .trade-sidebar-overlay.open {
+        width: 100%;
+    }
+}

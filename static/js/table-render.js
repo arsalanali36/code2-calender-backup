@@ -351,6 +351,13 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
       tr.appendChild(td);
     });
 
+    // OPEN SIDEBAR ON DOUBLE CLICK
+    tr.addEventListener('dblclick', () => {
+      if (typeof openTradeSidebar === 'function') {
+        openTradeSidebar(trade);
+      }
+    });
+
     bindRowImageDrop(tr, rowIdx);
     bindTableRowDrag(tr, rowIdx, body);
     body.appendChild(tr);

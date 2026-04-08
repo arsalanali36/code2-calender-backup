@@ -246,12 +246,58 @@
     donut(document.getElementById('qs-chart-duration'), durBuckets.series, durBuckets.labels, ['#a78bfa', '#5b8ef0', '#4caf7d', '#f0a45b', '#e05c5c'], l => durTrades.filter(t => bucketDur(parseDurMin(t)) === l));
   }
 
+  let qsActiveMonthFilter = 'all';
+
+  window.setQsMonthFilter = function(val) {
+      qsActiveMonthFilter = val;
+      openQuickStats();
+  };
+
   function openQuickStats() {
     const from = state.dateRange?.from, to = state.dateRange?.to;
     let initialTrades = (state.trades || []).filter(t => {
       const d = t.trade_date || t.date || '';
       return d && (!from || d >= from) && (!to || d <= to);
     });
+
+    const availableMonths = new Set();
+    initialTrades.forEach(t => {
+      const d = t.trade_date || t.date || '';
+      if(d) availableMonths.add(parseInt(d.split('-')[1], 10) - 1);
+    });
+
+    const tabsCont = document.getElementById('qs-month-tabs-container');
+    if (tabsCont) {
+        const _mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        let html = `<div class="vd-month-tab ${qsActiveMonthFilter === 'all' ? 'active' : ''}" onclick="setQsMonthFilter('all')" style="font-size:11px;padding:2px 7px;">ALL</div>`;
+        _mo.forEach((mName, idx) => {
+            const hasData = availableMonths.has(idx);
+            const isActive = qsActiveMonthFilter === idx;
+            html += `<div class="vd-month-tab ${isActive ? 'active' : ''} ${hasData ? 'has-data' : 'no-data'}" 
+                onclick="${hasData ? `setQsMonthFilter(${idx})` : ''}" style="font-size:11px;padding:2px 7px;">${mName}</div>`;
+        });
+        tabsCont.innerHTML = html;
+        
+        // Hide the subtitle date range if we are using the detailed month filter inside the custom range
+        const subtitle = document.getElementById('qs-monthly-subtitle');
+        if (subtitle) {
+            if (qsActiveMonthFilter !== 'all') subtitle.style.display = 'none';
+            else subtitle.style.display = 'inline';
+        }
+    }
+
+    if (qsActiveMonthFilter !== 'all') {
+        initialTrades = initialTrades.filter(t => {
+           const d = t.trade_date || t.date || '';
+           if(!d) return false;
+           return parseInt(d.split('-')[1], 10) - 1 === qsActiveMonthFilter;
+        });
+    }
+
+    // Safely update the Dashboard Grid locally
+    if (typeof renderDashboard === 'function') {
+        renderDashboard(initialTrades);
+    }
 
     /* ── DUAL LAYER FILTER (By Day P/L + Individual Trade P/L) ── */
     let trades = initialTrades;
@@ -368,22 +414,31 @@
           const target = tab.getAttribute('data-tab');
           const vGrid = document.getElementById('vd-charts-grid');
           const qContent = document.getElementById('quick-stats-tab-content');
+          const pBento = document.getElementById('premium-bento-tab-content');
           const qFilters = document.getElementById('quick-stats-filters');
           const vStatsBtn = document.getElementById('vd-stats-btn');
 
           if (target === 'visual') {
             if (vGrid) vGrid.style.display = 'grid';
             if (qContent) qContent.style.display = 'none';
+            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'none';
             if (vStatsBtn) vStatsBtn.style.display = 'inline-block';
             window.dispatchEvent(new Event('resize'));
           } else if (target === 'quick') {
             if (vGrid) vGrid.style.display = 'none';
             if (qContent) qContent.style.display = 'block';
+            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'flex';
             if (vStatsBtn) vStatsBtn.style.display = 'none';
             openQuickStats();
             setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+          } else if (target === 'premium_bento') {
+            if (vGrid) vGrid.style.display = 'none';
+            if (qContent) qContent.style.display = 'none';
+            if (pBento) pBento.style.display = 'block';
+            if (qFilters) qFilters.style.display = 'none';
+            if (vStatsBtn) vStatsBtn.style.display = 'none';
           }
         });
       });

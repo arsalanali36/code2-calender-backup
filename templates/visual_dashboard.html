@@ -4,6 +4,7 @@
         <div class="dashboard-tabs" style="display: flex; align-items: flex-end; gap: 5px;">
           <div class="main-dash-tab active" data-tab="visual" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 700; cursor: pointer; background: var(--surface, #161b22); border: 1px solid var(--border2, #30363d); border-bottom: none; border-radius: 8px 8px 0 0; color: #fff; position: relative; bottom: -1px; z-index: 2;">Performance Analytics (Visual Dashboard)</div>
           <div class="main-dash-tab" data-tab="quick" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 700; cursor: pointer; background: transparent; border: 1px solid transparent; border-bottom: 1px solid var(--border2, #30363d); border-radius: 8px 8px 0 0; color: #8b949e; position: relative; bottom: 0; z-index: 1;">Summary &amp; Quick Stats 📈</div>
+          <div class="main-dash-tab" data-tab="premium_bento" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 800; cursor: pointer; background: transparent; border: 1px solid transparent; border-bottom: 1px solid var(--border2, #30363d); border-radius: 8px 8px 0 0; color: #bc8cff; position: relative; bottom: 0; z-index: 1; display:flex; align-items:center; gap:8px;">New ✨</div>
           <div class="dashboard-subtitle" style="margin: 0 0 12px 10px;">Sample Data</div>
         </div>
 
@@ -564,6 +565,126 @@
             </div>
           </div>
         </div>
+
+      <!-- NEW PREMIUM BENTO LAYOUT (MOCKUP) -->
+      <div id="premium-bento-tab-content" style="display: none;">
+        <style>
+          .bento-ui { font-family: 'Inter', system-ui, sans-serif; }
+          .bento-grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); margin-bottom: 16px; }
+          .b-card { background: linear-gradient(150deg, rgba(31, 41, 55, 0.4), rgba(13, 17, 23, 0.8)); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; box-shadow: 0 4px 20px -5px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03); padding: 14px; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
+          .b-card:hover { transform: translateY(-2px); border-color: rgba(188, 140, 255, 0.3); }
+          
+          .b-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background: linear-gradient(90deg, transparent, rgba(88,166,255,0.5), transparent); opacity:0; transition: opacity 0.3s; }
+          .b-card:hover::before { opacity:1; }
+
+          .b-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 6px; font-weight: 700; display:flex; align-items:center; gap:6px; z-index:2; position:relative; }
+          .b-value { font-size: 1.3rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; z-index:2; position:relative; }
+          .b-subValue { font-size: 0.75rem; color: #8b949e; margin-top: 4px; font-weight: 500; z-index:2; position:relative; }
+
+          .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+          .mini-kpi { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.04); padding: 10px; border-radius: 10px; display:flex; flex-direction:column; position:relative; transition: all 0.2s; }
+          .mini-kpi:hover { background: rgba(88,166,255,0.05); border-color: rgba(88,166,255,0.2); transform: translateY(-1px); }
+          
+          /* Specialized Card Spans */
+          .col-span-12 { grid-column: span 12; }
+          .col-span-8 { grid-column: span 8; }
+          .col-span-6 { grid-column: span 6; }
+          .col-span-4 { grid-column: span 4; }
+          .col-span-3 { grid-column: span 3; }
+          
+          /* Tiny Stats Grid inside a card */
+          .mini-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: auto; }
+          .mini-stat { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); }
+          .mini-stat-label { font-size: 0.65rem; color: #8b949e; text-transform: uppercase; margin-bottom: 4px; }
+          .mini-stat-val { font-size: 1.1rem; font-weight: 700; color: #e6edf3; }
+          
+          .text-green { color: #3fb950; text-shadow: 0 0 10px rgba(63, 185, 80, 0.3); }
+          .text-red { color: #f85149; text-shadow: 0 0 10px rgba(248, 81, 73, 0.3); }
+          .text-neon { color: #bc8cff; text-shadow: 0 0 10px rgba(188, 140, 255, 0.3); }
+
+          /* Dummy Line chart drawing */
+          /* Dummy Line chart drawing */
+          .bento-chart-placeholder { flex:1; width:calc(100% + 28px); min-height: 80px; background: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.02) 20px); position:relative; margin: 10px -14px -14px -14px; z-index:1; border-radius: 0 0 14px 14px; overflow:hidden;}
+          .fake-line { width: 100%; height: 100%; position: absolute; bottom: 0; left: 0; background-image: url("data:image/svg+xml,%3Csvg preserveAspectRatio='none' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,80 Q10,50 20,70 T40,40 T60,60 T80,20 T100,30' fill='none' stroke='%233fb950' stroke-width='3' vector-effect='non-scaling-stroke' stroke-linecap='round' style='filter:drop-shadow(0px 8px 6px rgba(63,185,80,0.5))'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+          .fake-line.red { background-image: url("data:image/svg+xml,%3Csvg preserveAspectRatio='none' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,20 Q10,40 20,30 T40,60 T60,50 T80,80 T100,90' fill='none' stroke='%23f85149' stroke-width='3' vector-effect='non-scaling-stroke' stroke-linecap='round' style='filter:drop-shadow(0px 8px 6px rgba(248,81,73,0.5))'/%3E%3C/svg%3E"); }
+          .fake-line.cum { background-image: url("data:image/svg+xml,%3Csvg preserveAspectRatio='none' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,90 L5,85 L10,88 L15,75 L20,70 L25,75 L30,60 L35,65 L40,50 L45,40 L50,45 L55,30 L60,35 L65,20 L70,25 L75,10 L80,15 L85,5 L90,10 L95,0 L100,2' fill='none' stroke='%233fb950' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linecap='round' style='filter:drop-shadow(0px 8px 6px rgba(63,185,80,0.5))'/%3E%3C/svg%3E"); }
+          
+        </style>
+
+        <div class="bento-ui">
+          
+          <!-- Top KPI Layer -->
+          <div class="kpi-grid">
+            <div class="mini-kpi"><div class="b-label"><span style="color:#58a6ff">●</span> Overall P&L</div><div class="b-value text-green">₹ 46,374</div></div>
+            <div class="mini-kpi"><div class="b-label"><span style="color:#bc8cff">●</span> Net P&L</div><div class="b-value text-green">₹ 28,759</div></div>
+            <div class="mini-kpi"><div class="b-label"><span style="color:#8b949e">●</span> Total Trades</div><div class="b-value">176</div></div>
+            <div class="mini-kpi"><div class="b-label"><span style="color:#f0a45b">●</span> Win Rate</div><div class="b-value">52.4%</div></div>
+            <div class="mini-kpi"><div class="b-label"><span style="color:#3fb950">●</span> Avg Win</div><div class="b-value text-green">₹ 1,790</div></div>
+            <div class="mini-kpi"><div class="b-label"><span style="color:#f85149">●</span> Avg Loss</div><div class="b-value text-red">-₹ 1,578</div></div>
+            <div class="mini-kpi"><div class="b-label">Total Fees</div><div class="b-value">₹ 17,615</div></div>
+            <div class="mini-kpi"><div class="b-label">Charges</div><div class="b-value">₹ 10,135</div></div>
+            <div class="mini-kpi"><div class="b-label">Brokerage</div><div class="b-value">₹ 7,480</div></div>
+            <div class="mini-kpi"><div class="b-label">Avg / Trade</div><div class="b-value">₹ 163</div></div>
+            <div class="mini-kpi col-span-2"><div class="b-label"><span style="color:#f85149">●</span> Max Drawdown</div><div class="b-value text-red">-₹ 27,803</div></div>
+          </div>
+
+          <!-- Middle Layer -->
+          <div class="bento-grid">
+             <div class="b-card col-span-8" style="min-height: 250px;">
+               <div class="b-label"><span style="color:#3fb950">●</span> Cumulative Performance</div>
+               <div class="bento-chart-placeholder">
+                 <div class="fake-line cum"></div>
+               </div>
+             </div>
+             
+             <div class="b-card col-span-4" style="background: rgba(13,17,23,0.6);">
+               <div class="b-label"><span style="color:#58a6ff">●</span> Notable Trading Days</div>
+               
+               <div style="display:flex; flex-direction:column; gap:12px; margin-top:14px;">
+                 <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                   <div><div style="color:#fff; font-weight:600; font-size:0.85rem;">Mar 10, Fri</div><div style="color:#8b949e; font-size:0.7rem;">Best Day Streak</div></div>
+                   <div class="text-green" style="font-weight:700; font-size:0.85rem;">+ ₹ 5,745</div>
+                 </div>
+                 <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                   <div><div style="color:#fff; font-weight:600; font-size:0.85rem;">Mar 18, Wed</div><div style="color:#8b949e; font-size:0.7rem;">Worst Overtrading</div></div>
+                   <div class="text-red" style="font-weight:700; font-size:0.85rem;">- ₹ 11,448</div>
+                 </div>
+                 <div style="display:flex; justify-content:space-between; align-items:center;">
+                   <div><div style="color:#fff; font-weight:600; font-size:0.85rem;">Apr 01, Sat</div><div style="color:#8b949e; font-size:0.7rem;">High Volume</div></div>
+                   <div class="text-green" style="font-weight:700; font-size:0.85rem;">+ ₹ 5,039</div>
+                 </div>
+                 
+                 <button style="margin-top:auto; background:rgba(88,166,255,0.1); border:1px solid rgba(88,166,255,0.3); color:#58a6ff; padding:12px; border-radius:12px; cursor:pointer; font-weight:600;">View All Outliers →</button>
+               </div>
+             </div>
+          </div>
+
+          <!-- Bottom Grid: Mini Trends -->
+          <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr);">
+             <div class="b-card">
+               <div class="b-label">Points Per Trade</div>
+               <div class="b-value text-green">14.5 avg</div>
+               <div class="bento-chart-placeholder" style="min-height: 80px;"><div class="fake-line"></div></div>
+             </div>
+             <div class="b-card">
+               <div class="b-label">Trade Count</div>
+               <div class="b-value">4.8 / day</div>
+               <div class="bento-chart-placeholder" style="min-height: 80px;"><div class="fake-line red"></div></div>
+             </div>
+             <div class="b-card">
+               <div class="b-label">Charges Paid</div>
+               <div class="b-value">₹ 10,135</div>
+               <div class="bento-chart-placeholder" style="min-height: 80px;"><div class="fake-line red"></div></div>
+             </div>
+             <div class="b-card">
+               <div class="b-label">Avg Buy Price</div>
+               <div class="b-value text-neon">210.4</div>
+               <div class="bento-chart-placeholder" style="min-height: 80px;"><div class="fake-line"></div></div>
+             </div>
+          </div>
+
+        </div>
+      </div>
       </div>
     </section>
 

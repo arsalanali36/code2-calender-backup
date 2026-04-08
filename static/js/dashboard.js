@@ -140,7 +140,7 @@ function formatShortDate(dateStr) {
   return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
 }
 
-function renderDashboard() {
+function renderDashboard(customTrades = null) {
   const subtitle = document.getElementById('qs-monthly-subtitle');
   if (subtitle) {
     if (state.dateRange.from || state.dateRange.to) {
@@ -152,7 +152,7 @@ function renderDashboard() {
   applyDashboardStatVisibility();
   applyDashboardStatOrder();
 
-  const trades = getTradesForMonth(state.year, state.month);
+  const trades = customTrades !== null ? customTrades : getTradesForMonth(state.year, state.month);
 
   let overall = 0;
   let net = 0;
