@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview dashboard.js
  * @description Top-level render() orchestrator + dashboard P&L stats, drag-drop stat ordering.
  * @exports render, renderDashboard, updateCalendarModeButton, updateBrokerFilterButton,
@@ -141,7 +141,7 @@ function formatShortDate(dateStr) {
 }
 
 function renderDashboard() {
-  const subtitle = document.getElementById('dashboard-subtitle');
+  const subtitle = document.getElementById('qs-monthly-subtitle');
   if (subtitle) {
     if (state.dateRange.from || state.dateRange.to) {
       subtitle.textContent = `for ${state.dateRange.from || '...'} to ${state.dateRange.to || '...'}`;

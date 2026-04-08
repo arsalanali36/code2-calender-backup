@@ -1,17 +1,23 @@
     <!-- ── VISUAL DASHBOARD ─────────────────── -->
     <section class="section visual-dashboard-section" style="margin-top: 20px;">
-      <div class="section-header dashboard-header" style="flex-wrap: wrap; gap: 15px;">
-        <div class="dashboard-title" style="display: flex; align-items: baseline; gap: 10px;">
-          <div class="section-title" style="margin: 0;">Performance Analytics (Visual Dashboard)</div>
-          <div class="dashboard-subtitle" style="margin: 0;">Sample Data</div>
+      <div class="section-header dashboard-header" style="flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--border2, #30363d); padding-bottom: 0;">
+        <div class="dashboard-tabs" style="display: flex; align-items: flex-end; gap: 5px;">
+          <div class="main-dash-tab active" data-tab="visual" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 700; cursor: pointer; background: var(--surface, #161b22); border: 1px solid var(--border2, #30363d); border-bottom: none; border-radius: 8px 8px 0 0; color: #fff; position: relative; bottom: -1px; z-index: 2;">Performance Analytics (Visual Dashboard)</div>
+          <div class="main-dash-tab" data-tab="quick" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 700; cursor: pointer; background: transparent; border: 1px solid transparent; border-bottom: 1px solid var(--border2, #30363d); border-radius: 8px 8px 0 0; color: #8b949e; position: relative; bottom: 0; z-index: 1;">Summary &amp; Quick Stats 📈</div>
+          <div class="dashboard-subtitle" style="margin: 0 0 12px 10px;">Sample Data</div>
         </div>
 
-        <div class="dashboard-actions">
+        <div class="dashboard-actions" style="margin-bottom: 12px; display: flex; align-items: center;">
+          <div id="quick-stats-filters" style="display: none; background:#0d1117; border:1px solid #444; border-radius:12px; padding:3px; margin-right:12px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
+            <button class="qs-filter-btn active" data-filter="both" style="background:#58a6ff; border:none; color:#fff; padding:6px 16px; font-size:0.75rem; font-weight:800; cursor:pointer; border-radius:10px; transition:all 0.2s; letter-spacing:0.5px;">BOTH</button>
+            <button class="qs-filter-btn" data-filter="gain" style="background:transparent; border:none; color:#8b949e; padding:6px 16px; font-size:0.75rem; font-weight:800; cursor:pointer; border-radius:10px; transition:all 0.2s; letter-spacing:0.5px;">GAIN</button>
+            <button class="qs-filter-btn" data-filter="loss" style="background:transparent; border:none; color:#8b949e; padding:6px 16px; font-size:0.75rem; font-weight:800; cursor:pointer; border-radius:10px; transition:all 0.2s; letter-spacing:0.5px;">LOSS</button>
+          </div>
           <button class="btn btn-outline" id="vd-stats-btn">Stats &#9881;</button>
         </div>
       </div>
 
-      <div class="visual-dash-wrapper" style="padding: 20px;">
+      <div class="visual-dash-wrapper" style="padding: 20px; min-height: 500px;">
 
         <!-- Charts Grid -->
         <div class="visual-dash-grid" id="vd-charts-grid"
@@ -375,6 +381,188 @@
             <div id="chart-avg-buy-price" style="min-height: 250px; "></div>
           </div>
 
+        </div>
+
+        <!-- Summary & Quick Stats Content -->
+        <div id="quick-stats-tab-content" style="display: none;">
+          
+          <!-- OVERALL MONTHLY SUMMARY BLOCK -->
+          <div style="background:#161b22; border:1px solid #30363d; border-radius:14px; padding:20px; box-shadow:inset 0 0 20px rgba(0,0,0,0.2); margin-bottom:24px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid #30363d; padding-bottom:10px;">
+              <span style="font-size:1.1rem; color:#fff; font-weight:700;">Overall Summary <span id="qs-monthly-subtitle" style="font-size:0.85rem; font-weight:normal; color:#8b949e; margin-left:10px;"></span></span>
+              <button class="btn btn-outline" id="dashboard-stats-btn" style="padding:4px 10px; font-size:0.8rem; border-color:#30363d;">Stats &#9881;</button>
+            </div>
+            <div class="dashboard-grid">
+        <div class="dash-card" data-stat="overall">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Overall P&amp;L</span>
+
+          </div>
+          <div class="dash-value" id="dash-overall">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="net">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Net P&amp;L</span>
+
+          </div>
+          <div class="dash-value" id="dash-net">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="trades">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Total Trades</span>
+
+          </div>
+          <div class="dash-value dash-value-muted" id="dash-trades">0</div>
+        </div>
+        <div class="dash-card" data-stat="charges">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Charges</span>
+
+          </div>
+          <div class="dash-value dash-value-muted" id="dash-charges">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="brokerage">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Brokerage</span>
+
+          </div>
+          <div class="dash-value dash-value-muted" id="dash-brokerage">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="totalfees">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Total Fees</span>
+
+          </div>
+          <div class="dash-value dash-value-muted" id="dash-totalfees">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="winrate">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Win %</span>
+
+          </div>
+          <div class="dash-value dash-value-muted" id="dash-winrate">0%</div>
+        </div>
+        <div class="dash-card" data-stat="avg">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Avg / Trade</span>
+
+          </div>
+          <div class="dash-value" id="dash-avg">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="avgwin">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Avg Win</span>
+
+          </div>
+          <div class="dash-value" id="dash-avgwin">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="avgloss">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Avg Loss</span>
+
+          </div>
+          <div class="dash-value" id="dash-avgloss">₹ 0.00</div>
+        </div>
+        <div class="dash-card" data-stat="best">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Best Day</span>
+
+          </div>
+          <div class="dash-value" id="dash-best">₹ 0.00</div>
+          <div class="dash-subvalue" id="dash-best-date">-</div>
+        </div>
+        <div class="dash-card" data-stat="worst">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Worst Day</span>
+
+          </div>
+          <div class="dash-value" id="dash-worst">₹ 0.00</div>
+          <div class="dash-subvalue" id="dash-worst-date">-</div>
+        </div>
+        <div class="dash-card" data-stat="dd">
+          <div class="dash-label vd-drag-handle"
+            style="margin-bottom: 10px; font-size: 14px; cursor: grab; display: flex; align-items: center;">
+            <span style="opacity: 0.5; margin-right: 8px;">::</span>
+            <span>Max Drawdown</span>
+
+          </div>
+          <div class="dash-value" id="dash-dd">₹ 0.00</div>
+        </div>
+      </div>
+          </div>
+
+          <!-- DAILY QUICK STATS BLOCK -->
+          <div style="margin-bottom:15px; border-bottom:1px solid #30363d; padding-bottom:10px;">
+            <span style="font-size:1.1rem; color:#fff; font-weight:700;">Daily Breakdown & Drilldown</span>
+          </div>
+
+          <div id="qs-stats-groups" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; padding-bottom: 24px;">
+            <!-- Populated via JS -->
+          </div>
+
+          <div style="display:grid; grid-template-columns:1.6fr 1fr; gap:16px; padding-bottom: 24px;">
+            <div id="qs-drilldown-wrap" style="background:#161b22; border:1px solid #30363d; border-radius:14px; padding:18px; min-height:500px; display:flex; flex-direction:column; box-shadow:inset 0 0 20px rgba(0,0,0,0.2);">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                <div style="font-size:0.75rem; color:#8b949e; font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+                  <span id="qs-drilldown-title">Analysis — Select a chart slice to drill down</span>
+                </div>
+                <button id="qs-drilldown-close" style="visibility:hidden; background:#30363d; border:none; color:#fff; cursor:pointer; font-size:0.8rem; padding:4px 8px; border-radius:6px; transition:background 0.2s;" title="Reset">Reset ↺</button>
+              </div>
+              <div id="qs-drilldown-chart" style="flex:1; min-height:420px;"></div>
+            </div>
+
+            <div style="background:#161b22; border:1px solid #30363d; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; box-shadow:inset 0 0 20px rgba(0,0,0,0.2);">
+              <div id="qs-pies-tabs" style="display:flex; border-bottom:1px solid #30363d; background:#1c2128;">
+                <button data-tab="winloss" class="qs-tab active" style="flex:1; background:#161b22; border:none; padding:14px 4px; font-size:0.7rem; color:#fff; font-weight:800; cursor:pointer; border-bottom:3px solid #58a6ff; text-transform:uppercase; letter-spacing:0.5px;">Win/Loss</button>
+                <button data-tab="tpd" class="qs-tab" style="flex:1; background:transparent; border:none; padding:14px 4px; font-size:0.7rem; color:#8b949e; font-weight:800; cursor:pointer; border-bottom:3px solid transparent; text-transform:uppercase; letter-spacing:0.5px;">Volume</button>
+                <button data-tab="points" class="qs-tab" style="flex:1; background:transparent; border:none; padding:14px 4px; font-size:0.7rem; color:#8b949e; font-weight:800; cursor:pointer; border-bottom:3px solid transparent; text-transform:uppercase; letter-spacing:0.5px;">Points</button>
+                <button data-tab="duration" class="qs-tab" style="flex:1; background:transparent; border:none; padding:14px 4px; font-size:0.7rem; color:#8b949e; font-weight:800; cursor:pointer; border-bottom:3px solid transparent; text-transform:uppercase; letter-spacing:0.5px;">Time</button>
+              </div>
+              <div style="flex:1; padding:24px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at center, #1c2128 0%, #161b22 100%); overflow:hidden;">
+                <!-- Shrink Donut container -->
+                <div id="qs-pie-container" style="width:100%; max-width:320px; height:320px; margin:0 auto; position:relative;">
+                  <div id="qs-chart-winloss" class="qs-tab-content active" style="width:100%; height:100%; opacity:1; transition:opacity 0.2s;"></div>
+                  <div id="qs-chart-tpd" class="qs-tab-content" style="width:100%; height:100%; opacity:0; position:absolute; top:0; left:0; pointer-events:none; transition:opacity 0.2s;"></div>
+                  <div id="qs-chart-points" class="qs-tab-content" style="width:100%; height:100%; opacity:0; position:absolute; top:0; left:0; pointer-events:none; transition:opacity 0.2s;"></div>
+                  <div id="qs-chart-duration" class="qs-tab-content" style="width:100%; height:100%; opacity:0; position:absolute; top:0; left:0; pointer-events:none; transition:opacity 0.2s;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="background:#161b22; border:1px solid #30363d; border-radius:12px; overflow:hidden;">
+              <div style="padding:12px 16px; border-bottom:1px solid #30363d; font-size:0.7rem; color:#8b949e; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center;">
+                <span>Notable Trading Days</span>
+                <span style="font-size:10px; color:#555;">Max 30 rows</span>
+              </div>
+              <div id="qs-notable-table" style="max-height:300px; overflow-y:auto;"></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -223,7 +223,7 @@
         colors: filtered.map(x => x.c),
         legend: { show: false },
         stroke: { width: 0 },
-        plotOptions: { pie: { donut: { labels: { show: true, value: { fontSize: '28px', fontWeight: 700, color: '#fff', formatter: v => v } } } } }
+        plotOptions: { pie: { donut: { labels: { show: true, value: { fontSize: '22px', fontWeight: 700, color: '#fff', formatter: v => v } } } } }
       }).render();
     };
 
@@ -269,9 +269,8 @@
     }
 
     const s = computeStats(trades);
-    const modal = document.getElementById('quick-stats-modal');
-    if (!modal) return;
-    modal.style.display = 'flex';
+    const contentWrap = document.getElementById('quick-stats-tab-content');
+    if (!contentWrap) return;
 
     if (!s) {
         document.getElementById('qs-stats-groups').innerHTML = '<div style="color:#556070;padding:40px;text-align:center;width:100%;">No data available for current filter selection.</div>';
@@ -346,17 +345,70 @@
   }
 
   function initQuickStats() {
-    const btn = document.getElementById('quick-stats-btn');
-    if (btn) btn.onclick = openQuickStats;
-    const closeBtn = document.getElementById('quick-stats-close');
-    if (closeBtn) closeBtn.onclick = () => document.getElementById('quick-stats-modal').style.display = 'none';
+    // Top-Level Tab Switching for Visual Dashboard
+    const dashTabs = document.querySelectorAll('.main-dash-tab');
+    if (dashTabs.length) {
+      dashTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          dashTabs.forEach(t => {
+            t.classList.remove('active');
+            t.style.background = 'transparent';
+            t.style.color = '#8b949e';
+            t.style.borderBottom = '1px solid var(--border2, #30363d)';
+            t.style.zIndex = '1';
+            t.style.bottom = '0';
+          });
+          tab.classList.add('active');
+          tab.style.background = 'var(--surface, #161b22)';
+          tab.style.color = '#fff';
+          tab.style.borderBottom = 'none';
+          tab.style.zIndex = '2';
+          tab.style.bottom = '-1px';
 
-    document.getElementById('qs-drilldown-close').onclick = () => {
+          const target = tab.getAttribute('data-tab');
+          const vGrid = document.getElementById('vd-charts-grid');
+          const qContent = document.getElementById('quick-stats-tab-content');
+          const qFilters = document.getElementById('quick-stats-filters');
+          const vStatsBtn = document.getElementById('vd-stats-btn');
+
+          if (target === 'visual') {
+            if (vGrid) vGrid.style.display = 'grid';
+            if (qContent) qContent.style.display = 'none';
+            if (qFilters) qFilters.style.display = 'none';
+            if (vStatsBtn) vStatsBtn.style.display = 'inline-block';
+            window.dispatchEvent(new Event('resize'));
+          } else if (target === 'quick') {
+            if (vGrid) vGrid.style.display = 'none';
+            if (qContent) qContent.style.display = 'block';
+            if (qFilters) qFilters.style.display = 'flex';
+            if (vStatsBtn) vStatsBtn.style.display = 'none';
+            openQuickStats();
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+          }
+        });
+      });
+    }
+
+    const btn = document.getElementById('quick-stats-btn');
+    if (btn) btn.onclick = () => {
+      const qTab = document.querySelector('.main-dash-tab[data-tab="quick"]');
+      if (qTab) {
+        qTab.click();
+        qTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        openQuickStats();
+      }
+    };
+
+    const drillCloseBtn = document.getElementById('qs-drilldown-close');
+    if (drillCloseBtn) {
+      drillCloseBtn.onclick = () => {
         if (_drillChart) _drillChart.destroy(); _drillChart = null;
         document.getElementById('qs-drilldown-title').textContent = 'Analysis — Select a chart slice to drill down';
         document.getElementById('qs-drilldown-chart').innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.9rem; border:2px dashed #222; border-radius:8px;">Pie charts click karo drill-down dekhne ke liye</div>';
         document.getElementById('qs-drilldown-close').style.visibility = 'hidden';
-    };
+      };
+    }
 
     document.querySelectorAll('.qs-tab').forEach(tab => {
         tab.onclick = () => {
