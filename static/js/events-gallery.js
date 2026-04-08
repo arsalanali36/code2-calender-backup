@@ -497,11 +497,16 @@ function _bindGalleryEvents() {
     renderGalleryTagsTray();
   });
 
-  // P&L pill dropdown removed per user request
+  // P&L pill dropdown
   const pnlPill = document.getElementById('gv2-pnl-pill');
   const pnlDrop = document.getElementById('gv2-pnl-dropdown');
-  if (pnlPill) {
-    pnlPill.style.cursor = 'default';
+  if (pnlPill && pnlDrop) {
+    pnlPill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tradeDrop2 = document.getElementById('gv2-trade-dropdown');
+      tradeDrop2?.classList.remove('open');
+      pnlDrop.classList.toggle('open');
+    });
   }
 
   // ── Trade pill dropdown toggle ────────────────────────────────────────────
@@ -521,14 +526,35 @@ function _bindGalleryEvents() {
   if (mtmBtn && mtmPanel) {
     mtmBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const isOpen = mtmPanel.classList.contains('open');
+      const isOpen = mtmPanel.style.display !== 'none';
+      // Close other dropdowns
       document.querySelectorAll('.dropdown-menu.open').forEach(d => d.classList.remove('open'));
-      if (!isOpen) {
-        mtmPanel.classList.add('open');
+      if (isOpen) {
+        mtmPanel.style.display = 'none';
+      } else {
+        // Position fixed near the button
+        const r = mtmBtn.getBoundingClientRect();
+        const panelW = 600, panelH = 400;
+        const top = Math.min(r.bottom + 6, window.innerHeight - panelH - 10);
+        const right = Math.max(window.innerWidth - r.right, 10);
+        mtmPanel.style.top = top + 'px';
+        mtmPanel.style.right = right + 'px';
+        mtmPanel.style.display = 'block';
         if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
       }
     });
   }
+
+  // Close MTM panel when clicking outside
+  document.addEventListener('mousedown', (e) => {
+    const _mp = document.getElementById('gv2-mtm-panel');
+    const _mb = document.getElementById('gv2-mtm-btn');
+    if (_mp && _mp.style.display !== 'none') {
+      if (!_mb?.contains(e.target) && !_mp.contains(e.target)) {
+        _mp.style.display = 'none';
+      }
+    }
+  }, true);
 
   // Close dropdowns on outside click
   document.addEventListener('mousedown', (e) => {

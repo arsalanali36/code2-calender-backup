@@ -147,7 +147,50 @@ function renderGalleryPnlPill() {
     pill.textContent = _fmt(total);
     pill.className = 'gv2-pnl-pill' + (total > 0 ? ' positive' : total < 0 ? '' : ' neutral');
     drop.innerHTML = '';
-    // Dropdown population for total pill disabled per user request
+    drop.style.minWidth = '340px';
+    let runTotal = 0;
+    rows.forEach(({ t, pnl }, i) => {
+        runTotal += pnl;
+        const row = document.createElement('div');
+        row.className = 'gv2-pnl-trade-row';
+        row.style.cssText = 'display:grid; grid-template-columns:32px 1fr 60px 80px; gap:6px; align-items:center; padding:6px 12px; cursor:pointer;';
+        row.addEventListener('mouseenter', () => row.style.background = 'rgba(255,255,255,0.06)');
+        row.addEventListener('mouseleave', () => row.style.background = '');
+
+        const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
+        const m = rawInst.toUpperCase().match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
+        const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : rawInst;
+        let instColor = '#ffd700';
+        if (rawInst.toUpperCase().endsWith('CE')) instColor = '#c084fc';
+        else if (rawInst.toUpperCase().endsWith('PE')) instColor = 'var(--text3,#8b949e)';
+
+        const lbl = document.createElement('span');
+        lbl.style.cssText = 'font-weight:700; font-size:0.85rem;';
+        lbl.textContent = `T${i + 1}`;
+
+        const inst = document.createElement('span');
+        inst.style.cssText = `font-size:0.75rem; color:${instColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;`;
+        inst.textContent = instText || '—';
+
+        const val = document.createElement('span');
+        val.style.cssText = `text-align:right; font-weight:700; font-size:0.82rem; color:${pnl > 0 ? '#2ecc71' : pnl < 0 ? '#e74c3c' : 'var(--text2)'};`;
+        val.textContent = '₹' + Math.abs(Math.round(pnl)).toLocaleString('en-IN');
+
+        const cum = document.createElement('span');
+        cum.style.cssText = `text-align:right; font-size:0.78rem; color:${runTotal >= 0 ? '#2ecc71' : '#e74c3c'}; padding-left:6px; border-left:1px solid rgba(255,255,255,0.1); opacity:0.85;`;
+        cum.textContent = '₹' + Math.abs(Math.round(runTotal)).toLocaleString('en-IN');
+
+        row.append(lbl, inst, val, cum);
+        row.addEventListener('click', () => {
+            drop.classList.remove('open');
+            const firstImg = (t.images || [])[0];
+            if (firstImg) {
+                const idx = state.gallery.images.indexOf(firstImg);
+                if (idx >= 0) { state.gallery.currentIndex = idx; renderGallery(); }
+            }
+        });
+        drop.appendChild(row);
+    });
 }
 
 // ── Trade pill (current image's trade + its P/L) ──────────────────────────
@@ -446,8 +489,8 @@ function renderGalleryMtmPanel(panel) {
             return;
         }
 
-        const w = wrap.clientWidth;
-        const h = wrap.clientHeight;
+        const w = wrap.clientWidth || wrap.getBoundingClientRect().width || 560;
+        const h = wrap.clientHeight || wrap.getBoundingClientRect().height || 280;
         
         let runTotal = 0;
         const trajData = [{ val: 0, index: 0, inst: 'Initial', trade: null }];

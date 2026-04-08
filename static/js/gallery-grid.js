@@ -8,7 +8,7 @@
     slider: null,
     body: null,
     isOpen: false,
-    currentSize: 220
+    currentSize: 280
   };
 
   function _syncGridRefs() {
@@ -50,22 +50,37 @@
     }
 
     const _onSliderInput = (e) => {
-      gv.currentSize = e.target.value;
+      gv.currentSize = parseInt(e.target.value, 10);
       if (gv.slider) gv.slider.value = gv.currentSize;
       if (gv.sliderMain) gv.sliderMain.value = gv.currentSize;
-      
+
       const main = document.querySelector('.gv2-grid-main');
       if (main) main.style.setProperty('--grid-img-size', gv.currentSize + 'px');
+
+      localStorage.setItem('tj_gridSz', String(gv.currentSize));
+
+      // Also scale the thumb strip proportionally (no upper limit)
+      const thumbSz = Math.round(gv.currentSize / 2.8);
+      document.documentElement.style.setProperty('--thumb-size', thumbSz + 'px');
+      localStorage.setItem('tj_thumbSz', String(thumbSz));
     };
 
     if (gv.slider) gv.slider.addEventListener('input', _onSliderInput);
     if (gv.sliderMain) gv.sliderMain.addEventListener('input', _onSliderInput);
+
+    // Load saved size or use default (no upper limit)
+    const savedGridSz = parseInt(localStorage.getItem('tj_gridSz') || String(gv.currentSize), 10);
+    gv.currentSize = Math.max(80, savedGridSz);
 
     // Initial sync
     const main = document.querySelector('.gv2-grid-main');
     if (main) main.style.setProperty('--grid-img-size', gv.currentSize + 'px');
     if (gv.slider) gv.slider.value = gv.currentSize;
     if (gv.sliderMain) gv.sliderMain.value = gv.currentSize;
+
+    // Sync thumb strip to saved size (no upper limit)
+    const initThumbSz = Math.round(gv.currentSize / 2.8);
+    document.documentElement.style.setProperty('--thumb-size', initThumbSz + 'px');
   }
 
   function toggleGridView(show) {
@@ -494,10 +509,28 @@
     }
   });
 
+  // Ctrl + mouse wheel → adjust SIZE
+  document.addEventListener('wheel', (e) => {
+    const galleryOpen = document.getElementById('gallery-modal')?.classList.contains('open');
+    if (!galleryOpen || !e.ctrlKey) return;
+    e.preventDefault();
+    const step = e.deltaY < 0 ? 20 : -20;
+    gv.currentSize = Math.max(80, gv.currentSize + step);
+    const main = document.querySelector('.gv2-grid-main');
+    if (main) main.style.setProperty('--grid-img-size', gv.currentSize + 'px');
+    if (gv.slider) gv.slider.value = gv.currentSize;
+    if (gv.sliderMain) gv.sliderMain.value = gv.currentSize;
+    localStorage.setItem('tj_gridSz', String(gv.currentSize));
+    const thumbSz = Math.round(gv.currentSize / 2.8);
+    document.documentElement.style.setProperty('--thumb-size', thumbSz + 'px');
+    localStorage.setItem('tj_thumbSz', String(thumbSz));
+  }, { passive: false });
+
   // External access
   window.toggleGridView = toggleGridView;
   window.isGridViewOpen = () => gv.isOpen;
   window.renderGridContent = renderGridContent;
   window.initGalleryGridUI = initGrid;
+  window.refreshGridSelection = _gridRefreshSelection;
 
 })();

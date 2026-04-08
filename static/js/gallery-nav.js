@@ -92,16 +92,101 @@ function loadOverlayForCurrentImage() {
   applyZoom();
 }
 
+// Returns ordered array of {label, images} blocks for the current date
+function getGalleryBlocks() {
+  const date = state.gallery.date;
+  const images = state.gallery.images || [];
+  if (!date || !images.length) return [{ label: 'All', images }];
+
+  const dayData = state.dayData[date] || {};
+  const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+  const blocks = [];
+
+  if (dayData.newsImages  && dayData.newsImages.length)  blocks.push({ label: 'NEWS',  images: dayData.newsImages });
+  if (dayData.images      && dayData.images.length)      blocks.push({ label: 'OPEN',  images: dayData.images });
+  trades.forEach((tr, i) => {
+    if (tr.images && tr.images.length) blocks.push({ label: 'T' + (i + 1), images: tr.images });
+  });
+  if (dayData.closeImages && dayData.closeImages.length) blocks.push({ label: 'CLOSE', images: dayData.closeImages });
+
+  return blocks.length ? blocks : [{ label: 'All', images }];
+}
+
+// Up/Down in grid view: jump to prev/next block's first image
+function navigateGalleryBlock(dir) {
+  const blocks = getGalleryBlocks();
+  if (blocks.length <= 1) { _scrollGalleryContent(dir * 200); return; }
+
+  const images = state.gallery.images || [];
+  const curUrl = images[state.gallery.currentIndex] || '';
+  let curBlockIdx = 0;
+  for (let b = 0; b < blocks.length; b++) {
+    if (blocks[b].images.includes(curUrl)) { curBlockIdx = b; break; }
+  }
+
+  const nextBlockIdx = curBlockIdx + dir;
+  if (nextBlockIdx < 0 || nextBlockIdx >= blocks.length) return;
+
+  const nextBlock = blocks[nextBlockIdx];
+  // Going back (Up) → land on last image of prev block; going forward (Down) → first image
+  const targetImg = dir < 0 ? nextBlock.images[nextBlock.images.length - 1] : nextBlock.images[0];
+  const globalIdx = images.indexOf(targetImg);
+  if (globalIdx < 0) return;
+
+  state.gallery.currentIndex = globalIdx;
+  state.gallery.selectedIndices = new Set([globalIdx]);
+
+  if (typeof isGridViewOpen === 'function' && isGridViewOpen()) {
+    if (typeof refreshGridSelection === 'function') refreshGridSelection();
+    // Scroll the block group header into view
+    const body = document.getElementById('gv2-grid-body');
+    if (body) {
+      const el = body.querySelector(`[data-global-idx="${globalIdx}"]`);
+      const group = el && el.closest('.gv2-grid-group');
+      if (group) group.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } else {
+    renderGallery();
+  }
+}
+
 function navigateGallery(dir) {
   const { images, currentIndex } = state.gallery;
   if (!images || !images.length) return;
+
+  if (typeof isGridViewOpen === 'function' && isGridViewOpen()) {
+    // Grid view: navigate within current block only, stop at block edges
+    const blocks = getGalleryBlocks();
+    const curUrl = images[currentIndex] || '';
+    let curBlock = blocks[0];
+    for (const block of blocks) {
+      if (block.images.includes(curUrl)) { curBlock = block; break; }
+    }
+    const posInBlock = curBlock.images.indexOf(curUrl);
+    const nextPos = posInBlock + dir;
+    if (nextPos < 0 || nextPos >= curBlock.images.length) return; // stop at edge
+    const nextUrl = curBlock.images[nextPos];
+    const nextGlobalIdx = images.indexOf(nextUrl);
+    if (nextGlobalIdx < 0) return;
+
+    state.gallery.currentIndex = nextGlobalIdx;
+    state.gallery.selectedIndices = new Set([nextGlobalIdx]);
+    if (typeof refreshGridSelection === 'function') refreshGridSelection();
+    const body = document.getElementById('gv2-grid-body');
+    if (body) {
+      const el = body.querySelector(`[data-global-idx="${nextGlobalIdx}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    return;
+  }
+
+  // Classic view: sequential nav through all images
   let next = currentIndex + dir;
   if (next >= images.length) next = images.length - 1;
   else if (next < 0) next = 0;
   if (next === currentIndex) return;
   state.gallery.currentIndex = next;
-  // Clear multi-selection so only the active (blue) border shows on the new thumb
-  state.gallery.selectedIndices = new Set();
+  state.gallery.selectedIndices = new Set([next]);
   renderGallery();
 }
 

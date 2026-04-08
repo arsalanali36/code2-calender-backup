@@ -123,8 +123,8 @@ function _bindSettingsEvents() {
     const handleH = document.getElementById('gv2-tray-resize-handle-horiz');
     if (!handleH) return;
     const THUMB_SZ_KEY = 'tj_thumbSz';
-    const savedSz = parseInt(localStorage.getItem(THUMB_SZ_KEY) || '54', 10);
-    document.documentElement.style.setProperty('--thumb-size', Math.max(24, Math.min(250, savedSz)) + 'px');
+    const savedSz = parseInt(localStorage.getItem(THUMB_SZ_KEY) || '100', 10);
+    document.documentElement.style.setProperty('--thumb-size', Math.max(24, savedSz) + 'px');
 
     let _resizingH = false;
     let _startThumbSz = 54;
@@ -144,7 +144,7 @@ function _bindSettingsEvents() {
       if (!_resizingH) return;
       // move UP (smaller Y) means LARGER tray
       const diff = _startY - e.clientY;
-      const newSz = Math.max(36, Math.min(250, _startThumbSz + diff));
+      const newSz = Math.max(24, _startThumbSz + diff);
       document.documentElement.style.setProperty('--thumb-size', newSz + 'px');
     });
 

@@ -66,7 +66,7 @@
       </div>
       <div class="gv2-target-btn-wrap" id="gv2-mtm-btn-wrap" style="position:relative;">
         <button class="gv2-target-pill" id="gv2-mtm-btn" title="Show Day Equity Curve" style="background:var(--pink, #ff00ff); border-color:#ff00ff; margin-left:4px;">📈</button>
-        <div class="dropdown-menu mtm-panel" id="gv2-mtm-panel" style="right:0; top:110%; width:600px; height:400px; padding:20px; border-radius:12px; overflow:hidden;"></div>
+        <div id="gv2-mtm-panel" style="display:none; position:fixed; width:600px; height:400px; padding:20px; border-radius:12px; overflow:hidden; z-index:9999; background:rgba(15,15,20,0.97); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.8); backdrop-filter:blur(20px);"></div>
       </div>
       <div class="gv2-target-btn-wrap" id="gv2-img-manager-btn-wrap" style="position:relative;">
         <button class="gv2-target-pill" id="gv2-img-manager-btn" title="Open Image Manager" style="background:var(--blue); border-color:var(--blue); margin-left:4px;">📊</button>
@@ -76,7 +76,7 @@
       <div class="gv2-tray-sep gv2-grid-only" style="display:none"></div>
       <div class="gv2-grid-size-ctrl gv2-grid-only" id="gv2-tray-size-ctrl" style="display:none">
         <span class="gv2-grid-sz-icon">SIZE</span>
-        <input type="range" id="gv2-grid-size-slider-tray" min="100" max="450" value="220" title="Adjust thumbnail size" />
+        <input type="range" id="gv2-grid-size-slider-tray" min="80" max="1200" value="280" title="Adjust thumbnail size" />
       </div>
     </div>
 
@@ -460,7 +460,14 @@
 
            <div class="gv2-grid-size-wrap">
               <span class="gv2-grid-sz-icon">SIZE</span>
-              <input type="range" id="gv2-grid-size-slider-main" min="120" max="600" step="10" value="220" />
+              <input type="range" id="gv2-grid-size-slider-main" min="80" max="1200" step="10" value="280" />
+           </div>
+
+           <!-- Action buttons (same as main tray) -->
+           <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
+             <button class="gv2-target-pill" onclick="document.getElementById('gv2-target-pill').click()" title="Open Target Tracker">🎯</button>
+             <button class="gv2-target-pill" onclick="document.getElementById('gv2-mtm-btn').click()" title="Show Day Equity Curve" style="background:var(--pink, #ff00ff); border-color:#ff00ff;">📈</button>
+             <button class="gv2-target-pill" onclick="document.getElementById('gv2-img-manager-btn').click()" title="Open Image Manager" style="background:var(--blue); border-color:var(--blue);">📊</button>
            </div>
         </div>
         <div class="gv2-grid-body" id="gv2-grid-body"></div>

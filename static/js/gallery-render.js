@@ -892,7 +892,7 @@ function renderGallery() {
 
   // ── REFRESH MTM PANEL IF OPEN ──────────────────────────────────────────
   const mtmPanel = document.getElementById('gv2-mtm-panel');
-  if (mtmPanel && mtmPanel.classList.contains('open')) {
+  if (mtmPanel && mtmPanel.style.display !== 'none') {
     if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
   }
 }

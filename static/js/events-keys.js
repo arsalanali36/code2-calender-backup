@@ -9,6 +9,16 @@
 // events-keys.js — Global keyboard handler (gallery hotkeys, annotation shortcuts,
 //   calendar navigation, view toggles). Called by bindEvents() in events.js.
 
+function _scrollGalleryContent(delta) {
+  const gridView = document.getElementById('gv2-grid-view');
+  if (gridView && gridView.style.display !== 'none') {
+    const body = document.getElementById('gv2-grid-body');
+    if (body) { body.scrollTop += delta; return; }
+  }
+  const thumbs = document.getElementById('gallery-thumbs');
+  if (thumbs) thumbs.scrollTop += delta;
+}
+
 function _bindKeyboardEvents() {
   document.addEventListener('keydown', e => {
     const galleryOpen = document.getElementById('gallery-modal').classList.contains('open');
@@ -56,18 +66,40 @@ function _bindKeyboardEvents() {
     if (galleryOpen) {
       // Arrow nav — must run BEFORE typingInField check because upper-canvas focus
       // triggers typingInField=true even when not typing. Guard: annotation must be off.
-      if (!annotState.active && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      if (!annotState.active && !e.ctrlKey && !e.altKey) {
         const fsEl = document.getElementById('fullscreen-viewer');
         if (fsEl && fsEl.style.display === 'flex' && typeof FullscreenViewer !== 'undefined') {
-          if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevImg(); return; }
-          if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextImg(); return; }
-          if (e.key === 'ArrowUp')    { e.preventDefault(); FullscreenViewer.prevDay(); return; }
-          if (e.key === 'ArrowDown')  { e.preventDefault(); FullscreenViewer.nextDay(); return; }
+          if (!e.shiftKey) {
+            if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevImg(); return; }
+            if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextImg(); return; }
+            if (e.key === 'ArrowUp')    { e.preventDefault(); FullscreenViewer.prevDay(); return; }
+            if (e.key === 'ArrowDown')  { e.preventDefault(); FullscreenViewer.nextDay(); return; }
+          } else {
+            if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevDay(); return; }
+            if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextDay(); return; }
+          }
         }
-        if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
-        if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
-        if (e.key === 'ArrowUp')    { e.preventDefault(); navigateGallery(-1);     return; }
-        if (e.key === 'ArrowDown')  { e.preventDefault(); navigateGallery(1);      return; }
+        if (e.shiftKey) {
+          // Shift + Arrow → date navigation
+          if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
+          if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
+        } else {
+          // Plain arrows → image nav + page scroll
+          if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGallery(-1); return; }
+          if (e.key === 'ArrowRight') { e.preventDefault(); navigateGallery(1);  return; }
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (typeof isGridViewOpen === 'function' && isGridViewOpen()) navigateGalleryBlock(-1);
+            else _scrollGalleryContent(-200);
+            return;
+          }
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (typeof isGridViewOpen === 'function' && isGridViewOpen()) navigateGalleryBlock(1);
+            else _scrollGalleryContent(200);
+            return;
+          }
+        }
       }
 
       if (typingInField && e.key !== 'Escape') return;

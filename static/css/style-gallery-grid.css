@@ -447,9 +447,11 @@
   display: flex !important;
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
-  overflow-y: hidden !important;
+  overflow-y: visible !important; /* Changed from hidden to avoid clipping on iPad */
+  min-height: fit-content !important;
+  align-items: flex-start !important;
   gap: 15px !important;
-  padding: 4px 4px 12px 4px !important; /* Space for scrollbar and glow */
+  padding: 4px 4px 20px 4px !important; /* Increased padding-bottom for shadows/scaling */
   cursor: grab;
   scroll-behavior: smooth;
   user-select: none;
@@ -481,14 +483,12 @@
   width: var(--grid-img-size, 220px);
 }
 
-/* ── Portrait Mode for News Section ── */
+/* ── Portrait Mode for News Section — scales with slider but capped at 280px max ── */
 .gv2-grid-group--portrait .gv2-grid-container--nowrap .gv2-grid-item {
-  width: calc(var(--grid-img-size, 220px) * 0.65);
+  width: min(var(--grid-img-size, 180px), 180px);
 }
-
-/* ── Portrait Mode for News Section ── */
 .gv2-grid-group--portrait .gv2-grid-container {
-  grid-template-columns: repeat(auto-fill, minmax(calc(var(--grid-img-size, 220px) * 0.65), 1fr));
+  grid-template-columns: repeat(auto-fill, min(var(--grid-img-size, 180px), 180px));
 }
 .gv2-grid-group--portrait .gv2-grid-item {
   aspect-ratio: 9 / 16;
@@ -497,6 +497,7 @@
 .gv2-grid-item {
   position: relative;
   aspect-ratio: 16 / 9;
+  height: auto; /* Forces aspect-ratio to determine height */
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid transparent;
