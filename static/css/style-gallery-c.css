@@ -428,8 +428,36 @@
 }
 
 .gv2-tray-record-bars .gv2-audio-btn {
-  padding: 2px 8px !important;
-  font-size: 0.72rem !important;
+  padding: 3px 10px !important;
+  font-size: 0.75rem !important;
+  border-radius: 5px !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.06) !important;
+  color: #cdd9e5 !important;
+  cursor: pointer !important;
+  transition: background 0.15s !important;
+}
+
+.gv2-tray-record-bars .gv2-audio-btn:hover {
+  background: rgba(255,255,255,0.15) !important;
+}
+
+.gv2-tray-record-bars .gv2-audio-btn.gv2-video-rec {
+  border-color: rgba(88,166,255,0.35) !important;
+  color: #58a6ff !important;
+}
+
+.gv2-tray-record-bars .gv2-audio-btn.gv2-video-rec:hover {
+  background: rgba(88,166,255,0.15) !important;
+}
+
+.gv2-tray-record-bars .gv2-audio-btn.gv2-audio-rec {
+  border-color: rgba(248,81,73,0.35) !important;
+  color: #ff7b72 !important;
+}
+
+.gv2-tray-record-bars .gv2-audio-btn.gv2-audio-rec:hover {
+  background: rgba(248,81,73,0.12) !important;
 }
 
 .gv2-tray-record-bars .gv2-audio-wave {

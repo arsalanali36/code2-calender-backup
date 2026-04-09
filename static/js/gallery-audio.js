@@ -369,16 +369,28 @@ function renderAudioBar() {
     const label = document.createElement('span');
     label.className   = 'gv2-audio-label';
     label.textContent = 'Record:';
+    bar.appendChild(label);
 
+    // Video record button — always show
+    if (typeof startVideoRecording === 'function') {
+      const vidRecording = typeof _videoRecorder !== 'undefined' && _videoRecorder && _videoRecorder.state === 'recording';
+      if (!vidRecording) {
+        const vidBtn = document.createElement('button');
+        vidBtn.className   = 'gv2-audio-btn gv2-video-rec';
+        vidBtn.title       = 'Screen record (max 1:30)';
+        vidBtn.textContent = '● Record';
+        vidBtn.onclick     = startVideoRecording;
+        bar.appendChild(vidBtn);
+      }
+    }
+
+    // Audio record button
     const recBtn = document.createElement('button');
     recBtn.className   = 'gv2-audio-btn gv2-audio-rec';
     recBtn.title       = 'Record audio (max 1 min)';
-    recBtn.textContent = '⏺ Audio';
+    recBtn.textContent = '● Audio';
     recBtn.onclick     = startAudioRecording;
-
-    bar.appendChild(label);
     bar.appendChild(recBtn);
-    _appendVideoRecBtn(bar, imgUrl);   // ← video rec always visible
   }
 
 }
