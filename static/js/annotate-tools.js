@@ -31,6 +31,7 @@ function toggleAnnotation() {
   } else {
     annotState.tool = 'pen';
     startAnnotation();
+    bindAnnotBarDrag();
   }
 }
 
@@ -237,5 +238,87 @@ function _setCursor(cur, onMqCanvas = false) {
   }
   if (fabricCanvas && fabricCanvas.upperCanvasEl) fabricCanvas.upperCanvasEl.style.cursor = cur;
   if (fabricCanvas && fabricCanvas.wrapperEl) fabricCanvas.wrapperEl.style.cursor = cur;
+}
+
+// ── Annotation bar drag (GPU-accelerated translate3d) ───────────────────────
+function bindAnnotBarDrag() {
+  const bar = document.getElementById('gv2-annot-bar');
+  if (!bar || bar._dragBound) return;
+  bar._dragBound = true;
+
+  const LS_KEY = 'tj_annotBarPos';
+  let dragging = false, startX, startY, curTx = 0, curTy = 0;
+  let _touchPending = false, _touchStartX = 0, _touchStartY = 0, _touchId = null;
+  const THRESHOLD = 6;
+
+  // Restore saved position
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; } })();
+  if (saved) {
+    curTx = saved.tx || 0; curTy = saved.ty || 0;
+    // Combine with existing translateY(-50%)
+    bar.style.transform = `translateY(-50%) translate3d(${curTx}px,${curTy}px,0)`;
+  }
+
+  const _apply = () => {
+    bar.style.transform = `translateY(-50%) translate3d(${curTx}px,${curTy}px,0)`;
+  };
+
+  const _startDrag = (cx, cy) => {
+    dragging = true; startX = cx; startY = cy;
+    bar.style.willChange = 'transform';
+    document.body.style.userSelect = 'none';
+  };
+
+  const _doDrag = (cx, cy) => {
+    if (!dragging) return;
+    curTx += cx - startX; curTy += cy - startY;
+    startX = cx; startY = cy;
+    _apply();
+  };
+
+  const _endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    bar.style.willChange = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem(LS_KEY, JSON.stringify({ tx: curTx, ty: curTy }));
+  };
+
+  // Mouse (desktop)
+  bar.addEventListener('mousedown', e => {
+    if (e.button !== 0 || e.target.closest('button, input, select')) return;
+    e.preventDefault(); _startDrag(e.clientX, e.clientY);
+  });
+  document.addEventListener('mousemove', e => _doDrag(e.clientX, e.clientY));
+  document.addEventListener('mouseup', _endDrag);
+
+  // Touch (iPad) — capture phase + threshold
+  document.addEventListener('touchstart', e => {
+    if (!bar.contains(e.target)) return;
+    const t = e.touches[0];
+    _touchId = t.identifier; _touchPending = true;
+    _touchStartX = t.clientX; _touchStartY = t.clientY;
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!_touchPending && !dragging) return;
+    let t = null;
+    for (let i = 0; i < e.touches.length; i++) {
+      if (e.touches[i].identifier === _touchId) { t = e.touches[i]; break; }
+    }
+    if (!t) return;
+    if (_touchPending) {
+      const dx = Math.abs(t.clientX - _touchStartX);
+      const dy = Math.abs(t.clientY - _touchStartY);
+      if (dx > THRESHOLD || dy > THRESHOLD) {
+        _touchPending = false;
+        _startDrag(t.clientX, t.clientY);
+      } else return;
+    }
+    if (e.cancelable) e.preventDefault();
+    _doDrag(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => { _touchPending = false; _touchId = null; _endDrag(); });
 }
 
