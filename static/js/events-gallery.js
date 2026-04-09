@@ -630,58 +630,41 @@ function _bindGalleryTrayDrag() {
   if (!handle || !pill) return;
 
   const LS_KEY = 'tj_trayPillPos';
-  let dragging = false, startX, startY, origLeft, origTop;
+  let dragging = false, startX, startY, curTx = 0, curTy = 0;
 
-  // Restore saved position
-  const saved = (() => { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; } })();
-  if (saved) {
-    pill.style.position = 'fixed';
-    pill.style.left     = saved.left + 'px';
-    pill.style.top      = saved.top  + 'px';
-    pill.style.transform = 'none';
-  }
-
-  const _initDragPos = (cx, cy) => {
-    const r = pill.getBoundingClientRect();
-    if (pill.style.position !== 'fixed') {
-      pill.style.position = 'fixed';
-      pill.style.left     = r.left + 'px';
-      pill.style.top      = r.top  + 'px';
-      pill.style.transform = 'none';
-    }
-    origLeft = parseFloat(pill.style.left) || r.left;
-    origTop  = parseFloat(pill.style.top)  || r.top;
-    startX = cx;
-    startY = cy;
+  // Use translate3d for GPU-accelerated movement (no reflow)
+  const _applyTranslate = (tx, ty) => {
+    pill.style.transform = `translate3d(${tx}px,${ty}px,0)`;
   };
 
+  // Restore saved offset
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; } })();
+  if (saved) { curTx = saved.tx || 0; curTy = saved.ty || 0; _applyTranslate(curTx, curTy); }
+
   const startDrag = (cx, cy, target) => {
-    // Block drag on non-touch if clicking interactive elements
     if (target.closest('button, input, select, .dropdown-menu, .gv2-pnl-pill, .gv2-trade-pill')) return false;
     dragging = true;
-    pill.style.cursor = 'grabbing';
+    startX = cx; startY = cy;
+    pill.style.willChange = 'transform';
     document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'grabbing';
-    _initDragPos(cx, cy);
     return true;
   };
 
   const doDrag = (cx, cy) => {
     if (!dragging) return;
-    const dx = cx - startX, dy = cy - startY;
-    const newLeft = Math.max(0, Math.min(window.innerWidth  - pill.offsetWidth,  origLeft + dx));
-    const newTop  = Math.max(0, Math.min(window.innerHeight - pill.offsetHeight, origTop  + dy));
-    pill.style.left = newLeft + 'px';
-    pill.style.top  = newTop  + 'px';
+    curTx += cx - startX;
+    curTy += cy - startY;
+    startX = cx;
+    startY = cy;
+    _applyTranslate(curTx, curTy);
   };
 
   const endDrag = () => {
     if (!dragging) return;
     dragging = false;
-    pill.style.cursor = ''; // Reset cursor
+    pill.style.willChange = '';
     document.body.style.userSelect = '';
-    document.body.style.cursor = '';
-    localStorage.setItem(LS_KEY, JSON.stringify({ left: parseFloat(pill.style.left), top: parseFloat(pill.style.top) }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ tx: curTx, ty: curTy }));
   };
 
   // ── Mouse drag (desktop) ──────────────────────────────────────────────────
@@ -726,11 +709,8 @@ function _bindGalleryTrayDrag() {
         _touchPending = false;
         dragging = true;
         document.body.style.userSelect = 'none';
-        // Reset origin to current touch so no jump at drag start
         startX = t.clientX;
         startY = t.clientY;
-        origLeft = parseFloat(pill.style.left) || pill.getBoundingClientRect().left;
-        origTop  = parseFloat(pill.style.top)  || pill.getBoundingClientRect().top;
       } else {
         return;
       }
@@ -747,10 +727,9 @@ function _bindGalleryTrayDrag() {
 
   // Double-click handle to reset position
   handle.addEventListener('dblclick', () => {
-    pill.style.position = '';
-    pill.style.left     = '';
-    pill.style.top      = '';
+    curTx = 0; curTy = 0;
     pill.style.transform = '';
+    pill.style.willChange = '';
     localStorage.removeItem(LS_KEY);
   });
 }
