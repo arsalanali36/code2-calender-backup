@@ -640,16 +640,8 @@ function _bindGalleryTrayDrag() {
     pill.style.transform = 'none';
   }
 
-  const startDrag = (cx, cy, target) => {
-    // Only drag if we didn't click a button or input
-    if (target.closest('button, input, select, .dropdown-menu, .gv2-pnl-pill, .gv2-trade-pill')) return false;
-
-    dragging = true;
-    pill.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none'; // Prevent selection
-    document.body.style.cursor = 'grabbing';
+  const _initDragPos = (cx, cy) => {
     const r = pill.getBoundingClientRect();
-    // Ensure pill is fixed-position for drag
     if (pill.style.position !== 'fixed') {
       pill.style.position = 'fixed';
       pill.style.left     = r.left + 'px';
@@ -660,6 +652,16 @@ function _bindGalleryTrayDrag() {
     origTop  = parseFloat(pill.style.top)  || r.top;
     startX = cx;
     startY = cy;
+  };
+
+  const startDrag = (cx, cy, target) => {
+    // Block drag on non-touch if clicking interactive elements
+    if (target.closest('button, input, select, .dropdown-menu, .gv2-pnl-pill, .gv2-trade-pill')) return false;
+    dragging = true;
+    pill.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
+    _initDragPos(cx, cy);
     return true;
   };
 
@@ -681,25 +683,52 @@ function _bindGalleryTrayDrag() {
     localStorage.setItem(LS_KEY, JSON.stringify({ left: parseFloat(pill.style.left), top: parseFloat(pill.style.top) }));
   };
 
-  pill.addEventListener('mousedown',  e => { 
+  // ── Mouse drag (desktop) ──────────────────────────────────────────────────
+  pill.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
     if (startDrag(e.clientX, e.clientY, e.target)) {
-        e.preventDefault();
-        e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
     }
   });
-  pill.addEventListener('touchstart', e => { 
-    const t = e.touches[0]; 
-    if (startDrag(t.clientX, t.clientY, e.target)) {
-        // We don't preventDefault on touchstart to allow scrolling if needed, 
-        // but for a fixed toolbar, we usually want to.
-        // e.preventDefault(); 
-    }
+  document.addEventListener('mousemove', e => doDrag(e.clientX, e.clientY));
+  document.addEventListener('mouseup', endDrag);
+
+  // ── Touch drag (iPad/mobile) — threshold-based so any area works ──────────
+  let _touchPending = false, _touchStartX = 0, _touchStartY = 0;
+  const DRAG_THRESHOLD = 8; // px movement before drag starts
+
+  pill.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    _touchPending = true;
+    _touchStartX  = t.clientX;
+    _touchStartY  = t.clientY;
+    // Pre-record starting position so first move is instant
+    _initDragPos(t.clientX, t.clientY);
   }, { passive: true });
-  document.addEventListener('mousemove',  e => doDrag(e.clientX, e.clientY));
-  document.addEventListener('touchmove',  e => { const t = e.touches[0]; doDrag(t.clientX, t.clientY); }, { passive: true });
-  document.addEventListener('mouseup',  endDrag);
-  document.addEventListener('touchend', endDrag);
+
+  document.addEventListener('touchmove', e => {
+    if (!_touchPending && !dragging) return;
+    const t = e.touches[0];
+    if (_touchPending) {
+      const dx = Math.abs(t.clientX - _touchStartX);
+      const dy = Math.abs(t.clientY - _touchStartY);
+      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+        // Commit to drag
+        _touchPending = false;
+        dragging = true;
+        document.body.style.userSelect = 'none';
+      } else {
+        return; // Still within tap threshold — wait
+      }
+    }
+    doDrag(t.clientX, t.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    _touchPending = false;
+    endDrag();
+  });
 
   // Double-click handle to reset position
   handle.addEventListener('dblclick', () => {
