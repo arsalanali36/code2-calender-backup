@@ -78,6 +78,14 @@ function _bindGalleryEvents() {
         localStorage.setItem('tj_ulpPanelOpen', '0');
       });
     }
+
+    // Track mouse hover for context-aware arrow navigation
+    ulpPanel.addEventListener('mouseenter', () => { 
+        if (state.gallery) state.gallery.isMouseOverThumbs = true; 
+    });
+    ulpPanel.addEventListener('mouseleave', () => { 
+        if (state.gallery) state.gallery.isMouseOverThumbs = false; 
+    });
   }
 
   // Bind individual tab clicks
@@ -497,26 +505,46 @@ function _bindGalleryEvents() {
     renderGalleryTagsTray();
   });
 
-  // P&L pill dropdown
+  // P&L pill dropdown — move to body so no parent clips it
   const pnlPill = document.getElementById('gv2-pnl-pill');
   const pnlDrop = document.getElementById('gv2-pnl-dropdown');
-  if (pnlPill && pnlDrop) {
+  if (pnlDrop && pnlDrop.parentElement !== document.body) {
+    document.body.appendChild(pnlDrop);
+  }
+
+  function _togglePnlDrop(anchorEl) {
+    const drop = document.getElementById('gv2-pnl-dropdown');
+    if (!drop) return;
+    const isOpen = drop.classList.contains('open');
+    if (isOpen) { drop.classList.remove('open'); return; }
+    // Position below the anchor pill
+    const r = anchorEl.getBoundingClientRect();
+    drop.style.position = 'fixed';
+    drop.style.left = 'auto';
+    drop.style.transform = 'none';
+    drop.style.zIndex = '99999';
+    // Align right edge of dropdown to right edge of anchor, clamped to viewport
+    let left = r.right - parseFloat(drop.style.width || 520);
+    if (left < 8) left = 8;
+    if (left + 520 > window.innerWidth - 8) left = window.innerWidth - 528;
+    drop.style.left = left + 'px';
+    drop.style.top = (r.bottom + 8) + 'px';
+    drop.classList.add('open');
+  }
+
+  if (pnlPill) {
     pnlPill.addEventListener('click', (e) => {
       e.stopPropagation();
-      const tradeDrop2 = document.getElementById('gv2-trade-dropdown');
-      tradeDrop2?.classList.remove('open');
-      pnlDrop.classList.toggle('open');
+      _togglePnlDrop(pnlPill);
     });
   }
 
-  // ── Trade pill dropdown toggle ────────────────────────────────────────────
+  // ── Trade pill → opens the shared P&L dropdown ──
   const tradePill = document.getElementById('gv2-trade-pill');
-  const tradeDrop = document.getElementById('gv2-trade-dropdown');
-  if (tradePill && tradeDrop) {
+  if (tradePill) {
     tradePill.addEventListener('click', (e) => {
       e.stopPropagation();
-      pnlDrop?.classList.remove('open');
-      tradeDrop.classList.toggle('open');
+      _togglePnlDrop(tradePill);
     });
   }
 
@@ -573,11 +601,17 @@ function _bindGalleryEvents() {
     }
   }, true);
 
-  // Close dropdowns on outside click
+  // Close P&L dropdown on outside click
   document.addEventListener('mousedown', (e) => {
-    if (pnlPill && !pnlPill.closest('#gv2-pnl-wrap')?.contains(e.target)) pnlDrop?.classList.remove('open');
-    if (tradePill && !tradePill.closest('#gv2-trade-pill-wrap')?.contains(e.target)) tradeDrop?.classList.remove('open');
-    // MTM Panel: Persistent by default (removes auto-hide on outside click per user request)
+    const _pnlDrop = document.getElementById('gv2-pnl-dropdown');
+    if (_pnlDrop && _pnlDrop.classList.contains('open')) {
+      const _pnlPill  = document.getElementById('gv2-pnl-pill');
+      const _tradePill = document.getElementById('gv2-trade-pill');
+      if (!_pnlPill?.contains(e.target) && !_tradePill?.contains(e.target) && !_pnlDrop.contains(e.target)) {
+        _pnlDrop.classList.remove('open');
+      }
+    }
+    // MTM Panel: Persistent by default
     // if (mtmBtn && !mtmBtn.closest('#gv2-mtm-btn-wrap')?.contains(e.target)) mtmPanel?.classList.remove('open');
   });
 

@@ -346,10 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.gallery && state.gallery.date) {
                 _ttCurrentDate = state.gallery.date;
             }
-            // Close gallery first (same z-index as TT modal — would hide behind it)
-            const galleryModal = document.getElementById('gallery-modal');
-            if (galleryModal) galleryModal.classList.remove('open');
-            if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
 
             showTargetTrackerModal(null);
 

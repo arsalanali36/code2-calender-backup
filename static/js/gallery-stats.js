@@ -129,110 +129,37 @@ function renderGalleryPnlPill() {
     if (!wrap || !pill || !drop) return;
 
     const date = state.gallery.date;
-    if (!date) { wrap.style.display = 'none'; return; }
-
-    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
-    if (!trades.length) { wrap.style.display = 'none'; return; }
-
-    let total = 0;
-    const rows = trades.map(t => {
-        const pnl = typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0;
-        total += pnl;
-        return { t, pnl };
-    });
-
-    wrap.style.display = '';
-
-    const _fmt = v => '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
-    pill.textContent = _fmt(total);
-    pill.className = 'gv2-pnl-pill' + (total > 0 ? ' positive' : total < 0 ? '' : ' neutral');
-    drop.innerHTML = '';
-    drop.style.minWidth = '340px';
-    let runTotal = 0;
-    rows.forEach(({ t, pnl }, i) => {
-        runTotal += pnl;
-        const row = document.createElement('div');
-        row.className = 'gv2-pnl-trade-row';
-        row.style.cssText = 'display:grid; grid-template-columns:32px 1fr 60px 80px; gap:6px; align-items:center; padding:6px 12px; cursor:pointer;';
-        row.addEventListener('mouseenter', () => row.style.background = 'rgba(255,255,255,0.06)');
-        row.addEventListener('mouseleave', () => row.style.background = '');
-
-        const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
-        const m = rawInst.toUpperCase().match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-        const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : rawInst;
-        let instColor = '#ffd700';
-        if (rawInst.toUpperCase().endsWith('CE')) instColor = '#c084fc';
-        else if (rawInst.toUpperCase().endsWith('PE')) instColor = 'var(--text3,#8b949e)';
-
-        const lbl = document.createElement('span');
-        lbl.style.cssText = 'font-weight:700; font-size:0.85rem;';
-        lbl.textContent = `T${i + 1}`;
-
-        const inst = document.createElement('span');
-        inst.style.cssText = `font-size:0.75rem; color:${instColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;`;
-        inst.textContent = instText || '—';
-
-        const val = document.createElement('span');
-        val.style.cssText = `text-align:right; font-weight:700; font-size:0.82rem; color:${pnl > 0 ? '#2ecc71' : pnl < 0 ? '#e74c3c' : 'var(--text2)'};`;
-        val.textContent = '₹' + Math.abs(Math.round(pnl)).toLocaleString('en-IN');
-
-        const cum = document.createElement('span');
-        cum.style.cssText = `text-align:right; font-size:0.78rem; color:${runTotal >= 0 ? '#2ecc71' : '#e74c3c'}; padding-left:6px; border-left:1px solid rgba(255,255,255,0.1); opacity:0.85;`;
-        cum.textContent = '₹' + Math.abs(Math.round(runTotal)).toLocaleString('en-IN');
-
-        row.append(lbl, inst, val, cum);
-        row.addEventListener('click', () => {
-            drop.classList.remove('open');
-            const firstImg = (t.images || [])[0];
-            if (firstImg) {
-                const idx = state.gallery.images.indexOf(firstImg);
-                if (idx >= 0) { state.gallery.currentIndex = idx; renderGallery(); }
-            }
-        });
-        drop.appendChild(row);
-    });
-}
-
-// ── Trade pill (current image's trade + its P/L) ──────────────────────────
-function renderGalleryTradePill() {
-    const wrap = document.getElementById('gv2-trade-pill-wrap');
-    const pill = document.getElementById('gv2-trade-pill');
-    const drop = document.getElementById('gv2-trade-dropdown');
-    if (!wrap || !pill || !drop) return;
-
-    const date = state.gallery.date;
-    if (!date) { wrap.style.display = 'none'; return; }
-
-    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
-    if (!trades.length) { wrap.style.display = 'none'; return; }
-
-    const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-    let owner    = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
-    
-    // If no specific owner, default to the first trade of the day so the pill remains visible
-    if (!owner && trades.length > 0) {
-        owner = trades[0];
+    if (!date) {
+        wrap.style.display = 'none';
+        return;
     }
 
-    const tIdx = owner ? trades.indexOf(owner) : -1;
-    if (!owner || tIdx < 0) { wrap.style.display = 'none'; return; }
+    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+    if (!trades.length) {
+        wrap.style.display = 'none';
+        return;
+    }
 
-    const pnl    = typeof getTradePnl === 'function' ? (getTradePnl(owner) || 0) : 0;
-    const pt     = parseFloat(owner.Pt || 0) || 0;
+    wrap.style.display = 'flex';
+    let totalPnl = 0;
+    trades.forEach(t => {
+        totalPnl += (typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0);
+    });
+
     const fmtPnl = v => (v < 0 ? '-' : '') + '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
-    const ptStr  = Math.abs(Math.round(pt)) + ' Pt';
-    const cls    = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : '';
-    const ptCls  = pt > 0 ? 'pos' : pt < 0 ? 'neg' : '';
+    pill.textContent = fmtPnl(totalPnl);
+    pill.style.color = totalPnl > 0 ? '#2ecc71' : totalPnl < 0 ? '#e74c3c' : 'var(--text2)';
 
-    wrap.style.display = ''; 
-    pill.innerHTML =
-        `<span class="gv2-tp-label">T${tIdx + 1},</span>`
-      + `<span class="gv2-tp-val ${cls}">${Math.round(pnl)},</span>`
-      + `<span class="gv2-tp-val ${ptCls}">${ptStr}</span>`;
-
-    // Dropdown: all trades for quick jump
+    // Dropdown Logic (Relocated from trade pill)
     drop.innerHTML = '';
-    drop.style.minWidth = '460px'; // Increased to ensure cumulative is visible
+    drop.onclick = e => e.stopPropagation();
+    drop.style.width = '520px';
+    drop.style.maxWidth = '96vw';
+    drop.style.boxSizing = 'border-box';
+
+    const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+    const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+    const activeIdx = activeTrade ? trades.indexOf(activeTrade) : -1;
 
     let runningTotal = 0;
     trades.forEach((t, i) => {
@@ -242,10 +169,10 @@ function renderGalleryTradePill() {
         const lot = parseFloat(t.Qty || t.qty || t.QTY || 0) || 0;
         const buyTime = (t['Buy Time'] || t['buy_time'] || '').slice(0, 5);
         const sellTime = (t['Sell Time'] || t['sell_time'] || '').slice(0, 5);
-        const type = String(t['TradeType'] || t['tradetype'] || t['Trade Type'] || '').toLowerCase();
+        const type = String(t['TradeType'] || t['tradetype'] || '').toLowerCase();
         const isShort = type.includes('sell') || type.includes('short');
         const entryTime = isShort ? sellTime : buyTime;
-        
+
         let dur = '';
         if (buyTime && sellTime) {
             try {
@@ -253,152 +180,114 @@ function renderGalleryTradePill() {
                 const [h2, m2] = sellTime.split(':').map(Number);
                 const d1 = new Date(2000, 0, 1, h1, m1);
                 const d2 = new Date(2000, 0, 1, h2, m2);
-                let diff = Math.abs(d2 - d1);
-                const mins = Math.round(diff / 60000);
+                const mins = Math.round(Math.abs(d2 - d1) / 60000);
                 dur = mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h' + (mins % 60 > 0 ? ' ' + (mins % 60) + 'm' : '');
             } catch(e) {}
         }
 
+        const isActive = (i === activeIdx);
         const row = document.createElement('div');
         row.className = 'gv2-pnl-trade-row';
-        if (i === tIdx) row.style.background = 'rgba(255,255,255,0.06)';
-        
-        // Structured Grid Layout: Index, Instrument, Time/Lot, Points, P&L, Cumulative
         row.style.display = 'grid';
-        row.style.gridTemplateColumns = '32px 145px 1fr 55px 78px 85px';
-        row.style.gap = '8px';
+        // dot | T-label | Instrument | Time+Dur+Lots | Pts | Trade P/L | Running Total
+        row.style.gridTemplateColumns = '10px 30px 140px 110px 48px 82px 82px';
+        row.style.gap = '6px';
         row.style.alignItems = 'center';
-        row.style.padding = '8px 14px';
+        row.style.padding = '7px 12px';
+        row.style.cursor = 'pointer';
+        row.style.borderRadius = '6px';
+        row.style.transition = 'background 0.15s';
+        row.addEventListener('mouseenter', () => row.style.background = 'rgba(255,255,255,0.07)');
+        row.addEventListener('mouseleave', () => row.style.background = '');
+
+        // Active indicator dot
+        const dot = document.createElement('span');
+        dot.style.cssText = `display:inline-block; width:8px; height:8px; border-radius:50%; background:${isActive ? '#3b82f6' : 'transparent'}; flex-shrink:0;`;
 
         const lbl = document.createElement('span');
         lbl.className = 'gv2-pnl-trade-label';
-        lbl.style.fontWeight = '700';
+        lbl.style.cssText = `font-weight:${isActive ? '900' : '700'}; font-size:0.82rem; color:${isActive ? '#60a5fa' : 'var(--text3)'};`;
         lbl.textContent = `T${i + 1}`;
 
         const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
         const instNum = rawInst.toUpperCase();
-        
-        // Strict Formatting: Prefix, YY(2), M(1), DD(2), Strike, Type
         const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-        // Format: SYMBOL YY M DD STRIKE TYPE
         const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : instNum;
 
-        let instColor = '#ffd700'; // Gold default
-        if (instNum.endsWith('CE')) instColor = '#c084fc'; // Purple
-        else if (instNum.endsWith('PE')) instColor = 'var(--text3, #8b949e)'; // Grey
+        let instColor = '#ffd700';
+        if (instNum.endsWith('CE')) instColor = '#c084fc';
+        else if (instNum.endsWith('PE')) instColor = '#8b949e';
 
         const inst = document.createElement('span');
         inst.className = 'gv2-pnl-trade-inst';
-        inst.style.cssText = `font-size:0.72rem; color:${instColor}; font-weight:700; text-align:left; white-space:nowrap;`;
+        inst.style.cssText = `font-size:0.73rem; color:${instColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;`;
         inst.textContent = instText || '—';
-        
+
         const info = document.createElement('span');
-        info.style.cssText = 'font-size:0.75rem; color:var(--text3); opacity:0.9; white-space:nowrap; text-align:left; letter-spacing:0.2px;';
-        info.innerHTML = `<span style="color:var(--text2)">${entryTime}</span>${dur ? ' <span style="font-size:1.1em; font-weight:700; color:#fff; margin:0 2px;">['+dur+']</span>' : ''} <span style="color:var(--text2); margin-left:4px;">${lot}</span>`;
-        
+        info.style.cssText = 'font-size:0.73rem; color:var(--text3); white-space:nowrap; overflow:hidden;';
+        info.innerHTML = `<span style="color:var(--text2)">${entryTime}</span>${dur ? ` <span style="font-weight:700; color:#fff;">[${dur}]</span>` : ''}${lot ? ` <span style="color:var(--text2);">${lot}</span>` : ''}`;
+
         const ptWrap = document.createElement('span');
-        ptWrap.className = 'gv2-pnl-trade-pt';
         ptWrap.textContent = Math.abs(Math.round(pt)) + ' Pt';
-        ptWrap.style.textAlign = 'right';
-        ptWrap.style.color = pt >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)';
-        ptWrap.style.fontSize = '0.82em';
-        ptWrap.style.fontWeight = '600';
+        ptWrap.style.cssText = `text-align:right; color:${pt >= 0 ? '#2ecc71' : '#e74c3c'}; font-size:0.78rem; font-weight:600; white-space:nowrap;`;
 
         const val = document.createElement('span');
-        val.className = 'gv2-pnl-trade-val';
         val.textContent = fmtPnl(p);
-        val.style.textAlign = 'right';
-        val.style.fontWeight = '700';
-        val.style.color = p > 0 ? '#2ecc71' : p < 0 ? '#e74c3c' : 'var(--text2)';
+        val.style.cssText = `text-align:right; font-weight:700; font-size:0.85rem; color:${p > 0 ? '#2ecc71' : (p < 0 ? '#e74c3c' : 'var(--text2)')}; white-space:nowrap;`;
 
         const cumVal = document.createElement('span');
-        cumVal.className = 'gv2-pnl-trade-cum';
         cumVal.textContent = fmtPnl(runningTotal);
-        cumVal.style.textAlign = 'right';
-        cumVal.style.fontWeight = '600';
-        cumVal.style.fontSize = '0.88em';
-        cumVal.style.opacity = '0.85';
-        cumVal.style.paddingLeft = '6px';
-        cumVal.style.borderLeft = '1px solid rgba(255,255,255,0.1)';
-        cumVal.style.color = runningTotal >= 0 ? '#2ecc71' : '#e74c3c';
-        
-        row.appendChild(lbl);
-        row.appendChild(inst);
-        row.appendChild(info);
-        row.appendChild(ptWrap);
-        row.appendChild(val);
-        row.appendChild(cumVal);
+        cumVal.style.cssText = `text-align:right; font-weight:600; font-size:0.82rem; border-left:1px solid rgba(255,255,255,0.12); padding-left:8px; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; white-space:nowrap;`;
+
+        row.appendChild(dot); row.appendChild(lbl); row.appendChild(inst); row.appendChild(info); row.appendChild(ptWrap); row.appendChild(val); row.appendChild(cumVal);
         row.addEventListener('click', () => {
-            drop.classList.remove('open');
-            const firstImg = (t.images || [])[0];
-            if (firstImg) {
-                const idx = state.gallery.images.indexOf(firstImg);
-                if (idx >= 0) { 
-                    state.gallery.currentIndex = idx; 
-                    state.gallery.selectedIndices = new Set([idx]);
-                    state.gallery.selectedSeparator = i;
-                    // Uncollapse if currently collapsed
-                    if (state.gallery.collapsedSeparators) state.gallery.collapsedSeparators.delete('T' + i);
-                    
-                    // Force jump to thumbnails tab if it's currently on filter tab
-                    const ulpPanel = document.getElementById('gv2-unified-left-panel');
-                    if (ulpPanel && ulpPanel.classList.contains('open')) {
-                        const activeTab = localStorage.getItem('tj_ulpActiveTab');
-                        if (activeTab === 'filter' && typeof switchULPTab === 'function') {
-                            switchULPTab('thumbs');
-                        }
-                    }
-
-                    renderGallery(); 
-                }
-            }
+             const firstImg = (t.images || [])[0];
+             if (firstImg) {
+                 const idx = state.gallery.images.indexOf(firstImg);
+                 if (idx >= 0) {
+                     state.gallery.currentIndex = idx;
+                     renderGallery();
+                 }
+             }
+             drop.classList.remove('open');
         });
-
         drop.appendChild(row);
     });
 
-    // --- NEW: Add Tag / Group options ---
-    if (trades.length > 0) {
-        const sep = document.createElement('div');
-        sep.style.cssText = 'height:1px; background:rgba(255,255,255,0.1); margin:6px 0;';
-        drop.appendChild(sep);
+}
 
-        const addTagRow = document.createElement('div');
-        addTagRow.className = 'gv2-pnl-trade-row';
-        addTagRow.style.color = 'var(--text,#58a6ff)';
-        addTagRow.style.opacity = '0.9';
-        addTagRow.innerHTML = '<span style="font-size:1.1em;margin-right:8px;font-weight:bold;color:var(--blue)">+</span><span>New Tag</span>';
-        addTagRow.onclick = (e) => {
-            e.stopPropagation();
-            drop.classList.remove('open');
-            if (typeof window.openCreateTagModal === 'function') {
-                window.openCreateTagModal();
-            }
-        };
-        drop.appendChild(addTagRow);
+// ── Trade pill (current image's trade + its P/L) ──────────────────────────
+function renderGalleryTradePill() {
+    const wrap = document.getElementById('gv2-trade-pill-wrap');
+    const pill = document.getElementById('gv2-trade-pill');
+    if (!wrap || !pill) return;
 
-        const addGrpRow = document.createElement('div');
-        addGrpRow.className = 'gv2-pnl-trade-row';
-        addGrpRow.style.color = 'var(--text,#58a6ff)';
-        addGrpRow.style.opacity = '0.9';
-        addGrpRow.innerHTML = '<span style="font-size:1.1em;margin-right:8px;font-weight:bold;color:var(--blue)">+</span><span>New Group</span>';
-        addGrpRow.onclick = (e) => {
-            e.stopPropagation();
-            drop.classList.remove('open');
-            const name = prompt('New group name:');
-            if (!name || !name.trim()) return;
-            const g = name.trim();
-            if (!state.tagGroups[g]) {
-                state.tagGroups[g] = [];
-                if (typeof saveTagGroups === 'function') saveTagGroups();
-                if (typeof renderGalleryTagsTray === 'function') renderGalleryTagsTray();
-                showToast(`Group "${g}" created`, 'success');
-            } else {
-                showToast('Group already exists', 'info');
-            }
-        };
-        drop.appendChild(addGrpRow);
-    }
+    const date = state.gallery.date;
+    if (!date) { wrap.style.display = 'none'; return; }
+
+    const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+    if (!trades.length) { wrap.style.display = 'none'; return; }
+
+    const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+    let owner = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+    if (!owner && trades.length > 0) owner = trades[0];
+
+    const tIdx = owner ? trades.indexOf(owner) : -1;
+    if (!owner || tIdx < 0) { wrap.style.display = 'none'; return; }
+
+    const pnl = typeof getTradePnl === 'function' ? (getTradePnl(owner) || 0) : 0;
+    const pt  = parseFloat(owner.Pt || 0) || 0;
+    const fmtPnl = v => (v < 0 ? '-' : '') + '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
+    const ptStr  = Math.abs(Math.round(pt)) + ' Pt';
+    const cls    = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : '';
+    const ptCls  = pt  > 0 ? 'pos' : pt  < 0 ? 'neg' : '';
+
+    const badgeBg  = pnl > 0 ? '#16a34a' : pnl < 0 ? '#dc2626' : '#4b5563';
+    wrap.style.display = 'flex';
+    pill.innerHTML =
+        `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:0.78rem;color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
+      + `<span class="gv2-tp-val ${cls}" style="margin-left:6px;">${fmtPnl(pnl)},</span>`
+      + `<span class="gv2-tp-val ${ptCls}">${ptStr}</span>`;
 }
 
 // ── Combined tray state update (called from renderGallery) ───────────────
