@@ -133,6 +133,7 @@ function _bindGalleryEvents() {
     };
     const _onMove = (e) => {
       if (!_resizing) return;
+      if (e.cancelable) e.preventDefault(); // prevent page scroll during resize
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
       const dx = cx - _startX;
       let newW = direction === 'right' ? _startW + dx : _startW - dx;
@@ -694,32 +695,39 @@ function _bindGalleryTrayDrag() {
   document.addEventListener('mousemove', e => doDrag(e.clientX, e.clientY));
   document.addEventListener('mouseup', endDrag);
 
-  // ── Touch drag (iPad/mobile) — threshold-based so any area works ──────────
-  let _touchPending = false, _touchStartX = 0, _touchStartY = 0;
-  const DRAG_THRESHOLD = 8; // px movement before drag starts
+  // ── Touch drag (iPad/mobile) — capture phase so iOS button-touch works ─────
+  let _touchPending = false, _touchStartX = 0, _touchStartY = 0, _touchId = null;
+  const DRAG_THRESHOLD = 8;
 
-  pill.addEventListener('touchstart', e => {
+  // Use capture:true so we get the event even when a child button handles it
+  document.addEventListener('touchstart', e => {
+    if (!pill.contains(e.target)) return;
     const t = e.touches[0];
+    _touchId      = t.identifier;
     _touchPending = true;
     _touchStartX  = t.clientX;
     _touchStartY  = t.clientY;
-    // Pre-record starting position so first move is instant
     _initDragPos(t.clientX, t.clientY);
-  }, { passive: true });
+  }, { passive: true, capture: true });
 
   document.addEventListener('touchmove', e => {
     if (!_touchPending && !dragging) return;
-    const t = e.touches[0];
+    // Find our tracked touch
+    let t = null;
+    for (let i = 0; i < e.touches.length; i++) {
+      if (e.touches[i].identifier === _touchId) { t = e.touches[i]; break; }
+    }
+    if (!t) return;
+
     if (_touchPending) {
       const dx = Math.abs(t.clientX - _touchStartX);
       const dy = Math.abs(t.clientY - _touchStartY);
       if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
-        // Commit to drag
         _touchPending = false;
         dragging = true;
         document.body.style.userSelect = 'none';
       } else {
-        return; // Still within tap threshold — wait
+        return;
       }
     }
     doDrag(t.clientX, t.clientY);
@@ -727,6 +735,7 @@ function _bindGalleryTrayDrag() {
 
   document.addEventListener('touchend', e => {
     _touchPending = false;
+    _touchId = null;
     endDrag();
   });
 
