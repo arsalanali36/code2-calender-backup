@@ -224,6 +224,31 @@ function _bindSettingsEvents() {
         if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];
         state.dayData[targetDate].images.push(...readyFiles);
         savedViaGallerySeparator = true;
+      } else if (typeof sel === 'string' && sel.startsWith('PREMIUM:')) {
+        const instNum = sel.replace('PREMIUM:', '');
+        if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+        if (!state.dayData[targetDate].premiumImages) state.dayData[targetDate].premiumImages = {};
+        if (!Array.isArray(state.dayData[targetDate].premiumImages[instNum])) {
+          const old = state.dayData[targetDate].premiumImages[instNum];
+          state.dayData[targetDate].premiumImages[instNum] = old ? [old] : [];
+        }
+        state.dayData[targetDate].premiumImages[instNum].push(...readyFiles);
+        
+        // Also push to ALL matching trades of this instrument on this day
+        const dayTrades = getTradesForDate(targetDate);
+        dayTrades.forEach(t => {
+            const raw = (t.Instrument || t.instrument || t.Symbol || t.symbol || '');
+            const tInst = String(raw).trim().toUpperCase();
+            if (tInst === String(instNum).trim().toUpperCase()) {
+                t.images = t.images || [];
+                // Add images that aren't already there (avoiding easy duplicates)
+                readyFiles.forEach(url => {
+                    if (!t.images.includes(url)) t.images.push(url);
+                });
+            }
+        });
+        
+        savedViaGallerySeparator = true;
       } else if (typeof sel === 'number') {
         const tr = getTradesForDate(targetDate)[sel];
         if (tr) {

@@ -153,7 +153,7 @@ function renderGalleryPnlPill() {
     // Dropdown Logic (Relocated from trade pill)
     drop.innerHTML = '';
     drop.onclick = e => e.stopPropagation();
-    drop.style.width = '620px'; // Wide enough for all columns
+    drop.style.width = '750px'; // Wider for full instrument names
     drop.style.minWidth = '580px';
     drop.style.maxWidth = '98vw';
     drop.style.boxSizing = 'border-box';
@@ -197,7 +197,7 @@ function renderGalleryPnlPill() {
         row.className = 'gv2-pnl-trade-row';
         row.style.display = 'grid';
         // dot | T-label | Instrument | Time+Dur+Lots | Pts | Trade P/L | Running Total
-        row.style.gridTemplateColumns = '12px 35px 1fr 110px 52px 92px 100px';
+        row.style.gridTemplateColumns = '12px 35px 1.5fr 110px 52px 92px 100px';
         row.style.gap = '10px';
         row.style.alignItems = 'center';
         row.style.padding = '8px 16px';
@@ -227,7 +227,7 @@ function renderGalleryPnlPill() {
 
         const inst = document.createElement('span');
         inst.className = 'gv2-pnl-trade-inst';
-        inst.style.cssText = `font-size:0.73rem; color:${instColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;`;
+        inst.style.cssText = `font-size:0.73rem; color:${instColor}; font-weight:700; white-space:nowrap;`;
         inst.textContent = instText || '—';
 
         const info = document.createElement('span');

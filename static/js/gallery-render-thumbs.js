@@ -136,14 +136,15 @@ function renderGalleryThumbs() {
     sep.className = 'gv2-thumb-separator';
     const isClose       = type === true;
     const isCloseGlobal = type === 'CLOSE_GLOBAL';
+    const isPremium     = type === 'PREMIUM';
     const isNews        = type === 'NEWS';
-    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isClose ? 'CLOSE' : 'OPEN'));
+    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isClose ? 'CLOSE' : 'OPEN')));
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
     sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
     sep.title = `${label} images section`;
-    sep.style.color = isNews ? '#ffa500' : '#ffd700';
-    sep.style.borderColor = isNews ? '#ffa500' : '#ffd700';
+    sep.style.color = isNews ? '#ffa500' : (isPremium ? '#ffd700' : '#ffd700');
+    sep.style.borderColor = isNews ? '#ffa500' : (isPremium ? '#ffd700' : '#ffd700');
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -201,11 +202,19 @@ function renderGalleryThumbs() {
   let renderedCloseSep = false;
   let renderedCloseGlobalSep = false;
 
+  const premiumObj = date ? (state.dayData[date]?.premiumImages || {}) : {};
+  const premiumUrls = new Set(Object.values(premiumObj));
+  const uniqueInsts = Array.from(new Set(dayTrades.map(t => {
+      const raw = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
+      return raw.toUpperCase();
+  }))).filter(Boolean).sort();
+
   const activeUrl = (state.gallery.images || [])[currentIndex] || '';
   const activeTradeContext = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(activeUrl) : null;
 
   // ── Thumbnail loop ────────────────────────────────────────────────────────
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow, isNews }) => {
+    if (premiumUrls.has(url)) return; // Skip in main list, render in PREMIUM section
     const _effDate   = (_filterActive3 && itemDate) ? itemDate : (date || '');
     const _effTrades = (_filterActive3 && itemDate && itemDate !== date) ? getTradesForDate(itemDate) : dayTrades;
 
@@ -506,6 +515,80 @@ function renderGalleryThumbs() {
   }
   if (!_filterActive3 && !renderedCloseSep && date) thumbs.appendChild(createSpecialSeparator('CLOSE', true));
   if (!_filterActive3 && !renderedCloseGlobalSep && date) thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
+
+  // ── PREMIUM SECTION ──────────────────────────────────────────────────────
+  if (!_filterActive3 && date && uniqueInsts.length > 0) {
+      thumbs.appendChild(createSpecialSeparator('PREMIUM', 'PREMIUM'));
+      if (!state.gallery.collapsedSeparators?.has('PREMIUM')) {
+          uniqueInsts.forEach(inst => {
+              const instWrap = document.createElement('div');
+              instWrap.style.cssText = 'margin:12px 6px; padding:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,215,0,0.2); border-radius:8px;';
+              
+              const label = document.createElement('div');
+              const m = inst.match(/(\d{5})(CE|PE)$/i);
+              const cleanLabel = m ? `${m[1]} ${m[2].toUpperCase()}` : inst;
+              label.textContent = cleanLabel;
+              label.style.cssText = 'font-size:0.95rem; font-weight:800; color:#ffd700; text-align:center; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;';
+              instWrap.appendChild(label);
+
+              const val = premiumObj[inst];
+              const urls = Array.isArray(val) ? val : (val ? [val] : []);
+
+              const imgContainer = document.createElement('div');
+              imgContainer.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; justify-content:center;';
+              instWrap.appendChild(imgContainer);
+
+              urls.forEach((url, uIdx) => {
+                  const gIdx = state.gallery.images.indexOf(url);
+                  const thumb = document.createElement('div');
+                  thumb.className = 'gv2-thumb-wrap';
+                  
+                  const img = document.createElement('img');
+                  img.src = resolveImageUrl(url);
+                  img.className = 'gv2-thumb' + (gIdx === state.gallery.currentIndex ? ' active' : '');
+                  img.style.height = '60px'; // Consistent size
+                  img.onclick = () => { state.gallery.currentIndex = gIdx; renderGallery(); };
+                  
+                  const del = document.createElement('button');
+                  del.className = 'gv2-thumb-del'; del.textContent = '×';
+                  del.onclick = async (e) => {
+                      e.stopPropagation();
+                      if (Array.isArray(state.dayData[date].premiumImages[inst])) {
+                          state.dayData[date].premiumImages[inst].splice(uIdx, 1);
+                      } else {
+                          delete state.dayData[date].premiumImages[inst];
+                      }
+                      const idx = state.gallery.images.indexOf(url);
+                      if (idx >= 0) state.gallery.images.splice(idx, 1);
+                      await saveTrades();
+                      state.gallery._skipScrollIntoView = true;
+                      renderGallery();
+                  };
+
+                  thumb.appendChild(img); thumb.appendChild(del);
+                  imgContainer.appendChild(thumb);
+              });
+
+              // Add persistent "+" button for more images
+              const plus = document.createElement('div');
+              plus.style.cssText = 'width:40px; height:60px; border:2px dashed rgba(255,215,0,0.15); border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#ffd700; font-size:1.2rem; opacity:0.6; flex-shrink:0;';
+              plus.textContent = '+';
+              plus.onclick = () => {
+                  state.gallery.selectedSeparator = `PREMIUM:${inst}`;
+                  state._galleryUploadCallback = () => {
+                      state.gallery.images = getImagesForDate(date);
+                      renderGallery(); // Re-render to show new thumbnails
+                  };
+                  if (typeof openDayUploadModal === 'function') {
+                      openDayUploadModal(date);
+                  }
+              };
+              imgContainer.appendChild(plus);
+
+              thumbs.appendChild(instWrap);
+          });
+      }
+  }
 
   // + Add blank image button
   const btnWrap = document.createElement('div');

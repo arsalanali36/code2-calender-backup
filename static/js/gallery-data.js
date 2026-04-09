@@ -45,6 +45,18 @@ function getImagesForDate(dateStr) {
 
   (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
   (state.dayData[dateStr]?.closeGlobalImages || []).forEach(url => out.push(url));
+
+  const premiumObj = state.dayData[dateStr]?.premiumImages;
+  if (premiumObj) {
+      Object.keys(premiumObj).sort().forEach(inst => {
+          const val = premiumObj[inst];
+          if (Array.isArray(val)) {
+              val.forEach(url => { if (url) out.push(url); });
+          } else if (val) {
+              out.push(val);
+          }
+      });
+  }
   return out;
 }
 
