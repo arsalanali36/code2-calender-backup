@@ -204,11 +204,20 @@ function renderGallery() {
                   : `translate3d(${tCurTx}px,${tCurTy}px,0)`;
 
               const _applyTray = (cx, cy) => {
-                  // Context awareness: near side edges → vertical, near top/bottom → horizontal
-                  const rect = imgContainer.getBoundingClientRect();
-                  const distL = cx - rect.left, distR = rect.right - cx;
-                  const distT = cy - rect.top,  distB = rect.bottom - cy;
-                  tray.style.flexDirection = Math.min(distL, distR) < Math.min(distT, distB) ? 'column' : 'row';
+                  // Context awareness using viewport % — works correctly on iPad
+                  // regardless of whether thumbnail panel is open or not
+                  const vw = window.innerWidth, vh = window.innerHeight;
+                  const xPct = cx / vw;   // 0 = left edge, 1 = right edge
+                  const yPct = cy / vh;   // 0 = top edge, 1 = bottom edge
+                  // Near left/right 20% of viewport → column (vertical tray)
+                  // Near top/bottom 20% → row (horizontal tray)
+                  const nearSide = xPct < 0.20 || xPct > 0.80;
+                  const nearTopBottom = yPct < 0.20 || yPct > 0.80;
+                  if (nearSide && !nearTopBottom) {
+                      tray.style.flexDirection = 'column';
+                  } else {
+                      tray.style.flexDirection = 'row';
+                  }
               };
 
               const _tApplyTranslate = () => {
