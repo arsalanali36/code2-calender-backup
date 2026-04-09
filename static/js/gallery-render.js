@@ -204,20 +204,14 @@ function renderGallery() {
                   : `translate3d(${tCurTx}px,${tCurTy}px,0)`;
 
               const _applyTray = (cx, cy) => {
-                  // Context awareness using viewport % — works correctly on iPad
-                  // regardless of whether thumbnail panel is open or not
-                  const vw = window.innerWidth, vh = window.innerHeight;
-                  const xPct = cx / vw;   // 0 = left edge, 1 = right edge
-                  const yPct = cy / vh;   // 0 = top edge, 1 = bottom edge
-                  // Near left/right 20% of viewport → column (vertical tray)
-                  // Near top/bottom 20% → row (horizontal tray)
-                  const nearSide = xPct < 0.20 || xPct > 0.80;
-                  const nearTopBottom = yPct < 0.20 || yPct > 0.80;
-                  if (nearSide && !nearTopBottom) {
-                      tray.style.flexDirection = 'column';
-                  } else {
-                      tray.style.flexDirection = 'row';
-                  }
+                  // Context awareness: switch to column when near thumbnail panel or right edge
+                  const ulp = document.getElementById('gv2-unified-left-panel');
+                  const ulpRight = ulp ? ulp.getBoundingClientRect().right : 0;
+                  const SNAP = 80; // px proximity threshold
+
+                  const nearLeft  = cx < ulpRight + SNAP;           // near thumbnail panel
+                  const nearRight = cx > window.innerWidth - SNAP;  // near right edge
+                  tray.style.flexDirection = (nearLeft || nearRight) ? 'column' : 'row';
               };
 
               const _tApplyTranslate = () => {
