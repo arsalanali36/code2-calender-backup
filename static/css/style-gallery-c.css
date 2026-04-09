@@ -219,52 +219,6 @@
 /* ── TRAY PILLS (TradingView style) ──────────────── */
 
 /* Day P&L pill */
-.gv2-pnl-pill {
-  background: #e5384f;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 3px 14px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: filter 0.15s, background 0.15s;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-  line-height: 1.55;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-/*.gv2-pnl-pill::before removed*/
-.gv2-pnl-pill:hover { filter: brightness(1.15); }
-.gv2-pnl-pill.positive { background: #1a9c4e; }
-.gv2-pnl-pill.neutral {
-  background: var(--surface2);
-  color: var(--text2);
-  border: 1px solid var(--border2);
-}
-
-/* Trade info pill */
-.gv2-trade-pill {
-  background: #2a2d3a;
-  color: var(--text);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  padding: 3px 12px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  line-height: 1.55;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.gv2-trade-pill:hover { background: #363a4d; }
 .gv2-trade-pill .gv2-tp-label { color: var(--text2); font-weight: 500; }
 .gv2-trade-pill .gv2-tp-sep { color: var(--text3); margin: 0 1px; }
 .gv2-trade-pill .gv2-tp-val { font-weight: 700; }
@@ -553,30 +507,7 @@
   opacity: 1;
 }
  
-/* ── TARGET PILL ── */
-.gv2-target-pill {
-  width: 24px;
-  height: 24px;
-  background: #ff007f; /* Pink like the circle in user image */
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 0;
-  box-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
-  line-height: 1;
-}
-.gv2-target-pill:hover {
-  background: #ff3399;
-  transform: scale(1.15) rotate(15deg);
-  box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
-}
-.gv2-target-pill:active { transform: scale(0.9); }
+/* Target pill logic moved to b.css */
 .gv2-news-thumbnail-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

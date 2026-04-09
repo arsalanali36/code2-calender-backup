@@ -564,11 +564,22 @@ function applyImgTypeFilter() {
 function setGalleryImgTypeFilter(f) {
   state.gallery.imgTypeFilter = f;
   
-  // Update pill active states in tray
-  ['both', 'index', 'premium'].forEach(t => {
-    const btn = document.getElementById('gv2-imgtype-' + t);
-    if (btn) btn.classList.toggle('active', t === f);
-  });
+  // Update dropdown label
+  const labelEl = document.getElementById('gv2-filter-current-label');
+  if (labelEl) {
+    labelEl.textContent = f.charAt(0).toUpperCase() + f.slice(1);
+  }
+
+  // Update menu active states
+  const menu = document.getElementById('gv2-filter-type-menu');
+  if (menu) {
+    menu.querySelectorAll('.dropdown-item').forEach(item => {
+      let val = item.textContent.trim().toLowerCase();
+      // handle cases like "Both" vs "both"
+      item.classList.toggle('active', val === f.toLowerCase());
+    });
+    menu.classList.remove('open');
+  }
 
   applyImgTypeFilter();
   renderGallery();

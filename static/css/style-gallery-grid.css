@@ -62,9 +62,11 @@
   color: #fff;
   transform: translateX(4px);
 }
+
 .gv2-sidebar-item.no-hover {
   cursor: default;
 }
+
 .gv2-sidebar-item.no-hover:hover {
   background: transparent;
   transform: none;
@@ -400,41 +402,75 @@
 
 /* ── Structured trade header ── */
 .gv2-grid-group-hdr--trade {
+  padding: 10px 16px !important;
+  background: #111827 !important;
+  border-bottom: 2px solid var(--border2);
+  width: 100% !important;
+  max-width: none !important;
+}
+.ggr-trade-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.78rem;
-  flex-wrap: nowrap;
-  width: fit-content;
-  transition: font-size 0.18s, padding 0.18s;
-}
-.ggr-idx  { font-size: 0.85rem; font-weight: 800; color: #fff; flex-shrink: 0; min-width: 26px; }
-.ggr-inst { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.ggr-time { color: var(--text3, #8b949e); white-space: nowrap; flex-shrink: 0; }
-.ggr-time b { color: #fff; font-weight: 800; }
-.ggr-qty  { opacity: 0.7; margin-left: 3px; }
-.ggr-pt   { font-weight: 600; white-space: nowrap; flex-shrink: 0; }
-.ggr-pnl  { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.ggr-cum  { font-weight: 600; font-size: 0.82em; opacity: 0.85; white-space: nowrap; flex-shrink: 0;
-            padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.12); }
-
-/* Active stuck header — bigger, highlighted */
-.gv2-grid-group-hdr.ggr-is-stuck {
-  background: #111827;
-  border-bottom-color: var(--blue);
   width: 100%;
-  padding: 10px 16px;
+  gap: 20px;
+  font-size: 1.1rem; /* Base size much larger */
 }
-.gv2-grid-group-hdr.ggr-is-stuck .gv2-grid-group-hdr--trade {
-  font-size: 1.05rem;
+.ggr-idx {
+  font-size: 1.3rem; 
+  font-weight: 900; 
+  color: var(--text3); 
+  min-width: 45px;
+}
+.ggr-inst {
+  font-size: 1.15rem;
+  font-weight: 800;
+  min-width: 180px;
+}
+.ggr-stats-group, .ggr-pnl-group {
+  display: flex;
+  align-items: center;
   gap: 18px;
-  width: auto;
+  padding-left: 18px;
+  border-left: 1px solid rgba(255,255,255,0.15);
 }
-.gv2-grid-group-hdr.ggr-is-stuck .ggr-idx  { font-size: 1.3rem; }
-.gv2-grid-group-hdr.ggr-is-stuck .ggr-inst { font-size: 1.05rem; }
-.gv2-grid-group-hdr.ggr-is-stuck .ggr-pt   { font-size: 1rem; }
-.gv2-grid-group-hdr.ggr-is-stuck .ggr-pnl  { font-size: 1.15rem; }
-.gv2-grid-group-hdr.ggr-is-stuck .ggr-cum  { font-size: 1rem; }
+.ggr-stats-group {
+  color: #fff;
+  font-weight: 600;
+}
+.ggr-time { min-width: 60px; }
+.ggr-dur  { color: var(--text3); font-weight: 700; min-width: 50px; }
+.ggr-qty  { color: #fff; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 4px; font-size: 0.95rem; }
+
+.ggr-pnl-group span {
+  font-weight: 800;
+  min-width: 80px;
+  text-align: right;
+}
+.ggr-pnl { font-size: 1.25rem; min-width: 100px !important; }
+
+/* Active stuck header — even more prominent */
+.gv2-grid-group-hdr.ggr-is-stuck {
+  background: #0d1117 !important;
+  border-bottom-color: var(--blue);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.gv2-grid-group-hdr.ggr-is-stuck .ggr-trade-row {
+  font-size: 1.25rem;
+  transform: scale(1.02);
+  transform-origin: left center;
+}
+
+/* Visual differentiation for no-image trades */
+.gv2-grid-group--no-img {
+  opacity: 0.7;
+}
+.gv2-grid-group--no-img .gv2-grid-group-hdr {
+  background: #0d1117 !important; /* Darker background for empty trades */
+  border-bottom-style: dashed;
+}
+.gv2-grid-group--no-img .ggr-inst {
+  color: var(--text3) !important;
+}
 
 .gv2-grid-container {
   display: grid;

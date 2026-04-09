@@ -26945,9 +26945,25 @@
       ],
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775643786/trading_journal/e9d39c13-8ed3-4e71-89a4-dbd19ad1162a.png": {
-          "0": {
-            "left": "41.5858%",
-            "top": "94.3914%"
+          "1": {
+            "left": "",
+            "top": ""
+          },
+          "2": {
+            "left": "",
+            "top": ""
+          },
+          "3": {
+            "left": "",
+            "top": ""
+          },
+          "4": {
+            "left": "",
+            "top": ""
+          },
+          "5": {
+            "left": "",
+            "top": ""
           }
         }
       },
@@ -26992,24 +27008,20 @@
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775722725/trading_journal/aa1a2886-b89d-4799-b50a-74fa00bf1a56.png": {
           "0": {
-            "left": "2.62172%",
-            "top": "20.9996%"
+            "left": "20.8801%",
+            "top": "53.9307%"
+          },
+          "1": {
+            "left": "",
+            "top": ""
           },
           "2": {
-            "left": "",
-            "top": ""
+            "left": "2.6886%",
+            "top": "27.463%"
           },
           "3": {
-            "left": "2.28732%",
-            "top": "35.3175%"
-          },
-          "4": {
             "left": "",
             "top": ""
-          },
-          "5": {
-            "left": "2.82236%",
-            "top": "45.2207%"
           }
         }
       },

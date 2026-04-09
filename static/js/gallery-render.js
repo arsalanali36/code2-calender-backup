@@ -17,7 +17,13 @@ function renderGallery() {
   const dateEl = document.getElementById('gallery-date');
   if (dateEl) {
     if (date) {
-      dateEl.style.display = 'none';
+      dateEl.style.display = '';
+      // Use formatDisplayDate specifically for gallery view to include day of week
+      if (typeof formatDisplayDate === 'function') {
+        dateEl.textContent = formatDisplayDate(date);
+      } else {
+        dateEl.textContent = date;
+      }
     } else {
       dateEl.style.display = '';
       dateEl.textContent = `${images.length} image(s)`;
@@ -324,6 +330,7 @@ function renderGallery() {
                   // --- Create Tray Button (The source) ---
                   const sourceBtn = document.createElement('button');
                   sourceBtn.className = 'close-global-nav-btn';
+                  if (!tr.images || tr.images.length === 0) sourceBtn.classList.add('no-img');
                   sourceBtn.textContent = String(idx + 1);
                   sourceBtn.style.background = color;
                   sourceBtn.style.color = '#fff';

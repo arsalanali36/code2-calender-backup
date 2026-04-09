@@ -159,6 +159,22 @@
   overflow: hidden;
 }
 
+/* Global Close Source Tray Styling */
+.close-global-nav-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.close-global-nav-btn.no-img {
+  opacity: 0.35 !important;
+  background: transparent !important;
+  border: 1.5px dashed rgba(255,255,255,0.4) !important;
+  color: rgba(255,255,255,0.4) !important;
+  cursor: default;
+}
+.close-global-nav-btn.no-img:hover {
+  opacity: 0.6 !important;
+  border-color: #fff !important;
+}
+
 .gallery-nav-btn {
   background: rgba(255, 255, 255, 0.06);
   border: none;

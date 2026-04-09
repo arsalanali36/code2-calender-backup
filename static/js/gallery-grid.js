@@ -226,6 +226,7 @@
   function renderGroup(title, images, statsHtml, pnl, tradeRef, tradeIdx, cumPnl) {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'gv2-grid-group';
+    if (!images || images.length === 0) groupDiv.classList.add('gv2-grid-group--no-img');
     if (title === 'OPEN (Analysis)') groupDiv.id = 'grid-group-open';
     else if (title === 'NEWS (Context)') {
       groupDiv.id = 'grid-group-news';
@@ -266,12 +267,20 @@
 
       hdr.className += ' gv2-grid-group-hdr--trade';
       hdr.innerHTML = `
-        <span class="ggr-idx">T${tradeIdx + 1}</span>
-        <span class="ggr-inst" style="color:${instColor}">${instText || '—'}</span>
-        <span class="ggr-time">${entryTime}${dur ? ` <b>[${dur}]</b>` : ''}${qty ? ` <span class="ggr-qty">${qty}</span>` : ''}</span>
-        <span class="ggr-pt" style="color:${pt >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)'}">${Math.abs(Math.round(pt))} Pt</span>
-        <span class="ggr-pnl" style="color:${pnl > 0 ? 'var(--green,#2ecc71)' : pnl < 0 ? 'var(--red,#e74c3c)' : 'var(--text2)'}">${fmtPnl(pnl)}</span>
-        <span class="ggr-cum" style="color:${cumPnl >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)'}">${fmtPnl(cumPnl)}</span>
+        <div class="ggr-trade-row">
+          <span class="ggr-idx">T${tradeIdx + 1}</span>
+          <span class="ggr-inst" style="color:${instColor}">${instText || '—'}</span>
+          <div class="ggr-stats-group">
+            <span class="ggr-time">${entryTime || '—'}</span>
+            <span class="ggr-dur">${dur ? `[${dur}]` : ''}</span>
+            <span class="ggr-qty">${qty || '—'}</span>
+          </div>
+          <div class="ggr-pnl-group">
+            <span class="ggr-pt" style="color:${pt >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)'}">${Math.abs(Math.round(pt))} Pt</span>
+            <span class="ggr-pnl" style="color:${pnl > 0 ? 'var(--green,#2ecc71)' : pnl < 0 ? 'var(--red,#e74c3c)' : 'var(--text2)'}">${fmtPnl(pnl)}</span>
+            <span class="ggr-cum" style="color:${cumPnl >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)'}">${fmtPnl(cumPnl)}</span>
+          </div>
+        </div>
       `;
     } else {
       // ── Simple header (OPEN / CLOSE / fallback) ───────────────────────

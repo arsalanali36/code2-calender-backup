@@ -14,12 +14,14 @@
     <div class="gv2-tray-center" id="gv2-tray-center">
       <!-- Drag handle -->
       <div id="gv2-tray-drag-handle" title="Drag to move" style="position:absolute; left:50%; transform:translateX(-50%); top:-10px; cursor:grab; color:rgba(255,255,255,0.3); font-size:14px; line-height:1; user-select:none; padding:2px 12px; border-radius:4px 4px 0 0; background:rgba(255,255,255,0.05);">&#8942;&#8942;</div>
-      <!-- Date navigation -->
-      <div style="display:flex; align-items:center; gap:4px;">
-        <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date (&#8592;)">&#8249;</button>
-        <span class="gv2-date-label" id="gallery-date"></span>
-        <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
-        <button class="gv2-date-arrow" id="gallery-date-next" title="Next date (&#8594;)">&#8250;</button>
+      <!-- Unified Date Navigation Pill -->
+      <div class="gv2-date-nav-pill">
+        <button class="gv2-date-nav-btn" id="gallery-date-prev" title="Previous Date (←)">‹</button>
+        <div class="gv2-date-display" id="gv2-date-display-trigger">
+          <span id="gallery-date"></span>
+          <input type="date" id="gallery-date-picker" class="gv2-date-picker-hidden" title="Select Date (D)" />
+        </div>
+        <button class="gv2-date-nav-btn" id="gallery-date-next" title="Next Date (→)">›</button>
       </div>
       
       <!-- Image counter "1/17" -->
@@ -27,15 +29,31 @@
 
       <div class="gv2-tray-sep"></div>
 
-      <!-- Relocated Recording Bars -->
-      <div id="gv2-tray-record-wrap" class="gv2-tray-record-wrap">
-        <button id="gv2-record-toggle-btn" class="gv2-record-toggle-btn" title="Toggle Recording Tools">
-          <span class="rec-icon">●</span> <span class="rec-lbl">Record</span>
+      <!-- Condensed Recording Dropdown -->
+      <div class="gv2-tray-record-container dropdown-wrap">
+        <button id="gv2-record-toggle-btn" class="gv2-tray-pill gv2-record-trigger" title="Record Tools">
+          <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+            <circle class="rec-dot-pulse" cx="12" cy="12" r="5" fill="#ff4742"/>
+          </svg>
+          <span id="gv2-record-label">Record</span>
         </button>
-        <div id="gv2-tray-record-bars" class="gv2-tray-record-bars" style="display:none">
-            <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
-            <div class="gv2-video-bar" id="gv2-video-bar"></div>
+        <div class="dropdown-menu gv2-record-dropdown" id="gv2-record-menu">
+           <button class="dropdown-item" id="gv2-menu-rec-video">
+             <svg class="gv2-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg>
+             Screen Record
+           </button>
+           <button class="dropdown-item" id="gv2-menu-rec-audio">
+             <svg class="gv2-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+             Audio Record
+           </button>
         </div>
+      </div>
+
+      <!-- Recording Progress Bars (Visible only during recording) -->
+      <div id="gv2-tray-record-bars" class="gv2-tray-record-bars" style="display:none">
+          <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
+          <div class="gv2-video-bar" id="gv2-video-bar"></div>
       </div>
 
       <div class="gv2-tray-sep recording-sep" style="display:none"></div>
@@ -51,12 +69,20 @@
         <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-trade-dropdown"></div>
       </div>
 
-      <!-- Index / Premium filter pills (Pill Style restored for Normal View) -->
+      <!-- Image Type Filter Dropdown -->
       <div class="gv2-tray-sep"></div>
-      <div class="gv2-imgtype-pills">
-        <button class="gv2-imgtype-btn active" id="gv2-imgtype-both" onclick="setGalleryImgTypeFilter('both')">Both</button>
-        <button class="gv2-imgtype-btn" id="gv2-imgtype-index" onclick="setGalleryImgTypeFilter('index')">Index</button>
-        <button class="gv2-imgtype-btn" id="gv2-imgtype-premium" onclick="setGalleryImgTypeFilter('premium')">Premium</button>
+      <div class="gv2-filter-dropdown-wrap dropdown-wrap">
+        <button class="gv2-tray-pill gv2-filter-trigger" id="gv2-filter-type-trigger">
+          <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          <span id="gv2-filter-current-label">Both</span>
+        </button>
+        <div class="dropdown-menu" id="gv2-filter-type-menu">
+          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('both')">Both</div>
+          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('index')">Index</div>
+          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('premium')">Premium</div>
+        </div>
       </div>
 
       <!-- Organized Grid Sidebar is now the control center for Grid View -->

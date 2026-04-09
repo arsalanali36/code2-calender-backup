@@ -136,6 +136,7 @@ async function startVideoRecording() {
     renderVideoBar();
     if (typeof renderAudioBar === 'function') renderAudioBar();
     if (typeof renderGallery  === 'function') renderGallery();
+    if (typeof updateRecordingUISync === 'function') updateRecordingUISync();
   };
 
   screenStream.getVideoTracks()[0].onended = () => stopVideoRecording();
@@ -150,6 +151,7 @@ async function startVideoRecording() {
   }, 1000);
 
   renderVideoBar();
+  if (typeof updateRecordingUISync === 'function') updateRecordingUISync();
 }
 
 function stopVideoRecording() {

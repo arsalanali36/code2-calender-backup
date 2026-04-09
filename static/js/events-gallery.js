@@ -604,9 +604,14 @@ function _bindGalleryTrayDrag() {
     pill.style.transform = 'none';
   }
 
-  const startDrag = (cx, cy) => {
+  const startDrag = (cx, cy, target) => {
+    // Only drag if we didn't click a button or input
+    if (target.closest('button, input, select, .dropdown-menu, .gv2-pnl-pill, .gv2-trade-pill')) return false;
+
     dragging = true;
-    handle.style.cursor = 'grabbing';
+    pill.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none'; // Prevent selection
+    document.body.style.cursor = 'grabbing';
     const r = pill.getBoundingClientRect();
     // Ensure pill is fixed-position for drag
     if (pill.style.position !== 'fixed') {
@@ -619,6 +624,7 @@ function _bindGalleryTrayDrag() {
     origTop  = parseFloat(pill.style.top)  || r.top;
     startX = cx;
     startY = cy;
+    return true;
   };
 
   const doDrag = (cx, cy) => {
@@ -633,12 +639,27 @@ function _bindGalleryTrayDrag() {
   const endDrag = () => {
     if (!dragging) return;
     dragging = false;
-    handle.style.cursor = 'grab';
+    pill.style.cursor = ''; // Reset cursor
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
     localStorage.setItem(LS_KEY, JSON.stringify({ left: parseFloat(pill.style.left), top: parseFloat(pill.style.top) }));
   };
 
-  handle.addEventListener('mousedown',  e => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
-  handle.addEventListener('touchstart', e => { const t = e.touches[0]; startDrag(t.clientX, t.clientY); }, { passive: true });
+  pill.addEventListener('mousedown',  e => { 
+    if (e.button !== 0) return;
+    if (startDrag(e.clientX, e.clientY, e.target)) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+  });
+  pill.addEventListener('touchstart', e => { 
+    const t = e.touches[0]; 
+    if (startDrag(t.clientX, t.clientY, e.target)) {
+        // We don't preventDefault on touchstart to allow scrolling if needed, 
+        // but for a fixed toolbar, we usually want to.
+        // e.preventDefault(); 
+    }
+  }, { passive: true });
   document.addEventListener('mousemove',  e => doDrag(e.clientX, e.clientY));
   document.addEventListener('touchmove',  e => { const t = e.touches[0]; doDrag(t.clientX, t.clientY); }, { passive: true });
   document.addEventListener('mouseup',  endDrag);

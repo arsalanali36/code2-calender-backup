@@ -4,12 +4,6 @@
  */
 
 function _bindGalleryDropdownEvents() {
-  // Setup the new Image Type filter dropdown (Pill to Dropdown change)
-  if (typeof setupDropdown === 'function') {
-    setupDropdown('gv2-imgtype-dropdown-btn', 'gv2-imgtype-menu');
-    const menuEl = document.getElementById('gv2-imgtype-menu');
-    if (menuEl) menuEl.addEventListener('click', e => e.stopPropagation());
-  }
 
   // ── Dropdown: Delete Image ────────────────────────────────────────────────
   document.getElementById('gv2-delete-img-btn')?.addEventListener('click', () => {
@@ -159,41 +153,84 @@ function _bindGalleryDropdownEvents() {
   })();
 
 
-  // ── Recording Tools Toggle (Relocated to Tray) ──────────────────────────
-  const recToggleBtn = document.getElementById('gv2-record-toggle-btn');
-  const recBars = document.getElementById('gv2-tray-record-bars');
-  const recSep = document.querySelector('.recording-sep');
-  
-  if (recToggleBtn && recBars) {
-    const wasOpen = localStorage.getItem('tj_gv2RecOpen') === '1';
-    const setRecState = (open) => {
-      recBars.style.display = open ? 'flex' : 'none';
-      if (recSep) recSep.style.display = open ? 'block' : 'none';
-      recToggleBtn.classList.toggle('active', open);
-
-      // Sync Grid Sidebar Button if it exists
-      const sidebarRec = document.getElementById('gv2-sidebar-record');
-      if (sidebarRec) {
-        sidebarRec.classList.toggle('active', open);
-        const iconEl = sidebarRec.querySelector('.gv2-si-icon');
-        if (iconEl) iconEl.textContent = open ? '⏹' : '⏺';
-        const labelEl = sidebarRec.querySelector('.gv2-si-label');
-        if (labelEl) labelEl.textContent = open ? 'Stop Rec' : 'Record';
+  // ── DROPDOWN: Image Type Filter ───────────────────────────────────────────
+  const filterTrigger = document.getElementById('gv2-filter-type-trigger');
+  const filterMenu    = document.getElementById('gv2-filter-type-menu');
+  if (filterTrigger && filterMenu) {
+    filterTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = filterMenu.classList.contains('open');
+      _closeAllTrayDropdowns();
+      if (!isOpen) { 
+        filterMenu.classList.add('open'); 
+        filterTrigger.classList.add('active');
       }
-
-      localStorage.setItem('tj_gv2RecOpen', open ? '1' : '0');
-      if (open) {
-        if (typeof renderAudioBar === 'function') renderAudioBar();
-        if (typeof renderVideoBar === 'function') renderVideoBar();
-      }
-    };
-
-    recToggleBtn.addEventListener('click', () => {
-      const isOpen = recBars.style.display !== 'none';
-      setRecState(!isOpen);
     });
-
-    if (wasOpen) setRecState(true);
+    filterMenu.addEventListener('click', e => e.stopPropagation());
   }
 
+  // ── DROPDOWN: Recording Tools ─────────────────────────────────────────────
+  const recTrigger = document.getElementById('gv2-record-toggle-btn');
+  const recMenu    = document.getElementById('gv2-record-menu');
+  if (recTrigger && recMenu) {
+    recTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = recMenu.classList.contains('open');
+      _closeAllTrayDropdowns();
+      if (!isOpen) {
+        recMenu.classList.add('open');
+        recTrigger.classList.add('active');
+      }
+    });
+
+    document.getElementById('gv2-menu-rec-video')?.addEventListener('click', () => {
+      _closeAllTrayDropdowns();
+      if (typeof startVideoRecording === 'function') startVideoRecording();
+    });
+    document.getElementById('gv2-menu-rec-audio')?.addEventListener('click', () => {
+      _closeAllTrayDropdowns();
+      if (typeof startAudioRecording === 'function') startAudioRecording();
+    });
+  }
+
+  // Global click outside to close
+  document.addEventListener('click', () => {
+    _closeAllTrayDropdowns();
+  });
+
+  function _closeAllTrayDropdowns() {
+    document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.gv2-record-trigger.active, .gv2-filter-trigger.active').forEach(b => b.classList.remove('active'));
+    // Also handle traditional tools panel if needed
+    document.getElementById('gallery-tools-panel')?.classList.remove('open');
+  }
+
+  // ── Date Picker Manual Trigger ─────────────────────────────────────────────
+  const dateTrigger = document.getElementById('gv2-date-display-trigger');
+  const dateInput   = document.getElementById('gallery-date-picker');
+  if (dateTrigger && dateInput) {
+    dateTrigger.addEventListener('click', () => {
+      // Chrome/Edge/Safari support showPicker()
+      if (typeof dateInput.showPicker === 'function') {
+        dateInput.showPicker();
+      } else {
+        dateInput.focus();
+        dateInput.click();
+      }
+    });
+  }
+
+  // ── Recording Progress Bars (Visible only during recording) ───────────────
+  const recBars = document.getElementById('gv2-tray-record-bars');
+  const recSep  = document.querySelector('.recording-sep');
+  
+  // Sync logic for when recording IS active (the progress bars)
+  window.updateRecordingUISync = function() {
+    const isVidRec = typeof _videoRecorder !== 'undefined' && _videoRecorder && _videoRecorder.state === 'recording';
+    const isAudRec = typeof _audioRecorder !== 'undefined' && _audioRecorder && _audioRecorder.state === 'recording';
+    const active = isVidRec || isAudRec;
+    
+    if (recBars) recBars.style.display = active ? 'flex' : 'none';
+    if (recSep)  recSep.style.display = active ? 'block' : 'none';
+  };
 }

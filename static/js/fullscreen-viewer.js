@@ -164,16 +164,52 @@ const FullscreenViewer = {
     },
 
     renderHeaderInfo() {
-        const infoEl = document.getElementById('fs-header-info');
-        if (!infoEl) return;
-
         const day = this.days[this.currentDayIndex];
-        const dateParts = day.date.split('-');
-        const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
         const current = this.currentImageIndex + 1;
+        const total = day.images.length;
         const tradeLabel = day.tradeLabel || `T${this.currentDayIndex + 1}`;
 
-        infoEl.textContent = `${tradeLabel}  ·  ${current}/${total}`;
+        // infoEl.textContent = `${tradeLabel}  ·  ${current}/${total}`; // Old format; replacing with structured rows
+
+        const instEl = document.getElementById('fs-header-instrument');
+        const hDate  = document.getElementById('fs-h-date');
+        const hQty   = document.getElementById('fs-h-qty');
+        const hPt    = document.getElementById('fs-h-pt');
+        const hPnl   = document.getElementById('fs-h-pnl');
+
+        if (instEl) {
+            let inst = day.instr || day.instrument || tradeLabel;
+            let qty = '—', pt = '—', pnlStr = '—', tradeDate = day.date || '—';
+            let ptVal = 0, pnlVal = 0;
+
+            if (typeof getTradesForDate === 'function') {
+                const trades = getTradesForDate(day.date);
+                const tIdx = trades.findIndex(t => (t.images || []).includes(day.images[this.currentImageIndex]));
+                if (tIdx >= 0) {
+                    const t = trades[tIdx];
+                    inst = (t.Instrument || t.instrument || tradeLabel).toUpperCase();
+                    qty  = t.Qty || t.qty || '—';
+                    ptVal = parseFloat(t.Pt || t.pt || 0);
+                    pt = Math.abs(Math.round(ptVal)) + ' Pt';
+                    if (typeof getTradePnl === 'function') {
+                        pnlVal = getTradePnl(t) || 0;
+                        pnlStr = (pnlVal >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(pnlVal)).toLocaleString('en-IN');
+                    }
+                }
+            }
+
+            instEl.textContent = inst;
+            if (hDate) hDate.textContent = `Date: ${tradeDate}`;
+            if (hQty)  hQty.textContent  = `Qty: ${qty}`;
+            if (hPt) {
+                hPt.textContent = `Pt: ${pt}`;
+                hPt.style.color = ptVal >= 0 ? 'var(--green,#2ecc71)' : 'var(--red,#e74c3c)';
+            }
+            if (hPnl) {
+                hPnl.textContent = `P&L: ${pnlStr}`;
+                hPnl.style.color = pnlVal > 0 ? 'var(--green,#2ecc71)' : pnlVal < 0 ? 'var(--red,#e74c3c)' : 'inherit';
+            }
+        }
 
         // Update date picker
         const dp = document.getElementById('fs-date-picker');

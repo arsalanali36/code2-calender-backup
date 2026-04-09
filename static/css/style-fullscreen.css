@@ -27,17 +27,18 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 48px;
+    min-height: 72px;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 0 54px;   /* reserve 54px on each side for back + lock buttons */
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    z-index: 10;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    gap: 12px;
+    padding: 10px 54px;   /* reserve 54px on each side for back + lock buttons */
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .fs-back-btn {
@@ -87,6 +88,30 @@
     white-space: nowrap;
     letter-spacing: 0.3px;
     font-variant-numeric: tabular-nums;
+}
+
+/* New structured header styles */
+.fs-header #fs-header-instrument {
+    font-size: 1.75rem !important; /* Made significantly larger */
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.fs-header #fs-header-details {
+    gap: 15px !important;
+    margin-top: 6px !important;
+}
+.fs-header #fs-header-details span {
+    font-size: 1.05rem !important; /* Made significantly larger */
+    color: rgba(255,255,255,0.8);
+    font-weight: 600;
+    background: rgba(255,255,255,0.08); /* Added chip-like feel */
+    padding: 3px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
 }
 
 /* Lock / focus mode button */
