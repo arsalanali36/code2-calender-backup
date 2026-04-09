@@ -520,6 +520,8 @@ function _bindGalleryEvents() {
     });
   }
 
+
+
   // ── MTM (Equity Curve) toggle ──────────────────────────────────────────
   const mtmBtn = document.getElementById('gv2-mtm-btn');
   const mtmPanel = document.getElementById('gv2-mtm-panel');

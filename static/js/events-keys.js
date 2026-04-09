@@ -84,21 +84,11 @@ function _bindKeyboardEvents() {
           if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
           if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
         } else {
-          // Plain arrows → image nav + page scroll
+          // Arrow nav for date/image
           if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGallery(-1); return; }
           if (e.key === 'ArrowRight') { e.preventDefault(); navigateGallery(1);  return; }
-          if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (typeof isGridViewOpen === 'function' && isGridViewOpen()) navigateGalleryBlock(-1);
-            else _scrollGalleryContent(-200);
-            return;
-          }
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (typeof isGridViewOpen === 'function' && isGridViewOpen()) navigateGalleryBlock(1);
-            else _scrollGalleryContent(200);
-            return;
-          }
+          if (e.key === 'ArrowUp')    { e.preventDefault(); navigateGalleryDate(-1); return; }
+          if (e.key === 'ArrowDown')  { e.preventDefault(); navigateGalleryDate(1); return; }
         }
       }
 

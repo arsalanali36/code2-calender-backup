@@ -207,13 +207,19 @@ function renderGalleryTradePill() {
     if (!trades.length) { wrap.style.display = 'none'; return; }
 
     const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-    const owner  = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
-    const tIdx   = owner ? trades.indexOf(owner) : -1;
+    let owner    = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+    
+    // If no specific owner, default to the first trade of the day so the pill remains visible
+    if (!owner && trades.length > 0) {
+        owner = trades[0];
+    }
+
+    const tIdx = owner ? trades.indexOf(owner) : -1;
     if (!owner || tIdx < 0) { wrap.style.display = 'none'; return; }
 
     const pnl    = typeof getTradePnl === 'function' ? (getTradePnl(owner) || 0) : 0;
     const pt     = parseFloat(owner.Pt || 0) || 0;
-    const fmtPnl = v => '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
+    const fmtPnl = v => (v < 0 ? '-' : '') + '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
     const ptStr  = Math.abs(Math.round(pt)) + ' Pt';
     const cls    = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : '';
     const ptCls  = pt > 0 ? 'pos' : pt < 0 ? 'neg' : '';
@@ -226,7 +232,7 @@ function renderGalleryTradePill() {
 
     // Dropdown: all trades for quick jump
     drop.innerHTML = '';
-    drop.style.minWidth = '380px'; // Increased width to accommodate cumulative column
+    drop.style.minWidth = '460px'; // Increased to ensure cumulative is visible
 
     let runningTotal = 0;
     trades.forEach((t, i) => {
@@ -259,7 +265,7 @@ function renderGalleryTradePill() {
         
         // Structured Grid Layout: Index, Instrument, Time/Lot, Points, P&L, Cumulative
         row.style.display = 'grid';
-        row.style.gridTemplateColumns = '32px 130px 1fr 50px 75px 85px';
+        row.style.gridTemplateColumns = '32px 145px 1fr 55px 78px 85px';
         row.style.gap = '8px';
         row.style.alignItems = 'center';
         row.style.padding = '8px 14px';

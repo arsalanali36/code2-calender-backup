@@ -141,7 +141,7 @@ function renderGallery() {
       }
   }
 
-  if (closeGlobalDateKey && curUrl && state.dayData[closeGlobalDateKey]?.closeGlobalImages?.includes(curUrl)) {
+  if (closeGlobalDateKey && curUrl) {
       const tradesForDay = getTradesForDate(closeGlobalDateKey);
       if (tradesForDay.length > 0) {
           const imgContainer = document.getElementById('gallery-img-wrapper') || document.querySelector('.gv2-img-area');
@@ -279,18 +279,77 @@ function renderGallery() {
 
               imgContainer.appendChild(tray);
 
+              // --- Close Global Jump Button at top of tray ---
+              const cgJumpBtn = document.createElement('button');
+              cgJumpBtn.className = 'close-global-nav-btn cg-jump';
+              cgJumpBtn.innerHTML = '🌐';
+              cgJumpBtn.style.background = 'rgba(99, 102, 241, 0.12)';
+              cgJumpBtn.style.color = '#818cf8'; // Soft indigo
+              cgJumpBtn.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+              cgJumpBtn.style.backdropFilter = 'blur(4px)';
+              cgJumpBtn.style.borderRadius = '50%';
+              cgJumpBtn.style.width = '34px';
+              cgJumpBtn.style.height = '34px';
+              cgJumpBtn.style.fontSize = '1.2rem';
+              cgJumpBtn.style.cursor = 'pointer';
+              cgJumpBtn.style.display = 'flex';
+              cgJumpBtn.style.alignItems = 'center';
+              cgJumpBtn.style.justifyContent = 'center';
+              cgJumpBtn.style.transition = 'all 0.2s ease';
+              cgJumpBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25), inset 0 0 8px rgba(99, 102, 241, 0.05)';
+              cgJumpBtn.title = "Jump to Close Global Summary";
+
+              cgJumpBtn.onmouseenter = () => {
+                  cgJumpBtn.style.background = 'rgba(99, 102, 241, 0.25)';
+                  cgJumpBtn.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                  cgJumpBtn.style.transform = 'scale(1.08)';
+              };
+              cgJumpBtn.onmouseleave = () => {
+                  cgJumpBtn.style.background = 'rgba(99, 102, 241, 0.12)';
+                  cgJumpBtn.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                  cgJumpBtn.style.transform = 'scale(1)';
+              };
+
+              
               const dayDataObj = state.dayData[closeGlobalDateKey];
+              const hasCg = dayDataObj && dayDataObj.closeGlobalImages && dayDataObj.closeGlobalImages.length > 0;
+
+              if (!hasCg) {
+                  cgJumpBtn.style.opacity = '0.35';
+                  cgJumpBtn.style.filter = 'grayscale(1) brightness(0.7)';
+                  cgJumpBtn.style.cursor = 'default';
+                  cgJumpBtn.title = "No Close Global summary available for this day";
+              }
+              
+              cgJumpBtn.onclick = (e) => {
+                  e.stopPropagation();
+                  if (!hasCg) {
+                      if (typeof showToast === "function") showToast("Is din koi Close Global summary images nahi hain", "info");
+                      return;
+                  }
+                  const firstUrl = dayDataObj.closeGlobalImages[0];
+                  const all = state.gallery.images || [];
+                  const idx = all.indexOf(firstUrl);
+                  if (idx !== -1) {
+                      state.gallery.currentIndex = idx;
+                      renderGallery();
+                  }
+              };
+              tray.appendChild(cgJumpBtn);
+
               if (!dayDataObj.navPositions) dayDataObj.navPositions = {};
               if (!dayDataObj.navPositions[curUrl]) dayDataObj.navPositions[curUrl] = {};
               const posData = dayDataObj.navPositions[curUrl];
 
               tradesForDay.forEach((tr, idx) => {
                   const pnl = parseFloat(tr['Net P/L'] || tr.net_pnl || 0);
-                  const color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--blue)');
                   const timeStr = tr['Entry Time'] || tr['entry_time'] || tr['entryTime'] || tr['Buy Time'] || tr['Time'] || tr['time'] || 'N/A';
                   const pnlRounded = Math.round(pnl);
                   const pnlDisplay = (pnlRounded >= 0 ? '+' : '') + pnlRounded.toLocaleString('en-IN');
                   const tooltip = `Trade #${idx + 1}\nTime: ${timeStr}\nP&L: ₹${pnlDisplay}`;
+
+                  const markerColor = pnl > 0 ? '#2ecc71' : (pnl < 0 ? '#e74c3c' : '#58a6ff');
+                  const iconColor = '#fff';
 
                   // --- Create Marker (The duplicate on image) ---
                   const marker = document.createElement('button');
@@ -299,17 +358,17 @@ function renderGallery() {
                   marker.style.position = 'absolute';
                   marker.style.zIndex = '9999';
                   marker.style.pointerEvents = 'auto';
-                  marker.style.background = color;
-                  marker.style.color = '#fff';
+                  marker.style.background = markerColor;
+                  marker.style.color = iconColor;
                   marker.style.border = '1px solid rgba(255,255,255,0.4)';
                   marker.style.borderRadius = '50%';
-                  marker.style.width = '26px';
-                  marker.style.height = '26px';
-                  marker.style.fontSize = '0.85rem';
-                  marker.style.fontWeight = 'bold';
+                  marker.style.width = '24px';
+                  marker.style.height = '24px';
+                  marker.style.fontSize = '0.75rem';
+                  marker.style.fontWeight = '900';
                   marker.style.cursor = 'pointer';
-                  marker.style.opacity = '0.7';
-                  marker.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
+                  marker.style.opacity = '1';
+                  marker.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
                   marker.title = tooltip + "\n(Right-click to remove)";
                   
                   marker.oncontextmenu = (e) => {
@@ -332,16 +391,16 @@ function renderGallery() {
                   sourceBtn.className = 'close-global-nav-btn';
                   if (!tr.images || tr.images.length === 0) sourceBtn.classList.add('no-img');
                   sourceBtn.textContent = String(idx + 1);
-                  sourceBtn.style.background = color;
-                  sourceBtn.style.color = '#fff';
+                  sourceBtn.style.background = markerColor;
+                  sourceBtn.style.color = iconColor;
                   sourceBtn.style.border = 'none';
                   sourceBtn.style.borderRadius = '50%';
-                  sourceBtn.style.width = '34px';
-                  sourceBtn.style.height = '34px';
-                  sourceBtn.style.fontSize = '1rem';
-                  sourceBtn.style.fontWeight = 'bold';
+                  sourceBtn.style.width = '32px';
+                  sourceBtn.style.height = '32px';
+                  sourceBtn.style.fontSize = '0.9rem';
+                  sourceBtn.style.fontWeight = '900';
                   sourceBtn.style.cursor = 'grab';
-                  sourceBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.4)';
+                  sourceBtn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
                   sourceBtn.title = tooltip;
                   tray.appendChild(sourceBtn);
 
