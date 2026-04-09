@@ -12,6 +12,8 @@
     </div>
 
     <div class="gv2-tray-center" id="gv2-tray-center">
+      <!-- Drag handle -->
+      <div id="gv2-tray-drag-handle" title="Drag to move" style="position:absolute; left:50%; transform:translateX(-50%); top:-10px; cursor:grab; color:rgba(255,255,255,0.3); font-size:14px; line-height:1; user-select:none; padding:2px 12px; border-radius:4px 4px 0 0; background:rgba(255,255,255,0.05);">&#8942;&#8942;</div>
       <!-- Date navigation -->
       <div style="display:flex; align-items:center; gap:4px;">
         <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date (&#8592;)">&#8249;</button>
@@ -466,7 +468,7 @@
            <!-- Action buttons (same as main tray) -->
            <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
              <button class="gv2-target-pill" onclick="document.getElementById('gv2-target-pill').click()" title="Open Target Tracker">🎯</button>
-             <button class="gv2-target-pill" onclick="document.getElementById('gv2-mtm-btn').click()" title="Show Day Equity Curve" style="background:var(--pink, #ff00ff); border-color:#ff00ff;">📈</button>
+             <button class="gv2-target-pill" id="gv2-grid-mtm-btn" onclick="if(document.getElementById('gv2-mtm-panel').style.display!=='none'){document.getElementById('gv2-mtm-panel').style.display='none';}else if(typeof window._openGalleryMtmPanel==='function'){window._openGalleryMtmPanel(this);}" title="Show Day Equity Curve" style="background:var(--pink, #ff00ff); border-color:#ff00ff;">📈</button>
              <button class="gv2-target-pill" onclick="document.getElementById('gv2-img-manager-btn').click()" title="Open Image Manager" style="background:var(--blue); border-color:var(--blue);">📊</button>
            </div>
         </div>

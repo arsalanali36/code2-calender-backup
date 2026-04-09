@@ -523,24 +523,39 @@ function _bindGalleryEvents() {
   // ── MTM (Equity Curve) toggle ──────────────────────────────────────────
   const mtmBtn = document.getElementById('gv2-mtm-btn');
   const mtmPanel = document.getElementById('gv2-mtm-panel');
+  // Move panel to body to avoid stacking context clipping from gallery modal
+  if (mtmPanel && mtmPanel.parentElement !== document.body) {
+    document.body.appendChild(mtmPanel);
+  }
   if (mtmBtn && mtmPanel) {
+    // Shared function so grid-view button can also open the panel correctly
+    window._openGalleryMtmPanel = function(triggerEl) {
+      document.querySelectorAll('.dropdown-menu.open').forEach(d => d.classList.remove('open'));
+      const panelW = 600, panelH = 420;
+      const r = triggerEl ? triggerEl.getBoundingClientRect() : { bottom: 0, right: 0, width: 0, height: 0 };
+      let top, right;
+      if (r.width === 0 && r.height === 0) {
+        // button is hidden — center the panel
+        top = Math.max((window.innerHeight - panelH) / 2, 10);
+        right = Math.max((window.innerWidth - panelW) / 2, 10);
+      } else {
+        top = Math.min(r.bottom + 6, window.innerHeight - panelH - 10);
+        right = Math.max(window.innerWidth - r.right, 10);
+      }
+      mtmPanel.style.top = top + 'px';
+      mtmPanel.style.right = right + 'px';
+      mtmPanel.style.zIndex = '99999';
+      mtmPanel.style.display = 'block';
+      if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
+    };
+
     mtmBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const isOpen = mtmPanel.style.display !== 'none';
-      // Close other dropdowns
-      document.querySelectorAll('.dropdown-menu.open').forEach(d => d.classList.remove('open'));
       if (isOpen) {
         mtmPanel.style.display = 'none';
       } else {
-        // Position fixed near the button
-        const r = mtmBtn.getBoundingClientRect();
-        const panelW = 600, panelH = 400;
-        const top = Math.min(r.bottom + 6, window.innerHeight - panelH - 10);
-        const right = Math.max(window.innerWidth - r.right, 10);
-        mtmPanel.style.top = top + 'px';
-        mtmPanel.style.right = right + 'px';
-        mtmPanel.style.display = 'block';
-        if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
+        window._openGalleryMtmPanel(mtmBtn);
       }
     });
   }
@@ -567,4 +582,74 @@ function _bindGalleryEvents() {
   _bindGalleryDropdownEvents();
   // ── Trades Panel Toggle & Render → events-gallery-b.js ───────────────────
   _bindGalleryTradesPanelEvents();
+
+  // ── Draggable gallery tray pill ───────────────────────────────────────────
+  _bindGalleryTrayDrag();
+}
+
+function _bindGalleryTrayDrag() {
+  const handle = document.getElementById('gv2-tray-drag-handle');
+  const pill   = document.getElementById('gv2-tray-center');
+  if (!handle || !pill) return;
+
+  const LS_KEY = 'tj_trayPillPos';
+  let dragging = false, startX, startY, origLeft, origTop;
+
+  // Restore saved position
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; } })();
+  if (saved) {
+    pill.style.position = 'fixed';
+    pill.style.left     = saved.left + 'px';
+    pill.style.top      = saved.top  + 'px';
+    pill.style.transform = 'none';
+  }
+
+  const startDrag = (cx, cy) => {
+    dragging = true;
+    handle.style.cursor = 'grabbing';
+    const r = pill.getBoundingClientRect();
+    // Ensure pill is fixed-position for drag
+    if (pill.style.position !== 'fixed') {
+      pill.style.position = 'fixed';
+      pill.style.left     = r.left + 'px';
+      pill.style.top      = r.top  + 'px';
+      pill.style.transform = 'none';
+    }
+    origLeft = parseFloat(pill.style.left) || r.left;
+    origTop  = parseFloat(pill.style.top)  || r.top;
+    startX = cx;
+    startY = cy;
+  };
+
+  const doDrag = (cx, cy) => {
+    if (!dragging) return;
+    const dx = cx - startX, dy = cy - startY;
+    const newLeft = Math.max(0, Math.min(window.innerWidth  - pill.offsetWidth,  origLeft + dx));
+    const newTop  = Math.max(0, Math.min(window.innerHeight - pill.offsetHeight, origTop  + dy));
+    pill.style.left = newLeft + 'px';
+    pill.style.top  = newTop  + 'px';
+  };
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.style.cursor = 'grab';
+    localStorage.setItem(LS_KEY, JSON.stringify({ left: parseFloat(pill.style.left), top: parseFloat(pill.style.top) }));
+  };
+
+  handle.addEventListener('mousedown',  e => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+  handle.addEventListener('touchstart', e => { const t = e.touches[0]; startDrag(t.clientX, t.clientY); }, { passive: true });
+  document.addEventListener('mousemove',  e => doDrag(e.clientX, e.clientY));
+  document.addEventListener('touchmove',  e => { const t = e.touches[0]; doDrag(t.clientX, t.clientY); }, { passive: true });
+  document.addEventListener('mouseup',  endDrag);
+  document.addEventListener('touchend', endDrag);
+
+  // Double-click handle to reset position
+  handle.addEventListener('dblclick', () => {
+    pill.style.position = '';
+    pill.style.left     = '';
+    pill.style.top      = '';
+    pill.style.transform = '';
+    localStorage.removeItem(LS_KEY);
+  });
 }

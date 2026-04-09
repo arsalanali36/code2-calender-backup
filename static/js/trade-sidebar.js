@@ -28,12 +28,14 @@
             const html = `
                 <div class="trade-sidebar-overlay" id="trade-sidebar-overlay">
                     <div class="trade-sidebar-resizer" id="trade-sidebar-resizer"></div>
-                    <div class="trade-sidebar-header">
-                        <span class="trade-sidebar-title" id="trade-sidebar-title">Trade Thumbnails</span>
+                    <div class="trade-sidebar-header" id="trade-sidebar-header">
+                        <div style="flex:1; min-width:0;">
+                            <div class="trade-sidebar-title" id="trade-sidebar-title">Trade Thumbnails</div>
+                            <div id="ts-header-details" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:5px;font-size:0.78rem;color:#8b949e;line-height:1.4;"></div>
+                        </div>
                         <button class="trade-sidebar-close" id="trade-sidebar-close">✕</button>
                     </div>
                     <div class="trade-sidebar-body" id="trade-sidebar-body">
-                        <div id="ts-info-container"></div>
                         <div class="trade-sidebar-grid" id="trade-sidebar-grid"></div>
                     </div>
                     <div class="ts-controls">
@@ -53,29 +55,35 @@
             closeBtn.onclick = () => toggleTradeSidebar(false);
         }
 
-        // Resizing Sidebar
+        // Resizing Sidebar (mouse + touch for iPad)
         if (ts.resizer) {
             let isResizing = false;
-            ts.resizer.onmousedown = (e) => {
+
+            const startResize = () => {
                 isResizing = true;
                 document.body.style.cursor = 'ew-resize';
-                e.preventDefault();
             };
-            window.onmousemove = (e) => {
+            const doResize = (clientX) => {
                 if (!isResizing) return;
-                const newWidth = window.innerWidth - e.clientX;
-                if (newWidth > 300 && newWidth < window.innerWidth * 0.8) {
+                const newWidth = window.innerWidth - clientX;
+                const minW = Math.min(280, window.innerWidth * 0.4);
+                const maxW = Math.max(window.innerWidth * 0.9, 600);
+                if (newWidth >= minW && newWidth <= maxW) {
                     ts.currentWidth = newWidth;
                     ts.overlay.style.width = ts.currentWidth + 'px';
                     localStorage.setItem('tj_ts_width', ts.currentWidth);
                 }
             };
-            window.onmouseup = () => {
-                if (isResizing) {
-                    isResizing = false;
-                    document.body.style.cursor = '';
-                }
+            const endResize = () => {
+                if (isResizing) { isResizing = false; document.body.style.cursor = ''; }
             };
+
+            ts.resizer.addEventListener('mousedown', (e) => { startResize(); e.preventDefault(); });
+            ts.resizer.addEventListener('touchstart', (e) => { startResize(); }, { passive: true });
+            window.addEventListener('mousemove', (e) => doResize(e.clientX));
+            window.addEventListener('touchmove', (e) => { if (isResizing) doResize(e.touches[0].clientX); }, { passive: true });
+            window.addEventListener('mouseup', endResize);
+            window.addEventListener('touchend', endResize);
         }
 
         // Thumbnail Sizer
@@ -111,57 +119,45 @@
         
         if (!ts.overlay) initTradeSidebar();
         
-        // Populate Title
+        // Populate Title + header details
         const isDay = !!trade._dayTrades;
-        const inst = isDay ? (trade.trade_date || trade.Date || 'Day') : (trade.Instrument || trade.instrument || 'Trade').toUpperCase();
-        ts.title.textContent = (isDay ? inst : inst) + ' — Thumbnails';
+        const date = trade.trade_date || trade.Date || '';
+        const inst = isDay ? (date || 'Day') : (trade.Instrument || trade.instrument || 'Trade').toUpperCase();
+        if (ts.title) ts.title.textContent = inst;
 
-        // Populate Info Card
-        const infoCont = document.getElementById('ts-info-container');
-        if (infoCont) {
-            const date = trade.trade_date || trade.Date || '';
+        const detailEl = document.getElementById('ts-header-details');
+        if (detailEl) {
+            const chip = (label, val, cls='') =>
+                `<span style="background:rgba(255,255,255,0.06);border-radius:4px;padding:1px 6px;"><span style="color:#8b949e;">${label}: </span><span class="${cls}" style="color:#cdd9e5;font-weight:600;">${val}</span></span>`;
+
             if (isDay) {
                 const dayTrades = trade._dayTrades;
-                const totalPnl = dayTrades.reduce((s, t) => {
-                    const p = typeof getTradePnl === 'function' ? getTradePnl(t) : 0;
-                    return s + (p || 0);
-                }, 0);
-                const pnlClass = totalPnl >= 0 ? 'ts-pnl-win' : 'ts-pnl-loss';
-                infoCont.innerHTML = `
-                    <div class="ts-info-card">
-                        <div class="ts-info-row">
-                            <span class="ts-info-label">Date</span>
-                            <span class="ts-info-value">${date}</span>
-                        </div>
-                        <div class="ts-info-row">
-                            <span class="ts-info-label">Trades</span>
-                            <span class="ts-info-value">${dayTrades.length}</span>
-                        </div>
-                        <div class="ts-info-row">
-                            <span class="ts-info-label">Day P&L</span>
-                            <span class="ts-info-value ${pnlClass}">₹${Math.round(totalPnl).toLocaleString('en-IN')}</span>
-                        </div>
-                    </div>`;
+                const totalPnl = dayTrades.reduce((s, t) => s + (typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0), 0);
+                const pnlColor = totalPnl >= 0 ? '#3fb950' : '#f85149';
+                const pnlStr = `<span style="color:${pnlColor};font-weight:700;">₹${Math.round(totalPnl).toLocaleString('en-IN')}</span>`;
+                detailEl.innerHTML =
+                    chip('Date', date) +
+                    chip('Trades', dayTrades.length) +
+                    `<span style="background:rgba(255,255,255,0.06);border-radius:4px;padding:1px 6px;"><span style="color:#8b949e;">P&L: </span>${pnlStr}</span>`;
             } else {
-                const pnl = typeof getTradePnl === 'function' ? getTradePnl(trade) : 0;
-                const pnlClass = (pnl || 0) >= 0 ? 'ts-pnl-win' : 'ts-pnl-loss';
-                const qty = trade.Qty || trade.quantity || '-';
-                const pt = trade.Pt || trade.Points || '-';
-                infoCont.innerHTML = `
-                    <div class="ts-info-card">
-                        <div class="ts-info-row">
-                            <span class="ts-info-label">Date</span>
-                            <span class="ts-info-value">${date}</span>
-                        </div>
-                        <div class="ts-info-row">
-                            <span class="ts-info-label">Qty / Pt</span>
-                            <span class="ts-info-value">${qty} / ${pt} pt</span>
-                        </div>
-                        <div class="ts-info-row">
-                            <span class="ts-info-label">P&L</span>
-                            <span class="ts-info-value ${pnlClass}">₹${Math.round(pnl || 0).toLocaleString('en-IN')}</span>
-                        </div>
-                    </div>`;
+                const pnl = typeof getTradePnl === 'function' ? (getTradePnl(trade) || 0) : 0;
+                const pnlColor = pnl >= 0 ? '#3fb950' : '#f85149';
+                const pnlStr = `<span style="color:${pnlColor};font-weight:700;">₹${Math.round(pnl).toLocaleString('en-IN')}</span>`;
+                const qty  = trade.Qty  || trade.quantity || '-';
+                const pt   = trade.Pt   || trade.Points   || '-';
+                const side = trade.Side || trade.Type     || trade.type || '';
+                const enty = trade['Entry'] || trade['Buy Price']  || trade['Avg Buy'] || '';
+                const exit = trade['Exit']  || trade['Sell Price'] || trade['Avg Sell']|| '';
+                const lots = trade['Lots']  || trade['lots']       || '';
+                let details = chip('Date', date);
+                if (side) details += chip('Side', side);
+                if (enty) details += chip('Entry', enty);
+                if (exit) details += chip('Exit', exit);
+                if (qty)  details += chip('Qty', qty);
+                if (lots) details += chip('Lots', lots);
+                if (pt && pt !== '-') details += chip('Pt', pt);
+                details += `<span style="background:rgba(255,255,255,0.06);border-radius:4px;padding:1px 6px;"><span style="color:#8b949e;">P&L: </span>${pnlStr}</span>`;
+                detailEl.innerHTML = details;
             }
         }
 

@@ -100,6 +100,25 @@
     </div>`;
   }
 
+  function _notableMiniMtmSvg(trades) {
+    const W = 80, H = 32, pad = 2;
+    if (!trades || !trades.length) return '';
+    // Build MTM curve: cumulative PnL after each trade
+    let run = 0;
+    const pts = [0, ...trades.map(t => {
+      run += (typeof getTradePnl === 'function' ? (getTradePnl(t) || 0) : 0);
+      return run;
+    })];
+    const min = Math.min(...pts), max = Math.max(...pts);
+    const range = (max - min) || 1;
+    const isGreen = pts[pts.length - 1] >= 0;
+    const color = isGreen ? '#3fb950' : '#f85149';
+    const toX = i => pad + (i / (pts.length - 1)) * (W - pad * 2);
+    const toY = v => (H - pad) - ((v - min) / range) * (H - pad * 2);
+    const path = pts.map((v, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
+    return `<svg width="${W}" height="${H}" style="display:block;overflow:visible;"><path d="${path}" stroke="${color}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${toX(pts.length-1).toFixed(1)}" cy="${toY(pts[pts.length-1]).toFixed(1)}" r="2.5" fill="${color}"/></svg>`;
+  }
+
   function notableTable(rows) {
     if (!rows.length) return '<div style="color:#556070;font-size:0.82rem;padding:20px;">None in current filter range.</div>';
     const th = s => `<th style="padding:10px 14px;text-align:left;font-size:0.72rem;color:#8892a4;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #2e3347;">${s}</th>`;
@@ -107,14 +126,16 @@
     const body = rows.map(r => {
       const pl = r.netPL;
       const clr = pl >= 0 ? '#4caf7d' : '#e05c5c';
+      const miniSvg = _notableMiniMtmSvg(r.trades);
       return `<tr style="border-bottom:1px solid #2e334710; transition:background 0.2s;" onmouseover="this.style.background='#ffffff05'" onmouseout="this.style.background='transparent'">
         ${td(fmtDate(r.date))}
         ${td(r.trades.length + ' trades')}
         ${td(fmtRs(pl), clr)}
+        <td style="padding:6px 14px;">${miniSvg}</td>
         ${td(r.label||'', '#8b949e')}
       </tr>`;
     }).join('');
-    return `<table style="width:100%;border-collapse:collapse;"><thead><tr>${th('Date')}${th('Volume')}${th('Net P/L')}${th('Tag')}</tr></thead><tbody>${body}</tbody></table>`;
+    return `<table style="width:100%;border-collapse:collapse;"><thead><tr>${th('Date')}${th('Volume')}${th('Net P/L')}${th('MTM')}${th('Tag')}</tr></thead><tbody>${body}</tbody></table>`;
   }
 
   /* ── bucket helpers ── */
