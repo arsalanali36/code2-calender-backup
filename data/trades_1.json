@@ -26959,7 +26959,12 @@
       ],
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117892/trading_journal/cf077671-7901-4504-9a28-f55d65ff70ba.png": {},
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731576/trading_journal/b07adf44-e66c-4fa0-9108-be8e573f59d8.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731576/trading_journal/b07adf44-e66c-4fa0-9108-be8e573f59d8.png": {
+          "3": {
+            "left": "",
+            "top": ""
+          }
+        },
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731576/trading_journal/e753004a-d2ea-4230-8ed4-af48683964a6.png": {}
       },
       "newsImages": []
@@ -27040,7 +27045,12 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/b3bab39c-4ab2-48e6-b933-1b410e7a1bbf.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/bd50767f-516a-4696-b64e-bc1776ab0e2e.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/c08089e2-b6b1-4faf-9ffd-8867ea44de04.png": {},
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/c2abbf98-62de-4123-87ce-f2ab9ff85089.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/c2abbf98-62de-4123-87ce-f2ab9ff85089.png": {
+          "0": {
+            "left": "",
+            "top": ""
+          }
+        },
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/f1b2b1e3-e42a-4a2f-98ba-d4e519de36a3.png": {}
       },
       "newsImages": [
@@ -27104,6 +27114,10 @@
           "3": {
             "left": "",
             "top": ""
+          },
+          "5": {
+            "left": "",
+            "top": ""
           }
         },
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775643787/trading_journal/5026cdca-969c-4ad4-98f3-cf3ed8825a62.png": {},
@@ -27150,7 +27164,10 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/f934bf52-3bb9-433f-b2a4-8e3d94d38b16.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713014/trading_journal/369aaa44-32db-438d-92e6-718735ea6414.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713018/trading_journal/a9cd7394-0f57-4d9b-8cab-2aeb56c6b80a.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713014/trading_journal/fb0326e7-7c1d-4914-a1a4-b42b77497b4f.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713014/trading_journal/fb0326e7-7c1d-4914-a1a4-b42b77497b4f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775735426/trading_journal/3b18318b-a5b2-453a-8427-5efb46a172cf.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775735450/trading_journal/2c2def95-ff8e-4827-ba03-326d59d20800.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775735958/trading_journal/d57acb0f-d897-41fb-8fa5-cf011fead52c.png"
       ],
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/165a5b1a-88ca-4333-b633-c830d93b96f0.png": {},
@@ -27164,7 +27181,16 @@
             "top": ""
           }
         },
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713020/trading_journal/ccc6d9d8-2a5b-4568-9180-a8803260ee9d.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713021/trading_journal/deb47701-ba6e-488b-9f86-67c1e157a379.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713021/trading_journal/f4bb9330-6820-4517-aa24-462d84e7429b.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713022/trading_journal/d8c44ee6-aab7-49dd-a830-7e9f8934e8d8.png": {
+          "8": {
+            "left": "",
+            "top": ""
+          }
+        },
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713523/trading_journal/f6f9e15b-903d-4679-898f-c955e42bfe47.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713525/trading_journal/61d9897e-c553-42e0-8eb6-b703420d7458.png": {
           "4": {
             "left": "",
@@ -27176,7 +27202,12 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718783/trading_journal/dae8434b-2f81-44b9-af8f-587b644cc674.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718785/trading_journal/17054057-c9ca-4b45-a5e6-ba4f6f84fd14.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718786/trading_journal/e64e3a23-16a1-4f34-9497-fbbda63a0357.png": {},
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/03eb29cf-6e44-4f0f-8661-01fe11dbd5e3.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/03eb29cf-6e44-4f0f-8661-01fe11dbd5e3.png": {
+          "10": {
+            "left": "",
+            "top": ""
+          }
+        },
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/08d0279c-358f-4934-aedb-d3d6847b08ca.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/17b1df15-6ef7-4966-a7e0-1521fc2ec2d7.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/40228516-1ac1-44a3-837e-5c72170e4c47.png": {},
@@ -27198,6 +27229,12 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775719496/trading_journal/5205d06c-edc6-4efb-82a6-c10f73fb5fea.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775719498/trading_journal/f48a8e9b-d124-4c93-9371-35647a28ac0e.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775719907/trading_journal/e419888c-2e4d-45bb-aa27-b80b0865840a.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775721213/trading_journal/4dcea3d0-b5b3-4aa6-8f8f-75b31885385f.png": {
+          "12": {
+            "left": "",
+            "top": ""
+          }
+        },
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775722725/trading_journal/aa1a2886-b89d-4799-b50a-74fa00bf1a56.png": {
           "0": {
             "left": "20.8801%",
@@ -27216,6 +27253,14 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731883/trading_journal/3dc11618-a2be-4140-a285-66601df46ed2.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731883/trading_journal/5c032482-c6c3-4a29-8ce3-a7351c8a9c81.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732680/trading_journal/75f150ca-05c1-403f-a96e-39606ff0b54b.png": {
+          "0": {
+            "left": "3.49117%",
+            "top": "16.7042%"
+          },
+          "1": {
+            "left": "",
+            "top": ""
+          },
           "2": {
             "left": "",
             "top": ""
@@ -27223,6 +27268,14 @@
           "3": {
             "left": "",
             "top": ""
+          },
+          "4": {
+            "left": "",
+            "top": ""
+          },
+          "5": {
+            "left": "4.96338%",
+            "top": "50.8%"
           },
           "7": {
             "left": "",
@@ -27249,15 +27302,56 @@
             "top": "67.4134%"
           }
         },
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/1f0c15a1-ffd3-4821-a792-f8cdedc1549e.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/1f0c15a1-ffd3-4821-a792-f8cdedc1549e.png": {
+          "8": {
+            "left": "",
+            "top": ""
+          },
+          "9": {
+            "left": "",
+            "top": ""
+          }
+        },
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/47afd955-6585-4e87-8334-ef5245c3d7e4.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/5d22e66a-190b-4ea7-92e5-8b2227af106d.png": {
+          "4": {
+            "left": "",
+            "top": ""
+          },
+          "6": {
+            "left": "",
+            "top": ""
+          },
+          "7": {
+            "left": "",
+            "top": ""
+          },
           "9": {
             "left": "",
             "top": ""
           }
         },
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/f1366673-5ea9-4e79-b312-06beb30e2f82.png": {},
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/fffdcdc6-c29f-439c-9057-09eeb3f475c8.png": {}
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/fffdcdc6-c29f-439c-9057-09eeb3f475c8.png": {
+          "1": {
+            "left": "",
+            "top": ""
+          },
+          "8": {
+            "left": "",
+            "top": ""
+          },
+          "10": {
+            "left": "",
+            "top": ""
+          },
+          "11": {
+            "left": "",
+            "top": ""
+          }
+        },
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775735426/trading_journal/3b18318b-a5b2-453a-8427-5efb46a172cf.png": {},
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775735450/trading_journal/2c2def95-ff8e-4827-ba03-326d59d20800.png": {}
       },
       "newsImages": []
     }

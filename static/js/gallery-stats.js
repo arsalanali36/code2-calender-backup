@@ -282,7 +282,8 @@ function renderGalleryTradePill() {
     const cls    = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : '';
     const ptCls  = pt  > 0 ? 'pos' : pt  < 0 ? 'neg' : '';
 
-    const badgeBg  = pnl > 0 ? '#16a34a' : pnl < 0 ? '#dc2626' : '#4b5563';
+    pill.classList.add('active');
+    const badgeBg  = pnl > 0 ? '#16a34a' : pnl < 0 ? '#dc2626' : '#3b82f6';
     wrap.style.display = 'flex';
     pill.innerHTML =
         `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:0.78rem;color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`

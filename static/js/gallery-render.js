@@ -204,13 +204,16 @@ function renderGallery() {
                   : `translate3d(${tCurTx}px,${tCurTy}px,0)`;
 
               const _applyTray = (cx, cy) => {
-                  // Context awareness: switch to column when near thumbnail panel or right edge
+                  // Use BOTH cursor pos and tray midpoint for reliable edge detection
+                  const SNAP = 120;
                   const ulp = document.getElementById('gv2-unified-left-panel');
                   const ulpRight = ulp ? ulp.getBoundingClientRect().right : 0;
-                  const SNAP = 80; // px proximity threshold
 
-                  const nearLeft  = cx < ulpRight + SNAP;           // near thumbnail panel
-                  const nearRight = cx > window.innerWidth - SNAP;  // near right edge
+                  const tr = tray.getBoundingClientRect();
+                  const tMidX = tr.left + tr.width / 2;
+
+                  const nearLeft  = tMidX < ulpRight + SNAP || cx < ulpRight + SNAP;
+                  const nearRight = tMidX > window.innerWidth - SNAP || cx > window.innerWidth - SNAP;
                   tray.style.flexDirection = (nearLeft || nearRight) ? 'column' : 'row';
               };
 
@@ -245,8 +248,15 @@ function renderGallery() {
                   trayDragging = false;
                   tray.style.willChange = '';
                   document.body.style.userSelect = '';
+                  // Commit translate offset into left/top so position survives re-renders
+                  const finalRect = tray.getBoundingClientRect();
+                  tray.style.left = finalRect.left + 'px';
+                  tray.style.top  = finalRect.top  + 'px';
+                  tray.style.transform = 'translate3d(0,0,0)';
+                  tCurTx = 0; tCurTy = 0;
                   localStorage.setItem('tj_gv2_cg_tray', JSON.stringify({
-                      top: tray.style.top, left: tray.style.left,
+                      top: finalRect.top + 'px',
+                      left: finalRect.left + 'px',
                       bottom: 'auto', right: 'auto',
                       dir: tray.style.flexDirection, tx: 0, ty: 0
                   }));
