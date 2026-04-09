@@ -1,6 +1,33 @@
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
 
+## EOD Summary - April 09, 2026
+
+### v3.x — Gallery Tray iPad Fixes + Close-Global-Tray UX Polish
+
+**Close-Global-Tray — Position Persistence Fix:**
+- `_tEndDrag`: now commits `translate3d` offset back into `left/top` via `getBoundingClientRect()` and resets transform to zero — tray no longer jumps back to old position after swipe/navigation
+- `localStorage` always saves the true final pixel position
+
+**Close-Global-Tray — Context-Aware Direction (iPad fix):**
+- SNAP threshold increased `80 → 120px` for easier triggering
+- Direction detection now uses both cursor position AND tray midpoint (`getBoundingClientRect`) — previously only cursor was checked which was unreliable on iPad touch
+- Tray switches to `column` (vertical) near thumbnail panel left edge or right screen edge; stays `row` (horizontal) in center
+
+**Gallery Tray — Trade Pill Restored:**
+- `renderGalleryTradePill()`: removed dependency on missing `gv2-active-trade-bar` element that caused early return (pill was invisible)
+- T-badge rendered as solid colored circle (green/red by P&L), e.g. `T3, ₹461, 4 Pt`
+
+**P&L Dropdown Fixes:**
+- Removed `pill.onclick` that caused double-toggle (was firing before and after the event listener)
+- Dropdown moved to `document.body` to escape parent container clipping
+- Active trade marked with blue dot indicator in dropdown rows
+- 7-column grid layout for cleaner trade list alignment
+
+**PWA / Fullscreen (iPad):**
+- Added `apple-mobile-web-app-capable` meta tags for home screen fullscreen mode
+- Added `⛶` fullscreen toggle button via `requestFullscreen()` API
+
 ## EOD Summary - April 01, 2026
 
 ### v3.0.3 — Target Tracker Weekly View + Module Split

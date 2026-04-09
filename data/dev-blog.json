@@ -1,5 +1,19 @@
 [
   {
+    "date": "2026-04-09",
+    "title": "Gallery Tray iPad Polish — Position Persistence + Context-Aware Direction",
+    "body": "Fixed close-global-tray position resetting after gallery swipe/navigation: _tEndDrag now commits translate3d offset into left/top via getBoundingClientRect and resets transform to zero, so localStorage always stores the true final pixel position. Context-aware direction detection improved: SNAP threshold raised 80→120px, now dual-checks both cursor position AND tray midpoint for reliable edge detection on iPad touch. Trade pill (T-badge with P&L + pts) restored after missing gv2-active-trade-bar dependency was removed. P&L dropdown double-toggle bug fixed by removing conflicting pill.onclick, and dropdown moved to document.body to escape container clipping. Added blue dot active-trade indicator and cleaner 7-column grid layout. PWA meta tags added for iPad home screen fullscreen experience.",
+    "tags": [
+      "gallery",
+      "ipad",
+      "drag",
+      "tray",
+      "bugfix",
+      "ux",
+      "pwa"
+    ]
+  },
+  {
     "date": "2026-04-06",
     "title": "Data: News Images Added to Trade",
     "body": "newsImages field added to a trade in trades_1.json — market context screenshots attached. No code changes today. Stray temp.js (UTF-16 copy of gallery-img-tags.js) removed from repo root.",
