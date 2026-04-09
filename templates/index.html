@@ -3,7 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Trading Journal" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Trading Journal</title>
   <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}" />
   <!-- Gallery CSS: non-blocking load (media=print trick) — applies before gallery first opens -->
@@ -75,6 +79,7 @@
       <button id="settings-btn" style="display:none"></button>
 
       <button class="btn btn-outline mobile-view-toggle-btn" id="mobile-view-toggle-btn" title="Switch to Mobile View">📱</button>
+      <button class="btn btn-outline" id="fullscreen-btn" title="Fullscreen" style="margin-left:4px; font-size:1rem; padding:4px 8px;">⛶</button>
 
       <!-- Target Tracker Manual Button -->
       <button class="btn btn-outline" id="tt-manual-btn" title="Target Tracker Dashboard" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🎯 Tracker</button>

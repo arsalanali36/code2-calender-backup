@@ -375,4 +375,24 @@ function _bindUIEvents() {
       window.location.href = '/mobile/';
     });
   }
+
+  // Fullscreen button — hides browser chrome on iPad/mobile
+  const fsBtn = document.getElementById('fullscreen-btn');
+  if (fsBtn) {
+    const updateIcon = () => {
+      fsBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+      fsBtn.title = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+    };
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.();
+      } else {
+        (document.documentElement.requestFullscreen
+          || document.documentElement.webkitRequestFullscreen)
+          ?.call(document.documentElement);
+      }
+    });
+    document.addEventListener('fullscreenchange', updateIcon);
+    document.addEventListener('webkitfullscreenchange', updateIcon);
+  }
 }
