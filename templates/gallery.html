@@ -29,35 +29,6 @@
 
       <div class="gv2-tray-sep"></div>
 
-      <!-- Condensed Recording Dropdown -->
-      <div class="gv2-tray-record-container dropdown-wrap">
-        <button id="gv2-record-toggle-btn" class="gv2-tray-pill gv2-record-trigger" title="Record Tools">
-          <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" opacity="0.4"/>
-            <circle class="rec-dot-pulse" cx="12" cy="12" r="5" fill="#ff4742"/>
-          </svg>
-          <span id="gv2-record-label">Record</span>
-        </button>
-        <div class="dropdown-menu gv2-record-dropdown" id="gv2-record-menu">
-           <button class="dropdown-item" id="gv2-menu-rec-video">
-             <svg class="gv2-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg>
-             Screen Record
-           </button>
-           <button class="dropdown-item" id="gv2-menu-rec-audio">
-             <svg class="gv2-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-             Audio Record
-           </button>
-        </div>
-      </div>
-
-      <!-- Recording Progress Bars (Visible only during recording) -->
-      <div id="gv2-tray-record-bars" class="gv2-tray-record-bars" style="display:none">
-          <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
-          <div class="gv2-video-bar" id="gv2-video-bar"></div>
-      </div>
-
-      <div class="gv2-tray-sep recording-sep" style="display:none"></div>
-
       <!-- Day P&L pill (total) -->
       <div class="gv2-pnl-wrap" id="gv2-pnl-wrap" style="display:none;position:relative;">
         <button class="gv2-pnl-pill" id="gv2-pnl-pill">0</button>
@@ -67,22 +38,6 @@
       <div class="gv2-trade-pill-wrap" id="gv2-trade-pill-wrap" style="display:none;position:relative;">
         <button class="gv2-trade-pill" id="gv2-trade-pill"></button>
         <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-trade-dropdown"></div>
-      </div>
-
-      <!-- Image Type Filter Dropdown -->
-      <div class="gv2-tray-sep"></div>
-      <div class="gv2-filter-dropdown-wrap dropdown-wrap">
-        <button class="gv2-tray-pill gv2-filter-trigger" id="gv2-filter-type-trigger">
-          <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          <span id="gv2-filter-current-label">Both</span>
-        </button>
-        <div class="dropdown-menu" id="gv2-filter-type-menu">
-          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('both')">Both</div>
-          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('index')">Index</div>
-          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('premium')">Premium</div>
-        </div>
       </div>
 
       <!-- Organized Grid Sidebar is now the control center for Grid View -->
@@ -121,6 +76,7 @@
       </button>
     </div>
   </div>
+
   <!-- ② Body -->
   <div class="gv2-body">
 
@@ -355,6 +311,48 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
       </button>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-video-url-btn" title="Video URLs" style="display:none; font-size:0.65rem; font-weight:600;">Vid</button>
+      <!-- Recording Dropdown -->
+      <div class="gv2-tray-record-container dropdown-wrap">
+        <button id="gv2-record-toggle-btn" class="gv2-sb-btn gv2-record-trigger" title="Record Tools">
+          <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+            <circle class="rec-dot-pulse" cx="12" cy="12" r="5" fill="#ff4742"/>
+          </svg>
+          <span id="gv2-record-label" style="display:none">Record</span>
+        </button>
+        <div class="dropdown-menu gv2-record-dropdown" id="gv2-record-menu" style="right: 42px; left: auto; transform: none; min-width: 150px;">
+           <button class="dropdown-item" id="gv2-menu-rec-video">
+             <svg class="gv2-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg>
+             Screen Record
+           </button>
+           <button class="dropdown-item" id="gv2-menu-rec-audio">
+             <svg class="gv2-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+             Audio Record
+           </button>
+        </div>
+      </div>
+
+      <!-- Recording Progress Bars (Visible only during recording) -->
+      <div id="gv2-tray-record-bars" class="gv2-tray-record-bars" style="display:none; position: absolute; right: 45px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.8); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); z-index: 1000; height: 32px; white-space: nowrap;">
+          <div class="gv2-audio-bar" id="gv2-audio-bar"></div>
+          <div class="gv2-video-bar" id="gv2-video-bar"></div>
+      </div>
+
+      <!-- Image Type Filter Dropdown -->
+      <div class="gv2-filter-dropdown-wrap dropdown-wrap">
+        <button class="gv2-sb-btn gv2-filter-trigger" id="gv2-filter-type-trigger" title="Filter Image Type (Both/Index/Premium)">
+          <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          <span id="gv2-filter-current-label" style="display:none">Both</span>
+        </button>
+        <div class="dropdown-menu" id="gv2-filter-type-menu" style="right: 42px; left: auto; transform: none; min-width: 120px;">
+          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('both')">Both</div>
+          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('index')">Index</div>
+          <div class="dropdown-item" onclick="setGalleryImgTypeFilter('premium')">Premium</div>
+        </div>
+      </div>
+
       <div class="gv2-sb-sep"></div>
       <!-- More dropdown -->
       <div class="dropdown-wrapper">

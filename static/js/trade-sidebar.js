@@ -9,8 +9,8 @@
         resizer: null,
         isOpen: false,
         currentTrade: null,
-        currentWidth: 450,
-        thumbSize: 120
+        currentWidth: 400,
+        thumbSize: 180
     };
 
     function _initRefs() {
@@ -84,6 +84,49 @@
             window.addEventListener('touchmove', (e) => { if (isResizing) doResize(e.touches[0].clientX); }, { passive: true });
             window.addEventListener('mouseup', endResize);
             window.addEventListener('touchend', endResize);
+
+            // Vertical Touch Resizer for iPad
+            const _isTouch = (typeof IS_TOUCH_DEVICE !== 'undefined' && IS_TOUCH_DEVICE) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 1100 && navigator.maxTouchPoints > 0);
+            if (_isTouch) {
+                document.documentElement.classList.add('is-touch');
+                document.body.classList.add('is-touch');
+                if (!ts.overlay.dataset.hasResizer) {
+                    let vResizer = document.createElement('div');
+                    vResizer.className = 'gv2-touch-resizer';
+                    vResizer.style.left = '4px'; // Edge for right-side sidebar
+                    vResizer.style.right = 'auto';
+                    vResizer.innerHTML = '<div class="gv2-touch-resizer-handle"></div><div class="gv2-touch-resizer-label">Width: 0px</div>';
+                    ts.overlay.appendChild(vResizer);
+                    ts.overlay.dataset.hasResizer = 'true';
+
+                    const label = vResizer.querySelector('.gv2-touch-resizer-label');
+                    let _tResizing = false, _startY = 0, _startW_T = 0;
+
+                    vResizer.addEventListener('touchstart', (e) => {
+                        _tResizing = true;
+                        _startY = e.touches[0].clientY;
+                        _startW_T = ts.overlay.offsetWidth;
+                        e.stopPropagation();
+                    }, { passive: true });
+
+                    window.addEventListener('touchmove', (e) => {
+                        if (!_tResizing) return;
+                        const dy = e.touches[0].clientY - _startY;
+                        const newWidth = _startW_T - dy * 1.5; // Multiplier for better feel
+                        const minW = 280, maxW = window.innerWidth * 0.9;
+                        if (newWidth >= minW && newWidth <= maxW) {
+                            ts.currentWidth = newWidth;
+                            ts.overlay.style.width = ts.currentWidth + 'px';
+                            if (label) label.textContent = `Width: ${Math.round(ts.currentWidth)}px`;
+                            localStorage.setItem('tj_ts_width', ts.currentWidth);
+                        }
+                        if (e.cancelable) e.preventDefault();
+                    }, { passive: false });
+
+                    window.addEventListener('touchend', () => { _tResizing = false; });
+                    vResizer.style.display = 'flex';
+                }
+            }
         }
 
         // Thumbnail Sizer

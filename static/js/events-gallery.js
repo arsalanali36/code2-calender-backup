@@ -8,6 +8,9 @@
  */
 
 // events-gallery.js — Gallery tools, nav, upload, tags tray, tag cloud event bindings
+if (typeof IS_TOUCH_DEVICE !== 'undefined' && IS_TOUCH_DEVICE) {
+  document.body.classList.add('is-touch');
+}
 
 function _bindGalleryEvents() {
   setupDropdown('gallery-tools-btn', 'gallery-tools-panel');
@@ -152,6 +155,57 @@ function _bindGalleryEvents() {
     document.addEventListener('touchmove', _onMove, { passive: false });
     document.addEventListener('mouseup', _onUp);
     document.addEventListener('touchend', _onUp);
+
+    // Support vertical touch resizing for iPad
+    const _isTouch = (typeof IS_TOUCH_DEVICE !== 'undefined' && IS_TOUCH_DEVICE) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 1100 && navigator.maxTouchPoints > 0);
+    if (_isTouch) {
+      document.documentElement.classList.add('is-touch');
+      document.body.classList.add('is-touch');
+      
+      if (!panel.dataset.hasResizer) {
+        let vResizer = document.createElement('div');
+        vResizer.className = 'gv2-touch-resizer';
+        // Position on the dragging edge
+        if (direction === 'right') {
+          vResizer.style.right = '4px';
+          vResizer.style.left = 'auto';
+        } else {
+          vResizer.style.left = '4px';
+          vResizer.style.right = 'auto';
+        }
+        vResizer.innerHTML = '<div class="gv2-touch-resizer-handle"></div><div class="gv2-touch-resizer-label">Width: 0px</div>';
+        panel.appendChild(vResizer);
+        panel.dataset.hasResizer = 'true';
+        
+        const label = vResizer.querySelector('.gv2-touch-resizer-label');
+        let _tResizing = false, _startY = 0, _startW_T = 0;
+
+        vResizer.addEventListener('touchstart', (e) => {
+          _tResizing = true;
+          _startY = e.touches[0].clientY;
+          _startW_T = panel.offsetWidth;
+          vResizer.classList.add('active');
+          e.stopPropagation();
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+          if (!_tResizing) return;
+          const dy = e.touches[0].clientY - _startY;
+          const newW = _startW_T - dy * 1.5; 
+          _setWidth(newW);
+          if (label) label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
+          if (e.cancelable) e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+          if (_tResizing) {
+            _tResizing = false;
+            vResizer.classList.remove('active');
+          }
+        });
+        vResizer.style.display = 'flex';
+      }
+    }
 
     // Restore saved width on init
     if (localStorageKey) {

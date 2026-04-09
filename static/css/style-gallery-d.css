@@ -100,6 +100,14 @@
   text-shadow: 0 0 8px rgba(20, 184, 166, 0.4);
 }
 
+#gv2-record-toggle-btn {
+  color: var(--icon-red);
+}
+
+#gv2-filter-type-trigger {
+  color: var(--icon-white);
+}
+
 .gv2-sb-btn.active {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);

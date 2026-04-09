@@ -26,14 +26,14 @@
 /* Floating tray — overlays the image, not a fixed header */
 .gv2-tray {
   position: absolute;
-  top: 15px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 500;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 15px) 12px 0; /* Padding for iPad status bar */
   background: transparent;
   border-bottom: none;
   min-height: auto;
@@ -89,7 +89,15 @@
   color: #fff;
 }
 
-/* ── Tray icon buttons (on dark gradient bg) ── */
+
+.gv2-tray-record-bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
 .gv2-tray-icon-btn {
   display: flex;
   align-items: center;
@@ -923,7 +931,7 @@
 }
 
 .gv2-unified-left-panel.open {
-  width: var(--ulp-panel-w, 240px);
+  width: var(--ulp-panel-w, 400px);
 }
 
 .gv2-ulp-tabs {
@@ -1018,10 +1026,23 @@
   cursor: pointer;
   padding: 4px 8px;
   font-size: 0.8rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gv2-ulp-close:hover {
   color: var(--red);
+}
+
+.is-touch .gv2-ulp-close {
+  width: 48px;
+  height: 44px;
+  font-size: 1.3rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 .gv2-ulp-content {

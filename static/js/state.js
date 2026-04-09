@@ -159,7 +159,15 @@ const UNIFIED_STRUCTURED_COLUMNS = [
   'Rs',
   'trade_date'
 ];
-const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+const IS_TOUCH_DEVICE = ('ontouchstart' in window) || 
+                       (navigator.maxTouchPoints > 0) || 
+                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+if (IS_TOUCH_DEVICE) {
+  document.documentElement.classList.add('is-touch');
+  // Also add to body when it exists
+  window.addEventListener('DOMContentLoaded', () => document.body.classList.add('is-touch'));
+}
 
 function getSectionOrder() {
   const preferred = ['calendar', 'dashboard', 'table', 'visual-dashboard'];

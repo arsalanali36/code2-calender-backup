@@ -289,19 +289,12 @@ function renderGalleryTradePill() {
     const cls    = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : '';
     const ptCls  = pt  > 0 ? 'pos' : pt  < 0 ? 'neg' : '';
 
-    const rawInst = owner.Instrument || owner.instrument || owner.Symbol || owner.symbol || '';
-    const instNum = rawInst.toUpperCase();
-    const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-    const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : instNum;
-
     pill.classList.add('active');
     const badgeBg  = pnl > 0 ? '#16a34a' : pnl < 0 ? '#dc2626' : '#3b82f6';
     wrap.style.display = 'flex';
     pill.innerHTML =
         `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:0.78rem;color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
-      + `<span class="gv2-tp-inst" style="margin-left:8px; font-weight:700; color:#fff; font-size:0.85rem; letter-spacing:0.2px;">${instText}</span>`
-      + `<span class="gv2-tp-val ${cls}" style="margin-left:12px;">${fmtPnl(pnl)}</span>`
-      + `<span class="gv2-tp-sep" style="margin:0 6px; opacity:0.4;">•</span>`
+      + `<span class="gv2-tp-val ${cls}" style="margin-left:6px;">${fmtPnl(pnl)},</span>`
       + `<span class="gv2-tp-val ${ptCls}">${ptStr}</span>`;
 }
 

@@ -730,3 +730,96 @@
   flex-shrink: 0;
 }
 
+
+
+.gv2-touch-resizer {
+  display: flex !important;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px; /* Slimmer */
+  height: 200px;
+  background: rgba(13, 17, 23, 0.4); /* Much more transparent */
+  border: 1px solid rgba(88, 166, 255, 0.3);
+  border-radius: 16px;
+  z-index: 10005;
+  touch-action: none;
+  pointer-events: auto;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: column;
+  padding: 15px 0;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.3s, background 0.3s;
+  opacity: 0.6; /* Semi-transparent when not in use */
+}
+
+.gv2-touch-resizer:active {
+  background: rgba(13, 17, 23, 0.85);
+  border-color: #58a6ff;
+  opacity: 1;
+}
+
+.gv2-touch-resizer::before {
+  content: '▴';
+  font-size: 14px;
+  color: #58a6ff;
+  font-weight: 900;
+}
+
+.gv2-touch-resizer::after {
+  content: '▾';
+  font-size: 14px;
+  color: #58a6ff;
+  font-weight: 900;
+}
+
+.gv2-touch-resizer-handle {
+  width: 32px;
+  height: 32px;
+  background: #58a6ff;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(88, 166, 255, 0.6);
+  border: 3px solid #fff;
+}
+
+.gv2-touch-resizer-label {
+  position: absolute;
+  left: 55px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--blue);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.gv2-touch-resizer:active .gv2-touch-resizer-label {
+  opacity: 1;
+}
+
+
+@media (hover: hover) and (pointer: fine) {
+  /* Only hide if it's REALLY a desktop (hover + fine pointer) 
+     but NOT if it's also a touch device */
+  body:not(.is-touch) .gv2-touch-resizer {
+    display: none !important;
+  }
+}
+
+/* Hide original small mouse handles on touch devices to avoid "double bar" look */
+.is-touch .gv2-tp-resize-handle,
+.is-touch .gv2-lp-resize-handle,
+.is-touch .gv2-trades-resize-handle,
+.is-touch .gv2-tray-resize-handle,
+.is-touch .trade-sidebar-resizer {
+  display: none !important;
+}
