@@ -269,8 +269,12 @@
     </div><!-- /gv2-center -->
 
     <!-- Right Sidebar Strip -->
-    <div class="gv2-sidebar-strip">
-      <button class="gv2-sb-btn" id="gv2-fullscreen-btn" title="Fullscreen (F)">
+    <div class="gv2-sidebar-strip" id="gv2-sidebar-strip">
+      <button class="gv2-sb-btn gv2-sidebar-toggle" id="gv2-sidebar-toggle-btn" title="Toggle sidebar" onclick="toggleGv2Sidebar()">
+        <svg id="gv2-sidebar-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M10 4l-4 4 4 4"/></svg>
+      </button>
+      <div class="gv2-sb-sep gv2-sidebar-collapsible"></div>
+      <button class="gv2-sb-btn gv2-sidebar-collapsible" id="gv2-fullscreen-btn" title="Fullscreen (F)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
       </button>
       <button class="gv2-sb-btn" id="gv2-popout-btn" title="Popout (New Window)">

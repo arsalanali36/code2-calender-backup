@@ -269,28 +269,40 @@ function navigateGalleryDate(dir) {
     return;
   }
 
-  const nextDate = datesWithImages[nextIdx];
-  const images = getImagesForDate(nextDate);
-  if (images.length) {
-    state.gallery.images = images;
-    state.gallery._baseImages = [...images];
-    state.gallery.currentIndex = 0;
-    state.gallery.date = nextDate;
-    state.gallery.sourceRow = null;
-    state.gallery.imageTimes = {};
-    // Auto-select T1: jump to first image of first trade if the date has trades
-    const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(nextDate) : [];
-    if (dayTrades.length > 0 && dayTrades[0].images && dayTrades[0].images.length > 0) {
-      const t1FirstImg = dayTrades[0].images[0];
-      const t1Idx = images.indexOf(t1FirstImg);
-      if (t1Idx >= 0) {
-        state.gallery.currentIndex = t1Idx;
-        state.gallery.selectedSeparator = 0;
+    const nextDate = datesWithImages[nextIdx];
+    const images = getImagesForDate(nextDate);
+    if (images.length) {
+      state.gallery.images = images;
+      state.gallery._baseImages = [...images];
+      state.gallery.currentIndex = 0;
+      state.gallery.date = nextDate;
+      state.gallery.sourceRow = null;
+      state.gallery.imageTimes = {};
+
+      // ── Priority 1: Auto-select Close Global Image ──
+      const dayData = state.dayData[nextDate] || {};
+      if (dayData.closeGlobalImages && dayData.closeGlobalImages.length > 0) {
+        const firstGlobal = dayData.closeGlobalImages[0];
+        const gIdx = images.indexOf(firstGlobal);
+        if (gIdx >= 0) {
+          state.gallery.currentIndex = gIdx;
+        }
+      } else {
+        // ── Priority 2: Auto-select T1 ──
+        const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(nextDate) : [];
+        if (dayTrades.length > 0 && dayTrades[0].images && dayTrades[0].images.length > 0) {
+          const t1FirstImg = dayTrades[0].images[0];
+          const t1Idx = images.indexOf(t1FirstImg);
+          if (t1Idx >= 0) {
+            state.gallery.currentIndex = t1Idx;
+            state.gallery.selectedSeparator = 0;
+          }
+        }
       }
+
+      renderGallery(); updateGalleryDateArrows();
+      if (state.gallery.showTime) fetchImageTimesForGallery();
     }
-    renderGallery(); updateGalleryDateArrows();
-    if (state.gallery.showTime) fetchImageTimesForGallery();
-  }
 }
 
 function updateGalleryDateArrows() {

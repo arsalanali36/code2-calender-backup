@@ -32,12 +32,20 @@ function openGalleryForDate(dateStr, targetImgUrl = null) {
   });
 
   // Resolve targetImgUrl in the (possibly filtered) images list
+  // Resolve targetImgUrl in the (possibly filtered) images list
   if (targetImgUrl) {
     const raw = String(targetImgUrl).trim();
     const idx = state.gallery.images.findIndex(u => String(u) === raw || String(u).endsWith(raw) || raw.endsWith(String(u)));
     if (idx >= 0) state.gallery.currentIndex = idx;
     state.gallery.selectedIndices = new Set([state.gallery.currentIndex]);
   } else {
+    // If no specific image targeted, try to find Close Global image first
+    const dayData = state.dayData[dateStr] || {};
+    if (dayData.closeGlobalImages && dayData.closeGlobalImages.length > 0) {
+        const firstGlobal = dayData.closeGlobalImages[0];
+        const gIdx = state.gallery.images.indexOf(firstGlobal);
+        if (gIdx >= 0) state.gallery.currentIndex = gIdx;
+    }
     state.gallery.selectedIndices = state.gallery.selectedIndices || new Set();
   }
   

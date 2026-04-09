@@ -120,6 +120,305 @@ function renderGallery() {
     img.onclick = null; // fullscreen moved to F key / fullscreen button
   }
 
+  // ====== CLOSE GLOBAL Source Tray & Markers ======
+  document.querySelectorAll('.close-global-nav-btn, .close-global-marker').forEach(b => b.remove());
+  const oldCont = document.getElementById('close-global-nav-container');
+  if (oldCont) oldCont.style.display = 'none';
+  const oldTray = document.getElementById('close-global-tray');
+  if (oldTray) oldTray.remove();
+
+  let closeGlobalDateKey = state.gallery.date;
+  if (!closeGlobalDateKey && curUrl) {
+      const gctx = findGalleryContextByImageUrl(curUrl);
+      if (gctx && gctx.date && state.dayData[gctx.date]?.closeGlobalImages?.includes(curUrl)) {
+          closeGlobalDateKey = gctx.date;
+      }
+  }
+
+  if (closeGlobalDateKey && curUrl && state.dayData[closeGlobalDateKey]?.closeGlobalImages?.includes(curUrl)) {
+      const tradesForDay = getTradesForDate(closeGlobalDateKey);
+      if (tradesForDay.length > 0) {
+          const imgContainer = document.getElementById('gallery-img-wrapper') || document.querySelector('.gv2-img-area');
+          const zoomOverlay = document.getElementById('gallery-zoom-layer');
+          
+          if (imgContainer && zoomOverlay) {
+              if (getComputedStyle(imgContainer).position === 'static') imgContainer.style.position = 'relative';
+              
+              // 1. Zoomable Marker Container
+              let navCont = document.getElementById('close-global-nav-container');
+              if (!navCont) {
+                  navCont = document.createElement('div');
+                  navCont.id = 'close-global-nav-container';
+                  navCont.style.position = 'absolute';
+                  navCont.style.top = '0'; navCont.style.left = '0';
+                  navCont.style.width = '100%'; navCont.style.height = '100%';
+                  navCont.style.pointerEvents = 'none'; navCont.style.zIndex = '9998';
+                  zoomOverlay.appendChild(navCont);
+              }
+              navCont.style.display = 'block';
+              if (typeof zoom !== 'undefined') {
+                  navCont.style.transform = `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`;
+                  navCont.style.transformOrigin = 'top left';
+              }
+
+              // 2. Fixed Source Tray
+              const tray = document.createElement('div');
+              tray.id = 'close-global-tray';
+              tray.style.position = 'absolute';
+              
+              // Load saved tray position/orientation
+              const savedTray = JSON.parse(localStorage.getItem('tj_gv2_cg_tray') || '{"bottom":"20px","left":"50%","dir":"row"}');
+              tray.style.bottom = savedTray.bottom;
+              tray.style.left = savedTray.left;
+              tray.style.top = savedTray.top || 'auto';
+              tray.style.right = savedTray.right || 'auto';
+              tray.style.flexDirection = savedTray.dir;
+              tray.style.display = 'flex';
+              tray.style.gap = '8px';
+              tray.style.padding = '8px 12px';
+              tray.style.background = 'rgba(15,15,20,0.85)';
+              tray.style.backdropFilter = 'blur(10px)';
+              tray.style.borderRadius = '24px';
+              tray.style.border = '1px solid rgba(255,255,255,0.1)';
+              tray.style.zIndex = '20000'; // Higher than sidebar and panels
+              tray.style.cursor = 'move';
+              if (savedTray.left === '50%') tray.style.transform = 'translateX(-50%)';
+
+              // Tray dragging logic
+              let trayDragging = false, tStartX, tStartY, tInitL, tInitT;
+              tray.addEventListener('mousedown', (e) => {
+                  if (e.target !== tray) return; // Only drag by background
+                  trayDragging = true;
+                  tStartX = e.clientX; tStartY = e.clientY;
+                  tInitL = tray.offsetLeft; tInitT = tray.offsetTop;
+                  tray.style.transform = 'none'; // clear centering
+                  e.preventDefault();
+              });
+
+              document.addEventListener('mousemove', (e) => {
+                  if (!trayDragging) return;
+                  const dx = e.clientX - tStartX;
+                  const dy = e.clientY - tStartY;
+                  const newL = tInitL + dx;
+                  const newT = tInitT + dy;
+                  tray.style.left = newL + 'px';
+                  tray.style.top = newT + 'px';
+                  tray.style.bottom = 'auto'; tray.style.right = 'auto';
+
+                  // Context awareness: Side edges -> Vertical, Top/Bottom -> Horizontal
+                  const rect = imgContainer.getBoundingClientRect();
+                  const distL = e.clientX - rect.left;
+                  const distR = rect.right - e.clientX;
+                  const distT = e.clientY - rect.top;
+                  const distB = rect.bottom - e.clientY;
+
+                  if (Math.min(distL, distR) < Math.min(distT, distB)) {
+                      tray.style.flexDirection = 'column';
+                  } else {
+                      tray.style.flexDirection = 'row';
+                  }
+              });
+
+              document.addEventListener('mouseup', () => {
+                  if (!trayDragging) return;
+                  trayDragging = false;
+                  // Persist
+                  const config = {
+                      top: tray.style.top,
+                      left: tray.style.left,
+                      bottom: 'auto',
+                      right: 'auto',
+                      dir: tray.style.flexDirection
+                  };
+                  localStorage.setItem('tj_gv2_cg_tray', JSON.stringify(config));
+              });
+
+              // --- Keep tray in bounds if panel resizes ---
+              const ensureTrayInBounds = () => {
+                  const cRect = imgContainer.getBoundingClientRect();
+                  const tRect = tray.getBoundingClientRect();
+                  
+                  let nudge = false;
+                  let newL = tray.offsetLeft;
+                  let newT = tray.offsetTop;
+
+                  if (tRect.right > cRect.right - 10) {
+                      newL = cRect.width - tRect.width - 20;
+                      nudge = true;
+                  }
+                  if (tRect.bottom > cRect.bottom - 10) {
+                      newT = cRect.height - tRect.height - 20;
+                      nudge = true;
+                  }
+                  if (tRect.left < cRect.left + 10) {
+                      newL = 20;
+                      nudge = true;
+                  }
+                  if (tRect.top < cRect.top + 10) {
+                      newT = 20;
+                      nudge = true;
+                  }
+
+                  if (nudge) {
+                      tray.style.left = newL + 'px';
+                      tray.style.top = newT + 'px';
+                      tray.style.bottom = 'auto'; tray.style.right = 'auto';
+                  }
+              };
+
+              const trayObserver = new ResizeObserver(() => {
+                  ensureTrayInBounds();
+              });
+              trayObserver.observe(imgContainer);
+
+              imgContainer.appendChild(tray);
+
+              const dayDataObj = state.dayData[closeGlobalDateKey];
+              if (!dayDataObj.navPositions) dayDataObj.navPositions = {};
+              if (!dayDataObj.navPositions[curUrl]) dayDataObj.navPositions[curUrl] = {};
+              const posData = dayDataObj.navPositions[curUrl];
+
+              tradesForDay.forEach((tr, idx) => {
+                  const pnl = parseFloat(tr['Net P/L'] || tr.net_pnl || 0);
+                  const color = pnl > 0 ? 'var(--green)' : (pnl < 0 ? 'var(--red)' : 'var(--blue)');
+                  const timeStr = tr['Entry Time'] || tr['entry_time'] || tr['entryTime'] || tr['Buy Time'] || tr['Time'] || tr['time'] || 'N/A';
+                  const pnlRounded = Math.round(pnl);
+                  const pnlDisplay = (pnlRounded >= 0 ? '+' : '') + pnlRounded.toLocaleString('en-IN');
+                  const tooltip = `Trade #${idx + 1}\nTime: ${timeStr}\nP&L: ₹${pnlDisplay}`;
+
+                  // --- Create Marker (The duplicate on image) ---
+                  const marker = document.createElement('button');
+                  marker.className = 'close-global-marker';
+                  marker.textContent = String(idx + 1);
+                  marker.style.position = 'absolute';
+                  marker.style.zIndex = '9999';
+                  marker.style.pointerEvents = 'auto';
+                  marker.style.background = color;
+                  marker.style.color = '#fff';
+                  marker.style.border = '1px solid rgba(255,255,255,0.4)';
+                  marker.style.borderRadius = '50%';
+                  marker.style.width = '26px';
+                  marker.style.height = '26px';
+                  marker.style.fontSize = '0.85rem';
+                  marker.style.fontWeight = 'bold';
+                  marker.style.cursor = 'pointer';
+                  marker.style.opacity = '0.7';
+                  marker.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
+                  marker.title = tooltip + "\n(Right-click to remove)";
+                  
+                  marker.oncontextmenu = (e) => {
+                      e.preventDefault();
+                      delete posData[idx];
+                      if (typeof saveTrades === 'function') saveTrades();
+                      marker.style.display = 'none';
+                  };
+                  
+                  if (posData[idx]) {
+                      marker.style.left = posData[idx].left;
+                      marker.style.top = posData[idx].top;
+                      marker.style.display = 'block';
+                  } else {
+                      marker.style.display = 'none'; // Hidden until placed
+                  }
+
+                  // --- Create Tray Button (The source) ---
+                  const sourceBtn = document.createElement('button');
+                  sourceBtn.className = 'close-global-nav-btn';
+                  sourceBtn.textContent = String(idx + 1);
+                  sourceBtn.style.background = color;
+                  sourceBtn.style.color = '#fff';
+                  sourceBtn.style.border = 'none';
+                  sourceBtn.style.borderRadius = '50%';
+                  sourceBtn.style.width = '34px';
+                  sourceBtn.style.height = '34px';
+                  sourceBtn.style.fontSize = '1rem';
+                  sourceBtn.style.fontWeight = 'bold';
+                  sourceBtn.style.cursor = 'grab';
+                  sourceBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.4)';
+                  sourceBtn.title = tooltip;
+                  tray.appendChild(sourceBtn);
+
+                  // Shared drag logic
+                  let isDragging = false;
+                  let startX, startY, initialLeft, initialTop;
+                  let clickStartTime = 0;
+                  let movedDuringClick = false;
+
+                  const onMouseMove = (e) => {
+                      if (!isDragging) return;
+                      movedDuringClick = true;
+                      const rect = zoomOverlay.getBoundingClientRect();
+                      const scale = rect.width / zoomOverlay.offsetWidth || 1;
+                      const dx = (e.clientX - startX) / scale;
+                      const dy = (e.clientY - startY) / scale;
+                      
+                      marker.style.display = 'block'; // Ensure visible when dragging source
+                      marker.style.left = (((initialLeft + dx) / zoomOverlay.offsetWidth) * 100) + '%';
+                      marker.style.top = (((initialTop + dy) / zoomOverlay.offsetHeight) * 100) + '%';
+                  };
+
+                  const onMouseUp = () => {
+                      if (!isDragging) return;
+                      isDragging = false;
+                      sourceBtn.style.cursor = 'grab';
+                      marker.style.cursor = 'pointer';
+                      
+                      posData[idx] = {
+                          left: marker.style.left,
+                          top: marker.style.top
+                      };
+                      if (typeof saveTrades === 'function') saveTrades();
+
+                      document.removeEventListener('mousemove', onMouseMove);
+                      document.removeEventListener('mouseup', onMouseUp);
+                  };
+
+                  const bindDrag = (el, isSource) => {
+                      el.addEventListener('mousedown', (e) => {
+                          if (e.button !== 0) return;
+                          isDragging = true;
+                          clickStartTime = Date.now();
+                          movedDuringClick = false;
+                          el.style.cursor = 'grabbing';
+                          
+                          if (isSource) {
+                              const rect = zoomOverlay.getBoundingClientRect();
+                              const scale = rect.width / zoomOverlay.offsetWidth || 1;
+                              // Approximate initial position for marker near the tray button
+                              initialLeft = (e.clientX - rect.left) / scale;
+                              initialTop = (e.clientY - rect.top) / scale;
+                          } else {
+                              initialLeft = marker.offsetLeft;
+                              initialTop = marker.offsetTop;
+                          }
+                          
+                          startX = e.clientX;
+                          startY = e.clientY;
+                          
+                          document.addEventListener('mousemove', onMouseMove);
+                          document.addEventListener('mouseup', onMouseUp);
+                          e.preventDefault(); e.stopPropagation();
+                      });
+                  };
+
+                  bindDrag(sourceBtn, true);
+                  bindDrag(marker, false);
+
+                  marker.onclick = (e) => {
+                      e.stopPropagation();
+                      if (!movedDuringClick && Date.now() - clickStartTime < 300) {
+                          if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
+                      }
+                  };
+                  sourceBtn.onclick = marker.onclick;
+
+                  navCont.appendChild(marker);
+              });
+          }
+      }
+  }
+  // ===================================================
+
   document.getElementById('gallery-counter').textContent = `${currentIndex + 1} / ${images.length}`;
   document.getElementById('gallery-prev').disabled = images.length <= 1;
   document.getElementById('gallery-next').disabled = images.length <= 1;
@@ -302,8 +601,9 @@ function renderGallery() {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
     const isClose = type === true;
+    const isCloseGlobal = type === 'CLOSE_GLOBAL';
     const isNews = type === 'NEWS';
-    const sepKey = isNews ? 'NEWS' : (isClose ? 'CLOSE' : 'OPEN');
+    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isClose ? 'CLOSE' : 'OPEN'));
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
     sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
@@ -320,13 +620,21 @@ function renderGallery() {
         if (!draggedIndices || draggedIndices.length === 0) return;
         if (typeof moveSelectedToDayData === 'function') {
            const dData = state.dayData[state.gallery.date];
-           let arrToUse = isNews ? dData?.newsImages : (isClose ? dData?.closeImages : dData?.images);
+           let arrToUse = isNews ? dData?.newsImages : (isCloseGlobal ? dData?.closeGlobalImages : (isClose ? dData?.closeImages : dData?.images));
            if (!arrToUse) {
              if (isNews) dData.newsImages = [];
+             else if (isCloseGlobal) dData.closeGlobalImages = [];
              else if (isClose) dData.closeImages = [];
              else dData.images = [];
            }
-           await moveSelectedToDayData(state.gallery.date, isNews ? 'NEWS' : isClose);
+           if (isCloseGlobal) {
+               const curLen = (dData.closeGlobalImages || []).length;
+               if (curLen >= 1 && state.gallery.selectedIndices && state.gallery.selectedIndices.size > 0) {
+                   showToast('CLOSE GLOBAL can only hold 1 image.', 'error');
+                   return;
+               }
+           }
+           await moveSelectedToDayData(state.gallery.date, isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : isClose));
         }
       } catch (err) { console.error(err); }
     });
@@ -362,6 +670,7 @@ function renderGallery() {
   }
 
   let renderedCloseSep = false;
+  let renderedCloseGlobalSep = false;
 
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow, isNews }, currentIterIdx) => {
 
@@ -445,6 +754,26 @@ function renderGallery() {
 
     if (isCloseImg) {
       if (state.gallery.collapsedSeparators?.has('CLOSE')) return;
+    }
+
+    const isCloseGlobalImg = _effDate && state.dayData[_effDate]?.closeGlobalImages?.includes(url);
+    const _closeGlobalSepKey = _effDate + ':CLOSE_GLOBAL';
+    const _closeGlobalSepAlreadyDone = _filterActive3 ? _perDateRenderedSeps.has(_closeGlobalSepKey) : renderedCloseGlobalSep;
+
+    if (isCloseGlobalImg && !_closeGlobalSepAlreadyDone) {
+      if (!_closeSepAlreadyDone) {
+        // Just in case no closeImage existed to trigger the CLOSE separator
+        thumbs.appendChild(createSpecialSeparator('CLOSE', true));
+        if (_filterActive3) { _perDateRenderedSeps.add(_closeSepKey); }
+        else { renderedCloseSep = true; }
+      }
+      thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
+      if (_filterActive3) { _perDateRenderedSeps.add(_closeGlobalSepKey); }
+      else { renderedCloseGlobalSep = true; }
+    }
+
+    if (isCloseGlobalImg) {
+        if (state.gallery.collapsedSeparators?.has('CLOSE_GLOBAL')) return;
     }
 
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
@@ -781,6 +1110,9 @@ function renderGallery() {
   if (!_filterActive3 && !renderedCloseSep && state.gallery.date) {
     thumbs.appendChild(createSpecialSeparator('CLOSE', true));
   }
+  if (!_filterActive3 && !renderedCloseGlobalSep && state.gallery.date) {
+    thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
+  }
 
   const btnWrap = document.createElement('div');
   btnWrap.className = 'gv2-thumb-wrap';
@@ -828,6 +1160,9 @@ function renderGallery() {
             } else if (selSep === 'CLOSE') {
                 targetObj = state.dayData[dayKey];
                 targetArray = 'closeImages';
+            } else if (selSep === 'CLOSE_GLOBAL') {
+                targetObj = state.dayData[dayKey];
+                targetArray = 'closeGlobalImages';
             } else if (typeof selSep === 'number') {
                 const dayTrades = getTradesForDate(dayKey);
                 targetObj = dayTrades[selSep];

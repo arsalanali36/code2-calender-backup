@@ -214,6 +214,11 @@ function _bindSettingsEvents() {
         if (!state.dayData[targetDate].closeImages) state.dayData[targetDate].closeImages = [];
         state.dayData[targetDate].closeImages.push(...readyFiles);
         savedViaGallerySeparator = true;
+      } else if (sel === 'CLOSE_GLOBAL') {
+        if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+        if (!state.dayData[targetDate].closeGlobalImages) state.dayData[targetDate].closeGlobalImages = [];
+        state.dayData[targetDate].closeGlobalImages.push(...readyFiles);
+        savedViaGallerySeparator = true;
       } else if (sel === 'OPEN') {
         if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
         if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];

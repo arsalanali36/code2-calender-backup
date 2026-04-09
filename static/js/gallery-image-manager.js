@@ -76,7 +76,7 @@ function getManagerAllTags() {
     });
     Object.entries(state.dayData || {}).forEach(([d, day]) => {
         (Array.isArray(day.tags) ? day.tags : []).forEach(tag => tags.add(tag));
-        [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || [])].forEach(url => {
+        [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || []), ...(day.closeGlobalImages || [])].forEach(url => {
             (Array.isArray(day.imageTags?.[url]) ? day.imageTags[url] : []).forEach(tag => tags.add(tag));
         });
     });
@@ -126,7 +126,7 @@ function buildManagerTagCountMap() {
             });
         });
         Object.values(state.dayData || {}).forEach(day => {
-            [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || [])].forEach(url => {
+            [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || []), ...(day.closeGlobalImages || [])].forEach(url => {
                 ((day.imageTags || {})[url] || []).forEach(bump);
                 ((day.marqueeBoxes || {})[url] || []).forEach(b => (b.tags || []).forEach(bump));
             });
@@ -593,7 +593,7 @@ async function exportColumnToPdf(tagName) {
     });
 
     Object.entries(state.dayData || {}).forEach(([d, day]) => {
-        [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || [])].forEach(url => {
+        [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || []), ...(day.closeGlobalImages || [])].forEach(url => {
             const tags = getDayImageTagsForUrl(d, url);
             if (tags.includes(tagName)) {
                 metaToExport.push({ url, date: d, sourceRow: null });

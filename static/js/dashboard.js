@@ -140,6 +140,51 @@ function formatShortDate(dateStr) {
   return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
 }
 
+let _qsMonthFilter = 'all'; // 'all' or 0-11
+
+function setQsMonthFilter(m) {
+  _qsMonthFilter = m;
+  _renderQsMonthTabs();
+  const trades = m === 'all'
+    ? getTradesForMonth(state.year, state.month)
+    : state.trades.filter(t => {
+        if (!tradeMatchesBrokerFilter(t)) return false;
+        const ds = normalizeDate(extractDateFromTrade(t));
+        if (!ds) return false;
+        const d = new Date(ds + 'T00:00:00');
+        return d.getFullYear() === state.year && d.getMonth() === m;
+      });
+  const subtitle = document.getElementById('qs-monthly-subtitle');
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (subtitle) subtitle.textContent = m === 'all'
+    ? `for ${MONTHS[state.month]} ${state.year}`
+    : `for ${MONTHS_SHORT[m]} ${state.year}`;
+  renderDashboard(trades);
+}
+
+function _renderQsMonthTabs() {
+  const cont = document.getElementById('qs-month-tabs');
+  if (!cont) return;
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Find which months have trades this year
+  const monthsWithData = new Set(
+    state.trades
+      .map(t => normalizeDate(extractDateFromTrade(t)))
+      .filter(d => d && d.startsWith(state.year + '-'))
+      .map(d => parseInt(d.split('-')[1], 10) - 1)
+  );
+  let html = `<div class="vd-month-tabs-container">`;
+  html += `<div class="vd-month-tab ${_qsMonthFilter === 'all' ? 'active' : ''}" onclick="setQsMonthFilter('all')">ALL</div>`;
+  MONTHS_SHORT.forEach((name, idx) => {
+    const has = monthsWithData.has(idx);
+    const active = _qsMonthFilter === idx;
+    html += `<div class="vd-month-tab ${active ? 'active' : ''} ${has ? 'has-data' : 'no-data'}"
+      ${has ? `onclick="setQsMonthFilter(${idx})"` : ''}>${name}</div>`;
+  });
+  html += `</div>`;
+  cont.innerHTML = html;
+}
+
 function renderDashboard(customTrades = null) {
   const subtitle = document.getElementById('qs-monthly-subtitle');
   if (subtitle) {
@@ -151,6 +196,9 @@ function renderDashboard(customTrades = null) {
   }
   applyDashboardStatVisibility();
   applyDashboardStatOrder();
+  // Reset month filter when calendar month changes (no custom trades = fresh render)
+  if (customTrades === null) _qsMonthFilter = 'all';
+  _renderQsMonthTabs();
 
   const trades = customTrades !== null ? customTrades : getTradesForMonth(state.year, state.month);
 

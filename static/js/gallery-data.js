@@ -44,6 +44,7 @@ function getImagesForDate(dateStr) {
   });
 
   (state.dayData[dateStr]?.closeImages || []).forEach(url => out.push(url));
+  (state.dayData[dateStr]?.closeGlobalImages || []).forEach(url => out.push(url));
   return out;
 }
 

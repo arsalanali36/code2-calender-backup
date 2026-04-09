@@ -260,6 +260,7 @@ function showGalleryContextMenu(x, y) {
                 if (!obj) return;
                 obj.images = (obj.images || []).filter(u => !toDelete.has(u));
                 if (obj.closeImages) obj.closeImages = obj.closeImages.filter(u => !toDelete.has(u));
+                if (obj.closeGlobalImages) obj.closeGlobalImages = obj.closeGlobalImages.filter(u => !toDelete.has(u));
                 if (obj.subImages) {
                     for (const [p, subs] of Object.entries({ ...obj.subImages })) {
                         if (toDelete.has(p)) { delete obj.subImages[p]; continue; }
@@ -343,6 +344,7 @@ function showGalleryContextMenu(x, y) {
         subMenu.appendChild(createSubOpt(`Trade ${i + 1}`, () => moveSelectedToTrade(dateToUse, tr)));
     });
     subMenu.appendChild(createSubOpt('Close', () => moveSelectedToDayData(dateToUse, true)));
+    subMenu.appendChild(createSubOpt('Close Global', () => moveSelectedToDayData(dateToUse, 'CLOSE_GLOBAL')));
 
     parentOpItem.onmouseenter = () => {
         parentOpItem.style.background = 'var(--hover)';

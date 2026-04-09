@@ -215,6 +215,12 @@
       const filtered = _filterByImgType(dayData.closeImages);
       if (filtered.length) renderGroup('CLOSE (Post-Market)', filtered, null);
     }
+
+    // 4. CLOSE GLOBAL Group
+    if (dayData && dayData.closeGlobalImages && dayData.closeGlobalImages.length > 0) {
+      const filtered = _filterByImgType(dayData.closeGlobalImages);
+      if (filtered.length) renderGroup('CLOSE GLOBAL', filtered, null);
+    }
   }
 
   function renderGroup(title, images, statsHtml, pnl, tradeRef, tradeIdx, cumPnl) {
@@ -226,6 +232,7 @@
       groupDiv.classList.add('gv2-grid-group--portrait');
     }
     else if (title === 'CLOSE (Post-Market)') groupDiv.id = 'grid-group-close';
+    else if (title === 'CLOSE GLOBAL') groupDiv.id = 'grid-group-close-global';
     else if (tradeIdx !== undefined) groupDiv.id = 'grid-group-trade-' + tradeIdx;
 
     const hdr = document.createElement('div');

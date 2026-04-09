@@ -56,6 +56,11 @@ function bindEvents() {
               if (!state.dayData[targetDate].closeImages) state.dayData[targetDate].closeImages = [];
               state.dayData[targetDate].closeImages.push(data.url);
               addedToGroup = true;
+            } else if (sel === 'CLOSE_GLOBAL') {
+              if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
+              if (!state.dayData[targetDate].closeGlobalImages) state.dayData[targetDate].closeGlobalImages = [];
+              state.dayData[targetDate].closeGlobalImages.push(data.url);
+              addedToGroup = true;
             } else if (sel === 'OPEN') {
               if (!state.dayData[targetDate]) state.dayData[targetDate] = {};
               if (!state.dayData[targetDate].images) state.dayData[targetDate].images = [];

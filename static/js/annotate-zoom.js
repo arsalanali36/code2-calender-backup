@@ -58,6 +58,12 @@ function applyZoom() {
     _mqCanvas.style.transformOrigin = 'top left';
   }
 
+  const navCont = document.getElementById('close-global-nav-container');
+  if (navCont) {
+    navCont.style.transform = tf;
+    navCont.style.transformOrigin = 'top left';
+  }
+
   if (fabricCanvas) {
     if (fabricCanvas.wrapperEl) {
       fabricCanvas.wrapperEl.style.transform = tf; // Apple CSS scaling correctly

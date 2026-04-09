@@ -101,6 +101,7 @@ function syncGalleryImageOrderToTrades() {
             const newNewsImages = [];
             const newDayImages = [];
             const newCloseImages = [];
+            const newCloseGlobalImages = [];
             const newTradeImages = new Map();
             dayTrades.forEach(t => newTradeImages.set(t, []));
 
@@ -114,10 +115,13 @@ function syncGalleryImageOrderToTrades() {
                 } else {
                     const subs = getSubSet(currentDayData);
                     if (!subs.has(u)) {
-                        // Priority: News -> Open -> Close
+                        // Priority: News -> Open -> Close -> CloseGlobal
                         const isNews = currentDayData.newsImages?.includes(u);
+                        const isCloseGlobal = currentDayData.closeGlobalImages?.includes(u);
                         if (isNews && !seenAnyTrade) {
                             newNewsImages.push(u);
+                        } else if (isCloseGlobal) {
+                            newCloseGlobalImages.push(u);
                         } else if (dayTrades.length > 0) {
                             if (seenAnyTrade) newCloseImages.push(u);
                             else newDayImages.push(u);
@@ -132,6 +136,7 @@ function syncGalleryImageOrderToTrades() {
             currentDayData.newsImages = newNewsImages;
             currentDayData.images = newDayImages;
             currentDayData.closeImages = newCloseImages;
+            currentDayData.closeGlobalImages = newCloseGlobalImages;
             dayTrades.forEach(t => { t.images = newTradeImages.get(t); });
         }
         return;
@@ -275,6 +280,7 @@ async function removeGalleryImageAt(idx, force = false) {
             d.images = (d.images || []).filter(u => u !== imageUrl);
             d.newsImages = (d.newsImages || []).filter(u => u !== imageUrl);
             d.closeImages = (d.closeImages || []).filter(u => u !== imageUrl);
+            d.closeGlobalImages = (d.closeGlobalImages || []).filter(u => u !== imageUrl);
             if (!isExpanded) d.images.push(...subImages);
             if (state.dayData[dayDate].overlays?.[imageUrl]) delete state.dayData[dayDate].overlays[imageUrl];
             if (state.dayData[dayDate].marqueeBoxes?.[imageUrl]) delete state.dayData[dayDate].marqueeBoxes[imageUrl];
@@ -378,6 +384,7 @@ async function removeGalleryImageAt(idx, force = false) {
         d.images = (d.images || []).filter(u => !urlsToDelete.includes(u));
         d.newsImages = (d.newsImages || []).filter(u => !urlsToDelete.includes(u));
         d.closeImages = (d.closeImages || []).filter(u => !urlsToDelete.includes(u));
+        d.closeGlobalImages = (d.closeGlobalImages || []).filter(u => !urlsToDelete.includes(u));
         urlsToDelete.forEach(u => {
             if (state.dayData[dayDate].overlays?.[u]) delete state.dayData[dayDate].overlays[u];
             if (state.dayData[dayDate].marqueeBoxes?.[u]) delete state.dayData[dayDate].marqueeBoxes[u];

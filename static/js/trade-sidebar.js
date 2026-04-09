@@ -108,6 +108,14 @@
     function _applyThumbSize() {
         if (!ts.grid) return;
         ts.grid.style.setProperty('--thumb-size', ts.thumbSize + 'px');
+        
+        // Force single column if images are expanded significantly
+        if (ts.thumbSize > 220) {
+            ts.grid.style.gridTemplateColumns = '1fr';
+        } else {
+            ts.grid.style.gridTemplateColumns = ''; // Resets to CSS auto-fill
+        }
+
         const lbl = document.getElementById('ts-size-label');
         if (lbl) lbl.textContent = ts.thumbSize + 'px';
         localStorage.setItem('tj_ts_thumbSz', ts.thumbSize);
@@ -178,6 +186,45 @@
                     img.loading = 'lazy';
                     
                     wrap.appendChild(img);
+
+                    // --- Overlay Markers if this is a Close Global Image ---
+                    const d = trade.trade_date || trade.Date || '';
+                    if (d && state.dayData[d]) {
+                        const dayData = state.dayData[d];
+                        if (dayData.closeGlobalImages?.includes(url)) {
+                            const posData = dayData.navPositions?.[url];
+                            if (posData) {
+                                Object.keys(posData).forEach(btnIdx => {
+                                    const trList = typeof getTradesForDate === 'function' ? getTradesForDate(d) : [];
+                                    const targetTr = trList[parseInt(btnIdx)];
+                                    const pnl = targetTr ? parseFloat(targetTr['Net P/L'] || targetTr.net_pnl || 0) : 0;
+                                    const color = pnl > 0 ? '#3fb950' : (pnl < 0 ? '#f85149' : '#58a6ff');
+
+                                    const ov = document.createElement('div');
+                                    ov.className = 'ts-marker-ovl';
+                                    ov.textContent = parseInt(btnIdx) + 1;
+                                    ov.style.position = 'absolute';
+                                    ov.style.left = posData[btnIdx].left;
+                                    ov.style.top = posData[btnIdx].top;
+                                    ov.style.transform = 'translate(-50%, -50%)';
+                                    ov.style.background = color;
+                                    ov.style.color = '#fff';
+                                    ov.style.borderRadius = '50%';
+                                    ov.style.display = 'flex';
+                                    ov.style.alignItems = 'center';
+                                    ov.style.justifyContent = 'center';
+                                    ov.style.fontSize = '8px';
+                                    ov.style.fontWeight = 'bold';
+                                    ov.style.width = '14px';
+                                    ov.style.height = '14px';
+                                    ov.style.border = '1px solid rgba(255,255,255,0.4)';
+                                    ov.style.pointerEvents = 'none'; // So click goes to wrapper
+                                    ov.style.zIndex = '5';
+                                    wrap.appendChild(ov);
+                                });
+                            }
+                        }
+                    }
                     
                     wrap.onclick = () => {
                         if (typeof openGalleryForDate === 'function') {
