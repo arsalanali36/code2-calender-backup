@@ -191,53 +191,99 @@ function renderGallery() {
               if (savedTray.left === '50%') tray.style.transform = 'translateX(-50%)';
 
               // Tray dragging logic
-              let trayDragging = false, tStartX, tStartY, tInitL, tInitT;
-              tray.addEventListener('mousedown', (e) => {
-                  if (e.target !== tray) return; // Only drag by background
-                  trayDragging = true;
-                  tStartX = e.clientX; tStartY = e.clientY;
-                  tInitL = tray.offsetLeft; tInitT = tray.offsetTop;
-                  tray.style.transform = 'none'; // clear centering
-                  e.preventDefault();
-              });
+              // ── Tray drag — GPU translate3d, mouse + touch ─────────────────
+              let trayDragging = false, tStartX, tStartY, tCurTx = 0, tCurTy = 0;
+              let _tTouchId = null, _tTouchPending = false, _tTouchSX = 0, _tTouchSY = 0;
+              const T_THRESH = 6;
 
-              document.addEventListener('mousemove', (e) => {
-                  if (!trayDragging) return;
-                  const dx = e.clientX - tStartX;
-                  const dy = e.clientY - tStartY;
-                  const newL = tInitL + dx;
-                  const newT = tInitT + dy;
-                  tray.style.left = newL + 'px';
-                  tray.style.top = newT + 'px';
-                  tray.style.bottom = 'auto'; tray.style.right = 'auto';
+              // Load saved translate offset
+              const _savedTx = savedTray.tx || 0, _savedTy = savedTray.ty || 0;
+              tCurTx = _savedTx; tCurTy = _savedTy;
+              tray.style.transform = savedTray.left === '50%'
+                  ? `translateX(-50%) translate3d(${tCurTx}px,${tCurTy}px,0)`
+                  : `translate3d(${tCurTx}px,${tCurTy}px,0)`;
 
-                  // Context awareness: Side edges -> Vertical, Top/Bottom -> Horizontal
+              const _applyTray = (cx, cy) => {
+                  // Context awareness: near side edges → vertical, near top/bottom → horizontal
                   const rect = imgContainer.getBoundingClientRect();
-                  const distL = e.clientX - rect.left;
-                  const distR = rect.right - e.clientX;
-                  const distT = e.clientY - rect.top;
-                  const distB = rect.bottom - e.clientY;
+                  const distL = cx - rect.left, distR = rect.right - cx;
+                  const distT = cy - rect.top,  distB = rect.bottom - cy;
+                  tray.style.flexDirection = Math.min(distL, distR) < Math.min(distT, distB) ? 'column' : 'row';
+              };
 
-                  if (Math.min(distL, distR) < Math.min(distT, distB)) {
-                      tray.style.flexDirection = 'column';
-                  } else {
-                      tray.style.flexDirection = 'row';
-                  }
-              });
+              const _tApplyTranslate = () => {
+                  tray.style.transform = `translate3d(${tCurTx}px,${tCurTy}px,0)`;
+              };
 
-              document.addEventListener('mouseup', () => {
+              const _tStartDrag = (cx, cy, target) => {
+                  if (target !== tray && !target.classList.contains('cg-tray-drag-handle')) return false;
+                  trayDragging = true;
+                  tStartX = cx; tStartY = cy;
+                  tray.style.willChange = 'transform';
+                  tray.style.bottom = 'auto'; tray.style.right = 'auto';
+                  tray.style.left = tray.getBoundingClientRect().left + 'px';
+                  tray.style.top  = tray.getBoundingClientRect().top  + 'px';
+                  tCurTx = 0; tCurTy = 0;
+                  tray.style.transform = 'translate3d(0,0,0)';
+                  document.body.style.userSelect = 'none';
+                  return true;
+              };
+
+              const _tDoDrag = (cx, cy) => {
+                  if (!trayDragging) return;
+                  tCurTx += cx - tStartX; tCurTy += cy - tStartY;
+                  tStartX = cx; tStartY = cy;
+                  _tApplyTranslate();
+                  _applyTray(cx, cy);
+              };
+
+              const _tEndDrag = () => {
                   if (!trayDragging) return;
                   trayDragging = false;
-                  // Persist
-                  const config = {
-                      top: tray.style.top,
-                      left: tray.style.left,
-                      bottom: 'auto',
-                      right: 'auto',
-                      dir: tray.style.flexDirection
-                  };
-                  localStorage.setItem('tj_gv2_cg_tray', JSON.stringify(config));
+                  tray.style.willChange = '';
+                  document.body.style.userSelect = '';
+                  localStorage.setItem('tj_gv2_cg_tray', JSON.stringify({
+                      top: tray.style.top, left: tray.style.left,
+                      bottom: 'auto', right: 'auto',
+                      dir: tray.style.flexDirection, tx: 0, ty: 0
+                  }));
+              };
+
+              // Mouse
+              tray.addEventListener('mousedown', (e) => {
+                  if (_tStartDrag(e.clientX, e.clientY, e.target)) e.preventDefault();
               });
+              document.addEventListener('mousemove', (e) => _tDoDrag(e.clientX, e.clientY));
+              document.addEventListener('mouseup', _tEndDrag);
+
+              // Touch (iPad) — capture + threshold
+              document.addEventListener('touchstart', (e) => {
+                  if (!tray.contains(e.target)) return;
+                  const t = e.touches[0];
+                  _tTouchId = t.identifier; _tTouchPending = true;
+                  _tTouchSX = t.clientX; _tTouchSY = t.clientY;
+              }, { passive: true, capture: true });
+
+              document.addEventListener('touchmove', (e) => {
+                  if (!_tTouchPending && !trayDragging) return;
+                  let t = null;
+                  for (let i = 0; i < e.touches.length; i++) {
+                      if (e.touches[i].identifier === _tTouchId) { t = e.touches[i]; break; }
+                  }
+                  if (!t) return;
+                  if (_tTouchPending) {
+                      const dx = Math.abs(t.clientX - _tTouchSX), dy = Math.abs(t.clientY - _tTouchSY);
+                      if (dx > T_THRESH || dy > T_THRESH) {
+                          _tTouchPending = false;
+                          _tStartDrag(t.clientX, t.clientY, tray); // always allow from touch
+                          tStartX = t.clientX; tStartY = t.clientY;
+                      } else return;
+                  }
+                  if (e.cancelable) e.preventDefault();
+                  _tDoDrag(t.clientX, t.clientY);
+              }, { passive: false });
+
+              document.addEventListener('touchend', () => { _tTouchPending = false; _tTouchId = null; _tEndDrag(); });
 
               // --- Keep tray in bounds if panel resizes ---
               const ensureTrayInBounds = () => {
@@ -738,6 +784,9 @@ function renderGallery() {
   let renderedCloseSep = false;
   let renderedCloseGlobalSep = false;
 
+  const activeUrl = (state.gallery.images || [])[state.gallery.currentIndex] || '';
+  const activeTradeContext = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(activeUrl) : null;
+
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow, isNews }, currentIterIdx) => {
 
     // In filter mode use per-image date; in normal mode use gallery date
@@ -843,6 +892,7 @@ function renderGallery() {
     }
 
     const wrap = document.createElement('div'); wrap.className = 'gv2-thumb-wrap'; wrap.draggable = !IS_TOUCH_DEVICE;
+    if (activeTradeContext && ownerTrade === activeTradeContext) wrap.classList.add('trade-active');
     wrap.dataset.globalIdx = globalIdx;
 
     if (highlightParents.has(url)) {
