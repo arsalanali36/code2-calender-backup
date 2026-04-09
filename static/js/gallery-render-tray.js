@@ -248,14 +248,25 @@ function renderCloseGlobalTray(curUrl) {
       else { marker.style.display = 'none'; }
 
       // Tray button (source)
+      const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+      const isActive = (tr === activeTrade);
+
       const sourceBtn = document.createElement('button');
       sourceBtn.className = 'close-global-nav-btn';
+      if (isActive) sourceBtn.classList.add('active');
       if (!tr.images || tr.images.length === 0) sourceBtn.classList.add('no-img');
       sourceBtn.textContent = String(idx + 1);
-      sourceBtn.style.cssText = `background:${markerColor}; color:#fff; border:none;
+      
+      let styleStr = `background:${markerColor}; color:#fff; border:none;
           border-radius:50%; width:32px; height:32px; font-size:0.9rem; font-weight:900;
-          cursor:grab; box-shadow:0 4px 10px rgba(0,0,0,0.3);`;
-      sourceBtn.title = tooltip;
+          cursor:grab; box-shadow:0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s ease;`;
+      
+      if (isActive) {
+          styleStr += `outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 15px ${markerColor}, 0 4px 10px rgba(0,0,0,0.6); transform: scale(1.1);`;
+      }
+      
+      sourceBtn.style.cssText = styleStr;
+      sourceBtn.title = tooltip + (isActive ? ' (ACTIVE)' : '');
       tray.appendChild(sourceBtn);
 
       // Drag logic
@@ -309,6 +320,15 @@ function renderCloseGlobalTray(curUrl) {
       const onClickTrade = (e) => {
           e.stopPropagation();
           if (!movedDuringClick && Date.now() - clickStartTime < 300) {
+              // Jump to trade in gallery
+              if (tr.images && tr.images.length > 0) {
+                  const firstUrl = tr.images[0];
+                  const gIdx = (state.gallery.images || []).indexOf(firstUrl);
+                  if (gIdx !== -1) {
+                      state.gallery.currentIndex = gIdx;
+                      renderGallery();
+                  }
+              }
               if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
           }
       };

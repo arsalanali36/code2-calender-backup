@@ -292,17 +292,54 @@ function renderGalleryTradePill() {
     const rawInst = owner.Instrument || owner.instrument || owner.Symbol || owner.symbol || '';
     const instNum = rawInst.toUpperCase();
     const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-    const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : instNum;
+    const instText = m ? `${m[5]} ${m[6]}` : instNum;
+
+    const buyTime = (owner['Buy Time'] || owner['buy_time'] || '').slice(0, 5);
+    const sellTime = (owner['Sell Time'] || owner['sell_time'] || '').slice(0, 5);
+    const type = String(owner['TradeType'] || owner['tradetype'] || '').toLowerCase();
+    const isShort = type.includes('sell') || type.includes('short');
+    const entryTime = isShort ? sellTime : buyTime;
+
+    let dur = '';
+    if (buyTime && sellTime) {
+        try {
+            const [h1, m1] = buyTime.split(':').map(Number);
+            const [h2, m2] = sellTime.split(':').map(Number);
+            const d1 = new Date(2000, 0, 1, h1, m1);
+            const d2 = new Date(2000, 0, 1, h2, m2);
+            const mins = Math.round(Math.abs(d2 - d1) / 60000);
+            dur = mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h' + (mins % 60 > 0 ? (mins % 60) + 'm' : '');
+        } catch(e) {}
+    }
+
+    const lot = parseFloat(owner.Qty || owner.qty || owner.QTY || 0) || 0;
+    let runningTotal = 0;
+    for (let i = 0; i <= tIdx; i++) {
+        runningTotal += (typeof getTradePnl === 'function' ? (getTradePnl(trades[i]) || 0) : 0);
+    }
 
     pill.classList.add('active');
     const badgeBg  = pnl > 0 ? '#16a34a' : pnl < 0 ? '#dc2626' : '#3b82f6';
     wrap.style.display = 'flex';
+    
+    // Add prominent highlight matching the floating tray
+    pill.style.boxShadow = `0 0 15px ${badgeBg}, inset 0 0 10px rgba(255,255,255,0.1)`;
+    pill.style.borderColor = 'rgba(255,255,255,0.4)';
+    pill.style.background = 'rgba(255,255,255,0.08)';
+    pill.style.transform = 'scale(1.02)';
     pill.innerHTML =
         `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:0.78rem;color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
       + `<span class="gv2-tp-inst" style="margin-left:8px; font-weight:700; color:#fff; font-size:0.85rem; letter-spacing:0.2px;">${instText}</span>`
-      + `<span class="gv2-tp-val ${cls}" style="margin-left:12px;">${fmtPnl(pnl)}</span>`
-      + `<span class="gv2-tp-sep" style="margin:0 6px; opacity:0.4;">•</span>`
-      + `<span class="gv2-tp-val ${ptCls}">${ptStr}</span>`;
+      + `<span class="gv2-tp-info" style="margin-left:8px; font-size:0.75rem; color:rgba(255,255,255,0.5); border-left:1px solid rgba(255,255,255,0.1); padding-left:8px;">`
+         + `<span style="color:#fff">${entryTime}</span>`
+         + `${dur ? ` <span style="color:#fff; font-weight:700;">[${dur}]</span>` : ''}`
+         + `${lot ? ` <span style="color:var(--text3);">${lot}L</span>` : ''}`
+      + `</span>`
+      + `<span class="gv2-tp-val ${cls}" style="margin-left:12px; font-weight:700;">${fmtPnl(pnl)}</span>`
+      + `<span class="gv2-tp-val ${ptCls}" style="margin-left:6px;">${ptStr}</span>`
+      + `<span class="gv2-tp-total" style="margin-left:12px; font-size:0.78rem; font-weight:600; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; background:rgba(255,255,255,0.05); padding:2px 8px; border-radius:10px;">`
+         + `Total: ${fmtPnl(runningTotal)}`
+      + `</span>`;
 }
 
 // ── Combined tray state update (called from renderGallery) ───────────────
