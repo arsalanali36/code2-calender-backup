@@ -946,3 +946,25 @@
   justify-content: center;
 }
 
+/* ── VD Daily Drilldown ── */
+.vd-dd-toggle {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #8b949e;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.vd-dd-toggle:hover { background: rgba(88,166,255,0.15); color: #cdd9e5; }
+.vd-dd-toggle.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+
+#vd-dd-table table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+#vd-dd-table th { color: #8b949e; text-align: left; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); font-weight: 600; }
+#vd-dd-table td { color: #cdd9e5; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+#vd-dd-table tr:hover td { background: rgba(255,255,255,0.03); }
+#vd-dd-table .pnl-win { color: #3fb950; font-weight: 700; }
+#vd-dd-table .pnl-loss { color: #f85149; font-weight: 700; }
+

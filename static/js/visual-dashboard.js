@@ -337,15 +337,16 @@ function renderVisualDashboard() {
                 dataPointSelection: function(event, chartContext, config) {
                     const rawDate = datDaily.rawDates[config.dataPointIndex];
                     if (!rawDate) return;
-                    // Check if that date has images
                     const allTrades = (typeof state !== 'undefined' && state.trades) ? state.trades : [];
                     const dayTrades = allTrades.filter(t => {
                         const td = typeof normalizeDate === 'function' ? normalizeDate(typeof extractDateFromTrade === 'function' ? extractDateFromTrade(t) : t.Date) : t.Date;
                         return td === rawDate;
                     });
+                    // Show drilldown panel
+                    renderVdDrilldown(rawDate, dayTrades);
+                    // Also open gallery if images exist
                     const hasImg = dayTrades.some(t => t.images && t.images.length > 0);
-                    if (!hasImg) return;
-                    if (typeof openGalleryForDate === 'function') openGalleryForDate(rawDate);
+                    if (hasImg && typeof openGalleryForDate === 'function') openGalleryForDate(rawDate);
                 }
             }
         },
@@ -659,3 +660,4 @@ function renderVisualDashboard() {
     // Deferred re-apply in case ApexCharts async rendering resets card display
     setTimeout(() => applyVdStatVisibility(), 400);
 }
+

@@ -111,6 +111,21 @@
               </select>
             </div>
             <div id="chart-daily-pl" style="min-height: 250px; "></div>
+            <!-- Drilldown Panel (shown on bar click) -->
+            <div id="vd-daily-drilldown" style="display:none; margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+                <span id="vd-dd-date-label" style="font-size:0.85rem; font-weight:700; color:#cdd9e5;"></span>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <button id="vd-dd-rs-btn" class="vd-dd-toggle active" onclick="setVdDrilldownMode('rs')">₹ RS</button>
+                  <button id="vd-dd-pt-btn" class="vd-dd-toggle" onclick="setVdDrilldownMode('pt')">PT</button>
+                  <button onclick="document.getElementById('vd-daily-drilldown').style.display='none'" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;padding:2px 6px;">✕</button>
+                </div>
+              </div>
+              <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                <div id="vd-dd-pie" style="flex:0 0 220px; min-width:180px;"></div>
+                <div id="vd-dd-table" style="flex:1; min-width:200px; overflow-x:auto;"></div>
+              </div>
+            </div>
           </div>
 
           <!-- Strategy Distribution -->

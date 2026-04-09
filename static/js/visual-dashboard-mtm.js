@@ -387,3 +387,107 @@ function setVdMtmMonthFilter(m) {
         renderVisualDashboard();
     }
 }
+
+// ── DAILY DRILLDOWN PANEL ─────────────────────────────────────────────────
+let _vdDdState = { date: null, trades: [], mode: 'rs', chart: null };
+
+function setVdDrilldownMode(mode) {
+    _vdDdState.mode = mode;
+    const rsBtn = document.getElementById('vd-dd-rs-btn');
+    const ptBtn = document.getElementById('vd-dd-pt-btn');
+    if (rsBtn) rsBtn.classList.toggle('active', mode === 'rs');
+    if (ptBtn) ptBtn.classList.toggle('active', mode === 'pt');
+    _renderVdDdContent();
+}
+
+function renderVdDrilldown(date, trades) {
+    _vdDdState.date = date;
+    _vdDdState.trades = trades;
+
+    const panel = document.getElementById('vd-daily-drilldown');
+    if (!panel) return;
+
+    const lbl = document.getElementById('vd-dd-date-label');
+    if (lbl) {
+        const dobj = new Date(date + 'T00:00:00');
+        lbl.textContent = isNaN(dobj) ? date
+            : dobj.toLocaleDateString('default', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    panel.style.display = 'block';
+    _renderVdDdContent();
+}
+
+function _renderVdDdContent() {
+    const { trades, mode } = _vdDdState;
+    if (!trades || !trades.length) return;
+
+    const getVal = (t) => {
+        if (mode === 'pt') return parseFloat(t['Pt'] || t['Points'] || 0);
+        return typeof getTradePnl === 'function' ? getTradePnl(t) : 0;
+    };
+    const fmt = (v) => mode === 'pt'
+        ? v.toFixed(1) + ' pt'
+        : '₹' + Math.round(v).toLocaleString('en-IN');
+
+    // ── Donut chart ──
+    const pieEl = document.getElementById('vd-dd-pie');
+    if (pieEl) {
+        if (_vdDdState.chart) { try { _vdDdState.chart.destroy(); } catch(e){} _vdDdState.chart = null; }
+        pieEl.innerHTML = '';
+
+        const labels = trades.map((t, i) => (t['Instrument'] || t['instrument'] || `T${i+1}`).slice(0, 12));
+        const vals = trades.map(t => Math.abs(getVal(t)));
+        const colors = trades.map(t => getVal(t) >= 0 ? '#3fb950' : '#f85149');
+
+        if (vals.some(v => v > 0)) {
+            _vdDdState.chart = new ApexCharts(pieEl, {
+                chart: { type: 'donut', height: 200, background: 'transparent', toolbar: { show: false } },
+                series: vals,
+                labels,
+                colors,
+                legend: { show: false },
+                dataLabels: { enabled: vals.length <= 5 },
+                plotOptions: { pie: { donut: { size: '55%' } } },
+                tooltip: {
+                    theme: 'dark',
+                    y: { formatter: (v, { seriesIndex }) => {
+                        const raw = getVal(trades[seriesIndex]);
+                        return (raw >= 0 ? '+' : '') + fmt(raw);
+                    }}
+                },
+                theme: { mode: 'dark' }
+            });
+            _vdDdState.chart.render();
+        }
+    }
+
+    // ── Breakdown table ──
+    const tblEl = document.getElementById('vd-dd-table');
+    if (!tblEl) return;
+
+    const totalVal = trades.reduce((s, t) => s + getVal(t), 0);
+    const totalCls = totalVal >= 0 ? 'pnl-win' : 'pnl-loss';
+    const colHeader = mode === 'pt' ? 'Pts' : 'P&amp;L';
+
+    const rows = trades.map(t => {
+        const val = getVal(t);
+        const cls = val >= 0 ? 'pnl-win' : 'pnl-loss';
+        const inst = (t['Instrument'] || t['instrument'] || '—').slice(0, 16);
+        const side = t['Side'] || t['Type'] || t['type'] || '—';
+        const entry = t['Entry'] || t['Buy Price'] || t['Avg Buy'] || '—';
+        const exit  = t['Exit']  || t['Sell Price'] || t['Avg Sell'] || '—';
+        const qty   = t['Qty']   || t['quantity'] || '—';
+        const pt    = parseFloat(t['Pt'] || t['Points'] || 0).toFixed(1);
+        return `<tr><td>${inst}</td><td>${side}</td><td>${entry}</td><td>${exit}</td><td>${qty}</td><td>${pt}</td><td class="${cls}">${fmt(val)}</td></tr>`;
+    }).join('');
+
+    tblEl.innerHTML = `<table>
+        <thead><tr><th>Instrument</th><th>Side</th><th>Entry</th><th>Exit</th><th>Qty</th><th>Pt</th><th>${colHeader}</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr style="border-top:1px solid rgba(255,255,255,0.1);">
+            <td colspan="6" style="color:#8b949e;font-size:0.75rem;">${trades.length} trade${trades.length !== 1 ? 's' : ''}</td>
+            <td class="${totalCls}">${fmt(totalVal)}</td>
+        </tr></tfoot>
+    </table>`;
+}
