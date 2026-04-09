@@ -726,12 +726,18 @@ function _bindGalleryTrayDrag() {
         _touchPending = false;
         dragging = true;
         document.body.style.userSelect = 'none';
+        // Reset origin to current touch so no jump at drag start
+        startX = t.clientX;
+        startY = t.clientY;
+        origLeft = parseFloat(pill.style.left) || pill.getBoundingClientRect().left;
+        origTop  = parseFloat(pill.style.top)  || pill.getBoundingClientRect().top;
       } else {
         return;
       }
     }
+    if (e.cancelable) e.preventDefault(); // prevent scroll competing with drag
     doDrag(t.clientX, t.clientY);
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener('touchend', e => {
     _touchPending = false;
