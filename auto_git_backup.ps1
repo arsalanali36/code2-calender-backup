@@ -17,5 +17,5 @@ if ($status) {
         Write-Host "No stageable changes at $timestamp"
     }
 } else {
-    Write-Host "No changes — skipping backup"
+    Write-Host "No changes - skipping backup"
 }

@@ -30,27 +30,50 @@ function createRefCardElement(tradeIdx, tradeObj, date) {
   return el;
 }
 
-function _buildRefHalf(side, label, url, locked, tradeIdx, date) {
+function _buildRefHalf(side, label, data, locked, tradeIdx, date) {
   const half = document.createElement('div');
   half.className = 'gv2-ref-half';
+  half.style.overflow = 'hidden'; // Important for zoomed images
 
-  if (url) {
-    // ── Loaded image ──────────────────────────────────────────────────────
-    const img = document.createElement('img');
-    img.className = 'gv2-ref-img';
-    img.src = resolveImageUrl ? resolveImageUrl(url) : url;
-    img.alt = label;
+    const url = (typeof data === 'object' && data !== null) ? data.url : data;
+    
+    // Self-Correction: Fix stripped Cloudinary paths
+    let targetU = url;
+    if (url && !url.includes('/') && url.includes('.')) {
+        const images = state.gallery.images || [];
+        const full = images.find(img => img.includes(url));
+        if (full) targetU = full;
+    }
+
+    if (url) {
+      // ── Loaded image ──────────────────────────────────────────────────────
+      const imgCont = document.createElement('div');
+      imgCont.style.cssText = 'width:100%; height:100%; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;';
+      
+      const img = document.createElement('img');
+      img.className = 'gv2-ref-img';
+      img.src = resolveImageUrl ? resolveImageUrl(targetU) : targetU;
+      img.alt = label;
+
+    
+    // Apply transform if stored as object
+    if (typeof data === 'object' && data !== null) {
+        const { scale, tx, ty } = data;
+        img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        img.style.transformOrigin = 'center';
+    }
 
     // Broken image state (404 etc.)
     img.onerror = () => {
-      img.style.display = 'none';
+      imgCont.style.display = 'none';
       half.classList.add('gv2-ref-broken');
       const brk = document.createElement('div');
       brk.className = 'gv2-ref-empty';
       brk.innerHTML = `<span class="gv2-ref-lbl" style="color:#f87171">${label}</span><span class="gv2-ref-add" style="color:#f87171;font-size:1rem;">⚠</span>`;
-      half.insertBefore(brk, img);
+      half.insertBefore(brk, imgCont);
     };
-    half.appendChild(img);
+    imgCont.appendChild(img);
+    half.appendChild(imgCont);
 
     // ── Overlay (visible on hover) ────────────────────────────────────────
     const overlay = document.createElement('div');
@@ -238,12 +261,10 @@ function initOtherDropdown() {
 
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
-    // Default: disabled (sidebar won't open on click)
     if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
     _syncTradeSidebarBtn();
     tsToggle.addEventListener('click', () => {
       window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
-      // If user just disabled it, close sidebar if open
       if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
         toggleTradeSidebar(false);
       }
@@ -255,7 +276,6 @@ function initOtherDropdown() {
   const pdfBtn = document.getElementById('gv2-export-refpdf-btn');
   if (pdfBtn) {
     pdfBtn.disabled = false;
-    pdfBtn.title = 'Export Ref Cards to PDF';
     pdfBtn.onclick = (e) => {
         e.stopPropagation();
         dd.style.display = 'none';
@@ -267,25 +287,11 @@ function initOtherDropdown() {
 /**
  * 📄 PDF Export Logic for Ref Cards
  */
-function exportRefCardsToPDF() {
-  const date = state.gallery.date;
-  if (!date) { if (typeof showToast === 'function') showToast('Pehle date select karein', 'error'); return; }
-
+function renderRefCardsForPrint(container, date) {
   const dayData = state.dayData[date];
   const refCards = dayData?.tradeRefCards;
-  if (!refCards || Object.keys(refCards).length === 0) {
-    if (typeof showToast === 'function') showToast('Is din ke liye koi Ref Cards (Pinned Images) nahi hain', 'info');
-    return;
-  }
+  if (!refCards || Object.keys(refCards).length === 0) return;
 
-  // Use a specialized print layout
-  let printCont = document.getElementById('gv2-pdf-export-area');
-  if (printCont) printCont.remove();
-  
-  printCont = document.createElement('div');
-  printCont.id = 'gv2-pdf-export-area';
-  
-  // Header Info
   const header = document.createElement('div');
   header.className = 'gv2-pdf-header';
   header.innerHTML = `
@@ -300,15 +306,15 @@ function exportRefCardsToPDF() {
       </div>
     </div>
   `;
-  printCont.appendChild(header);
+  container.appendChild(header);
 
   const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
-  let found = 0;
-
+  
   dayTrades.forEach((tr, i) => {
     const cardData = refCards[i];
-    if (!cardData || (!cardData.index && !cardData.premium)) return;
-    found++;
+    if (!cardData) return;
+    const isSnap = (cardData.index?.isSnapshot) || (cardData.premium?.isSnapshot);
+    if (!isSnap) return;
 
     const tradeRow = document.createElement('div');
     tradeRow.className = 'gv2-pdf-trade-row';
@@ -318,6 +324,30 @@ function exportRefCardsToPDF() {
     const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
     const pnlStr = (pnl >= 0 ? '+' : '') + '₹' + Math.abs(Math.round(pnl)).toLocaleString('en-IN');
     
+    const _renderImg = (data, lbl) => {
+        const url = (typeof data === 'object' && data !== null) ? data.url : data;
+        if (!url) return `<div style="display:flex; flex-direction:column; gap:6px;"><div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase;">${lbl}</div><div style="border:1px solid #ddd; border-radius:4px; background:#eee; min-height:180px; display:flex; align-items:center; justify-content:center; color:#999; font-style:italic; font-size:0.75rem;">Not Saved</div></div>`;
+        
+        let targetU = url;
+        if (url && !url.includes('/') && url.includes('.')) {
+            const images = state.gallery?.images || [];
+            const full = images.find(img => img === url || img.endsWith('/' + url));
+            if (full) targetU = full;
+        }
+        let style = 'width:100%; height:auto; display:block;';
+        if (typeof data === 'object' && data !== null) {
+            style = `transform: translate(${data.tx}px, ${data.ty}px) scale(${data.scale}); transform-origin: center; width:100%; height:auto; display:block;`;
+        }
+        return `
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px;">${lbl}</div>
+            <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; height:240px; display:flex; align-items:center; justify-content:center; position:relative;">
+               <img src="${resolveImageUrl(targetU)}" style="${style}">
+            </div>
+          </div>
+        `;
+    };
+
     tradeRow.innerHTML = `
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; background:#f8f9fa; padding:8px 12px; border-radius:6px; border-left:4px solid ${pnlColor}">
         <div style="background:#333; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.8rem;">${i + 1}</div>
@@ -325,41 +355,38 @@ function exportRefCardsToPDF() {
         <div style="color:${pnlColor}; font-weight:800; font-size:1rem;">${pnlStr}</div>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px;">Index / Context</div>
-          <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; min-height:150px; display:flex; align-items:center; justify-content:center;">
-             ${cardData.index ? `<img src="${resolveImageUrl(cardData.index)}" style="width:100%; height:auto; display:block;">` : '<span style="color:#999; font-style:italic; font-size:0.7rem;">Not Saved</span>'}
-          </div>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px;">Premium / Execution</div>
-          <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; min-height:150px; display:flex; align-items:center; justify-content:center;">
-             ${cardData.premium ? `<img src="${resolveImageUrl(cardData.premium)}" style="width:100%; height:auto; display:block;">` : '<span style="color:#999; font-style:italic; font-size:0.7rem;">Not Saved</span>'}
-          </div>
-        </div>
+        ${_renderImg(cardData.index, 'Index / Context')}
+        ${_renderImg(cardData.premium, 'Premium / Execution')}
       </div>
     `;
-    printCont.appendChild(tradeRow);
+    container.appendChild(tradeRow);
   });
-
-  if (found === 0) {
-    if (typeof showToast === 'function') showToast('Is din ke liye koi Ref Cards nahi hain', 'info');
-    return;
-  }
-
-  document.body.appendChild(printCont);
-
-  // Trigger print
-  setTimeout(() => {
-    window.print();
-    // No cleanup here so user can see it briefly if needed, 
-    // but better to remove after print dialog closes
-    const cleanup = () => { printCont.remove(); window.removeEventListener('focus', cleanup); };
-    window.addEventListener('focus', cleanup);
-  }, 200);
 }
 
-document.addEventListener('DOMContentLoaded', initOtherDropdown);function _syncRefCardsBtn() {
+async function exportRefCardsToPDF() {
+  const date = state.gallery.date;
+  if (!date) { if (typeof showToast === 'function') showToast('Pehle date select karein', 'error'); return; }
+  
+  const printLayer = document.createElement('div');
+  printLayer.id = 'gv2-pdf-print-layer';
+  renderRefCardsForPrint(printLayer, date);
+  document.body.appendChild(printLayer);
+  
+  if (typeof showToast === 'function') showToast('Preparing PDF Report...', 'info');
+  
+  setTimeout(() => {
+    window.print();
+    const cleanup = () => { 
+        if (document.body.contains(printLayer)) document.body.removeChild(printLayer); 
+        window.removeEventListener('focus', cleanup); 
+    };
+    window.addEventListener('focus', cleanup);
+  }, 1000);
+}
+
+document.addEventListener('DOMContentLoaded', initOtherDropdown);
+
+function _syncRefCardsBtn() {
   const btn = document.getElementById('gv2-refcards-toggle');
   if (!btn) return;
   const on = state.gallery.showRefCards !== false;

@@ -4,9 +4,102 @@
 // Both panels: independent zoom/pan (wheel + drag, double-click to reset)
 
 const _splitState = {
-  left:  { scale: 1, tx: 0, ty: 0, url: null },
+  left:  { scale: 1, tx: 0, ty: 0, url: null, rawUrl: null },
   right: { scale: 1, tx: 0, ty: 0 }
 };
+
+function getSplitViewState() {
+  return {
+    left:  { ..._splitState.left, url: _splitState.left.rawUrl || _splitState.left.url },
+    right: {
+      ..._splitState.right,
+      url: (state.gallery.images || [])[state.gallery.currentIndex] || null
+    }
+  };
+}
+
+/** Reconstructs a saved view (URLs + transforms) in both panels. */
+function applySplitViewState(data) {
+  if (!data) return;
+  if (!state.gallery.splitView) toggleSplitView(); // Turn on split mode
+
+  const _res = (u) => {
+    if (!u) return '';
+    if (u.startsWith('http') || u.startsWith('blob:') || u.startsWith('data:')) return u;
+    
+    // Self-Correction: Fix stripped paths
+    let target = u;
+    if (!u.includes('/') && u.includes('.')) {
+        const images = state.gallery.images || [];
+        const full = images.find(img => img === u || img.endsWith('/' + u));
+        if (full) target = full;
+        else console.warn('Trade Review: Old corrupted path detected for:', u, '. Please re-pin and save this view.');
+    }
+
+    let final = target;
+    if (!final.startsWith('/uploads/') && !final.startsWith('/static/')) {
+        final = typeof resolveImageUrl === 'function' ? resolveImageUrl(target) : target;
+    }
+    return final.replace(/\/+/g, '/').replace(':/', '://');
+  };
+
+  // 1. Left Panel (Stored as 'index' in Ref Card)
+  const lData = (typeof data.index === 'object' && data.index !== null) ? data.index : (data.index ? { url: data.index } : null);
+  if (lData && lData.url) {
+    const finalUrl = _res(lData.url);
+    _splitState.left.url = finalUrl;
+    _splitState.left.rawUrl = lData.url;
+    
+    const lImg = document.getElementById('gv2-split-left-img');
+    const lEmp = document.getElementById('gv2-split-left-empty');
+    if (lImg) {
+      // Define handlers BEFORE setting src
+      lImg.onload = () => { 
+        lImg.style.display = ''; 
+        if (lEmp) lEmp.style.display = 'none'; 
+      };
+      lImg.onerror = () => { 
+        console.error('Split Left Load Fail:', finalUrl);
+        lImg.style.display = 'none';
+        if (lEmp) lEmp.style.display = '';
+      };
+
+      
+      lImg.src = finalUrl;
+      
+      _splitState.left.scale = lData.scale || 1;
+      _splitState.left.tx    = lData.tx || 0;
+      _splitState.left.ty    = lData.ty || 0;
+      _applyTransform('left');
+    }
+  }
+
+
+
+  // 2. Right Panel (Stored as 'premium' in Ref Card)
+  const rData = (typeof data.premium === 'object' && data.premium !== null) ? data.premium : (data.premium ? { url: data.premium } : null);
+  if (rData && rData.url) {
+    // Navigate main gallery to this image
+    const images = state.gallery.images || [];
+    const targetUrl = rData.url; 
+    
+    let idx = images.indexOf(targetUrl);
+    if (idx === -1) {
+        const cleaned = targetUrl.split('?')[0];
+        idx = images.findIndex(u => u === targetUrl || u.includes(cleaned));
+    }
+    
+    if (idx !== -1) {
+      state.gallery.currentIndex = idx;
+      if (typeof renderGallery === 'function') renderGallery();
+      
+      _splitState.right.scale = rData.scale || 1;
+      _splitState.right.tx    = rData.tx || 0;
+      _splitState.right.ty    = rData.ty || 0;
+      setTimeout(() => _applyTransform('right'), 50);
+    }
+  }
+}
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
@@ -56,8 +149,10 @@ function updateSplitRight(url) {
 
 /** Pin url to left panel. If save=true, also persist to dayData ref card. */
 function pinToLeft(url, save = false) {
-  const resolved = resolveImageUrl ? resolveImageUrl(url) : url;
+  if (!url) return;
+  const resolved = typeof resolveImageUrl === 'function' ? resolveImageUrl(url) : url;
   _splitState.left.url = resolved;
+  _splitState.left.rawUrl = url;
 
   const img   = document.getElementById('gv2-split-left-img');
   const empty = document.getElementById('gv2-split-left-empty');
@@ -66,6 +161,7 @@ function pinToLeft(url, save = false) {
   img.style.display = '';
   if (empty) empty.style.display = 'none';
   _resetPanel('left');
+
 
   if (save) _saveLeftToRefCard(resolved);
 }

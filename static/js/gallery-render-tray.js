@@ -296,8 +296,9 @@ function renderCloseGlobalTray(curUrl) {
       // Dot for Ref Ready
       if (isRefReady) {
           const dot = document.createElement('div');
+          dot.className = 'ref-dot'; // Standardized class name for real-time removal
           dot.style.cssText = `position:absolute; bottom:-1px; right:-1px; width:8px; height:8px; 
-              background:#4ade80; border:1px solid #000; border-radius:50%; box-shadow: 0 0 5px #4ade80;`;
+              background:#4ade80; border:1px solid #000; border-radius:50%; box-shadow: 0 0 5px #4ade80; pointer-events:none;`;
           sourceBtn.appendChild(dot);
       }
 
@@ -315,6 +316,151 @@ function renderCloseGlobalTray(curUrl) {
               }
           }
           if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
+      };
+
+      // Right-click: Mini Action Panel
+      sourceBtn.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const oldMenu = document.getElementById('gv2-tray-ctx-menu');
+          if (oldMenu) oldMenu.remove();
+
+          const menu = document.createElement('div');
+          menu.id = 'gv2-tray-ctx-menu';
+          menu.style.cssText = `
+              position: fixed; left: ${e.clientX}px; top: ${e.clientY}px;
+              background: rgba(22, 22, 28, 0.95); border: 1px solid rgba(255,255,255,0.12);
+              border-radius: 10px; padding: 5px; z-index: 10000;
+              box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 2px;
+              min-width: 165px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
+          `;
+
+          const createItem = (text, icon, color, onClick) => {
+              const item = document.createElement('div');
+              item.style.cssText = `
+                  padding: 8px 12px; cursor: pointer; border-radius: 6px;
+                  color: ${color}; font-size: 0.85rem; display: flex; align-items: center; gap: 10px;
+                  transition: all 0.2s; font-weight: 500;
+              `;
+              item.innerHTML = `<span style="font-size:1.1rem">${icon}</span> <span>${text}</span>`;
+              item.onmouseenter = () => { item.style.background = 'rgba(255,255,255,0.08)'; };
+              item.onmouseleave = () => { item.style.background = 'transparent'; };
+              item.onclick = (ev) => {
+                  ev.stopPropagation();
+                  onClick();
+                  menu.remove();
+              };
+              return item;
+          };
+
+          const dDate = state.gallery.date;
+          if (!dDate) return;
+          const dayData = state.dayData[dDate] || {};
+          const cardData = dayData.tradeRefCards?.[idx];
+          const hasSavedView = !!(cardData?.index || cardData?.premium);
+
+          // Show View (Recall Snapshot)
+          if (hasSavedView) {
+              menu.appendChild(createItem('Show Saved View', '👁', '#a78bfa', () => {
+                  // First, jump to the trade itself to load right panel context properly
+                  if (tr.images && tr.images.length > 0) {
+                      const firstUrl = tr.images[0];
+                      const gIdx = (state.gallery.images || []).indexOf(firstUrl);
+                      if (gIdx !== -1) { state.gallery.currentIndex = gIdx; renderGallery(); }
+                  }
+                  
+                  // Now apply the specific saved snapshot (zoom/pan/urls)
+                  if (typeof applySplitViewState === 'function') {
+                      setTimeout(() => {
+                        applySplitViewState(cardData);
+                        if (typeof showToast === 'function') showToast(`T${idx+1} view restored`, 'info');
+                      }, 50);
+                  }
+              }));
+          }
+
+          // Store Current View
+          menu.appendChild(createItem('Store Current View', '📌', '#eee', () => {
+              const dDate = state.gallery.date;
+              if (!dDate) return;
+              const dayData = state.dayData[dDate] = state.dayData[dDate] || {};
+              dayData.tradeRefCards = dayData.tradeRefCards || {};
+              dayData.tradeRefCards[idx] = dayData.tradeRefCards[idx] || {};
+
+              if (state.gallery.splitView && typeof getSplitViewState === 'function') {
+                  const sState = getSplitViewState();
+                  
+                  // Only strip if it's a full URL to avoid turning filenames into /static/...
+                  const _strip = (u) => { 
+                      if (!u) return null;
+                      if (u.startsWith('http')) {
+                          try { return new URL(u).pathname; } catch(e) { return u; }
+                      }
+                      return u; 
+                  };
+                  
+                  // Save Left to INDEX
+                  if (sState.left.url) {
+                    dayData.tradeRefCards[idx].index = {
+                        url: sState.left.rawUrl || _strip(sState.left.url),
+                        scale: sState.left.scale,
+                        tx: sState.left.tx,
+                        ty: sState.left.ty,
+                        isSnapshot: true // Flag to distinguish from simple pins
+                    };
+                  }
+
+                  
+                  // Save Right to PREMIUM
+                  if (sState.right.url) {
+                    dayData.tradeRefCards[idx].premium = {
+                        url: sState.right.url,
+                        scale: sState.right.scale,
+                        tx: sState.right.tx,
+                        ty: sState.right.ty,
+                        isSnapshot: true
+                    };
+                  }
+                  if (typeof showToast === 'function') showToast(`T${idx+1} Split View stored`, 'success');
+              } else {
+                  // Fallback: Store only current image into index slot
+                  const curImgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+                  if (!curImgUrl) return;
+                  let storedUrl = curImgUrl;
+                  try { storedUrl = new URL(curImgUrl).pathname; } catch(err){}
+                  dayData.tradeRefCards[idx].index = storedUrl;
+                  if (typeof showToast === 'function') showToast(`T${idx+1} single view stored`, 'success');
+              }
+
+              if (typeof saveTrades === 'function') saveTrades();
+
+              if (!sourceBtn.querySelector('.ref-dot')) {
+                  const dot = document.createElement('div');
+                  dot.className = 'ref-dot';
+                  dot.style.cssText = `position:absolute; bottom:-1px; right:-1px; width:8px; height:8px; 
+                      background:#4ade80; border:1px solid #000; border-radius:50%; box-shadow: 0 0 5px #4ade80;`;
+                  sourceBtn.appendChild(dot);
+              }
+          }));
+
+          // Remove View
+          menu.appendChild(createItem('Remove View', '🗑', '#f87171', () => {
+              const dDate = state.gallery.date;
+              if (!dDate || !state.dayData[dDate]?.tradeRefCards?.[idx]) return;
+              state.dayData[dDate].tradeRefCards[idx].index = null;
+              if (typeof saveTrades === 'function') saveTrades();
+              if (typeof showToast === 'function') showToast(`T${idx+1} view removed`, 'info');
+              const dot = sourceBtn.querySelector('.ref-dot');
+              if (dot) dot.remove();
+              // If split view is on and this is the active trade, clear left panel? 
+              // Better not to disrupt current view, just remove the persistent data.
+          }));
+
+          document.body.appendChild(menu);
+
+          const closeMenu = () => { menu.remove(); document.removeEventListener('click', closeMenu); };
+          setTimeout(() => document.addEventListener('mousedown', (ev) => { if (!menu.contains(ev.target)) closeMenu(); }, {once:true}), 10);
       };
   });
 
@@ -334,4 +480,61 @@ function renderCloseGlobalTray(curUrl) {
       if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
   };
   tray.appendChild(pdfBtn);
+
+  // 3 Dots "More" Button
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'close-global-nav-btn tray-more-btn';
+  moreBtn.innerHTML = '•••';
+  moreBtn.style.cssText = `
+      background:rgba(255, 255, 255, 0.08); color:rgba(255, 255, 255, 0.7); border:1px solid rgba(255,255,255,0.12);
+      backdrop-filter:blur(4px); border-radius:50%; width:34px; height:34px; font-size:1.1rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all 0.2s ease; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  `;
+  moreBtn.title = 'More Tray Options';
+  moreBtn.onclick = (e) => {
+      e.stopPropagation();
+      const oldMenu = document.getElementById('gv2-tray-more-menu');
+      if (oldMenu) { oldMenu.remove(); return; }
+
+      const menu = document.createElement('div');
+      menu.id = 'gv2-tray-more-menu';
+      menu.style.cssText = `
+          position: fixed; left: ${e.clientX}px; top: ${e.clientY - 90}px;
+          background: rgba(22, 22, 28, 0.95); border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 10px; padding: 5px; z-index: 30000;
+          box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 2px;
+          min-width: 170px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
+      `;
+      
+      const createItem = (text, icon, color, onClick) => {
+          const item = document.createElement('div');
+          item.style.cssText = `padding: 8px 12px; cursor: pointer; border-radius: 6px; color: ${color}; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; transition: all 0.2s;`;
+          item.innerHTML = `<span>${icon}</span> <span>${text}</span>`;
+          item.onmouseenter = () => { item.style.background = 'rgba(255,255,255,0.08)'; };
+          item.onmouseleave = () => { item.style.background = 'transparent'; };
+          item.onclick = (ev) => { ev.stopPropagation(); onClick(); menu.remove(); };
+          return item;
+      };
+
+      menu.appendChild(createItem('Reset Tray Pos', '🎯', '#eee', () => {
+          localStorage.removeItem('tj_gv2_cg_tray');
+          renderCloseGlobalTray(curUrl);
+      }));
+      menu.appendChild(createItem('Clear Progress', '🧹', '#f87171', () => {
+          if (confirm('Clear all green reference dots?')) {
+              const dKey = state.gallery.date;
+              if (state.dayData[dKey]) state.dayData[dKey].tradeRefCards = {};
+              if (typeof saveTrades === 'function') saveTrades();
+              renderGallery();
+          }
+      }));
+
+      document.body.appendChild(menu);
+      const closeMenu = () => { menu.remove(); document.removeEventListener('mousedown', checkClose); };
+      const checkClose = (ev) => { if (!menu.contains(ev.target)) closeMenu(); };
+      setTimeout(() => document.addEventListener('mousedown', checkClose), 10);
+  };
+  tray.appendChild(moreBtn);
 }
+

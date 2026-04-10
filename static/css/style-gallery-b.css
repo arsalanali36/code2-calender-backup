@@ -26,14 +26,17 @@
 /* 📄 PDF Export & Print Styles */
 @media print {
   body * { visibility: hidden !important; height: 0 !important; overflow: hidden !important; }
-  #gv2-pdf-export-area, #gv2-pdf-export-area * { visibility: visible !important; height: auto !important; overflow: visible !important; }
-  #gv2-pdf-export-area { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; color: #000 !important; }
+  #gv2-pdf-print-layer { visibility: visible !important; position: absolute; left: 0; top: 0; width: 100% !important; height: auto !important; overflow: visible !important; display: block !important; background: white !important; }
+  #gv2-pdf-print-layer * { visibility: visible !important; }
   
-  /* Ensure images load and display properly */
   img { max-width: 100% !important; page-break-inside: avoid; }
-  
-  /* Hide typical web backgrounds */
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* Hide the print helper layer on screen completely */
+#gv2-pdf-print-layer {
+    display: none;
+    background: white;
 }
 
 #gv2-pdf-export-area {
@@ -42,6 +45,7 @@
   padding: 40px;
   color: #1a1a1a;
 }
+
 
 
 /* Floating tray — overlays the image, not a fixed header */

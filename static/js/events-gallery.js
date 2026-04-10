@@ -403,8 +403,8 @@ function _bindGalleryEvents() {
 
   document.getElementById('gallery-prev').addEventListener('click', () => navigateGallery(-1));
   document.getElementById('gallery-next').addEventListener('click', () => navigateGallery(1));
-  document.getElementById('gallery-date-prev').addEventListener('click', () => navigateGalleryDate(-1));
-  document.getElementById('gallery-date-next').addEventListener('click', () => navigateGalleryDate(1));
+  document.getElementById('gallery-prev-date')?.addEventListener('click', () => navigateGalleryDate(-1));
+  document.getElementById('gallery-next-date')?.addEventListener('click', () => navigateGalleryDate(1));
   document.getElementById('gallery-date-picker').addEventListener('change', e => {
     const dateStr = e.target.value;
     const images = getImagesForDate(dateStr);
@@ -682,6 +682,9 @@ function _bindGalleryEvents() {
 
   // ── Draggable gallery tray pill ───────────────────────────────────────────
   _bindGalleryTrayDrag();
+  
+  // Initialize Other Options dropdown (from gallery-ref-cards.js)
+  if (typeof initOtherDropdown === 'function') initOtherDropdown();
 }
 
 function _bindGalleryTrayDrag() {

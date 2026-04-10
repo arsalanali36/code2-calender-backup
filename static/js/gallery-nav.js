@@ -314,8 +314,10 @@ function updateGalleryDateArrows() {
   if (filterActive) {
     const total = (state.gallery.images || []).length;
     const idx = Math.max(0, Math.min(total - 1, state.gallery.currentIndex || 0));
-    document.getElementById('gallery-date-prev').disabled = total <= 1 || idx <= 0;
-    document.getElementById('gallery-date-next').disabled = total <= 1 || idx >= total - 1;
+    const prev = document.getElementById('gallery-prev-date');
+    const next = document.getElementById('gallery-next-date');
+    if (prev) prev.disabled = total <= 1 || idx <= 0;
+    if (next) next.disabled = total <= 1 || idx >= total - 1;
     return;
   }
   const datesWithImages = getDatesWithImages();
@@ -326,7 +328,9 @@ function updateGalleryDateArrows() {
   const hasNextImage = imgTotal > 1 && imgIdx < imgTotal - 1;
   const hasPrevDate = idx > 0;
   const hasNextDate = idx !== -1 && idx < datesWithImages.length - 1;
-  document.getElementById('gallery-date-prev').disabled = !(hasPrevDate || hasPrevImage);
-  document.getElementById('gallery-date-next').disabled = !(hasNextDate || hasNextImage);
+  const prevBtn = document.getElementById('gallery-prev-date');
+  const nextBtn = document.getElementById('gallery-next-date');
+  if (prevBtn) prevBtn.disabled = !(hasPrevDate || hasPrevImage);
+  if (nextBtn) nextBtn.disabled = !(hasNextDate || hasNextImage);
 }
 
