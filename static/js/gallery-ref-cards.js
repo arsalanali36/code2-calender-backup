@@ -313,8 +313,9 @@ function renderRefCardsForPrint(container, date) {
   dayTrades.forEach((tr, i) => {
     const cardData = refCards[i];
     if (!cardData) return;
-    const isSnap = (cardData.index?.isSnapshot) || (cardData.premium?.isSnapshot);
-    if (!isSnap) return;
+    // Include both split-view snapshots (isSnapshot:true) and simple pinned URLs (string)
+    const hasContent = cardData.index || cardData.premium;
+    if (!hasContent) return;
 
     const tradeRow = document.createElement('div');
     tradeRow.className = 'gv2-pdf-trade-row';
@@ -366,22 +367,35 @@ function renderRefCardsForPrint(container, date) {
 async function exportRefCardsToPDF() {
   const date = state.gallery.date;
   if (!date) { if (typeof showToast === 'function') showToast('Pehle date select karein', 'error'); return; }
-  
+
   const printLayer = document.createElement('div');
   printLayer.id = 'gv2-pdf-print-layer';
   renderRefCardsForPrint(printLayer, date);
   document.body.appendChild(printLayer);
-  
+
   if (typeof showToast === 'function') showToast('Preparing PDF Report...', 'info');
-  
-  setTimeout(() => {
-    window.print();
-    const cleanup = () => { 
-        if (document.body.contains(printLayer)) document.body.removeChild(printLayer); 
-        window.removeEventListener('focus', cleanup); 
-    };
-    window.addEventListener('focus', cleanup);
-  }, 1000);
+
+  // Wait for all images in print layer to load before printing
+  const imgs = Array.from(printLayer.querySelectorAll('img'));
+  if (imgs.length > 0) {
+    await Promise.all(imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve; // don't block if one fails
+      });
+    }));
+  }
+
+  // Small buffer for layout
+  await new Promise(r => setTimeout(r, 200));
+
+  window.print();
+  const cleanup = () => {
+      if (document.body.contains(printLayer)) document.body.removeChild(printLayer);
+      window.removeEventListener('focus', cleanup);
+  };
+  window.addEventListener('focus', cleanup);
 }
 
 document.addEventListener('DOMContentLoaded', initOtherDropdown);

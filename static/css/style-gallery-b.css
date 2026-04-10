@@ -25,10 +25,12 @@
 
 /* 📄 PDF Export & Print Styles */
 @media print {
-  body * { visibility: hidden !important; height: 0 !important; overflow: hidden !important; }
+  html, body { background: white !important; color: black !important; }
+  /* Hide everything EXCEPT the print layer — target direct body children only */
+  body > *:not(#gv2-pdf-print-layer) { visibility: hidden !important; overflow: hidden !important; max-height: 0 !important; }
   #gv2-pdf-print-layer { visibility: visible !important; position: absolute; left: 0; top: 0; width: 100% !important; height: auto !important; overflow: visible !important; display: block !important; background: white !important; }
   #gv2-pdf-print-layer * { visibility: visible !important; }
-  
+
   img { max-width: 100% !important; page-break-inside: avoid; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
