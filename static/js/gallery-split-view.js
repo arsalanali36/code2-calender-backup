@@ -57,6 +57,7 @@ function applySplitViewState(data) {
       lImg.onload = () => { 
         lImg.style.display = ''; 
         if (lEmp) lEmp.style.display = 'none'; 
+        _fitPanel('left');
       };
       lImg.onerror = () => { 
         console.error('Split Left Load Fail:', finalUrl);
@@ -144,6 +145,7 @@ function updateSplitRight(url) {
   if (!state.gallery.splitView) return;
   const img = document.getElementById('gv2-split-right-img');
   if (!img) return;
+  img.onload = () => _fitPanel('right');
   img.src = resolveImageUrl ? resolveImageUrl(url) : url;
 }
 
@@ -205,8 +207,13 @@ function _applySplitMode() {
       if (rImg) rImg.src = resolveImageUrl ? resolveImageUrl(curUrl) : curUrl;
     }
     // Left panel: only auto-load once when split opens (from saved ref card)
-    // After that, only 📌 button can change it
     if (!_splitState.left.url) _autoLoadRefCardLeft();
+
+    // Ensure initial fit after container is shown/resized
+    setTimeout(() => {
+        _fitPanel('left');
+        _fitPanel('right');
+    }, 50);
   }
 }
 
@@ -257,74 +264,157 @@ function _pathOnly(src) {
   try { return new URL(src).pathname; } catch { return src; }
 }
 
-function _resetPanel(side) {
-  _splitState[side].scale = 1;
-  _splitState[side].tx    = 0;
-  _splitState[side].ty    = 0;
-  // Reset to "no transform" — the flex centering inside handles default position
+/** 
+ * Automatically fits the image to the panel at its highest resolution.
+ * Replaces 'object-fit: contain' to avoid iPad pixelation.
+ */
+function _fitPanel(side) {
+  const imgId = side === 'left' ? 'gv2-split-left-img' : 'gv2-split-right-img';
+  const panelId = side === 'left' ? 'gv2-split-left' : 'gv2-split-right';
+  const img = document.getElementById(imgId);
+  const panel = document.getElementById(panelId);
+  if (!img || !panel || !img.naturalWidth) return;
+  
+  const pw = panel.offsetWidth;
+  const ph = panel.offsetHeight;
+  const iw = img.naturalWidth;
+  const ih = img.naturalHeight;
+  if (!pw || !ph || !iw || !ih) return;
+
+  const scale = Math.min(pw / iw, ph / ih);
+  const st = _splitState[side];
+  st.scale = scale;
+  // Center it initially
+  st.tx = (pw - iw * scale) / 2;
+  st.ty = (ph - ih * scale) / 2;
   _applyTransform(side);
 }
 
+function _resetPanel(side) {
+  _fitPanel(side);
+}
+
 function _applyTransform(side) {
-  const id = side === 'left' ? 'gv2-split-left-inner' : 'gv2-split-right-inner';
-  const el = document.getElementById(id);
+  const imgId = side === 'left' ? 'gv2-split-left-img' : 'gv2-split-right-img';
+  const el = document.getElementById(imgId);
   if (!el) return;
   const { scale, tx, ty } = _splitState[side];
-  el.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+  // Apply transform with translate3d for GPU optimization
+  el.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${scale})`;
 }
 
 function _bindPanelZoomPan(side) {
   const panelId = side === 'left' ? 'gv2-split-left' : 'gv2-split-right';
+  const panel   = document.getElementById(panelId);
+  if (!panel) return;
+
   // Per-panel drag state (closure, not shared)
   let dragging = false, lastX = 0, lastY = 0;
 
-  document.addEventListener('wheel', e => {
+  panel.addEventListener('wheel', e => {
     if (!state.gallery.splitView) return;
-    const panel = document.getElementById(panelId);
-    if (!panel || !panel.contains(e.target)) return;
     e.preventDefault();
     const st     = _splitState[side];
     const rect   = panel.getBoundingClientRect();
-    // cx/cy relative to panel top-left, but image is centered so effective origin
-    // at scale=1,tx=0,ty=0 is (rect.width/2, rect.height/2).
-    // We treat the inner div transform as translate(tx,ty)scale(s) from top-left,
-    // with the flex-centered image inside. Zoom toward mouse cursor:
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
     const factor   = e.deltaY < 0 ? 1.12 : (1 / 1.12);
     const newScale = Math.max(0.2, Math.min(20, st.scale * factor));
-    // Adjust tx/ty so the point under the cursor stays fixed
     st.tx    = cx - (cx - st.tx) * (newScale / st.scale);
     st.ty    = cy - (cy - st.ty) * (newScale / st.scale);
     st.scale = newScale;
     _applyTransform(side);
   }, { passive: false });
 
-  document.addEventListener('mousedown', e => {
+  panel.addEventListener('mousedown', e => {
     if (!state.gallery.splitView) return;
-    const panel = document.getElementById(panelId);
-    if (!panel || !panel.contains(e.target)) return;
     if (e.target.closest('button') || e.target.id === 'gv2-split-divider') return;
     dragging = true; lastX = e.clientX; lastY = e.clientY;
     panel.style.cursor = 'grabbing';
     e.preventDefault();
   });
 
-  document.addEventListener('mousemove', e => {
+  const onMove = e => {
     if (!dragging || !state.gallery.splitView) return;
     const st = _splitState[side];
     st.tx += e.clientX - lastX;
     st.ty += e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
     _applyTransform(side);
-  });
+  };
 
-  document.addEventListener('mouseup', () => {
+  const onUp = () => {
     if (!dragging) return;
     dragging = false;
-    const panel = document.getElementById(panelId);
-    if (panel) panel.style.cursor = 'grab';
-  });
+    panel.style.cursor = 'grab';
+  };
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+
+  panel.addEventListener('mouseup', onUp);
+
+  // ── Touch Zoom & Pan (iPad) ────────────────────────────────────────────────
+  let tDist = 0, tMidX = 0, tMidY = 0;
+
+  panel.addEventListener('touchstart', e => {
+    if (!state.gallery.splitView || e.target.closest('button')) return;
+    if (e.touches.length === 1) {
+      dragging = true;
+      lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      dragging = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      tDist = Math.sqrt(dx*dx + dy*dy);
+      const rect = panel.getBoundingClientRect();
+      tMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      tMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+    }
+  }, { passive: false });
+
+  panel.addEventListener('touchmove', e => {
+    if (!state.gallery.splitView) return;
+    e.preventDefault();
+    const st = _splitState[side];
+
+    if (e.touches.length === 1 && dragging) {
+      st.tx += e.touches[0].clientX - lastX;
+      st.ty += e.touches[0].clientY - lastY;
+      lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+      _applyTransform(side);
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const newD = Math.sqrt(dx*dx + dy*dy);
+      if (newD > 5 && tDist > 0) {
+        const factor = newD / tDist;
+        const nScale = Math.max(0.2, Math.min(20, st.scale * factor));
+        st.tx = tMidX - (tMidX - st.tx) * (nScale / st.scale);
+        st.ty = tMidY - (tMidY - st.ty) * (nScale / st.scale);
+        st.scale = nScale;
+        tDist = newD;
+        _applyTransform(side);
+      }
+    }
+  }, { passive: false });
+
+  panel.addEventListener('touchend', () => { dragging = false; tDist = 0; });
+  panel.addEventListener('touchcancel', () => { dragging = false; tDist = 0; });
+
+  // ── Double Tap Reset (iPad) ────────────────────────────────────────────────
+  let lastTap = 0;
+  panel.addEventListener('touchstart', e => {
+      if (e.touches.length > 1) return;
+      const now = Date.now();
+      if (now - lastTap < 300) {
+          e.preventDefault();
+          _resetPanel(side);
+          lastTap = 0;
+      } else {
+          lastTap = now;
+      }
+  }, { passive: false });
 
   document.addEventListener('dblclick', e => {
     if (!state.gallery.splitView) return;

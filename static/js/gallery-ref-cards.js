@@ -37,11 +37,18 @@ function _buildRefHalf(side, label, data, locked, tradeIdx, date) {
 
     const url = (typeof data === 'object' && data !== null) ? data.url : data;
     
-    // Self-Correction: Fix stripped Cloudinary paths
+    // Self-Correction: Fix stripped/broken Cloudinary paths
     let targetU = url;
     if (url && !url.includes('/') && url.includes('.')) {
+        // Old-format: bare filename
         const images = state.gallery.images || [];
         const full = images.find(img => img.includes(url));
+        if (full) targetU = full;
+    } else if (url && url.startsWith('/') && !url.startsWith('/uploads/') && !url.startsWith('/static/')) {
+        // Broken Cloudinary URL: stripped to pathname only
+        const filename = url.split('/').pop();
+        const images = state.gallery.images || [];
+        const full = images.find(img => img.endsWith('/' + filename) || img.includes(filename));
         if (full) targetU = full;
     }
 
@@ -273,13 +280,23 @@ function initOtherDropdown() {
     });
   }
 
-  const pdfBtn = document.getElementById('gv2-export-refpdf-btn');
+  const pdfBtn = document.getElementById('gv2-export-current-pdf-btn');
   if (pdfBtn) {
     pdfBtn.disabled = false;
     pdfBtn.onclick = (e) => {
         e.stopPropagation();
         dd.style.display = 'none';
-        exportRefCardsToPDF();
+        if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
+    };
+  }
+
+  const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
+  if (allPdfBtn) {
+    allPdfBtn.disabled = false;
+    allPdfBtn.onclick = (e) => {
+        e.stopPropagation();
+        dd.style.display = 'none';
+        if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
     };
   }
 }
@@ -310,55 +327,96 @@ function renderRefCardsForPrint(container, date) {
 
   const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
   
-  dayTrades.forEach((tr, i) => {
-    const cardData = refCards[i];
+  // Temp in-memory captures (data URLs) stored by "Store Current View" — cleared after print
+  const tempCaptures = window._refCardCaptures?.[date] || {};
+
+  // Iterate over stored cards rather than all trades to ensure we catch everything with a 'green dot'
+  Object.keys(refCards).forEach(tradeIdxKey => {
+    const tradeIdx = parseInt(tradeIdxKey);
+    const tr = dayTrades[tradeIdx];
+    if (!tr) return;
+
+    const cardData = refCards[tradeIdxKey];
     if (!cardData) return;
-    // Include both split-view snapshots (isSnapshot:true) and simple pinned URLs (string)
-    const hasContent = cardData.index || cardData.premium;
-    if (!hasContent) return;
+
+    // Use temp data URL captures if available, else fall back to stored URL
+    const cap = tempCaptures[tradeIdxKey] || {};
+    const indexData  = cap.index   || cardData.index;
+    const premiumData = cap.premium || cardData.premium;
+
+    const hasIndex   = !!(indexData   && ((typeof indexData   === 'string') ? indexData   : indexData.url));
+    const hasPremium = !!(premiumData && ((typeof premiumData === 'string') ? premiumData : premiumData.url));
+    
+    // Only show trades that actually have at least one image stored (green dot trades)
+    if (!hasIndex && !hasPremium) return;
 
     const tradeRow = document.createElement('div');
     tradeRow.className = 'gv2-pdf-trade-row';
-    tradeRow.style.cssText = 'margin-bottom:40px; break-inside:avoid; page-break-inside:avoid;';
+    tradeRow.style.cssText = 'margin-bottom:60px; break-inside:avoid; page-break-inside:avoid;';
 
     const pnl = typeof getTradePnl === 'function' ? (getTradePnl(tr) || 0) : 0;
     const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
     const pnlStr = (pnl >= 0 ? '+' : '') + '₹' + Math.abs(Math.round(pnl)).toLocaleString('en-IN');
-    
-    const _renderImg = (data, lbl) => {
-        const url = (typeof data === 'object' && data !== null) ? data.url : data;
-        if (!url) return `<div style="display:flex; flex-direction:column; gap:6px;"><div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase;">${lbl}</div><div style="border:1px solid #ddd; border-radius:4px; background:#eee; min-height:180px; display:flex; align-items:center; justify-content:center; color:#999; font-style:italic; font-size:0.75rem;">Not Saved</div></div>`;
+
+    const _renderImgHtml = (data, lbl, imgH = 260) => {
+        if (!data) return '';
         
-        let targetU = url;
-        if (url && !url.includes('/') && url.includes('.')) {
-            const images = state.gallery?.images || [];
-            const full = images.find(img => img === url || img.endsWith('/' + url));
-            if (full) targetU = full;
+        let src = '';
+        let style = 'width:100%; height:100%; object-fit:contain; display:block;';
+        
+        if (typeof data === 'string' && data.startsWith('data:')) {
+            src = data;
+        } else {
+            const url = (typeof data === 'object' && data !== null) ? data.url : data;
+            if (!url) return '';
+            
+            let targetU = url;
+            // URL cleanup
+            if (url && !url.includes('/') && url.includes('.')) {
+                const images = state.gallery?.images || [];
+                const full = images.find(img => img === url || img.endsWith('/' + url));
+                if (full) targetU = full;
+            }
+            src = resolveImageUrl(targetU);
+            
+            if (typeof data === 'object' && data.scale && data.panelW) {
+                const scaleRatio = imgH / (data.panelH || 400);
+                const sx = (data.tx || 0) * scaleRatio;
+                const sy = (data.ty || 0) * scaleRatio;
+                style = `position:absolute; top:50%; left:50%; transform:translate(calc(-50% + ${sx}px), calc(-50% + ${sy}px)) scale(${data.scale}); transform-origin:center; max-width:none; width:${data.panelW * scaleRatio}px;`;
+            }
         }
-        let style = 'width:100%; height:auto; display:block;';
-        if (typeof data === 'object' && data !== null) {
-            style = `transform: translate(${data.tx}px, ${data.ty}px) scale(${data.scale}); transform-origin: center; width:100%; height:auto; display:block;`;
-        }
+
         return `
           <div style="display:flex; flex-direction:column; gap:6px;">
             <div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px;">${lbl}</div>
-            <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; height:240px; display:flex; align-items:center; justify-content:center; position:relative;">
-               <img src="${resolveImageUrl(targetU)}" style="${style}">
+            <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; height:${imgH}px; position:relative;">
+               <img src="${src}" style="${style}" onerror="this.parentElement.style.background='#f3f4f6'; this.style.display='none';">
             </div>
           </div>
         `;
     };
 
+    // Layout Logic
+    let imageBlocks = '';
+    if (hasIndex && hasPremium) {
+        imageBlocks = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            ${_renderImgHtml(indexData, 'Index / Context', 260)}
+            ${_renderImgHtml(premiumData, 'Premium / Execution', 260)}
+        </div>`;
+    } else if (hasIndex) {
+        imageBlocks = `<div>${_renderImgHtml(indexData, 'Index / Context', 450)}</div>`;
+    } else {
+        imageBlocks = `<div>${_renderImgHtml(premiumData, 'Premium / Execution', 450)}</div>`;
+    }
+
     tradeRow.innerHTML = `
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; background:#f8f9fa; padding:8px 12px; border-radius:6px; border-left:4px solid ${pnlColor}">
-        <div style="background:#333; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.8rem;">${i + 1}</div>
-        <div style="font-weight:700; font-size:1rem; color:#111; flex:1;">${(tr.Instrument || tr.instrument || 'Trade').toUpperCase()}</div>
-        <div style="color:${pnlColor}; font-weight:800; font-size:1rem;">${pnlStr}</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; background:#f8f9fa; padding:10px 15px; border-radius:8px; border-left:5px solid ${pnlColor}">
+        <div style="background:#333; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">${tradeIdx + 1}</div>
+        <div style="font-weight:700; font-size:1.1rem; color:#111; flex:1;">${(tr.Instrument || tr.instrument || 'Trade').toUpperCase()}</div>
+        <div style="color:${pnlColor}; font-weight:800; font-size:1.1rem;">${pnlStr}</div>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-        ${_renderImg(cardData.index, 'Index / Context')}
-        ${_renderImg(cardData.premium, 'Premium / Execution')}
-      </div>
+      ${imageBlocks}
     `;
     container.appendChild(tradeRow);
   });
@@ -393,9 +451,76 @@ async function exportRefCardsToPDF() {
   window.print();
   const cleanup = () => {
       if (document.body.contains(printLayer)) document.body.removeChild(printLayer);
+      // Clear temp captures — data URLs no longer needed after print
+      if (window._refCardCaptures) delete window._refCardCaptures[date];
       window.removeEventListener('focus', cleanup);
   };
   window.addEventListener('focus', cleanup);
+}
+
+/**
+ * 📄 Export only the CURRENT visible gallery view to PDF
+ */
+async function exportCurrentViewToPDF() {
+  const date = state.gallery.date;
+  if (!date) return;
+  
+  if (typeof showToast === 'function') showToast('Capturing current view...', 'info');
+
+  let leftCap = null, rightCap = null;
+  if (state.gallery.splitView && typeof _captureSplitPanel === 'function') {
+      [leftCap, rightCap] = await Promise.all([
+          _captureSplitPanel('gv2-split-left',  'gv2-split-left-img'),
+          _captureSplitPanel('gv2-split-right', 'gv2-split-right-img')
+      ]);
+  } else if (typeof _captureSplitPanel === 'function') {
+      // Single view: capture just the main image area
+      leftCap = await _captureSplitPanel('gallery-zoom-layer', 'gallery-img');
+  }
+
+  const printLayer = document.createElement('div');
+  printLayer.id = 'gv2-pdf-print-layer';
+  
+  const header = document.createElement('div');
+  header.className = 'gv2-pdf-header';
+  header.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:20px;">
+      <div>
+        <h1 style="margin:0; font-size:1.8rem; color:#222;">GALLERY SNAPSHOT</h1>
+        <div style="color:#666; font-size:0.9rem; margin-top:4px;">Current Custom View</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1.2rem; font-weight:700; color:#333;">${date}</div>
+        <div style="font-size:0.8rem; color:#999; margin-top:2px;">Generated: ${new Date().toLocaleDateString()}</div>
+      </div>
+    </div>
+  `;
+  printLayer.appendChild(header);
+
+  const row = document.createElement('div');
+  row.style.cssText = 'margin-bottom:20px;';
+  
+  if (leftCap && rightCap) {
+      row.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+        <div style="border:1px solid #ddd; background:#111; height:400px;"><img src="${leftCap}" style="width:100%; height:100%; object-fit:contain;"></div>
+        <div style="border:1px solid #ddd; background:#111; height:400px;"><img src="${rightCap}" style="width:100%; height:100%; object-fit:contain;"></div>
+      </div>`;
+  } else if (leftCap) {
+      row.innerHTML = `<div style="border:1px solid #ddd; background:#111; height:600px;"><img src="${leftCap}" style="width:100%; height:100%; object-fit:contain;"></div>`;
+  } else {
+      // Fallback: Just the current image
+      const curImg = (state.gallery.images || [])[state.gallery.currentIndex];
+      if (curImg) {
+          row.innerHTML = `<div style="border:1px solid #ddd; background:#eee; height:600px;"><img src="${resolveImageUrl(curImg)}" style="width:100%; height:100%; object-fit:contain;"></div>`;
+      }
+  }
+  printLayer.appendChild(row);
+  document.body.appendChild(printLayer);
+
+  // Buffer for image content
+  await new Promise(r => setTimeout(r, 1000));
+  window.print();
+  setTimeout(() => printLayer.remove(), 2000);
 }
 
 document.addEventListener('DOMContentLoaded', initOtherDropdown);

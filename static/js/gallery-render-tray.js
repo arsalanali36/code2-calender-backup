@@ -1,6 +1,56 @@
 // gallery-render-tray.js — Close-Global-Tray rendering (draggable tray + zoomable markers)
 // Called by renderGallery() in gallery-render.js
 
+/**
+ * Capture the currently visible area of a split-view panel as a JPEG data URL.
+ * Loads a fresh CORS-anonymous copy of the image so canvas.toDataURL() works
+ * even for cross-origin images (Cloudinary etc.).
+ * Returns data URL string, or null on failure.
+ */
+async function _captureSplitPanel(panelId, imgId) {
+  const panel = document.getElementById(panelId);
+  const img   = document.getElementById(imgId);
+  if (!panel || !img || !img.naturalWidth || !img.src || img.src.endsWith('/')) return null;
+  try {
+    const panelRect = panel.getBoundingClientRect();
+    const imgRect   = img.getBoundingClientRect();
+    const W = Math.round(panelRect.width);
+    const H = Math.round(panelRect.height);
+    if (W < 1 || H < 1) return null;
+
+    // Load a fresh CORS-enabled copy so canvas stays untainted
+    const corsImg = new Image();
+    corsImg.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => {
+      corsImg.onload  = resolve;
+      corsImg.onerror = reject;
+      const sep = img.src.includes('?') ? '&' : '?';
+      corsImg.src = img.src + sep + '_cb=' + Date.now();
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.rect(0, 0, W, H);
+    ctx.clip();
+    ctx.drawImage(corsImg,
+      imgRect.left - panelRect.left,
+      imgRect.top  - panelRect.top,
+      imgRect.width,
+      imgRect.height
+    );
+    ctx.restore();
+    return canvas.toDataURL('image/jpeg', 0.92);
+  } catch(e) {
+    console.warn('[_captureSplitPanel] CORS capture failed:', e);
+    return null;
+  }
+}
+
 function renderCloseGlobalTray(curUrl) {
   // Cleanup old tray / markers
   document.querySelectorAll('.close-global-nav-btn, .close-global-marker').forEach(b => b.remove());
@@ -380,68 +430,91 @@ function renderCloseGlobalTray(curUrl) {
               }));
           }
 
+          // Export This View (PDF)
+          menu.appendChild(createItem('Export This View', '📄', '#f59e0b', () => {
+              if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
+          }));
+
           // Store Current View
-          menu.appendChild(createItem('Store Current View', '📌', '#eee', () => {
+          menu.appendChild(createItem('Store Current View', '📌', '#eee', async () => {
               const dDate = state.gallery.date;
               if (!dDate) return;
               const dayData = state.dayData[dDate] = state.dayData[dDate] || {};
               dayData.tradeRefCards = dayData.tradeRefCards || {};
               dayData.tradeRefCards[idx] = dayData.tradeRefCards[idx] || {};
 
+              const _strip = (u) => {
+                  if (!u) return null;
+                  // Only strip localhost URLs to save as relative paths.
+                  // Cloudinary / external URLs must stay intact.
+                  if (u.startsWith('http://localhost') || u.startsWith('http://127.0.0.1')) {
+                      try { return new URL(u).pathname; } catch(e) { return u; }
+                  }
+                  return u;
+              };
+
               if (state.gallery.splitView && typeof getSplitViewState === 'function') {
                   const sState = getSplitViewState();
+
+                  if (typeof showToast === 'function') showToast('Capturing views…', 'info');
+
+                  // Pixel-perfect canvas capture → data URLs (temp memory only, no upload)
+                  const [leftDataUrl, rightDataUrl] = await Promise.all([
+                      _captureSplitPanel('gv2-split-left',  'gv2-split-left-img'),
+                      _captureSplitPanel('gv2-split-right', 'gv2-split-right-img')
+                  ]);
+
+                  // Store captures in temp window variable — used by exportRefCardsToPDF, cleared after print
+                  window._refCardCaptures = window._refCardCaptures || {};
+                  window._refCardCaptures[dDate] = window._refCardCaptures[dDate] || {};
+                  window._refCardCaptures[dDate][idx] = { index: leftDataUrl, premium: rightDataUrl };
+
+                  // Also persist URL + transform in state for "Show Saved View" restore
+                  const panelL = document.getElementById('gv2-split-left');
+                  const panelR = document.getElementById('gv2-split-right');
                   
-                  // Only strip if it's a full URL to avoid turning filenames into /static/...
-                  const _strip = (u) => { 
-                      if (!u) return null;
-                      if (u.startsWith('http')) {
-                          try { return new URL(u).pathname; } catch(e) { return u; }
-                      }
-                      return u; 
-                  };
-                  
-                  // Save Left to INDEX
                   if (sState.left.url) {
-                    dayData.tradeRefCards[idx].index = {
-                        url: sState.left.rawUrl || _strip(sState.left.url),
-                        scale: sState.left.scale,
-                        tx: sState.left.tx,
-                        ty: sState.left.ty,
-                        isSnapshot: true // Flag to distinguish from simple pins
-                    };
+                      dayData.tradeRefCards[idx].index = {
+                          url: sState.left.rawUrl || _strip(sState.left.url),
+                          scale: sState.left.scale, tx: sState.left.tx, ty: sState.left.ty,
+                          panelW: panelL?.offsetWidth || 0, panelH: panelL?.offsetHeight || 0,
+                          isSnapshot: true
+                      };
+                  } else {
+                      const curImgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+                      if (curImgUrl) dayData.tradeRefCards[idx].index = _strip(curImgUrl) || curImgUrl;
                   }
 
-                  
-                  // Save Right to PREMIUM
                   if (sState.right.url) {
-                    dayData.tradeRefCards[idx].premium = {
-                        url: sState.right.url,
-                        scale: sState.right.scale,
-                        tx: sState.right.tx,
-                        ty: sState.right.ty,
-                        isSnapshot: true
-                    };
+                      dayData.tradeRefCards[idx].premium = {
+                          url: _strip(sState.right.url) || sState.right.url,
+                          scale: sState.right.scale, tx: sState.right.tx, ty: sState.right.ty,
+                          panelW: panelR?.offsetWidth || 0, panelH: panelR?.offsetHeight || 0,
+                          isSnapshot: true
+                      };
                   }
+
                   if (typeof showToast === 'function') showToast(`T${idx+1} Split View stored`, 'success');
               } else {
-                  // Fallback: Store only current image into index slot
+                  // Single view — also capture temporary high-fi snapshot for PDF
                   const curImgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
-                  if (!curImgUrl) return;
-                  let storedUrl = curImgUrl;
-                  try { storedUrl = new URL(curImgUrl).pathname; } catch(err){}
-                  dayData.tradeRefCards[idx].index = storedUrl;
-                  if (typeof showToast === 'function') showToast(`T${idx+1} single view stored`, 'success');
+                  if (!curImgUrl) { if (typeof showToast === 'function') showToast('No image to store', 'error'); return; }
+                  
+                  if (typeof showToast === 'function') showToast('Capturing view…', 'info');
+                  const singleDataUrl = await _captureSplitPanel('gallery-zoom-layer', 'gallery-img');
+                  
+                  window._refCardCaptures = window._refCardCaptures || {};
+                  window._refCardCaptures[dDate] = window._refCardCaptures[dDate] || {};
+                  window._refCardCaptures[dDate][idx] = { index: singleDataUrl };
+
+                  dayData.tradeRefCards[idx].index = _strip(curImgUrl) || curImgUrl;
+                  if (typeof showToast === 'function') showToast(`T${idx+1} view stored`, 'success');
               }
 
               if (typeof saveTrades === 'function') saveTrades();
-
-              if (!sourceBtn.querySelector('.ref-dot')) {
-                  const dot = document.createElement('div');
-                  dot.className = 'ref-dot';
-                  dot.style.cssText = `position:absolute; bottom:-1px; right:-1px; width:8px; height:8px; 
-                      background:#4ade80; border:1px solid #000; border-radius:50%; box-shadow: 0 0 5px #4ade80;`;
-                  sourceBtn.appendChild(dot);
-              }
+              // Rebuild tray so green dot reflects actual stored data
+              state.gallery._skipScrollIntoView = true;
+              if (typeof renderGallery === 'function') renderGallery();
           }));
 
           // Remove View
@@ -517,6 +590,9 @@ function renderCloseGlobalTray(curUrl) {
           return item;
       };
 
+      menu.appendChild(createItem('Export Current View', '📄', '#f59e0b', () => {
+          if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
+      }));
       menu.appendChild(createItem('Reset Tray Pos', '🎯', '#eee', () => {
           localStorage.removeItem('tj_gv2_cg_tray');
           renderCloseGlobalTray(curUrl);
