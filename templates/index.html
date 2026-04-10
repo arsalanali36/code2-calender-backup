@@ -13,12 +13,14 @@
   <!-- Gallery CSS: non-blocking load (media=print trick) — applies before gallery first opens -->
   <link rel="stylesheet" href="/static/css/style-gallery-a.css?v={{ cache_bust }}" media="print" onload="this.media='all'" />
   <link rel="stylesheet" href="/static/css/style-gallery-b.css?v={{ cache_bust }}" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="/static/css/style-gallery-split.css?v={{ cache_bust }}" media="print" onload="this.media='all'" />
   <link rel="stylesheet" href="/static/css/style-gallery-c.css?v={{ cache_bust }}" media="print" onload="this.media='all'" />
   <link rel="stylesheet" href="/static/css/style-gallery-d.css?v={{ cache_bust }}" media="print" onload="this.media='all'" />
   <link rel="stylesheet" href="/static/css/style-gallery-grid.css?v={{ cache_bust }}" media="print" onload="this.media='all'" />
   <noscript>
     <link rel="stylesheet" href="/static/css/style-gallery-a.css?v={{ cache_bust }}" />
     <link rel="stylesheet" href="/static/css/style-gallery-b.css?v={{ cache_bust }}" />
+    <link rel="stylesheet" href="/static/css/style-gallery-split.css?v={{ cache_bust }}" />
     <link rel="stylesheet" href="/static/css/style-gallery-c.css?v={{ cache_bust }}" />
     <link rel="stylesheet" href="/static/css/style-gallery-d.css?v={{ cache_bust }}" />
     <link rel="stylesheet" href="/static/css/style-gallery-grid.css?v={{ cache_bust }}" />
@@ -353,6 +355,8 @@
   <script src="/static/js/gallery-render-b.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-render-tray.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-render-thumbs.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ref-cards.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-split-view.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-render.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-grid.js?v={{ cache_bust }}"></script>
   <script src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>

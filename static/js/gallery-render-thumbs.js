@@ -250,6 +250,10 @@ function renderGalleryThumbs() {
           const _sepIdx = _lastIdx + 1;
           if (!_filterActive3 || _filteredTradeIdxPerDate.get(_effDate)?.has(_sepIdx)) {
             thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx], _filterActive3 ? _fmtSepDate(_effDate) : ''));
+            if (typeof createRefCardElement === 'function') {
+              const _rc = createRefCardElement(_sepIdx, _effTrades[_sepIdx], _effDate);
+              if (_rc) thumbs.appendChild(_rc);
+            }
           }
           _lastIdx++;
         }
@@ -270,6 +274,10 @@ function renderGalleryThumbs() {
           const _sepIdx = _lastIdx + 1;
           if (!_filterActive3 || _filteredTradeIdxPerDate.get(_effDate)?.has(_sepIdx)) {
             thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx], _filterActive3 ? _fmtSepDate(_effDate) : ''));
+            if (typeof createRefCardElement === 'function') {
+              const _rc = createRefCardElement(_sepIdx, _effTrades[_sepIdx], _effDate);
+              if (_rc) thumbs.appendChild(_rc);
+            }
           }
           _lastIdx++;
         }

@@ -56,6 +56,20 @@
         <button class="gv2-target-pill" id="gv2-img-manager-btn" title="Open Image Manager" style="background:rgba(59, 130, 246, 0.15); border-color:rgba(59, 130, 246, 0.4); color:#60a5fa; margin-left:4px;">📊</button>
       </div>
       
+      <!-- Split View toggle -->
+      <div class="gv2-target-btn-wrap" id="gv2-split-btn-wrap" style="position:relative;">
+        <button class="gv2-target-pill" id="gv2-split-toggle-btn" title="Toggle Split View (2 panels)" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); margin-left:4px; font-size:0.85rem; letter-spacing:0.5px;">⊞</button>
+      </div>
+
+      <!-- Other Options button -->
+      <div class="gv2-target-btn-wrap" id="gv2-other-btn-wrap" style="position:relative;">
+        <button class="gv2-target-pill" id="gv2-other-btn" title="Other Options" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); margin-left:4px; font-size:1.1rem; letter-spacing:1px;">···</button>
+        <div class="gv2-other-dropdown" id="gv2-other-dropdown" style="display:none;">
+          <button class="gv2-other-opt" id="gv2-refcards-toggle">📋 Ref Cards</button>
+          <button class="gv2-other-opt" id="gv2-export-refpdf-btn" disabled title="Coming soon — export all ref cards as PDF">📄 Export PDF</button>
+        </div>
+      </div>
+
       <div class="gv2-target-btn-wrap" id="gv2-exit-btn-wrap" style="position:relative;">
         <button class="gv2-target-pill" id="gv2-exit-btn" title="Exit Gallery (Esc)" style="background:rgba(248, 113, 113, 0.15); border-color:rgba(248, 113, 113, 0.4); color:#f87171; margin-left:4px;">
            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 4L4 12M4 4l8 8"/></svg>
@@ -191,6 +205,50 @@
       <!-- Main image area -->
       <div class="gv2-img-area" id="gallery-img-wrapper">
         <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
+
+        <!-- ── Split View Container (shown when split mode ON) ── -->
+        <div id="gv2-split-container" style="display:none;">
+
+          <!-- Left panel -->
+          <div class="gv2-split-panel" id="gv2-split-left">
+            <div class="gv2-split-inner" id="gv2-split-left-inner">
+              <img id="gv2-split-left-img" class="gv2-split-img" style="display:none;" draggable="false" alt="Left panel">
+              <div class="gv2-split-empty" id="gv2-split-left-empty">
+                <span class="gv2-split-empty-icon">📌</span>
+                <span class="gv2-split-empty-txt">Click <b>📌</b> on right panel to pin image here</span>
+              </div>
+            </div>
+            <div class="gv2-split-hud">
+              <span class="gv2-split-lbl">INDEX / CONTEXT</span>
+              <div class="gv2-split-hud-btns">
+                <button class="gv2-split-hud-btn" id="gv2-split-left-reset" title="Reset zoom (double-click also works)">⊙</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Draggable divider -->
+          <div class="gv2-split-divider" id="gv2-split-divider" title="Drag to resize panels"></div>
+
+          <!-- Right panel -->
+          <div class="gv2-split-panel" id="gv2-split-right">
+            <div class="gv2-split-inner" id="gv2-split-right-inner">
+              <img id="gv2-split-right-img" class="gv2-split-img" draggable="false" alt="Right panel">
+            </div>
+            <div class="gv2-split-hud">
+              <span class="gv2-split-lbl">TRADE</span>
+              <div class="gv2-split-hud-btns">
+                <button class="gv2-split-hud-btn gv2-split-pin-btn" id="gv2-split-pin-btn" title="Pin this image to left panel">📌</button>
+                <button class="gv2-split-hud-btn" id="gv2-split-right-reset" title="Reset zoom (double-click also works)">⊙</button>
+              </div>
+            </div>
+            <!-- Right panel nav arrows (work independently) -->
+            <button class="gv2-split-nav gv2-split-nav-prev" id="gv2-split-nav-prev" title="Previous image (←)">&#10094;</button>
+            <button class="gv2-split-nav gv2-split-nav-next" id="gv2-split-nav-next" title="Next image (→)">&#10095;</button>
+          </div>
+
+        </div>
+        <!-- ── End Split View Container ── -->
+
         <div id="gallery-zoom-layer">
           <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
           <video id="gallery-video" class="gallery-img" controls preload="metadata" style="display:none; width:100%; height:100%; object-fit:contain;" onloadedmetadata="this.currentTime=0.1"></video>

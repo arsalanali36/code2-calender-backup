@@ -74,6 +74,7 @@ function renderGallery() {
     img.style.display = ''; img.style.opacity = ''; img.style.filter = ''; img.title = '';
     img.src = resolveImageUrl(curUrl);
     img.classList.remove('zoomed', 'dragging'); resetZoom();
+    if (state.gallery.splitView && typeof updateSplitRight === 'function') updateSplitRight(curUrl);
     img.onerror = () => {
       if (!curUrl) return;
       img.style.opacity = '0.3'; img.style.filter = 'grayscale(1) contrast(0.5)';

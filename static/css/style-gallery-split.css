@@ -1,0 +1,160 @@
+/* ── Gallery Split View — style-gallery-split.css ──────────────────────── */
+
+/* Container: fills the same space as gallery-zoom-layer */
+#gv2-split-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Each panel */
+.gv2-split-panel {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #0a0a0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  min-width: 0;
+}
+.gv2-split-panel:active { cursor: grabbing; }
+
+/* Inner layer — receives CSS transform (zoom/pan).
+   transform-origin: 0 0 so that tx/ty offsets in JS are predictable */
+.gv2-split-inner {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+  /* default: image centered via flex */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The image inside each panel */
+.gv2-split-img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Empty state (left panel before anything is pinned) */
+.gv2-split-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.2);
+  pointer-events: none;
+  user-select: none;
+  padding: 24px;
+  text-align: center;
+}
+.gv2-split-empty-icon { font-size: 2rem; opacity: 0.4; }
+.gv2-split-empty-txt  { font-size: 0.78rem; line-height: 1.5; max-width: 180px; }
+
+/* Draggable divider */
+.gv2-split-divider {
+  width: 5px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  cursor: col-resize;
+  transition: background 0.15s;
+  position: relative;
+  z-index: 10;
+}
+.gv2-split-divider:hover,
+.gv2-split-divider:active { background: rgba(99,102,241,0.6); }
+.gv2-split-divider::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px; height: 40px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+}
+
+/* HUD overlay (label + buttons, shown bottom-left) */
+.gv2-split-hud {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.gv2-split-panel:hover .gv2-split-hud { opacity: 1; pointer-events: auto; }
+
+.gv2-split-lbl {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  backdrop-filter: blur(6px);
+}
+
+.gv2-split-hud-btns {
+  display: flex;
+  gap: 3px;
+}
+
+.gv2-split-hud-btn {
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 5px;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 3px 7px;
+  line-height: 1.4;
+  transition: background 0.12s, color 0.12s;
+  backdrop-filter: blur(6px);
+}
+.gv2-split-hud-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.gv2-split-pin-btn:hover { background: rgba(250,204,21,0.25); color: #fde68a; border-color: rgba(250,204,21,0.5); }
+
+/* Split panel nav arrows (right panel only) */
+.gv2-split-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+  color: rgba(255,255,255,0.6);
+  width: 34px; height: 34px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.12s;
+  backdrop-filter: blur(6px);
+}
+.gv2-split-panel:hover .gv2-split-nav { opacity: 1; }
+.gv2-split-nav:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.gv2-split-nav-prev { left: 8px; }
+.gv2-split-nav-next { right: 8px; }
