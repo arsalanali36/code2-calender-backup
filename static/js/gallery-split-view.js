@@ -12,8 +12,9 @@ const _splitState = {
 
 function initSplitView() {
   const btn = document.getElementById('gv2-split-toggle-btn');
-  if (!btn) return;
-  btn.addEventListener('click', () => toggleSplitView());
+  if (btn) {
+    btn.addEventListener('click', () => toggleSplitView());
+  }
 
   // Split panel nav arrows
   const spPrev = document.getElementById('gv2-split-nav-prev');
@@ -77,17 +78,28 @@ function _applySplitMode() {
   const zoomLayer = document.getElementById('gallery-zoom-layer');
   const navPrev   = document.getElementById('gallery-prev');
   const navNext   = document.getElementById('gallery-next');
-  const btn       = document.getElementById('gv2-split-toggle-btn');
+  const syncBtn = (b) => {
+    if (!b) return;
+    b.style.background  = on ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)';
+    b.style.borderColor = on ? 'rgba(99,102,241,0.6)'  : 'rgba(255,255,255,0.1)';
+    b.style.color       = on ? '#818cf8' : '';
+    // Special handle for tray button if it has different brand color (purple/violet)
+    if (b.classList.contains('split-toggle-btn') && b.closest('#close-global-tray')) {
+      b.style.background  = on ? 'rgba(139, 92, 246, 0.25)' : 'rgba(139, 92, 246, 0.12)';
+      b.style.borderColor = on ? 'rgba(139, 92, 246, 0.6)'  : 'rgba(139, 92, 246, 0.3)';
+      b.style.color       = on ? '#a78bfa' : '#a78bfa';
+    }
+  };
+
+  const btn = document.getElementById('gv2-split-toggle-btn');
+  if (btn) syncBtn(btn);
+  const trayBtn = document.querySelector('#close-global-tray .split-toggle-btn');
+  if (trayBtn) syncBtn(trayBtn);
 
   if (container) container.style.display = on ? 'flex' : 'none';
   if (zoomLayer) zoomLayer.style.display = on ? 'none' : '';
   if (navPrev)   navPrev.style.display   = on ? 'none' : '';
   if (navNext)   navNext.style.display   = on ? 'none' : '';
-  if (btn) {
-    btn.style.background  = on ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)';
-    btn.style.borderColor = on ? 'rgba(99,102,241,0.6)'  : 'rgba(255,255,255,0.1)';
-    btn.style.color       = on ? '#818cf8' : '';
-  }
 
   if (on) {
     // Populate right panel with current image

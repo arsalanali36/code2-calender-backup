@@ -69,26 +69,28 @@ function _bindKeyboardEvents() {
       if (!annotState.active && !e.ctrlKey && !e.altKey) {
         const fsEl = document.getElementById('fullscreen-viewer');
         if (fsEl && fsEl.style.display === 'flex' && typeof FullscreenViewer !== 'undefined') {
-          if (!e.shiftKey) {
-            if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevImg(); return; }
-            if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextImg(); return; }
-            if (e.key === 'ArrowUp')    { e.preventDefault(); FullscreenViewer.prevDay(); return; }
-            if (e.key === 'ArrowDown')  { e.preventDefault(); FullscreenViewer.nextDay(); return; }
-          } else {
+          if (e.shiftKey) {
+            // Shift + Arrows -> Date navigation
             if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevDay(); return; }
             if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextDay(); return; }
+          } else {
+            // Regular Arrows -> Image navigation
+            if (e.key === 'ArrowLeft')  { e.preventDefault(); FullscreenViewer.prevImg(); return; }
+            if (e.key === 'ArrowRight') { e.preventDefault(); FullscreenViewer.nextImg(); return; }
+            // ArrowUp/Down functionalities removed per user request
           }
+          return; // Stop if FS is handled
         }
+
         if (e.shiftKey) {
           // Shift + Arrow → date navigation
           if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGalleryDate(-1); return; }
           if (e.key === 'ArrowRight') { e.preventDefault(); navigateGalleryDate(1);  return; }
         } else {
-          // Arrow nav for date/image
+          // Regular Arrow → image navigation
           if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateGallery(-1); return; }
           if (e.key === 'ArrowRight') { e.preventDefault(); navigateGallery(1);  return; }
-          if (e.key === 'ArrowUp')    { e.preventDefault(); navigateGalleryDate(-1); return; }
-          if (e.key === 'ArrowDown')  { e.preventDefault(); navigateGalleryDate(1); return; }
+          // ArrowUp/Down functionalities removed per user request
         }
       }
 

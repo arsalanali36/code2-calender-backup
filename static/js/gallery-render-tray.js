@@ -23,27 +23,9 @@ function renderCloseGlobalTray(curUrl) {
   if (tradesForDay.length === 0) return;
 
   const imgContainer = document.getElementById('gallery-img-wrapper') || document.querySelector('.gv2-img-area');
-  const zoomOverlay = document.getElementById('gallery-zoom-layer');
-  if (!imgContainer || !zoomOverlay) return;
+  if (!imgContainer) return;
 
   if (getComputedStyle(imgContainer).position === 'static') imgContainer.style.position = 'relative';
-
-  // 1. Zoomable Marker Container
-  let navCont = document.getElementById('close-global-nav-container');
-  if (!navCont) {
-      navCont = document.createElement('div');
-      navCont.id = 'close-global-nav-container';
-      navCont.style.position = 'absolute';
-      navCont.style.top = '0'; navCont.style.left = '0';
-      navCont.style.width = '100%'; navCont.style.height = '100%';
-      navCont.style.pointerEvents = 'none'; navCont.style.zIndex = '9998';
-      zoomOverlay.appendChild(navCont);
-  }
-  navCont.style.display = 'block';
-  if (typeof zoom !== 'undefined') {
-      navCont.style.transform = `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`;
-      navCont.style.transformOrigin = 'top left';
-  }
 
   // 2. Fixed Source Tray
   const tray = document.createElement('div');
@@ -56,7 +38,17 @@ function renderCloseGlobalTray(curUrl) {
   tray.style.top = savedTray.top || 'auto';
   tray.style.right = savedTray.right || 'auto';
   tray.style.flexDirection = savedTray.dir;
-  tray.style.display = 'flex';
+  const isMulti = tradesForDay.length > 10;
+  tray.style.display = isMulti ? 'grid' : 'flex';
+  if (isMulti) {
+      if (tray.style.flexDirection === 'column') {
+          tray.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      } else {
+          tray.style.gridTemplateRows = 'repeat(2, 1fr)';
+          tray.style.gridAutoFlow = 'column';
+      }
+  }
+
   tray.style.gap = '8px';
   tray.style.padding = '8px 12px';
   tray.style.background = 'rgba(15,15,20,0.85)';
@@ -86,7 +78,23 @@ function renderCloseGlobalTray(curUrl) {
       const tMidX = tr.left + tr.width / 2;
       const nearLeft  = tMidX < ulpRight + SNAP || cx < ulpRight + SNAP;
       const nearRight = tMidX > window.innerWidth - SNAP || cx > window.innerWidth - SNAP;
-      tray.style.flexDirection = (nearLeft || nearRight) ? 'column' : 'row';
+      const isVertical = (nearLeft || nearRight);
+      tray.style.flexDirection = isVertical ? 'column' : 'row';
+
+      if (tradesForDay.length > 10) {
+          tray.style.display = 'grid';
+          if (isVertical) {
+              tray.style.gridTemplateColumns = 'repeat(2, 1fr)';
+              tray.style.gridTemplateRows = '';
+              tray.style.gridAutoFlow = 'row';
+          } else {
+              tray.style.gridTemplateRows = 'repeat(2, 1fr)';
+              tray.style.gridTemplateColumns = '';
+              tray.style.gridAutoFlow = 'column';
+          }
+      } else {
+          tray.style.display = 'flex';
+      }
   };
 
   const _tApplyTranslate = () => {
@@ -221,35 +229,51 @@ function renderCloseGlobalTray(curUrl) {
   };
   tray.appendChild(cgJumpBtn);
 
-  if (!dayDataObj.navPositions) dayDataObj.navPositions = {};
-  if (!dayDataObj.navPositions[curUrl]) dayDataObj.navPositions[curUrl] = {};
-  const posData = dayDataObj.navPositions[curUrl];
+  // Split View Toggle Button in Tray
+  const splitBtn = document.createElement('button');
+  splitBtn.className = 'close-global-nav-btn split-toggle-btn';
+  splitBtn.innerHTML = '⊞';
+  splitBtn.style.cssText = `
+      background:rgba(139, 92, 246, 0.12); color:#a78bfa;
+      border:1px solid rgba(139, 92, 246, 0.3); backdrop-filter:blur(4px);
+      border-radius:50%; width:34px; height:34px; font-size:1.1rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all 0.2s ease; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  `;
+  splitBtn.title = 'Toggle Split View';
+  splitBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof toggleSplitView === 'function') toggleSplitView();
+  };
+  tray.appendChild(splitBtn);
 
-  // Trade buttons + markers
+  // Trade buttons
+  const allAbsPnls = tradesForDay.map(tr => Math.abs(parseFloat(tr['Net P/L'] || tr.net_pnl || 0)));
+  const maxAbsPnl = Math.max(...allAbsPnls, 1);
+
   tradesForDay.forEach((tr, idx) => {
       const pnl = parseFloat(tr['Net P/L'] || tr.net_pnl || 0);
+      const absPnl = Math.abs(pnl);
       const timeStr = tr['Entry Time'] || tr['entry_time'] || tr['entryTime'] || tr['Buy Time'] || tr['Time'] || tr['time'] || 'N/A';
       const pnlRounded = Math.round(pnl);
       const pnlDisplay = (pnlRounded >= 0 ? '+' : '') + pnlRounded.toLocaleString('en-IN');
       const tooltip = `Trade #${idx + 1}\nTime: ${timeStr}\nP&L: ₹${pnlDisplay}`;
       const markerColor = pnl > 0 ? '#2ecc71' : (pnl < 0 ? '#e74c3c' : '#58a6ff');
 
-      // Marker (on image)
-      const marker = document.createElement('button');
-      marker.className = 'close-global-marker';
-      marker.textContent = String(idx + 1);
-      marker.style.cssText = `position:absolute; z-index:9999; pointer-events:auto;
-          background:${markerColor}; color:#fff; border:1px solid rgba(255,255,255,0.4);
-          border-radius:50%; width:24px; height:24px; font-size:0.75rem; font-weight:900;
-          cursor:pointer; opacity:1; box-shadow:0 4px 12px rgba(0,0,0,0.4);`;
-      marker.title = tooltip + '\n(Right-click to remove)';
-      marker.oncontextmenu = (e) => { e.preventDefault(); delete posData[idx]; if (typeof saveTrades === 'function') saveTrades(); marker.style.display = 'none'; };
-      if (posData[idx]) { marker.style.left = posData[idx].left; marker.style.top = posData[idx].top; marker.style.display = 'block'; }
-      else { marker.style.display = 'none'; }
+      // Proportional Sizing
+      const minS = 20, maxS = 32;
+      const scaleFactor = maxAbsPnl > 0 ? Math.pow(absPnl / maxAbsPnl, 0.5) : 0;
+      const size = minS + (maxS - minS) * scaleFactor;
+      const fontSize = 0.65 + (0.25 * scaleFactor);
 
       // Tray button (source)
       const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
       const isActive = (tr === activeTrade);
+
+      // --- Progress Indicator (Ref Card check) ---
+      const dData = state.dayData[closeGlobalDateKey] || {};
+      const refCard = dData.tradeRefCards?.[idx];
+      const isRefReady = !!(refCard && refCard.index);
 
       const sourceBtn = document.createElement('button');
       sourceBtn.className = 'close-global-nav-btn';
@@ -258,83 +282,56 @@ function renderCloseGlobalTray(curUrl) {
       sourceBtn.textContent = String(idx + 1);
       
       let styleStr = `background:${markerColor}; color:#fff; border:none;
-          border-radius:50%; width:32px; height:32px; font-size:0.9rem; font-weight:900;
-          cursor:grab; box-shadow:0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s ease;`;
+          border-radius:50%; width:${size}px; height:${size}px; font-size:${fontSize}rem; font-weight:900;
+          cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s ease;
+          display: flex; align-items: center; justify-content: center; position:relative;`;
       
       if (isActive) {
           styleStr += `outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 15px ${markerColor}, 0 4px 10px rgba(0,0,0,0.6); transform: scale(1.1);`;
       }
       
       sourceBtn.style.cssText = styleStr;
-      sourceBtn.title = tooltip + (isActive ? ' (ACTIVE)' : '');
+      sourceBtn.title = tooltip + (isActive ? ' (ACTIVE)' : '') + (isRefReady ? ' [REF READY]' : '');
+
+      // Dot for Ref Ready
+      if (isRefReady) {
+          const dot = document.createElement('div');
+          dot.style.cssText = `position:absolute; bottom:-1px; right:-1px; width:8px; height:8px; 
+              background:#4ade80; border:1px solid #000; border-radius:50%; box-shadow: 0 0 5px #4ade80;`;
+          sourceBtn.appendChild(dot);
+      }
+
       tray.appendChild(sourceBtn);
 
-      // Drag logic
-      let isDragging = false, startX, startY, initialLeft, initialTop;
-      let clickStartTime = 0, movedDuringClick = false;
-
-      const onMouseMove = (e) => {
-          if (!isDragging) return;
-          movedDuringClick = true;
-          const rect = zoomOverlay.getBoundingClientRect();
-          const scale = rect.width / zoomOverlay.offsetWidth || 1;
-          const dx = (e.clientX - startX) / scale, dy = (e.clientY - startY) / scale;
-          marker.style.display = 'block';
-          marker.style.left = (((initialLeft + dx) / zoomOverlay.offsetWidth) * 100) + '%';
-          marker.style.top  = (((initialTop  + dy) / zoomOverlay.offsetHeight) * 100) + '%';
-      };
-
-      const onMouseUp = () => {
-          if (!isDragging) return;
-          isDragging = false;
-          sourceBtn.style.cursor = 'grab'; marker.style.cursor = 'pointer';
-          posData[idx] = { left: marker.style.left, top: marker.style.top };
-          if (typeof saveTrades === 'function') saveTrades();
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      const bindDrag = (el, isSource) => {
-          el.addEventListener('mousedown', (e) => {
-              if (e.button !== 0) return;
-              isDragging = true; clickStartTime = Date.now(); movedDuringClick = false;
-              el.style.cursor = 'grabbing';
-              if (isSource) {
-                  const rect = zoomOverlay.getBoundingClientRect();
-                  const scale = rect.width / zoomOverlay.offsetWidth || 1;
-                  initialLeft = (e.clientX - rect.left) / scale;
-                  initialTop  = (e.clientY - rect.top)  / scale;
-              } else {
-                  initialLeft = marker.offsetLeft; initialTop = marker.offsetTop;
-              }
-              startX = e.clientX; startY = e.clientY;
-              document.addEventListener('mousemove', onMouseMove);
-              document.addEventListener('mouseup', onMouseUp);
-              e.preventDefault(); e.stopPropagation();
-          });
-      };
-
-      bindDrag(sourceBtn, true);
-      bindDrag(marker, false);
-
-      const onClickTrade = (e) => {
+      sourceBtn.onclick = (e) => {
           e.stopPropagation();
-          if (!movedDuringClick && Date.now() - clickStartTime < 300) {
-              // Jump to trade in gallery
-              if (tr.images && tr.images.length > 0) {
-                  const firstUrl = tr.images[0];
-                  const gIdx = (state.gallery.images || []).indexOf(firstUrl);
-                  if (gIdx !== -1) {
-                      state.gallery.currentIndex = gIdx;
-                      renderGallery();
-                  }
+          // Jump to trade in gallery
+          if (tr.images && tr.images.length > 0) {
+              const firstUrl = tr.images[0];
+              const gIdx = (state.gallery.images || []).indexOf(firstUrl);
+              if (gIdx !== -1) {
+                  state.gallery.currentIndex = gIdx;
+                  renderGallery();
               }
-              if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
           }
+          if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
       };
-      marker.onclick = onClickTrade;
-      sourceBtn.onclick = onClickTrade;
-
-      navCont.appendChild(marker);
   });
+
+  // Export PDF Button in Tray (only if splitView or refCards visible)
+  const pdfBtn = document.createElement('button');
+  pdfBtn.className = 'close-global-nav-btn pdf-export-btn';
+  pdfBtn.innerHTML = '📄';
+  pdfBtn.style.cssText = `
+      background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3);
+      backdrop-filter:blur(4px); border-radius:50%; width:34px; height:34px; font-size:1rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all 0.2s ease; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  `;
+  pdfBtn.title = 'Export Ref Cards to PDF';
+  pdfBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
+  };
+  tray.appendChild(pdfBtn);
 }

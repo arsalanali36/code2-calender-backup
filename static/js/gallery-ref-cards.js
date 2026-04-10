@@ -238,8 +238,8 @@ function initOtherDropdown() {
 
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
-    // Default: enabled (sidebar can open)
-    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = false;
+    // Default: disabled (sidebar won't open on click)
+    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
     _syncTradeSidebarBtn();
     tsToggle.addEventListener('click', () => {
       window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
@@ -251,9 +251,115 @@ function initOtherDropdown() {
       dd.style.display = 'none';
     });
   }
+
+  const pdfBtn = document.getElementById('gv2-export-refpdf-btn');
+  if (pdfBtn) {
+    pdfBtn.disabled = false;
+    pdfBtn.title = 'Export Ref Cards to PDF';
+    pdfBtn.onclick = (e) => {
+        e.stopPropagation();
+        dd.style.display = 'none';
+        exportRefCardsToPDF();
+    };
+  }
 }
 
-function _syncRefCardsBtn() {
+/**
+ * 📄 PDF Export Logic for Ref Cards
+ */
+function exportRefCardsToPDF() {
+  const date = state.gallery.date;
+  if (!date) { if (typeof showToast === 'function') showToast('Pehle date select karein', 'error'); return; }
+
+  const dayData = state.dayData[date];
+  const refCards = dayData?.tradeRefCards;
+  if (!refCards || Object.keys(refCards).length === 0) {
+    if (typeof showToast === 'function') showToast('Is din ke liye koi Ref Cards (Pinned Images) nahi hain', 'info');
+    return;
+  }
+
+  // Use a specialized print layout
+  let printCont = document.getElementById('gv2-pdf-export-area');
+  if (printCont) printCont.remove();
+  
+  printCont = document.createElement('div');
+  printCont.id = 'gv2-pdf-export-area';
+  
+  // Header Info
+  const header = document.createElement('div');
+  header.className = 'gv2-pdf-header';
+  header.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:20px;">
+      <div>
+        <h1 style="margin:0; font-size:1.8rem; color:#222;">TRADING JOURNAL</h1>
+        <div style="color:#666; font-size:0.9rem; margin-top:4px;">Reference Summary Report</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1.2rem; font-weight:700; color:#333;">${date}</div>
+        <div style="font-size:0.8rem; color:#999; margin-top:2px;">Generated: ${new Date().toLocaleDateString()}</div>
+      </div>
+    </div>
+  `;
+  printCont.appendChild(header);
+
+  const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+  let found = 0;
+
+  dayTrades.forEach((tr, i) => {
+    const cardData = refCards[i];
+    if (!cardData || (!cardData.index && !cardData.premium)) return;
+    found++;
+
+    const tradeRow = document.createElement('div');
+    tradeRow.className = 'gv2-pdf-trade-row';
+    tradeRow.style.cssText = 'margin-bottom:40px; break-inside:avoid; page-break-inside:avoid;';
+
+    const pnl = typeof getTradePnl === 'function' ? (getTradePnl(tr) || 0) : 0;
+    const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+    const pnlStr = (pnl >= 0 ? '+' : '') + '₹' + Math.abs(Math.round(pnl)).toLocaleString('en-IN');
+    
+    tradeRow.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; background:#f8f9fa; padding:8px 12px; border-radius:6px; border-left:4px solid ${pnlColor}">
+        <div style="background:#333; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.8rem;">${i + 1}</div>
+        <div style="font-weight:700; font-size:1rem; color:#111; flex:1;">${(tr.Instrument || tr.instrument || 'Trade').toUpperCase()}</div>
+        <div style="color:${pnlColor}; font-weight:800; font-size:1rem;">${pnlStr}</div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px;">Index / Context</div>
+          <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; min-height:150px; display:flex; align-items:center; justify-content:center;">
+             ${cardData.index ? `<img src="${resolveImageUrl(cardData.index)}" style="width:100%; height:auto; display:block;">` : '<span style="color:#999; font-style:italic; font-size:0.7rem;">Not Saved</span>'}
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-size:0.75rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px;">Premium / Execution</div>
+          <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:#eee; min-height:150px; display:flex; align-items:center; justify-content:center;">
+             ${cardData.premium ? `<img src="${resolveImageUrl(cardData.premium)}" style="width:100%; height:auto; display:block;">` : '<span style="color:#999; font-style:italic; font-size:0.7rem;">Not Saved</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+    printCont.appendChild(tradeRow);
+  });
+
+  if (found === 0) {
+    if (typeof showToast === 'function') showToast('Is din ke liye koi Ref Cards nahi hain', 'info');
+    return;
+  }
+
+  document.body.appendChild(printCont);
+
+  // Trigger print
+  setTimeout(() => {
+    window.print();
+    // No cleanup here so user can see it briefly if needed, 
+    // but better to remove after print dialog closes
+    const cleanup = () => { printCont.remove(); window.removeEventListener('focus', cleanup); };
+    window.addEventListener('focus', cleanup);
+  }, 200);
+}
+
+document.addEventListener('DOMContentLoaded', initOtherDropdown);function _syncRefCardsBtn() {
   const btn = document.getElementById('gv2-refcards-toggle');
   if (!btn) return;
   const on = state.gallery.showRefCards !== false;
@@ -267,4 +373,3 @@ function _syncTradeSidebarBtn() {
   btn.innerHTML = '🖼 Trade Sidebar' + (enabled ? ' <span style="color:#4ade80">✓</span>' : ' <span style="color:#f87171">✗</span>');
 }
 
-document.addEventListener('DOMContentLoaded', initOtherDropdown);

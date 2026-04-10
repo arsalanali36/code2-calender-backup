@@ -409,11 +409,17 @@ function _bindGalleryEvents() {
     const dateStr = e.target.value;
     const images = getImagesForDate(dateStr);
     if (images.length) {
-      state.gallery.images = images; state.gallery.currentIndex = 0; state.gallery.date = dateStr; state.gallery.sourceRow = null;
+      state.gallery.images = images; 
+      state.gallery.date = dateStr; 
+      state.gallery.sourceRow = null;
       state.gallery._baseImages = [...images];
       state.gallery._baseDate = dateStr;
       state.gallery._baseSourceRow = null;
-      if (state.gallery.tagFilter?.length) applyGalleryImageScopeByTagFilter(images[0] || '');
+      
+      // Jump to Close Global if available (same as arrow navigation)
+      state.gallery.currentIndex = typeof getInitialIndexForDate === 'function' ? getInitialIndexForDate(dateStr, images) : 0;
+      
+      if (state.gallery.tagFilter?.length) applyGalleryImageScopeByTagFilter(images[state.gallery.currentIndex] || '');
       renderGallery(); updateGalleryDateArrows();
     } else { showToast('No images for this date', ''); }
   });

@@ -211,6 +211,30 @@ function getGalleryDateScopeForFilter() {
   return { dates, byDate, currentDate, imageDates, currentIndex: curIdx };
 }
 
+// Helper to find the best image to start with for a given date
+function getInitialIndexForDate(date, images = null) {
+  if (!images) images = getImagesForDate(date);
+  if (!images.length) return 0;
+
+  // 1. Priority: Close Global Image
+  const dayData = state.dayData[date] || {};
+  if (dayData.closeGlobalImages && dayData.closeGlobalImages.length > 0) {
+    const firstGlobal = dayData.closeGlobalImages[0];
+    const gIdx = images.indexOf(firstGlobal);
+    if (gIdx >= 0) return gIdx;
+  }
+
+  // 2. Priority: T1 Images
+  const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
+  if (dayTrades.length > 0 && dayTrades[0].images && dayTrades[0].images.length > 0) {
+    const t1FirstImg = dayTrades[0].images[0];
+    const t1Idx = images.indexOf(t1FirstImg);
+    if (t1Idx >= 0) return t1Idx;
+  }
+
+  return 0;
+}
+
 function navigateGalleryDate(dir) {
   const filterActive = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
   if (filterActive) {
@@ -274,31 +298,11 @@ function navigateGalleryDate(dir) {
     if (images.length) {
       state.gallery.images = images;
       state.gallery._baseImages = [...images];
-      state.gallery.currentIndex = 0;
       state.gallery.date = nextDate;
       state.gallery.sourceRow = null;
       state.gallery.imageTimes = {};
-
-      // ── Priority 1: Auto-select Close Global Image ──
-      const dayData = state.dayData[nextDate] || {};
-      if (dayData.closeGlobalImages && dayData.closeGlobalImages.length > 0) {
-        const firstGlobal = dayData.closeGlobalImages[0];
-        const gIdx = images.indexOf(firstGlobal);
-        if (gIdx >= 0) {
-          state.gallery.currentIndex = gIdx;
-        }
-      } else {
-        // ── Priority 2: Auto-select T1 ──
-        const dayTrades = typeof getTradesForDate === 'function' ? getTradesForDate(nextDate) : [];
-        if (dayTrades.length > 0 && dayTrades[0].images && dayTrades[0].images.length > 0) {
-          const t1FirstImg = dayTrades[0].images[0];
-          const t1Idx = images.indexOf(t1FirstImg);
-          if (t1Idx >= 0) {
-            state.gallery.currentIndex = t1Idx;
-            state.gallery.selectedSeparator = 0;
-          }
-        }
-      }
+      
+      state.gallery.currentIndex = getInitialIndexForDate(nextDate, images);
 
       renderGallery(); updateGalleryDateArrows();
       if (state.gallery.showTime) fetchImageTimesForGallery();
