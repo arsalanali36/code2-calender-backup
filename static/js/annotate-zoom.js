@@ -161,6 +161,7 @@ function bindZoomPan() {
   let _lastTapTime = 0, _lastTapX = 0, _lastTapY = 0;
 
   wrapper.addEventListener('touchstart', e => {
+    if (state.gallery.splitView) return; // Don't interfere with split view pan/zoom
     if (e.touches.length === 2) {
       swipeTracking = false; touchPanActive = false;
       lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
@@ -205,6 +206,7 @@ function bindZoomPan() {
   }, { passive: true });
 
   wrapper.addEventListener('touchmove', e => {
+    if (state.gallery.splitView) return;
     if (e.touches.length === 2) {
       e.preventDefault();
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
@@ -240,6 +242,11 @@ function bindZoomPan() {
   }, { passive: false });
 
   wrapper.addEventListener('touchend', () => {
+    if (state.gallery.splitView) {
+      touchPanActive = false;
+      swipeTracking = false;
+      return;
+    }
     touchPanActive = false;
     if (!swipeTracking) return;
     const dx = swipeLastX - swipeStartX, dy = swipeLastY - swipeStartY;

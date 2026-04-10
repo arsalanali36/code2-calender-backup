@@ -76,6 +76,16 @@
   transition: background 0.15s;
   position: relative;
   z-index: 10;
+  /* Support touch better with a wider invisible hit area */
+  touch-action: none;
+}
+.gv2-split-divider::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -15px; /* expand hit area 15px to the left */
+  right: -15px; /* expand hit area 15px to the right */
+  z-index: 1;
 }
 .gv2-split-divider:hover,
 .gv2-split-divider:active { background: rgba(99,102,241,0.6); }
@@ -87,6 +97,7 @@
   width: 3px; height: 40px;
   border-radius: 2px;
   background: rgba(255,255,255,0.2);
+  z-index: 2; /* make sure visual handle is above hit area if needed */
 }
 
 /* HUD overlay (label + buttons, shown bottom-left) */

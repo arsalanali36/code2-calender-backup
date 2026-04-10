@@ -243,61 +243,117 @@ function initOtherDropdown() {
   const btn = document.getElementById('gv2-other-btn');
   const dd  = document.getElementById('gv2-other-dropdown');
   if (!btn || !dd) return;
+  
+  // Move to body to prevent clipping by parent tray containers
+  if (dd.parentElement !== document.body) {
+    document.body.appendChild(dd);
+  }
 
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-  });
+  if (btn.dataset.initialized) return;
+  btn.dataset.initialized = 'true';
+
+  const toggle = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    const isOpen = dd.classList.toggle('open');
+    
+    if (isOpen) {
+      // Position the dropdown below the button
+      const r = btn.getBoundingClientRect();
+      dd.style.position = 'fixed';
+      dd.style.display = 'block';
+      let left = r.right - 168; // min-width from CSS
+      if (left < 10) left = 10;
+      dd.style.left = left + 'px';
+      dd.style.top = (r.bottom + 8) + 'px';
+      dd.style.zIndex = '100000';
+    } else {
+      dd.style.display = 'none';
+    }
+    btn.classList.toggle('active', isOpen);
+  };
+
+  btn.addEventListener('click', toggle);
+  btn.addEventListener('touchstart', toggle, { passive: false });
 
   document.addEventListener('click', e => {
-    if (!e.target.closest('#gv2-other-btn-wrap')) dd.style.display = 'none';
+    if (!e.target.closest('#gv2-other-btn-wrap')) {
+      dd.classList.remove('open');
+      dd.style.display = 'none';
+      btn.classList.remove('active');
+    }
   });
+
+  document.addEventListener('touchstart', e => {
+    if (!e.target.closest('#gv2-other-btn-wrap')) {
+      if (dd.classList.contains('open')) {
+        dd.classList.remove('open');
+        dd.style.display = 'none';
+        btn.classList.remove('active');
+      }
+    }
+  }, { passive: true });
 
   const rcToggle = document.getElementById('gv2-refcards-toggle');
   if (rcToggle) {
     if (state.gallery.showRefCards === undefined) state.gallery.showRefCards = true;
     _syncRefCardsBtn();
-    rcToggle.addEventListener('click', () => {
+    const handleRc = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       state.gallery.showRefCards = !state.gallery.showRefCards;
       _syncRefCardsBtn();
+      dd.classList.remove('open');
       dd.style.display = 'none';
+      btn.classList.remove('active');
       state.gallery._skipScrollIntoView = true;
       renderGallery();
-    });
+    };
+    rcToggle.addEventListener('click', handleRc);
+    rcToggle.addEventListener('touchstart', handleRc, { passive: false });
   }
 
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
     if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
     _syncTradeSidebarBtn();
-    tsToggle.addEventListener('click', () => {
+    const handleTs = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
       if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
         toggleTradeSidebar(false);
       }
       _syncTradeSidebarBtn();
+      dd.classList.remove('open');
       dd.style.display = 'none';
-    });
+      btn.classList.remove('active');
+    };
+    tsToggle.addEventListener('click', handleTs);
+    tsToggle.addEventListener('touchstart', handleTs, { passive: false });
   }
 
   const pdfBtn = document.getElementById('gv2-export-current-pdf-btn');
   if (pdfBtn) {
-    pdfBtn.disabled = false;
-    pdfBtn.onclick = (e) => {
-        e.stopPropagation();
-        dd.style.display = 'none';
-        if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
+    const handlePdf = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      dd.classList.remove('open');
+      dd.style.display = 'none';
+      btn.classList.remove('active');
+      if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
     };
+    pdfBtn.addEventListener('click', handlePdf);
+    pdfBtn.addEventListener('touchstart', handlePdf, { passive: false });
   }
 
   const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
   if (allPdfBtn) {
-    allPdfBtn.disabled = false;
-    allPdfBtn.onclick = (e) => {
-        e.stopPropagation();
-        dd.style.display = 'none';
-        if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
+    const handleAllPdf = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      dd.classList.remove('open');
+      dd.style.display = 'none';
+      btn.classList.remove('active');
+      if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
     };
+    allPdfBtn.addEventListener('click', handleAllPdf);
+    allPdfBtn.addEventListener('touchstart', handleAllPdf, { passive: false });
   }
 }
 

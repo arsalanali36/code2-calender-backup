@@ -82,12 +82,12 @@
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
   padding: 6px 14px;
-  border-radius: 40px; /* More rounded for premium feel */
+  border-radius: 40px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
-  gap: 10px; /* Balanced spacing */
+  gap: 10px;
   cursor: grab;
   margin-top: 10px;
 }

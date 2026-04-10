@@ -110,11 +110,17 @@ function initSplitView() {
     btn.addEventListener('click', () => toggleSplitView());
   }
 
-  // Split panel nav arrows
+  // Split panel nav arrows (Right side — main gallery nav)
   const spPrev = document.getElementById('gv2-split-nav-prev');
   const spNext = document.getElementById('gv2-split-nav-next');
   if (spPrev) spPrev.addEventListener('click', e => { e.stopPropagation(); if (typeof navigateGallery === 'function') navigateGallery(-1); });
   if (spNext) spNext.addEventListener('click', e => { e.stopPropagation(); if (typeof navigateGallery === 'function') navigateGallery(1); });
+
+  // Split panel nav arrows (Left side — independent reference nav)
+  const splPrev = document.getElementById('gv2-split-left-nav-prev');
+  const splNext = document.getElementById('gv2-split-left-nav-next');
+  if (splPrev) splPrev.addEventListener('click', e => { e.stopPropagation(); navigateSplitLeft(-1); });
+  if (splNext) splNext.addEventListener('click', e => { e.stopPropagation(); navigateSplitLeft(1); });
 
   // Delegated button clicks
   document.addEventListener('click', e => {
@@ -132,6 +138,31 @@ function initSplitView() {
   _bindPanelZoomPan('left');
   _bindPanelZoomPan('right');
   _bindDivider();
+}
+
+/** Navigates the pinned image in the left panel independently. */
+function navigateSplitLeft(dir) {
+    if (!state.gallery.splitView) return;
+    const url = _splitState.left.rawUrl || _splitState.left.url;
+    if (!url) {
+        // If empty, start from first image
+        const images = state.gallery.images || [];
+        if (images.length) pinToLeft(images[0], true);
+        return;
+    }
+    const images = state.gallery.images || [];
+    let idx = images.indexOf(url);
+    if (idx === -1) {
+        const cleaned = url.split('?')[0];
+        idx = images.findIndex(u => u === url || u.includes(cleaned));
+    }
+    if (idx === -1) return;
+    let nextIdx = idx + dir;
+    if (nextIdx < 0) nextIdx = 0;
+    if (nextIdx >= images.length) nextIdx = images.length - 1;
+    if (nextIdx === idx) return;
+    
+    pinToLeft(images[nextIdx], true);
 }
 
 function toggleSplitView() {
@@ -359,6 +390,7 @@ function _bindPanelZoomPan(side) {
 
   panel.addEventListener('touchstart', e => {
     if (!state.gallery.splitView || e.target.closest('button')) return;
+    e.stopPropagation(); // Prevent parent wrapper from seeing this touch
     if (e.touches.length === 1) {
       dragging = true;
       lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
@@ -375,6 +407,7 @@ function _bindPanelZoomPan(side) {
 
   panel.addEventListener('touchmove', e => {
     if (!state.gallery.splitView) return;
+    e.stopPropagation(); // Prevent parent wrapper from seeing this move
     e.preventDefault();
     const st = _splitState[side];
 
@@ -399,8 +432,14 @@ function _bindPanelZoomPan(side) {
     }
   }, { passive: false });
 
-  panel.addEventListener('touchend', () => { dragging = false; tDist = 0; });
-  panel.addEventListener('touchcancel', () => { dragging = false; tDist = 0; });
+  panel.addEventListener('touchend', e => { 
+    if (state.gallery.splitView) e.stopPropagation();
+    dragging = false; tDist = 0; 
+  });
+  panel.addEventListener('touchcancel', e => { 
+    if (state.gallery.splitView) e.stopPropagation();
+    dragging = false; tDist = 0; 
+  });
 
   // ── Double Tap Reset (iPad) ────────────────────────────────────────────────
   let lastTap = 0;
@@ -425,43 +464,70 @@ function _bindPanelZoomPan(side) {
 }
 
 function _bindDivider() {
-  document.addEventListener('mousedown', e => {
-    if (e.target.id !== 'gv2-split-divider') return;
+  const container = document.getElementById('gv2-split-container');
+  const divider   = document.getElementById('gv2-split-divider');
+  const leftPanel = document.getElementById('gv2-split-left');
+
+  if (!divider || !container || !leftPanel) return;
+
+  let startX = 0;
+  let startW = 0;
+
+  const onMove = (clientX) => {
+    const totalW = container.getBoundingClientRect().width;
+    if (!totalW) return;
+    const newW = startW + clientX - startX;
+    const pct  = Math.max(15, Math.min(85, (newW / totalW) * 100));
+    leftPanel.style.flex = `0 0 ${pct}%`;
+  };
+
+  // Mouse handlers
+  const onMouseMove = (e) => onMove(e.clientX);
+  const onMouseUp = () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+
+  // Touch handlers
+  const onTouchMove = (e) => {
+    if (e.touches.length !== 1) return;
+    onMove(e.touches[0].clientX);
+    if (e.cancelable) e.preventDefault();
+  };
+  const onTouchEnd = () => {
+    window.removeEventListener('touchmove', onTouchMove);
+    window.removeEventListener('touchend', onTouchEnd);
+    window.removeEventListener('touchcancel', onTouchEnd);
+    document.body.style.userSelect = '';
+  };
+
+  // Start dragging (Mouse)
+  divider.addEventListener('mousedown', e => {
     e.preventDefault();
     e.stopPropagation();
-
-    const container = document.getElementById('gv2-split-container');
-    const leftPanel = document.getElementById('gv2-split-left');
-    if (!container || !leftPanel) return;
-
-    // Use getBoundingClientRect for reliable measurements
-    const cRect = container.getBoundingClientRect();
     const lRect = leftPanel.getBoundingClientRect();
-    const startX = e.clientX;
-    const startW = lRect.width;
-
+    startX = e.clientX;
+    startW = lRect.width;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-
-    const onMove = mv => {
-      const totalW = container.getBoundingClientRect().width;
-      if (!totalW) return;
-      const newW = startW + mv.clientX - startX;
-      const pct  = Math.max(15, Math.min(85, newW / totalW * 100));
-      // Override flex with explicit sizing
-      leftPanel.style.flex = `0 0 ${pct}%`;
-    };
-
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   });
+
+  // Start dragging (Touch/iPad)
+  divider.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    e.stopPropagation();
+    const lRect = leftPanel.getBoundingClientRect();
+    startX = e.touches[0].clientX;
+    startW = lRect.width;
+    document.body.style.userSelect = 'none';
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
+  }, { passive: true });
 }
 
 document.addEventListener('DOMContentLoaded', initSplitView);
