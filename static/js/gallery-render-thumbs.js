@@ -331,7 +331,10 @@ function renderGalleryThumbs() {
       t = document.createElement('video');
       t.src = resolveImageUrl(url); t.preload = 'metadata'; t.muted = true; t.loop = true; t.playsInline = true;
       t.style.objectFit = 'cover';
-      t.className = 'gv2-thumb gv2-thumb-video' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
+      const isSelected = !!state.gallery.selectedIndices?.has(globalIdx);
+      const isActive = globalIdx === currentIndex;
+      t.className = 'gv2-thumb gv2-thumb-video' + (isActive ? ' active' : '') + (isSelected ? ' selected-thumb' : '');
+      if (isSelected) t.style.borderColor = '#ff9800'; 
       t.title = 'Video recording';
       t.addEventListener('mouseenter', () => { t.play().catch(()=>{}); });
       t.addEventListener('mouseleave', () => { t.pause(); });
@@ -343,7 +346,11 @@ function renderGalleryThumbs() {
     } else {
       t = document.createElement('img');
       t.src = resolveImageUrl(url);
-      t.className = 'gv2-thumb' + (globalIdx === currentIndex ? ' active' : '') + (state.gallery.selectedIndices?.has(globalIdx) ? ' selected-thumb' : '');
+      const isSelected = !!state.gallery.selectedIndices?.has(globalIdx);
+      const isActive = globalIdx === currentIndex;
+      t.className = 'gv2-thumb' + (isActive ? ' active' : '') + (isSelected ? ' selected-thumb' : '');
+      // Ensure the orange border is visible even if active
+      if (isSelected) t.style.borderColor = '#ff9800'; 
       t.onerror = () => {
         if (state.gallery.images.indexOf(url) < 0) { wrap.style.display = 'none'; return; }
         t.style.opacity = '0.3'; t.title = 'Image could not be loaded';
@@ -356,33 +363,35 @@ function renderGalleryThumbs() {
       else if (state.gallery._filteredMeta?.[globalIdx]?.isCollapsedTrade) wrap.classList.add('collapsed-trade-preview');
     }
 
-    // Click handler
+    // Selection Handler (Combined Click)
     t.addEventListener('click', (e) => {
       if (!state.gallery.selectedIndices) state.gallery.selectedIndices = new Set();
-      const lastIdx = state.gallery.lastClickedIdx ?? currentIndex;
+      
+      // Use currentIndex as fallback if lastClickedIdx is -1/null
+      let lastIdx = state.gallery.lastClickedIdx;
+      if (lastIdx === null || lastIdx === undefined || lastIdx < 0) lastIdx = currentIndex;
 
-      if ((e.ctrlKey || e.metaKey) && _filterActive3) {
-        e.preventDefault(); e.stopPropagation();
-        const tradeKey = (_effDate || '') + ':' + (ownerTrade ? itemSourceRow : 'OPENCLOSE');
-        state.gallery.expandedFilterTrades = state.gallery.expandedFilterTrades || new Set();
-        if (state.gallery.expandedFilterTrades.has(tradeKey)) state.gallery.expandedFilterTrades.delete(tradeKey);
-        else state.gallery.expandedFilterTrades.add(tradeKey);
-        applyGalleryImageScopeByTagFilter();
-        renderGallery();
+      if (e.shiftKey) {
+        e.preventDefault();
+        const start = Math.min(lastIdx, globalIdx);
+        const end = Math.max(lastIdx, globalIdx);
+        for (let i = start; i <= end; i++) {
+          if (i >= 0 && i < state.gallery.images.length) state.gallery.selectedIndices.add(i);
+        }
+        state.gallery.lastClickedIdx = globalIdx;
+        renderGallery(); 
         return;
       }
-      if (e.shiftKey) {
-        const start = Math.min(lastIdx, globalIdx), end = Math.max(lastIdx, globalIdx);
-        for (let i = start; i <= end; i++) state.gallery.selectedIndices.add(i);
-        state.gallery.lastClickedIdx = globalIdx;
-        renderGallery(); return;
-      }
+
       if (e.ctrlKey || e.metaKey) {
         if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
         else state.gallery.selectedIndices.add(globalIdx);
         state.gallery.lastClickedIdx = globalIdx;
-        renderGallery(); return;
+        renderGallery();
+        return;
       }
+
+      // Default: select individual
       state.gallery.selectedIndices = new Set([globalIdx]);
       state.gallery.currentIndex = globalIdx;
       state.gallery.lastClickedIdx = globalIdx;
@@ -445,7 +454,12 @@ function renderGalleryThumbs() {
 
     const del = document.createElement('button');
     del.type = 'button'; del.className = 'gv2-thumb-del'; del.textContent = '×'; del.title = 'Remove image';
-    del.addEventListener('click', async e => { e.stopPropagation(); await removeGalleryImageAt(globalIdx); });
+    del.style.pointerEvents = 'auto'; // Ensure it captures clicks
+    del.addEventListener('click', async e => { 
+      e.stopPropagation(); 
+      e.preventDefault();
+      await removeGalleryImageAt(globalIdx); 
+    });
 
     if (globalIdx === 0 && date) {
       const videoUrl = state.dayData[date]?.video;

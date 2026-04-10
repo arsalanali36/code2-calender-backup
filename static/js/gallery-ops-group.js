@@ -264,6 +264,8 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
     }
 
     state.gallery.selectedIndices.clear();
+    state.gallery.lastClickedIdx = -1; // Reset shift-selection anchor to -1
+    
     if (state.gallery.date === dateToUse) {
         state.gallery.images = getImagesForDate(dateToUse);
         state.gallery._baseImages = [...state.gallery.images];
@@ -272,6 +274,11 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
     renderGallery();
     renderTable();
     renderCalendar();
+    
+    // Crucial: Refresh Grid View if it's currently open
+    if (typeof renderGridContent === 'function' && typeof isGridViewOpen === 'function' && isGridViewOpen()) {
+        renderGridContent();
+    }
 
     // Push undo entry
     window.galleryUndoStack = window.galleryUndoStack || [];

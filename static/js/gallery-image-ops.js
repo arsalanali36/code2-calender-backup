@@ -429,6 +429,11 @@ async function removeGalleryImageAt(idx, force = false) {
     renderGallery();
     renderTable();
     renderCalendar();
+    
+    // Refresh Grid if open
+    if (typeof renderGridContent === 'function' && typeof isGridViewOpen === 'function' && isGridViewOpen()) {
+        renderGridContent();
+    }
 
     const actionBackup = {
         backupTradeIdx, backupTradeClone,

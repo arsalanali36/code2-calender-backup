@@ -600,6 +600,37 @@
   border-radius: 4px;
 }
 
+.gv2-grid-item-del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(248, 81, 73, 0.85);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: all 0.2s;
+  pointer-events: auto;
+}
+
+.gv2-grid-item:hover .gv2-grid-item-del {
+  opacity: 1;
+}
+
+.gv2-grid-item-del:hover {
+  background: #f85149 !important;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(248, 81, 73, 0.4);
+}
+
 .gv2-grid-empty {
   display: inline-flex;
   align-items: center;

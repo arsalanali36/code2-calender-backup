@@ -302,51 +302,12 @@
     const container = document.createElement('div');
     container.className = 'gv2-grid-container';
 
-    // APPLY WRAP SETTING
-    if (state.gallery.gridWrap === false) {
-      container.classList.add('gv2-grid-container--nowrap');
-      
-      // Mouse drag scrolling helper for PC
-      let _isDown = false, _startX, _scrollLeft, _hasMoved = false;
-      const _onDown = (e) => {
-        _isDown = true;
-        _hasMoved = false;
-        container.classList.add('dragging');
-        _startX = (e.pageX || e.touches?.[0]?.pageX) - container.offsetLeft;
-        _scrollLeft = container.scrollLeft;
-      };
-      const _onMove = (e) => {
-        if (!_isDown) return;
-        const x = (e.pageX || e.touches?.[0]?.pageX) - container.offsetLeft;
-        const walk = (x - _startX);
-        if (Math.abs(walk) > 5) _hasMoved = true;
-        if (_hasMoved) {
-          e.preventDefault();
-          container.scrollLeft = _scrollLeft - walk * 1.5;
-        }
-      };
-      const _onUp = () => {
-        _isDown = false;
-        container.classList.remove('dragging');
-      };
-
-      container.addEventListener('mousedown', _onDown);
-      window.addEventListener('mousemove', _onMove);
-      window.addEventListener('mouseup', _onUp);
-      
-      // Touch support
-      container.addEventListener('touchstart', _onDown, {passive: true});
-      container.addEventListener('touchmove', _onMove, {passive: false});
-      container.addEventListener('touchend', _onUp);
-
-      // Prevent click if dragged
-      container.addEventListener('click', (e) => {
-        if (_hasMoved) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      }, true);
-    }
+      // Native scrolling is preferred now for broader compatibility. 
+      // If we need custom grab-scrolling, we should do it at the body level or with a single instance.
+      if (state.gallery.gridWrap === false) {
+        container.classList.add('gv2-grid-container--nowrap');
+        // Let CSS handle smooth scroll and native wheel events
+      }
 
     if (images.length === 0) {
       const empty = document.createElement('div');
@@ -392,6 +353,24 @@
       img.loading = 'lazy';
 
       item.appendChild(img);
+      
+      // Inline Delete Button (X)
+      const delBtn = document.createElement('button');
+      delBtn.className = 'gv2-grid-item-del';
+      delBtn.innerHTML = '✕';
+      delBtn.title = 'Delete image';
+      delBtn.onclick = async (e) => {
+          e.stopPropagation();
+          const itemIdx = parseInt(item.dataset.globalIdx);
+          if (isNaN(itemIdx)) return;
+          if (confirm('Delete this image?')) {
+              if (typeof removeGalleryImageAt === 'function') {
+                  await removeGalleryImageAt(itemIdx, false);
+                  renderGridContent(); // Refresh grid
+              }
+          }
+      };
+      item.appendChild(delBtn);
 
       // Meta: Time label if exists
       if (state.gallery.imageTimes && state.gallery.imageTimes[url]) {
@@ -421,7 +400,9 @@
 
         if (e.shiftKey) {
           // Range select
-          const last = state.gallery.lastClickedIdx ?? itemIdx;
+          // Safety: find the actual index of the last clicked URL in case the array changed
+          let last = state.gallery.lastClickedIdx ?? itemIdx;
+          
           const start = Math.min(last, itemIdx);
           const end = Math.max(last, itemIdx);
           for (let i = start; i <= end; i++) state.gallery.selectedIndices.add(i);
@@ -439,13 +420,11 @@
           return;
         }
 
-        // Normal click → update state and selection but DO NOT close grid (user requested)
-        state.gallery.currentIndex = itemIdx; // Needed for tray tools (delete/share/etc.)
+        // Normal click → update state and selection
+        state.gallery.currentIndex = itemIdx; 
         state.gallery.selectedIndices = new Set([itemIdx]);
         state.gallery.lastClickedIdx = itemIdx;
         _gridRefreshSelection();
-        // toggleGridView(false); // Grid stays open
-        // renderGallery();       // Don't shift focus to underlying viewer
       };
 
       item.addEventListener('contextmenu', (e) => {
