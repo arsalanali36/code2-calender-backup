@@ -166,6 +166,8 @@
 
     function openTradeSidebar(trade) {
         if (!trade) return;
+        // If user has disabled auto-open via the ··· toggle, silently skip
+        if (window._tradeSidebarDisabled) return;
         ts.currentTrade = trade;
         
         if (!ts.overlay) initTradeSidebar();

@@ -235,6 +235,22 @@ function initOtherDropdown() {
       renderGallery();
     });
   }
+
+  const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
+  if (tsToggle) {
+    // Default: enabled (sidebar can open)
+    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = false;
+    _syncTradeSidebarBtn();
+    tsToggle.addEventListener('click', () => {
+      window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
+      // If user just disabled it, close sidebar if open
+      if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
+        toggleTradeSidebar(false);
+      }
+      _syncTradeSidebarBtn();
+      dd.style.display = 'none';
+    });
+  }
 }
 
 function _syncRefCardsBtn() {
@@ -242,6 +258,13 @@ function _syncRefCardsBtn() {
   if (!btn) return;
   const on = state.gallery.showRefCards !== false;
   btn.innerHTML = '📋 Ref Cards' + (on ? ' <span style="color:#4ade80">✓</span>' : '');
+}
+
+function _syncTradeSidebarBtn() {
+  const btn = document.getElementById('gv2-tradesidebar-toggle');
+  if (!btn) return;
+  const enabled = !window._tradeSidebarDisabled;
+  btn.innerHTML = '🖼 Trade Sidebar' + (enabled ? ' <span style="color:#4ade80">✓</span>' : ' <span style="color:#f87171">✗</span>');
 }
 
 document.addEventListener('DOMContentLoaded', initOtherDropdown);

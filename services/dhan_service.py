@@ -7,7 +7,6 @@ Core helpers (config, scrip, symbol parser) → dhan_service_core.py
 import os
 import json
 import time
-import pandas as pd
 from datetime import datetime, timedelta
 
 from config import OHLC_CACHE_DIR, DHAN_SCRIP_MASTER, SYMBOL_EXPIRY_MAP_FILE, TRADEBOOK_SYNC_QUEUE_FILE
@@ -231,6 +230,7 @@ def get_expired_option_ohlc_status(symbol, trade_date):
 
 
 def load_cached_expired_option_ohlc(symbol, trade_date):
+    import pandas as pd
     cp = _expired_option_cache_path(symbol, trade_date)
     if not os.path.exists(cp):
         return None
@@ -251,6 +251,7 @@ def auto_map_instruments(symbol_date_map):
     Returns dict: { symbol: { security_id, exchange_segment, instrument,
                                confidence (0-100), matched_symbol, error? } }
     """
+    import pandas as pd
     # Normalise input
     if isinstance(symbol_date_map, (list, set)):
         symbol_date_map = {s: None for s in symbol_date_map}
@@ -469,6 +470,7 @@ def get_ohlc_status(security_id, trade_date):
 
 
 def load_cached_ohlc(security_id, trade_date):
+    import pandas as pd
     cp = _cache_path(security_id, trade_date)
     if not os.path.exists(cp):
         return None
@@ -487,6 +489,7 @@ def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_d
     - Past   → historical endpoint
     - Auto-fill: if cache partial, fetches only missing candles
     """
+    import pandas as pd
     config = get_config()
     if not config:
         raise ValueError("Dhan credentials not configured")
@@ -564,6 +567,7 @@ def _parse_rollingoption_response(resp, trade_date, opt_type):
     Structure: resp['data']['ce' or 'pe']['open','high','low','close',...]
     Timestamps are not returned — generated from 09:15 at 1-min intervals.
     """
+    import pandas as pd
     data    = resp.get('data', {}) or {}
     key     = 'ce' if opt_type == 'CALL' else 'pe'
     opt     = data.get(key) or {}
@@ -615,6 +619,7 @@ def _parse_rollingoption_response(resp, trade_date, opt_type):
 
 def _parse_dhan_response(resp, trade_date):
     """Convert Dhan array response → DataFrame with datetime/time/open/high/low/close."""
+    import pandas as pd
     timestamps = resp.get('timestamp', [])
     if not timestamps:
         return pd.DataFrame()

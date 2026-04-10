@@ -12,7 +12,6 @@ import time
 import urllib.request
 import urllib.error
 import urllib.parse
-import pandas as pd
 from datetime import datetime, timedelta
 
 from config import OHLC_CACHE_DIR, DHAN_CONFIG_FILE, DHAN_SYMBOL_MAP_FILE, DHAN_SCRIP_MASTER
@@ -88,6 +87,7 @@ def download_scrip_master():
 
 def search_scrip(query, limit=25):
     """Search scrip master by keyword. Downloads if not present."""
+    import pandas as pd
     if not os.path.exists(DHAN_SCRIP_MASTER):
         download_scrip_master()
 
@@ -102,7 +102,7 @@ def search_scrip(query, limit=25):
     col_option_type = _find_col(df, ['SEM_OPTION_TYPE',       'OPTION_TYPE'])
 
     q = query.upper().strip()
-    mask = pd.Series(False, index=df.index)
+    mask = pd.Series(False, index=df.index)  # noqa: pd already imported above
     for col in df.columns:
         if df[col].dtype == object:
             mask |= df[col].astype(str).str.upper().str.contains(q, na=False, regex=False)
