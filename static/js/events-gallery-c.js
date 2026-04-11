@@ -207,20 +207,10 @@ function _bindGalleryDropdownEvents() {
 
   // ── Date Picker Manual Trigger ─────────────────────────────────────────────
   const dateTrigger = document.getElementById('gv2-date-display-trigger');
-  const dateInput   = document.getElementById('gallery-date-picker');
-  if (dateTrigger && dateInput) {
+  if (dateTrigger) {
     dateTrigger.addEventListener('click', () => {
-      // Use custom P&L calendar instead of native picker
       if (typeof openPnlCalendar === 'function') {
         openPnlCalendar();
-      } else {
-        // Fallback to native if not loaded
-        if (typeof dateInput.showPicker === 'function') {
-          dateInput.showPicker();
-        } else {
-          dateInput.focus();
-          dateInput.click();
-        }
       }
     });
   }
