@@ -265,10 +265,12 @@ def _save_pdf_meta(records: list, pdf_meta_file: str):
 
 def save_pdf_bytes(pdf_bytes: bytes, orig_name: str, pdf_dir: str,
                    pdf_meta_file: str, progress_cb=None) -> dict:
-    """Process pre-read PDF bytes (called from background thread with progress tracking)."""
-    import io, time as _time
+    """Process pre-read PDF bytes (called from background thread with progress tracking).
+    Raw PDF is NOT uploaded to Cloudinary (free plan 10 MB raw limit).
+    Only the split JPEG pages are uploaded to Cloudinary.
+    """
+    import time as _time
     from config import USE_CLOUDINARY
-    import cloudinary.uploader
 
     ext = os.path.splitext(orig_name)[1].lower()
     if ext != '.pdf':
@@ -276,17 +278,14 @@ def save_pdf_bytes(pdf_bytes: bytes, orig_name: str, pdf_dir: str,
     ts = int(_time.time() * 1000)
 
     if USE_CLOUDINARY:
-        public_id = f'trading_journal/pdfs/{uuid.uuid4()}'
-        result    = cloudinary.uploader.upload(
-            io.BytesIO(pdf_bytes), public_id=public_id,
-            resource_type='raw', overwrite=False,
-        )
+        # Skip raw PDF upload — only pages (JPEGs) go to Cloudinary
+        uid = uuid.uuid4().hex
         pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
         record = {
-            'filename':  result.get('public_id', public_id),
+            'filename':  f'trading_journal/pdfs/{uid}',
             'name':      orig_name,
-            'url':       result.get('secure_url', ''),
-            'size':      result.get('bytes', len(pdf_bytes)),
+            'url':       '',          # no raw PDF on Cloudinary
+            'size':      len(pdf_bytes),
             'timestamp': ts,
             'pages':     pages,
         }

@@ -624,15 +624,27 @@ const PdfHandler = (() => {
     if (el) el.style.display = visible ? 'block' : 'none';
   }
 
-  function _setProgress(pct, label, sub) {
+  function _setProgress(pct, label, sub, isError) {
     const fill  = document.getElementById('pdf-progress-fill');
     const pctEl = document.getElementById('pdf-progress-pct');
     const lbl   = document.getElementById('pdf-progress-label');
     const subEl = document.getElementById('pdf-progress-sub');
-    if (fill)  fill.style.width  = Math.min(100, pct) + '%';
-    if (pctEl) pctEl.textContent = Math.min(100, Math.round(pct)) + '%';
+    if (fill) {
+      fill.style.width      = Math.min(100, pct) + '%';
+      fill.style.background = isError
+        ? 'linear-gradient(90deg,#da3633,#f85149)'
+        : 'linear-gradient(90deg,#238636,#2ea043)';
+    }
+    if (pctEl) pctEl.textContent = isError ? 'Error' : (Math.min(100, Math.round(pct)) + '%');
+    if (lbl) lbl.style.color = isError ? '#f85149' : '#c9d1d9';
     if (lbl && label)  lbl.textContent = label;
     if (subEl && sub !== undefined) subEl.textContent = sub;
+  }
+
+  function _showProgressError(msg, detail) {
+    _showProgressBar(true);
+    _setProgress(100, msg, detail || '', true);
+    setTimeout(() => _showProgressBar(false), 5000);
   }
 
   // XHR upload → returns job_id, tracking upload bytes progress (0→15%)
@@ -672,8 +684,7 @@ const PdfHandler = (() => {
         _setProgress(ratio * 15, 'Uploading file...', file.name);
       });
     } catch (err) {
-      _showProgressBar(false);
-      if (typeof showToast === 'function') showToast('Upload failed: ' + err.message, 'error');
+      _showProgressError('Upload failed', err.message);
       return;
     }
 
@@ -699,9 +710,7 @@ const PdfHandler = (() => {
 
         } else if (data.status === 'error') {
           source.close();
-          _showProgressBar(false);
-          if (typeof showToast === 'function')
-            showToast('Processing failed: ' + (data.error || 'unknown'), 'error');
+          _showProgressError('Processing failed', data.error || 'unknown error');
 
         } else {
           // processing — current/total from backend
@@ -718,9 +727,7 @@ const PdfHandler = (() => {
 
     source.onerror = () => {
       source.close();
-      _showProgressBar(false);
-      if (typeof showToast === 'function')
-        showToast('Connection lost during processing', 'error');
+      _showProgressError('Connection lost', 'Processing may still continue — please refresh');
     };
   }
 
