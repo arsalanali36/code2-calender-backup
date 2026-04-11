@@ -815,11 +815,40 @@
   }
 }
 
-/* Hide original small mouse handles on touch devices to avoid "double bar" look */
+/* Show original handles on touch devices but make them FAT for easy grabbing */
 .is-touch .gv2-tp-resize-handle,
 .is-touch .gv2-lp-resize-handle,
 .is-touch .gv2-trades-resize-handle,
 .is-touch .gv2-tray-resize-handle,
 .is-touch .trade-sidebar-resizer {
-  display: none !important;
+  display: flex !important;
+  width: 30px !important;
+  background: transparent !important;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure the handle position is correct on touch */
+.is-touch .gv2-tp-resize-handle     { right: -15px !important; }
+.is-touch .gv2-trades-resize-handle { right: -15px !important; }
+.is-touch .gv2-lp-resize-handle     { right: -15px !important; }
+.is-touch .gv2-tray-resize-handle   { left: -15px !important; }
+
+/* Always show a subtle vertical line on touch so user knows they can resize */
+.is-touch .gv2-tp-resize-handle::after,
+.is-touch .gv2-lp-resize-handle::after,
+.is-touch .gv2-trades-resize-handle::after,
+.is-touch .gv2-tray-resize-handle::after {
+    content: '';
+    width: 2px !important;
+    height: 100% !important;
+    background: rgba(255,255,255,0.15) !important;
+    border-radius: 0 !important;
+    opacity: 1 !important;
+}
+
+.is-touch .gv2-tp-resize-handle.dragging::after,
+.is-touch .gv2-lp-resize-handle.dragging::after {
+    background: var(--blue) !important;
+    width: 3px !important;
 }

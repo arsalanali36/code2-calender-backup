@@ -137,105 +137,62 @@ function _bindGalleryEvents() {
       // Remove touch listener only when dragging ends — keeps scroll smooth
       document.removeEventListener('touchmove', _onMove);
     };
-    const _onDown = (e) => {
-      _resizing = true; handle.classList.add('dragging');
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      _startX = cx;
+    // ── Unified Horizontal Drag (Mouse + Touch) ──
+    let _activeDrag = false, _startX = 0, _startW = 0;
+
+    const _onStart = (x) => {
+      _activeDrag = true;
+      _startX = x;
       _startW = panel.offsetWidth;
+      panel.classList.add('is-resizing'); // Class to disable transition
+      panel.style.transition = 'none';
+      handle.classList.add('dragging');
       document.body.style.cursor = 'ew-resize';
       document.body.style.userSelect = 'none';
-      // Add touch listener only when drag starts — avoids blocking scroll at all other times
-      document.addEventListener('touchmove', _onMove, { passive: false });
-      e.stopPropagation();
     };
 
-    handle.addEventListener('mousedown', _onDown);
-    handle.addEventListener('touchstart', _onDown, { passive: false });
-    document.addEventListener('mousemove', _onMove);
-    document.addEventListener('mouseup', _onUp);
-    document.addEventListener('touchend', _onUp);
+    const _onMove = (x) => {
+      if (!_activeDrag) return;
+      const dx = x - _startX;
+      const newW = (direction === 'right') ? (_startW + dx) : (_startW - dx);
+      _setWidth(newW);
+    };
 
-    // Support smooth horizontal touch resizing for iPad (matches split-view logic)
-    const _isTouch = (typeof IS_TOUCH_DEVICE !== 'undefined' && IS_TOUCH_DEVICE) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 1100 && navigator.maxTouchPoints > 0);
-    if (_isTouch) {
-      document.documentElement.classList.add('is-touch');
-      document.body.classList.add('is-touch');
-      
-      if (!panel.dataset.hasResizer) {
-        let vResizer = document.createElement('div');
-        vResizer.className = 'gv2-touch-resizer';
-        vResizer.style.cssText = `
-            position: absolute; top: 0; bottom: 0; width: 40px; z-index: 9999;
-            background: transparent; display: flex; align-items: center; justify-content: center;
-            cursor: col-resize; touch-action: none;
-        `;
-        
-        // Position on the dragging edge
-        if (direction === 'right') {
-          vResizer.style.right = '-20px';
-        } else {
-          vResizer.style.left = '-20px';
-        }
+    const _onEnd = () => {
+      if (!_activeDrag) return;
+      _activeDrag = false;
+      panel.classList.remove('is-resizing');
+      panel.style.transition = '';
+      handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
 
-        // Full height subtle line like Split View
-        vResizer.innerHTML = `
-            <div class="gv2-touch-resizer-line" style="position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.1); transition: background 0.2s;"></div>
-            <div class="gv2-touch-resizer-handle" style="width: 4px; height: 50px; border-radius: 2px; background: var(--blue); opacity: 0; transition: opacity 0.2s;"></div>
-            <div class="gv2-touch-resizer-label" style="position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 11px; opacity: 0; pointer-events: none; white-space: nowrap; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">0px</div>
-        `;
-        panel.appendChild(vResizer);
-        panel.dataset.hasResizer = 'true';
-        
-        const label = vResizer.querySelector('.gv2-touch-resizer-label');
-        const visualHandle = vResizer.querySelector('.gv2-touch-resizer-handle');
-        const visualLine = vResizer.querySelector('.gv2-touch-resizer-line');
-        let _tResizing = false, _startX_T = 0, _startW_T = 0;
+    // Mouse Bindings
+    handle.addEventListener('mousedown', e => { e.preventDefault(); _onStart(e.clientX); });
+    window.addEventListener('mousemove', e => _onMove(e.clientX));
+    window.addEventListener('mouseup', _onEnd);
 
-        vResizer.addEventListener('touchstart', (e) => {
-          if (e.touches.length !== 1) return;
-          _tResizing = true;
-          _startX_T = e.touches[0].clientX;
-          _startW_T = panel.offsetWidth;
-          
-          panel.classList.add('is-dragging'); // Disable transition
-          panel.style.transition = 'none';
-          vResizer.classList.add('active');
-          if (visualHandle) visualHandle.style.opacity = '1';
-          if (visualLine) visualLine.style.background = 'var(--blue)';
-          if (label) {
-            label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
-            label.style.opacity = '1';
-          }
-          
-          e.stopPropagation();
-        }, { passive: true });
+    // Touch Bindings (iPad - Smooth Horizontal)
+    handle.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      _onStart(e.touches[0].clientX);
+      e.stopPropagation(); // Avoid triggering parent touch events
+    }, { passive: true });
 
-        window.addEventListener('touchmove', (e) => {
-          if (!_tResizing || e.touches.length !== 1) return;
-          const dx = e.touches[0].clientX - _startX_T;
-          
-          const newW = (direction === 'right') ? (_startW_T + dx) : (_startW_T - dx);
-          _setWidth(newW);
-          
-          if (label) {
-              label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
-          }
-          if (e.cancelable) e.preventDefault();
-        }, { passive: false });
+    window.addEventListener('touchmove', e => {
+      if (!_activeDrag || e.touches.length !== 1) return;
+      _onMove(e.touches[0].clientX);
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
 
-        window.addEventListener('touchend', () => {
-          if (_tResizing) {
-            _tResizing = false;
-            panel.classList.remove('is-dragging');
-            panel.style.transition = '';
-            vResizer.classList.remove('active');
-            if (visualHandle) visualHandle.style.opacity = '0';
-            if (visualLine) visualLine.style.background = 'rgba(255,255,255,0.1)';
-            if (label) label.style.opacity = '0';
-          }
-        });
-        vResizer.style.display = 'flex';
-      }
+    window.addEventListener('touchend', _onEnd);
+    window.addEventListener('touchcancel', _onEnd);
+
+    // Initial check for touch class
+    if ((navigator.maxTouchPoints > 0) || (window.innerWidth < 1100 && navigator.maxTouchPoints > 0)) {
+        document.documentElement.classList.add('is-touch');
+        document.body.classList.add('is-touch');
     }
 
     // Restore saved width on init
