@@ -268,49 +268,50 @@ const PdfHandler = (() => {
     }
   }
 
+  async function getDocById(pdfId) {
+    if (pdfDocCache.has(pdfId)) return pdfDocCache.get(pdfId);
+    
+    let pdfList = [];
+    try {
+      pdfList = await imageService.listPdfs() || [];
+    } catch(e) { console.error(e); }
+
+    const pdf = pdfList.find(p => p.filename === pdfId || p.name === pdfId);
+    if (!pdf) return null;
+    
+    try {
+        const response = await fetch(pdf.url);
+        const arrayBuffer = await response.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const doc = await loadingTask.promise;
+        pdfDocCache.set(pdfId, doc);
+        return doc;
+    } catch(e) {
+        console.error('[PdfHandler] getDocById failed', e);
+        return null;
+    }
+  }
+
   async function ensurePdfLoaded(pdfId) {
-     if (pdfDocCache.has(pdfId)) {
-       pdfDoc = pdfDocCache.get(pdfId);
-       // Sync currentFile state without extra fetch
+     const doc = await getDocById(pdfId);
+     if (doc) {
+       pdfDoc = doc;
        const pdfList = await imageService.listPdfs() || [];
        currentFile = pdfList.find(p => p.filename === pdfId || p.name === pdfId); 
        currentFileName = currentFile?.name || pdfId;
        return true;
      }
-
-     // Find the pdf in serverPdfs
-     let pdfList = [];
-     try {
-       pdfList = await imageService.listPdfs() || [];
-     } catch(e) { console.error(e); }
-
-     const pdf = pdfList.find(p => p.filename === pdfId || p.name === pdfId);
-     if (!pdf) return false;
-     
-     try {
-         const response = await fetch(pdf.url);
-         const arrayBuffer = await response.arrayBuffer();
-         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-         const doc = await loadingTask.promise;
-         pdfDocCache.set(pdfId, doc);
-         pdfDoc = doc;
-         currentFile = pdf;
-         currentFileName = pdf.name;
-         return true;
-     } catch(e) {
-         console.error('[PdfHandler] ensurePdfLoaded failed', e);
-         return false;
-     }
+     return false;
   }
 
-  async function prefetchAdjacentPages(pageNum, pdfId, count = 2) {
-      if (!pdfDoc || currentFile?.filename !== pdfId) return;
-      const total = pdfDoc.numPages;
+  async function prefetchAdjacentPages(pageNum, doc, count = 2) {
+      if (!doc) return;
+      const total = doc.numPages;
       for (let i = 1; i <= count; i++) {
           const next = pageNum + i;
           const prev = pageNum - i;
-          if (next <= total) pdfDoc.getPage(next).catch(() => {});
-          if (prev >= 1) pdfDoc.getPage(prev).catch(() => {});
+          if (next <= total) doc.getPage(next).catch(() => {});
+          if (prev >= 1) doc.getPage(prev).catch(() => {});
       }
   }
 
@@ -318,17 +319,14 @@ const PdfHandler = (() => {
     const canvas = document.getElementById('pdf-main-canvas');
     if (!canvas) return;
     
-    if (!pdfDoc || (pdfId && currentFile?.filename !== pdfId)) {
-        if (pdfId) await ensurePdfLoaded(pdfId);
-    }
-    
-    if (!pdfDoc) return;
+    const doc = await getDocById(pdfId);
+    if (!doc) return;
     
     // Show spinner overlay if busy
     canvas.style.opacity = '0.7';
 
     try {
-        const page = await pdfDoc.getPage(pageNum);
+        const page = await doc.getPage(pageNum);
         const pixelRatio = window.devicePixelRatio || 1;
         const viewport = page.getViewport({ scale: 1.8 * pixelRatio }); // HD rendering
         
@@ -346,9 +344,9 @@ const PdfHandler = (() => {
         canvas.style.opacity = '1';
 
         // Background prefetches
-        prefetchAdjacentPages(pageNum, pdfId);
+        prefetchAdjacentPages(pageNum, doc);
 
-        // Manually trigger pin sync (PDF pages don't fire img.load)
+        // Manually trigger pin sync
         if (typeof renderTagPins === 'function') renderTagPins();
         if (typeof loadOverlayForCurrentImage === 'function') loadOverlayForCurrentImage();
 
@@ -652,14 +650,13 @@ const PdfHandler = (() => {
   }
 
   async function renderThumbPage(pageNum, container, pdfId) {
-      if (pdfId && (!pdfDoc || currentFile?.filename !== pdfId)) {
-           const ok = await ensurePdfLoaded(pdfId);
-           if (!ok) return;
-      }
-      if (!pdfDoc) return;
+      if (!pdfId) return;
+      const doc = await getDocById(pdfId);
+      if (!doc) return;
       try {
-          const page = await pdfDoc.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 0.3 }); // Small scale for thumb
+          const page = await doc.getPage(pageNum);
+          const pixelRatio = window.devicePixelRatio || 1;
+          const viewport = page.getViewport({ scale: 0.3 * pixelRatio }); // Small scale for thumb
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
@@ -667,6 +664,9 @@ const PdfHandler = (() => {
           const context = canvas.getContext('2d');
           
           await page.render({ canvasContext: context, viewport }).promise;
+          
+          // Clear before append to avoid ghosting or double-render
+          container.querySelectorAll('canvas').forEach(c => c.remove());
           container.appendChild(canvas);
       } catch (err) {
           console.error(`[PdfHandler] Thumb render error page ${pageNum}:`, err);

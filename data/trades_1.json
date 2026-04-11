@@ -28186,10 +28186,36 @@
       ],
       "2_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnua963juwyq",
           "tag": "thumbnail",
           "x": 58.6,
-          "y": 37.8,
+          "y": 37.8
+        }
+      ]
+    },
+    "d3b13a6e330c42dea7f4d7e03c8d528d_chart.pdf": {
+      "1": [
+        "thumbnail"
+      ],
+      "2": [
+        "thumbnail"
+      ],
+      "1_pins": [
+        {
+          "id": "mnuaa84moaoe",
+          "tag": "thumbnail",
+          "x": 59,
+          "y": 19.2,
+          "color": "#00d2ff"
+        }
+      ],
+      "2_pins": [
+        {
+          "id": "mnuaad203sbg",
+          "tag": "thumbnail",
+          "x": 14.6,
+          "y": 64.1,
           "color": "#00d2ff"
         }
       ]
