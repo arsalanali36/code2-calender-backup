@@ -36,10 +36,18 @@
     </div>
     <input type="text" id="tag-picker-inp" class="tag-picker-inp" placeholder="Search or create tag..." />
     <div id="tag-picker-list" class="tag-picker-list"></div>
-    <div class="tag-picker-footer">
-      <button class="btn btn-outline" id="tag-picker-close-btn"
-        style="width:100%;font-size:0.78rem;padding:5px">Done</button>
     </div>
+  </div>
+</div>
+
+<!-- ── FILTER OPTIONS MODAL ─────────────── -->
+<div class="modal-overlay" id="gv2-filter-opts-modal" style="z-index: 5000;">
+  <div class="modal-content" style="max-width: 320px; width: 90%;">
+    <div class="modal-header">
+      <span>Filter Options</span>
+      <button class="close-btn" onclick="document.getElementById('gv2-filter-opts-modal').style.display='none'">&#10005;</button>
+    </div>
+    <div id="gv2-filter-opts-modal-content" style="padding-bottom: 10px;"></div>
   </div>
 </div>
 

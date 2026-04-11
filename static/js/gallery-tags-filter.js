@@ -56,28 +56,24 @@ function renderGalleryTagFilterPanel() {
         renderGalleryTagFilterPanel();
     };
 
-    const btnOpt = document.createElement('button');
-    btnOpt.className = 'panel-act-btn';
-    btnOpt.style.cssText = 'flex:1; justify-content:space-between; padding:0 10px; color:var(--blue);';
-    btnOpt.innerHTML = '<span>Filter Options...</span><span style="opacity:0.6">▾</span>';
-
-    const optMenu = document.createElement('div');
-    optMenu.style.cssText = 'display:none; position:absolute; top:36px; right:8px; width:220px; background:#1a1b1e; border:1px solid var(--border); border-radius:8px; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.6); overflow:hidden;';
+    const optModal = document.getElementById('gv2-filter-opts-modal');
+    const optModalContent = document.getElementById('gv2-filter-opts-modal-content');
 
     const renderOptMenu = () => {
-        optMenu.innerHTML = '';
+        if (!optModalContent) return;
+        optModalContent.innerHTML = '';
         
         // Match Mode section
         const mmWrap = document.createElement('div');
-        mmWrap.style.padding = '8px 12px';
+        mmWrap.style.padding = '12px 14px';
         mmWrap.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
         const mmLbl = document.createElement('div');
-        mmLbl.style.fontSize = '10px'; mmLbl.style.color = 'var(--text3)'; mmLbl.style.marginBottom = '4px';
+        mmLbl.style.fontSize = '10px'; mmLbl.style.color = 'var(--text3)'; mmLbl.style.marginBottom = '6px';
         mmLbl.textContent = 'MATCH MODE';
         mmWrap.appendChild(mmLbl);
         const mmBtn = document.createElement('button');
         mmBtn.className = 'panel-act-btn';
-        mmBtn.style.width = '100%';
+        mmBtn.style.width = '100%'; mmBtn.style.height = '34px';
         const isAnd = state.gallery.filterMode === 'and';
         mmBtn.textContent = isAnd ? 'Match: ALL (AND)' : 'Match: ANY (OR)';
         mmBtn.style.color = isAnd ? 'var(--blue)' : 'var(--orange)';
@@ -88,22 +84,22 @@ function renderGalleryTagFilterPanel() {
             renderOptMenu();
         };
         mmWrap.appendChild(mmBtn);
-        optMenu.appendChild(mmWrap);
+        optModalContent.appendChild(mmWrap);
 
         // Scope section
         const scWrap = document.createElement('div');
-        scWrap.style.padding = '8px 12px';
+        scWrap.style.padding = '12px 14px';
         scWrap.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
         const scLbl = document.createElement('div');
-        scLbl.style.fontSize = '10px'; scLbl.style.color = 'var(--text3)'; scLbl.style.marginBottom = '4px';
+        scLbl.style.fontSize = '10px'; scLbl.style.color = 'var(--text3)'; scLbl.style.marginBottom = '8px';
         scLbl.textContent = 'FILTER SCOPE';
         scWrap.appendChild(scLbl);
         const scBtns = document.createElement('div');
-        scBtns.style.display = 'flex'; scBtns.style.gap = '4px';
+        scBtns.style.display = 'flex'; scBtns.style.gap = '8px';
         const isTrade = state.gallery.filterTagScope === 'trade';
         ['Image','Trade'].forEach(sc => {
             const b = document.createElement('button');
-            b.className = 'panel-act-btn'; b.style.flex = '1'; b.textContent = sc;
+            b.className = 'panel-act-btn'; b.style.flex = '1'; b.textContent = sc; b.style.height = '32px';
             const active = (sc === 'Image' && !isTrade) || (sc === 'Trade' && isTrade);
             if(active) { b.style.color = sc==='Image' ? 'var(--blue)' : 'var(--green)'; b.style.borderColor = b.style.color; }
             b.onclick = () => {
@@ -115,18 +111,18 @@ function renderGalleryTagFilterPanel() {
             scBtns.appendChild(b);
         });
         scWrap.appendChild(scBtns);
-        optMenu.appendChild(scWrap);
+        optModalContent.appendChild(scWrap);
 
         // Recall Template
         const tplWrap = document.createElement('div');
-        tplWrap.style.padding = '8px 12px';
+        tplWrap.style.padding = '12px 14px';
         tplWrap.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
         const tplLbl = document.createElement('div');
-        tplLbl.style.fontSize = '10px'; tplLbl.style.color = 'var(--text3)'; tplLbl.style.marginBottom = '6px';
+        tplLbl.style.fontSize = '10px'; tplLbl.style.color = 'var(--text3)'; tplLbl.style.marginBottom = '8px';
         tplLbl.textContent = 'RECALL TEMPLATE';
         tplWrap.appendChild(tplLbl);
         const tplList = document.createElement('div');
-        tplList.style.display = 'flex'; tplList.style.flexDirection = 'column'; tplList.style.gap = '4px';
+        tplList.style.display = 'flex'; tplList.style.flexDirection = 'column'; tplList.style.gap = '8px';
         const templates = state.tagTemplates || {};
         const keys = Object.keys(templates).sort();
         if(!keys.length) {
@@ -134,17 +130,18 @@ function renderGalleryTagFilterPanel() {
         } else {
             keys.forEach(name => {
                 const b = document.createElement('div');
-                b.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer;';
+                b.style.cssText = 'display:flex; align-items:center; gap:8px; cursor:pointer; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03);';
                 const n = document.createElement('span'); n.textContent = name;
-                n.style.cssText = 'flex:1; font-size:11px; hover:color:var(--blue);';
+                n.style.cssText = 'flex:1; font-size:12px; font-weight:500;';
                 n.onclick = () => {
                     state.gallery.tagFilter = [...templates[name]];
                     applyGalleryImageScopeByTagFilter();
                     renderGallery();
                     renderGalleryTagFilterPanel();
+                    if(optModal) optModal.style.display = 'none';
                 };
                 const del = document.createElement('span'); del.innerHTML = '×';
-                del.style.cssText = 'opacity:0.3; cursor:pointer; padding:0 4px;';
+                del.style.cssText = 'opacity:0.3; cursor:pointer; padding:0 8px; font-size:18px;';
                 del.onclick = (e) => {
                     e.stopPropagation();
                     if(!confirm(`Delete "${name}"?`)) return;
@@ -157,8 +154,8 @@ function renderGalleryTagFilterPanel() {
             });
         }
         const saveNew = document.createElement('button');
-        saveNew.className = 'panel-act-btn'; saveNew.style.width = '100%'; saveNew.style.marginTop='6px';
-        saveNew.style.fontSize='10px'; saveNew.textContent = '+ SAVE AS NEW';
+        saveNew.className = 'panel-act-btn'; saveNew.style.width = '100%'; saveNew.style.marginTop='10px';
+        saveNew.style.fontSize='11px'; saveNew.textContent = '+ SAVE AS NEW TEMPLATE';
         saveNew.onclick = () => {
             if(!state.gallery.tagFilter?.length) { showToast('Select tags first!','info'); return; }
             const name = prompt('Template name:', state.gallery.tagFilter.join(', '));
@@ -168,38 +165,36 @@ function renderGalleryTagFilterPanel() {
             renderOptMenu();
         }
         tplWrap.appendChild(tplList); tplWrap.appendChild(saveNew);
-        optMenu.appendChild(tplWrap);
+        optModalContent.appendChild(tplWrap);
 
         // PDF Export
         const pdfWrap = document.createElement('div');
-        pdfWrap.style.padding = '8px 12px';
+        pdfWrap.style.padding = '14px';
         const pdfBtn = document.createElement('button');
-        pdfBtn.className = 'panel-act-btn'; pdfBtn.style.width = '100%';
+        pdfBtn.className = 'panel-act-btn'; pdfBtn.style.width = '100%'; pdfBtn.style.height = '36px';
         pdfBtn.style.borderColor='var(--red)'; pdfBtn.style.color='var(--red)';
-        pdfBtn.innerHTML = '&#128196; Export to PDF';
+        pdfBtn.innerHTML = '&#128196; Export Filtered to PDF';
         pdfBtn.onclick = async () => {
             const meta = state.gallery._filteredMeta || (state.gallery.images || []).map(url => ({ url, date: state.gallery.date, sourceRow: state.gallery.sourceRow }));
             if(!meta.length) return;
             const filter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
             await exportService.exportImagesToPdf(meta, `export.pdf`, filter);
+            if(optModal) optModal.style.display = 'none';
         };
         pdfWrap.appendChild(pdfBtn);
-        optMenu.appendChild(pdfWrap);
+        optModalContent.appendChild(pdfWrap);
     };
 
     btnOpt.onclick = (e) => {
         e.stopPropagation();
-        const isOpen = optMenu.style.display === 'block';
-        if(!isOpen) { renderOptMenu(); optMenu.style.display = 'block'; }
-        else { optMenu.style.display = 'none'; }
+        if(optModal) {
+            renderOptMenu();
+            optModal.style.display = 'flex';
+        }
     };
-    document.addEventListener('mousedown', (e) => {
-        if(!optMenu.contains(e.target) && e.target !== btnOpt) optMenu.style.display = 'none';
-    });
 
     actRow.appendChild(btnClear);
     actRow.appendChild(btnOpt);
-    actRow.appendChild(optMenu);
     if (header) header.appendChild(actRow);
     const list = document.createElement('div');
     list.className = 'panel-list';
