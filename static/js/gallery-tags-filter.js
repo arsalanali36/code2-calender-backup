@@ -349,6 +349,8 @@ function renderGalleryTagFilterPanel() {
             }
             filteredUngrouped.forEach(renderListTag);
         }
+    };
+
     renderFilterList('');
 
     searchInp.addEventListener('keydown', e => {
