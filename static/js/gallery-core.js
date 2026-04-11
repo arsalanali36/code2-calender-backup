@@ -196,6 +196,14 @@ function applyGalleryImageScopeByTagFilter(preserveUrl = null) {
       groupedMatches.get(tradeKey).push(item);
     }
 
+    // Auto-expand all discovered trade groups on NEW filter application 
+    // to ensure the gallery unit count matches the individual image tag counts.
+    const filterKey = JSON.stringify(tagFilter) + ':' + mode + ':' + (state.gallery.filterTagScope || 'image') + ':' + (state.gallery.filterGroupMode || 'group');
+    if (state.gallery._lastExpandFilterKey !== filterKey) {
+        state.gallery.expandedFilterTrades = new Set(groupedMatches.keys());
+        state.gallery._lastExpandFilterKey = filterKey;
+    }
+
     const expanded = [];
     for (const [tradeKey, items] of groupedMatches.entries()) {
       const isExpanded = state.gallery.expandedFilterTrades?.has(tradeKey);
@@ -297,4 +305,60 @@ function _getGalleryThumbImages() {
     const isNews = date && state.dayData[date]?.newsImages?.includes(url);
     return { url, globalIdx: i, isCurrentDate: !filteredMode, date, sourceRow, isNews };
   }).filter(item => !!item.url);
+}
+
+function calculateGalleryTagCounts() {
+  const counts = new Map();
+  const allItems = getAllGalleryImagesAcrossDates();
+  const seenUrls = new Set();
+  
+  // Normalized tag map to consolidate case-insensitive matches
+  const normCounts = new Map();
+
+  allItems.forEach(item => {
+    if (seenUrls.has(item.url)) return;
+    seenUrls.add(item.url);
+    
+    // getImageTagsForGalleryItem respects the current state.gallery.filterTagScope (Image vs Trade)
+    const rawTags = getImageTagsForGalleryItem(item);
+    const tags = new Set(rawTags);
+    
+    // In Group Mode, if a sub-image has the tag, the parent matches.
+    const groupMode = state.gallery.filterGroupMode !== 'image';
+    if (groupMode) {
+       const subs = _getSubImagesForParent(item.url, item.date, item.sourceRow);
+       subs.forEach(subUrl => {
+         const subItem = { url: subUrl, date: item.date, sourceRow: item.sourceRow };
+         getImageTagsForGalleryItem(subItem).forEach(t => tags.add(t));
+       });
+    }
+    
+    tags.forEach(t => {
+      const tag = String(t || '').trim();
+      if (!tag) return;
+      const lower = tag.toLowerCase();
+      normCounts.set(lower, (normCounts.get(lower) || 0) + 1);
+    });
+  });
+
+  // Map normalized counts back to the casing present in allTags or the first found casing
+  const allTags = state.allTags || [];
+  allTags.forEach(t => {
+      const lower = t.toLowerCase().trim();
+      if (normCounts.has(lower)) {
+          counts.set(t, normCounts.get(lower));
+      }
+  });
+  
+  // Catch any tags that might not be in allTags yet
+  normCounts.forEach((cnt, lower) => {
+      const alreadyInCounts = Array.from(counts.keys()).some(k => k.toLowerCase().trim() === lower);
+      if (!alreadyInCounts) {
+          // Find original casing from the loop? 
+          // For simplicity, just use the lowercase version if not found elsewhere
+          counts.set(lower, cnt);
+      }
+  });
+  
+  return counts;
 }

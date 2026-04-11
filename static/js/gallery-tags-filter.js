@@ -37,23 +37,7 @@ function renderGalleryTagFilterPanel() {
     searchRow.appendChild(searchInp);
     if (header) header.appendChild(searchRow);
 
-    const tagUsageCount = new Map();
-    const bumpTagCount = (tag) => {
-        const t = String(tag || '').trim();
-        if (!t) return;
-        tagUsageCount.set(t, (tagUsageCount.get(t) || 0) + 1);
-    };
-
-    // Use robust discovery helpers to count tags on ALL image types (including Premium, News, etc.)
-    const allImageItems = getAllGalleryImagesAcrossDates();
-    allImageItems.forEach(item => {
-        getImageTagsForGalleryItem(item).forEach(bumpTagCount);
-    });
-
-    // Consistent with the right panel, also count Trade-level tags
-    state.trades.forEach(tr => {
-        getTradeTagsForTrade(tr).forEach(bumpTagCount);
-    });
+    const tagUsageCount = calculateGalleryTagCounts();
     window._tagCountMap = tagUsageCount;
 
     const actRow = document.createElement('div');
@@ -180,13 +164,14 @@ function renderGalleryTagFilterPanel() {
 
             const chk = document.createElement('input');
             chk.type = 'checkbox';
-            chk.checked = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.includes(tag);
+            chk.checked = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.some(t => String(t).toLowerCase().trim() === tag.toLowerCase().trim());
             chk.addEventListener('change', () => {
                 let filter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+                const tagLower = tag.toLowerCase().trim();
                 if (chk.checked) {
-                    if (!filter.includes(tag)) filter.push(tag);
+                    if (!filter.some(t => String(t).toLowerCase().trim() === tagLower)) filter.push(tag);
                 } else {
-                    filter = filter.filter(t => t !== tag);
+                    filter = filter.filter(t => String(t).toLowerCase().trim() !== tagLower);
                 }
                 state.gallery.tagFilter = filter;
                 applyGalleryImageScopeByTagFilter();

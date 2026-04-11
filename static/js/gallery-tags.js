@@ -125,24 +125,7 @@ function renderGalleryTagsTray() {
   const delBtn = document.getElementById('gv2-del-tag-btn');
   if (delBtn) delBtn.classList.toggle('active', deleteMode);
   let draggingTag = '';
-  const tagUsageCount = new Map();
-  const bumpTagCount = (tag) => {
-    const t = String(tag || '').trim();
-    if (!t) return;
-    tagUsageCount.set(t, (tagUsageCount.get(t) || 0) + 1);
-  };
-
-  // Use the robust utility from gallery-core.js to discover ALL images
-  const allImageItems = getAllGalleryImagesAcrossDates();
-  allImageItems.forEach(item => {
-    // getImageTagsForGalleryItem handles imageTags, dayImageTags, and marqueeTags
-    getImageTagsForGalleryItem(item).forEach(bumpTagCount);
-  });
-
-  // Also count tags assigned explicitly to Trades
-  state.trades.forEach(tr => {
-    getTradeTagsForTrade(tr).forEach(bumpTagCount);
-  });
+  const tagUsageCount = calculateGalleryTagCounts();
 
   Array.from(tagUsageCount.keys()).forEach(t => {
     if (!state.allTags.includes(t)) state.allTags.push(t);

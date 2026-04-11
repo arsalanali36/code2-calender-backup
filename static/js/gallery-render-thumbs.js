@@ -35,22 +35,18 @@ function renderGalleryThumbs() {
 
   // Pre-compute filter trade indices per date
   const _filteredTradeIdxPerDate = new Map();
-  const _filteredOpenDates = new Set();
   if (_filterActive3 && state.gallery._filteredMeta) {
     state.gallery._filteredMeta.forEach(meta => {
       const d = meta.date || '';
-      if (!d) return;
-      if (meta.sourceRow !== null && meta.sourceRow !== undefined) {
-        const trade = state.trades[meta.sourceRow];
-        if (!trade) return;
-        const trades = (d !== date) ? getTradesForDate(d) : dayTrades;
-        const idx = trades.indexOf(trade);
-        if (idx < 0) return;
-        if (!_filteredTradeIdxPerDate.has(d)) _filteredTradeIdxPerDate.set(d, new Set());
-        _filteredTradeIdxPerDate.get(d).add(idx);
-      } else if (!state.dayData[d]?.closeImages?.includes(meta.url)) {
-        _filteredOpenDates.add(d);
-      }
+      if (!d || meta.sourceRow === null || meta.sourceRow === undefined) return;
+      
+      const trade = state.trades[meta.sourceRow];
+      if (!trade) return;
+      const trades = (d !== date) ? getTradesForDate(d) : dayTrades;
+      const idx = trades.indexOf(trade);
+      if (idx < 0) return;
+      if (!_filteredTradeIdxPerDate.has(d)) _filteredTradeIdxPerDate.set(d, new Set());
+      _filteredTradeIdxPerDate.get(d).add(idx);
     });
   }
 
@@ -186,21 +182,21 @@ function renderGalleryThumbs() {
     return sep;
   };
 
-  // Initial separators
+  // Initial separators (When not filtering)
   let newsGrid = null;
   if (date && !_filterActive3) {
     thumbs.appendChild(createSpecialSeparator('NEWS', 'NEWS'));
+    _perDateRenderedSeps.add(date + ':NEWS');
     if (!state.gallery.collapsedSeparators?.has('NEWS')) {
       newsGrid = document.createElement('div');
       newsGrid.className = 'gv2-news-thumbnail-grid';
       thumbs.appendChild(newsGrid);
     }
     thumbs.appendChild(createSpecialSeparator('OPEN', false));
+    _perDateRenderedSeps.add(date + ':OPEN');
   }
 
   let lastTradeIdxRendered = -1;
-  let renderedCloseSep = false;
-  let renderedCloseGlobalSep = false;
 
   const premiumObj = date ? (state.dayData[date]?.premiumImages || {}) : {};
   const premiumUrls = new Set(Object.values(premiumObj));
@@ -214,16 +210,26 @@ function renderGalleryThumbs() {
 
   // ── Thumbnail loop ────────────────────────────────────────────────────────
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow, isNews }) => {
-    if (premiumUrls.has(url)) return; // Skip in main list, render in PREMIUM section
     const _effDate   = (_filterActive3 && itemDate) ? itemDate : (date || '');
     const _effTrades = (_filterActive3 && itemDate && itemDate !== date) ? getTradesForDate(itemDate) : dayTrades;
+    const dData      = state.dayData[_effDate] || {};
+
+    // Detect Category
+    const _isNews           = isNews;
+    const _isOpen           = dData.images?.includes(url);
+    const _isClose          = dData.closeImages?.includes(url);
+    const _isCloseGlobal    = dData.closeGlobalImages?.includes(url);
+    const _isPremium        = dData.premiumImages && Object.values(dData.premiumImages).some(v => Array.isArray(v) ? v.includes(url) : v === url);
+
+    // Filter Optimization: Matched premium images should be shown in main list when filtering
+    if (_isPremium && !_filterActive3) return;
 
     const ownerTrade = (_filterActive3 && itemSourceRow !== null && itemSourceRow !== undefined)
       ? (state.trades[itemSourceRow] || null)
       : getOwnerTradeForImageUrl(url);
 
-    if (isNews && state.gallery.collapsedSeparators?.has('NEWS')) return;
-    if (isNews && _filterActive3) {
+    // 1. NEWS Separator
+    if (_isNews) {
       if (!_perDateRenderedSeps.has(_effDate + ':NEWS')) {
         thumbs.appendChild(createSpecialSeparator('NEWS', 'NEWS'));
         _perDateRenderedSeps.add(_effDate + ':NEWS');
@@ -233,16 +239,18 @@ function renderGalleryThumbs() {
           thumbs.appendChild(newsGrid);
         }
       }
+      if (state.gallery.collapsedSeparators?.has('NEWS')) return;
     }
 
-    const isCloseImg = _effDate && state.dayData[_effDate]?.closeImages?.includes(url);
-
-    if (_filterActive3 && _effDate && !_perDateRenderedSeps.has(_effDate + ':OPEN')) {
-      if (_filteredOpenDates.has(_effDate)) thumbs.appendChild(createSpecialSeparator('OPEN', false));
+    // 2. OPEN Separator
+    if (_isOpen && !_perDateRenderedSeps.has(_effDate + ':OPEN')) {
+      thumbs.appendChild(createSpecialSeparator('OPEN', false));
       _perDateRenderedSeps.add(_effDate + ':OPEN');
     }
+    if (_isOpen && state.gallery.collapsedSeparators?.has('OPEN')) return;
 
-    if (_effTrades.length > 0 && ownerTrade && !isCloseImg) {
+    // 3. TRADE Separators
+    if (_effTrades.length > 0 && ownerTrade && !_isClose && !_isCloseGlobal && !_isPremium) {
       const targetTradeIdx = _effTrades.indexOf(ownerTrade);
       if (targetTradeIdx >= 0) {
         let _lastIdx = _filterActive3 ? (_perDateLastIdx.get(_effDate) ?? -1) : lastTradeIdxRendered;
@@ -260,14 +268,16 @@ function renderGalleryThumbs() {
         if (_filterActive3) _perDateLastIdx.set(_effDate, _lastIdx);
         else lastTradeIdxRendered = _lastIdx;
       }
-      if (state.gallery.collapsedSeparators?.has('T' + _effTrades.indexOf(ownerTrade))) return;
-    } else if (_effDate && !ownerTrade && !isNews && !isCloseImg) {
+      if (state.gallery.collapsedSeparators?.has('T' + targetTradeIdx)) return;
+    } else if (_effDate && !ownerTrade && !_isNews && !_isClose && !_isCloseGlobal && !_isPremium) {
+      // Catch-all for basic day images that aren't Open/Close (rare)
       if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
 
+    // 4. CLOSE Separator
     const _closeSepKey = _effDate + ':CLOSE';
-    const _closeSepAlreadyDone = _filterActive3 ? _perDateRenderedSeps.has(_closeSepKey) : renderedCloseSep;
-    if (isCloseImg && !_closeSepAlreadyDone) {
+    if (_isClose && !_perDateRenderedSeps.has(_closeSepKey)) {
+      // Finish rendering any preceding trades for this date
       let _lastIdx = _filterActive3 ? (_perDateLastIdx.get(_effDate) ?? -1) : lastTradeIdxRendered;
       if (_effTrades.length > 0) {
         while (_lastIdx < _effTrades.length - 1) {
@@ -285,26 +295,29 @@ function renderGalleryThumbs() {
         else lastTradeIdxRendered = _lastIdx;
       }
       thumbs.appendChild(createSpecialSeparator('CLOSE', true));
-      if (_filterActive3) _perDateRenderedSeps.add(_closeSepKey);
-      else renderedCloseSep = true;
+      _perDateRenderedSeps.add(_effDate + ':CLOSE');
     }
-    if (isCloseImg && state.gallery.collapsedSeparators?.has('CLOSE')) return;
+    if (_isClose && state.gallery.collapsedSeparators?.has('CLOSE')) return;
 
-    const isCloseGlobalImg = _effDate && state.dayData[_effDate]?.closeGlobalImages?.includes(url);
+    // 5. CLOSE GLOBAL Separator
     const _closeGlobalSepKey = _effDate + ':CLOSE_GLOBAL';
-    const _closeGlobalSepAlreadyDone = _filterActive3 ? _perDateRenderedSeps.has(_closeGlobalSepKey) : renderedCloseGlobalSep;
-
-    if (isCloseGlobalImg && !_closeGlobalSepAlreadyDone) {
-      if (!_closeSepAlreadyDone) {
+    if (_isCloseGlobal && !_perDateRenderedSeps.has(_closeGlobalSepKey)) {
+      if (!_perDateRenderedSeps.has(_closeSepKey)) {
         thumbs.appendChild(createSpecialSeparator('CLOSE', true));
-        if (_filterActive3) _perDateRenderedSeps.add(_closeSepKey);
-        else renderedCloseSep = true;
+        _perDateRenderedSeps.add(_closeSepKey);
       }
       thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
-      if (_filterActive3) _perDateRenderedSeps.add(_closeGlobalSepKey);
-      else renderedCloseGlobalSep = true;
+      _perDateRenderedSeps.add(_closeGlobalSepKey);
     }
-    if (isCloseGlobalImg && state.gallery.collapsedSeparators?.has('CLOSE_GLOBAL')) return;
+    if (_isCloseGlobal && state.gallery.collapsedSeparators?.has('CLOSE_GLOBAL')) return;
+
+    // 6. PREMIUM Separator (Mainly for filtered view)
+    const _premiumSepKey = _effDate + ':PREMIUM';
+    if (_isPremium && !_perDateRenderedSeps.has(_premiumSepKey)) {
+      thumbs.appendChild(createSpecialSeparator('PREMIUM', 'PREMIUM'));
+      _perDateRenderedSeps.add(_premiumSepKey);
+    }
+    if (_isPremium && state.gallery.collapsedSeparators?.has('PREMIUM')) return;
 
     // ── Build thumbnail element ───────────────────────────────────────────
     const wrap = document.createElement('div');
