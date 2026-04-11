@@ -356,15 +356,31 @@ function renderCloseGlobalTray(curUrl) {
 
       sourceBtn.onclick = (e) => {
           e.stopPropagation();
-          // Jump to trade in gallery
+          
+          // Ensure the separator is selected and trade is expanded for auto-scroll
+          state.gallery.selectedSeparator = idx;
+          state.gallery._forceScrollToSeparator = true; 
+          if (state.gallery.collapsedSeparators) {
+              state.gallery.collapsedSeparators.delete('T' + idx);
+          }
+
+          // Jump to trade in gallery if images exist
           if (tr.images && tr.images.length > 0) {
-              const firstUrl = tr.images[0];
-              const gIdx = (state.gallery.images || []).indexOf(firstUrl);
-              if (gIdx !== -1) {
-                  state.gallery.currentIndex = gIdx;
-                  renderGallery();
+              const galleryImages = state.gallery.images || [];
+              const firstVisibleImg = tr.images.find(url => galleryImages.includes(url));
+              if (firstVisibleImg) {
+                  const gIdx = galleryImages.indexOf(firstVisibleImg);
+                  if (gIdx !== -1) {
+                      state.gallery.currentIndex = gIdx;
+                  }
+              } else if (state.gallery.tagFilter?.length) {
+                  showToast('This trade has no images matching the current filter', 'info');
               }
           }
+          
+          // Always re-render to trigger thumb panel auto-scroll
+          renderGallery();
+
           if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
       };
 

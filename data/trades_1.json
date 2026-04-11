@@ -26914,7 +26914,8 @@
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731574/trading_journal/c5468850-d6b1-47c4-8a28-eb331f112faa.png": [
           "MIN 3",
-          "Clean"
+          "Clean",
+          "CONTI"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731576/trading_journal/440878e4-715c-4c58-bc58-9032dab539da.png": [
           "Reversal",
@@ -26973,7 +26974,8 @@
           "BOTH"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470364/trading_journal/769b2ec8-48c0-42f2-9cb2-68c470ac35d4.png": [
-          "Day Close"
+          "Day Close",
+          "Clean"
         ]
       },
       "images": [
@@ -27840,7 +27842,7 @@
       },
       "tradeRefCards": {
         "0": {
-          "index": "/duw7qd8zm/image/upload/v1775813026/trading_journal/73b86448-cb6a-4dba-8a7f-fcc43f265638.png"
+          "index": "/duw7qd8zm/image/upload/v1775801464/trading_journal/c20c5e79-830c-4a6f-8730-68fbf8e14817.png"
         },
         "2": {
           "index": "/duw7qd8zm/image/upload/v1775816132/trading_journal/78a4a95d-f23b-46d2-88d8-626b01696f5b.png"
@@ -27890,6 +27892,11 @@
     ],
     "TargetType": []
   },
-  "tagTemplates": {},
+  "tagTemplates": {
+    "MIN 3, CONTI": [
+      "MIN 3",
+      "CONTI"
+    ]
+  },
   "imgTypes": {}
 }

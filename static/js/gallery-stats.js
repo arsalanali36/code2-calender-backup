@@ -248,15 +248,23 @@ function renderGalleryPnlPill() {
 
         row.appendChild(dot); row.appendChild(lbl); row.appendChild(inst); row.appendChild(info); row.appendChild(ptWrap); row.appendChild(val); row.appendChild(cumVal);
         row.addEventListener('click', () => {
-             const firstImg = (t.images || [])[0];
-             if (firstImg) {
-                 const idx = state.gallery.images.indexOf(firstImg);
+             const galleryImages = state.gallery.images || [];
+             const firstVisibleImg = (t.images || []).find(url => galleryImages.includes(url));
+             if (firstVisibleImg) {
+                 const idx = galleryImages.indexOf(firstVisibleImg);
                  if (idx >= 0) {
+                     // ENSURE TRADE IS EXPANDED in thumbnail panel
+                     if (state.gallery.collapsedSeparators) {
+                         state.gallery.collapsedSeparators.delete('T' + tIdx);
+                     }
                      state.gallery.currentIndex = idx;
-                     renderGallery();
+                     if (typeof renderGallery === 'function') renderGallery();
                  }
+             } else if (state.gallery.tagFilter?.length) {
+                 if (typeof showToast === 'function') showToast('No images of this trade match the current filter', 'info');
              }
-             drop.classList.remove('open');
+             const drop = document.getElementById('gv2-pnl-dropdown');
+             if (drop) drop.classList.remove('open');
         });
         drop.appendChild(row);
     });

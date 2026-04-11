@@ -210,12 +210,17 @@ function _bindGalleryDropdownEvents() {
   const dateInput   = document.getElementById('gallery-date-picker');
   if (dateTrigger && dateInput) {
     dateTrigger.addEventListener('click', () => {
-      // Chrome/Edge/Safari support showPicker()
-      if (typeof dateInput.showPicker === 'function') {
-        dateInput.showPicker();
+      // Use custom P&L calendar instead of native picker
+      if (typeof openPnlCalendar === 'function') {
+        openPnlCalendar();
       } else {
-        dateInput.focus();
-        dateInput.click();
+        // Fallback to native if not loaded
+        if (typeof dateInput.showPicker === 'function') {
+          dateInput.showPicker();
+        } else {
+          dateInput.focus();
+          dateInput.click();
+        }
       }
     });
   }

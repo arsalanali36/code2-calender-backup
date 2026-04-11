@@ -61,6 +61,7 @@ function renderGalleryThumbs() {
   const createTradeSeparator = (idx, tradeObj, dateLabel) => {
     const sep = document.createElement('div');
     sep.className = 'gv2-thumb-separator';
+    sep.setAttribute('data-trade-idx', idx);
     sep.title = `Trade ${idx + 1} (Drop to move. Click to collapse)`;
     const sepKey = 'T' + idx;
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
@@ -666,12 +667,70 @@ function renderGalleryThumbs() {
   };
   thumbs.appendChild(btnWrap);
 
-  // Scroll restoration
+  // Scroll restoration or auto-scroll to active
   if (state.gallery._skipScrollIntoView) {
     setTimeout(() => { if (thumbs) { thumbs.scrollTop = savedScrollTop; thumbs.scrollLeft = savedScrollLeft; } }, 0);
   } else {
-    const activeThumb = thumbs.querySelector('.gv2-thumb.active');
-    if (activeThumb) setTimeout(() => { activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' }); }, 50);
+    // Robust scrolling: Find the active trade separator OR active thumb and center it
+    const doScroll = () => {
+        if (!thumbs) return;
+        
+        // 1. Try to find the trade separator first (Better for context)
+        const activeUrl = state.gallery.images[state.gallery.currentIndex];
+        const ownerTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(activeUrl) : null;
+        const trades = state.gallery.date ? getTradesForDate(state.gallery.date) : [];
+        const tIdx = ownerTrade ? trades.indexOf(ownerTrade) : -1;
+        
+        let targetEl = null;
+        if (tIdx !== -1 || state.gallery.selectedSeparator !== null) {
+            // Priority 1: Specifically selected separator IF it's different from current trade 
+            // OR if we specifically want to jump to it (e.g. from tray click)
+            const selIdx = typeof state.gallery.selectedSeparator === 'number' ? state.gallery.selectedSeparator : -1;
+            
+            if (selIdx !== -1 && (selIdx !== tIdx || state.gallery._forceScrollToSeparator)) {
+                targetEl = thumbs.querySelector(`.gv2-thumb-separator[data-trade-idx="${selIdx}"]`);
+            }
+            
+            // Priority 2: Current trade's separator (if no specific selection or selection matches current)
+            if (!targetEl && tIdx !== -1) {
+                targetEl = thumbs.querySelector(`.gv2-thumb-separator[data-trade-idx="${tIdx}"]`);
+            }
+            
+            // Priority 3: Fallback to text search if data-attr fails (Legacy)
+            if (!targetEl && tIdx !== -1) {
+                const seps = thumbs.querySelectorAll('.gv2-thumb-separator');
+                for (const s of seps) {
+                    if (s.textContent.includes('T' + (tIdx + 1))) {
+                        targetEl = s;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 2. Fallback to active thumbnail box
+        if (!targetEl) {
+            const activeThumb = thumbs.querySelector('.gv2-thumb.active');
+            targetEl = activeThumb?.closest('.gv2-thumb-wrap');
+        }
+
+        if (targetEl) {
+            const rect = targetEl.getBoundingClientRect();
+            const containerRect = thumbs.getBoundingClientRect();
+            if (containerRect.height > 0) {
+                const relativeTop = rect.top - containerRect.top;
+                // Scroll target to the top of the container (with small 10px padding)
+                const targetScroll = thumbs.scrollTop + relativeTop - 10;
+                thumbs.scrollTo({ top: targetScroll, behavior: 'smooth' });
+            }
+        }
+    };
+    // Attempt multiple times to account for layout shifts
+    setTimeout(doScroll, 80);
+    setTimeout(() => { 
+        doScroll(); 
+        state.gallery._forceScrollToSeparator = false; 
+    }, 250);
   }
   state.gallery._skipScrollIntoView = false;
 
