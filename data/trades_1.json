@@ -579,14 +579,7 @@
       "Video": "",
       "audios": {},
       "date": "2026-02-19",
-      "imageTags": {
-        "/uploads/1ddc38a9-38ca-4b48-89e2-d201433685e1.png": [
-          "Partial Exit"
-        ],
-        "/uploads/89f72757-b02b-467d-92b3-e857bf8f6506.png": [
-          "Panicyy"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381723/trading_journal/89f72757-b02b-467d-92b3-e857bf8f6506.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381555/trading_journal/1ddc38a9-38ca-4b48-89e2-d201433685e1.png"
@@ -716,11 +709,7 @@
       "Video": "",
       "audios": {},
       "date": "2026-02-19",
-      "imageTags": {
-        "/uploads/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png": [
-          "Panicyy"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381633/trading_journal/4a81049b-9cdb-44b6-a1a5-ad5a9efa497e.png"
       ],
@@ -1441,9 +1430,7 @@
             "rw": 0.07560975609756097,
             "rx": 0.2780487804878049,
             "ry": 0.3624733475479744,
-            "tags": [
-              "idea"
-            ]
+            "tags": []
           }
         ],
         "/uploads/124507c0-0e06-4342-b514-9b6beb390083.png": [
@@ -1452,9 +1439,7 @@
             "rw": 0.05917159763313609,
             "rx": 0.4378698224852071,
             "ry": 0.3049040511727079,
-            "tags": [
-              "idea"
-            ]
+            "tags": []
           }
         ],
         "/uploads/3159065d-bedc-4670-ad81-5bc619cf3621.png": [
@@ -1463,10 +1448,7 @@
             "rw": 0.0550122249388753,
             "rx": 0.21271393643031786,
             "ry": 0.17697228144989338,
-            "tags": [
-              "RuleBased",
-              "new"
-            ]
+            "tags": []
           }
         ],
         "/uploads/4e8dd79d-b463-4869-91b9-0aa53502a184.png": [
@@ -1475,11 +1457,7 @@
             "rw": 0.14437869822485208,
             "rx": 0.15739644970414202,
             "ry": 0.18336886993603413,
-            "tags": [
-              "idea",
-              "RuleBased",
-              "darr"
-            ]
+            "tags": []
           }
         ],
         "/uploads/4f16e719-75b0-4344-90d5-3f19770dbcfa.png": [],
@@ -1489,9 +1467,7 @@
             "rw": 0.1288056206088993,
             "rx": 0.5971896955503513,
             "ry": 0.3390191897654584,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           }
         ],
         "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png": [
@@ -1500,10 +1476,7 @@
             "rw": 0.1378048780487805,
             "rx": 0.1524390243902439,
             "ry": 0.36673773987206826,
-            "tags": [
-              "idea",
-              "CloseButNotExactRule"
-            ]
+            "tags": []
           }
         ],
         "/uploads/8f0f734c-e51f-4e45-bd29-a693d33604d1.png": [
@@ -1512,12 +1485,7 @@
             "rw": 0.11151079136690648,
             "rx": 0.24100719424460432,
             "ry": 0.2025586353944563,
-            "tags": [
-              "RuleBased",
-              "idea",
-              "new",
-              "Palat Gaya"
-            ]
+            "tags": []
           }
         ],
         "/uploads/d07d80d1-d410-4244-b284-1cd36941cca6.png": [
@@ -1526,9 +1494,7 @@
             "rw": 0.06610576923076923,
             "rx": 0.17908653846153846,
             "ry": 0.13859275053304904,
-            "tags": [
-              "idea"
-            ]
+            "tags": []
           }
         ]
       },
@@ -1998,9 +1964,7 @@
       "Rs": -656.5,
       "Sell Price (Avg)": 114.45,
       "Sell Time": "10:27:32",
-      "Tags": [
-        "bina zone"
-      ],
+      "Tags": [],
       "Total Fees": 75.15,
       "Total Trades": "",
       "TradeType": "sell",
@@ -2010,9 +1974,7 @@
       "imageTags": {},
       "images": [],
       "observation": "",
-      "tags": [
-        "bina zone"
-      ],
+      "tags": [],
       "trade_date": "2026-02-26",
       "videos": {}
     },
@@ -2099,11 +2061,7 @@
       "Video": "",
       "audios": {},
       "date": "2026-02-26",
-      "imageTags": {
-        "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [
-          "Panicyy"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381575/trading_journal/2f7b7b1b-bff7-466b-86bd-9642f62d92ae.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381549/trading_journal/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png",
@@ -2125,9 +2083,7 @@
             "rx": 0.30270896519088974,
             "ry": 0.22345789473684205,
             "tags": [
-              "Premium",
-              "panic",
-              "Full View"
+              "panic"
             ]
           },
           {
@@ -2563,9 +2519,6 @@
       "imageTags": {
         "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [
           "panic"
-        ],
-        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
-          "Distracted"
         ]
       },
       "images": [
@@ -2602,9 +2555,7 @@
             "rw": 0.06673407482305359,
             "rx": 0.6226268045891985,
             "ry": 0.40155716104466,
-            "tags": [
-              "Palat Gaya"
-            ]
+            "tags": []
           }
         ],
         "/uploads/cd9dee16-dbb1-4386-8b52-3824b42c707c.png": [
@@ -2613,9 +2564,7 @@
             "rw": 0.04149797570850203,
             "rx": 0.21052631578947367,
             "ry": 0.35753176043557167,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           }
         ],
         "/uploads/d44ce0fd-445e-489e-8c6b-2619c8404ee0.png": [
@@ -2624,9 +2573,7 @@
             "rw": 0.12778904665314403,
             "rx": 0.4716024340770791,
             "ry": 0.6896551724137931,
-            "tags": [
-              "Partial Exit"
-            ]
+            "tags": []
           }
         ],
         "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
@@ -2635,18 +2582,14 @@
             "rw": 0.09991276975006638,
             "rx": 0.24442755825734547,
             "ry": 0.2990492185172143,
-            "tags": [
-              "Distracted"
-            ]
+            "tags": []
           },
           {
             "rh": 0.16228070175438597,
             "rw": 0.09570552147239264,
             "rx": 0.5730061349693252,
             "ry": 0.5109649122807017,
-            "tags": [
-              "sdadssdsd"
-            ]
+            "tags": []
           }
         ]
       },
@@ -3425,8 +3368,7 @@
       "Sell Price (Avg)": 110.7,
       "Sell Time": "09:20:49",
       "Tags": [
-        "panic",
-        "bina zone"
+        "panic"
       ],
       "Total Fees": 73.81,
       "Total Trades": "",
@@ -3437,14 +3379,9 @@
       "date": "2026-02-27",
       "imageTags": {
         "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
-          "Panicyy",
           "panic"
         ],
-        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
-          "Panicyy"
-        ],
         "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
-          "Panicyy",
           "panic"
         ]
       },
@@ -3458,9 +3395,7 @@
             "rw": 0.06982423820441729,
             "rx": 0.06825354086469662,
             "ry": 0.21391849880618344,
-            "tags": [
-              "thumbnail"
-            ]
+            "tags": []
           },
           {
             "rh": 0.3289725147902638,
@@ -3519,8 +3454,7 @@
             "rx": 0.34615384615384615,
             "ry": 0.3647912885662432,
             "tags": [
-              "time",
-              "bina zone"
+              "time"
             ]
           },
           {
@@ -3528,9 +3462,7 @@
             "rw": 0.06440071556350627,
             "rx": 0.6431127012522362,
             "ry": 0.6388384754990926,
-            "tags": [
-              "thumbnail"
-            ]
+            "tags": []
           },
           {
             "rh": 0.2014519056261343,
@@ -3548,8 +3480,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381772/trading_journal/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381760/trading_journal/9e812081-30f9-4d82-bf59-ccef56f40d94.png"
       },
       "tags": [
-        "panic",
-        "bina zone"
+        "panic"
       ],
       "trade_date": "2026-02-27",
       "videos": {}
@@ -3570,9 +3501,7 @@
       "Rs": 975,
       "Sell Price (Avg)": 126.2,
       "Sell Time": "09:33:34",
-      "Tags": [
-        "bina zone"
-      ],
+      "Tags": [],
       "Total Fees": 77.27,
       "Total Trades": "",
       "TradeType": "sell",
@@ -3589,8 +3518,7 @@
             "rx": 0.3480534866693284,
             "ry": 0.19257134247094831,
             "tags": [
-              "Trade1",
-              "Full View"
+              "Trade1"
             ]
           },
           {
@@ -3655,9 +3583,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381551/trading_journal/1a7f72f5-c8f3-4069-ab50-521a480fe4c3.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381802/trading_journal/b87fb451-f2d2-4933-9e26-0dee74685fe9.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381841/trading_journal/cd3b3906-7811-4ee5-b3d5-1c768b0e3665.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381817/trading_journal/c05807ee-abd1-4d89-bb8a-b948722e65dd.png"
       },
-      "tags": [
-        "bina zone"
-      ],
+      "tags": [],
       "trade_date": "2026-02-27",
       "videos": {}
     },
@@ -3678,7 +3604,6 @@
       "Sell Price (Avg)": 115.675,
       "Sell Time": "10:11:24",
       "Tags": [
-        "bina zone",
         "panic"
       ],
       "Total Fees": 76.4,
@@ -3714,7 +3639,6 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381790/trading_journal/ad4ea4d8-7200-4a12-9c32-ceedd8fbe128.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381884/trading_journal/ebf5c689-78c7-4ccc-97ef-d8211c0fb4fd.png"
       },
       "tags": [
-        "bina zone",
         "panic"
       ],
       "trade_date": "2026-02-27",
@@ -3753,7 +3677,6 @@
             "rx": 0.40527010622497117,
             "ry": 0.28618421052631576,
             "tags": [
-              "chotu",
               "chintu"
             ]
           },
@@ -3769,9 +3692,7 @@
             "rw": 0.07148659626320066,
             "rx": 0.32727526565184384,
             "ry": 0.4846869328493648,
-            "tags": [
-              "Panicyy"
-            ]
+            "tags": []
           },
           {
             "rh": 0.1924342105263158,
@@ -11544,7 +11465,6 @@
       },
       "imageTags": {
         "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": [
-          "news+",
           "news"
         ]
       },
@@ -11626,9 +11546,7 @@
             "rw": 0.07171312054882736,
             "rx": 0.312635273073401,
             "ry": 0.5590177365008004,
-            "tags": [
-              "Reversal-Fail"
-            ]
+            "tags": []
           }
         ],
         "/uploads/8a61a0d6-4106-4093-943a-6a5ef09e0b31.png": [
@@ -11783,7 +11701,7 @@
       "Buy Price (Avg)": 239.45,
       "Buy Time": "09:41:15",
       "Gross P/L": -45.5,
-      "Image Tags": "palat gaya",
+      "Image Tags": "",
       "Instrument": "NIFTY2631024550CE",
       "Net P/L": -150.51,
       "Note": "",
@@ -11817,11 +11735,7 @@
           "version": "5.3.0"
         }
       },
-      "imageTags": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381562/trading_journal/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": [
-          "palat gaya"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381562/trading_journal/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png"
       ],
@@ -11947,13 +11861,7 @@
       "Sell Price (Avg)": "",
       "Sell Time": "",
       "Tags": [
-        "panic",
-        "Panicyy",
-        "Distracted",
-        "new",
-        "halkeMeLerahe",
-        "Partial Exit",
-        "Premium"
+        "panic"
       ],
       "Total Fees": "",
       "Total Trades": "",
@@ -11983,13 +11891,7 @@
         ]
       },
       "tags": [
-        "panic",
-        "Panicyy",
-        "Distracted",
-        "new",
-        "halkeMeLerahe",
-        "Partial Exit",
-        "Premium"
+        "panic"
       ],
       "tradeLogger": {},
       "tradeReview": {
@@ -12046,9 +11948,6 @@
       "Sell Price (Avg)": 239.066667,
       "Sell Time": "09:39:39",
       "Tags": [
-        "Distracted",
-        "halkeMeLerahe",
-        "Late",
         "news"
       ],
       "Total Fees": 136.1,
@@ -12150,9 +12049,6 @@
       ],
       "observation": "",
       "tags": [
-        "Distracted",
-        "halkeMeLerahe",
-        "Late",
         "news"
       ],
       "tradeLogger": {
@@ -12223,11 +12119,7 @@
       "Rs": 146.25,
       "Sell Price (Avg)": 217.25,
       "Sell Time": "09:49:59",
-      "Tags": [
-        "Panicyy",
-        "Distracted",
-        "new"
-      ],
+      "Tags": [],
       "Total Fees": 125.89,
       "Total Trades": "",
       "TradeType": "sell",
@@ -12276,11 +12168,7 @@
           "/uploads/2ad7935a-c904-4211-99d3-faa3aa32b632.png"
         ]
       },
-      "tags": [
-        "Panicyy",
-        "Distracted",
-        "new"
-      ],
+      "tags": [],
       "tradeLogger": {
         "_migrationLog": [
           "2026-03-09T03:27:33.155Z - schema upgraded 1 -> 2"
@@ -12325,9 +12213,7 @@
       "Rs": 3997.5,
       "Sell Price (Avg)": 212.4,
       "Sell Time": "11:00:13",
-      "Tags": [
-        "Distracted"
-      ],
+      "Tags": [],
       "Total Fees": 122.42,
       "Total Trades": "",
       "TradeType": "sell",
@@ -12375,9 +12261,7 @@
           "/uploads/cad1f45c-d491-4f7e-91bd-0fdb4f499f5c.png"
         ]
       },
-      "tags": [
-        "Distracted"
-      ],
+      "tags": [],
       "tradeLogger": {
         "dur": 2
       },
@@ -12523,10 +12407,7 @@
       "Rs": -1179.75,
       "Sell Price (Avg)": 200,
       "Sell Time": "13:37:51",
-      "Tags": [
-        "halkeMeLerahe",
-        "Late"
-      ],
+      "Tags": [],
       "Total Fees": 71.89,
       "Total Trades": "",
       "TradeType": "sell",
@@ -12537,10 +12418,7 @@
       "imageTags": {},
       "images": [],
       "observation": "",
-      "tags": [
-        "halkeMeLerahe",
-        "Late"
-      ],
+      "tags": [],
       "tradeLogger": {
         "dur": 10,
         "en_algo": "N",
@@ -12695,9 +12573,7 @@
       "Rs": 5820.75,
       "Sell Price (Avg)": 145.05,
       "Sell Time": "09:30:22",
-      "Tags": [
-        "darr"
-      ],
+      "Tags": [],
       "Total Fees": 97.2,
       "Total Trades": "",
       "TradeType": "sell",
@@ -12742,9 +12618,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773382000/trading_journal/b8602284-6ed2-41ff-a2b2-5c05697e8d2f.png"
       ],
       "observation": "",
-      "tags": [
-        "darr"
-      ],
+      "tags": [],
       "tradeLogger": {
         "_migrationLog": [
           "2026-03-10T15:16:56.796Z - schema upgraded 1 -> 2"
@@ -12786,9 +12660,7 @@
       "Rs": 991.25,
       "Sell Price (Avg)": 220.4,
       "Sell Time": "09:51:12",
-      "Tags": [
-        "himmat nahi"
-      ],
+      "Tags": [],
       "Total Fees": 73.39,
       "Total Trades": "",
       "TradeType": "sell",
@@ -12823,9 +12695,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381992/trading_journal/fdd51125-770e-4eb3-88f7-8342838b11f6.png"
       ],
       "observation": "",
-      "tags": [
-        "himmat nahi"
-      ],
+      "tags": [],
       "tradeReview": {
         "dd": "",
         "runnup": "",
@@ -13481,7 +13351,7 @@
       "Buy Price (Avg)": 95.333333,
       "Buy Time": "09:56:35",
       "Gross P/L": 2343.25,
-      "Image Tags": "panic, Panicyy",
+      "Image Tags": "panic",
       "Instrument": "NIFTY2631723500PE",
       "Net P/L": 2258.18,
       "Note": "",
@@ -13501,18 +13371,8 @@
       },
       "date": "2026-03-17",
       "imageTags": {
-        "/uploads/f3191d86d4fd4f37ab33c4e2e9c7263f.webm": [
-          "Panicyy"
-        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724611/trading_journal/d8e9cb64-e266-4e28-8a1f-02744ec85a4d.png": [
-          "Panicyy",
           "panic"
-        ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724614/trading_journal/5874b250-0a64-42b0-9b81-b56fad4c8068.png": [
-          "Panicyy"
-        ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773724618/trading_journal/81b66f1b-cb11-40e0-9b8b-38e78dd5b06a.png": [
-          "Panicyy"
         ]
       },
       "images": [
@@ -14451,7 +14311,7 @@
       "Buy Price (Avg)": 110.533333,
       "Buy Time": "10:46:17",
       "Gross P/L": 1215.5,
-      "Image Tags": "chotu, dddd, NO ZONE, pintu, ZONE ENTRY",
+      "Image Tags": "dddd, NO ZONE, pintu, ZONE ENTRY",
       "Instrument": "NIFTY2632422700PE",
       "Net P/L": 1126.51,
       "Note": "",
@@ -14471,8 +14331,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/462f9718-57f4-4216-92db-c8c6486423d5.png": [
           "ZONE ENTRY",
           "NO ZONE",
-          "dddd",
-          "chotu"
+          "dddd"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/86890efb-648f-47fe-995e-262786d07139.png": [
           "pintu"
@@ -14558,7 +14417,7 @@
       "Buy Price (Avg)": 154.9,
       "Buy Time": "11:16:01",
       "Gross P/L": -263.25,
-      "Image Tags": "NO ZONE, palat gaya",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": -328.8,
       "Note": "",
@@ -14575,9 +14434,6 @@
       "Video": "",
       "date": "2026-03-24",
       "imageTags": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774333726/trading_journal/3002baaa-a586-472a-812a-5d74bfebac8d.png": [
-          "palat gaya"
-        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774333726/trading_journal/756d4384-77f7-426b-ab4d-6834a6f68da3.png": [
           "NO ZONE"
         ]
@@ -17037,7 +16893,7 @@
       "Buy Price (Avg)": 217.45,
       "Buy Time": "09:59:03",
       "Gross P/L": -3360.5,
-      "Image Tags": "",
+      "Image Tags": "MIN 3, Premium",
       "Instrument": "NIFTY2641323800PE",
       "Net P/L": -3455.5,
       "Note": "",
@@ -17053,7 +16909,12 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-09",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755469/trading_journal/275ee6d9-28b9-44b4-9155-7b5d5e8ad19e.png": [
+          "MIN 3",
+          "Premium"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775720283/trading_journal/6822fd2d-379f-4ad5-a7e1-08df4b667264.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713018/trading_journal/81014fa4-5a80-49ca-a037-6b21abf39d59.png",
@@ -17111,7 +16972,7 @@
       "Buy Price (Avg)": 234.25,
       "Buy Time": "10:26:56",
       "Gross P/L": 799.5,
-      "Image Tags": "",
+      "Image Tags": "MIN 3, MIN 5, Premium",
       "Instrument": "NIFTY2641323800CE",
       "Net P/L": 694.56,
       "Note": "",
@@ -17127,7 +16988,16 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-09",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755359/trading_journal/5ae7e883-64eb-46a8-8a6f-18eccf045403.png": [
+          "MIN 3",
+          "Premium"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755362/trading_journal/db13a480-2742-407d-9a86-70945b2aaca5.png": [
+          "MIN 5",
+          "Premium"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713019/trading_journal/e4904324-5547-4f9d-9551-b1c032d4770d.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713019/trading_journal/3e0f7af7-5a88-4995-8f77-c160920c06df.png",
@@ -17182,7 +17052,7 @@
       "Buy Price (Avg)": 155.025,
       "Buy Time": "10:36:33",
       "Gross P/L": 786.5,
-      "Image Tags": "",
+      "Image Tags": "MIN 3, MIN 5, Premium",
       "Instrument": "NIFTY2641323750PE",
       "Net P/L": 663.25,
       "Note": "",
@@ -17198,7 +17068,16 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-09",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755269/trading_journal/c94204c9-1d87-4bc7-92ca-40065fbff408.png": [
+          "MIN 5",
+          "Premium"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755271/trading_journal/ace262d0-7c42-46fc-a0e1-a9adbafed75e.png": [
+          "MIN 3",
+          "Premium"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713021/trading_journal/deb47701-ba6e-488b-9f86-67c1e157a379.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713021/trading_journal/f4bb9330-6820-4517-aa24-462d84e7429b.png",
@@ -17405,7 +17284,7 @@
       "Buy Price (Avg)": 182,
       "Buy Time": "12:24:18",
       "Gross P/L": -2447.25,
-      "Image Tags": "",
+      "Image Tags": "MIN 5",
       "Instrument": "NIFTY2641323850PE",
       "Net P/L": -2556.97,
       "Note": "",
@@ -17421,7 +17300,11 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-09",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755636/trading_journal/e7765560-0562-4147-9cbf-7adef659809a.png": [
+          "MIN 5"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/40228516-1ac1-44a3-837e-5c72170e4c47.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718788/trading_journal/66a3282f-031b-4b69-9fea-1306556f9883.png",
@@ -17447,7 +17330,7 @@
       "Buy Price (Avg)": 284.533333,
       "Buy Time": "12:30:22",
       "Gross P/L": -1784.25,
-      "Image Tags": "",
+      "Image Tags": "MIN 3, MIN 5, Premium",
       "Instrument": "NIFTY2641323750CE",
       "Net P/L": -1932.07,
       "Note": "",
@@ -17463,7 +17346,16 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-09",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755308/trading_journal/3e9fc7a6-aff0-4448-a30d-4051dd5d4dfb.png": [
+          "Premium",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775755310/trading_journal/9c1f353a-7f1d-4f1c-babe-e273665d05f9.png": [
+          "MIN 5",
+          "Premium"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775718787/trading_journal/03eb29cf-6e44-4f0f-8661-01fe11dbd5e3.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775719498/trading_journal/f48a8e9b-d124-4c93-9371-35647a28ac0e.png",
@@ -17751,61 +17643,31 @@
     "Image Tags"
   ],
   "allTags": [
-    "Reversal",
-    "Panicyy",
-    "Manual",
-    "Random",
     "panic",
-    "darr",
-    "EntryMiss",
-    "Late",
-    "Distracted",
-    "Conti",
-    "RuleBased",
-    "Mann Nahi",
-    "Partial Exit",
-    "Palat Gaya",
-    "idea",
-    "desperate",
-    "expiryDay",
-    "CloseButNotExactRule",
-    "new",
-    "Bach Gaye",
-    "bach gaye",
-    "Full View",
-    "thumbnail",
-    "bina zone",
-    "Premium",
     "news",
-    "nafsPeKabu",
-    "halkeMeLerahe",
     "Realisation",
-    "himmat nahi",
-    "impulsive",
-    "algo",
-    "no darr!",
-    "Reversal-Fail",
-    "unexpected Move",
-    "kill Switch",
-    "almostPerfect",
-    "news+",
-    "sdadssdsd",
-    "ide",
-    "carxx",
     "dddd",
     "SL Nahi lagya",
     "ZONE ENTRY",
     "NO ZONE",
     "Over-Confidence",
     "Momentum Slow ka intezar karna cahiye",
-    "palat gaya",
-    "chotu",
     "pintu",
     "Day Open",
     "Day Close",
+    "CONTI",
+    "thumbnail",
+    "Panicyy",
+    "Partial Exit",
+    "darr",
+    "MIN 3",
+    "MIN 5",
+    "Multiple Days",
+    "Reversal",
     "Clean",
-    "War",
-    "Politics"
+    "Premium",
+    "BOTH",
+    "News"
   ],
   "tagColumns": [
     "Tags"
@@ -17850,18 +17712,14 @@
             "rw": 0.06601466992665037,
             "rx": 0.10024449877750612,
             "ry": 0.255863539445629,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           },
           {
             "rh": 0.17484008528784648,
             "rw": 0.06723716381418093,
             "rx": 0.6332518337408313,
             "ry": 0.21961620469083157,
-            "tags": [
-              "idea"
-            ]
+            "tags": []
           }
         ],
         "/uploads/4f16e719-75b0-4344-90d5-3f19770dbcfa.png": [
@@ -17870,18 +17728,14 @@
             "rw": 0.03395784543325527,
             "rx": 0.7283372365339579,
             "ry": 0.32196162046908317,
-            "tags": [
-              "expiryDay"
-            ]
+            "tags": []
           },
           {
             "rh": 0.10874200426439233,
             "rw": 0.03981264637002342,
             "rx": 0.5117096018735363,
             "ry": 0.31769722814498935,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           }
         ],
         "/uploads/be7fbba0-47f3-4611-9d58-2f7533bdc229.png": [
@@ -17890,18 +17744,14 @@
             "rw": 0.04196642685851319,
             "rx": 0.4712230215827338,
             "ry": 0.31982942430703626,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           },
           {
             "rh": 0.14712153518123666,
             "rw": 0.047961630695443645,
             "rx": 0.564748201438849,
             "ry": 0.3070362473347548,
-            "tags": [
-              "Palat Gaya"
-            ]
+            "tags": []
           }
         ]
       },
@@ -18043,9 +17893,7 @@
             "rw": 0.18650306748466258,
             "rx": 0.5558282208588957,
             "ry": 0.66,
-            "tags": [
-              "nafsPeKabu"
-            ]
+            "tags": []
           }
         ],
         "/uploads/79cb0055-33b2-4392-b1f4-bb5c829612f4.png": [
@@ -18054,11 +17902,7 @@
             "rw": 0.13780487804878047,
             "rx": 0.1524390243902439,
             "ry": 0.36673773987206826,
-            "tags": [
-              "idea",
-              "Manual",
-              "CloseButNotExactRule"
-            ]
+            "tags": []
           }
         ],
         "/uploads/9e66f57c-fd4e-48c6-b379-bc061c990ef0.png": [
@@ -18068,9 +17912,7 @@
             "rx": 0.30036630036630035,
             "ry": 0.36886993603411516,
             "tags": [
-              "idea",
-              "Realisation",
-              "Late"
+              "Realisation"
             ]
           },
           {
@@ -18078,9 +17920,7 @@
             "rw": 0.06593406593406594,
             "rx": 0.5970695970695971,
             "ry": 0.35181236673773986,
-            "tags": [
-              "himmat nahi"
-            ]
+            "tags": []
           }
         ],
         "/uploads/b342eea3-2a46-4073-b30e-ff85419aa01f.png": [
@@ -18100,10 +17940,7 @@
             "rw": 0.054086538461538464,
             "rx": 0.5456730769230769,
             "ry": 0.22746781115879827,
-            "tags": [
-              "idea",
-              "new"
-            ]
+            "tags": []
           }
         ],
         "/uploads/f62d612f-d047-43c9-bb53-e474a562030a.png": [],
@@ -18113,9 +17950,7 @@
             "rw": 0.1346153846153846,
             "rx": 0.59375,
             "ry": 0.10660980810234541,
-            "tags": [
-              "halkeMeLerahe"
-            ]
+            "tags": []
           },
           {
             "rh": 0.14925373134328357,
@@ -18210,13 +18045,7 @@
     "2026-02-10": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {
-        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [
-          "Panicyy",
-          "Random",
-          "Manual"
-        ]
-      },
+      "imageTags": {},
       "images": [],
       "marqueeBoxes": {
         "/uploads/31b56795-b1ae-4b70-940d-4156400b461a.png": [],
@@ -18227,9 +18056,7 @@
             "rw": 0.07334963325183375,
             "rx": 0.10757946210268948,
             "ry": 0.27292110874200426,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           }
         ],
         "/uploads/5b2816ab-bc6c-4185-a636-677e173a0230.png": [],
@@ -18240,9 +18067,7 @@
             "rw": 0.09735576923076923,
             "rx": 0.17668269230769232,
             "ry": 0.2068230277185501,
-            "tags": [
-              "idea"
-            ]
+            "tags": []
           }
         ],
         "/uploads/7c4f559b-5050-4d8c-a220-8d2b3ccf62a7.png": [],
@@ -18253,9 +18078,7 @@
             "rw": 0.08633093525179857,
             "rx": 0.46642685851318944,
             "ry": 0.326226012793177,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           }
         ]
       },
@@ -18270,16 +18093,7 @@
     "2026-02-11": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {
-        "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [
-          "Panicyy",
-          "Random"
-        ],
-        "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": [
-          "Panicyy",
-          "Random"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381837/trading_journal/cbba85af-2b84-45da-8839-57a513da4d25.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381864/trading_journal/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png",
@@ -18305,9 +18119,7 @@
             "rw": 0.07810650887573964,
             "rx": 0.6414201183431952,
             "ry": 0.23880597014925373,
-            "tags": [
-              "idea"
-            ]
+            "tags": []
           }
         ],
         "/uploads/0c70010c-52f9-464c-833a-32a7a80d13fd.png": [],
@@ -18317,9 +18129,7 @@
             "rw": 0.1646919431279621,
             "rx": 0.7215639810426541,
             "ry": 0.6780383795309168,
-            "tags": [
-              "ide"
-            ]
+            "tags": []
           }
         ],
         "/uploads/443bbe4f-b8f2-4e36-8bd2-5fe2dda834fe.png": [
@@ -18339,10 +18149,7 @@
             "rw": 0.06682577565632458,
             "rx": 0.4224343675417661,
             "ry": 0.3304904051172708,
-            "tags": [
-              "impulsive",
-              "Manual"
-            ]
+            "tags": []
           }
         ],
         "/uploads/48c44015-4484-4d4e-8c48-0629c8884348.png": [
@@ -18352,9 +18159,6 @@
             "rx": 0.3486454652532391,
             "ry": 0.32196162046908317,
             "tags": [
-              "RuleBased",
-              "algo",
-              "darr",
               "Realisation"
             ]
           }
@@ -18365,12 +18169,7 @@
             "rw": 0.11927710843373494,
             "rx": 0.5445783132530121,
             "ry": 0.47334754797441364,
-            "tags": [
-              "Bach Gaye",
-              "Palat Gaya",
-              "CloseButNotExactRule",
-              "impulsive"
-            ]
+            "tags": []
           }
         ],
         "/uploads/74d4db2e-f5a5-421a-b79f-ea065e989865.png": [
@@ -18379,9 +18178,7 @@
             "rw": 0.14863258026159334,
             "rx": 0.3103448275862069,
             "ry": 0.3752665245202559,
-            "tags": [
-              "himmat nahi"
-            ]
+            "tags": []
           }
         ],
         "/uploads/7be1f3da-aa86-4a96-b9ad-7228e36d88e5.png": [],
@@ -18391,10 +18188,7 @@
             "rw": 0.1406799531066823,
             "rx": 0.7596717467760844,
             "ry": 0.7761194029850746,
-            "tags": [
-              "new",
-              "idea"
-            ]
+            "tags": []
           }
         ],
         "/uploads/bd8e2a96-4592-43b7-8a0e-273057224580.png": [],
@@ -18404,9 +18198,7 @@
             "rw": 0.25741399762752076,
             "rx": 0.17793594306049823,
             "ry": 0.27078891257995735,
-            "tags": [
-              "new"
-            ]
+            "tags": []
           }
         ],
         "/uploads/ca4d5485-db5a-4a3a-b573-7bab8a3dbf09.png": [
@@ -18415,9 +18207,7 @@
             "rw": 0.06439854191980558,
             "rx": 0.7095990279465371,
             "ry": 0.49141630901287553,
-            "tags": [
-              "no darr!"
-            ]
+            "tags": []
           }
         ],
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": [],
@@ -18427,10 +18217,7 @@
             "rw": 0.08480565371024736,
             "rx": 0.14016489988221437,
             "ry": 0.6481876332622601,
-            "tags": [
-              "impulsive",
-              "Manual"
-            ]
+            "tags": []
           }
         ],
         "/uploads/cded4f49-9716-4090-9522-03b4f41e20d0.png": [
@@ -18439,9 +18226,7 @@
             "rw": 0.0863905325443787,
             "rx": 0.41420118343195267,
             "ry": 0.3582089552238806,
-            "tags": [
-              "himmat nahi"
-            ]
+            "tags": []
           }
         ],
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": []
@@ -18455,11 +18240,7 @@
     "2026-02-12": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {
-        "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": [
-          "Panicyy"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381728/trading_journal/8b9296b7-1434-4cb7-9175-1afe3cce727f.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381834/trading_journal/ca3831d2-cb3a-4341-992a-52375af9bc60.png"
@@ -18521,12 +18302,7 @@
     "2026-02-19": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {
-        "/uploads/6c58404a-f566-426d-99be-96ced2a8b36a.png": [
-          "Panicyy",
-          "Random"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381685/trading_journal/6c58404a-f566-426d-99be-96ced2a8b36a.png"
       ],
@@ -18560,14 +18336,7 @@
     "2026-02-24": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {
-        "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": [
-          "Panicyy"
-        ],
-        "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": [
-          "Panicyy"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381545/trading_journal/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381688/trading_journal/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png",
@@ -18585,9 +18354,7 @@
         "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": "/uploads/6330a538-c2a4-4501-b4f7-7b69b095ec4f.png"
       },
       "tags": {
-        "Tags": [
-          "bina zone"
-        ]
+        "Tags": []
       },
       "video": "https://youtu.be/sQe00rCxL44?si=-UyWbUH4ONhWVmmZ"
     },
@@ -18613,12 +18380,7 @@
     "2026-02-27": {
       "audios": {},
       "closeImages": [],
-      "imageTags": {
-        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
-          "Panicyy",
-          "Partial Exit"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381771/trading_journal/a2e5821b-1445-4303-a07e-4120586c9b05.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381518/trading_journal/06533d85-5a8d-44a7-8261-59f7d8574468.png",
@@ -18636,9 +18398,7 @@
             "rw": 0.09069212410501191,
             "rx": 0.2458233890214797,
             "ry": 0.3938294010889292,
-            "tags": [
-              "RuleBased"
-            ]
+            "tags": []
           }
         ],
         "/uploads/7d507fe8-7468-419d-9b0f-5f030293cd68.png": [
@@ -18647,46 +18407,35 @@
             "rw": 0.02867383512544803,
             "rx": 0.292399803797404,
             "ry": 0.6656492271354107,
-            "tags": [
-              "desperate"
-            ]
+            "tags": []
           },
           {
             "rh": 0.036297640653357534,
             "rw": 0.042114695340501794,
             "rx": 0.353331703438981,
             "ry": 0.7563933287688046,
-            "tags": [
-              "Reversal-Fail"
-            ]
+            "tags": []
           },
           {
             "rh": 0.034482758620689655,
             "rw": 0.07168458781362007,
             "rx": 0.09526718730994875,
             "ry": 0.3117472307651748,
-            "tags": [
-              "darr",
-              "CloseButNotExactRule"
-            ]
+            "tags": []
           },
           {
             "rh": 0.023593466424682397,
             "rw": 0.022401433691756272,
             "rx": 0.2807510582776907,
             "ry": 0.353489517516536,
-            "tags": [
-              "darr"
-            ]
+            "tags": []
           },
           {
             "rh": 0.041742286751361164,
             "rw": 0.03225806451612903,
             "rx": 0.6750162912526011,
             "ry": 0.19922454473976647,
-            "tags": [
-              "Reversal"
-            ]
+            "tags": []
           }
         ],
         "/uploads/a2e5821b-1445-4303-a07e-4120586c9b05.png": [
@@ -18695,9 +18444,7 @@
             "rw": 0.0456989247311828,
             "rx": 0.4088872589945366,
             "ry": 0.7019468677887682,
-            "tags": [
-              "Full View"
-            ]
+            "tags": []
           }
         ],
         "/uploads/a380f4d0-d796-4ce0-9e4e-b8e6621fffcd.png": [
@@ -18706,9 +18453,7 @@
             "rw": 0.03494623655913978,
             "rx": 0.5164141407149667,
             "ry": 0.3081174666998391,
-            "tags": [
-              "Conti"
-            ]
+            "tags": []
           }
         ],
         "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
@@ -18740,9 +18485,7 @@
             "rw": 0.0909981230311054,
             "rx": 0.4684756290553097,
             "ry": 0.4194813615671535,
-            "tags": [
-              "Premium"
-            ]
+            "tags": []
           },
           {
             "rh": 0.02610486254587673,
@@ -18763,9 +18506,7 @@
             "rw": 0.05505071123408821,
             "rx": 0.34499122434644997,
             "ry": 0.18488430747904525,
-            "tags": [
-              "thumbnail"
-            ]
+            "tags": []
           },
           {
             "rh": 0.0496,
@@ -18793,11 +18534,7 @@
             "rw": 0.09748172217709179,
             "rx": 0.30270896519088974,
             "ry": 0.22345789473684202,
-            "tags": [
-              "Premium",
-              "panic",
-              "Full View"
-            ]
+            "tags": []
           },
           {
             "rh": 0.25164473684210525,
@@ -26340,9 +26077,7 @@
             "rw": 0.08121827411167512,
             "rx": 0.7960659937205048,
             "ry": 0.5097065445531841,
-            "tags": [
-              "kill Switch"
-            ]
+            "tags": []
           }
         ],
         "/uploads/cf1fa68d-051d-4cd8-af59-89dbb2540a61.png": [],
@@ -26363,9 +26098,7 @@
             "rw": 0.046994535519125684,
             "rx": 0.40087431695291903,
             "ry": 0.1462753933116491,
-            "tags": [
-              "unexpected Move"
-            ]
+            "tags": []
           }
         ],
         "/uploads/fc738356-a36a-4a82-a8b2-50fce2b22eb7.png": []
@@ -26462,10 +26195,7 @@
             "rw": 0.08648111332007952,
             "rx": 0.3760618054369098,
             "ry": 0.29341372275839045,
-            "tags": [
-              "clean",
-              "almostPerfect"
-            ]
+            "tags": []
           }
         ],
         "/uploads/a59b1af7-d5b4-4775-a970-04b02a2eed73.png": [],
@@ -26880,12 +26610,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773802446/trading_journal/dc4bbcdf-3f32-4933-b9c5-222658af0316.png"
       ],
       "closeImages": [],
-      "imageTags": {
-        "/uploads/3ba9c9c896504793b0c711538382f0e8.webm": [
-          "Late",
-          "Distracted"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773730831/trading_journal/b681a0e3-82c0-439b-afff-d840bacb7f82.png"
       ],
@@ -27016,7 +26741,12 @@
       ],
       "closeImages": [],
       "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774351995/trading_journal/590b26db-d028-4ac2-a391-1e9aa57baa84.png": [
+          "MIN 3",
+          "BOTH"
+        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774351995/trading_journal/5fb8463b-d40c-48ba-827c-4e5bf98fe635.png": [
+          "MIN 3",
           "Clean"
         ]
       },
@@ -27024,7 +26754,8 @@
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/462f9718-57f4-4216-92db-c8c6486423d5.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774351995/trading_journal/590b26db-d028-4ac2-a391-1e9aa57baa84.png": {}
-      }
+      },
+      "tradeRefCards": {}
     },
     "2026-03-25": {
       "closeGlobalImages": [
@@ -27038,10 +26769,14 @@
         ],
         "/uploads/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png": [
           "Day Close",
+          "MIN 3",
+          "Multiple Days",
           "Clean"
         ],
         "/uploads/c654edb3-2f32-4794-a090-b51ce5b63287.png": [
-          "Day Close"
+          "Day Close",
+          "BOTH",
+          "MIN 3"
         ]
       },
       "images": [
@@ -27053,7 +26788,8 @@
         "/uploads/c654edb3-2f32-4794-a090-b51ce5b63287.png": {},
         "/uploads/cdf8b2bf-e0ae-4e34-9911-00776952d317.png": {}
       },
-      "newsImages": []
+      "newsImages": [],
+      "tradeRefCards": {}
     },
     "2026-03-30": {
       "closeImages": [],
@@ -27086,7 +26822,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774845148/trading_journal/df1dca21-bfb8-4a2d-bc52-d8eaae6a49e5.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774846622/trading_journal/5b440509-26db-475c-a630-3f55d231337a.png": {},
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774846624/trading_journal/974f9b05-89e6-483c-94e8-c1a8bdc19330.png": {}
-      }
+      },
+      "tradeRefCards": {}
     },
     "2026-04-01": {
       "closeGlobalImages": [
@@ -27107,11 +26844,22 @@
           "Day Open"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037085/trading_journal/4eac5a6a-222c-45db-9701-b16ada2a9e7a.png": [
-          "RuleBased",
           "Day Close"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037086/trading_journal/ba46612f-a98e-4b26-9f5c-9b3b8dc3645c.png": [
           "Day Close"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775738465/trading_journal/6038a6af-16ea-4991-aa33-080f90026068.png": [
+          "MIN 3",
+          "Reversal"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775738465/trading_journal/c629072f-d79e-4aca-ab6a-6f53d3378fac.png": [
+          "CONTI",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775738465/trading_journal/c88ff1c0-9fae-4f1b-8b25-a1f49369728f.png": [
+          "MIN 3",
+          "BOTH"
         ]
       },
       "images": [
@@ -27164,9 +26912,17 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775117885/trading_journal/fc35d91a-bf45-496d-8c33-dc82161a7ba1.png": [
           "Day Open"
         ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775473863/trading_journal/ee4a92f3-2730-4410-a753-be8d0c18cf62.jpg": [
-          "War",
-          "Politics"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731576/trading_journal/b07adf44-e66c-4fa0-9108-be8e573f59d8.png": [
+          "BOTH",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731574/trading_journal/c5468850-d6b1-47c4-8a28-eb331f112faa.png": [
+          "MIN 3",
+          "Clean"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731576/trading_journal/440878e4-715c-4c58-bc58-9032dab539da.png": [
+          "Reversal",
+          "MIN 3"
         ]
       },
       "images": [
@@ -27212,8 +26968,11 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470252/trading_journal/1c662d12-9013-450a-b41b-ccd88d642b4e.png": [
           "Day Close"
         ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470363/trading_journal/223bdb7e-29b4-49b0-9917-519ecc654785.png": [
+          "MIN 3",
+          "BOTH"
+        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775470364/trading_journal/769b2ec8-48c0-42f2-9cb2-68c470ac35d4.png": [
-          "Clean",
           "Day Close"
         ]
       },
@@ -27262,13 +27021,35 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/b3bab39c-4ab2-48e6-b933-1b410e7a1bbf.png"
       ],
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/4395574d-822a-4c6f-8686-a16d1a09da77.png": [
+          "CONTI",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/b3bab39c-4ab2-48e6-b933-1b410e7a1bbf.png": [
+          "Clean",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/bd50767f-516a-4696-b64e-bc1776ab0e2e.png": [
+          "Clean",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/c2abbf98-62de-4123-87ce-f2ab9ff85089.png": [
+          "MIN 3",
+          "BOTH"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775731418/trading_journal/f1b2b1e3-e42a-4a2f-98ba-d4e519de36a3.png": [
+          "MIN 3",
+          "Reversal"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552597/trading_journal/40e4f71f-23f2-4c64-8c3f-b84168b6bbb2.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552598/trading_journal/63c9b2ff-6113-4326-ad62-a8356f747b47.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552597/trading_journal/17fdff69-3f9a-41ab-86fe-6d16f43eb85d.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552598/trading_journal/9010d8be-d2fa-4547-9d23-67883d4f8da0.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552598/trading_journal/3facd2b1-708a-4af7-905c-0b45c4370050.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552598/trading_journal/3facd2b1-708a-4af7-905c-0b45c4370050.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775878948/trading_journal/661ed533-9b9d-4e65-bddc-c9898cb9cf92.png"
       ],
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775552599/trading_journal/a1e9af38-758e-4adf-8d2d-d157276d4ae6.png": {},
@@ -27320,7 +27101,21 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775643787/trading_journal/5026cdca-969c-4ad4-98f3-cf3ed8825a62.png"
       ],
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775643786/trading_journal/e9d39c13-8ed3-4e71-89a4-dbd19ad1162a.png": [
+          "CONTI",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775643787/trading_journal/5026cdca-969c-4ad4-98f3-cf3ed8825a62.png": [
+          "Multiple Days",
+          "Clean"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775643788/trading_journal/e14fb96d-d4f3-44d4-89f2-9f61b69bb4a5.png": [
+          "MIN 3",
+          "CONTI",
+          "Multiple Days"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775640746/trading_journal/65419007-91ac-4dfa-b5c5-7733696e4a6e.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775640746/trading_journal/820af461-7d07-4da4-bead-948c56bf2907.png",
@@ -27446,7 +27241,31 @@
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775817389/trading_journal/14ed8728-2b14-4251-b7e8-8eecf1ca7bf8.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/1f0c15a1-ffd3-4821-a792-f8cdedc1549e.png": [
+          "MIN 3",
+          "Reversal"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/47afd955-6585-4e87-8334-ef5245c3d7e4.png": [
+          "MIN 5",
+          "Reversal"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/5d22e66a-190b-4ea7-92e5-8b2227af106d.png": [
+          "MIN 3",
+          "CONTI"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/f1366673-5ea9-4e79-b312-06beb30e2f82.png": [
+          "Clean",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732683/trading_journal/fffdcdc6-c29f-439c-9057-09eeb3f475c8.png": [
+          "Multiple Days"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775732680/trading_journal/75f150ca-05c1-403f-a96e-39606ff0b54b.png": [
+          "MIN 3",
+          "BOTH"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/165a5b1a-88ca-4333-b633-c830d93b96f0.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/f4bdb5d7-f1e4-4317-adcf-bc4d6d766565.png",
@@ -27973,7 +27792,21 @@
       "closeImages": [],
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816379/trading_journal/416263cc-b09d-48bc-983b-668ba5104a5d.png": [
-          "dddd"
+          "dddd",
+          "CONTI",
+          "MIN 3"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816382/trading_journal/aead143a-8acc-42f5-a474-89366e51ba36.png": [
+          "MIN 5",
+          "CONTI"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816382/trading_journal/1374d9bd-4a92-47d2-8cab-875c09ab3294.png": [
+          "Reversal",
+          "MIN 5"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816380/trading_journal/3987ef5e-c514-4ef6-93c5-486eb76759a3.png": [
+          "MIN 5",
+          "Reversal"
         ]
       },
       "images": [
@@ -28018,66 +27851,44 @@
   "importedPdfs": [],
   "tagGroups": {
     "BAT": [
-      "chotu",
       "pintu"
     ],
+    "DURATION": [
+      "MIN 3",
+      "Multiple Days",
+      "MIN 5"
+    ],
     "Emotions": [
-      "darr",
-      "Mann Nahi",
-      "panic",
-      "Panicyy",
-      "desperate",
-      "halkeMeLerahe",
-      "nafsPeKabu",
-      "no darr!",
-      "impulsive",
-      "himmat nahi"
+      "panic"
     ],
     "Entry Type": [
-      "EntryMiss",
-      "Late",
-      "Distracted",
       "ZONE ENTRY",
       "NO ZONE",
-      "Momentum Slow ka intezar karna cahiye",
-      "palat gaya"
+      "Momentum Slow ka intezar karna cahiye"
     ],
     "Exit Type": [
-      "Partial Exit",
-      "Bach Gaye",
-      "bach gaye",
       "SL Nahi lagya",
       "Over-Confidence"
     ],
     "Idea/New": [
-      "idea",
-      "new",
       "news",
       "Realisation"
     ],
     "Img Manager": [
       "Day Open",
-      "Day Close",
-      "Clean"
+      "Day Close"
     ],
-    "NEWS": [
-      "War"
+    "PREMIUM": [
+      "Premium"
     ],
-    "Rule": [
-      "RuleBased",
-      "CloseButNotExactRule"
-    ],
-    "Strategy": [
-      "Conti",
+    "Rule": [],
+    "STRATEGY": [
+      "CONTI",
       "Reversal",
-      "Manual",
-      "Random",
-      "expiryDay",
-      "algo"
+      "Clean",
+      "BOTH"
     ],
-    "TargetType": [
-      "Palat Gaya"
-    ]
+    "TargetType": []
   },
   "imgTypes": {}
 }

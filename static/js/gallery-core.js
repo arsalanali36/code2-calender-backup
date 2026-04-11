@@ -60,20 +60,35 @@ function getImageTagsForGalleryItem(item) {
 function getAllGalleryImagesAcrossDates() {
   const out = [];
   getDatesWithImages().forEach(d => {
-    (state.dayData[d]?.images || []).forEach(url => {
-      out.push({ url, date: d, sourceRow: null });
-    });
+    // 1. News
+    (state.dayData[d]?.newsImages || []).forEach(url => out.push({ url, date: d, sourceRow: null }));
+
+    // 2. Day Images (Charts)
+    (state.dayData[d]?.images || []).forEach(url => out.push({ url, date: d, sourceRow: null }));
+
+    // 3. Trade Images
     for (let i = 0; i < state.trades.length; i++) {
       const t = state.trades[i];
       if (normalizeDate(extractDateFromTrade(t)) !== d) continue;
       (t.images || []).forEach(url => out.push({ url, date: d, sourceRow: i }));
     }
-    (state.dayData[d]?.closeImages || []).forEach(url => {
-      out.push({ url, date: d, sourceRow: null });
-    });
-    (state.dayData[d]?.closeGlobalImages || []).forEach(url => {
-      out.push({ url, date: d, sourceRow: null });
-    });
+
+    // 4. Close Images
+    (state.dayData[d]?.closeImages || []).forEach(url => out.push({ url, date: d, sourceRow: null }));
+    (state.dayData[d]?.closeGlobalImages || []).forEach(url => out.push({ url, date: d, sourceRow: null }));
+
+    // 5. Premium Images
+    const premiumObj = state.dayData[d]?.premiumImages;
+    if (premiumObj) {
+        Object.keys(premiumObj).sort().forEach(inst => {
+            const val = premiumObj[inst];
+            if (Array.isArray(val)) {
+                val.forEach(url => { if (url) out.push({ url, date: d, sourceRow: null }); });
+            } else if (val) {
+                out.push({ url: val, date: d, sourceRow: null });
+            }
+        });
+    }
   });
   return out;
 }

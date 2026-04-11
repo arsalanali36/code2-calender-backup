@@ -131,23 +131,17 @@ function renderGalleryTagsTray() {
     if (!t) return;
     tagUsageCount.set(t, (tagUsageCount.get(t) || 0) + 1);
   };
-  state.trades.forEach((tr, rowIdx) => {
-    const dateKey = normalizeDate(extractDateFromTrade(tr));
-    (tr.images || []).forEach(url => {
-      getImageTagsForUrl(tr, url).forEach(bumpTagCount);
-      const boxes = tr?.marqueeBoxes?.[url];
-      (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
-      if (!boxes) getMarqueeTagsForImage(url, dateKey, rowIdx).forEach(bumpTagCount);
-    });
+
+  // Use the robust utility from gallery-core.js to discover ALL images
+  const allImageItems = getAllGalleryImagesAcrossDates();
+  allImageItems.forEach(item => {
+    // getImageTagsForGalleryItem handles imageTags, dayImageTags, and marqueeTags
+    getImageTagsForGalleryItem(item).forEach(bumpTagCount);
   });
-  Object.entries(state.dayData || {}).forEach(([dateKey, day]) => {
-    const allDayUrls = [...(day?.images || []), ...(day?.closeImages || [])];
-    allDayUrls.forEach(url => {
-      getDayImageTagsForUrl(dateKey, url).forEach(bumpTagCount);
-      const boxes = day?.marqueeBoxes?.[url];
-      (Array.isArray(boxes) ? boxes : []).forEach(b => (Array.isArray(b?.tags) ? b.tags : []).forEach(bumpTagCount));
-      if (!boxes) getMarqueeTagsForImage(url, dateKey, null).forEach(bumpTagCount);
-    });
+
+  // Also count tags assigned explicitly to Trades
+  state.trades.forEach(tr => {
+    getTradeTagsForTrade(tr).forEach(bumpTagCount);
   });
 
   Array.from(tagUsageCount.keys()).forEach(t => {

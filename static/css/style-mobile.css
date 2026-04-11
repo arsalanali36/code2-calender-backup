@@ -237,7 +237,11 @@
   /* ── GALLERY TRAY — iPad compact grid ── */
   .gv2-tray {
     top: 0 !important;
+    height: calc(46px + env(safe-area-inset-top, 0px)) !important;
     padding: 0 4px !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-left: max(4px, env(safe-area-inset-left, 4px)) !important;
+    padding-right: max(4px, env(safe-area-inset-right, 4px)) !important;
     grid-template-columns: auto 170px 1fr auto auto !important;
   }
 

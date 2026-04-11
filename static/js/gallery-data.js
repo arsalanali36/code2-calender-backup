@@ -92,9 +92,18 @@ function getDatesWithImages() {
     .filter(t => (t.images || []).length > 0)
     .map(t => normalizeDate(extractDateFromTrade(t)))
     .filter(Boolean);
+    
   const dayDates = Object.entries(state.dayData)
-    .filter(([, v]) => v?.images?.length > 0)
+    .filter(([, v]) => {
+      if (v?.newsImages?.length > 0) return true;
+      if (v?.images?.length > 0) return true;
+      if (v?.closeImages?.length > 0) return true;
+      if (v?.closeGlobalImages?.length > 0) return true;
+      if (v?.premiumImages && Object.keys(v.premiumImages).length > 0) return true;
+      return false;
+    })
     .map(([k]) => k);
+    
   return Array.from(new Set([...tradeDates, ...dayDates])).sort();
 }
 
