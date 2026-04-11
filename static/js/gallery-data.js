@@ -161,22 +161,15 @@ function getCurrentGalleryImageTagInfo() {
   const curIdx = state.gallery.currentIndex;
   const imgUrl = images[curIdx] || '';
   
-  // PDF Mode handling
-  if (state.gallery.mode === 'pdf' || imgUrl.startsWith('pdf://')) {
-    const parts = imgUrl.replace('pdf://', '').split('/');
-    const pdfId = parts[0];
-    const pageNo = parts[1];
-    
-    const pdfTags = (state.pdfPageTags?.[pdfId]?.[pageNo]) || [];
-    return { 
-        imgUrl, 
-        ownerType: 'pdf', 
-        pdfId, 
-        pageNo, 
-        imageTags: pdfTags, 
-        marqueeTags: [], 
-        tradeTags: [], 
-        all: pdfTags 
+  // PDF Mode: pages are real image URLs — fall through to normal handling below
+  if (state.gallery.mode === 'pdf') {
+    return {
+        imgUrl,
+        ownerType: 'pdf',
+        imageTags: [],
+        marqueeTags: [],
+        tradeTags: [],
+        all: []
     };
   }
 

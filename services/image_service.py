@@ -194,6 +194,49 @@ def get_image_times(urls: list, uploads_dir: str) -> dict:
     return times
 
 
+# ── PDF page splitting ────────────────────────────────────────────────────────
+
+def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 150) -> list:
+    """
+    Render each PDF page to JPG and upload to Cloudinary (or save locally).
+    Returns list of image URLs, one per page.
+    """
+    import io
+    import fitz  # PyMuPDF
+    import cloudinary.uploader
+    from config import USE_CLOUDINARY, UPLOADS_DIR
+
+    safe = re.sub(r'[^\w\-]', '_', os.path.splitext(os.path.basename(pdf_name))[0])[:35]
+    mat  = fitz.Matrix(dpi / 72, dpi / 72)
+    doc  = fitz.open(stream=pdf_bytes, filetype='pdf')
+    page_urls = []
+
+    try:
+        for i in range(len(doc)):
+            pix      = doc[i].get_pixmap(matrix=mat, alpha=False)
+            jpg_bytes = pix.tobytes('jpeg', jpg_quality=85)
+
+            if USE_CLOUDINARY:
+                pub_id = f'trading_journal/pdf_pages/{safe}_p{i+1}_{uuid.uuid4().hex[:6]}'
+                res    = cloudinary.uploader.upload(
+                    io.BytesIO(jpg_bytes),
+                    public_id=pub_id,
+                    resource_type='image',
+                    overwrite=False,
+                )
+                page_urls.append(res['secure_url'])
+            else:
+                fname = f'pdf_{safe}_p{i+1}_{uuid.uuid4().hex[:6]}.jpg'
+                fpath = os.path.join(UPLOADS_DIR, fname)
+                with open(fpath, 'wb') as f:
+                    f.write(jpg_bytes)
+                page_urls.append(f'/uploads/{fname}')
+    finally:
+        doc.close()
+
+    return page_urls
+
+
 # ── PDF helpers (Cloudinary or local) ────────────────────────────────────────
 
 def _load_pdf_meta(pdf_meta_file: str) -> list:
@@ -235,24 +278,33 @@ def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
     if USE_CLOUDINARY:
         import cloudinary
         import cloudinary.uploader
+        import io as _io
 
+        # Read bytes first (stream consumed after first upload)
+        pdf_bytes = file_storage.read()
+
+        # 1. Upload raw PDF for download reference
         public_id = f'trading_journal/pdfs/{uuid.uuid4()}'
         result = cloudinary.uploader.upload(
-            file_storage,
+            _io.BytesIO(pdf_bytes),
             public_id=public_id,
             resource_type='raw',
             overwrite=False,
         )
         secure_url = result.get('secure_url', '')
         stored_id  = result.get('public_id', public_id)
-        size       = result.get('bytes', 0)
+        size       = result.get('bytes', len(pdf_bytes))
+
+        # 2. Split pages → individual JPG images on Cloudinary
+        pages = split_pdf_to_images(pdf_bytes, orig_name)
 
         record = {
-            'filename':  stored_id,   # Cloudinary public_id used for deletion
+            'filename':  stored_id,
             'name':      orig_name,
             'url':       secure_url,
             'size':      size,
             'timestamp': ts,
+            'pages':     pages,
         }
         records = _load_pdf_meta(pdf_meta_file)
         records.insert(0, record)
@@ -263,14 +315,18 @@ def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
     os.makedirs(pdf_dir, exist_ok=True)
     fname = f'{uuid.uuid4().hex}_{secure_filename_safe(orig_name)}'
     fpath = os.path.join(pdf_dir, fname)
-    file_storage.save(fpath)
+    pdf_bytes = file_storage.read()
+    with open(fpath, 'wb') as f:
+        f.write(pdf_bytes)
     size = os.path.getsize(fpath)
+    pages = split_pdf_to_images(pdf_bytes, orig_name)
     return {
         'filename':  fname,
         'name':      orig_name,
         'url':       f'/uploads/pdfs/{fname}',
         'size':      size,
         'timestamp': ts,
+        'pages':     pages,
     }
 
 
@@ -314,6 +370,17 @@ def list_uploaded_pdfs(pdf_dir: str, pdf_meta_file: str) -> list:
         })
     result.sort(key=lambda x: x['timestamp'], reverse=True)
     return result
+
+
+def update_pdf_pages(filename: str, pages: list, pdf_meta_file: str) -> bool:
+    """Update the pages array for a PDF (delete/reorder). Returns True if found."""
+    records = _load_pdf_meta(pdf_meta_file)
+    for r in records:
+        if r.get('filename') == filename:
+            r['pages'] = pages
+            _save_pdf_meta(records, pdf_meta_file)
+            return True
+    return False
 
 
 def delete_uploaded_pdf(filename: str, pdf_dir: str, pdf_meta_file: str) -> bool:

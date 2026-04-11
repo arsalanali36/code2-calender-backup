@@ -86,41 +86,27 @@ function renderGallery() {
   } else {
     if (vidEl) { vidEl.style.display = 'none'; vidEl.pause && vidEl.pause(); }
     const pdfCanvas = document.getElementById('pdf-main-canvas');
-    const isPdf = curUrl.startsWith('pdf://');
+    if (pdfCanvas) pdfCanvas.style.display = 'none';
 
-    if (isPdf) {
-      img.style.display = 'none';
-      if (pdfCanvas) {
-        pdfCanvas.style.display = 'block';
-        const parts = curUrl.replace('pdf://', '').split('/');
-        const pdfId = parts[0];
-        const pageNum = parseInt(parts[1]);
-        if (typeof PdfHandler !== 'undefined' && PdfHandler.renderPageToMainCanvas) {
-            PdfHandler.renderPageToMainCanvas(pageNum, pdfId);
-        }
+    img.style.display = '';
+    img.src = resolveImageUrl(curUrl);
+    img.classList.remove('zoomed', 'dragging'); resetZoom();
+    if (state.gallery.splitView && typeof updateSplitRight === 'function') updateSplitRight(curUrl);
+    img.onerror = () => {
+      if (!curUrl) return;
+      img.style.opacity = '0.3'; img.style.filter = 'grayscale(1) contrast(0.5)';
+      img.title = 'Image could not be loaded.';
+    };
+    const afterImageReady = () => {
+      loadOverlayForCurrentImage();
+      if (typeof renderTagPins === 'function') renderTagPins();
+      if (state._carryAnnotTool) {
+        annotState.tool = state._carryAnnotTool; state._carryAnnotTool = '';
+        startAnnotation();
       }
-    } else {
-      if (pdfCanvas) pdfCanvas.style.display = 'none';
-      img.style.display = '';
-      img.src = resolveImageUrl(curUrl);
-      img.classList.remove('zoomed', 'dragging'); resetZoom();
-      if (state.gallery.splitView && typeof updateSplitRight === 'function') updateSplitRight(curUrl);
-      img.onerror = () => {
-        if (!curUrl) return;
-        img.style.opacity = '0.3'; img.style.filter = 'grayscale(1) contrast(0.5)';
-        img.title = 'Image could not be loaded.';
-      };
-      const afterImageReady = () => {
-        loadOverlayForCurrentImage();
-        if (typeof renderTagPins === 'function') renderTagPins();
-        if (state._carryAnnotTool) {
-          annotState.tool = state._carryAnnotTool; state._carryAnnotTool = '';
-          startAnnotation();
-        }
-      };
-      img.addEventListener('load', afterImageReady, { once: true });
-      if (img.complete && img.naturalWidth) afterImageReady();
-    }
+    };
+    img.addEventListener('load', afterImageReady, { once: true });
+    if (img.complete && img.naturalWidth) afterImageReady();
     img.onclick = null;
   }
 
@@ -222,7 +208,7 @@ function renderPdfTabsBar() {
 
   // Get current PDF ID to highlight the active tab
   const curUrl = state.gallery.images[state.gallery.currentIndex] || '';
-  const currentPdfId = curUrl.startsWith('pdf://') ? curUrl.replace('pdf://', '').split('/')[0] : null;
+  const currentPdfId = state.gallery.mode === 'pdf' ? state.gallery.pdf?.filename : null;
 
   activePdfs.forEach(pdf => {
     const chip = document.createElement('div');

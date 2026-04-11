@@ -85,10 +85,11 @@ const PdfHandler = (() => {
           if (typeof showToast === 'function') showToast('Please select a valid PDF file', 'error');
           return;
         }
-        if (typeof showToast === 'function') showToast('Uploading PDF...', 'info');
+        if (typeof showToast === 'function') showToast('Uploading & processing PDF pages... please wait', 'info');
         const result = await uploadPdfToServer(file);
         if (result) {
-          if (typeof showToast === 'function') showToast(`Uploaded: ${file.name}`, 'success');
+          const pageCount = (result.pages || []).length;
+          if (typeof showToast === 'function') showToast(`Done: ${file.name} — ${pageCount} pages`, 'success');
           renderPdfList();
         } else {
           if (typeof showToast === 'function') showToast('Upload failed', 'error');
@@ -222,53 +223,41 @@ const PdfHandler = (() => {
     currentFile = null;
   }
 
-  async function openPdfInGallery(pdf) {
-    if (typeof showToast === 'function') showToast(`Opening ${pdf.name}...`, 'info');
-    closeListModal();
-    
-    try {
-      // If gallery isn't open, open it
-      const gModal = document.getElementById('gallery-modal');
-      if (gModal && !gModal.classList.contains('open')) {
-          if (typeof openGallery === 'function') openGallery();
-      }
-
-      const response = await fetch(pdf.url);
-      const arrayBuffer = await response.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const doc = await loadingTask.promise;
-      
-      pdfDoc = doc;
-      currentFileName = pdf.name;
-      currentFile = pdf;
-
-      // Switch Gallery State
-      const pdfId = pdf.filename || pdf.name;
-      pdfDocCache.set(pdfId, doc);
-
-      state.gallery.mode = 'pdf';
-      state.gallery.pdf = {
-          doc: doc,
-          name: pdf.name,
-          url: pdf.url,
-          id: pdfId
-      };
-      
-      const numPages = doc.numPages;
-      const virtualImages = [];
-      for(let i=1; i<=numPages; i++) {
-          virtualImages.push(`pdf://${state.gallery.pdf.id}/${i}`);
-      }
-      
-      state.gallery.images = virtualImages;
-      state.gallery.currentIndex = 0;
-      
-      if (typeof renderGallery === 'function') renderGallery();
-      
-    } catch (err) {
-      console.error('[PdfHandler] Failed to open PDF in Gallery:', err);
-      if (typeof showToast === 'function') showToast('Failed to load PDF', 'error');
+  async function openPdfInGallery(pdfOrId) {
+    // Accept either a pdf object {filename, name, pages, url} or just a filename string
+    let pdf = pdfOrId;
+    if (typeof pdfOrId === 'string') {
+      const list = await imageService.listPdfs() || [];
+      pdf = list.find(p => p.filename === pdfOrId || p.name === pdfOrId);
+      if (!pdf) { if (typeof showToast === 'function') showToast('PDF not found', 'error'); return; }
     }
+
+    closeListModal();
+
+    const pages = pdf.pages || [];
+    if (pages.length === 0) {
+      if (typeof showToast === 'function') showToast('PDF has no processed pages yet', 'error');
+      return;
+    }
+
+    // Open gallery if not open
+    const gModal = document.getElementById('gallery-modal');
+    if (gModal && !gModal.classList.contains('open')) {
+      if (typeof openGallery === 'function') openGallery();
+    }
+
+    currentFileName = pdf.name;
+    currentFile     = pdf;
+
+    state.gallery.mode         = 'pdf';
+    state.gallery.date         = null;
+    state.gallery.pdf          = { name: pdf.name, filename: pdf.filename, url: pdf.url, pages };
+    state.gallery.images       = [...pages];
+    state.gallery.currentIndex = 0;
+
+    registerActivePdf({ id: pdf.filename, name: pdf.name, url: pdf.url, filename: pdf.filename });
+
+    if (typeof renderGallery === 'function') renderGallery();
   }
 
   function registerActivePdf(pdf) {
@@ -537,9 +526,12 @@ const PdfHandler = (() => {
       const safeFilename = encodeURIComponent(pdf.filename);
       const pdfJson = JSON.stringify(pdf).replace(/"/g, '&quot;');
       
+      const thumbHtml = pdf.pages && pdf.pages.length
+        ? `<img src="${pdf.pages[0]}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,0.1);" loading="lazy">`
+        : `<div style="font-size:1.2rem;">📄</div>`;
       return `
         <div class="pdf-item-row" onclick="PdfHandler.openPdfInGallery(${pdfJson})">
-          <div class="pdf-item-icon" style="font-size: 1.2rem;">📄</div>
+          <div class="pdf-item-icon">${thumbHtml}</div>
           <div class="pdf-item-name" title="${safeName}">${safeName}</div>
           <div class="pdf-item-date">${dateStr}</div>
           <div class="pdf-item-size">${sizeMB} MB</div>

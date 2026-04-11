@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
-    save_uploaded_pdf, list_uploaded_pdfs, delete_uploaded_pdf,
+    save_uploaded_pdf, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
 from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_CLOUDINARY
 
@@ -256,3 +256,17 @@ def delete_pdf():
         return jsonify({'error': 'Invalid filename'}), 400
     delete_uploaded_pdf(filename, PDF_DIR, PDF_META_FILE)
     return jsonify({'success': True})
+
+
+@image_bp.route('/api/update-pdf-pages', methods=['POST'])
+def update_pdf_pages_route():
+    """Update pages array for a PDF (delete/reorder individual pages)."""
+    data = request.json or {}
+    filename = data.get('filename', '')
+    pages    = data.get('pages', [])
+    if not filename:
+        return jsonify({'error': 'No filename'}), 400
+    if not isinstance(pages, list):
+        return jsonify({'error': 'pages must be array'}), 400
+    found = update_pdf_pages(filename, pages, PDF_META_FILE)
+    return jsonify({'success': True, 'found': found})
