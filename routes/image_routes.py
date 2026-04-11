@@ -7,17 +7,23 @@ and serving uploaded files.
 import os
 import uuid
 import time
+import json
+import threading
 
 from flask import Blueprint, request, jsonify, send_from_directory, Response
 from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
-    save_uploaded_pdf, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
+    save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
 from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
+
+# ── PDF processing job tracker ────────────────────────────────────────────────
+_pdf_jobs      = {}   # job_id -> state dict
+_pdf_jobs_lock = threading.Lock()
 
 
 @image_bp.route('/api/upload-image', methods=['POST'])
@@ -220,22 +226,78 @@ def delete_tag_image():
 
 @image_bp.route('/api/upload-pdf', methods=['POST'])
 def upload_pdf():
-    """Store the PDF on Cloudinary (if configured) or local disk."""
+    """Upload PDF, start background page-split processing, return job_id immediately."""
     if 'pdf' not in request.files:
         return jsonify({'error': 'No pdf'}), 400
     file = request.files['pdf']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
+
     try:
-        record = save_uploaded_pdf(
-            file, PDF_DIR, PDF_META_FILE,
-            original_filename=file.filename,
-        )
-        return jsonify(record)
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        pdf_bytes = file.read()
+        orig_name = file.filename
     except Exception as e:
-        return jsonify({'error': f'Upload failed: {e}'}), 500
+        return jsonify({'error': f'Read failed: {e}'}), 500
+
+    if not orig_name.lower().endswith('.pdf'):
+        return jsonify({'error': 'Invalid file type'}), 400
+
+    job_id = uuid.uuid4().hex
+    with _pdf_jobs_lock:
+        _pdf_jobs[job_id] = {
+            'status': 'processing',
+            'current': 0,
+            'total': 0,
+            'record': None,
+            'error': None,
+        }
+
+    def run():
+        def on_progress(current, total):
+            with _pdf_jobs_lock:
+                if job_id in _pdf_jobs:
+                    _pdf_jobs[job_id]['current'] = current
+                    _pdf_jobs[job_id]['total']   = total
+        try:
+            record = save_pdf_bytes(
+                pdf_bytes, orig_name,
+                PDF_DIR, PDF_META_FILE,
+                progress_cb=on_progress,
+            )
+            with _pdf_jobs_lock:
+                _pdf_jobs[job_id]['record'] = record
+                _pdf_jobs[job_id]['status'] = 'done'
+        except Exception as exc:
+            with _pdf_jobs_lock:
+                _pdf_jobs[job_id]['error']  = str(exc)
+                _pdf_jobs[job_id]['status'] = 'error'
+
+    threading.Thread(target=run, daemon=True).start()
+    return jsonify({'job_id': job_id})
+
+
+@image_bp.route('/api/pdf-job/<job_id>', methods=['GET'])
+def pdf_job_progress(job_id):
+    """SSE stream: sends job progress until done/error."""
+    def generate():
+        while True:
+            with _pdf_jobs_lock:
+                job = dict(_pdf_jobs.get(job_id, {}))
+            if not job:
+                yield f"data: {json.dumps({'error': 'not found'})}\n\n"
+                break
+            yield f"data: {json.dumps(job)}\n\n"
+            if job['status'] in ('done', 'error'):
+                # Clean up job entry after a short while
+                threading.Timer(30, lambda: _pdf_jobs.pop(job_id, None)).start()
+                break
+            time.sleep(0.35)
+
+    return Response(
+        generate(),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'},
+    )
 
 
 @image_bp.route('/api/list-pdfs', methods=['GET'])

@@ -196,9 +196,11 @@ def get_image_times(urls: list, uploads_dir: str) -> dict:
 
 # ── PDF page splitting ────────────────────────────────────────────────────────
 
-def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 150) -> list:
+def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 150,
+                        progress_cb=None) -> list:
     """
     Render each PDF page to JPG and upload to Cloudinary (or save locally).
+    progress_cb(current_page, total_pages) called after each page.
     Returns list of image URLs, one per page.
     """
     import io
@@ -209,11 +211,12 @@ def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 150) -> list
     safe = re.sub(r'[^\w\-]', '_', os.path.splitext(os.path.basename(pdf_name))[0])[:35]
     mat  = fitz.Matrix(dpi / 72, dpi / 72)
     doc  = fitz.open(stream=pdf_bytes, filetype='pdf')
+    total = len(doc)
     page_urls = []
 
     try:
-        for i in range(len(doc)):
-            pix      = doc[i].get_pixmap(matrix=mat, alpha=False)
+        for i in range(total):
+            pix       = doc[i].get_pixmap(matrix=mat, alpha=False)
             jpg_bytes = pix.tobytes('jpeg', jpg_quality=85)
 
             if USE_CLOUDINARY:
@@ -231,6 +234,12 @@ def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 150) -> list
                 with open(fpath, 'wb') as f:
                     f.write(jpg_bytes)
                 page_urls.append(f'/uploads/{fname}')
+
+            if progress_cb:
+                try:
+                    progress_cb(i + 1, total)
+                except Exception:
+                    pass
     finally:
         doc.close()
 
@@ -254,8 +263,57 @@ def _save_pdf_meta(records: list, pdf_meta_file: str):
         json.dump(records, f)
 
 
+def save_pdf_bytes(pdf_bytes: bytes, orig_name: str, pdf_dir: str,
+                   pdf_meta_file: str, progress_cb=None) -> dict:
+    """Process pre-read PDF bytes (called from background thread with progress tracking)."""
+    import io, time as _time
+    from config import USE_CLOUDINARY
+    import cloudinary.uploader
+
+    ext = os.path.splitext(orig_name)[1].lower()
+    if ext != '.pdf':
+        raise ValueError(f'Invalid file type: {ext}')
+    ts = int(_time.time() * 1000)
+
+    if USE_CLOUDINARY:
+        public_id = f'trading_journal/pdfs/{uuid.uuid4()}'
+        result    = cloudinary.uploader.upload(
+            io.BytesIO(pdf_bytes), public_id=public_id,
+            resource_type='raw', overwrite=False,
+        )
+        pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
+        record = {
+            'filename':  result.get('public_id', public_id),
+            'name':      orig_name,
+            'url':       result.get('secure_url', ''),
+            'size':      result.get('bytes', len(pdf_bytes)),
+            'timestamp': ts,
+            'pages':     pages,
+        }
+    else:
+        os.makedirs(pdf_dir, exist_ok=True)
+        fname = f'{uuid.uuid4().hex}_{secure_filename_safe(orig_name)}'
+        fpath = os.path.join(pdf_dir, fname)
+        with open(fpath, 'wb') as f:
+            f.write(pdf_bytes)
+        pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
+        record = {
+            'filename':  fname,
+            'name':      orig_name,
+            'url':       f'/uploads/pdfs/{fname}',
+            'size':      os.path.getsize(fpath),
+            'timestamp': ts,
+            'pages':     pages,
+        }
+
+    records = _load_pdf_meta(pdf_meta_file)
+    records.insert(0, record)
+    _save_pdf_meta(records, pdf_meta_file)
+    return record
+
+
 def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
-                      original_filename: str = None) -> dict:
+                      original_filename: str = None, progress_cb=None) -> dict:
     """
     Save / upload a PDF file.
 
@@ -296,7 +354,7 @@ def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
         size       = result.get('bytes', len(pdf_bytes))
 
         # 2. Split pages → individual JPG images on Cloudinary
-        pages = split_pdf_to_images(pdf_bytes, orig_name)
+        pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
 
         record = {
             'filename':  stored_id,
@@ -319,7 +377,7 @@ def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
     with open(fpath, 'wb') as f:
         f.write(pdf_bytes)
     size = os.path.getsize(fpath)
-    pages = split_pdf_to_images(pdf_bytes, orig_name)
+    pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
     return {
         'filename':  fname,
         'name':      orig_name,

@@ -562,6 +562,18 @@
       </div>
     </div>
 
+    <!-- PDF Upload Progress Bar (hidden by default) -->
+    <div id="pdf-upload-progress" style="display:none; padding:14px 25px 12px; border-bottom:1px solid #30363d; background:#0d1117;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;">
+        <span id="pdf-progress-label" style="font-size:0.83rem; color:#c9d1d9; font-weight:500;">Uploading...</span>
+        <span id="pdf-progress-pct" style="font-size:0.83rem; color:#58a6ff; font-weight:700; font-family:monospace;">0%</span>
+      </div>
+      <div style="background:#21262d; border-radius:6px; height:7px; overflow:hidden;">
+        <div id="pdf-progress-fill" style="height:100%; background:linear-gradient(90deg,#238636,#2ea043); border-radius:6px; width:0%; transition:width 0.25s ease;"></div>
+      </div>
+      <div id="pdf-progress-sub" style="font-size:0.73rem; color:#6e7681; margin-top:5px; font-family:monospace;"></div>
+    </div>
+
     <!-- Explorer-style Column Headers -->
     <div class="pdf-list-columns-header">
       <div class="pdf-head-icon"></div>
