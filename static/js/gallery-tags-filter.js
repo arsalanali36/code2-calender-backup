@@ -31,10 +31,31 @@ function renderGalleryTagFilterPanel() {
 
     const searchRow = document.createElement('div');
     searchRow.className = 'panel-search-row';
+    searchRow.style.cssText = 'padding: 8px; position: relative;';
+    
     const searchInp = document.createElement('input');
     searchInp.className = 'panel-search';
     searchInp.placeholder = 'Search tags...';
+    searchInp.style.cssText = 'width: 100%; padding-right: 30px;'; // make room for x
+    
+    const clearInpBtn = document.createElement('button');
+    clearInpBtn.innerHTML = '&#10005;';
+    clearInpBtn.style.cssText = 'position: absolute; right: 16px; top: 18px; background: transparent; border: none; color: var(--text3); cursor: pointer; display: none; font-size: 14px; padding: 4px;';
+    
+    searchInp.addEventListener('input', () => {
+        clearInpBtn.style.display = searchInp.value ? 'block' : 'none';
+        renderFilterList(searchInp.value);
+    });
+
+    clearInpBtn.onclick = () => {
+        searchInp.value = '';
+        clearInpBtn.style.display = 'none';
+        renderFilterList('');
+        searchInp.focus();
+    };
+
     searchRow.appendChild(searchInp);
+    searchRow.appendChild(clearInpBtn);
     if (header) header.appendChild(searchRow);
 
     const tagUsageCount = calculateGalleryTagCounts();
@@ -328,12 +349,7 @@ function renderGalleryTagFilterPanel() {
             }
             filteredUngrouped.forEach(renderListTag);
         }
-    };
-
     renderFilterList('');
-    searchInp.addEventListener('input', () => {
-        renderFilterList(searchInp.value);
-    });
 
     searchInp.addEventListener('keydown', e => {
         const items = Array.from(list.querySelectorAll('.head-checkbox'));
