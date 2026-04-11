@@ -121,23 +121,6 @@ function _bindGalleryEvents() {
       if (localStorageKey) localStorage.setItem(localStorageKey, finalW);
     };
 
-    let _resizing = false, _startX = 0, _startW = 0;
-    const _onMove = (e) => {
-      if (!_resizing) return;
-      if (e.cancelable) e.preventDefault(); // prevent page scroll during resize
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const dx = cx - _startX;
-      _setWidth(direction === 'right' ? _startW + dx : _startW - dx);
-    };
-    const _onUp = () => {
-      if (!_resizing) return;
-      _resizing = false; handle.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      // Remove touch listener only when dragging ends — keeps scroll smooth
-      document.removeEventListener('touchmove', _onMove);
-    };
-    // ── Unified Horizontal Drag (Mouse + Touch) ──
     let _activeDrag = false, _startX = 0, _startW = 0;
 
     const _onStart = (x) => {
