@@ -59,6 +59,11 @@ function renderGalleryTagFilterPanel() {
     const optModal = document.getElementById('gv2-filter-opts-modal');
     const optModalContent = document.getElementById('gv2-filter-opts-modal-content');
 
+    const btnOpt = document.createElement('button');
+    btnOpt.className = 'panel-act-btn';
+    btnOpt.style.cssText = 'flex:1; justify-content:space-between; padding:0 10px; color:var(--blue);';
+    btnOpt.innerHTML = '<span>Filter Options...</span><span style="opacity:0.6">▾</span>';
+
     const renderOptMenu = () => {
         if (!optModalContent) return;
         optModalContent.innerHTML = '';
