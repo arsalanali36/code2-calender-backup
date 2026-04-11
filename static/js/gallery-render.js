@@ -85,9 +85,6 @@ function renderGallery() {
     resetZoom();
   } else {
     if (vidEl) { vidEl.style.display = 'none'; vidEl.pause && vidEl.pause(); }
-    img.style.display = ''; img.style.opacity = ''; img.style.filter = ''; img.title = '';
-    
-    // PDF Handling
     const pdfCanvas = document.getElementById('pdf-main-canvas');
     const isPdf = curUrl.startsWith('pdf://');
 
@@ -106,25 +103,24 @@ function renderGallery() {
       if (pdfCanvas) pdfCanvas.style.display = 'none';
       img.style.display = '';
       img.src = resolveImageUrl(curUrl);
+      img.classList.remove('zoomed', 'dragging'); resetZoom();
+      if (state.gallery.splitView && typeof updateSplitRight === 'function') updateSplitRight(curUrl);
+      img.onerror = () => {
+        if (!curUrl) return;
+        img.style.opacity = '0.3'; img.style.filter = 'grayscale(1) contrast(0.5)';
+        img.title = 'Image could not be loaded.';
+      };
+      const afterImageReady = () => {
+        loadOverlayForCurrentImage();
+        if (typeof renderTagPins === 'function') renderTagPins();
+        if (state._carryAnnotTool) {
+          annotState.tool = state._carryAnnotTool; state._carryAnnotTool = '';
+          startAnnotation();
+        }
+      };
+      img.addEventListener('load', afterImageReady, { once: true });
+      if (img.complete && img.naturalWidth) afterImageReady();
     }
-
-    img.classList.remove('zoomed', 'dragging'); resetZoom();
-    if (state.gallery.splitView && typeof updateSplitRight === 'function') updateSplitRight(curUrl);
-    img.onerror = () => {
-      if (!curUrl) return;
-      img.style.opacity = '0.3'; img.style.filter = 'grayscale(1) contrast(0.5)';
-      img.title = 'Image could not be loaded.';
-    };
-    const afterImageReady = () => {
-      loadOverlayForCurrentImage();
-      if (typeof renderTagPins === 'function') renderTagPins();
-      if (state._carryAnnotTool) {
-        annotState.tool = state._carryAnnotTool; state._carryAnnotTool = '';
-        startAnnotation();
-      }
-    };
-    img.addEventListener('load', afterImageReady, { once: true });
-    if (img.complete && img.naturalWidth) afterImageReady();
     img.onclick = null;
   }
 

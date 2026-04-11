@@ -28163,19 +28163,33 @@
       ],
       "1_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnu9tlzkim6d",
           "tag": "thumbnail",
           "x": 56.6,
-          "y": 39.1,
-          "color": "#00d2ff"
+          "y": 39.1
         }
       ],
       "3_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnu9tpwzfpoc",
           "tag": "thumbnail",
           "x": 72.4,
-          "y": 28.4,
+          "y": 28.4
+        }
+      ]
+    },
+    "b27d2154614a4bfa87747cf3eed27193_2026-EROLLGEN-S24-173-SIR-DraftRoll-Revision1-HIN-243-WI.pdf": {
+      "2": [
+        "thumbnail"
+      ],
+      "2_pins": [
+        {
+          "id": "mnua963juwyq",
+          "tag": "thumbnail",
+          "x": 58.6,
+          "y": 37.8,
           "color": "#00d2ff"
         }
       ]
