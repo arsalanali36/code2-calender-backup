@@ -65,6 +65,12 @@ function _screenToLogical(sx, sy) {
 
 function getTagPinsForUrl(imgUrl, dateHint) {
   if (!imgUrl) return [];
+  if (imgUrl.startsWith('pdf://')) {
+    const parts = imgUrl.replace('pdf://', '').split('/');
+    const pdfId = parts[0];
+    const pageNo = parts[1];
+    return state.pdfPageTags?.[pdfId]?.[pageNo + '_pins'] || [];
+  }
   const trade = typeof getOwnerTradeForImageUrl === 'function'
     ? getOwnerTradeForImageUrl(imgUrl) : null;
   if (trade) return (trade.tagPins || {})[imgUrl] || [];
@@ -76,6 +82,16 @@ function getTagPinsForUrl(imgUrl, dateHint) {
 
 function setTagPinsForUrl(imgUrl, pins, dateHint) {
   if (!imgUrl) return;
+  if (imgUrl.startsWith('pdf://')) {
+    const parts = imgUrl.replace('pdf://', '').split('/');
+    const pdfId = parts[0];
+    const pageNo = parts[1];
+    if (!state.pdfPageTags) state.pdfPageTags = {};
+    if (!state.pdfPageTags[pdfId]) state.pdfPageTags[pdfId] = {};
+    if (pins.length === 0) delete state.pdfPageTags[pdfId][pageNo + '_pins'];
+    else state.pdfPageTags[pdfId][pageNo + '_pins'] = pins;
+    return;
+  }
   const trade = typeof getOwnerTradeForImageUrl === 'function'
     ? getOwnerTradeForImageUrl(imgUrl) : null;
   if (trade) {
@@ -137,6 +153,8 @@ function addTagPin(tag, xPct, yPct) {
         setImageTagsForUrl(info.trade, imgUrl, next);
       else if (info.ownerType === 'day' && info.dateKey && typeof setDayImageTagsForUrl === 'function')
         setDayImageTagsForUrl(info.dateKey, imgUrl, next);
+      else if (info.ownerType === 'pdf' && typeof setPdfPageTags === 'function')
+        setPdfPageTags(info.pdfId, info.pageNo, next);
       if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
       if (typeof renderGalleryImageTags    === 'function') renderGalleryImageTags();
       if (typeof renderGalleryTagCloud     === 'function') renderGalleryTagCloud();

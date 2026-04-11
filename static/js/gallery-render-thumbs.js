@@ -9,7 +9,9 @@ function renderGalleryThumbs() {
   const savedScrollLeft = thumbs.scrollLeft;
   thumbs.innerHTML = '';
 
-  if (state.gallery.mode === 'pdf' && state.gallery.pdf) {
+  const _filterActive3 = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+
+  if (state.gallery.mode === 'pdf' && state.gallery.pdf && !_filterActive3) {
     if (typeof PdfHandler !== 'undefined' && PdfHandler.renderPdfGalleryThumbs) {
       PdfHandler.renderPdfGalleryThumbs(thumbs);
       return;
@@ -20,7 +22,7 @@ function renderGalleryThumbs() {
   const date = state.gallery.date;
   const currentIndex = state.gallery.currentIndex;
   const dayTrades = date ? getTradesForDate(date) : [];
-  const _filterActive3 = Array.isArray(state.gallery.tagFilter) && state.gallery.tagFilter.length > 0;
+  
   const _perDateLastIdx = new Map();
   const _perDateRenderedSeps = new Set();
 
@@ -142,13 +144,19 @@ function renderGalleryThumbs() {
     const isCloseGlobal = type === 'CLOSE_GLOBAL';
     const isPremium     = type === 'PREMIUM';
     const isNews        = type === 'NEWS';
-    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isClose ? 'CLOSE' : 'OPEN')));
+    const isPdf         = type === 'DOCUMENTS';
+    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isPdf ? 'DOCUMENTS' : (isClose ? 'CLOSE' : 'OPEN'))));
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
     sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
     sep.title = `${label} images section`;
-    sep.style.color = isNews ? '#ffa500' : (isPremium ? '#ffd700' : '#ffd700');
-    sep.style.borderColor = isNews ? '#ffa500' : (isPremium ? '#ffd700' : '#ffd700');
+    
+    let color = '#ffd700'; // Default gold
+    if (isNews) color = '#ffa500';
+    else if (isPdf) color = '#a55eea'; // Purple for PDF
+    
+    sep.style.color = color;
+    sep.style.borderColor = color;
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -218,6 +226,11 @@ function renderGalleryThumbs() {
 
   // ── Thumbnail loop ────────────────────────────────────────────────────────
   thumbImages.forEach(({ url, globalIdx, isCurrentDate, date: itemDate, sourceRow: itemSourceRow, isNews }) => {
+    const isVidThumb = typeof isVideoUrl === 'function' && isVideoUrl(url);
+    const isPdfThumb = url && url.startsWith('pdf://');
+    const isSelected = !!state.gallery.selectedIndices?.has(globalIdx);
+    const isActive = globalIdx === currentIndex;
+
     const _effDate   = (_filterActive3 && itemDate) ? itemDate : (date || '');
     const _effTrades = (_filterActive3 && itemDate && itemDate !== date) ? getTradesForDate(itemDate) : dayTrades;
     const dData      = state.dayData[_effDate] || {};
@@ -274,7 +287,7 @@ function renderGalleryThumbs() {
         lastTradeIdxRendered = _lastIdx;
       }
       if (state.gallery.collapsedSeparators?.has('T' + targetTradeIdx)) return;
-    } else if (_effDate && !ownerTrade && !_isNews && !_isClose && !_isCloseGlobal && !_isPremium) {
+    } else if (_effDate && !ownerTrade && !_isNews && !_isClose && !_isCloseGlobal && !_isPremium && !isPdfThumb) {
       // Catch-all for basic day images that aren't Open/Close (rare)
       if (state.gallery.collapsedSeparators?.has('OPEN')) return;
     }
@@ -303,6 +316,13 @@ function renderGalleryThumbs() {
     }
     if (_isPremium && state.gallery.collapsedSeparators?.has('PREMIUM')) return;
 
+    // 7. PDF DOCUMENTS Separator
+    if (isPdfThumb && !_perDateRenderedSeps.has('DOCUMENTS')) {
+        thumbs.appendChild(createSpecialSeparator('DOCUMENTS', 'DOCUMENTS'));
+        _perDateRenderedSeps.add('DOCUMENTS');
+    }
+    if (isPdfThumb && state.gallery.collapsedSeparators?.has('DOCUMENTS')) return;
+
     // ── Build thumbnail element ───────────────────────────────────────────
     const wrap = document.createElement('div');
     wrap.className = 'gv2-thumb-wrap';
@@ -322,14 +342,11 @@ function renderGalleryThumbs() {
       if (siblings.length > 0 && siblings[siblings.length - 1] === url) wrap.classList.add('grp-child-last');
     }
 
-    const isVidThumb = typeof isVideoUrl === 'function' && isVideoUrl(url);
     let t;
     if (isVidThumb) {
       t = document.createElement('video');
       t.src = resolveImageUrl(url); t.preload = 'metadata'; t.muted = true; t.loop = true; t.playsInline = true;
       t.style.objectFit = 'cover';
-      const isSelected = !!state.gallery.selectedIndices?.has(globalIdx);
-      const isActive = globalIdx === currentIndex;
       t.className = 'gv2-thumb gv2-thumb-video' + (isActive ? ' active' : '') + (isSelected ? ' selected-thumb' : '');
       if (isSelected) t.style.borderColor = '#ff9800'; 
       t.title = 'Video recording';
@@ -340,11 +357,23 @@ function renderGalleryThumbs() {
       vIcon.innerHTML = '&#9654;';
       vIcon.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:1.2rem; text-shadow:0 0 8px rgba(0,0,0,0.8); pointer-events:none; z-index:2;';
       wrap.appendChild(vIcon);
+    } else if (isPdfThumb) {
+      t = document.createElement('div');
+      t.className = 'gv2-thumb' + (isActive ? ' active' : '') + (isSelected ? ' selected-thumb' : '');
+      t.style.cssText = 'background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;';
+      const parts = url.replace('pdf://', '').split('/');
+      const pdfId = parts[0];
+      const pageNum = parseInt(parts[1]);
+      if (typeof PdfHandler !== 'undefined' && PdfHandler.renderThumbPage) {
+          PdfHandler.renderThumbPage(pageNum, t, pdfId);
+      }
+      const pgBadge = document.createElement('div');
+      pgBadge.style.cssText = 'position:absolute; bottom:2px; left:2px; font-size:9px; background:rgba(0,0,0,0.7); color:#fff; padding:1px 3px; border-radius:3px; z-index:10; font-family:monospace;';
+      pgBadge.textContent = 'P' + pageNum;
+      t.appendChild(pgBadge);
     } else {
       t = document.createElement('img');
       t.src = resolveImageUrl(url);
-      const isSelected = !!state.gallery.selectedIndices?.has(globalIdx);
-      const isActive = globalIdx === currentIndex;
       t.className = 'gv2-thumb' + (isActive ? ' active' : '') + (isSelected ? ' selected-thumb' : '');
       // Ensure the orange border is visible even if active
       if (isSelected) t.style.borderColor = '#ff9800'; 

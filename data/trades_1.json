@@ -17586,7 +17586,7 @@
       "Buy Price (Avg)": 192.35,
       "Buy Time": "12:25:11",
       "Gross P/L": -1621.75,
-      "Image Tags": "pin, thumbnail",
+      "Image Tags": "panic, pin, thumbnail",
       "Instrument": "NIFTY2641323950CE",
       "Net P/L": -1689.9,
       "Note": "",
@@ -17625,10 +17625,10 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813024/trading_journal/3d080b87-d0dc-4ec8-b16a-42188243e371.png": [
           "pin"
         ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/ea541a35-30a5-462e-b89a-2f8565e75f66.png": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/5ee1a1de-1aae-40ec-83e0-1322371039e3.png": [
           "pin"
         ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/5ee1a1de-1aae-40ec-83e0-1322371039e3.png": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/ea541a35-30a5-462e-b89a-2f8565e75f66.png": [
           "pin"
         ]
       },
@@ -17722,29 +17722,29 @@
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813024/trading_journal/3d080b87-d0dc-4ec8-b16a-42188243e371.png": [
           {
+            "color": "#ff6b9d",
             "id": "mnu89bh2spwz",
             "tag": "pin",
             "x": 54.4,
-            "y": 26.6,
-            "color": "#ff6b9d"
-          }
-        ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/ea541a35-30a5-462e-b89a-2f8565e75f66.png": [
-          {
-            "id": "mnu89gin4xb9",
-            "tag": "pin",
-            "x": 16.9,
-            "y": 46.1,
-            "color": "#ff6b9d"
+            "y": 26.6
           }
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/5ee1a1de-1aae-40ec-83e0-1322371039e3.png": [
           {
+            "color": "#ff6b9d",
             "id": "mnu89jrrsrk6",
             "tag": "pin",
             "x": 47.8,
-            "y": 27.3,
-            "color": "#ff6b9d"
+            "y": 27.3
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/ea541a35-30a5-462e-b89a-2f8565e75f66.png": [
+          {
+            "color": "#ff6b9d",
+            "id": "mnu89gin4xb9",
+            "tag": "pin",
+            "x": 16.9,
+            "y": 46.1
           }
         ]
       },
@@ -17827,7 +17827,8 @@
     "Premium",
     "BOTH",
     "News",
-    "pin"
+    "pin",
+    "[object Object]"
   ],
   "tagColumns": [
     "Tags"
@@ -28036,6 +28037,58 @@
             "x": 76.4,
             "y": 20.3
           }
+        ],
+        "pdf://57d2d500ea6d42b8aa47132e99c16e53_dashboard_export_Day_Close_5.pdf/1": [
+          {
+            "color": "#ff6b9d",
+            "id": "mnu9mmj376og",
+            "tag": "pin",
+            "x": 55.8,
+            "y": 44
+          },
+          {
+            "color": "#1abc9c",
+            "id": "mnu9mwqf7drk",
+            "tag": "darr",
+            "x": 52.9,
+            "y": 47.6
+          }
+        ],
+        "pdf://57d2d500ea6d42b8aa47132e99c16e53_dashboard_export_Day_Close_5.pdf/4": [
+          {
+            "color": "#ff6b9d",
+            "id": "mnu9l9xjlitw",
+            "tag": "pin",
+            "x": 65.6,
+            "y": 29.4
+          }
+        ],
+        "pdf://57d2d500ea6d42b8aa47132e99c16e53_dashboard_export_Day_Close_5.pdf/5": [
+          {
+            "color": "#ff6b9d",
+            "id": "mnu9le5j1e61",
+            "tag": "pin",
+            "x": 58.2,
+            "y": 39.3
+          }
+        ],
+        "pdf://b27d2154614a4bfa87747cf3eed27193_2026-EROLLGEN-S24-173-SIR-DraftRoll-Revision1-HIN-243-WI.pdf/13": [
+          {
+            "color": "#ff6b9d",
+            "id": "mnu96pdj3o7b",
+            "tag": "pin",
+            "x": 37.6,
+            "y": 35.7
+          }
+        ],
+        "pdf://b27d2154614a4bfa87747cf3eed27193_2026-EROLLGEN-S24-173-SIR-DraftRoll-Revision1-HIN-243-WI.pdf/9": [
+          {
+            "color": "#ff6b9d",
+            "id": "mnu96liooq0l",
+            "tag": "pin",
+            "x": 56.8,
+            "y": 44.9
+          }
         ]
       },
       "tradeRefCards": {
@@ -28099,6 +28152,34 @@
       "MIN 3",
       "Reversal"
     ]
+  },
+  "pdfPageTags": {
+    "57d2d500ea6d42b8aa47132e99c16e53_dashboard_export_Day_Close_5.pdf": {
+      "1": [
+        "thumbnail"
+      ],
+      "3": [
+        "thumbnail"
+      ],
+      "1_pins": [
+        {
+          "id": "mnu9tlzkim6d",
+          "tag": "thumbnail",
+          "x": 56.6,
+          "y": 39.1,
+          "color": "#00d2ff"
+        }
+      ],
+      "3_pins": [
+        {
+          "id": "mnu9tpwzfpoc",
+          "tag": "thumbnail",
+          "x": 72.4,
+          "y": 28.4,
+          "color": "#00d2ff"
+        }
+      ]
+    }
   },
   "imgTypes": {}
 }

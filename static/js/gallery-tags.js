@@ -286,7 +286,9 @@ function renderGalleryTagsTray() {
         ? imgInfo.imageTags.filter(t => t !== tag)
         : [...imgInfo.imageTags, tag];
       if (imgInfo.ownerType === 'trade' && imgInfo.trade) setImageTagsForUrl(imgInfo.trade, imgInfo.imgUrl, next);
-      else if (imgInfo.ownerType === 'day' && imgInfo.dateKey) setDayImageTagsForUrl(imgInfo.dateKey, imgInfo.imgUrl, next);
+      else if (imgInfo.ownerType === 'pdf') {
+        setPdfPageTags(imgInfo.pdfId, imgInfo.pageNo, next);
+      }
       else {
         showToast('No image row found to assign tag', 'error');
         return;

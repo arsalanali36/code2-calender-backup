@@ -195,6 +195,17 @@ function syncImageTagColumnValues() {
   });
 }
 
+function setPdfPageTags(pdfId, pageNo, tags) {
+  if (!pdfId || !pageNo) return;
+  if (!state.pdfPageTags) state.pdfPageTags = {};
+  if (!state.pdfPageTags[pdfId]) state.pdfPageTags[pdfId] = {};
+  if (tags && tags.length > 0) {
+    state.pdfPageTags[pdfId][pageNo] = tags;
+  } else {
+    delete state.pdfPageTags[pdfId][pageNo];
+  }
+}
+
 async function saveTrades() {
   try {
     const payload = {
@@ -715,6 +726,13 @@ function normalizeAllTagsFromTrades() {
   Object.keys(state.dayData || {}).forEach(d => {
     getAllImageTagsForDay(d).forEach(tag => set.add(String(tag)));
   });
+  if (state.pdfPageTags) {
+    Object.values(state.pdfPageTags).forEach(pdfObj => {
+      Object.values(pdfObj).forEach(val => {
+        if (Array.isArray(val)) val.forEach(tag => set.add(String(tag)));
+      });
+    });
+  }
   state.allTags = Array.from(set);
 }
 

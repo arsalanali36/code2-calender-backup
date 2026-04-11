@@ -46,7 +46,12 @@ function getImageTagsForGalleryItem(item) {
   }
   // Image scope (default): only this image's tags
   const tags = new Set();
-  if (item.sourceRow !== null && state.trades[item.sourceRow]) {
+  if (item.url.startsWith('pdf://')) {
+    const parts = item.url.replace('pdf://', '').split('/');
+    const pdfId = parts[0];
+    const pageNo = parts[1];
+    (state.pdfPageTags?.[pdfId]?.[pageNo] || []).forEach(t => tags.add(t));
+  } else if (item.sourceRow !== null && state.trades[item.sourceRow]) {
     getImageTagsForUrl(state.trades[item.sourceRow], item.url).forEach(t => tags.add(t));
   } else if (item.date) {
     const day = state.dayData[item.date];

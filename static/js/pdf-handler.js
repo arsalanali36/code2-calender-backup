@@ -271,7 +271,12 @@ const PdfHandler = (() => {
      if (pdfDoc && (currentFile?.filename === pdfId || currentFileName === pdfId)) return true;
      
      // Find the pdf in serverPdfs
-     const pdf = serverPdfs.find(p => p.filename === pdfId || p.name === pdfId);
+     let pdfList = [];
+     try {
+       pdfList = await imageService.listPdfs() || [];
+     } catch(e) { console.error(e); }
+
+     const pdf = pdfList.find(p => p.filename === pdfId || p.name === pdfId);
      if (!pdf) return false;
      
      try {
@@ -612,7 +617,11 @@ const PdfHandler = (() => {
     }
   }
 
-  async function renderThumbPage(pageNum, container) {
+  async function renderThumbPage(pageNum, container, pdfId) {
+      if (pdfId && (!pdfDoc || currentFile?.filename !== pdfId)) {
+           const ok = await ensurePdfLoaded(pdfId);
+           if (!ok) return;
+      }
       if (!pdfDoc) return;
       try {
           const page = await pdfDoc.getPage(pageNum);
@@ -638,7 +647,9 @@ const PdfHandler = (() => {
     togglePdfMenu,
     openPdfInGallery,
     renderPageToMainCanvas,
-    renderPdfGalleryThumbs
+    renderPdfGalleryThumbs,
+    renderThumbPage,
+    ensurePdfLoaded
   };
 
   // Assign to window for global access
