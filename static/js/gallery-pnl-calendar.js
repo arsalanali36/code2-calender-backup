@@ -19,21 +19,25 @@ function openPnlCalendar() {
     }
   }
 
+  // Helper functions for navigation
+  const pnlCalPrev = () => {
+    pnlCalMonth--;
+    if (pnlCalMonth < 0) { pnlCalMonth = 11; pnlCalYear--; }
+    renderPnlCalendar();
+  };
+  const pnlCalNext = () => {
+    pnlCalMonth++;
+    if (pnlCalMonth > 11) { pnlCalMonth = 0; pnlCalYear++; }
+    renderPnlCalendar();
+  };
+
   modal.style.display = 'flex';
   renderPnlCalendar();
   
   // Bind events once
   if (!window._pnlCalEventsBound) {
-    document.getElementById('pnl-cal-prev').onclick = () => {
-      pnlCalMonth--;
-      if (pnlCalMonth < 0) { pnlCalMonth = 11; pnlCalYear--; }
-      renderPnlCalendar();
-    };
-    document.getElementById('pnl-cal-next').onclick = () => {
-      pnlCalMonth++;
-      if (pnlCalMonth > 11) { pnlCalMonth = 0; pnlCalYear++; }
-      renderPnlCalendar();
-    };
+    document.getElementById('pnl-cal-prev').onclick = pnlCalPrev;
+    document.getElementById('pnl-cal-next').onclick = pnlCalNext;
     document.getElementById('pnl-cal-close-x').onclick = closePnlCalendarModal;
     document.getElementById('pnl-cal-today-btn').onclick = () => {
       const now = new Date();
@@ -41,6 +45,44 @@ function openPnlCalendar() {
       pnlCalMonth = now.getMonth();
       renderPnlCalendar();
     };
+
+    // Wheel navigation (Continuous scroll feel)
+    let _wheelThrottled = false;
+    modal.addEventListener('wheel', (e) => {
+      if (_wheelThrottled) return;
+      if (Math.abs(e.deltaY) < 40) return;
+      
+      _wheelThrottled = true;
+      if (e.deltaY > 0) pnlCalNext();
+      else pnlCalPrev();
+      
+      setTimeout(() => { _wheelThrottled = false; }, 400);
+    }, { passive: true });
+
+    // Touch swipe navigation (iPad support)
+    let _tStartX = 0, _tStartY = 0;
+    modal.addEventListener('touchstart', (e) => {
+      _tStartX = e.touches[0].clientX;
+      _tStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    modal.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - _tStartX;
+      const dy = e.changedTouches[0].clientY - _tStartY;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      if (absX > 60 && absY < 100) {
+        // Horizontal swipe
+        if (dx > 0) pnlCalPrev();
+        else pnlCalNext();
+      } else if (absY > 70 && absX < 100) {
+        // Vertical swipe
+        if (dy > 0) pnlCalPrev();
+        else pnlCalNext();
+      }
+    }, { passive: true });
+
     // Close on overlay click
     modal.onclick = (e) => {
       if (e.target === modal) closePnlCalendarModal();

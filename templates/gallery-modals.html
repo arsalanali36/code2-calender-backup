@@ -886,4 +886,12 @@
   }
   .profit .pnl-cal-day-val { color: #3fb950; }
   .loss .pnl-cal-day-val { color: #f85149; }
+
+  .pnl-calendar-grid {
+    animation: pnlFadeIn 0.3s ease-out;
+  }
+  @keyframes pnlFadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
 </style>
