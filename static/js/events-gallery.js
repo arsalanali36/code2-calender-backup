@@ -155,7 +155,7 @@ function _bindGalleryEvents() {
     document.addEventListener('mouseup', _onUp);
     document.addEventListener('touchend', _onUp);
 
-    // Support vertical touch resizing for iPad
+    // Support smooth horizontal touch resizing for iPad (matches split-view logic)
     const _isTouch = (typeof IS_TOUCH_DEVICE !== 'undefined' && IS_TOUCH_DEVICE) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 1100 && navigator.maxTouchPoints > 0);
     if (_isTouch) {
       document.documentElement.classList.add('is-touch');
@@ -164,35 +164,56 @@ function _bindGalleryEvents() {
       if (!panel.dataset.hasResizer) {
         let vResizer = document.createElement('div');
         vResizer.className = 'gv2-touch-resizer';
+        vResizer.style.cssText = `
+            position: absolute; top: 0; bottom: 0; width: 30px; z-index: 500;
+            background: transparent; display: flex; align-items: center; justify-content: center;
+            cursor: col-resize; touch-action: none;
+        `;
+        
         // Position on the dragging edge
         if (direction === 'right') {
-          vResizer.style.right = '4px';
-          vResizer.style.left = 'auto';
+          vResizer.style.right = '-15px';
         } else {
-          vResizer.style.left = '4px';
-          vResizer.style.right = 'auto';
+          vResizer.style.left = '-15px';
         }
-        vResizer.innerHTML = '<div class="gv2-touch-resizer-handle"></div><div class="gv2-touch-resizer-label">Width: 0px</div>';
+
+        vResizer.innerHTML = `
+            <div class="gv2-touch-resizer-handle" style="width: 4px; height: 40px; border-radius: 2px; background: var(--blue); opacity: 0.6; transition: opacity 0.2s;"></div>
+            <div class="gv2-touch-resizer-label" style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; opacity: 0; pointer-events: none; white-space: nowrap;">Width: 0px</div>
+        `;
         panel.appendChild(vResizer);
         panel.dataset.hasResizer = 'true';
         
         const label = vResizer.querySelector('.gv2-touch-resizer-label');
-        let _tResizing = false, _startY = 0, _startW_T = 0;
+        const visualHandle = vResizer.querySelector('.gv2-touch-resizer-handle');
+        let _tResizing = false, _startX_T = 0, _startW_T = 0;
 
         vResizer.addEventListener('touchstart', (e) => {
+          if (e.touches.length !== 1) return;
           _tResizing = true;
-          _startY = e.touches[0].clientY;
+          _startX_T = e.touches[0].clientX;
           _startW_T = panel.offsetWidth;
+          
           vResizer.classList.add('active');
+          if (visualHandle) visualHandle.style.opacity = '1';
+          if (label) label.style.opacity = '1';
+          
           e.stopPropagation();
         }, { passive: true });
 
         window.addEventListener('touchmove', (e) => {
-          if (!_tResizing) return;
-          const dy = e.touches[0].clientY - _startY;
-          const newW = _startW_T - dy * 1.5; 
+          if (!_tResizing || e.touches.length !== 1) return;
+          const dx = e.touches[0].clientX - _startX_T;
+          
+          // If panel is on the left (direction='right'), positive dx increases width
+          // If panel is on the right (direction='left'), negative dx increases width
+          const newW = (direction === 'right') ? (_startW_T + dx) : (_startW_T - dx);
+          
           _setWidth(newW);
-          if (label) label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
+          if (label) {
+              label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
+              label.style.opacity = '1';
+          }
           if (e.cancelable) e.preventDefault();
         }, { passive: false });
 
@@ -200,6 +221,8 @@ function _bindGalleryEvents() {
           if (_tResizing) {
             _tResizing = false;
             vResizer.classList.remove('active');
+            if (visualHandle) visualHandle.style.opacity = '0.6';
+            if (label) label.style.opacity = '0';
           }
         });
         vResizer.style.display = 'flex';
