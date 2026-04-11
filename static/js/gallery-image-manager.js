@@ -153,21 +153,37 @@ function renderColumnMenu(searchQuery = '') {
 function buildManagerTagCountMap() {
     const countMap = new Map();
     try {
-        const bump = (tag) => {
+        const seenPerTag = new Map(); // tagName -> Set of URLs
+
+        const bump = (tag, url) => {
             const t = String(tag || '').trim();
-            if (!t) return;
-            countMap.set(t, (countMap.get(t) || 0) + 1);
+            if (!t || !url) return;
+            if (!seenPerTag.has(t)) seenPerTag.set(t, new Set());
+            const set = seenPerTag.get(t);
+            if (!set.has(url)) {
+                set.add(url);
+                countMap.set(t, (countMap.get(t) || 0) + 1);
+            }
         };
+
         (state.trades || []).forEach(tr => {
             (tr.images || []).forEach(url => {
-                ((tr.imageTags || {})[url] || []).forEach(bump);
-                ((tr.marqueeBoxes || {})[url] || []).forEach(b => (b.tags || []).forEach(bump));
+                const tags = getImageTagsForUrl(tr, url);
+                tags.forEach(t => bump(t, url));
+                
+                const boxes = tr.marqueeBoxes?.[url] || [];
+                boxes.forEach(b => (b.tags || []).forEach(t => bump(t, url)));
             });
         });
+
         Object.values(state.dayData || {}).forEach(day => {
-            [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || []), ...(day.closeGlobalImages || [])].forEach(url => {
-                ((day.imageTags || {})[url] || []).forEach(bump);
-                ((day.marqueeBoxes || {})[url] || []).forEach(b => (b.tags || []).forEach(bump));
+            const urls = [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || []), ...(day.closeGlobalImages || [])];
+            urls.forEach(url => {
+                const tags = getDayImageTagsForUrl(day.dateKey, url);
+                tags.forEach(t => bump(t, url));
+
+                const boxes = day.marqueeBoxes?.[url] || [];
+                boxes.forEach(b => (b.tags || []).forEach(t => bump(t, url)));
             });
         });
     } catch(e) {
@@ -335,8 +351,20 @@ function renderImageManagerTable() {
     
     const text = document.createElement('span');
     text.className = 'im-header-text';
+    
+    const tagNameSpan = document.createElement('span');
+    tagNameSpan.textContent = tag;
+    tagNameSpan.style.marginRight = '6px';
+    
+    const countSpan = document.createElement('span');
     const totalCount = allTagCounts.get(tag) || 0;
-    text.textContent = `${tag} (${totalCount})`;
+    countSpan.textContent = `(${totalCount})`;
+    countSpan.style.fontSize = '1rem'; // Larger font size for total
+    countSpan.style.fontWeight = '800';
+    countSpan.style.color = 'var(--blue)';
+    
+    text.appendChild(tagNameSpan);
+    text.appendChild(countSpan);
     
     const dotsBtn = document.createElement('button');
     dotsBtn.className = 'im-header-dots-btn';
