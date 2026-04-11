@@ -137,6 +137,12 @@ function setTradeTagsForTrade(trade, tags) {
   trade.tradeTags = Array.isArray(tags) ? [...tags] : [];
 }
 
+function setPdfPageTags(pdfId, pageNo, tags) {
+    if (!state.pdfPageTags) state.pdfPageTags = {};
+    if (!state.pdfPageTags[pdfId]) state.pdfPageTags[pdfId] = {};
+    state.pdfPageTags[pdfId][pageNo] = Array.isArray(tags) ? [...tags] : [];
+}
+
 function getMarqueeTagsForImage(imageUrl, dateHint = '', sourceRow = null) {
   if (!imageUrl) return [];
   const boxes = getMarqueeBoxesForImage(imageUrl, dateHint, sourceRow);
@@ -151,7 +157,29 @@ function getMarqueeTagsForImage(imageUrl, dateHint = '', sourceRow = null) {
 }
 
 function getCurrentGalleryImageTagInfo() {
-  const imgUrl = (state.gallery.images || [])[state.gallery.currentIndex];
+  const images = state.gallery.images || [];
+  const curIdx = state.gallery.currentIndex;
+  const imgUrl = images[curIdx] || '';
+  
+  // PDF Mode handling
+  if (state.gallery.mode === 'pdf' || imgUrl.startsWith('pdf://')) {
+    const parts = imgUrl.replace('pdf://', '').split('/');
+    const pdfId = parts[0];
+    const pageNo = parts[1];
+    
+    const pdfTags = (state.pdfPageTags?.[pdfId]?.[pageNo]) || [];
+    return { 
+        imgUrl, 
+        ownerType: 'pdf', 
+        pdfId, 
+        pageNo, 
+        imageTags: pdfTags, 
+        marqueeTags: [], 
+        tradeTags: [], 
+        all: pdfTags 
+    };
+  }
+
   const trade = getOwnerTradeForGalleryImage();
   let ownerType = 'trade';
   let dateKey = '';

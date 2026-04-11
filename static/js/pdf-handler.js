@@ -41,8 +41,11 @@ const PdfHandler = (() => {
         console.log('[PdfHandler] List button clicked');
         openListModal();
       };
-    } else {
-      console.warn('[PdfHandler] List button not found in DOM');
+    }
+    
+    const galleryPdfBtn = document.getElementById('gv2-pdf-library-btn');
+    if (galleryPdfBtn) {
+       galleryPdfBtn.onclick = () => openListModal();
     }
 
     if (viewerCloseBtn) viewerCloseBtn.onclick = () => closeViewer();
@@ -218,6 +221,104 @@ const PdfHandler = (() => {
     currentFile = null;
   }
 
+  async function openPdfInGallery(pdf) {
+    if (typeof showToast === 'function') showToast(`Opening ${pdf.name}...`, 'info');
+    closeListModal();
+    
+    try {
+      // If gallery isn't open, open it
+      const gModal = document.getElementById('gallery-modal');
+      if (gModal && !gModal.classList.contains('open')) {
+          if (typeof openGallery === 'function') openGallery();
+      }
+
+      const response = await fetch(pdf.url);
+      const arrayBuffer = await response.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const doc = await loadingTask.promise;
+      
+      pdfDoc = doc;
+      currentFileName = pdf.name;
+      currentFile = pdf;
+
+      // Switch Gallery State
+      state.gallery.mode = 'pdf';
+      state.gallery.pdf = {
+          doc: doc,
+          name: pdf.name,
+          url: pdf.url,
+          id: pdf.filename || pdf.name
+      };
+      
+      const numPages = doc.numPages;
+      const virtualImages = [];
+      for(let i=1; i<=numPages; i++) {
+          virtualImages.push(`pdf://${state.gallery.pdf.id}/${i}`);
+      }
+      
+      state.gallery.images = virtualImages;
+      state.gallery.currentIndex = 0;
+      
+      if (typeof renderGallery === 'function') renderGallery();
+      
+    } catch (err) {
+      console.error('[PdfHandler] Failed to open PDF in Gallery:', err);
+      if (typeof showToast === 'function') showToast('Failed to load PDF', 'error');
+    }
+  }
+
+  async function ensurePdfLoaded(pdfId) {
+     if (pdfDoc && (currentFile?.filename === pdfId || currentFileName === pdfId)) return true;
+     
+     // Find the pdf in serverPdfs
+     const pdf = serverPdfs.find(p => p.filename === pdfId || p.name === pdfId);
+     if (!pdf) return false;
+     
+     try {
+         const response = await fetch(pdf.url);
+         const arrayBuffer = await response.arrayBuffer();
+         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+         pdfDoc = await loadingTask.promise;
+         currentFile = pdf;
+         currentFileName = pdf.name;
+         return true;
+     } catch(e) {
+         console.error('[PdfHandler] ensurePdfLoaded failed', e);
+         return false;
+     }
+  }
+
+  async function renderPageToMainCanvas(pageNum, pdfId) {
+    const canvas = document.getElementById('pdf-main-canvas');
+    if (!canvas) return;
+    
+    if (!pdfDoc || (pdfId && currentFile?.filename !== pdfId)) {
+        if (pdfId) await ensurePdfLoaded(pdfId);
+    }
+    
+    if (!pdfDoc) return;
+    
+    try {
+        const page = await pdfDoc.getPage(pageNum);
+        const pixelRatio = window.devicePixelRatio || 1;
+        const viewport = page.getViewport({ scale: 1.5 * pixelRatio }); // HD rendering
+        
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const context = canvas.getContext('2d');
+        
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        
+        await page.render(renderContext).promise;
+        canvas.style.display = 'block';
+    } catch (err) {
+        console.error(`[PdfHandler] Error rendering main page ${pageNum}:`, err);
+    }
+  }
+
   async function importSelected() {
     const selectedThumbs = document.querySelectorAll('.pdf-page-thumb.selected');
     if (selectedThumbs.length === 0) {
@@ -369,9 +470,10 @@ const PdfHandler = (() => {
       const dateStr = d.toLocaleDateString() + ', ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const safeName = pdf.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const safeFilename = encodeURIComponent(pdf.filename);
+      const pdfJson = JSON.stringify(pdf).replace(/"/g, '&quot;');
       
       return `
-        <div class="pdf-item-row">
+        <div class="pdf-item-row" onclick="PdfHandler.openPdfInGallery(${pdfJson})">
           <div class="pdf-item-icon" style="font-size: 1.2rem;">📄</div>
           <div class="pdf-item-name" title="${safeName}">${safeName}</div>
           <div class="pdf-item-date">${dateStr}</div>
@@ -466,12 +568,77 @@ const PdfHandler = (() => {
     }
   }
 
+  function renderPdfGalleryThumbs(container) {
+    if (!container || !pdfDoc) return;
+    const numPages = pdfDoc.numPages;
+    const currentIndex = state.gallery.currentIndex;
+
+    container.innerHTML = '';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '8px';
+    container.style.padding = '8px';
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const pageNum = parseInt(entry.target.dataset.page);
+                renderThumbPage(pageNum, entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { root: container, threshold: 0.1, rootMargin: '200px' });
+
+    for (let i = 1; i <= numPages; i++) {
+        const thumbWrap = document.createElement('div');
+        thumbWrap.className = `gv2-thumb-item ${currentIndex === (i-1) ? 'active' : ''}`;
+        thumbWrap.style.cssText = 'width:100%; aspect-ratio:3/4; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; position:relative; cursor:pointer; flex-shrink:0; border:2px solid transparent;';
+        if (currentIndex === (i-1)) thumbWrap.style.borderColor = 'var(--blue)';
+        
+        thumbWrap.dataset.page = i;
+        
+        const numLabel = document.createElement('div');
+        numLabel.style.cssText = 'position:absolute; bottom:4px; right:4px; font-size:10px; background:rgba(0,0,0,0.6); color:#fff; padding:2px 5px; border-radius:3px; z-index:2;';
+        numLabel.textContent = i;
+        thumbWrap.appendChild(numLabel);
+
+        thumbWrap.onclick = () => {
+            state.gallery.currentIndex = i - 1;
+            if (typeof renderGallery === 'function') renderGallery();
+        };
+
+        container.appendChild(thumbWrap);
+        observer.observe(thumbWrap);
+    }
+  }
+
+  async function renderThumbPage(pageNum, container) {
+      if (!pdfDoc) return;
+      try {
+          const page = await pdfDoc.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 0.3 }); // Small scale for thumb
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+          const context = canvas.getContext('2d');
+          
+          await page.render({ canvasContext: context, viewport }).promise;
+          container.appendChild(canvas);
+      } catch (err) {
+          console.error(`[PdfHandler] Thumb render error page ${pageNum}:`, err);
+      }
+  }
+
   const _public = {
     init,
     deletePdfFile,
     openListModal,
     closeListModal,
-    togglePdfMenu
+    togglePdfMenu,
+    openPdfInGallery,
+    renderPageToMainCanvas,
+    renderPdfGalleryThumbs
   };
 
   // Assign to window for global access

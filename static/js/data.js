@@ -28,6 +28,7 @@ if (_TJ_CHANNEL) {
         userColumns: state.userColumns,
         dayData:     state.dayData,
         tagGroups:   state.tagGroups,
+        pdfPageTags: state.pdfPageTags,
       });
     }
   });
@@ -67,6 +68,7 @@ function _applyBroadcastData(data) {
   state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
   state.tagGroups   = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
   state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
+  state.pdfPageTags  = (data.pdfPageTags && typeof data.pdfPageTags === 'object') ? data.pdfPageTags : {};
   state.imgTypes    = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
   syncTagColumnRegistry();
   state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
@@ -168,6 +170,7 @@ async function loadTrades() {
     state.dayData = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
     state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
     state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+    state.pdfPageTags = (data.pdfPageTags && typeof data.pdfPageTags === 'object') ? data.pdfPageTags : {};
     state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
     const ensuredChanged = ensurePermanentColumns();
@@ -204,6 +207,7 @@ async function saveTrades() {
       importedPdfs: state.importedPdfs,
       tagGroups: state.tagGroups,
       tagTemplates: state.tagTemplates,
+      pdfPageTags: state.pdfPageTags,
       imgTypes: state.imgTypes
     };
     await tradeService.saveTrades(payload);
@@ -222,7 +226,8 @@ function hashServerState(data) {
       dayData: data?.dayData || {},
       importedPdfs: data?.importedPdfs || [],
       tagGroups: data?.tagGroups || {},
-      tagTemplates: data?.tagTemplates || {}
+      tagTemplates: data?.tagTemplates || {},
+      pdfPageTags: data?.pdfPageTags || {}
     });
   } catch (e) {
     return '';

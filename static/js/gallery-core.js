@@ -90,6 +90,27 @@ function getAllGalleryImagesAcrossDates() {
         });
     }
   });
+
+  // 6. Global PDF Pages (if tagged)
+  if (state.pdfPageTags) {
+     Object.keys(state.pdfPageTags).forEach(pdfId => {
+         const pages = state.pdfPageTags[pdfId];
+         Object.keys(pages).forEach(pageNo => {
+             const tags = pages[pageNo];
+             if (tags && tags.length > 0) {
+                 out.push({ 
+                    url: `pdf://${pdfId}/${pageNo}`, 
+                    date: '', 
+                    sourceRow: null, 
+                    type: 'pdf',
+                    pdfId: pdfId,
+                    pageNo: pageNo
+                 });
+             }
+         });
+     });
+  }
+
   return out;
 }
 

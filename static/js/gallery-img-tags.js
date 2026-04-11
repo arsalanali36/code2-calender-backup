@@ -60,6 +60,7 @@ function renderGalleryImageTags() {
         const next = tags.filter(t => t !== tag);
         if (info.ownerType === 'trade' && info.trade) setImageTagsForUrl(info.trade, imgUrl, next);
         else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
+        else if (info.ownerType === 'pdf') setPdfPageTags(info.pdfId, info.pageNo, next);
         await saveTrades();
         renderGalleryImageTags();
         if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
@@ -174,6 +175,15 @@ function getAllImageTagsGlobal() {
   const set = new Set();
   state.trades.forEach(t => getAllImageTagsForTrade(t).forEach(tag => set.add(tag)));
   Object.keys(state.dayData || {}).forEach(d => getAllImageTagsForDay(d).forEach(tag => set.add(tag)));
+  
+  if (state.pdfPageTags) {
+     Object.values(state.pdfPageTags).forEach(pdfObj => {
+         Object.values(pdfObj).forEach(tags => {
+             tags.forEach(t => set.add(t));
+         });
+     });
+  }
+
   IMAGE_PERMANENT_TAGS.forEach(t => set.add(t));
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
@@ -373,6 +383,7 @@ function renderImageTagModal() {
       const next = chk.checked ? [...assigned, tag] : assigned.filter(t => t !== tag);
       if (info.ownerType === 'trade' && trade) setImageTagsForUrl(trade, imgUrl, next);
       else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, next);
+      else if (info.ownerType === 'pdf') setPdfPageTags(info.pdfId, info.pageNo, next);
       normalizeAllTagsFromTrades();
       await saveTrades();
       renderGalleryImageTags();
@@ -461,6 +472,7 @@ async function addImageTagFromModal() {
   if (!existing.includes(tag)) existing.push(tag);
   if (info.ownerType === 'trade' && trade) setImageTagsForUrl(trade, imgUrl, existing);
   else if (info.ownerType === 'day' && info.dateKey) setDayImageTagsForUrl(info.dateKey, imgUrl, existing);
+  else if (info.ownerType === 'pdf') setPdfPageTags(info.pdfId, info.pageNo, existing);
   else return;
   if (!state.allTags.includes(tag)) state.allTags.push(tag);
   normalizeAllTagsFromTrades();

@@ -50,7 +50,8 @@ def load_trades(user_id=None):
         'tagColumns': [],
         'userColumns': [],
         'dayData': {},
-        'tagGroups': {}
+        'tagGroups': {},
+        'pdfPageTags': {}
     }
 
 

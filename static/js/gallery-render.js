@@ -86,7 +86,28 @@ function renderGallery() {
   } else {
     if (vidEl) { vidEl.style.display = 'none'; vidEl.pause && vidEl.pause(); }
     img.style.display = ''; img.style.opacity = ''; img.style.filter = ''; img.title = '';
-    img.src = resolveImageUrl(curUrl);
+    
+    // PDF Handling
+    const pdfCanvas = document.getElementById('pdf-main-canvas');
+    const isPdf = curUrl.startsWith('pdf://');
+
+    if (isPdf) {
+      img.style.display = 'none';
+      if (pdfCanvas) {
+        pdfCanvas.style.display = 'block';
+        const parts = curUrl.replace('pdf://', '').split('/');
+        const pdfId = parts[0];
+        const pageNum = parseInt(parts[1]);
+        if (typeof PdfHandler !== 'undefined' && PdfHandler.renderPageToMainCanvas) {
+            PdfHandler.renderPageToMainCanvas(pageNum, pdfId);
+        }
+      }
+    } else {
+      if (pdfCanvas) pdfCanvas.style.display = 'none';
+      img.style.display = '';
+      img.src = resolveImageUrl(curUrl);
+    }
+
     img.classList.remove('zoomed', 'dragging'); resetZoom();
     if (state.gallery.splitView && typeof updateSplitRight === 'function') updateSplitRight(curUrl);
     img.onerror = () => {

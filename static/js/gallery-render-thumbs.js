@@ -9,6 +9,13 @@ function renderGalleryThumbs() {
   const savedScrollLeft = thumbs.scrollLeft;
   thumbs.innerHTML = '';
 
+  if (state.gallery.mode === 'pdf' && state.gallery.pdf) {
+    if (typeof PdfHandler !== 'undefined' && PdfHandler.renderPdfGalleryThumbs) {
+      PdfHandler.renderPdfGalleryThumbs(thumbs);
+      return;
+    }
+  }
+
   const thumbImages = _getGalleryThumbImages();
   const date = state.gallery.date;
   const currentIndex = state.gallery.currentIndex;
