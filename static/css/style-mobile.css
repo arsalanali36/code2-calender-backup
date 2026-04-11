@@ -234,32 +234,48 @@
     min-width: 300px !important;
   }
 
-  /* ── GALLERY TRAY RESPONSIVE (BACK TO DEFAULT) ── */
+  /* ── GALLERY TRAY — iPad compact grid ── */
   .gv2-tray {
-    top: 15px !important;
-    padding: 0 10px !important;
+    top: 0 !important;
+    padding: 0 4px !important;
+    grid-template-columns: auto 170px 1fr auto auto !important;
   }
 
-  /* Tray center is a scrollable horizontal row if too wide */
-  .gv2-tray-center {
-    flex: 0 1 auto !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    justify-content: flex-start !important;
-    gap: 12px !important;
-    padding: 10px 18px !important;
-    max-width: calc(100vw - 40px) !important;
-    border-radius: 14px !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  /* Col 2: narrower on tablet */
+  .gv2-tc2 {
+    width: 170px !important;
+    gap: 3px !important;
+    font-size: 0.85rem;
   }
-  .gv2-tray-center::-webkit-scrollbar { display: none; }
 
-  /* Condensed Pills */
-  .gv2-pnl-pill, .gv2-trade-pill {
-    padding: 4px 12px !important;
-    font-size: 0.85rem !important;
+  /* Col 4: tighten icon gaps */
+  .gv2-tc4 {
+    gap: 2px !important;
+    padding: 0 3px !important;
+  }
+
+  /* Col 5: tighten */
+  .gv2-tc5 {
+    gap: 4px !important;
+    padding: 0 2px 0 3px !important;
+  }
+
+  /* P&L pill only — trade pill stays desktop size */
+  .gv2-pnl-pill {
+    padding: 4px 10px !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* Col 4 icon buttons — smaller padding on tablet */
+  .gv2-tc4 .gv2-target-pill {
+    padding: 0 8px !important;
+    height: 30px !important;
+  }
+
+  /* Hamburger compact */
+  .gv2-hamburger-btn {
+    width: 30px !important;
+    height: 30px !important;
   }
 }
 

@@ -1,32 +1,34 @@
 <!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
 <div class="modal-overlay gv2-modal" id="gallery-modal">
 
-  <!-- ① Slim Top Tray -->
+  <!-- ① Grid Ribbon — 5 columns -->
   <div class="gv2-tray">
-    <div class="gv2-tray-left">
-      <!-- Back button hidden per user request; kept in DOM for JS compatibility -->
-      <button class="gv2-tray-back-btn" id="gallery-close" title="Close (Esc)" style="display:none">
+
+    <!-- Col 1: Hamburger — toggles left panel (not centered, left-aligned) -->
+    <div class="gv2-tc1">
+      <button class="gv2-hamburger-btn" id="gv2-hamburger-btn" title="Toggle Thumbnails / Filter Tags">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+      </button>
+      <!-- kept in DOM for JS compatibility -->
+      <button class="gv2-tray-back-btn" id="gallery-close" style="display:none" title="Close (Esc)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M10 3L5 8l5 5"/></svg>
       </button>
-      <span class="gv2-grid-title gv2-grid-only" style="display:none; margin-left:12px;">Organized Grid View</span>
     </div>
 
-    <div class="gv2-tray-center" id="gv2-tray-center">
-      <!-- Unified Date Navigation Pill -->
-      <div class="gv2-date-nav-pill">
-        <button class="gv2-date-nav-btn" id="gallery-date-prev" title="Previous Date (←)">‹</button>
-        <div class="gv2-date-display" id="gv2-date-display-trigger">
-          <span id="gallery-date"></span>
-          <input type="date" id="gallery-date-picker" class="gv2-date-picker-hidden" title="Select Date (D)" />
-        </div>
-        <button class="gv2-date-nav-btn" id="gallery-date-next" title="Next Date (→)">›</button>
+    <!-- Col 2: Date nav + image counter — fixed width, single line, centered -->
+    <div class="gv2-tc2">
+      <button class="gv2-date-nav-btn" id="gallery-date-prev" title="Previous Date (&#8592;)">&#8249;</button>
+      <div class="gv2-date-display" id="gv2-date-display-trigger">
+        <span id="gallery-date"></span>
+        <input type="date" id="gallery-date-picker" class="gv2-date-picker-hidden" title="Select Date (D)" />
       </div>
-      
-      <!-- Image counter "1/17" -->
-      <span class="gv2-tray-counter" id="gv2-tray-counter" style="color:var(--text3); font-size:0.85rem; font-variant-numeric:tabular-nums;"></span>
+      <button class="gv2-date-nav-btn" id="gallery-date-next" title="Next Date (&#8594;)">&#8250;</button>
+      <span class="gv2-tc2-dot">&#183;</span>
+      <span class="gv2-tray-counter" id="gv2-tray-counter"></span>
+    </div>
 
-      <div class="gv2-tray-sep"></div>
-
+    <!-- Col 3: Trade Pills — flex-grow, centered (id kept for JS drag handle) -->
+    <div class="gv2-tc3" id="gv2-tray-center">
       <!-- Day P&L pill (total) -->
       <div class="gv2-pnl-wrap" id="gv2-pnl-wrap" style="display:none;position:relative;">
         <button class="gv2-pnl-pill" id="gv2-pnl-pill">0</button>
@@ -37,47 +39,38 @@
         <button class="gv2-trade-pill" id="gv2-trade-pill"></button>
         <div class="gv2-pnl-dropdown dropdown-menu" id="gv2-trade-dropdown"></div>
       </div>
-
-      <!-- Organized Grid Sidebar is now the control center for Grid View -->
-      
-      <!-- Target Tracker Button -->
-      <div class="gv2-target-btn-wrap" id="gv2-target-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="gv2-target-pill" title="Open Target Tracker" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1);">🎯</button>
-      </div>
-      
-      <div class="gv2-target-btn-wrap" id="gv2-mtm-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="gv2-mtm-btn" title="Show Day Equity Curve" style="background:rgba(192, 132, 252, 0.15); border-color:rgba(192, 132, 252, 0.4); color:#c084fc; margin-left:4px;">📈</button>
-        <div id="gv2-mtm-panel" style="display:none; position:fixed; width:600px; height:400px; padding:20px; border-radius:12px; overflow:hidden; z-index:9999; background:rgba(15,15,20,0.97); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.8); backdrop-filter:blur(20px);"></div>
-      </div>
-      
-      <div class="gv2-target-btn-wrap" id="gv2-img-manager-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="gv2-img-manager-btn" title="Open Image Manager" style="background:rgba(59, 130, 246, 0.15); border-color:rgba(59, 130, 246, 0.4); color:#60a5fa; margin-left:4px;">📊</button>
-      </div>
-
-      <div class="gv2-tray-sep"></div>
-
-      <!-- Settings button (replaces Other Options dropdown) -->
-      <div class="gv2-target-btn-wrap" id="gv2-other-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="gv2-other-btn" title="Gallery Settings" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); margin-left:4px; font-size:0.95rem;">⚙</button>
-      </div>
-
       <!-- Grid Size Slider (shown only when Grid View is open) -->
-      <div class="gv2-tray-sep gv2-grid-only" style="display:none"></div>
       <div class="gv2-grid-size-ctrl gv2-grid-only" id="gv2-tray-size-ctrl" style="display:none">
         <span class="gv2-grid-sz-icon">SIZE</span>
         <input type="range" id="gv2-grid-size-slider-tray" min="80" max="1200" value="280" title="Adjust thumbnail size" />
       </div>
     </div>
 
-    <div class="gv2-tray-right">
-      <button class="gv2-grid-close-btn gv2-grid-only" id="gv2-grid-close-btn-tray" title="Close Grid View (G)" style="display:none; margin-right:8px;">
+    <!-- Col 4: Icon buttons — centered -->
+    <div class="gv2-tc4">
+      <div class="gv2-target-btn-wrap" id="gv2-target-btn-wrap" style="position:relative;">
+        <button class="gv2-target-pill" id="gv2-target-pill" title="Open Target Tracker" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1);">&#127919;</button>
+      </div>
+      <div class="gv2-target-btn-wrap" id="gv2-mtm-btn-wrap" style="position:relative;">
+        <button class="gv2-target-pill" id="gv2-mtm-btn" title="Show Day Equity Curve" style="background:rgba(192,132,252,0.15); border-color:rgba(192,132,252,0.4); color:#c084fc;">&#128200;</button>
+        <div id="gv2-mtm-panel" style="display:none; position:fixed; width:600px; height:400px; padding:20px; border-radius:12px; overflow:hidden; z-index:9999; background:rgba(15,15,20,0.97); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.8); backdrop-filter:blur(20px);"></div>
+      </div>
+      <div class="gv2-target-btn-wrap" id="gv2-img-manager-btn-wrap" style="position:relative;">
+        <button class="gv2-target-pill" id="gv2-img-manager-btn" title="Open Image Manager" style="background:rgba(59,130,246,0.15); border-color:rgba(59,130,246,0.4); color:#60a5fa;">&#128202;</button>
+      </div>
+    </div>
+
+    <!-- Col 5: Settings + Close — right-aligned -->
+    <div class="gv2-tc5">
+      <button class="gv2-target-pill" id="gv2-other-btn" title="Gallery Settings" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); font-size:0.95rem;">&#9881;</button>
+      <button class="gv2-grid-close-btn gv2-grid-only" id="gv2-grid-close-btn-tray" title="Close Grid View (G)" style="display:none;">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 4L4 12M4 4l8 8"/></svg>
       </button>
-      <!-- X Close button — extreme right -->
       <button class="gv2-tray-close-btn" id="gv2-exit-btn" title="Close Gallery (Esc)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 4L4 12M4 4l8 8"/></svg>
       </button>
     </div>
+
   </div>
 
   <!-- ② Body -->

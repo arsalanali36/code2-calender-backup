@@ -59,24 +59,21 @@ function _bindGalleryEvents() {
     filterBtn.addEventListener('click', () => {
       const isOpen = ulpPanel.classList.contains('open');
       const currentTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
-      
       if (isOpen && currentTab === 'filter') {
-        // Already open on tags tab, so close
-        ulpPanel.classList.remove('open');
-        filterBtn.classList.remove('active');
-        localStorage.setItem('tj_ulpPanelOpen', '0');
+        if (typeof window._closeULP === 'function') window._closeULP();
+        else { ulpPanel.classList.remove('open'); filterBtn.classList.remove('active'); localStorage.setItem('tj_ulpPanelOpen', '0'); }
       } else {
-        // Open and/or switch to tags tab
-        ulpPanel.classList.add('open');
-        switchULPTab('filter');
-        localStorage.setItem('tj_ulpPanelOpen', '1');
+        if (typeof window._openULP === 'function') window._openULP('filter');
+        else { ulpPanel.classList.add('open'); switchULPTab('filter'); localStorage.setItem('tj_ulpPanelOpen', '1'); }
       }
     });
 
     if (ulpClose) {
       ulpClose.addEventListener('click', () => {
+        if (typeof window._closeULP === 'function') { window._closeULP(); return; }
         ulpPanel.classList.remove('open');
         document.getElementById('gv2-thumb-toggle-btn')?.classList.remove('active');
+        document.getElementById('gv2-hamburger-btn')?.classList.remove('active');
         filterBtn?.classList.remove('active');
         localStorage.setItem('tj_ulpPanelOpen', '0');
       });
@@ -219,36 +216,56 @@ function _bindGalleryEvents() {
   setupPanelResizer('gv2-tray-resize-handle', 'gv2-tags-tray', 'tj_trayPanelW', 'left', 160, 520);
   setupPanelResizer('gv2-trades-resize-handle', 'gv2-trades-panel', 'tj_tradesPanelW', 'right', 180, 520);
 
-  // Unified Left Panel open state restore
+  // Unified Left Panel open state restore + hamburger ribbon button
   (function () {
     const thumbToggleBtn = document.getElementById('gv2-thumb-toggle-btn');
+    const hamburgerBtn   = document.getElementById('gv2-hamburger-btn');
     const ulpPanel = document.getElementById('gv2-unified-left-panel');
-    if (!thumbToggleBtn || !ulpPanel) return;
-    
+    if (!ulpPanel) return;
+
+    const _openULP = (tab) => {
+      ulpPanel.classList.add('open');
+      switchULPTab(tab || localStorage.getItem('tj_ulpActiveTab') || 'thumbs');
+      localStorage.setItem('tj_ulpPanelOpen', '1');
+      hamburgerBtn && hamburgerBtn.classList.add('active');
+      thumbToggleBtn && thumbToggleBtn.classList.add('active');
+    };
+    const _closeULP = () => {
+      ulpPanel.classList.remove('open');
+      localStorage.setItem('tj_ulpPanelOpen', '0');
+      hamburgerBtn && hamburgerBtn.classList.remove('active');
+      thumbToggleBtn && thumbToggleBtn.classList.remove('active');
+    };
+    window._openULP  = _openULP;
+    window._closeULP = _closeULP;
+
     const wasOpen = localStorage.getItem('tj_ulpPanelOpen') === '1';
     const lastTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
-    
+
     if (wasOpen) {
       ulpPanel.classList.add('open');
       switchULPTab(lastTab);
+      hamburgerBtn && hamburgerBtn.classList.add('active');
     }
 
-    thumbToggleBtn.addEventListener('click', () => {
-      const isOpen = ulpPanel.classList.contains('open');
-      const currentTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
-      
-      if (isOpen && currentTab === 'thumbs') {
-        // Already open on thumbs, so close
-        ulpPanel.classList.remove('open');
-        thumbToggleBtn.classList.remove('active');
-        localStorage.setItem('tj_ulpPanelOpen', '0');
-      } else {
-        // Open and/or switch to thumbs tab
-        ulpPanel.classList.add('open');
-        switchULPTab('thumbs');
-        localStorage.setItem('tj_ulpPanelOpen', '1');
-      }
-    });
+    // Hamburger (ribbon) — simple toggle
+    if (hamburgerBtn) {
+      hamburgerBtn.addEventListener('click', () => {
+        ulpPanel.classList.contains('open') ? _closeULP() : _openULP();
+      });
+    }
+
+    if (thumbToggleBtn) {
+      thumbToggleBtn.addEventListener('click', () => {
+        const isOpen = ulpPanel.classList.contains('open');
+        const currentTab = localStorage.getItem('tj_ulpActiveTab') || 'thumbs';
+        if (isOpen && currentTab === 'thumbs') {
+          _closeULP();
+        } else {
+          _openULP('thumbs');
+        }
+      });
+    }
   })();
 
   // Layer panel toggle

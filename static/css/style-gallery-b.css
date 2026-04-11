@@ -51,7 +51,7 @@
 
 
 
-/* ── Ribbon bar — full width, fixed at top ── */
+/* ── Ribbon bar — 5-column grid, fixed at top ── */
 .gv2-tray {
   position: fixed;
   top: 0;
@@ -59,16 +59,14 @@
   right: 0;
   z-index: 1002;
   height: 46px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 230px 1fr auto auto;
   align-items: center;
-  background: rgba(10, 10, 15, 0.97);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.7);
-  padding: 0 6px 0 10px;
-  gap: 6px;
-  pointer-events: auto;
+  background: transparent;
+  border-bottom: none;
+  box-shadow: none;
+  padding: 0 6px;
+  pointer-events: none;
   overflow: visible;
 }
 
@@ -76,43 +74,84 @@
   pointer-events: auto;
 }
 
-/* Left slot — zero width, content hidden */
-.gv2-tray-left {
-  flex: 0 0 auto;
-  overflow: hidden;
-  width: 0;
-}
-
-/* Center — all buttons spread across ribbon */
-.gv2-tray-center {
-  flex: 1;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
+/* Col 1 — Hamburger, left-aligned, no centering */
+.gv2-tc1 {
   display: flex;
   align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 4px;
+  justify-content: flex-start;
+}
+
+/* Col 2 — Date nav + counter, fixed width, single line, centered */
+.gv2-tc2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 230px;
+  overflow: visible;
+}
+
+.gv2-tc2-dot {
+  color: var(--text3, #666);
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Col 3 — Trade pills, stretches to fill remaining space, centered */
+.gv2-tc3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
   overflow: visible;
-  max-width: none;
+  min-width: 0;
 }
 
-.is-touch .gv2-tray-center {
-  gap: 4px;
-  padding: 0;
-}
-
-/* Right slot — X close button */
-.gv2-tray-right {
-  flex: 0 0 auto;
+/* Col 4 — Icon buttons, centered */
+.gv2-tc4 {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 6px;
+}
+
+/* Col 5 — Settings + Close, right-aligned */
+.gv2-tc5 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 6px;
-  padding: 0;
+  padding: 0 4px 0 6px;
+}
+
+/* ── Hamburger button ── */
+.gv2-hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #aaa;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.gv2-hamburger-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
+}
+.gv2-hamburger-btn.active {
+  background: rgba(88,166,255,0.12);
+  border-color: rgba(88,166,255,0.4);
+  color: #58a6ff;
 }
 
 /* ── Tray X Close button (extreme right of ribbon) ── */
@@ -321,8 +360,8 @@
   backdrop-filter: blur(4px);
 }
 
-.is-touch .gv2-tray-pill, 
-.is-touch .gv2-pnl-pill, 
+.is-touch .gv2-tray-pill,
+.is-touch .gv2-pnl-pill,
 .is-touch .gv2-trade-pill {
   height: 28px;
   padding: 0 8px;
@@ -333,8 +372,8 @@
 }
 
 /* Hide verbose info on tablets/mobile to prevent clipping */
-.is-touch .gv2-tp-inst, 
-.is-touch .gv2-tp-info, 
+.is-touch .gv2-tp-inst,
+.is-touch .gv2-tp-info,
 .is-touch .gv2-tp-total,
 .is-touch .gv2-tray-sep {
   display: none !important;
@@ -350,6 +389,22 @@
   .gv2-trade-pill {
       max-width: 180px;
   }
+}
+
+/* ── New grid ribbon (col3): restore full desktop trade pill on all screen sizes ── */
+.gv2-tc3 .gv2-trade-pill {
+  height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 0.82rem !important;
+  gap: 8px !important;
+  max-width: none !important;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.gv2-tc3 .gv2-tp-inst,
+.gv2-tc3 .gv2-tp-info,
+.gv2-tc3 .gv2-tp-total {
+  display: inline !important;
 }
 
 .gv2-tray-pill:hover, .gv2-pnl-pill:hover, .gv2-trade-pill:hover {
@@ -1118,6 +1173,59 @@
 .gv2-tc-clear-btn:hover {
   color: var(--red);
   border-color: var(--red);
+}
+
+/* ── Mobile: ribbon becomes horizontally scrollable ── */
+@media (max-width: 600px) {
+  .gv2-tray {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    padding: 0 4px;
+    gap: 0;
+  }
+  .gv2-tray::-webkit-scrollbar { display: none; }
+
+  /* Col 1 (hamburger) stays pinned left */
+  .gv2-tc1 {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #0a0a0b;
+    padding: 0 4px 0 2px;
+    flex-shrink: 0;
+  }
+
+  /* Col 5 (settings + close) stays pinned right */
+  .gv2-tc5 {
+    position: sticky;
+    right: 0;
+    z-index: 3;
+    background: #0a0a0b;
+    padding: 0 2px 0 4px;
+    flex-shrink: 0;
+  }
+
+  /* Scrollable middle columns */
+  .gv2-tc2 {
+    flex-shrink: 0;
+    width: auto;
+    gap: 4px;
+    padding: 0 6px;
+  }
+
+  .gv2-tc3 {
+    flex-shrink: 0;
+    padding: 0 6px;
+  }
+
+  .gv2-tc4 {
+    flex-shrink: 0;
+    padding: 0 6px;
+  }
 }
 
 /* ── Unified Left Panel, Trade Ref Cards, Lightbox → style-gallery-d.css ── */

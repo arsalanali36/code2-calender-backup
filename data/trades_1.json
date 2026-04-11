@@ -27971,7 +27971,11 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816380/trading_journal/3987ef5e-c514-4ef6-93c5-486eb76759a3.png"
       ],
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816379/trading_journal/416263cc-b09d-48bc-983b-668ba5104a5d.png": [
+          "dddd"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801458/trading_journal/359ae22e-5335-4fea-bec6-341a7beca8da.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801459/trading_journal/f3726868-4cff-4c5a-bff9-edb28cba76da.png",
@@ -27980,7 +27984,12 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801464/trading_journal/421abca0-006d-4a69-bea9-36bfc3701477.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801461/trading_journal/74f67128-a72f-4adb-be77-54fe9f56c762.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775815937/trading_journal/02a123dd-bbe8-4a74-b7b1-cdf6884e93e8.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816204/trading_journal/3447e57c-7f1e-4ef2-879d-8db0a2f7643c.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816204/trading_journal/3447e57c-7f1e-4ef2-879d-8db0a2f7643c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775873323/trading_journal/ec998064-18a4-4bb0-a112-10e6b8ae9877.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775875759/trading_journal/b8096815-8f1d-4f13-8b08-3c1cfbd8b386.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775875891/trading_journal/43bb02d9-d4c7-4afc-8c1a-464c3b911155.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775875914/trading_journal/d4f08e59-ece2-46af-bda9-c5b65cff01ab.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775877403/trading_journal/55775980-9365-44e5-a3e8-c980886f54d9.png"
       ],
       "newsImages": [],
       "premiumImages": {
