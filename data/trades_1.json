@@ -17606,18 +17606,30 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801476/trading_journal/76acc2f7-0db2-4872-8294-44ac12e8f406.png": [
           "pin"
         ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/c122c692-0534-496d-86e1-d531f93dba29.png": [
+          "pin",
+          "thumbnail"
+        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/df66d0d3-547e-44d6-aef9-c1562e900fff.png": [
           "pin"
         ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/c122c692-0534-496d-86e1-d531f93dba29.png": [
-          "pin",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813018/trading_journal/888d2ac4-ee50-40bb-aaa5-12fffd744c31.png": [
+          "thumbnail"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/84bd721d-c8c4-42ac-b89b-8f8fc39893bf.png": [
           "thumbnail"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/fc159630-fc32-413e-8eb7-e457ff8ee15d.png": [
           "thumbnail"
         ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813018/trading_journal/888d2ac4-ee50-40bb-aaa5-12fffd744c31.png": [
-          "thumbnail"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813024/trading_journal/3d080b87-d0dc-4ec8-b16a-42188243e371.png": [
+          "pin"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/ea541a35-30a5-462e-b89a-2f8565e75f66.png": [
+          "pin"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/5ee1a1de-1aae-40ec-83e0-1322371039e3.png": [
+          "pin"
         ]
       },
       "images": [
@@ -17649,34 +17661,20 @@
       ],
       "observation": "",
       "tagPins": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801476/trading_journal/76acc2f7-0db2-4872-8294-44ac12e8f406.png": [
-          {
-            "color": "#e74c3c",
-            "id": "mnu4h6ysy188",
-            "tag": "Momentum Slow ka intezar karna cahiye",
-            "x": 55.5,
-            "y": 40
-          },
-          {
-            "color": "#e74c3c",
-            "id": "mnu4irt7aj82",
-            "tag": "Momentum Slow ka intezar karna cahiye",
-            "x": 38.9,
-            "y": 38.3
-          },
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/c122c692-0534-496d-86e1-d531f93dba29.png": [
           {
             "color": "#ff6b9d",
-            "id": "mnu4rl31mrpr",
+            "id": "mnu4xyo0qnu4",
             "tag": "pin",
-            "x": 40.5,
-            "y": 66.9
+            "x": 57.4,
+            "y": 56.5
           },
           {
-            "id": "mnu4xstxu1n9",
-            "tag": "pin",
-            "x": 70.1,
-            "y": 44.1,
-            "color": "#ff6b9d"
+            "color": "#00d2ff",
+            "id": "mnu4y0ucx5hy",
+            "tag": "thumbnail",
+            "x": 34.1,
+            "y": 59.3
           }
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/df66d0d3-547e-44d6-aef9-c1562e900fff.png": [
@@ -17688,45 +17686,65 @@
             "y": 59.5
           },
           {
+            "color": "#ff6b9d",
             "id": "mnu4xwhwltde",
             "tag": "pin",
             "x": 57.8,
-            "y": 53.5,
-            "color": "#ff6b9d"
-          }
-        ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/c122c692-0534-496d-86e1-d531f93dba29.png": [
-          {
-            "id": "mnu4xyo0qnu4",
-            "tag": "pin",
-            "x": 57.4,
-            "y": 56.5,
-            "color": "#ff6b9d"
-          },
-          {
-            "id": "mnu4y0ucx5hy",
-            "tag": "thumbnail",
-            "x": 34.1,
-            "y": 59.3,
-            "color": "#00d2ff"
-          }
-        ],
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/fc159630-fc32-413e-8eb7-e457ff8ee15d.png": [
-          {
-            "id": "mnu4y32k2r50",
-            "tag": "thumbnail",
-            "x": 36.2,
-            "y": 63,
-            "color": "#00d2ff"
+            "y": 53.5
           }
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813018/trading_journal/888d2ac4-ee50-40bb-aaa5-12fffd744c31.png": [
           {
+            "color": "#00d2ff",
             "id": "mnu4y4y4aiws",
             "tag": "thumbnail",
             "x": 47.6,
-            "y": 43.5,
-            "color": "#00d2ff"
+            "y": 43.5
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/84bd721d-c8c4-42ac-b89b-8f8fc39893bf.png": [
+          {
+            "color": "#00d2ff",
+            "id": "mnu503nw0i5b",
+            "tag": "thumbnail",
+            "x": 39.4,
+            "y": 63.9
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/fc159630-fc32-413e-8eb7-e457ff8ee15d.png": [
+          {
+            "color": "#00d2ff",
+            "id": "mnu4y32k2r50",
+            "tag": "thumbnail",
+            "x": 36.2,
+            "y": 63
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813024/trading_journal/3d080b87-d0dc-4ec8-b16a-42188243e371.png": [
+          {
+            "id": "mnu89bh2spwz",
+            "tag": "pin",
+            "x": 54.4,
+            "y": 26.6,
+            "color": "#ff6b9d"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/ea541a35-30a5-462e-b89a-2f8565e75f66.png": [
+          {
+            "id": "mnu89gin4xb9",
+            "tag": "pin",
+            "x": 16.9,
+            "y": 46.1,
+            "color": "#ff6b9d"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813025/trading_journal/5ee1a1de-1aae-40ec-83e0-1322371039e3.png": [
+          {
+            "id": "mnu89jrrsrk6",
+            "tag": "pin",
+            "x": 47.8,
+            "y": 27.3,
+            "color": "#ff6b9d"
           }
         ]
       },
