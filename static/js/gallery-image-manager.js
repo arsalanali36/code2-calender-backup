@@ -176,10 +176,10 @@ function buildManagerTagCountMap() {
             });
         });
 
-        Object.values(state.dayData || {}).forEach(day => {
+        Object.entries(state.dayData || {}).forEach(([dateKey, day]) => {
             const urls = [...(day.newsImages || []), ...(day.images || []), ...(day.closeImages || []), ...(day.closeGlobalImages || [])];
             urls.forEach(url => {
-                const tags = getDayImageTagsForUrl(day.dateKey, url);
+                const tags = getDayImageTagsForUrl(dateKey, url);
                 tags.forEach(t => bump(t, url));
 
                 const boxes = day.marqueeBoxes?.[url] || [];
@@ -339,7 +339,9 @@ function renderImageManagerTable() {
   headRow.innerHTML = '';
   headRow.appendChild(dateTh);
 
-  const allTagCounts = buildManagerTagCountMap();
+  const allTagCounts = (typeof calculateGalleryTagCounts === 'function') 
+                       ? calculateGalleryTagCounts() 
+                       : buildManagerTagCountMap();
 
   mTags.forEach(tag => {
     const th = document.createElement('th');
@@ -470,9 +472,10 @@ function renderImageManagerTable() {
       const td = document.createElement('td');
       td.className = 'im-tag-cell';
       
-      let count = 0;
+      const lowerTagName = tagName.toLowerCase().trim();
       entry.images.forEach(img => {
-        if ((img.tags || []).includes(tagName)) count++;
+        const hasTag = (img.tags || []).some(t => String(t || '').toLowerCase().trim() === lowerTagName);
+        if (hasTag) count++;
       });
 
       const span = document.createElement('span');
