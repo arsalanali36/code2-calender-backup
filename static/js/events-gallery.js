@@ -165,27 +165,30 @@ function _bindGalleryEvents() {
         let vResizer = document.createElement('div');
         vResizer.className = 'gv2-touch-resizer';
         vResizer.style.cssText = `
-            position: absolute; top: 0; bottom: 0; width: 30px; z-index: 500;
+            position: absolute; top: 0; bottom: 0; width: 40px; z-index: 9999;
             background: transparent; display: flex; align-items: center; justify-content: center;
             cursor: col-resize; touch-action: none;
         `;
         
         // Position on the dragging edge
         if (direction === 'right') {
-          vResizer.style.right = '-15px';
+          vResizer.style.right = '-20px';
         } else {
-          vResizer.style.left = '-15px';
+          vResizer.style.left = '-20px';
         }
 
+        // Full height subtle line like Split View
         vResizer.innerHTML = `
-            <div class="gv2-touch-resizer-handle" style="width: 4px; height: 40px; border-radius: 2px; background: var(--blue); opacity: 0.6; transition: opacity 0.2s;"></div>
-            <div class="gv2-touch-resizer-label" style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; opacity: 0; pointer-events: none; white-space: nowrap;">Width: 0px</div>
+            <div class="gv2-touch-resizer-line" style="position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.1); transition: background 0.2s;"></div>
+            <div class="gv2-touch-resizer-handle" style="width: 4px; height: 50px; border-radius: 2px; background: var(--blue); opacity: 0; transition: opacity 0.2s;"></div>
+            <div class="gv2-touch-resizer-label" style="position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 11px; opacity: 0; pointer-events: none; white-space: nowrap; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">0px</div>
         `;
         panel.appendChild(vResizer);
         panel.dataset.hasResizer = 'true';
         
         const label = vResizer.querySelector('.gv2-touch-resizer-label');
         const visualHandle = vResizer.querySelector('.gv2-touch-resizer-handle');
+        const visualLine = vResizer.querySelector('.gv2-touch-resizer-line');
         let _tResizing = false, _startX_T = 0, _startW_T = 0;
 
         vResizer.addEventListener('touchstart', (e) => {
@@ -194,9 +197,15 @@ function _bindGalleryEvents() {
           _startX_T = e.touches[0].clientX;
           _startW_T = panel.offsetWidth;
           
+          panel.classList.add('is-dragging'); // Disable transition
+          panel.style.transition = 'none';
           vResizer.classList.add('active');
           if (visualHandle) visualHandle.style.opacity = '1';
-          if (label) label.style.opacity = '1';
+          if (visualLine) visualLine.style.background = 'var(--blue)';
+          if (label) {
+            label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
+            label.style.opacity = '1';
+          }
           
           e.stopPropagation();
         }, { passive: true });
@@ -205,14 +214,11 @@ function _bindGalleryEvents() {
           if (!_tResizing || e.touches.length !== 1) return;
           const dx = e.touches[0].clientX - _startX_T;
           
-          // If panel is on the left (direction='right'), positive dx increases width
-          // If panel is on the right (direction='left'), negative dx increases width
           const newW = (direction === 'right') ? (_startW_T + dx) : (_startW_T - dx);
-          
           _setWidth(newW);
+          
           if (label) {
               label.textContent = `Width: ${Math.round(panel.offsetWidth)}px`;
-              label.style.opacity = '1';
           }
           if (e.cancelable) e.preventDefault();
         }, { passive: false });
@@ -220,8 +226,11 @@ function _bindGalleryEvents() {
         window.addEventListener('touchend', () => {
           if (_tResizing) {
             _tResizing = false;
+            panel.classList.remove('is-dragging');
+            panel.style.transition = '';
             vResizer.classList.remove('active');
-            if (visualHandle) visualHandle.style.opacity = '0.6';
+            if (visualHandle) visualHandle.style.opacity = '0';
+            if (visualLine) visualLine.style.background = 'rgba(255,255,255,0.1)';
             if (label) label.style.opacity = '0';
           }
         });
