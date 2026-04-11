@@ -127,6 +127,24 @@ function addTagPin(tag, xPct, yPct) {
     color: getTagPinColor(tag)
   });
   setTagPinsForUrl(imgUrl, pins);
+
+  // Also assign the tag to the image (like chip-click does) if not already assigned
+  if (typeof getCurrentGalleryImageTagInfo === 'function') {
+    const info = getCurrentGalleryImageTagInfo();
+    if (info && !info.imageTags.includes(tag)) {
+      const next = [...info.imageTags, tag];
+      if (info.ownerType === 'trade' && info.trade && typeof setImageTagsForUrl === 'function')
+        setImageTagsForUrl(info.trade, imgUrl, next);
+      else if (info.ownerType === 'day' && info.dateKey && typeof setDayImageTagsForUrl === 'function')
+        setDayImageTagsForUrl(info.dateKey, imgUrl, next);
+      if (typeof normalizeAllTagsFromTrades === 'function') normalizeAllTagsFromTrades();
+      if (typeof renderGalleryImageTags    === 'function') renderGalleryImageTags();
+      if (typeof renderGalleryTagCloud     === 'function') renderGalleryTagCloud();
+      if (typeof renderGalleryTagsTray     === 'function') renderGalleryTagsTray();
+      if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+    }
+  }
+
   renderTagPins();
   _updateThumbBadge(imgUrl);
   if (typeof saveTrades === 'function') saveTrades();

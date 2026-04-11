@@ -17586,7 +17586,7 @@
       "Buy Price (Avg)": 192.35,
       "Buy Time": "12:25:11",
       "Gross P/L": -1621.75,
-      "Image Tags": "panic, pin",
+      "Image Tags": "pin, thumbnail",
       "Instrument": "NIFTY2641323950CE",
       "Net P/L": -1689.9,
       "Note": "",
@@ -17605,6 +17605,19 @@
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801476/trading_journal/76acc2f7-0db2-4872-8294-44ac12e8f406.png": [
           "pin"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/df66d0d3-547e-44d6-aef9-c1562e900fff.png": [
+          "pin"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/c122c692-0534-496d-86e1-d531f93dba29.png": [
+          "pin",
+          "thumbnail"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/fc159630-fc32-413e-8eb7-e457ff8ee15d.png": [
+          "thumbnail"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813018/trading_journal/888d2ac4-ee50-40bb-aaa5-12fffd744c31.png": [
+          "thumbnail"
         ]
       },
       "images": [
@@ -17652,20 +17665,68 @@
             "y": 38.3
           },
           {
+            "color": "#ff6b9d",
             "id": "mnu4rl31mrpr",
             "tag": "pin",
             "x": 40.5,
-            "y": 66.9,
+            "y": 66.9
+          },
+          {
+            "id": "mnu4xstxu1n9",
+            "tag": "pin",
+            "x": 70.1,
+            "y": 44.1,
             "color": "#ff6b9d"
           }
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/df66d0d3-547e-44d6-aef9-c1562e900fff.png": [
           {
+            "color": "#ff6b9d",
             "id": "mnu4rq26g7a0",
             "tag": "pin",
             "x": 46.6,
-            "y": 59.5,
+            "y": 59.5
+          },
+          {
+            "id": "mnu4xwhwltde",
+            "tag": "pin",
+            "x": 57.8,
+            "y": 53.5,
             "color": "#ff6b9d"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/c122c692-0534-496d-86e1-d531f93dba29.png": [
+          {
+            "id": "mnu4xyo0qnu4",
+            "tag": "pin",
+            "x": 57.4,
+            "y": 56.5,
+            "color": "#ff6b9d"
+          },
+          {
+            "id": "mnu4y0ucx5hy",
+            "tag": "thumbnail",
+            "x": 34.1,
+            "y": 59.3,
+            "color": "#00d2ff"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813021/trading_journal/fc159630-fc32-413e-8eb7-e457ff8ee15d.png": [
+          {
+            "id": "mnu4y32k2r50",
+            "tag": "thumbnail",
+            "x": 36.2,
+            "y": 63,
+            "color": "#00d2ff"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813018/trading_journal/888d2ac4-ee50-40bb-aaa5-12fffd744c31.png": [
+          {
+            "id": "mnu4y4y4aiws",
+            "tag": "thumbnail",
+            "x": 47.6,
+            "y": 43.5,
+            "color": "#00d2ff"
           }
         ]
       },
