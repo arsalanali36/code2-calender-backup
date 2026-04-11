@@ -42,224 +42,165 @@ function renderGalleryTagFilterPanel() {
 
     const actRow = document.createElement('div');
     actRow.className = 'panel-act-row';
-    actRow.style.cssText = 'display:flex; gap:6px; padding:0 8px 8px;';
+    actRow.style.cssText = 'display:flex; gap:6px; padding:0 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);';
 
-    const btnMode = document.createElement('button');
-    btnMode.className = 'panel-act-btn';
-    btnMode.style.flex = '1';
-    const isAnd = state.gallery.filterMode === 'and';
-    btnMode.textContent = isAnd ? 'Match: ALL (AND)' : 'Match: ANY (OR)';
-    btnMode.style.color = isAnd ? 'var(--blue)' : 'var(--orange)';
-    btnMode.addEventListener('click', () => {
-        state.gallery.filterMode = state.gallery.filterMode === 'and' ? 'or' : 'and';
-        applyGalleryImageScopeByTagFilter();
-        state.gallery._skipFilterRescopeOnce = true;
-        renderGallery();
-        renderGalleryTagFilterPanel();
-    });
-
-    const btnNone = document.createElement('button');
-    btnNone.className = 'panel-act-btn';
-    btnNone.style.flex = '1';
-    btnNone.textContent = 'Clear All';
-    btnNone.addEventListener('click', () => {
+    const btnClear = document.createElement('button');
+    btnClear.className = 'panel-act-btn';
+    btnClear.style.cssText = 'flex:1; font-weight:700; color:var(--text);';
+    btnClear.textContent = 'Clear Filter';
+    btnClear.onclick = () => {
         state.gallery.tagFilter = [];
         applyGalleryImageScopeByTagFilter();
         if (typeof renderGalleryTagCloud === 'function') renderGalleryTagCloud();
         renderGallery();
         renderGalleryTagFilterPanel();
-        // Force the dropdown back to default if it exists
-        const tpl = document.getElementById('gv2-tpl-select');
-        if (tpl) tpl.value = '';
-    });
-    actRow.appendChild(btnMode);
-    actRow.appendChild(btnNone);
-    if (header) header.appendChild(actRow);
+    };
 
-    // ── PREMIUM TEMPLATE MENU ──────────────────────────────────────────────
-    const tplRow = document.createElement('div');
-    tplRow.style.cssText = 'padding: 0 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); position:relative;';
+    const btnOpt = document.createElement('button');
+    btnOpt.className = 'panel-act-btn';
+    btnOpt.style.cssText = 'flex:1; justify-content:space-between; padding:0 10px; color:var(--blue);';
+    btnOpt.innerHTML = '<span>Filter Options...</span><span style="opacity:0.6">▾</span>';
 
-    const tplBtn = document.createElement('button');
-    tplBtn.className = 'panel-act-btn';
-    tplBtn.style.cssText = 'flex:1; justify-content: space-between; padding: 0 10px; height: 28px; font-size:12px; background: var(--surface2);';
-    tplBtn.innerHTML = `<span>Recall Template...</span><span style="opacity:0.6">▾</span>`;
-    
-    const menu = document.createElement('div');
-    menu.id = 'gv2-tpl-custom-menu';
-    menu.style.cssText = 'display:none; position:absolute; top:32px; left:8px; right:8px; background: #1a1b1e; border: 1px solid var(--border); border-radius: 6px; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow:hidden;';
+    const optMenu = document.createElement('div');
+    optMenu.style.cssText = 'display:none; position:absolute; top:36px; right:8px; width:220px; background:#1a1b1e; border:1px solid var(--border); border-radius:8px; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.6); overflow:hidden;';
 
-    const updateMenu = () => {
-        menu.innerHTML = '';
+    const renderOptMenu = () => {
+        optMenu.innerHTML = '';
+        
+        // Match Mode section
+        const mmWrap = document.createElement('div');
+        mmWrap.style.padding = '8px 12px';
+        mmWrap.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+        const mmLbl = document.createElement('div');
+        mmLbl.style.fontSize = '10px'; mmLbl.style.color = 'var(--text3)'; mmLbl.style.marginBottom = '4px';
+        mmLbl.textContent = 'MATCH MODE';
+        mmWrap.appendChild(mmLbl);
+        const mmBtn = document.createElement('button');
+        mmBtn.className = 'panel-act-btn';
+        mmBtn.style.width = '100%';
+        const isAnd = state.gallery.filterMode === 'and';
+        mmBtn.textContent = isAnd ? 'Match: ALL (AND)' : 'Match: ANY (OR)';
+        mmBtn.style.color = isAnd ? 'var(--blue)' : 'var(--orange)';
+        mmBtn.onclick = () => {
+            state.gallery.filterMode = state.gallery.filterMode === 'and' ? 'or' : 'and';
+            applyGalleryImageScopeByTagFilter();
+            renderGallery();
+            renderOptMenu();
+        };
+        mmWrap.appendChild(mmBtn);
+        optMenu.appendChild(mmWrap);
+
+        // Scope section
+        const scWrap = document.createElement('div');
+        scWrap.style.padding = '8px 12px';
+        scWrap.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+        const scLbl = document.createElement('div');
+        scLbl.style.fontSize = '10px'; scLbl.style.color = 'var(--text3)'; scLbl.style.marginBottom = '4px';
+        scLbl.textContent = 'FILTER SCOPE';
+        scWrap.appendChild(scLbl);
+        const scBtns = document.createElement('div');
+        scBtns.style.display = 'flex'; scBtns.style.gap = '4px';
+        const isTrade = state.gallery.filterTagScope === 'trade';
+        ['Image','Trade'].forEach(sc => {
+            const b = document.createElement('button');
+            b.className = 'panel-act-btn'; b.style.flex = '1'; b.textContent = sc;
+            const active = (sc === 'Image' && !isTrade) || (sc === 'Trade' && isTrade);
+            if(active) { b.style.color = sc==='Image' ? 'var(--blue)' : 'var(--green)'; b.style.borderColor = b.style.color; }
+            b.onclick = () => {
+                state.gallery.filterTagScope = sc.toLowerCase();
+                applyGalleryImageScopeByTagFilter();
+                renderGallery();
+                renderOptMenu();
+            };
+            scBtns.appendChild(b);
+        });
+        scWrap.appendChild(scBtns);
+        optMenu.appendChild(scWrap);
+
+        // Recall Template
+        const tplWrap = document.createElement('div');
+        tplWrap.style.padding = '8px 12px';
+        tplWrap.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+        const tplLbl = document.createElement('div');
+        tplLbl.style.fontSize = '10px'; tplLbl.style.color = 'var(--text3)'; tplLbl.style.marginBottom = '6px';
+        tplLbl.textContent = 'RECALL TEMPLATE';
+        tplWrap.appendChild(tplLbl);
+        const tplList = document.createElement('div');
+        tplList.style.display = 'flex'; tplList.style.flexDirection = 'column'; tplList.style.gap = '4px';
         const templates = state.tagTemplates || {};
         const keys = Object.keys(templates).sort();
-        
-        if (keys.length === 0) {
-            menu.innerHTML = '<div style="padding:10px; font-size:11px; color:#666; text-align:center;">No templates saved.</div>';
+        if(!keys.length) {
+            tplList.innerHTML = '<div style="font-size:11px; opacity:0.4; text-align:center;">No templates</div>';
+        } else {
+            keys.forEach(name => {
+                const b = document.createElement('div');
+                b.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer;';
+                const n = document.createElement('span'); n.textContent = name;
+                n.style.cssText = 'flex:1; font-size:11px; hover:color:var(--blue);';
+                n.onclick = () => {
+                    state.gallery.tagFilter = [...templates[name]];
+                    applyGalleryImageScopeByTagFilter();
+                    renderGallery();
+                    renderGalleryTagFilterPanel();
+                };
+                const del = document.createElement('span'); del.innerHTML = '×';
+                del.style.cssText = 'opacity:0.3; cursor:pointer; padding:0 4px;';
+                del.onclick = (e) => {
+                    e.stopPropagation();
+                    if(!confirm(`Delete "${name}"?`)) return;
+                    delete state.tagTemplates[name];
+                    if(typeof saveTrades === 'function') saveTrades();
+                    renderOptMenu();
+                };
+                b.appendChild(n); b.appendChild(del);
+                tplList.appendChild(b);
+            });
         }
-
-        keys.forEach(name => {
-            const row = document.createElement('div');
-            row.style.cssText = 'display:flex; align-items:center; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:background 0.2s;';
-            row.onmouseenter = () => { row.style.background = 'rgba(255,255,255,0.05)'; };
-            row.onmouseleave = () => { row.style.background = ''; };
-
-            const label = document.createElement('span');
-            label.textContent = name;
-            label.style.cssText = 'flex:1; font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
-            label.onclick = (e) => {
-                e.stopPropagation();
-                state.gallery.tagFilter = [...templates[name]];
-                applyGalleryImageScopeByTagFilter();
-                state.gallery._skipFilterRescopeOnce = true;
-                renderGallery();
-                renderGalleryTagFilterPanel();
-                menu.style.display = 'none';
-                showToast(`Applied: ${name}`, 'success');
-            };
-
-            const actions = document.createElement('div');
-            actions.style.display = 'flex';
-            actions.style.gap = '8px';
-
-            const editBtn = document.createElement('span');
-            editBtn.innerHTML = '✎';
-            editBtn.title = 'Rename';
-            editBtn.style.cssText = 'font-size:12px; opacity:0.5; transition:opacity 0.2s;';
-            editBtn.onmouseenter = () => { editBtn.style.opacity = '1'; editBtn.style.color = 'var(--blue)'; };
-            editBtn.onmouseleave = () => { editBtn.style.opacity = '0.5'; editBtn.style.color = ''; };
-            editBtn.onclick = (e) => {
-                e.stopPropagation();
-                const newName = prompt(`Rename template "${name}" to:`, name);
-                if (!newName || newName === name) return;
-                state.tagTemplates[newName] = state.tagTemplates[name];
-                delete state.tagTemplates[name];
-                if (typeof saveTrades === 'function') saveTrades();
-                updateMenu();
-                showToast('Renamed successfully', 'success');
-            };
-
-            const delBtn = document.createElement('span');
-            delBtn.innerHTML = '×';
-            delBtn.title = 'Delete';
-            delBtn.style.cssText = 'font-size:16px; opacity:0.5; transition:opacity 0.2s; line-height:14px;';
-            delBtn.onmouseenter = () => { delBtn.style.opacity = '1'; delBtn.style.color = 'var(--red)'; };
-            delBtn.onmouseleave = () => { delBtn.style.opacity = '0.5'; delBtn.style.color = ''; };
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                if (!confirm(`Delete template "${name}"?`)) return;
-                delete state.tagTemplates[name];
-                if (typeof saveTrades === 'function') saveTrades();
-                updateMenu();
-                showToast('Deleted template', 'success');
-            };
-
-            row.appendChild(label);
-            actions.appendChild(editBtn);
-            actions.appendChild(delBtn);
-            row.appendChild(actions);
-            menu.appendChild(row);
-        });
-
-        // Add "Save New" at the bottom
-        const saveRow = document.createElement('div');
-        saveRow.style.cssText = 'padding:8px 10px; border-top:1px solid var(--border); background:rgba(255,255,255,0.02); text-align:center; cursor:pointer; font-size:11px; color:var(--blue); font-weight:600;';
-        saveRow.textContent = '+ SAVE NEW TEMPLATE';
-        saveRow.onclick = (e) => {
-            e.stopPropagation();
-            if (!state.gallery.tagFilter?.length) { showToast('Select some tags first!', 'info'); return; }
-            const defaultName = state.gallery.tagFilter.join(', ');
-            const name = prompt('Enter template name:', defaultName);
-            if (!name) return;
+        const saveNew = document.createElement('button');
+        saveNew.className = 'panel-act-btn'; saveNew.style.width = '100%'; saveNew.style.marginTop='6px';
+        saveNew.style.fontSize='10px'; saveNew.textContent = '+ SAVE AS NEW';
+        saveNew.onclick = () => {
+            if(!state.gallery.tagFilter?.length) { showToast('Select tags first!','info'); return; }
+            const name = prompt('Template name:', state.gallery.tagFilter.join(', '));
+            if(!name) return;
             state.tagTemplates[name] = [...state.gallery.tagFilter];
-            if (typeof saveTrades === 'function') saveTrades();
-            updateMenu();
-            showToast(`Saved "${name}"`, 'success');
+            if(typeof saveTrades === 'function') saveTrades();
+            renderOptMenu();
+        }
+        tplWrap.appendChild(tplList); tplWrap.appendChild(saveNew);
+        optMenu.appendChild(tplWrap);
+
+        // PDF Export
+        const pdfWrap = document.createElement('div');
+        pdfWrap.style.padding = '8px 12px';
+        const pdfBtn = document.createElement('button');
+        pdfBtn.className = 'panel-act-btn'; pdfBtn.style.width = '100%';
+        pdfBtn.style.borderColor='var(--red)'; pdfBtn.style.color='var(--red)';
+        pdfBtn.innerHTML = '&#128196; Export to PDF';
+        pdfBtn.onclick = async () => {
+            const meta = state.gallery._filteredMeta || (state.gallery.images || []).map(url => ({ url, date: state.gallery.date, sourceRow: state.gallery.sourceRow }));
+            if(!meta.length) return;
+            const filter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
+            await exportService.exportImagesToPdf(meta, `export.pdf`, filter);
         };
-        menu.appendChild(saveRow);
+        pdfWrap.appendChild(pdfBtn);
+        optMenu.appendChild(pdfWrap);
     };
 
-    tplBtn.onclick = (e) => {
+    btnOpt.onclick = (e) => {
         e.stopPropagation();
-        const isOpen = menu.style.display === 'block';
-        // Close all other instances if any
-        document.querySelectorAll('#gv2-tpl-custom-menu').forEach(m => m.style.display = 'none');
-        if (!isOpen) {
-            updateMenu();
-            menu.style.display = 'block';
-        }
+        const isOpen = optMenu.style.display === 'block';
+        if(!isOpen) { renderOptMenu(); optMenu.style.display = 'block'; }
+        else { optMenu.style.display = 'none'; }
     };
-
-    // Close menu when clicking outside
-    const hideMenu = (e) => { if (!menu.contains(e.target) && e.target !== tplBtn) menu.style.display = 'none'; };
-    document.addEventListener('mousedown', hideMenu);
-
-    tplRow.appendChild(tplBtn);
-    tplRow.appendChild(menu);
-    if (header) header.appendChild(tplRow);
-
-    // Scope toggle: Image vs Trade
-    const scopeRow = document.createElement('div');
-    scopeRow.style.cssText = 'display:flex; gap:6px; padding:0 8px 8px; align-items:center;';
-    const scopeLbl = document.createElement('span');
-    scopeLbl.textContent = 'Scope:';
-    scopeLbl.style.cssText = 'color:var(--text3); font-size:0.75rem; white-space:nowrap;';
-    const isTradeScope = state.gallery.filterTagScope === 'trade';
-    const btnScopeImg = document.createElement('button');
-    btnScopeImg.className = 'panel-act-btn';
-    btnScopeImg.style.flex = '1';
-    btnScopeImg.textContent = 'Image';
-    btnScopeImg.style.color = !isTradeScope ? 'var(--blue)' : '';
-    btnScopeImg.style.borderColor = !isTradeScope ? 'var(--blue)' : '';
-    btnScopeImg.addEventListener('click', () => {
-        state.gallery.filterTagScope = 'image';
-        applyGalleryImageScopeByTagFilter();
-        state.gallery._skipFilterRescopeOnce = true;
-        renderGallery();
-        renderGalleryTagFilterPanel();
+    document.addEventListener('mousedown', (e) => {
+        if(!optMenu.contains(e.target) && e.target !== btnOpt) optMenu.style.display = 'none';
     });
-    const btnScopeTrade = document.createElement('button');
-    btnScopeTrade.className = 'panel-act-btn';
-    btnScopeTrade.style.flex = '1';
-    btnScopeTrade.textContent = 'Trade';
-    btnScopeTrade.style.color = isTradeScope ? 'var(--green)' : '';
-    btnScopeTrade.style.borderColor = isTradeScope ? 'var(--green)' : '';
-    btnScopeTrade.addEventListener('click', () => {
-        state.gallery.filterTagScope = 'trade';
-        applyGalleryImageScopeByTagFilter();
-        state.gallery._skipFilterRescopeOnce = true;
-        renderGallery();
-        renderGalleryTagFilterPanel();
-    });
-    scopeRow.appendChild(scopeLbl);
-    scopeRow.appendChild(btnScopeImg);
-    scopeRow.appendChild(btnScopeTrade);
-    if (header) header.appendChild(scopeRow);
 
-    // Export PDF Button
-    const pdfRow = document.createElement('div');
-    pdfRow.style.cssText = 'padding: 0 8px 8px;';
-    const btnExportPdf = document.createElement('button');
-    btnExportPdf.className = 'panel-act-btn';
-    btnExportPdf.style.cssText = 'width:100%; border-color:var(--red,#f85149); color:var(--red,#f85149); font-weight:700; background:rgba(248,81,73,0.05);';
-    btnExportPdf.innerHTML = '&#128196; Export Filtered to PDF';
-    btnExportPdf.addEventListener('click', async () => {
-        const metaToExport = state.gallery._filteredMeta || (state.gallery.images || []).map(url => ({ url, date: state.gallery.date, sourceRow: state.gallery.sourceRow }));
-        if (!metaToExport.length) {
-            if (typeof showToast === 'function') showToast('No images to export.', 'error');
-            return;
-        }
-        
-        const tagFilter = Array.isArray(state.gallery.tagFilter) ? state.gallery.tagFilter : [];
-        if (tagFilter.length) {
-            filename = `filtered_${tagFilter.join('_')}`.slice(0, 50);
-        }
-        
-        await exportService.exportImagesToPdf(metaToExport, `${filename}.pdf`, tagFilter);
-    });
-    pdfRow.appendChild(btnExportPdf);
-    if (header) header.appendChild(pdfRow);
-
+    actRow.appendChild(btnClear);
+    actRow.appendChild(btnOpt);
+    actRow.appendChild(optMenu);
+    if (header) header.appendChild(actRow);
     const list = document.createElement('div');
     list.className = 'panel-list';
     list.style.flex = '1';

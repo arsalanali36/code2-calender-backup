@@ -102,6 +102,45 @@ function renderColumnMenu(searchQuery = '') {
         searchWrap.appendChild(sInput);
         menu.appendChild(searchWrap);
 
+        // --- Tag Templates Section ---
+        const tplSection = document.createElement('div');
+        tplSection.className = 'im-col-templates';
+        tplSection.style.cssText = 'padding: 8px 10px; border-bottom: 1px solid var(--border); background:rgba(255,255,255,0.02);';
+        
+        const tplHdr = document.createElement('div');
+        tplHdr.style.cssText = 'font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 700;';
+        tplHdr.innerHTML = 'Recall Template';
+        tplSection.appendChild(tplHdr);
+
+        const tplList = document.createElement('div');
+        tplList.style.cssText = 'display:flex; flex-wrap:wrap; gap:5px;';
+        
+        const templates = state.tagTemplates || {};
+        const keys = Object.keys(templates).sort();
+        
+        if (keys.length === 0) {
+            const hint = document.createElement('div');
+            hint.style.cssText = 'font-size:0.75rem; color:#666; font-style:italic;';
+            hint.textContent = 'No templates found.';
+            tplList.appendChild(hint);
+        } else {
+            keys.forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = 'gv2-ulp-ctrl-btn';
+                btn.style.cssText = 'padding:2px 8px; font-size:11px;';
+                btn.textContent = name;
+                btn.onclick = () => {
+                    state.gallery.managerTags = [...templates[name]];
+                    saveTagGroups();
+                    renderImageManagerTable();
+                    renderColumnMenu(sInput.value); // refresh menu checks
+                };
+                tplList.appendChild(btn);
+            });
+        }
+        tplSection.appendChild(tplList);
+        menu.appendChild(tplSection);
+
         const listWrap = document.createElement('div');
         listWrap.className = 'im-col-list panel-list';
         listWrap.id = 'im-col-list';
@@ -284,6 +323,8 @@ function renderImageManagerTable() {
   headRow.innerHTML = '';
   headRow.appendChild(dateTh);
 
+  const allTagCounts = buildManagerTagCountMap();
+
   mTags.forEach(tag => {
     const th = document.createElement('th');
     th.style.textAlign = 'center';
@@ -294,7 +335,8 @@ function renderImageManagerTable() {
     
     const text = document.createElement('span');
     text.className = 'im-header-text';
-    text.textContent = tag;
+    const totalCount = allTagCounts.get(tag) || 0;
+    text.textContent = `${tag} (${totalCount})`;
     
     const dotsBtn = document.createElement('button');
     dotsBtn.className = 'im-header-dots-btn';
