@@ -321,7 +321,13 @@ function renderImageManagerTable() {
   const addImgs = (entry, tradeObj, urls, isDayLevel) => {
       urls.forEach(url => {
           const tags = isDayLevel ? getDayImageTagsForUrl(entry.dateKey, url) : getImageTagsForUrl(tradeObj, url);
-          entry.images.push({ url, tags });
+          // Also include tags from marquee boxes for this image
+          const mBoxes = isDayLevel ? (state.dayData[entry.dateKey]?.marqueeBoxes?.[url] || []) 
+                                    : (tradeObj?.marqueeBoxes?.[url] || []);
+          const allTags = [...tags];
+          mBoxes.forEach(b => (b.tags || []).forEach(t => { if(!allTags.includes(t)) allTags.push(t); }));
+          
+          entry.images.push({ url, tags: allTags });
       });
   };
 
@@ -333,8 +339,6 @@ function renderImageManagerTable() {
     const entry = dateMap.get(d);
     
     const tradeImgs = tr.images || [];
-    const tLabel = `T${tradeImgs.length > 0 ? (entry.tradesInfo.length + 1) : ''}`; // Just a label helper
-    
     // We want to track images per trade for the breakdown
     entry.tradesInfo.push({
         id: `T${entry.tradesInfo.length + 1}`,
@@ -354,12 +358,14 @@ function renderImageManagerTable() {
     entry._dayStatus = {
         news: day.newsImages?.length || 0,
         open: day.images?.length || 0,
-        close: day.closeImages?.length || 0
+        close: day.closeImages?.length || 0,
+        global: day.closeGlobalImages?.length || 0
     };
 
     addImgs(entry, null, day.newsImages || [], true);
     addImgs(entry, null, day.images || [], true);
     addImgs(entry, null, day.closeImages || [], true);
+    addImgs(entry, null, day.closeGlobalImages || [], true);
   });
 
   // Sort dates
@@ -494,11 +500,24 @@ function renderImageManagerTable() {
             closeItem.style.cursor = 'pointer';
             closeItem.onclick = () => {
                 if (typeof openGalleryForDate === 'function') {
-                    openGalleryForDate(dateKey); // Will show close images too
+                    openGalleryForDate(dateKey); // Will show trade close images
                     document.getElementById('img-manager-overlay').style.display = 'none';
                 }
             };
             list.appendChild(closeItem);
+
+            const globalItem = document.createElement('div');
+            globalItem.className = 'im-trade-item' + (entry._dayStatus.global > 0 ? ' has-img' : ' no-img');
+            globalItem.innerHTML = `<span>Day Close</span>${entry._dayStatus.global > 0 ? `<span class="im-trade-img-count">(${entry._dayStatus.global})</span>` : ''}`;
+            globalItem.style.cursor = 'pointer';
+            globalItem.style.color = '#58a6ff';
+            globalItem.onclick = () => {
+                if (typeof openGalleryForDate === 'function') {
+                    openGalleryForDate(dateKey); // Will show all including global close
+                    document.getElementById('img-manager-overlay').style.display = 'none';
+                }
+            };
+            list.appendChild(globalItem);
         }
         tdTrades.appendChild(list);
     } else {
