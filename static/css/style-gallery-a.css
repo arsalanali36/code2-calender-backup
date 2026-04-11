@@ -815,40 +815,174 @@
   }
 }
 
-/* Show original handles on touch devices but make them FAT for easy grabbing */
+/* Touch devices — wide touch target, inside panel at right/left edge */
 .is-touch .gv2-tp-resize-handle,
 .is-touch .gv2-lp-resize-handle,
 .is-touch .gv2-trades-resize-handle,
 .is-touch .gv2-tray-resize-handle,
 .is-touch .trade-sidebar-resizer {
   display: flex !important;
-  width: 30px !important;
+  width: 44px !important;
   background: transparent !important;
-  z-index: 1000 !important;
+  z-index: 10010 !important;
   pointer-events: auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  touch-action: none !important;
 }
 
-/* Ensure the handle position is correct on touch */
-.is-touch .gv2-tp-resize-handle     { right: -15px !important; }
-.is-touch .gv2-trades-resize-handle { right: -15px !important; }
-.is-touch .gv2-lp-resize-handle     { right: -15px !important; }
-.is-touch .gv2-tray-resize-handle   { left: -15px !important; }
+/* Handle stays inside panel — no negative offset needed */
+.is-touch .gv2-tp-resize-handle     { right: 0 !important; }
+.is-touch .gv2-trades-resize-handle { right: 0 !important; }
+.is-touch .gv2-lp-resize-handle     { right: 0 !important; }
+.is-touch .gv2-tray-resize-handle   { left: 0 !important; }
 
-/* Always show a subtle vertical line on touch so user knows they can resize */
+/* iOS-style visible grab pill on touch */
 .is-touch .gv2-tp-resize-handle::after,
 .is-touch .gv2-lp-resize-handle::after,
 .is-touch .gv2-trades-resize-handle::after,
 .is-touch .gv2-tray-resize-handle::after {
     content: '';
-    width: 2px !important;
-    height: 100% !important;
-    background: rgba(255,255,255,0.15) !important;
-    border-radius: 0 !important;
+    width: 5px !important;
+    height: 48px !important;
+    background: rgba(88, 166, 255, 0.7) !important;
+    border-radius: 3px !important;
     opacity: 1 !important;
+    transition: background 0.2s, width 0.2s !important;
+    box-shadow: 0 0 8px rgba(88, 166, 255, 0.4) !important;
 }
 
 .is-touch .gv2-tp-resize-handle.dragging::after,
-.is-touch .gv2-lp-resize-handle.dragging::after {
-    background: var(--blue) !important;
-    width: 3px !important;
+.is-touch .gv2-lp-resize-handle.dragging::after,
+.is-touch .gv2-trades-resize-handle.dragging::after,
+.is-touch .gv2-tray-resize-handle.dragging::after {
+    background: #58a6ff !important;
+    width: 7px !important;
+    box-shadow: 0 0 16px rgba(88, 166, 255, 0.8) !important;
+}
+
+/* ── TAG PINS ──────────────────────────────────────────────────────────────── */
+
+/* Dot marker — positioned inside #gallery-zoom-layer */
+.tag-pin-dot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: all;    /* always interactive — for drag-to-move */
+  cursor: grab;
+  z-index: 20;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tag-pin-dot:hover {
+  transform: translate(-50%, -50%) scale(1.35);
+  z-index: 21;
+}
+.tag-pin-dot:hover .tag-pin-tooltip,
+.tag-pin-dot:active .tag-pin-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* While dragging */
+.tag-pin-dot.tag-pin-dragging {
+  cursor: grabbing !important;
+  transform: translate(-50%, -50%) scale(1.5) !important;
+  z-index: 30;
+  transition: none;
+  opacity: 0.9;
+}
+
+/* Tooltip */
+.tag-pin-tooltip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: rgba(12, 12, 18, 0.96);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 4px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  border: 1px solid;
+  backdrop-filter: blur(6px);
+  z-index: 1;
+}
+.tag-pin-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(12, 12, 18, 0.96);
+}
+
+/* Delete mode — pulsing + pointer cursor */
+.tag-pin-delete-mode {
+  cursor: pointer !important;
+  animation: tagPinPulse 0.9s ease infinite;
+}
+.tag-pin-delete-mode:hover {
+  transform: translate(-50%, -50%) scale(1.4);
+  filter: brightness(1.3);
+}
+@keyframes tagPinPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%       { transform: translate(-50%, -50%) scale(1.22); }
+}
+
+/* Drop hover on main image */
+#gallery-img.tag-pin-drop-hover {
+  outline: 2px dashed rgba(255, 215, 0, 0.7);
+  outline-offset: 3px;
+  transition: outline 0.1s;
+}
+
+/* Thumbnail pin count badge */
+.tag-pin-thumb-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 8px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+  pointer-events: none;
+  border: 1.5px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* iPad long-press pending tag highlight */
+.tag-pin-pending {
+  outline: 2px solid #ffd700 !important;
+  outline-offset: 2px;
+  animation: tagPinPendingGlow 0.85s ease infinite;
+}
+@keyframes tagPinPendingGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.5); }
+  50%       { box-shadow: 0 0 0 7px rgba(255, 215, 0, 0); }
+}
+
+/* Header pin control buttons — active state */
+.tag-pin-btn-active {
+  color: #ffd700 !important;
+  border-color: rgba(255, 215, 0, 0.5) !important;
+  background: rgba(255, 215, 0, 0.1) !important;
 }

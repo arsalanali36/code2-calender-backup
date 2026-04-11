@@ -2,6 +2,9 @@
 // Tray logic → gallery-render-tray.js | Thumbnail strip → gallery-render-thumbs.js
 
 function renderGallery() {
+  if (typeof initTagPinDropZone      === 'function') initTagPinDropZone();
+  if (typeof initTagPinHeaderButtons === 'function') initTagPinHeaderButtons();
+
   if (state.gallery._skipFilterRescopeOnce) {
     state.gallery._skipFilterRescopeOnce = false;
   } else if (state.gallery.tagFilter?.length) {
@@ -93,6 +96,7 @@ function renderGallery() {
     };
     const afterImageReady = () => {
       loadOverlayForCurrentImage();
+      if (typeof renderTagPins === 'function') renderTagPins();
       if (state._carryAnnotTool) {
         annotState.tool = state._carryAnnotTool; state._carryAnnotTool = '';
         startAnnotation();

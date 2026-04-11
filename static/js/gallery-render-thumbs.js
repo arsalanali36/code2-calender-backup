@@ -481,6 +481,18 @@ function renderGalleryThumbs() {
 
     wrap.appendChild(t); wrap.appendChild(del);
 
+    // Tag pin count badge
+    if (typeof getTagPinsForUrl === 'function') {
+      const _pinCount = getTagPinsForUrl(url, itemDate || date).length;
+      if (_pinCount > 0) {
+        const _pinBadge = document.createElement('div');
+        _pinBadge.className = 'tag-pin-thumb-badge';
+        _pinBadge.textContent = _pinCount;
+        _pinBadge.title = _pinCount + ' tag pin' + (_pinCount > 1 ? 's' : '');
+        wrap.appendChild(_pinBadge);
+      }
+    }
+
     if (typeof getAudioForImage === 'function' && getAudioForImage(url, itemDate || date || '')) {
       const ai = document.createElement('span'); ai.className = 'gv2-thumb-audio-icon'; ai.textContent = '▶'; ai.title = 'Audio note attached';
       wrap.appendChild(ai);
