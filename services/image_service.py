@@ -196,7 +196,7 @@ def get_image_times(urls: list, uploads_dir: str) -> dict:
 
 # ── PDF page splitting ────────────────────────────────────────────────────────
 
-def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 150,
+def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 220,
                         progress_cb=None) -> list:
     """
     Render each PDF page to JPG and upload to Cloudinary (or save locally).
