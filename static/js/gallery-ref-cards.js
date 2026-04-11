@@ -237,73 +237,52 @@ function _refCardClearImage(tradeIdx, side, date) {
   renderGallery();
 }
 
-// ── "Other" dropdown in the gallery top tray ─────────────────────────────────
+// ── Gallery Settings Modal ────────────────────────────────────────────────────
 
 function initOtherDropdown() {
-  const btn = document.getElementById('gv2-other-btn');
-  const dd  = document.getElementById('gv2-other-dropdown');
-  if (!btn || !dd) return;
-  
-  // Move to body to prevent clipping by parent tray containers
-  if (dd.parentElement !== document.body) {
-    document.body.appendChild(dd);
-  }
+  const btn     = document.getElementById('gv2-other-btn');
+  const overlay = document.getElementById('gv2-settings-overlay');
+  const closeBtn = document.getElementById('gv2-settings-close');
+  if (!btn || !overlay) return;
 
   if (btn.dataset.initialized) return;
   btn.dataset.initialized = 'true';
 
-  const toggle = (e) => {
+  const openModal = (e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    const isOpen = dd.classList.toggle('open');
-    
-    if (isOpen) {
-      // Position the dropdown below the button
-      const r = btn.getBoundingClientRect();
-      dd.style.position = 'fixed';
-      dd.style.display = 'block';
-      let left = r.right - 168; // min-width from CSS
-      if (left < 10) left = 10;
-      dd.style.left = left + 'px';
-      dd.style.top = (r.bottom + 8) + 'px';
-      dd.style.zIndex = '100000';
-    } else {
-      dd.style.display = 'none';
-    }
-    btn.classList.toggle('active', isOpen);
+    if (state.gallery.showRefCards === undefined) state.gallery.showRefCards = true;
+    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
+    _syncRefCardsBtn();
+    _syncTradeSidebarBtn();
+    overlay.classList.add('open');
+    btn.classList.add('active');
   };
 
-  btn.addEventListener('click', toggle);
-  btn.addEventListener('touchstart', toggle, { passive: false });
+  const closeModal = () => {
+    overlay.classList.remove('open');
+    btn.classList.remove('active');
+  };
 
-  document.addEventListener('click', e => {
-    if (!e.target.closest('#gv2-other-btn-wrap')) {
-      dd.classList.remove('open');
-      dd.style.display = 'none';
-      btn.classList.remove('active');
-    }
+  btn.addEventListener('click', openModal);
+  btn.addEventListener('touchstart', openModal, { passive: false });
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+    closeBtn.addEventListener('touchstart', closeModal, { passive: false });
+  }
+
+  // Close on overlay backdrop click
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal();
   });
 
-  document.addEventListener('touchstart', e => {
-    if (!e.target.closest('#gv2-other-btn-wrap')) {
-      if (dd.classList.contains('open')) {
-        dd.classList.remove('open');
-        dd.style.display = 'none';
-        btn.classList.remove('active');
-      }
-    }
-  }, { passive: true });
-
+  // Ref Cards toggle
   const rcToggle = document.getElementById('gv2-refcards-toggle');
   if (rcToggle) {
-    if (state.gallery.showRefCards === undefined) state.gallery.showRefCards = true;
-    _syncRefCardsBtn();
     const handleRc = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       state.gallery.showRefCards = !state.gallery.showRefCards;
       _syncRefCardsBtn();
-      dd.classList.remove('open');
-      dd.style.display = 'none';
-      btn.classList.remove('active');
       state.gallery._skipScrollIntoView = true;
       renderGallery();
     };
@@ -311,10 +290,9 @@ function initOtherDropdown() {
     rcToggle.addEventListener('touchstart', handleRc, { passive: false });
   }
 
+  // Trade Sidebar toggle
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
-    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
-    _syncTradeSidebarBtn();
     const handleTs = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
@@ -322,34 +300,29 @@ function initOtherDropdown() {
         toggleTradeSidebar(false);
       }
       _syncTradeSidebarBtn();
-      dd.classList.remove('open');
-      dd.style.display = 'none';
-      btn.classList.remove('active');
     };
     tsToggle.addEventListener('click', handleTs);
     tsToggle.addEventListener('touchstart', handleTs, { passive: false });
   }
 
+  // Export Current View PDF
   const pdfBtn = document.getElementById('gv2-export-current-pdf-btn');
   if (pdfBtn) {
     const handlePdf = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      dd.classList.remove('open');
-      dd.style.display = 'none';
-      btn.classList.remove('active');
+      closeModal();
       if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
     };
     pdfBtn.addEventListener('click', handlePdf);
     pdfBtn.addEventListener('touchstart', handlePdf, { passive: false });
   }
 
+  // Export Ref Cards PDF Summary
   const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
   if (allPdfBtn) {
     const handleAllPdf = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      dd.classList.remove('open');
-      dd.style.display = 'none';
-      btn.classList.remove('active');
+      closeModal();
       if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
     };
     allPdfBtn.addEventListener('click', handleAllPdf);
@@ -582,16 +555,20 @@ async function exportCurrentViewToPDF() {
 document.addEventListener('DOMContentLoaded', initOtherDropdown);
 
 function _syncRefCardsBtn() {
-  const btn = document.getElementById('gv2-refcards-toggle');
-  if (!btn) return;
+  const row   = document.getElementById('gv2-refcards-toggle');
+  const badge = document.getElementById('gv2-refcards-badge');
+  if (!row || !badge) return;
   const on = state.gallery.showRefCards !== false;
-  btn.innerHTML = '📋 Ref Cards' + (on ? ' <span style="color:#4ade80">✓</span>' : '');
+  badge.textContent = on ? 'ON' : 'OFF';
+  row.classList.toggle('active', on);
 }
 
 function _syncTradeSidebarBtn() {
-  const btn = document.getElementById('gv2-tradesidebar-toggle');
-  if (!btn) return;
+  const row   = document.getElementById('gv2-tradesidebar-toggle');
+  const badge = document.getElementById('gv2-tradesidebar-badge');
+  if (!row || !badge) return;
   const enabled = !window._tradeSidebarDisabled;
-  btn.innerHTML = '🖼 Trade Sidebar' + (enabled ? ' <span style="color:#4ade80">✓</span>' : ' <span style="color:#f87171">✗</span>');
+  badge.textContent = enabled ? 'ON' : 'OFF';
+  row.classList.toggle('active', enabled);
 }
 
