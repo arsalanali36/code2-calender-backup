@@ -277,6 +277,18 @@
     width: 30px !important;
     height: 30px !important;
   }
+
+  /* Date nav arrows — bigger touch targets on iPad */
+  .gv2-date-nav-btn {
+    width: 38px !important;
+    min-width: 38px !important;
+    font-size: 1.4rem !important;
+  }
+
+  /* Date pill height match */
+  .gv2-date-nav-pill {
+    height: 34px !important;
+  }
 }
 
 /* ── SMALL TABLET / LARGE PHONE (≤ 768px) ─────── */

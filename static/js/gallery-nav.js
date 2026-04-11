@@ -328,8 +328,8 @@ function updateGalleryDateArrows() {
   const hasNextImage = imgTotal > 1 && imgIdx < imgTotal - 1;
   const hasPrevDate = idx > 0;
   const hasNextDate = idx !== -1 && idx < datesWithImages.length - 1;
-  const prevBtn = document.getElementById('gallery-prev-date');
-  const nextBtn = document.getElementById('gallery-next-date');
+  const prevBtn = document.getElementById('gallery-date-prev');
+  const nextBtn = document.getElementById('gallery-date-next');
   if (prevBtn) prevBtn.disabled = !(hasPrevDate || hasPrevImage);
   if (nextBtn) nextBtn.disabled = !(hasNextDate || hasNextImage);
 }

@@ -122,6 +122,21 @@ function _bindGalleryEvents() {
     };
 
     let _resizing = false, _startX = 0, _startW = 0;
+    const _onMove = (e) => {
+      if (!_resizing) return;
+      if (e.cancelable) e.preventDefault(); // prevent page scroll during resize
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const dx = cx - _startX;
+      _setWidth(direction === 'right' ? _startW + dx : _startW - dx);
+    };
+    const _onUp = () => {
+      if (!_resizing) return;
+      _resizing = false; handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      // Remove touch listener only when dragging ends — keeps scroll smooth
+      document.removeEventListener('touchmove', _onMove);
+    };
     const _onDown = (e) => {
       _resizing = true; handle.classList.add('dragging');
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
@@ -129,27 +144,14 @@ function _bindGalleryEvents() {
       _startW = panel.offsetWidth;
       document.body.style.cursor = 'ew-resize';
       document.body.style.userSelect = 'none';
-      e.stopPropagation(); // prevent drag start etc
-    };
-    const _onMove = (e) => {
-      if (!_resizing) return;
-      if (e.cancelable) e.preventDefault(); // prevent page scroll during resize
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const dx = cx - _startX;
-      let newW = direction === 'right' ? _startW + dx : _startW - dx;
-      _setWidth(newW);
-    };
-    const _onUp = () => {
-      if (!_resizing) return;
-      _resizing = false; handle.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      // Add touch listener only when drag starts — avoids blocking scroll at all other times
+      document.addEventListener('touchmove', _onMove, { passive: false });
+      e.stopPropagation();
     };
 
     handle.addEventListener('mousedown', _onDown);
     handle.addEventListener('touchstart', _onDown, { passive: false });
     document.addEventListener('mousemove', _onMove);
-    document.addEventListener('touchmove', _onMove, { passive: false });
     document.addEventListener('mouseup', _onUp);
     document.addEventListener('touchend', _onUp);
 
@@ -420,8 +422,8 @@ function _bindGalleryEvents() {
 
   document.getElementById('gallery-prev').addEventListener('click', () => navigateGallery(-1));
   document.getElementById('gallery-next').addEventListener('click', () => navigateGallery(1));
-  document.getElementById('gallery-prev-date')?.addEventListener('click', () => navigateGalleryDate(-1));
-  document.getElementById('gallery-next-date')?.addEventListener('click', () => navigateGalleryDate(1));
+  document.getElementById('gallery-date-prev')?.addEventListener('click', () => navigateGalleryDate(-1));
+  document.getElementById('gallery-date-next')?.addEventListener('click', () => navigateGalleryDate(1));
   document.getElementById('gallery-date-picker').addEventListener('change', e => {
     const dateStr = e.target.value;
     const images = getImagesForDate(dateStr);

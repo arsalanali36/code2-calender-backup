@@ -25,8 +25,13 @@ function renderGallery() {
     }
 
     dateEl.style.display = '';
+    const _fmtTrayDate = (s) => {
+      const d = new Date(s + 'T00:00:00');
+      if (isNaN(d)) return s;
+      return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    };
     dateEl.textContent = dateToDisplay
-      ? (typeof formatDisplayDate === 'function' ? formatDisplayDate(dateToDisplay) : dateToDisplay)
+      ? _fmtTrayDate(dateToDisplay)
       : (images.length > 0 ? `${images.length} image(s)` : 'No images');
   }
   if (date) {

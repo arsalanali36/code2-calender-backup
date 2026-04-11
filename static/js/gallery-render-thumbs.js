@@ -405,8 +405,16 @@ function renderGalleryThumbs() {
       if (typeof showGalleryContextMenu === 'function') showGalleryContextMenu(e.clientX, e.clientY);
     });
 
+    // Track touch start position to distinguish tap vs scroll
+    let _tStartY = 0;
+    t.addEventListener('touchstart', e => { _tStartY = e.touches[0].clientY; }, { passive: true });
     t.addEventListener('touchend', e => {
-      if (IS_TOUCH_DEVICE) { e.preventDefault(); state.gallery.currentIndex = globalIdx; renderGallery(); }
+      if (!IS_TOUCH_DEVICE) return;
+      // If finger moved more than 10px vertically = scroll gesture, ignore
+      if (Math.abs(e.changedTouches[0].clientY - _tStartY) > 10) return;
+      e.preventDefault();
+      state.gallery.currentIndex = globalIdx;
+      renderGallery();
     }, { passive: false });
 
     if (isCurrentDate) {

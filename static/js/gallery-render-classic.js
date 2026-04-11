@@ -23,7 +23,9 @@ function renderGallery() {
     state._carryAnnotTool = annotState.tool;
     stopAnnotation();
   }
-  document.getElementById('gallery-date').textContent = date ? formatDisplayDate(date) : `${images.length} image(s)`;
+  document.getElementById('gallery-date').textContent = date
+    ? (() => { const d = new Date(date + 'T00:00:00'); return isNaN(d) ? date : d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); })()
+    : `${images.length} image(s)`;
   if (date) document.getElementById('gallery-date-picker').value = date;
 
   const uploadBtn = document.getElementById('gallery-upload-btn');
