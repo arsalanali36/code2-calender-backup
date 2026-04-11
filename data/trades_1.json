@@ -17828,7 +17828,11 @@
     "BOTH",
     "News",
     "pin",
-    "[object Object]"
+    "[object Object]",
+    "Day Shuru me Kass ke Fall",
+    "WildSwing",
+    "Wild Fall",
+    "Wild Rise"
   ],
   "tagColumns": [
     "Tags"
@@ -28141,6 +28145,12 @@
       "Clean",
       "BOTH"
     ],
+    "Speed/Momentum": [
+      "Day Shuru me Kass ke Fall",
+      "WildSwing",
+      "Wild Fall",
+      "Wild Rise"
+    ],
     "TargetType": []
   },
   "tagTemplates": {
@@ -28201,22 +28211,86 @@
       "2": [
         "thumbnail"
       ],
+      "15": [
+        "WildSwing"
+      ],
+      "19": [
+        "WildSwing",
+        "Wild Rise"
+      ],
+      "20": [
+        "WildSwing",
+        "Wild Rise"
+      ],
+      "23": [
+        "Wild Rise"
+      ],
       "1_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnuaa84moaoe",
           "tag": "thumbnail",
           "x": 59,
-          "y": 19.2,
-          "color": "#00d2ff"
+          "y": 19.2
         }
       ],
       "2_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnuaad203sbg",
           "tag": "thumbnail",
           "x": 14.6,
-          "y": 64.1,
-          "color": "#00d2ff"
+          "y": 64.1
+        }
+      ],
+      "15_pins": [
+        {
+          "id": "mnuhzl2dtc05",
+          "tag": "WildSwing",
+          "x": 59.8,
+          "y": 75.4,
+          "color": "#9b59b6"
+        }
+      ],
+      "19_pins": [
+        {
+          "id": "mnuhzvdglvx0",
+          "tag": "WildSwing",
+          "x": 51,
+          "y": 60,
+          "color": "#9b59b6"
+        },
+        {
+          "id": "mnui0iro58jg",
+          "tag": "Wild Rise",
+          "x": 59.9,
+          "y": 37.6,
+          "color": "#ffd700"
+        }
+      ],
+      "20_pins": [
+        {
+          "id": "mnui005nqmao",
+          "tag": "WildSwing",
+          "x": 51.9,
+          "y": 71.8,
+          "color": "#9b59b6"
+        },
+        {
+          "id": "mnui0c5514bm",
+          "tag": "Wild Rise",
+          "x": 53,
+          "y": 28.9,
+          "color": "#ffd700"
+        }
+      ],
+      "23_pins": [
+        {
+          "id": "mnui0qsxmotz",
+          "tag": "Wild Rise",
+          "x": 71.6,
+          "y": 43.6,
+          "color": "#ffd700"
         }
       ]
     }
