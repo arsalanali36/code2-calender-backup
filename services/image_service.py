@@ -194,6 +194,156 @@ def get_image_times(urls: list, uploads_dir: str) -> dict:
     return times
 
 
+# ── PDF helpers (Cloudinary or local) ────────────────────────────────────────
+
+def _load_pdf_meta(pdf_meta_file: str) -> list:
+    """Read pdfs.json; return [] if missing or corrupt."""
+    try:
+        with open(pdf_meta_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def _save_pdf_meta(records: list, pdf_meta_file: str):
+    os.makedirs(os.path.dirname(pdf_meta_file), exist_ok=True)
+    with open(pdf_meta_file, 'w', encoding='utf-8') as f:
+        json.dump(records, f)
+
+
+def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
+                      original_filename: str = None) -> dict:
+    """
+    Save / upload a PDF file.
+
+    • If CLOUDINARY_URL is set  → upload to Cloudinary (resource_type='raw'),
+                                   store metadata in pdfs.json, return Cloudinary URL.
+    • Otherwise                 → save to local pdf_dir, return /uploads/pdfs/<filename>.
+
+    Returns dict: {'url', 'name', 'filename', 'size', 'timestamp'}
+    """
+    import time as _time
+    from config import USE_CLOUDINARY
+
+    orig_name = original_filename or file_storage.filename or 'upload.pdf'
+    ext = os.path.splitext(orig_name)[1].lower()
+    if ext != '.pdf':
+        raise ValueError(f'Invalid file type: {ext}')
+
+    ts = int(_time.time() * 1000)
+
+    if USE_CLOUDINARY:
+        import cloudinary
+        import cloudinary.uploader
+
+        public_id = f'trading_journal/pdfs/{uuid.uuid4()}'
+        result = cloudinary.uploader.upload(
+            file_storage,
+            public_id=public_id,
+            resource_type='raw',
+            overwrite=False,
+        )
+        secure_url = result.get('secure_url', '')
+        stored_id  = result.get('public_id', public_id)
+        size       = result.get('bytes', 0)
+
+        record = {
+            'filename':  stored_id,   # Cloudinary public_id used for deletion
+            'name':      orig_name,
+            'url':       secure_url,
+            'size':      size,
+            'timestamp': ts,
+        }
+        records = _load_pdf_meta(pdf_meta_file)
+        records.insert(0, record)
+        _save_pdf_meta(records, pdf_meta_file)
+        return record
+
+    # ── Local disk ────────────────────────────────────────────────────────────
+    os.makedirs(pdf_dir, exist_ok=True)
+    fname = f'{uuid.uuid4().hex}_{secure_filename_safe(orig_name)}'
+    fpath = os.path.join(pdf_dir, fname)
+    file_storage.save(fpath)
+    size = os.path.getsize(fpath)
+    return {
+        'filename':  fname,
+        'name':      orig_name,
+        'url':       f'/uploads/pdfs/{fname}',
+        'size':      size,
+        'timestamp': ts,
+    }
+
+
+def secure_filename_safe(name: str) -> str:
+    """Minimal safe filename — keep alphanumerics, dots, hyphens, underscores."""
+    import re as _re
+    name = os.path.basename(name)
+    name = _re.sub(r'[^\w.\-]', '_', name)
+    return name or 'upload.pdf'
+
+
+def list_uploaded_pdfs(pdf_dir: str, pdf_meta_file: str) -> list:
+    """
+    Return list of PDF metadata dicts sorted newest-first.
+
+    Cloudinary mode: read from pdfs.json.
+    Local mode:      scan pdf_dir filesystem.
+    """
+    from config import USE_CLOUDINARY
+
+    if USE_CLOUDINARY:
+        return _load_pdf_meta(pdf_meta_file)
+
+    # Local
+    result = []
+    if not os.path.isdir(pdf_dir):
+        return result
+    for fname in os.listdir(pdf_dir):
+        if not fname.lower().endswith('.pdf'):
+            continue
+        fpath = os.path.join(pdf_dir, fname)
+        stat  = os.stat(fpath)
+        parts = fname.split('_', 1)
+        display_name = parts[1] if len(parts) == 2 else fname
+        result.append({
+            'filename':  fname,
+            'name':      display_name,
+            'url':       f'/uploads/pdfs/{fname}',
+            'size':      stat.st_size,
+            'timestamp': int(stat.st_mtime * 1000),
+        })
+    result.sort(key=lambda x: x['timestamp'], reverse=True)
+    return result
+
+
+def delete_uploaded_pdf(filename: str, pdf_dir: str, pdf_meta_file: str) -> bool:
+    """
+    Delete a PDF by filename / Cloudinary public_id.
+    Returns True if deleted, False if not found.
+    """
+    from config import USE_CLOUDINARY
+
+    if USE_CLOUDINARY:
+        import cloudinary.uploader
+        try:
+            cloudinary.uploader.destroy(filename, resource_type='raw')
+        except Exception:
+            pass
+        records = _load_pdf_meta(pdf_meta_file)
+        before  = len(records)
+        records = [r for r in records if r.get('filename') != filename]
+        _save_pdf_meta(records, pdf_meta_file)
+        return len(records) < before
+
+    # Local
+    safe_name = os.path.basename(filename)
+    fpath = os.path.join(pdf_dir, safe_name)
+    if os.path.exists(fpath):
+        os.remove(fpath)
+        return True
+    return False
+
+
 def copy_image_to_clipboard(filename: str, uploads_dir: str):
     """
     Copy a LOCAL image file to the Windows clipboard as a CF_HDROP file reference.

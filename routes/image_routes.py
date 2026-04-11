@@ -13,8 +13,9 @@ from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
+    save_uploaded_pdf, list_uploaded_pdfs, delete_uploaded_pdf,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
 
@@ -219,59 +220,39 @@ def delete_tag_image():
 
 @image_bp.route('/api/upload-pdf', methods=['POST'])
 def upload_pdf():
-    """Store the raw PDF file on the server and return its URL + metadata."""
+    """Store the PDF on Cloudinary (if configured) or local disk."""
     if 'pdf' not in request.files:
         return jsonify({'error': 'No pdf'}), 400
     file = request.files['pdf']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
-    os.makedirs(PDF_DIR, exist_ok=True)
-    original_name = secure_filename(file.filename)
-    fname = f"{uuid.uuid4().hex}_{original_name}"
-    fpath = os.path.join(PDF_DIR, fname)
-    file.save(fpath)
-    size = os.path.getsize(fpath)
-    return jsonify({
-        'url': f'/uploads/pdfs/{fname}',
-        'name': file.filename,
-        'filename': fname,
-        'size': size,
-        'timestamp': int(time.time() * 1000)
-    })
+    try:
+        record = save_uploaded_pdf(
+            file, PDF_DIR, PDF_META_FILE,
+            original_filename=file.filename,
+        )
+        return jsonify(record)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Upload failed: {e}'}), 500
 
 
 @image_bp.route('/api/list-pdfs', methods=['GET'])
 def list_pdfs():
     """Return metadata for all stored PDF files."""
-    os.makedirs(PDF_DIR, exist_ok=True)
-    result = []
-    for fname in os.listdir(PDF_DIR):
-        if not fname.lower().endswith('.pdf'):
-            continue
-        fpath = os.path.join(PDF_DIR, fname)
-        stat = os.stat(fpath)
-        # Original name is everything after the first underscore (uuid_ prefix)
-        parts = fname.split('_', 1)
-        display_name = parts[1] if len(parts) == 2 else fname
-        result.append({
-            'filename': fname,
-            'name': display_name,
-            'url': f'/uploads/pdfs/{fname}',
-            'size': stat.st_size,
-            'timestamp': int(stat.st_mtime * 1000)
-        })
-    result.sort(key=lambda x: x['timestamp'], reverse=True)
-    return jsonify(result)
+    return jsonify(list_uploaded_pdfs(PDF_DIR, PDF_META_FILE))
 
 
 @image_bp.route('/api/delete-pdf', methods=['POST'])
 def delete_pdf():
-    """Permanently delete a stored PDF file."""
+    """Delete a PDF from Cloudinary or local disk."""
     data = request.json or {}
     filename = data.get('filename', '')
-    if not filename or '/' in filename or '\\' in filename:
+    if not filename:
         return jsonify({'error': 'Invalid filename'}), 400
-    fpath = os.path.join(PDF_DIR, filename)
-    if os.path.exists(fpath):
-        os.remove(fpath)
+    # Local safety check — block path traversal for local filenames
+    if not USE_CLOUDINARY and ('/' in filename or '\\' in filename):
+        return jsonify({'error': 'Invalid filename'}), 400
+    delete_uploaded_pdf(filename, PDF_DIR, PDF_META_FILE)
     return jsonify({'success': True})

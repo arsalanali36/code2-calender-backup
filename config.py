@@ -17,6 +17,7 @@ TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
 VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
 PDF_DIR            = os.path.join(UPLOADS_DIR, 'pdfs')
+PDF_META_FILE      = os.path.join(BASE_DIR, 'data', 'pdfs.json')
 CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
 
