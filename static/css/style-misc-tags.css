@@ -401,6 +401,7 @@ body.table-full .table-wrapper {
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 }
 
 .gv2-lp-header {

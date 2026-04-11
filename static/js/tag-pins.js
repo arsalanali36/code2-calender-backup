@@ -98,6 +98,23 @@ function _currentPinImgUrl() {
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
+function _updateThumbBadge(imgUrl) {
+  if (!imgUrl) return;
+  const idx = (state.gallery && state.gallery.images) ? state.gallery.images.indexOf(imgUrl) : -1;
+  if (idx < 0) return;
+  const wrap = document.querySelector('#gallery-thumbs [data-global-idx="' + idx + '"]');
+  if (!wrap) return;
+  wrap.querySelectorAll('.tag-pin-thumb-badge').forEach(el => el.remove());
+  const count = getTagPinsForUrl(imgUrl).length;
+  if (count > 0) {
+    const badge = document.createElement('div');
+    badge.className = 'tag-pin-thumb-badge';
+    badge.textContent = count;
+    badge.title = count + ' tag pin' + (count > 1 ? 's' : '');
+    wrap.appendChild(badge);
+  }
+}
+
 function addTagPin(tag, xPct, yPct) {
   const imgUrl = _currentPinImgUrl();
   if (!imgUrl) return;
@@ -111,6 +128,7 @@ function addTagPin(tag, xPct, yPct) {
   });
   setTagPinsForUrl(imgUrl, pins);
   renderTagPins();
+  _updateThumbBadge(imgUrl);
   if (typeof saveTrades === 'function') saveTrades();
   if (typeof showToast === 'function') showToast('📍 ' + tag, 'success');
 }
@@ -121,6 +139,7 @@ function removeTagPin(pinId) {
   const pins = getTagPinsForUrl(imgUrl).filter(p => p.id !== pinId);
   setTagPinsForUrl(imgUrl, pins);
   renderTagPins();
+  _updateThumbBadge(imgUrl);
   if (typeof saveTrades === 'function') saveTrades();
 }
 

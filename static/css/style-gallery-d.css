@@ -743,11 +743,11 @@
   border-color: var(--blue) !important;
 }
 
-/* â”€â”€ Unified Left Panel (Thumbnails + Filter) â”€â”€ */
+/* ── Unified Left Panel (Thumbnails + Filter) ── */
 .gv2-unified-left-panel {
   width: 0;
   flex-shrink: 0;
-  overflow: visible;
+  overflow: hidden;
   background: var(--surface);
   border-right: 1px solid var(--border);
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -915,15 +915,15 @@
 }
 
 
-/* Right-edge resize handle â€” positioned fully outside scrollbar */
+/* Right-edge resize handle — inside the panel at right edge, no overflow needed */
 .gv2-tp-resize-handle {
   position: absolute;
-  right: -16px;
+  right: 0;
   top: 0;
   bottom: 0;
-  width: 14px;
+  width: 16px;
   cursor: ew-resize;
-  z-index: 100;
+  z-index: 200;
   background: transparent;
   display: flex;
   align-items: center;
@@ -933,7 +933,7 @@
 .gv2-tp-resize-handle::after {
   content: '';
   width: 4px;
-  height: 30px;
+  height: 32px;
   background: var(--border2);
   border-radius: 2px;
   opacity: 0.5;

@@ -100,7 +100,7 @@ function _bindGalleryEvents() {
     if (typeof galleryCollapseAll === 'function') galleryCollapseAll();
   });
 
-  // ── Unified Resizing (Touch + Mouse) ──────────────────────────────────
+  // ── Unified Resizing (Touch + Mouse) — same pattern as split-view _bindDivider ──
   const setupPanelResizer = (handleId, panelId, localStorageKey, direction, minW = 140, maxW = 480) => {
     const handle = document.getElementById(handleId);
     const panel = document.getElementById(panelId);
@@ -108,74 +108,88 @@ function _bindGalleryEvents() {
 
     const _setWidth = (w) => {
       const finalW = Math.max(minW, Math.min(maxW, w));
-    if (panelId === 'gv2-unified-left-panel') {
-      panel.style.setProperty('--ulp-panel-w', finalW + 'px');
-    } else if (panelId === 'gv2-thumb-panel') {
-      panel.style.setProperty('--thumb-panel-w', finalW + 'px');
-    } else {
-      panel.style.width = finalW + 'px';
-    }
+      if (panelId === 'gv2-unified-left-panel') {
+        panel.style.setProperty('--ulp-panel-w', finalW + 'px');
+      } else if (panelId === 'gv2-thumb-panel') {
+        panel.style.setProperty('--thumb-panel-w', finalW + 'px');
+      } else {
+        panel.style.width = finalW + 'px';
+      }
       if (panelId === 'gv2-layer-panel') {
         panel.style.setProperty('--lp-thumb-w', Math.max(24, Math.min(80, Math.floor(finalW * 0.22))) + 'px');
       }
       if (localStorageKey) localStorage.setItem(localStorageKey, finalW);
     };
 
-    let _activeDrag = false, _startX = 0, _startW = 0;
+    let _startX = 0, _startW = 0;
 
-    const _onStart = (x) => {
-      _activeDrag = true;
-      _startX = x;
-      _startW = panel.offsetWidth;
-      panel.classList.add('is-resizing'); // Class to disable transition
-      panel.style.transition = 'none';
-      handle.classList.add('dragging');
-      document.body.style.cursor = 'ew-resize';
-      document.body.style.userSelect = 'none';
-    };
-
-    const _onMove = (x) => {
-      if (!_activeDrag) return;
-      const dx = x - _startX;
+    const _onMove = (clientX) => {
+      const dx = clientX - _startX;
       const newW = (direction === 'right') ? (_startW + dx) : (_startW - dx);
       _setWidth(newW);
     };
 
-    const _onEnd = () => {
-      if (!_activeDrag) return;
-      _activeDrag = false;
+    // ── Mouse ──────────────────────────────────────────────
+    const onMouseMove = (e) => _onMove(e.clientX);
+    const onMouseUp = () => {
+      handle.classList.remove('dragging');
       panel.classList.remove('is-resizing');
       panel.style.transition = '';
-      handle.classList.remove('dragging');
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
     };
 
-    // Mouse Bindings
-    handle.addEventListener('mousedown', e => { e.preventDefault(); _onStart(e.clientX); });
-    window.addEventListener('mousemove', e => _onMove(e.clientX));
-    window.addEventListener('mouseup', _onEnd);
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      _startX = e.clientX;
+      _startW = panel.offsetWidth;
+      handle.classList.add('dragging');
+      panel.classList.add('is-resizing');
+      panel.style.transition = 'none';
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
 
-    // Touch Bindings (iPad - Smooth Horizontal)
-    handle.addEventListener('touchstart', e => {
+    // ── Touch (same pattern as split-view _bindDivider) ────
+    const onTouchMove = (e) => {
       if (e.touches.length !== 1) return;
-      _onStart(e.touches[0].clientX);
-      e.stopPropagation(); // Avoid triggering parent touch events
-    }, { passive: true });
-
-    window.addEventListener('touchmove', e => {
-      if (!_activeDrag || e.touches.length !== 1) return;
       _onMove(e.touches[0].clientX);
       if (e.cancelable) e.preventDefault();
-    }, { passive: false });
+    };
+    const onTouchEnd = () => {
+      handle.classList.remove('dragging');
+      panel.classList.remove('is-resizing');
+      panel.style.transition = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
 
-    window.addEventListener('touchend', _onEnd);
-    window.addEventListener('touchcancel', _onEnd);
+    handle.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      e.stopPropagation();
+      _startX = e.touches[0].clientX;
+      _startW = panel.offsetWidth;
+      handle.classList.add('dragging');
+      panel.classList.add('is-resizing');
+      panel.style.transition = 'none';
+      document.body.style.userSelect = 'none';
+      // Add move/end listeners dynamically (passive:false so we can preventDefault in move)
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onTouchEnd);
+      window.addEventListener('touchcancel', onTouchEnd);
+    }, { passive: true });
 
     // Initial check for touch class
-    if ((navigator.maxTouchPoints > 0) || (window.innerWidth < 1100 && navigator.maxTouchPoints > 0)) {
-        document.documentElement.classList.add('is-touch');
-        document.body.classList.add('is-touch');
+    if (navigator.maxTouchPoints > 0) {
+      document.documentElement.classList.add('is-touch');
+      document.body.classList.add('is-touch');
     }
 
     // Restore saved width on init

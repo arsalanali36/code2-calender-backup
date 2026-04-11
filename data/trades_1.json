@@ -13526,6 +13526,17 @@
         "blob:http://localhost:5000/4c7efc52-eb4d-468d-8ed9-8c829332a7b5"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773821795/trading_journal/94fb1574-5847-4160-8442-ef0930e1f84e.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mnu4d15wy8c8",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 46.7,
+            "y": 45.7
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-03-18"
     },
@@ -17479,7 +17490,7 @@
       "Buy Price (Avg)": 144.766667,
       "Buy Time": "10:26:20",
       "Gross P/L": 4052.75,
-      "Image Tags": "",
+      "Image Tags": "panic",
       "Instrument": "NIFTY2641324000PE",
       "Net P/L": 3947.34,
       "Note": "",
@@ -17516,6 +17527,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816186/trading_journal/882738fb-b683-4be1-874d-753d3bde958a.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816183/trading_journal/f600773b-d9d0-4815-aba0-f8db2ba71f58.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816186/trading_journal/882738fb-b683-4be1-874d-753d3bde958a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816183/trading_journal/f600773b-d9d0-4815-aba0-f8db2ba71f58.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816186/trading_journal/882738fb-b683-4be1-874d-753d3bde958a.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816183/trading_journal/f600773b-d9d0-4815-aba0-f8db2ba71f58.png"
       ],
       "observation": "",
@@ -17528,7 +17541,7 @@
       "Buy Price (Avg)": 142.05,
       "Buy Time": "10:57:22",
       "Gross P/L": 1176.5,
-      "Image Tags": "",
+      "Image Tags": "panic",
       "Instrument": "NIFTY2641324000CE",
       "Net P/L": 1110.47,
       "Note": "",
@@ -17559,6 +17572,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816116/trading_journal/e350f9c0-b10b-41a2-a475-6b5b8ebb40d6.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816118/trading_journal/cd91bcf3-5634-4b99-a0d9-f49a64f8d2f0.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816116/trading_journal/e350f9c0-b10b-41a2-a475-6b5b8ebb40d6.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816118/trading_journal/cd91bcf3-5634-4b99-a0d9-f49a64f8d2f0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816116/trading_journal/e350f9c0-b10b-41a2-a475-6b5b8ebb40d6.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816118/trading_journal/cd91bcf3-5634-4b99-a0d9-f49a64f8d2f0.png"
       ],
       "observation": "",
@@ -17571,7 +17586,7 @@
       "Buy Price (Avg)": 192.35,
       "Buy Time": "12:25:11",
       "Gross P/L": -1621.75,
-      "Image Tags": "",
+      "Image Tags": "panic, pin",
       "Instrument": "NIFTY2641323950CE",
       "Net P/L": -1689.9,
       "Note": "",
@@ -17587,7 +17602,11 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-10",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801476/trading_journal/76acc2f7-0db2-4872-8294-44ac12e8f406.png": [
+          "pin"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801476/trading_journal/76acc2f7-0db2-4872-8294-44ac12e8f406.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/df66d0d3-547e-44d6-aef9-c1562e900fff.png",
@@ -17612,11 +17631,72 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813027/trading_journal/62f2bd16-d584-43f7-b25b-ddc6714748ea.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775813029/trading_journal/8709ce51-8073-423f-8a83-5872f955dbdc.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816132/trading_journal/78a4a95d-f23b-46d2-88d8-626b01696f5b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816132/trading_journal/78a4a95d-f23b-46d2-88d8-626b01696f5b.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816132/trading_journal/78a4a95d-f23b-46d2-88d8-626b01696f5b.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801476/trading_journal/76acc2f7-0db2-4872-8294-44ac12e8f406.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mnu4h6ysy188",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 55.5,
+            "y": 40
+          },
+          {
+            "color": "#e74c3c",
+            "id": "mnu4irt7aj82",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 38.9,
+            "y": 38.3
+          },
+          {
+            "id": "mnu4rl31mrpr",
+            "tag": "pin",
+            "x": 40.5,
+            "y": 66.9,
+            "color": "#ff6b9d"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801477/trading_journal/df66d0d3-547e-44d6-aef9-c1562e900fff.png": [
+          {
+            "id": "mnu4rq26g7a0",
+            "tag": "pin",
+            "x": 46.6,
+            "y": 59.5,
+            "color": "#ff6b9d"
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-10"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": "",
+      "Buy Price (Avg)": "",
+      "Buy Time": "",
+      "Gross P/L": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Net P/L": "",
+      "Note": "",
+      "Other Charges": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price (Avg)": "",
+      "Sell Time": "",
+      "Tags": "",
+      "Total Fees": "",
+      "Total Trades": "",
+      "TradeType": "",
+      "Video": "",
+      "date": "2026-04-23",
+      "imageTags": {},
+      "images": [],
+      "trade_date": "2026-04-23"
     }
   ],
   "columns": [
@@ -17667,7 +17747,8 @@
     "Clean",
     "Premium",
     "BOTH",
-    "News"
+    "News",
+    "pin"
   ],
   "tagColumns": [
     "Tags"
@@ -26681,7 +26762,8 @@
       ],
       "navPositions": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774266753/trading_journal/fe13f698-c25e-41d6-9610-9ea342f30c82.png": {}
-      }
+      },
+      "tradeRefCards": {}
     },
     "2026-03-23": {
       "closeGlobalImages": [
@@ -27793,6 +27875,9 @@
       ],
       "closeImages": [],
       "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801458/trading_journal/359ae22e-5335-4fea-bec6-341a7beca8da.png": [
+          "panic"
+        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816379/trading_journal/416263cc-b09d-48bc-983b-668ba5104a5d.png": [
           "MIN 3"
         ],
@@ -27815,14 +27900,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801464/trading_journal/7521a968-c9a9-4d6f-ac27-56b7b62aa96e.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801464/trading_journal/5b8dd4be-49e7-4509-9787-39a0b946f8d2.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801464/trading_journal/421abca0-006d-4a69-bea9-36bfc3701477.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801461/trading_journal/74f67128-a72f-4adb-be77-54fe9f56c762.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775815937/trading_journal/02a123dd-bbe8-4a74-b7b1-cdf6884e93e8.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816204/trading_journal/3447e57c-7f1e-4ef2-879d-8db0a2f7643c.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775873323/trading_journal/ec998064-18a4-4bb0-a112-10e6b8ae9877.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775875759/trading_journal/b8096815-8f1d-4f13-8b08-3c1cfbd8b386.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775875891/trading_journal/43bb02d9-d4c7-4afc-8c1a-464c3b911155.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775875914/trading_journal/d4f08e59-ece2-46af-bda9-c5b65cff01ab.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775877403/trading_journal/55775980-9365-44e5-a3e8-c980886f54d9.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775801461/trading_journal/74f67128-a72f-4adb-be77-54fe9f56c762.png"
       ],
       "newsImages": [],
       "premiumImages": {
@@ -27836,6 +27914,49 @@
         "NIFTY2641324000PE": [
           "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816186/trading_journal/882738fb-b683-4be1-874d-753d3bde958a.png",
           "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816183/trading_journal/f600773b-d9d0-4815-aba0-f8db2ba71f58.png"
+        ]
+      },
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816379/trading_journal/416263cc-b09d-48bc-983b-668ba5104a5d.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mnu48tyjx5of",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 25.6,
+            "y": 54.3
+          },
+          {
+            "color": "#e74c3c",
+            "id": "mnu48w6jzcdo",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 73.6,
+            "y": 29.4
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816382/trading_journal/580f938c-c266-4b41-b405-0ef4a65bf9c1.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mnu4bj3nh9fv",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 71.1,
+            "y": 28.1
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775816382/trading_journal/aead143a-8acc-42f5-a474-89366e51ba36.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mnu4bmtnjnq8",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 48.2,
+            "y": 38.6
+          },
+          {
+            "color": "#ff6b9d",
+            "id": "mnu4bvfnl247",
+            "tag": "Over-Confidence",
+            "x": 76.4,
+            "y": 20.3
+          }
         ]
       },
       "tradeRefCards": {
