@@ -18,10 +18,16 @@ function renderGallery() {
   // ── Date label ───────────────────────────────────────────────────────────
   const dateEl = document.getElementById('gallery-date');
   if (dateEl) {
+    let dateToDisplay = date;
+    if (!dateToDisplay && currentImageUrl) {
+        const ctx = typeof findGalleryContextByImageUrl === 'function' ? findGalleryContextByImageUrl(currentImageUrl) : null;
+        if (ctx && ctx.date) dateToDisplay = ctx.date;
+    }
+
     dateEl.style.display = '';
-    dateEl.textContent = date
-      ? (typeof formatDisplayDate === 'function' ? formatDisplayDate(date) : date)
-      : `${images.length} image(s)`;
+    dateEl.textContent = dateToDisplay
+      ? (typeof formatDisplayDate === 'function' ? formatDisplayDate(dateToDisplay) : dateToDisplay)
+      : (images.length > 0 ? `${images.length} image(s)` : 'No images');
   }
   if (date) {
     const picker = document.getElementById('gallery-date-picker');

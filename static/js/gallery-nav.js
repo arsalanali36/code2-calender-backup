@@ -314,8 +314,8 @@ function updateGalleryDateArrows() {
   if (filterActive) {
     const total = (state.gallery.images || []).length;
     const idx = Math.max(0, Math.min(total - 1, state.gallery.currentIndex || 0));
-    const prev = document.getElementById('gallery-prev-date');
-    const next = document.getElementById('gallery-next-date');
+    const prev = document.getElementById('gallery-date-prev');
+    const next = document.getElementById('gallery-date-next');
     if (prev) prev.disabled = total <= 1 || idx <= 0;
     if (next) next.disabled = total <= 1 || idx >= total - 1;
     return;

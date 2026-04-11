@@ -90,6 +90,14 @@
   gap: 10px;
   cursor: grab;
   margin-top: 10px;
+  max-width: calc(100vw - 40px);
+}
+
+.is-touch .gv2-tray-center {
+  gap: 6px;
+  padding: 4px 10px;
+  margin-top: 5px;
+  max-width: min(95vw, 1200px);
 }
 
 .gv2-tray-right {
@@ -183,6 +191,37 @@
   white-space: nowrap;
   user-select: none;
   backdrop-filter: blur(4px);
+}
+
+.is-touch .gv2-tray-pill, 
+.is-touch .gv2-pnl-pill, 
+.is-touch .gv2-trade-pill {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  gap: 3px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* Hide verbose info on tablets/mobile to prevent clipping */
+.is-touch .gv2-tp-inst, 
+.is-touch .gv2-tp-info, 
+.is-touch .gv2-tp-total,
+.is-touch .gv2-tray-sep {
+  display: none !important;
+}
+
+@media screen and (max-width: 1200px) {
+  .gv2-tp-inst, .gv2-tp-info, .gv2-tp-total {
+    display: none !important;
+  }
+  .gv2-tray-sep {
+    display: none !important;
+  }
+  .gv2-trade-pill {
+      max-width: 180px;
+  }
 }
 
 .gv2-tray-pill:hover, .gv2-pnl-pill:hover, .gv2-trade-pill:hover {
@@ -320,6 +359,12 @@
   height: 32px;
 }
 
+.is-touch .gv2-date-nav-pill {
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
 .gv2-date-nav-btn {
   background: transparent;
   border: none;
@@ -349,12 +394,14 @@
   align-items: center;
   justify-content: center;
   padding: 0 10px;
-  min-width: 90px;
-  height: 100%;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   cursor: pointer;
+}
+
+.is-touch .gv2-date-display {
+  min-width: 60px;
+  padding: 0 4px;
 }
 
 .gv2-date-display:hover {
