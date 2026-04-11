@@ -472,6 +472,7 @@ function renderImageManagerTable() {
       const td = document.createElement('td');
       td.className = 'im-tag-cell';
       
+      let count = 0;
       const lowerTagName = tagName.toLowerCase().trim();
       entry.images.forEach(img => {
         const hasTag = (img.tags || []).some(t => String(t || '').toLowerCase().trim() === lowerTagName);
