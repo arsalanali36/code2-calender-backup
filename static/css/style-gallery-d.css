@@ -915,15 +915,15 @@
 }
 
 
-/* Right-edge resize handle — inside the panel at right edge, no overflow needed */
+/* Right-edge resize handle — MOVED OUTSIDE to clear the scrollbar */
 .gv2-tp-resize-handle {
   position: absolute;
-  right: 0;
+  right: -12px; /* Position it outside the panel */
   top: 0;
   bottom: 0;
-  width: 16px;
+  width: 16px; /* Wider hit area */
   cursor: ew-resize;
-  z-index: 200;
+  z-index: 2000; /* High z-index to stay above other elements */
   background: transparent;
   display: flex;
   align-items: center;
@@ -1215,5 +1215,91 @@
   object-fit: contain;
   border-radius: 4px;
   display: block;
+}
+
+/* ── PDF Active Document Workspace Bar (Bubbles) ── */
+.gv2-pdf-workspace-bar {
+  position: absolute;
+  top: 60px; /* Floating below the main tray */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(15, 17, 26, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 40px;
+  max-width: 85%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  animation: gv2-bubble-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto; /* Ensure interaction works */
+}
+
+@keyframes gv2-bubble-slide-in {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.gv2-pdf-workspace-bar::-webkit-scrollbar { display: none; }
+
+.gv2-pdf-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.gv2-pdf-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.gv2-pdf-chip.active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #c084fc;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.gv2-pdf-chip-icon {
+  font-size: 0.9rem;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+}
+
+.gv2-pdf-chip-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  border-radius: 50%;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s;
+}
+
+.gv2-pdf-chip-close:hover {
+  background: rgba(248, 81, 73, 0.2);
+  color: #f85149;
+  transform: scale(1.1);
 }
 

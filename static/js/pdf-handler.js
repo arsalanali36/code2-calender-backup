@@ -243,12 +243,15 @@ const PdfHandler = (() => {
       currentFile = pdf;
 
       // Switch Gallery State
+      const pdfId = pdf.filename || pdf.name;
+      pdfDocCache.set(pdfId, doc);
+
       state.gallery.mode = 'pdf';
       state.gallery.pdf = {
           doc: doc,
           name: pdf.name,
           url: pdf.url,
-          id: pdf.filename || pdf.name
+          id: pdfId
       };
       
       const numPages = doc.numPages;
@@ -266,6 +269,27 @@ const PdfHandler = (() => {
       console.error('[PdfHandler] Failed to open PDF in Gallery:', err);
       if (typeof showToast === 'function') showToast('Failed to load PDF', 'error');
     }
+  }
+
+  function registerActivePdf(pdf) {
+    if (!pdf || !pdf.filename) return;
+    if (!state.gallery.activePdfs) state.gallery.activePdfs = [];
+    
+    const exists = state.gallery.activePdfs.find(p => p.id === pdf.filename);
+    if (!exists) {
+      state.gallery.activePdfs.push({
+        id: pdf.filename,
+        name: pdf.name || pdf.filename,
+        url: pdf.url
+      });
+      // Re-render gallery to show the new tab
+      if (typeof renderGallery === 'function') renderGallery();
+    }
+  }
+
+  function unregisterActivePdf(pdfId) {
+    state.gallery.activePdfs = state.gallery.activePdfs.filter(p => p.id !== pdfId);
+    if (typeof renderGallery === 'function') renderGallery();
   }
 
   async function getDocById(pdfId) {
@@ -299,6 +323,10 @@ const PdfHandler = (() => {
        const pdfList = await imageService.listPdfs() || [];
        currentFile = pdfList.find(p => p.filename === pdfId || p.name === pdfId); 
        currentFileName = currentFile?.name || pdfId;
+       
+       // Auto-register in workspace bar
+       if (currentFile) registerActivePdf(currentFile);
+       
        return true;
      }
      return false;
@@ -616,11 +644,12 @@ const PdfHandler = (() => {
     container.style.gap = '8px';
     container.style.padding = '8px';
 
+    const pdfId = currentFile?.filename || currentFile?.name;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const pageNum = parseInt(entry.target.dataset.page);
-                renderThumbPage(pageNum, entry.target);
+                renderThumbPage(pageNum, entry.target, pdfId);
                 observer.unobserve(entry.target);
             }
         });
@@ -650,6 +679,7 @@ const PdfHandler = (() => {
   }
 
   async function renderThumbPage(pageNum, container, pdfId) {
+      if (!pdfId) pdfId = currentFile?.filename || currentFile?.name;
       if (!pdfId) return;
       const doc = await getDocById(pdfId);
       if (!doc) return;
@@ -660,7 +690,7 @@ const PdfHandler = (() => {
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-          canvas.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+          canvas.style.cssText = 'width:100%; height:100%; object-fit:contain;';
           const context = canvas.getContext('2d');
           
           await page.render({ canvasContext: context, viewport }).promise;
@@ -668,6 +698,11 @@ const PdfHandler = (() => {
           // Clear before append to avoid ghosting or double-render
           container.querySelectorAll('canvas').forEach(c => c.remove());
           container.appendChild(canvas);
+          
+          // Fade in effect
+          canvas.style.opacity = '0';
+          canvas.style.transition = 'opacity 0.3s ease';
+          setTimeout(() => canvas.style.opacity = '1', 50);
       } catch (err) {
           console.error(`[PdfHandler] Thumb render error page ${pageNum}:`, err);
       }
@@ -684,7 +719,9 @@ const PdfHandler = (() => {
     renderPdfGalleryThumbs,
     renderThumbPage,
     ensurePdfLoaded,
-    prefetchAdjacentPages
+    prefetchAdjacentPages,
+    registerActivePdf,
+    unregisterActivePdf
   };
 
   // Assign to window for global access

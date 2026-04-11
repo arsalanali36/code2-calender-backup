@@ -197,8 +197,62 @@ function renderGallery() {
     renderGridContent();
   }
 
-  const mtmPanel = document.getElementById('gv2-mtm-panel');
   if (mtmPanel && mtmPanel.style.display !== 'none') {
     if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
   }
+
+  renderPdfTabsBar();
+}
+
+/**
+ * Renders the top bubble bar for pinned/active PDFs
+ */
+function renderPdfTabsBar() {
+  const container = document.getElementById('gv2-pdf-workspace-bar');
+  if (!container) return;
+
+  const activePdfs = state.gallery.activePdfs || [];
+  if (activePdfs.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'flex';
+  container.innerHTML = '';
+
+  // Get current PDF ID to highlight the active tab
+  const curUrl = state.gallery.images[state.gallery.currentIndex] || '';
+  const currentPdfId = curUrl.startsWith('pdf://') ? curUrl.replace('pdf://', '').split('/')[0] : null;
+
+  activePdfs.forEach(pdf => {
+    const chip = document.createElement('div');
+    chip.className = 'gv2-pdf-chip';
+    if (pdf.id === currentPdfId) chip.classList.add('active');
+    
+    // Safety check for name length
+    const displayName = pdf.name.length > 25 ? pdf.name.substring(0, 22) + '...' : pdf.name;
+
+    chip.innerHTML = `
+      <span class="gv2-pdf-chip-icon">📄</span>
+      <span class="gv2-pdf-chip-name">${displayName}</span>
+      <span class="gv2-pdf-chip-close" title="Remove from workspace">×</span>
+    `;
+
+    chip.onclick = () => {
+      if (pdf.id === currentPdfId) return; // Already on it
+      if (typeof PdfHandler !== 'undefined' && PdfHandler.openPdfInGallery) {
+          PdfHandler.openPdfInGallery(pdf.id);
+      }
+    };
+
+    const closeBtn = chip.querySelector('.gv2-pdf-chip-close');
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof PdfHandler !== 'undefined' && PdfHandler.unregisterActivePdf) {
+          PdfHandler.unregisterActivePdf(pdf.id);
+      }
+    };
+
+    container.appendChild(chip);
+  });
 }

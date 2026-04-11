@@ -37,7 +37,8 @@ const state = {
     expandedFilterTrades: new Set(),
     managerTags: [],
     managerSortDir: 'desc',
-    imgTypeFilter: 'both'  // 'both' | 'index' | 'premium'
+    imgTypeFilter: 'both',  // 'both' | 'index' | 'premium'
+    activePdfs: []          // [{id, name, url}]
   },
   imgTypes: {},  // { [imgUrl]: 'index' | 'premium' } — persisted with trades  // V2: tagFilter = selected tag names
   tagGroups: {},  // { groupName: [tagName, ...] } — user-defined groups

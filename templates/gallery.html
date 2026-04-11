@@ -88,6 +88,9 @@
   <!-- ② Body -->
   <div class="gv2-body">
 
+    <!-- Active Document Workspace Bar (Bubble Bar) -->
+    <div id="gv2-pdf-workspace-bar" class="gv2-pdf-workspace-bar" style="display:none;"></div>
+
     <!-- Annotation Bar (floating, absolute positioned) -->
     <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
       <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pen (freehand)">&#9998;</button>
@@ -158,39 +161,43 @@
       <div class="gv2-lp-resize-handle" id="gv2-trades-resize-handle" title="Drag to resize"></div>
     </div>
 
-    <!-- Unified Left Panel (Thumbnails + Filter Tags) -->
-    <div class="gv2-unified-left-panel" id="gv2-unified-left-panel" style="display:none;">
-      <div class="gv2-ulp-tabs">
-        <button class="gv2-ulp-tab active" id="gv2-tab-thumbs" data-tab="thumbs">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-          Thumbnails
-        </button>
-        <button class="gv2-ulp-tab" id="gv2-tab-filter" data-tab="filter">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
-          Filter Tags
-        </button>
+    <!-- Unified Left Panel Wrapper (for resize handle outside scrolling area) -->
+    <div class="gv2-ulp-wrapper" style="position: relative; display: flex; flex-shrink: 0;">
+      <!-- Unified Left Panel (Thumbnails + Filter Tags) -->
+      <div class="gv2-unified-left-panel" id="gv2-unified-left-panel" style="display:none;">
+        <div class="gv2-ulp-tabs">
+          <button class="gv2-ulp-tab active" id="gv2-tab-thumbs" data-tab="thumbs">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+            Thumbnails
+          </button>
+          <button class="gv2-ulp-tab" id="gv2-tab-filter" data-tab="filter">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
+            Filter Tags
+          </button>
 
-        <div style="flex:1"></div>
-        <button class="gv2-ulp-close" id="gv2-ulp-close-btn" title="Close Panel">&#10005;</button>
-      </div>
+          <div style="flex:1"></div>
+          <button class="gv2-ulp-close" id="gv2-ulp-close-btn" title="Close Panel">&#10005;</button>
+        </div>
 
-      <div class="gv2-ulp-content">
-        <!-- Pane: Thumbnails -->
-        <div class="gv2-ulp-pane active" id="gv2-pane-thumbs">
-          <div class="gv2-ulp-pane-header">
-            <button class="gv2-ulp-ctrl-btn" id="gv2-ulp-expand-all" title="Expand All Groups">Exp</button>
-            <button class="gv2-ulp-ctrl-btn" id="gv2-ulp-collapse-all" title="Collapse All Groups">Col</button>
+        <div class="gv2-ulp-content">
+          <!-- Pane: Thumbnails -->
+          <div class="gv2-ulp-pane active" id="gv2-pane-thumbs">
+            <div class="gv2-ulp-pane-header">
+              <button class="gv2-ulp-ctrl-btn" id="gv2-ulp-expand-all" title="Expand All Groups">Exp</button>
+              <button class="gv2-ulp-ctrl-btn" id="gv2-ulp-collapse-all" title="Collapse All Groups">Col</button>
+            </div>
+            <div class="gv2-thumbs" id="gallery-thumbs"></div>
           </div>
-          <div class="gv2-thumbs" id="gallery-thumbs"></div>
-        </div>
 
-        <!-- Pane: Filter Tags -->
-        <div class="gv2-ulp-pane" id="gv2-pane-filter" style="display:none;">
-          <div id="gallery-img-tag-filter-header" style="background:var(--bg2); border-bottom:1px solid var(--border);"></div>
-          <div class="gv2-lp-body" id="gallery-img-tag-filter-panel" style="overflow-y:auto; padding:0; display:flex; flex-direction:column; flex:1; min-height:0;"></div>
+          <!-- Pane: Filter Tags -->
+          <div class="gv2-ulp-pane" id="gv2-pane-filter" style="display:none;">
+            <div id="gallery-img-tag-filter-header" style="background:var(--bg2); border-bottom:1px solid var(--border);"></div>
+            <div class="gv2-lp-body" id="gallery-img-tag-filter-panel" style="overflow-y:auto; padding:0; display:flex; flex-direction:column; flex:1; min-height:0;"></div>
+          </div>
         </div>
       </div>
-
+      
+      <!-- Resize handle outside the panel container -->
       <div class="gv2-tp-resize-handle" id="gv2-ulp-resize-handle" title="Drag to resize"></div>
     </div>
 
