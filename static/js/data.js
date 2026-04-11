@@ -66,6 +66,7 @@ function _applyBroadcastData(data) {
   state.dayData     = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
   state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
   state.tagGroups   = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+  state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
   state.imgTypes    = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
   syncTagColumnRegistry();
   state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
@@ -167,6 +168,7 @@ async function loadTrades() {
     state.dayData = (data.dayData && typeof data.dayData === 'object') ? data.dayData : {};
     state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
     state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+    state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
@@ -201,6 +203,7 @@ async function saveTrades() {
       dayData: state.dayData,
       importedPdfs: state.importedPdfs,
       tagGroups: state.tagGroups,
+      tagTemplates: state.tagTemplates,
       imgTypes: state.imgTypes
     };
     await tradeService.saveTrades(payload);
@@ -218,7 +221,8 @@ function hashServerState(data) {
       userColumns: data?.userColumns || [],
       dayData: data?.dayData || {},
       importedPdfs: data?.importedPdfs || [],
-      tagGroups: data?.tagGroups || {}
+      tagGroups: data?.tagGroups || {},
+      tagTemplates: data?.tagTemplates || {}
     });
   } catch (e) {
     return '';
@@ -256,6 +260,7 @@ async function syncFromServerIfChanged(force = false) {
     state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
     state.importedPdfs = Array.isArray(data.importedPdfs) ? data.importedPdfs : [];
     state.tagGroups = (data.tagGroups && typeof data.tagGroups === 'object') ? data.tagGroups : (state.tagGroups || {});
+    state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();

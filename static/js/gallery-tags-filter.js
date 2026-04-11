@@ -65,13 +65,138 @@ function renderGalleryTagFilterPanel() {
     btnNone.addEventListener('click', () => {
         state.gallery.tagFilter = [];
         applyGalleryImageScopeByTagFilter();
+        if (typeof renderGalleryTagCloud === 'function') renderGalleryTagCloud();
         renderGallery();
-        renderGalleryTagCloud();
         renderGalleryTagFilterPanel();
+        // Force the dropdown back to default if it exists
+        const tpl = document.getElementById('gv2-tpl-select');
+        if (tpl) tpl.value = '';
     });
     actRow.appendChild(btnMode);
     actRow.appendChild(btnNone);
     if (header) header.appendChild(actRow);
+
+    // ── PREMIUM TEMPLATE MENU ──────────────────────────────────────────────
+    const tplRow = document.createElement('div');
+    tplRow.style.cssText = 'padding: 0 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); position:relative;';
+
+    const tplBtn = document.createElement('button');
+    tplBtn.className = 'panel-act-btn';
+    tplBtn.style.cssText = 'flex:1; justify-content: space-between; padding: 0 10px; height: 28px; font-size:12px; background: var(--surface2);';
+    tplBtn.innerHTML = `<span>Recall Template...</span><span style="opacity:0.6">▾</span>`;
+    
+    const menu = document.createElement('div');
+    menu.id = 'gv2-tpl-custom-menu';
+    menu.style.cssText = 'display:none; position:absolute; top:32px; left:8px; right:8px; background: #1a1b1e; border: 1px solid var(--border); border-radius: 6px; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow:hidden;';
+
+    const updateMenu = () => {
+        menu.innerHTML = '';
+        const templates = state.tagTemplates || {};
+        const keys = Object.keys(templates).sort();
+        
+        if (keys.length === 0) {
+            menu.innerHTML = '<div style="padding:10px; font-size:11px; color:#666; text-align:center;">No templates saved.</div>';
+        }
+
+        keys.forEach(name => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:background 0.2s;';
+            row.onmouseenter = () => { row.style.background = 'rgba(255,255,255,0.05)'; };
+            row.onmouseleave = () => { row.style.background = ''; };
+
+            const label = document.createElement('span');
+            label.textContent = name;
+            label.style.cssText = 'flex:1; font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+            label.onclick = (e) => {
+                e.stopPropagation();
+                state.gallery.tagFilter = [...templates[name]];
+                applyGalleryImageScopeByTagFilter();
+                state.gallery._skipFilterRescopeOnce = true;
+                renderGallery();
+                renderGalleryTagFilterPanel();
+                menu.style.display = 'none';
+                showToast(`Applied: ${name}`, 'success');
+            };
+
+            const actions = document.createElement('div');
+            actions.style.display = 'flex';
+            actions.style.gap = '8px';
+
+            const editBtn = document.createElement('span');
+            editBtn.innerHTML = '✎';
+            editBtn.title = 'Rename';
+            editBtn.style.cssText = 'font-size:12px; opacity:0.5; transition:opacity 0.2s;';
+            editBtn.onmouseenter = () => { editBtn.style.opacity = '1'; editBtn.style.color = 'var(--blue)'; };
+            editBtn.onmouseleave = () => { editBtn.style.opacity = '0.5'; editBtn.style.color = ''; };
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                const newName = prompt(`Rename template "${name}" to:`, name);
+                if (!newName || newName === name) return;
+                state.tagTemplates[newName] = state.tagTemplates[name];
+                delete state.tagTemplates[name];
+                if (typeof saveTrades === 'function') saveTrades();
+                updateMenu();
+                showToast('Renamed successfully', 'success');
+            };
+
+            const delBtn = document.createElement('span');
+            delBtn.innerHTML = '×';
+            delBtn.title = 'Delete';
+            delBtn.style.cssText = 'font-size:16px; opacity:0.5; transition:opacity 0.2s; line-height:14px;';
+            delBtn.onmouseenter = () => { delBtn.style.opacity = '1'; delBtn.style.color = 'var(--red)'; };
+            delBtn.onmouseleave = () => { delBtn.style.opacity = '0.5'; delBtn.style.color = ''; };
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!confirm(`Delete template "${name}"?`)) return;
+                delete state.tagTemplates[name];
+                if (typeof saveTrades === 'function') saveTrades();
+                updateMenu();
+                showToast('Deleted template', 'success');
+            };
+
+            row.appendChild(label);
+            actions.appendChild(editBtn);
+            actions.appendChild(delBtn);
+            row.appendChild(actions);
+            menu.appendChild(row);
+        });
+
+        // Add "Save New" at the bottom
+        const saveRow = document.createElement('div');
+        saveRow.style.cssText = 'padding:8px 10px; border-top:1px solid var(--border); background:rgba(255,255,255,0.02); text-align:center; cursor:pointer; font-size:11px; color:var(--blue); font-weight:600;';
+        saveRow.textContent = '+ SAVE NEW TEMPLATE';
+        saveRow.onclick = (e) => {
+            e.stopPropagation();
+            if (!state.gallery.tagFilter?.length) { showToast('Select some tags first!', 'info'); return; }
+            const defaultName = state.gallery.tagFilter.join(', ');
+            const name = prompt('Enter template name:', defaultName);
+            if (!name) return;
+            state.tagTemplates[name] = [...state.gallery.tagFilter];
+            if (typeof saveTrades === 'function') saveTrades();
+            updateMenu();
+            showToast(`Saved "${name}"`, 'success');
+        };
+        menu.appendChild(saveRow);
+    };
+
+    tplBtn.onclick = (e) => {
+        e.stopPropagation();
+        const isOpen = menu.style.display === 'block';
+        // Close all other instances if any
+        document.querySelectorAll('#gv2-tpl-custom-menu').forEach(m => m.style.display = 'none');
+        if (!isOpen) {
+            updateMenu();
+            menu.style.display = 'block';
+        }
+    };
+
+    // Close menu when clicking outside
+    const hideMenu = (e) => { if (!menu.contains(e.target) && e.target !== tplBtn) menu.style.display = 'none'; };
+    document.addEventListener('mousedown', hideMenu);
+
+    tplRow.appendChild(tplBtn);
+    tplRow.appendChild(menu);
+    if (header) header.appendChild(tplRow);
 
     // Scope toggle: Image vs Trade
     const scopeRow = document.createElement('div');

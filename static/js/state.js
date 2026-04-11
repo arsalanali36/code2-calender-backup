@@ -45,6 +45,7 @@ const state = {
   uploadRow: null,
   pendingFiles: [],
   tagImages: {},   // { tagName: imageURL } — for image-based tags
+  tagTemplates: {}, // { templateName: [tags...] } — saved filter presets
   quotes: [],
   quoteIndex: 0,
   quoteRatings: {},

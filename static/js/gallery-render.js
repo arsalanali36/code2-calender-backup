@@ -131,11 +131,37 @@ function renderGallery() {
   if (filterBar) {
     if (_filterActive) {
       const modeText = state.gallery.filterMode === 'and' ? 'ALL of' : 'ANY of';
-      filterBar.innerHTML = `<span>FILTER ACTIVE (${modeText}):</span> <span style="background:#000;color:#fff;padding:2px 8px;border-radius:20px;margin-left:6px">${state.gallery.tagFilter.join(', ')}</span>`;
+      filterBar.innerHTML = 
+        `<div style="display:flex; align-items:center;">` +
+          `<span>FILTER ACTIVE (${modeText}):</span> ` +
+          `<span style="background:rgba(0,0,0,0.8); color:#fff; padding:3px 12px; border-radius:20px; margin-left:8px; font-weight:600; border:1px solid rgba(255,255,255,0.1);">${state.gallery.tagFilter.join(', ')}</span>` +
+        `</div>` +
+        `<button id="gv2-clear-filter-btn" style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:none; border-radius:50%; width:24px; height:24px; margin-left:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.2s; pointer-events:auto;" title="Clear filter">×</button>`;
+      
+      const clearBtn = document.getElementById('gv2-clear-filter-btn');
+      if (clearBtn) {
+        clearBtn.onmouseenter = () => { clearBtn.style.background = 'rgba(248,81,73,0.3)'; clearBtn.style.color = '#fff'; };
+        clearBtn.onmouseleave = () => { clearBtn.style.background = 'rgba(255,255,255,0.1)'; clearBtn.style.color = 'rgba(255,255,255,0.8)'; };
+        clearBtn.onclick = (e) => {
+          e.stopPropagation();
+          state.gallery.tagFilter = [];
+          if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel(); // Sync panel
+          renderGallery();
+        };
+      }
+      
       filterBar.style.display = 'flex';
-      if (countBar) { document.getElementById('gallery-filter-count-text').textContent = images.length; countBar.style.display = 'block'; }
+      filterBar.style.alignItems = 'center';
+      filterBar.style.justifyContent = 'center';
+      filterBar.style.pointerEvents = 'auto'; // Enable interaction
+
+      if (countBar) { 
+        document.getElementById('gallery-filter-count-text').textContent = images.length; 
+        countBar.style.display = 'block'; 
+      }
     } else {
       filterBar.style.display = 'none';
+      filterBar.style.pointerEvents = 'none';
       if (countBar) countBar.style.display = 'none';
     }
   }

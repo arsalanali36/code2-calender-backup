@@ -229,7 +229,7 @@ function renderGalleryThumbs() {
       : getOwnerTradeForImageUrl(url);
 
     // 1. NEWS Separator
-    if (_isNews) {
+    if (_isNews && !_filterActive3) {
       if (!_perDateRenderedSeps.has(_effDate + ':NEWS')) {
         thumbs.appendChild(createSpecialSeparator('NEWS', 'NEWS'));
         _perDateRenderedSeps.add(_effDate + ':NEWS');
@@ -243,30 +243,27 @@ function renderGalleryThumbs() {
     }
 
     // 2. OPEN Separator
-    if (_isOpen && !_perDateRenderedSeps.has(_effDate + ':OPEN')) {
+    if (_isOpen && !_filterActive3 && !_perDateRenderedSeps.has(_effDate + ':OPEN')) {
       thumbs.appendChild(createSpecialSeparator('OPEN', false));
       _perDateRenderedSeps.add(_effDate + ':OPEN');
     }
     if (_isOpen && state.gallery.collapsedSeparators?.has('OPEN')) return;
 
     // 3. TRADE Separators
-    if (_effTrades.length > 0 && ownerTrade && !_isClose && !_isCloseGlobal && !_isPremium) {
+    if (_effTrades.length > 0 && ownerTrade && !_isClose && !_isCloseGlobal && !_isPremium && !_filterActive3) {
       const targetTradeIdx = _effTrades.indexOf(ownerTrade);
       if (targetTradeIdx >= 0) {
-        let _lastIdx = _filterActive3 ? (_perDateLastIdx.get(_effDate) ?? -1) : lastTradeIdxRendered;
+        let _lastIdx = lastTradeIdxRendered;
         while (_lastIdx < targetTradeIdx) {
           const _sepIdx = _lastIdx + 1;
-          if (!_filterActive3 || _filteredTradeIdxPerDate.get(_effDate)?.has(_sepIdx)) {
-            thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx], _filterActive3 ? _fmtSepDate(_effDate) : ''));
-            if (typeof createRefCardElement === 'function') {
-              const _rc = createRefCardElement(_sepIdx, _effTrades[_sepIdx], _effDate);
-              if (_rc) thumbs.appendChild(_rc);
-            }
+          thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx]));
+          if (typeof createRefCardElement === 'function') {
+            const _rc = createRefCardElement(_sepIdx, _effTrades[_sepIdx], _effDate);
+            if (_rc) thumbs.appendChild(_rc);
           }
           _lastIdx++;
         }
-        if (_filterActive3) _perDateLastIdx.set(_effDate, _lastIdx);
-        else lastTradeIdxRendered = _lastIdx;
+        lastTradeIdxRendered = _lastIdx;
       }
       if (state.gallery.collapsedSeparators?.has('T' + targetTradeIdx)) return;
     } else if (_effDate && !ownerTrade && !_isNews && !_isClose && !_isCloseGlobal && !_isPremium) {
@@ -276,24 +273,7 @@ function renderGalleryThumbs() {
 
     // 4. CLOSE Separator
     const _closeSepKey = _effDate + ':CLOSE';
-    if (_isClose && !_perDateRenderedSeps.has(_closeSepKey)) {
-      // Finish rendering any preceding trades for this date
-      let _lastIdx = _filterActive3 ? (_perDateLastIdx.get(_effDate) ?? -1) : lastTradeIdxRendered;
-      if (_effTrades.length > 0) {
-        while (_lastIdx < _effTrades.length - 1) {
-          const _sepIdx = _lastIdx + 1;
-          if (!_filterActive3 || _filteredTradeIdxPerDate.get(_effDate)?.has(_sepIdx)) {
-            thumbs.appendChild(createTradeSeparator(_sepIdx, _effTrades[_sepIdx], _filterActive3 ? _fmtSepDate(_effDate) : ''));
-            if (typeof createRefCardElement === 'function') {
-              const _rc = createRefCardElement(_sepIdx, _effTrades[_sepIdx], _effDate);
-              if (_rc) thumbs.appendChild(_rc);
-            }
-          }
-          _lastIdx++;
-        }
-        if (_filterActive3) _perDateLastIdx.set(_effDate, _lastIdx);
-        else lastTradeIdxRendered = _lastIdx;
-      }
+    if (_isClose && !_filterActive3 && !_perDateRenderedSeps.has(_closeSepKey)) {
       thumbs.appendChild(createSpecialSeparator('CLOSE', true));
       _perDateRenderedSeps.add(_effDate + ':CLOSE');
     }
@@ -301,19 +281,15 @@ function renderGalleryThumbs() {
 
     // 5. CLOSE GLOBAL Separator
     const _closeGlobalSepKey = _effDate + ':CLOSE_GLOBAL';
-    if (_isCloseGlobal && !_perDateRenderedSeps.has(_closeGlobalSepKey)) {
-      if (!_perDateRenderedSeps.has(_closeSepKey)) {
-        thumbs.appendChild(createSpecialSeparator('CLOSE', true));
-        _perDateRenderedSeps.add(_closeSepKey);
-      }
+    if (_isCloseGlobal && !_filterActive3 && !_perDateRenderedSeps.has(_closeGlobalSepKey)) {
       thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
       _perDateRenderedSeps.add(_closeGlobalSepKey);
     }
     if (_isCloseGlobal && state.gallery.collapsedSeparators?.has('CLOSE_GLOBAL')) return;
 
-    // 6. PREMIUM Separator (Mainly for filtered view)
+    // 6. PREMIUM Separator 
     const _premiumSepKey = _effDate + ':PREMIUM';
-    if (_isPremium && !_perDateRenderedSeps.has(_premiumSepKey)) {
+    if (_isPremium && !_filterActive3 && !_perDateRenderedSeps.has(_premiumSepKey)) {
       thumbs.appendChild(createSpecialSeparator('PREMIUM', 'PREMIUM'));
       _perDateRenderedSeps.add(_premiumSepKey);
     }
