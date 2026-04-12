@@ -198,6 +198,13 @@ def _cleanup_trash():
 _bootstrap_persistent_storage()
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 
+# ── JS bundle (rebuild if any source file changed) ────────────────────────────
+try:
+    from build import build as _build_js
+    _build_js()
+except Exception as _e:
+    print(f'[build] WARNING: JS bundle build failed: {_e}')
+
 with app.app_context():
     db.create_all()
 

@@ -3,11 +3,13 @@ routes/page_routes.py
 ---------------------
 HTML page routes: main app and dev-blog updates.
 """
+import json
 import os
 
 from flask import Blueprint, render_template, jsonify, send_from_directory, redirect, request
 
-from config import BASE_DIR, CACHE_BUST
+from config import BASE_DIR, CACHE_BUST, DATA_FILE
+BUNDLE_PATH = os.path.join(BASE_DIR, 'static', 'js', 'bundle.js')
 from services.page_service import get_blog_entries_for_template, get_blog_entries_for_api
 
 MOBILE_DIST = os.path.join(BASE_DIR, 'tradefeed', 'dist')
@@ -24,7 +26,18 @@ def index():
     ua = request.headers.get('User-Agent', '')
     if any(k in ua for k in MOBILE_KEYWORDS):
         return redirect('/mobile/')
-    return render_template('index.html', cache_bust=CACHE_BUST)
+    # Embed trades data directly in HTML — eliminates the /api/trades round-trip on load
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            initial_data_json = f.read()
+        # Validate it's real JSON (don't embed corrupt data)
+        json.loads(initial_data_json)
+    except Exception:
+        initial_data_json = '{}'
+    use_bundle = os.path.exists(BUNDLE_PATH)
+    return render_template('index.html', cache_bust=CACHE_BUST,
+                           initial_data_json=initial_data_json,
+                           use_bundle=use_bundle)
 
 
 @page_bp.route('/updates')

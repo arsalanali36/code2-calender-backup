@@ -92,7 +92,7 @@ const PdfHandler = (() => {
     
     // Set worker source for pdf.js
     if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/js/vendor/pdf.worker.min.js';
     } else {
       console.warn('[PdfHandler] pdfjsLib not found in window');
     }
