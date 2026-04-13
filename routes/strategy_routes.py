@@ -17,10 +17,11 @@ def nifty_data():
     source = request.args.get('source', 'yfinance')
     dhan_token = request.args.get('dhan_token', '')
     dhan_cid = request.args.get('dhan_cid', '')
+    symbol = request.args.get('symbol', 'Nifty 50 (^NSEI)')
     
     try:
-        df, zones = get_nifty_data(start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid)
-        real_trades = get_real_trades(start_date, end_date)
+        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid)
+        real_trades = get_real_trades(start_date, end_date, symbol)
 
         if df.empty:
              return jsonify({'error': 'No data found for the selected range.'}), 404

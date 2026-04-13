@@ -7,17 +7,20 @@
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         .lab-container { display: flex; height: 100vh; overflow: hidden; background: #f6f8fa; }
-        .lab-sidebar { width: 300px; background: white; border-right: 1px solid #d0d7de; padding: 20px; overflow-y: auto; flex-shrink: 0; position: relative; }
-        .lab-sidebar.collapsed { width: 0; padding: 0; border: none; overflow: hidden; }
-        .sidebar-toggle-btn { position: absolute; left: 300px; top: 50%; transform: translateY(-50%); background: white; border: 1px solid #d0d7de; border-left: none; width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1500; border-radius: 0 8px 8px 0; transition: left 0.3s ease; font-size: 0.7rem; color: #666; }
+        .lab-sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; background: white; border-right: 1px solid #d0d7de; padding: 20px; overflow-y: auto; z-index: 2500; transition: transform 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .lab-sidebar.collapsed { transform: translateX(-100%); padding: 20px; }
+        .sidebar-toggle-btn { position: absolute; left: 300px; top: 50%; transform: translateY(-50%); background: white; border: 1px solid #d0d7de; border-left: none; width: 22px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2501; border-radius: 0 8px 8px 0; transition: left 0.3s ease; font-size: 0.75rem; color: #0969da; font-weight: bold; }
         .lab-sidebar.collapsed + .sidebar-toggle-btn { left: 0; }
         .lab-main { flex: 1; position: relative; background: #ffffff; display: flex; flex-direction: column; }
         .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; font-weight: 600; color: #0969da; }
         .nav-controls { display: flex; align-items: center; gap: 12px; padding:10px; border-bottom:1px solid #d0d7de; background:#f6f8fa; }
         .nav-btn { padding: 6px 15px; border: 1px solid #d0d7de; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s;}
         .nav-btn:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
-        .chart-wrapper { flex: 1; position: relative; padding: 10px; overflow: hidden; }
-        #chart-container { position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; }
+        .chart-wrapper { flex: 1; position: relative; display: flex; gap: 0; overflow: hidden; background: #fff; }
+        .chart-container-box { flex: 1; position: relative; height: 100%; min-width: 0; transition: all 0.3s ease; }
+        .chart-container-box:nth-child(2) { border-left: 1px solid #d0d7de; }
+        #chart-main, #chart-opt { height: 100%; width: 100%; }
+        .chart-label { position: absolute; top: 10px; left: 60px; z-index: 10; background: rgba(255,255,255,0.8); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #d0d7de; pointer-events: none; }
         .setting-item { display: block; margin-bottom: 12px; font-size: 0.85rem; color: #1f2328; font-weight: 600; }
         .lab-btn { width: 100%; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .lab-btn-primary { background: #0969da; color: white; }
@@ -35,7 +38,13 @@
         <div class="lab-sidebar" id="sidebar">
             <h3 style="margin:0 0 20px 0; font-size: 1.1rem; border-bottom:1px solid #eee; padding-bottom:10px;">Configuration</h3>
             
-            <div style="margin-bottom:20px;"><label class="setting-item">SYMBOL</label><input type="text" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly></div>
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label class="setting-item" style="margin:0;">SYMBOL</label>
+                    <span style="font-size:0.7rem; color:#0969da; cursor:pointer; font-weight:600;" onclick="loadInstrument('Nifty 50 (^NSEI)', document.getElementById('start-date').value)">RESET TO INDEX</span>
+                </div>
+                <input type="text" id="symbol" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly>
+            </div>
             <div style="margin-bottom:20px;">
                 <label class="setting-item">DATA SOURCE</label>
                 <select id="source-select" class="nav-btn" style="width:100%;">
@@ -69,7 +78,10 @@
         <main class="lab-main">
             <div class="loading-overlay" id="loader">Running Strategy...</div>
             <div class="nav-controls">
-                <button class="nav-btn" id="prev-day-btn">◀</button><button class="nav-btn" id="fit-btn" style="font-weight:600;">FIT VIEW</button><button class="nav-btn" id="next-day-btn">▶</button>
+                <button class="nav-btn" id="prev-day-btn">◀</button>
+                <button class="nav-btn" id="fit-btn" style="font-weight:600;">FIT VIEW</button>
+                <button class="nav-btn" id="next-day-btn">▶</button>
+                <button class="nav-btn" id="dual-view-btn" style="margin-left:10px; border-color:#8b5cf6; color:#8b5cf6; font-weight:700;">DUAL VIEW: OFF</button>
                 <div style="margin-left:auto; display:flex; gap:10px;">
                     <button class="nav-btn" id="open-history-btn" style="border-color:#0969da; color:#0969da;">DATA HISTORY</button>
                     <button class="nav-btn" id="open-trades-modal-btn" style="border-color:#f9a825; color:#f9a825; font-weight:600;">REAL TRADES</button>
@@ -77,7 +89,16 @@
                     <a href="/" class="nav-btn" style="text-decoration:none;">Home</a>
                 </div>
             </div>
-            <div class="chart-wrapper"><div id="chart-container"></div></div>
+            <div class="chart-wrapper">
+                <div class="chart-container-box" id="container-main">
+                    <div class="chart-label">NIFTY 50 (INDEX)</div>
+                    <div id="chart-main"></div>
+                </div>
+                <div class="chart-container-box" id="container-opt" style="display: none;">
+                    <div class="chart-label" id="opt-label">OPTION CHART</div>
+                    <div id="chart-opt"></div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -126,41 +147,44 @@
 
     <script src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
     <script>
-        let chart, candleSeries, ema10Series, ema20Series, demaSeries, markerSeries;
-        let zoneSeriesList = [];
-        let realTradeSeriesList = [];
-        let currentChartData = [];
-        let loadedRealTrades = [];
-
-        const endDay = new Date();
-        const startDay = new Date();
-        startDay.setDate(startDay.getDate() - 7);
-        document.getElementById('end-date').value = endDay.toISOString().split('T')[0];
-        document.getElementById('start-date').value = startDay.toISOString().split('T')[0];
+        let chartMain, candleMain, ema10Main, ema20Main, demaMain, markerMain;
+        let chartOpt, candleOpt, ema10Opt, ema20Opt, demaOpt, markerOpt;
+        let zonesMain = [], tradesMain = [], zonesOpt = [], tradesOpt = [];
+        let zoneSeriesMain = [], tradeSeriesMain = [], zoneSeriesOpt = [], tradeSeriesOpt = [];
 
         function initChart() {
-            const container = document.getElementById('chart-container');
-            chart = LightweightCharts.createChart(container, {
-                layout: { background: { color: '#ffffff' }, textColor: '#333' },
-                grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
-                timeScale: { timeVisible: true }
-            });
+            const setup = (id) => {
+                const c = LightweightCharts.createChart(document.getElementById(id), {
+                    layout: { background: { color: '#ffffff' }, textColor: '#333' },
+                    grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
+                    timeScale: { timeVisible: true, secondsVisible: false },
+                    rightPriceScale: { visible: true, borderColor: '#d0d7de' },
+                    crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
+                });
+                const candle = c.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350' });
+                const e10 = c.addLineSeries({ color: '#2196F3', lineWidth: 1, title: 'EMA 10' });
+                const e20 = c.addLineSeries({ color: '#F44336', lineWidth: 1, title: 'EMA 20' });
+                const dema = c.addLineSeries({ color: '#424242', lineWidth: 2, title: 'DEMA 100' });
+                const marker = c.addLineSeries({ color: 'transparent', lineWidth: 0, priceLineVisible: false, lastValueVisible: false });
+                
+                new ResizeObserver(() => {
+                    const box = document.getElementById(id);
+                    if (box.clientWidth > 0) {
+                        c.applyOptions({ width: box.clientWidth, height: box.clientHeight });
+                    }
+                }).observe(document.getElementById(id));
+                
+                return { c, candle, e10, e20, dema, marker };
+            };
 
-            candleSeries = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350' });
-            ema10Series = chart.addLineSeries({ color: '#2196F3', lineWidth: 1, title: 'EMA 10' });
-            ema20Series = chart.addLineSeries({ color: '#F44336', lineWidth: 1, title: 'EMA 20' });
-            demaSeries = chart.addLineSeries({ color: '#424242', lineWidth: 2, title: 'DEMA 100' });
-            markerSeries = chart.addLineSeries({ color: 'transparent', lineWidth: 0, priceLineVisible: false, lastValueVisible: false });
+            const m = setup('chart-main');
+            chartMain = m.c; candleMain = m.candle; ema10Main = m.e10; ema20Main = m.e20; demaMain = m.dema; markerMain = m.marker;
 
-            new ResizeObserver(entries => {
-                if (entries.length === 0 || entries[0].target !== container) { return; }
-                const newRect = entries[0].contentRect;
-                chart.applyOptions({ height: newRect.height, width: newRect.width });
-            }).observe(container);
+            const o = setup('chart-opt');
+            chartOpt = o.c; candleOpt = o.candle; ema10Opt = o.e10; ema20Opt = o.e20; demaOpt = o.dema; markerOpt = o.marker;
         }
 
-        function clearZones() { zoneSeriesList.forEach(s => chart.removeSeries(s)); zoneSeriesList = []; }
-        function clearRealTrades() { realTradeSeriesList.forEach(s => chart.removeSeries(s)); realTradeSeriesList = []; }
+        function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
 
         function checkDhanAuth() {
             const source = document.getElementById('source-select').value;
@@ -189,10 +213,31 @@
         document.getElementById('dhan-client-id').value = sessionStorage.getItem('dhan_client_id') || '';
         document.getElementById('dhan-access-token').value = sessionStorage.getItem('dhan_access_token') || '';
 
-        async function runStrategy(silent = false) {
+        async function runStrategy(isOpt = false, silent = false) {
             const loader = document.getElementById('loader');
-            if (!silent) loader.style.display = 'flex';
+            if (!silent) {
+                loader.style.display = 'flex';
+                // Auto-collapse sidebar on run
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.getElementById('sidebar-toggle-btn').innerText = '▶';
+            }
             
+            const targetSymbol = isOpt ? document.getElementById('symbol').value : 'Nifty 50 (^NSEI)';
+            const targetChart = isOpt ? chartOpt : chartMain;
+            const targetCandle = isOpt ? candleOpt : candleMain;
+            const targetE10 = isOpt ? ema10Opt : ema10Main;
+            const targetE20 = isOpt ? ema20Opt : ema20Main;
+            const targetDema = isOpt ? demaOpt : demaMain;
+            const targetMarker = isOpt ? markerOpt : markerMain;
+            
+            if (isOpt) {
+                zoneSeriesOpt = clearSeries(zoneSeriesOpt, chartOpt);
+                tradeSeriesOpt = clearSeries(tradeSeriesOpt, chartOpt);
+            } else {
+                zoneSeriesMain = clearSeries(zoneSeriesMain, chartMain);
+                tradeSeriesMain = clearSeries(tradeSeriesMain, chartMain);
+            }
+
             try {
                 const params = new URLSearchParams({
                     start_date: document.getElementById('start-date').value,
@@ -205,47 +250,44 @@
                     start_time: document.getElementById('start-time').value,
                     end_time: document.getElementById('end-time').value,
                     source: document.getElementById('source-select').value,
+                    symbol: targetSymbol,
                     dhan_cid: sessionStorage.getItem('dhan_client_id') || '',
                     dhan_token: sessionStorage.getItem('dhan_access_token') || ''
                 });
 
                 const res = await fetch(`/api/strategy/nifty-data?${params.toString()}`);
                 const dataRaw = await res.json();
-                if (dataRaw.error) { if (!silent) alert(dataRaw.error); return false; }
+                if (dataRaw.error) { if (!silent) console.error(dataRaw.error); return false; }
 
-                clearZones();
-                clearRealTrades();
-                markerSeries.setMarkers([]);
-
-                currentChartData = dataRaw.chart_data;
+                targetMarker.setMarkers([]);
+                const chartData = dataRaw.chart_data;
                 const zones = dataRaw.zones;
                 const realTrades = dataRaw.real_trades || [];
-                loadedRealTrades = realTrades;
 
-                const visibleData = currentChartData.filter(d => !d.is_gap);
+                const visibleData = chartData.filter(d => !d.is_gap);
                 if (!visibleData.length) return false;
 
-                candleSeries.setData(visibleData.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
-                ema10Series.setData(currentChartData.map(d => ({ time: d.time, value: d.ema10 === null ? undefined : d.ema10 })));
-                ema20Series.setData(currentChartData.map(d => ({ time: d.time, value: d.ema20 === null ? undefined : d.ema20 })));
-                demaSeries.setData(currentChartData.map(d => ({ time: d.time, value: d.dema100 === null ? undefined : d.dema100 })));
-                markerSeries.setData(visibleData.map(d => ({ time: d.time, value: d.close })));
+                targetCandle.setData(visibleData.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
+                targetE10.setData(chartData.map(d => ({ time: d.time, value: d.ema10 === null ? undefined : d.ema10 })));
+                targetE20.setData(chartData.map(d => ({ time: d.time, value: d.ema20 === null ? undefined : d.ema20 })));
+                targetDema.setData(chartData.map(d => ({ time: d.time, value: d.dema100 === null ? undefined : d.dema100 })));
+                targetMarker.setData(visibleData.map(d => ({ time: d.time, value: d.close })));
 
-                const zoneMarkers = [];
+                const zMarkers = [];
                 zones.forEach(zone => {
-                    const zoneTimes = currentChartData.map(d => d.time).filter(t => t >= zone.start_time && t <= zone.end_time);
+                    const zoneTimes = chartData.map(d => d.time).filter(t => t >= zone.start_time && t <= zone.end_time);
                     if (zoneTimes.length < 2) return;
                     const color = zone.type === 'bull' ? 'rgba(38, 166, 154, 0.4)' : 'rgba(128, 0, 0, 0.4)';
-                    const u = chart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-                    const l = chart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+                    const u = targetChart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+                    const l = targetChart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
                     u.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
                     l.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
-                    zoneSeriesList.push(u, l);
+                    if (isOpt) zoneSeriesOpt.push(u, l); else zoneSeriesMain.push(u, l);
                     const lastVisible = visibleData.filter(d => d.time <= zoneTimes[zoneTimes.length-1]).pop();
-                    if (lastVisible) zoneMarkers.push({ time: lastVisible.time, position: 'inBar', color, shape: 'circle', text: `[${Math.round(zone.size)}]` });
+                    if (lastVisible) zMarkers.push({ time: lastVisible.time, position: 'inBar', color, shape: 'circle', text: `[${Math.round(zone.size)}]` });
                 });
 
-                const realTradeMarkers = [];
+                const rtMarkers = [];
                 realTrades.forEach(rt => {
                     const ep = visibleData.find(d => d.time >= rt.entry_time);
                     if (!ep) return;
@@ -255,35 +297,89 @@
                     const instMatch = instClean.match(/(\d{4,5})\s*([CP]E)/);
                     if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
                     else instClean = instClean.split(' ').pop();
-                    const line = chart.addLineSeries({ color, lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+                    const line = targetChart.addLineSeries({ color, lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
                     line.setData([{ time: ep.time, value: ep.open }, { time: Math.max(ep.time + 300, rt.exit_time), value: ep.open }]);
-                    realTradeSeriesList.push(line);
+                    if (isOpt) tradeSeriesOpt.push(line); else tradeSeriesMain.push(line);
                     
-                    // Direction based on CE/PE
                     const isPE = instClean.includes('PE');
                     const position = isPE ? 'belowBar' : 'aboveBar';
                     const shape = isPE ? 'arrowUp' : 'arrowDown';
                     
-                    realTradeMarkers.push({
-                        time: ep.time,
-                        position: position,
-                        color: '#f9a825', 
-                        shape: shape,
-                        size: 2,
+                    rtMarkers.push({
+                        time: ep.time, position, color: '#f9a825', shape, size: 2,
                         text: `${instClean} [${duration}m] ${rt.qty}L (₹${Math.round(rt.pl)})`
                     });
                 });
 
-                setTimeout(() => { markerSeries.setMarkers([...zoneMarkers, ...realTradeMarkers].sort((a,b) => a.time - b.time)); }, 50);
-                chart.timeScale().fitContent();
+                setTimeout(() => { targetMarker.setMarkers([...zMarkers, ...rtMarkers].sort((a,b) => a.time - b.time)); }, 50);
+                targetChart.timeScale().fitContent();
                 return true;
             } catch (e) { console.error(e); return false; }
-            finally { loader.style.display = 'none'; }
+            finally { if (!silent) loader.style.display = 'none'; }
         }
 
         function jumpToTrade(t) {
             document.getElementById('trades-modal').style.display = 'none';
-            chart.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+            chartMain.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+            if (chartOpt) chartOpt.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+        }
+
+        async function loadInstrument(symbol, date) {
+            const isIndex = symbol === 'Nifty 50 (^NSEI)';
+            const optBox = document.getElementById('container-opt');
+            const dualBtn = document.getElementById('dual-view-btn');
+            
+            document.getElementById('symbol').value = symbol;
+            document.getElementById('start-date').value = date;
+            document.getElementById('end-date').value = date;
+
+            if (isIndex) {
+                optBox.style.display = 'none';
+                dualBtn.innerText = 'DUAL VIEW: OFF';
+                await runStrategy(false);
+            } else {
+                optBox.style.display = 'block';
+                dualBtn.innerText = 'DUAL VIEW: ON';
+                document.getElementById('opt-label').innerText = symbol;
+                
+                // Force a resize calculation before loading data
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    const optB = document.getElementById('chart-opt');
+                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                }, 10);
+
+                await runStrategy(false, true); 
+                await runStrategy(true); 
+            }
+            document.getElementById('history-modal').style.display = 'none';
+        }
+
+        function toggleDualView() {
+            const optBox = document.getElementById('container-opt');
+            const dualBtn = document.getElementById('dual-view-btn');
+            const isHidden = optBox.style.display === 'none';
+            
+            if (isHidden) {
+                optBox.style.display = 'block';
+                dualBtn.innerText = 'DUAL VIEW: ON';
+                // Force resize check
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    const optB = document.getElementById('chart-opt');
+                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                    runStrategy(true); 
+                }, 20);
+            } else {
+                optBox.style.display = 'none';
+                dualBtn.innerText = 'DUAL VIEW: OFF';
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                }, 20);
+            }
         }
 
         function openTradesModal() {
@@ -312,7 +408,12 @@
                             instHtml = `<details style="margin-top:8px; font-size:0.75rem; color:#64748b; cursor:pointer;">
                                 <summary style="font-weight:600; outline:none; user-select:none; color:#0969da;">${d.instruments.length} Trades Found</summary>
                                 <div style="margin-top:5px; padding-left:10px; border-left:2px solid #e2e8f0; line-height: 1.5;">
-                                    ${d.instruments.join('<br>')}
+                                    ${d.instruments.map(i => `
+                                        <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:3px 0;" onclick="loadInstrument('${i.symbol}', '${d.date}')" title="Click to load this instrument chart">
+                                            <span style="color:#0969da; text-decoration:underline;">${i.symbol}</span>
+                                            <span style="font-size:0.65rem; padding: 2px 5px; border-radius: 4px; background: ${i.has_data ? '#dcfce7' : '#fee2e2'}; color: ${i.has_data ? '#166534' : '#991b1b'};">${i.has_data ? '✅ Data Saved' : '❌ No Data'}</span>
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </details>`;
                         }
@@ -351,12 +452,31 @@
         document.getElementById('run-btn').onclick = () => runStrategy();
         document.getElementById('prev-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()-1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
         document.getElementById('next-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
-        document.getElementById('fit-btn').onclick = () => chart.timeScale().fitContent();
-        document.getElementById('sidebar-toggle-btn').onclick = () => { const sb = document.getElementById('sidebar'); sb.classList.toggle('collapsed'); document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀'; };
+        document.getElementById('dual-view-btn').onclick = toggleDualView;
+        document.getElementById('fit-btn').onclick = () => { chartMain.timeScale().fitContent(); if(chartOpt) chartOpt.timeScale().fitContent(); };
+        document.getElementById('sidebar-toggle-btn').onclick = (e) => { 
+            e.stopPropagation();
+            const sb = document.getElementById('sidebar'); 
+            sb.classList.toggle('collapsed'); 
+            document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀'; 
+        };
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            const sb = document.getElementById('sidebar');
+            const btn = document.getElementById('sidebar-toggle-btn');
+            if (!sb.contains(e.target) && e.target !== btn && !sb.classList.contains('collapsed')) {
+                sb.classList.add('collapsed');
+                btn.innerText = '▶';
+            }
+        });
+
+        // Prevent closing when clicking inside sidebar
+        document.getElementById('sidebar').onclick = (e) => e.stopPropagation();
 
         window.addEventListener('DOMContentLoaded', () => {
             initChart();
-            runStrategy();
+            runStrategy(false);
         });
     </script>
 </body>

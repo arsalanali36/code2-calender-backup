@@ -76,7 +76,7 @@ def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     if not all_data: return pd.DataFrame()
     return pd.DataFrame(all_data).set_index('Datetime')
 
-def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid=''):
+def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid=''):
     df = pd.DataFrame()
     today_str = datetime.now().strftime('%Y-%m-%d')
     
@@ -91,7 +91,12 @@ def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end
             source = 'dhan_local' # Try local first
     
     if source == 'dhan_local':
-        path = "data/nifty_1m_dhan.csv"
+        if symbol == 'Nifty 50 (^NSEI)':
+            path = "data/Historical_OHLC/nifty_1m_dhan.csv"
+        else:
+            fmt_date = pd.to_datetime(start_date).strftime('%d_%m_%a')
+            path = f"data/Historical_OHLC/Options/{symbol}_{fmt_date}.csv"
+        
         if os.path.exists(path):
             df = pd.read_csv(path); df['datetime'] = pd.to_datetime(df['datetime'])
             # STRICT FILTER
@@ -135,7 +140,7 @@ def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end
                 })
     return df_filtered, zones
 
-def get_real_trades(start_date, end_date):
+def get_real_trades(start_date, end_date, symbol=None):
     path = os.path.join('data', 'trades_1.json')
     if not os.path.exists(path): return []
     try:
@@ -147,6 +152,10 @@ def get_real_trades(start_date, end_date):
         try: t_dt = datetime.strptime(d_str, '%Y-%m-%d').date()
         except: continue
         if s_dt <= t_dt <= e_dt:
+            inst = t.get('Instrument', '')
+            if symbol and symbol != 'Nifty 50 (^NSEI)' and inst != symbol:
+                continue
+            
             tr_type = t.get('TradeType', 'buy'); entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time'); exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time')
             if entry_t and exit_t:
                 try:
@@ -157,7 +166,7 @@ def get_real_trades(start_date, end_date):
     return processed
 
 def get_archive_dates():
-    path = "data/nifty_1m_dhan.csv"
+    path = "data/Historical_OHLC/nifty_1m_dhan.csv"
     if not os.path.exists(path): return []
     try:
         df = pd.read_csv(path)
@@ -186,7 +195,12 @@ def get_archive_dates():
             else:
                 res_str = "N/A"
             
-            insts = list(trades_map.get(date, set()))
+            insts = []
+            for inst in trades_map.get(date, set()):
+                # Format the date as DD_MM_Day (e.g., 13_04_Mon)
+                fmt_date = pd.to_datetime(date).strftime('%d_%m_%a')
+                cp = f"data/Historical_OHLC/Options/{inst}_{fmt_date}.csv"
+                insts.append({'symbol': inst, 'has_data': os.path.exists(cp)})
             results.append({'date': date, 'resolution': res_str, 'instruments': insts})
             
         return sorted(results, key=lambda x: x['date'], reverse=True)

@@ -76,9 +76,13 @@ _STRIKE_STEP = {
 }
 
 
-def _expired_option_cache_path(symbol, trade_date):
-    safe = symbol.replace(' ', '_').replace('/', '_')
-    return os.path.join(OHLC_CACHE_DIR, f"EXP_{safe}_{trade_date}.csv")
+def _expired_option_cache_path(symbol, trade_date=None):
+    from datetime import datetime
+    safe = symbol.replace('_', ' ')
+    if trade_date:
+        fmt_date = datetime.strptime(trade_date, '%Y-%m-%d').strftime('%d_%m_%a')
+        return os.path.join(OHLC_CACHE_DIR, f"{safe}_{fmt_date}.csv")
+    return os.path.join(OHLC_CACHE_DIR, f"{safe}.csv")
 
 
 def _fetch_underlying_spot(underlying, trade_date, headers, entry_time=None):
@@ -209,7 +213,7 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
                 continue
             cp = _expired_option_cache_path(symbol, trade_date)
             df.to_csv(cp, index=False)
-            _write_meta(f"EXP_{symbol}", trade_date, df['datetime'].max())
+            _write_meta(symbol, trade_date, df['datetime'].max())
             return df
         except Exception as e:
             last_error = str(e)
