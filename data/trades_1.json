@@ -18210,9 +18210,15 @@
     },
     "2026-02-10": {
       "audios": {},
+      "closeGlobalImages": [],
       "closeImages": [],
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776064631/trading_journal/aa1dee72-0a88-4288-92d0-d588f4cead30.png",
+        "/uploads/41e60f92a7044001994b516a599c05ce.webm",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776064631/trading_journal/311fd30e-c1f4-4460-94f5-d7f7dda8f098.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776064631/trading_journal/304db2f7-36bc-4f0b-82f4-79ddd163449f.png"
+      ],
       "marqueeBoxes": {
         "/uploads/31b56795-b1ae-4b70-940d-4156400b461a.png": [],
         "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [],
@@ -18248,36 +18254,22 @@
           }
         ]
       },
+      "newsImages": [],
       "overlays": {
         "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": "/uploads/286b5df0-5c7c-4c70-b329-b25c5280820b.png",
         "/uploads/40b8baae-d755-478e-aa85-b42fe529ffcf.png": "/uploads/30cb34c1-176e-4bd9-9e3b-259795139850.png",
         "/uploads/682a702e-4e04-423b-90d9-618b96be6c7a.png": "/uploads/5a1d00b3-e36c-4206-83b6-2b78b9f392a3.png",
         "/uploads/be7fbba0-47f3-4611-9d58-2f7533bdc229.png": "/uploads/95ac6017-55f4-4bda-b6ca-f3fb613c25a2.png"
       },
+      "tradeRefCards": {},
       "video": "https://youtu.be/bdu8J9ttEWA?si=lDo2eXiTArnM2ksf"
     },
     "2026-02-11": {
       "audios": {},
+      "closeGlobalImages": [],
       "closeImages": [],
       "imageTags": {},
-      "images": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381837/trading_journal/cbba85af-2b84-45da-8839-57a513da4d25.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381864/trading_journal/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381824/trading_journal/c249f96b-1e2f-4c62-b5fb-175e25f3ca9c.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381539/trading_journal/0ec01064-5782-42ea-8885-40cb10c7ba1e.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381616/trading_journal/443bbe4f-b8f2-4e36-8bd2-5fe2dda834fe.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381697/trading_journal/74d4db2e-f5a5-421a-b79f-ea065e989865.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381690/trading_journal/718cd4e2-5f6f-45dc-a6b3-7130d58c1561.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381811/trading_journal/bd8e2a96-4592-43b7-8a0e-273057224580.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381514/trading_journal/035ab5ff-0d68-4525-b5ff-c0ea266debed.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381621/trading_journal/469b5e8a-3bff-4a77-b415-bceb3ccc6842.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381839/trading_journal/cd149421-88f5-4968-94ee-b371e20d474f.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381722/trading_journal/8831fb12-1b8a-4cf6-8956-011b6e364b5e.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381626/trading_journal/48c44015-4484-4d4e-8c48-0629c8884348.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381707/trading_journal/7be1f3da-aa86-4a96-b9ad-7228e36d88e5.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381536/trading_journal/0c70010c-52f9-464c-833a-32a7a80d13fd.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381835/trading_journal/ca4d5485-db5a-4a3a-b573-7bab8a3dbf09.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
         "/uploads/035ab5ff-0d68-4525-b5ff-c0ea266debed.png": [
           {
@@ -18397,6 +18389,7 @@
         ],
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": []
       },
+      "newsImages": [],
       "overlays": {
         "/uploads/cbba85af-2b84-45da-8839-57a513da4d25.png": "/uploads/2a8926e8-0839-40f5-87ba-a0dcf6a960ef.png",
         "/uploads/d90d2ee2-7c9b-4052-93a0-7601932c0a9f.png": "/uploads/5f70ea20-73ef-4750-9a4d-927e880d2e56.png"
@@ -18405,16 +18398,15 @@
     },
     "2026-02-12": {
       "audios": {},
+      "closeGlobalImages": [],
       "closeImages": [],
       "imageTags": {},
-      "images": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381728/trading_journal/8b9296b7-1434-4cb7-9175-1afe3cce727f.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381834/trading_journal/ca3831d2-cb3a-4341-992a-52375af9bc60.png"
-      ],
+      "images": [],
       "marqueeBoxes": {
         "/uploads/8b9296b7-1434-4cb7-9175-1afe3cce727f.png": [],
         "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": []
       },
+      "newsImages": [],
       "overlays": {
         "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": "/uploads/bcecb785-6aad-4501-8563-ec1ad069e073.png"
       },
@@ -28213,59 +28205,6 @@
       "2": [
         "thumbnail"
       ],
-      "15": [
-        "WildSwing"
-      ],
-      "19": [
-        "WildSwing",
-        "Wild Rise",
-        "V Shape Recovery"
-      ],
-      "20": [
-        "WildSwing",
-        "Wild Rise"
-      ],
-      "22": [
-        "V Shape Recovery"
-      ],
-      "23": [
-        "Wild Rise"
-      ],
-      "26": [
-        "Wild Rise"
-      ],
-      "15_pins": [
-        {
-          "color": "#9b59b6",
-          "id": "mnuhzl2dtc05",
-          "tag": "WildSwing",
-          "x": 52.7,
-          "y": 80
-        }
-      ],
-      "19_pins": [
-        {
-          "color": "#9b59b6",
-          "id": "mnuhzvdglvx0",
-          "tag": "WildSwing",
-          "x": 51,
-          "y": 60
-        },
-        {
-          "color": "#ffd700",
-          "id": "mnui0iro58jg",
-          "tag": "Wild Rise",
-          "x": 59.9,
-          "y": 37.6
-        },
-        {
-          "color": "#e67e22",
-          "id": "mnui2i6rrmsn",
-          "tag": "V Shape Recovery",
-          "x": 58.4,
-          "y": 38.8
-        }
-      ],
       "1_pins": [
         {
           "color": "#00d2ff",
@@ -28273,49 +28212,6 @@
           "tag": "thumbnail",
           "x": 59,
           "y": 19.2
-        }
-      ],
-      "20_pins": [
-        {
-          "color": "#9b59b6",
-          "id": "mnui005nqmao",
-          "tag": "WildSwing",
-          "x": 53.2,
-          "y": 85.7
-        },
-        {
-          "color": "#ffd700",
-          "id": "mnui0c5514bm",
-          "tag": "Wild Rise",
-          "x": 53,
-          "y": 28.9
-        }
-      ],
-      "22_pins": [
-        {
-          "color": "#e67e22",
-          "id": "mnui37f42wk0",
-          "tag": "V Shape Recovery",
-          "x": 53.3,
-          "y": 44.2
-        }
-      ],
-      "23_pins": [
-        {
-          "color": "#ffd700",
-          "id": "mnui0qsxmotz",
-          "tag": "Wild Rise",
-          "x": 71.6,
-          "y": 43.6
-        }
-      ],
-      "26_pins": [
-        {
-          "color": "#ffd700",
-          "id": "mnui13h0gh75",
-          "tag": "Wild Rise",
-          "x": 57.4,
-          "y": 84.1
         }
       ],
       "2_pins": [

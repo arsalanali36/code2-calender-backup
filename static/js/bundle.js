@@ -715,6 +715,7 @@ const state = {
   dayData: {},   // keyed by YYYY-MM-DD: { images: [], tags: { ColName: [tag,...] } }
   importedPdfs: [], // List of imported PDF records: { name, date, images: [], timestamp }
   _localOverlays: {}, // temporary per-image overlay cache until upload completes
+  uiSettings: {},    // dashboard layout prefs (visibility, order, widths, modes) — synced to server
   serverStateHash: '',
   syncIntervalMs: 10000
 };
@@ -1450,6 +1451,7 @@ if (_TJ_CHANNEL) {
         dayData:     state.dayData,
         tagGroups:   state.tagGroups,
         pdfPageTags: state.pdfPageTags,
+        uiSettings:  state.uiSettings,
       });
     }
   });
@@ -1491,6 +1493,7 @@ function _applyBroadcastData(data) {
   state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
   state.pdfPageTags  = (data.pdfPageTags && typeof data.pdfPageTags === 'object') ? data.pdfPageTags : {};
   state.imgTypes    = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
+  state.uiSettings  = (data.uiSettings && typeof data.uiSettings === 'object') ? data.uiSettings : {};
   syncTagColumnRegistry();
   state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
   syncImageTagColumnValues();
@@ -1499,6 +1502,7 @@ function _applyBroadcastData(data) {
   state.serverStateHash = hashServerState(data);
   initShowHeads();
   initTableShowCols();
+  if (typeof applyVdChartModes === 'function') applyVdChartModes();
   render();
   _dismissLoadingOverlay();
 }
@@ -1609,6 +1613,7 @@ async function loadTrades() {
     state.pdfPageTags = (data.pdfPageTags && typeof data.pdfPageTags === 'object') ? data.pdfPageTags : {};
     state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
+    state.uiSettings = (data.uiSettings && typeof data.uiSettings === 'object') ? data.uiSettings : {};
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -1621,6 +1626,7 @@ async function loadTrades() {
     state.serverStateHash = hashServerState(data);
     initShowHeads();
     initTableShowCols();
+    if (typeof applyVdChartModes === 'function') applyVdChartModes();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
     _dismissLoadingOverlay();
@@ -1648,24 +1654,31 @@ function setPdfPageTags(pdfId, pageNo, tags) {
   }
 }
 
+let _saveTradesQueue = Promise.resolve();
 async function saveTrades() {
-  try {
-    const payload = {
-      trades: state.trades,
-      columns: state.columns,
-      allTags: state.allTags,
-      tagColumns: state.tagColumns,
-      userColumns: state.userColumns,
-      dayData: state.dayData,
-      importedPdfs: state.importedPdfs,
-      tagGroups: state.tagGroups,
-      tagTemplates: state.tagTemplates,
-      pdfPageTags: state.pdfPageTags,
-      imgTypes: state.imgTypes
-    };
-    await tradeService.saveTrades(payload);
-    state.serverStateHash = hashServerState(payload);
-  } catch (e) { showToast('Save failed', 'error'); }
+  const previous = _saveTradesQueue;
+  _saveTradesQueue = (async () => {
+    try { await previous; } catch (e) {}
+    try {
+      const payload = {
+        trades: state.trades,
+        columns: state.columns,
+        allTags: state.allTags,
+        tagColumns: state.tagColumns,
+        userColumns: state.userColumns,
+        dayData: state.dayData,
+        importedPdfs: state.importedPdfs,
+        tagGroups: state.tagGroups,
+        tagTemplates: state.tagTemplates,
+        pdfPageTags: state.pdfPageTags,
+        imgTypes: state.imgTypes,
+        uiSettings: state.uiSettings || {}
+      };
+      await tradeService.saveTrades(payload);
+      state.serverStateHash = hashServerState(payload);
+    } catch (e) { showToast('Save failed', 'error'); }
+  })();
+  await _saveTradesQueue;
 }
 
 function hashServerState(data) {
@@ -1680,7 +1693,8 @@ function hashServerState(data) {
       importedPdfs: data?.importedPdfs || [],
       tagGroups: data?.tagGroups || {},
       tagTemplates: data?.tagTemplates || {},
-      pdfPageTags: data?.pdfPageTags || {}
+      pdfPageTags: data?.pdfPageTags || {},
+      uiSettings: data?.uiSettings || {}
     });
   } catch (e) {
     return '';
@@ -8801,8 +8815,8 @@ function renderGalleryThumbs() {
       lastTradeIdxRendered++;
     }
   }
-  if (!_filterActive3 && !renderedCloseSep && date) thumbs.appendChild(createSpecialSeparator('CLOSE', true));
-  if (!_filterActive3 && !renderedCloseGlobalSep && date) thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
+  if (!_filterActive3 && !_perDateRenderedSeps.has(date + ':CLOSE') && date) thumbs.appendChild(createSpecialSeparator('CLOSE', true));
+  if (!_filterActive3 && !_perDateRenderedSeps.has(date + ':CLOSE_GLOBAL') && date) thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
 
   // ── Footer: PREMIUM + blank button + scroll (in gallery-render-thumbs-b.js)
   _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
@@ -10334,6 +10348,7 @@ function renderGallery() {
     renderGridContent();
   }
 
+  const mtmPanel = document.getElementById('gv2-mtm-panel');
   if (mtmPanel && mtmPanel.style.display !== 'none') {
     if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
   }
@@ -12259,17 +12274,29 @@ async function removeGalleryImageAt(idx, force = false) {
         t2.innerHTML = `Parent removed, ${subImages.length} image(s) ungrouped. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
         t2.className = 'toast success show';
         setTimeout(() => { t2.className = 'toast'; }, 4000);
-        if (!state.gallery.images.length) { document.getElementById('gallery-modal').classList.remove('open'); unlockBodyScroll(); }
-        await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
+        if (typeof window.saveTrades === 'function') await window.saveTrades();
         return;
     }
 
     const urlsToDelete = [imageUrl, ...subImages];
 
+    let activeDayDate = dayDate;
+    if (!ownerTrade && !activeDayDate) {
+        for (const [dKey, dObj] of Object.entries(state.dayData || {})) {
+            if ((dObj.images || []).some(u => urlsToDelete.includes(u)) ||
+                (dObj.newsImages || []).some(u => urlsToDelete.includes(u)) ||
+                (dObj.closeImages || []).some(u => urlsToDelete.includes(u)) ||
+                (dObj.closeGlobalImages || []).some(u => urlsToDelete.includes(u))) {
+                activeDayDate = dKey;
+                break;
+            }
+        }
+    }
+
     // Backup for undo
     const backupTradeIdx = ownerTrade ? state.trades.indexOf(ownerTrade) : -1;
     const backupTradeClone = ownerTrade ? JSON.parse(JSON.stringify(ownerTrade)) : null;
-    const backupDay = dayDate && state.dayData[dayDate] ? JSON.parse(JSON.stringify(state.dayData[dayDate])) : null;
+    const backupDay = (!ownerTrade && activeDayDate && state.dayData[activeDayDate]) ? JSON.parse(JSON.stringify(state.dayData[activeDayDate])) : null;
     const backupArr = [...arr];
     const backupCurrentIndex = state.gallery.currentIndex;
     const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
@@ -12312,39 +12339,39 @@ async function removeGalleryImageAt(idx, force = false) {
             if (Object.keys(ownerTrade.subImages).length === 0) delete ownerTrade.subImages;
         }
         cleanupImageTagStore(ownerTrade);
-    } else if (dayDate && state.dayData[dayDate]) {
-        const d = state.dayData[dayDate];
+    } else if (activeDayDate && state.dayData[activeDayDate]) {
+        const d = state.dayData[activeDayDate];
         d.images = (d.images || []).filter(u => !urlsToDelete.includes(u));
         d.newsImages = (d.newsImages || []).filter(u => !urlsToDelete.includes(u));
         d.closeImages = (d.closeImages || []).filter(u => !urlsToDelete.includes(u));
         d.closeGlobalImages = (d.closeGlobalImages || []).filter(u => !urlsToDelete.includes(u));
         urlsToDelete.forEach(u => {
-            if (state.dayData[dayDate].overlays?.[u]) delete state.dayData[dayDate].overlays[u];
-            if (state.dayData[dayDate].marqueeBoxes?.[u]) delete state.dayData[dayDate].marqueeBoxes[u];
-            if (state.dayData[dayDate].videos) {
-                if (state.dayData[dayDate].videos[u]) delete state.dayData[dayDate].videos[u];
-                const key = Object.keys(state.dayData[dayDate].videos).find(k => state.dayData[dayDate].videos[k] === u);
-                if (key) delete state.dayData[dayDate].videos[key];
+            if (state.dayData[activeDayDate].overlays?.[u]) delete state.dayData[activeDayDate].overlays[u];
+            if (state.dayData[activeDayDate].marqueeBoxes?.[u]) delete state.dayData[activeDayDate].marqueeBoxes[u];
+            if (state.dayData[activeDayDate].videos) {
+                if (state.dayData[activeDayDate].videos[u]) delete state.dayData[activeDayDate].videos[u];
+                const key = Object.keys(state.dayData[activeDayDate].videos).find(k => state.dayData[activeDayDate].videos[k] === u);
+                if (key) delete state.dayData[activeDayDate].videos[key];
             }
-            if (state.dayData[dayDate].audios) {
-                if (state.dayData[dayDate].audios[u]) delete state.dayData[dayDate].audios[u];
-                const key = Object.keys(state.dayData[dayDate].audios).find(k => state.dayData[dayDate].audios[k] === u);
-                if (key) delete state.dayData[dayDate].audios[key];
+            if (state.dayData[activeDayDate].audios) {
+                if (state.dayData[activeDayDate].audios[u]) delete state.dayData[activeDayDate].audios[u];
+                const key = Object.keys(state.dayData[activeDayDate].audios).find(k => state.dayData[activeDayDate].audios[k] === u);
+                if (key) delete state.dayData[activeDayDate].audios[key];
             }
         });
-        if (state.dayData[dayDate].subImages && state.dayData[dayDate].subImages[imageUrl]) delete state.dayData[dayDate].subImages[imageUrl];
+        if (state.dayData[activeDayDate].subImages && state.dayData[activeDayDate].subImages[imageUrl]) delete state.dayData[activeDayDate].subImages[imageUrl];
         // Remove deleted URLs from any parent's subImages (handles sub-image deletion)
-        if (state.dayData[dayDate].subImages) {
-            for (const [pUrl, subs] of Object.entries(state.dayData[dayDate].subImages)) {
+        if (state.dayData[activeDayDate].subImages) {
+            for (const [pUrl, subs] of Object.entries(state.dayData[activeDayDate].subImages)) {
                 const filtered = subs.filter(u => !urlsToDelete.includes(u));
                 if (filtered.length === 0) {
-                    delete state.dayData[dayDate].subImages[pUrl];
+                    delete state.dayData[activeDayDate].subImages[pUrl];
                     if (state.gallery.expandedGroups) state.gallery.expandedGroups.delete(pUrl);
                 } else if (filtered.length < subs.length) {
-                    state.dayData[dayDate].subImages[pUrl] = filtered;
+                    state.dayData[activeDayDate].subImages[pUrl] = filtered;
                 }
             }
-            if (Object.keys(state.dayData[dayDate].subImages).length === 0) delete state.dayData[dayDate].subImages;
+            if (Object.keys(state.dayData[activeDayDate].subImages).length === 0) delete state.dayData[activeDayDate].subImages;
         }
     }
 
@@ -12407,7 +12434,7 @@ async function removeGalleryImageAt(idx, force = false) {
         unlockBodyScroll();
     }
 
-    await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
+    if (typeof window.saveTrades === 'function') await window.saveTrades();
 }
 
 
@@ -12880,6 +12907,7 @@ function showGalleryContextMenu(x, y) {
             const cleanupObj = (obj) => {
                 if (!obj) return;
                 obj.images = (obj.images || []).filter(u => !toDelete.has(u));
+                if (obj.newsImages) obj.newsImages = obj.newsImages.filter(u => !toDelete.has(u));
                 if (obj.closeImages) obj.closeImages = obj.closeImages.filter(u => !toDelete.has(u));
                 if (obj.closeGlobalImages) obj.closeGlobalImages = obj.closeGlobalImages.filter(u => !toDelete.has(u));
                 if (obj.subImages) {
@@ -12892,10 +12920,8 @@ function showGalleryContextMenu(x, y) {
                 }
             };
 
-            if (dayDate) {
-                getTradesForDate(dayDate).forEach(cleanupObj);
-                if (state.dayData[dayDate]) cleanupObj(state.dayData[dayDate]);
-            }
+            state.trades.forEach(cleanupObj);
+            Object.values(state.dayData || {}).forEach(cleanupObj);
 
             state.gallery.images = arr.filter(u => !toDelete.has(u));
             state.gallery.selectedIndices = new Set();
@@ -12911,8 +12937,27 @@ function showGalleryContextMenu(x, y) {
             renderGallery(); renderTable(); renderCalendar();
             await saveTrades();
 
+            const timerId = setTimeout(async () => {
+                const idx = window.galleryUndoStack.indexOf(actionBackup);
+                if (idx > -1) window.galleryUndoStack.splice(idx, 1);
+                for (const dictUrl of toDelete) {
+                    try {
+                        if (typeof isVideoUrl === 'function' && isVideoUrl(dictUrl)) {
+                            await imageService.deleteVideo(dictUrl);
+                        } else if (dictUrl.endsWith('.webm') || dictUrl.endsWith('.mp3')) {
+                            await imageService.deleteAudio(dictUrl);
+                        } else {
+                            const filename = String(dictUrl || '').split('/').pop();
+                            await imageService.deleteImage('/uploads/' + filename);
+                        }
+                    } catch (e) { }
+                }
+            }, 5000);
+
+            const actionBackup = { backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate, deleteTimer: timerId };
             window.galleryUndoStack = window.galleryUndoStack || [];
-            window.galleryUndoStack.push({ backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate });
+            window.galleryUndoStack.push(actionBackup);
+            
             const t = document.getElementById('toast');
             t.innerHTML = `Deleted ${toDelete.size} image(s). <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
             t.className = 'toast success show';
@@ -29312,37 +29357,54 @@ const VD_STATS = [
     { key: 'avg_buy_price', label: 'Avg Buy Price' }
 ];
 
-function getVdStatsState() {
+// ── uiSettings helpers ─────────────────────────────────────────────────────
+// Reads a key from state.uiSettings (server-persisted), falling back to
+// localStorage for backwards-compat on first load, then migrates to server.
+function _vdUiGet(key, def) {
+    if (typeof state !== 'undefined' && state.uiSettings && state.uiSettings[key] !== undefined)
+        return state.uiSettings[key];
+    // One-time migration: pull old value from localStorage if present
     try {
-        const raw = localStorage.getItem('vdStats');
-        if (raw) return JSON.parse(raw);
+        const raw = localStorage.getItem(key);
+        if (raw !== null) return JSON.parse(raw);
     } catch (e) { }
+    return def;
+}
+
+function _vdUiSet(key, val) {
+    if (typeof state === 'undefined') return;
+    if (!state.uiSettings) state.uiSettings = {};
+    state.uiSettings[key] = val;
+    // Remove migrated localStorage key so we don't read stale data again
+    try { localStorage.removeItem(key); } catch (e) { }
+    if (typeof saveTrades === 'function') saveTrades();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getVdStatsState() {
+    const saved = _vdUiGet('vdStats', null);
+    if (saved && typeof saved === 'object') return saved;
     const all = {};
     VD_STATS.forEach(s => { all[s.key] = true; });
     return all;
 }
 
 function saveVdStatsState(stateMap) {
-    try { localStorage.setItem('vdStats', JSON.stringify(stateMap)); } catch (e) { }
+    _vdUiSet('vdStats', stateMap);
 }
 
 function getVdStatsOrder() {
-    try {
-        const raw = localStorage.getItem('vdStatsOrder');
-        if (raw) {
-            const arr = JSON.parse(raw);
-            if (Array.isArray(arr) && arr.length) {
-                const valid = arr.filter(k => VD_STATS.some(s => s.key === k));
-                const missing = VD_STATS.map(s => s.key).filter(k => !valid.includes(k));
-                return [...valid, ...missing];
-            }
-        }
-    } catch (e) { }
+    const arr = _vdUiGet('vdStatsOrder', null);
+    if (Array.isArray(arr) && arr.length) {
+        const valid = arr.filter(k => VD_STATS.some(s => s.key === k));
+        const missing = VD_STATS.map(s => s.key).filter(k => !valid.includes(k));
+        return [...valid, ...missing];
+    }
     return VD_STATS.map(s => s.key);
 }
 
 function saveVdStatsOrder(order) {
-    try { localStorage.setItem('vdStatsOrder', JSON.stringify(order)); } catch (e) { }
+    _vdUiSet('vdStatsOrder', order);
 }
 
 function applyVdStatVisibility() {
@@ -29597,15 +29659,11 @@ window.updateVdChartType = updateVdChartType;
 
 
 function getVdCardWidths() {
-    try {
-        const raw = localStorage.getItem('vdCardWidths');
-        if (raw) return JSON.parse(raw);
-    } catch (e) { }
-    return {}; // Default
+    return _vdUiGet('vdCardWidths', {});
 }
 
 function saveVdCardWidths(w) {
-    try { localStorage.setItem('vdCardWidths', JSON.stringify(w)); } catch (e) { }
+    _vdUiSet('vdCardWidths', w);
 }
 
 function updateVdChartWidth(chartKey, cols) {
@@ -29662,7 +29720,24 @@ const vdState = {
 
 function updateVdChartMode(chartKey, mode) {
     vdState.chartModes[chartKey] = mode;
+    // Persist to server so all devices see the same mode
+    if (typeof _vdUiSet === 'function') _vdUiSet('vdChartModes', vdState.chartModes);
     renderVisualDashboard();
+}
+
+// Called after trades load — restores saved chart modes into vdState and updates DOM selects
+function applyVdChartModes() {
+    if (typeof _vdUiGet !== 'function') return;
+    const saved = _vdUiGet('vdChartModes', null);
+    if (!saved || typeof saved !== 'object') return;
+    Object.assign(vdState.chartModes, saved);
+    // Sync the mode <select> elements in the DOM
+    document.querySelectorAll('.vd-mode-select').forEach(sel => {
+        const card = sel.closest('.dash-card[data-vd-stat]');
+        if (!card) return;
+        const key = card.getAttribute('data-vd-stat');
+        if (key && saved[key]) sel.value = saved[key];
+    });
 }
 
 function updateVdMtmValueType(type) {
