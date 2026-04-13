@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Lab | Trading Journal</title>
+    <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}">
+    <style>
+        :root {
+            --bg-light: #ffffff;
+            --sidebar-width: 320px;
+            --accent: #0969da;
+        }
+
+        body {
+            background-color: #f6f8fa;
+            color: #24292f;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .lab-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            border-bottom: 1px solid #d0d7de;
+            background: #ffffff;
+        }
+
+        .lab-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .lab-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .lab-sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid #d0d7de;
+            background: #ffffff;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .lab-main {
+            flex: 1;
+            position: relative;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 0.8rem;
+            color: #57606a;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .lab-input {
+            background: #ffffff;
+            border: 1px solid #d0d7de;
+            color: #24292f;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .lab-btn {
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .lab-btn-outline {
+            background: transparent;
+            border: 1px solid #d0d7de;
+            color: #24292f;
+        }
+
+        #chart-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 2px 0;
+        }
+
+        .setting-item input {
+            cursor: pointer;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: var(--accent);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="lab-header">
+        <div class="lab-logo">
+            <img src="/static/img/logo.png" height="30" alt="logo">
+            <span>Strategy Lab</span>
+        </div>
+        <div class="header-actions">
+            <button class="lab-btn-outline lab-btn" id="export-pdf-btn">📄 Export PDF</button>
+            <a href="/" class="lab-btn-outline lab-btn" style="text-decoration:none; margin-left:10px;">🏠 Home</a>
+        </div>
+    </header>
+
+    <div class="lab-container">
+        <aside class="lab-sidebar">
+            <div class="control-group">
+                <span class="control-label">Symbol</span>
+                <input type="text" value="Nifty 50 (^NSEI)" class="lab-input" disabled>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Strategy</span>
+                <select id="strategy-select" class="lab-input">
+                    <option value="arsalan_continuation">Arsalan Continuation</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Timeframe</span>
+                <select id="timeframe-select" class="lab-input">
+                    <option value="1m">1 Minute</option>
+                    <option value="3m">3 Minutes</option>
+                    <option value="5m" selected>5 Minutes</option>
+                    <option value="15m">15 Minutes</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Date Range</span>
+                <div style="display:flex; gap:5px;">
+                    <input type="date" id="start-date" class="lab-input" style="flex:1;">
+                    <input type="date" id="end-date" class="lab-input" style="flex:1;">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Market Time</span>
+                <div style="display:flex; gap:5px;">
+                    <input type="time" id="start-time" value="09:15" class="lab-input" style="flex:1;">
+                    <input type="time" id="end-time" value="15:30" class="lab-input" style="flex:1;">
+                </div>
+            </div>
+
+            <div class="control-group" id="strategy-options">
+                <span class="control-label">Strategy Settings</span>
+                <label class="setting-item"><input type="checkbox" id="use-fresh-zone" checked> Use Fresh Zone Only</label>
+                <label class="setting-item"><input type="checkbox" id="fib-exit" checked> Fib Exit</label>
+                <label class="setting-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
+                <label class="setting-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
+                <label class="setting-item"><input type="checkbox" id="show-fib" checked> Show Fib Lines</label>
+                <label class="setting-item"><input type="checkbox" id="keep-old-lines"> Keep Old Breakout Lines</label>
+            </div>
+
+            <button class="lab-btn" id="run-btn">🚀 Run Strategy</button>
+        </aside>
+
+        <main class="lab-main">
+            <div class="loading-overlay" id="loader">Running Strategy...</div>
+            <div class="chart-wrapper">
+                <div id="chart-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
+    <script src="/static/js/vendor/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // Set default dates
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 7);
+        document.getElementById('end-date').value = end.toISOString().split('T')[0];
+        document.getElementById('start-date').value = start.toISOString().split('T')[0];
+
+        let chart;
+        let candleSeries;
+        let ema10Series, ema20Series, demaSeries;
+        let zoneSeriesList = [];
+
+        function initChart() {
+            const chartElement = document.getElementById('chart-container');
+            chart = LightweightCharts.createChart(chartElement, {
+                layout: {
+                    background: { color: '#ffffff' },
+                    textColor: '#1f2328',
+                },
+                grid: {
+                    vertLines: { color: '#f0f0f0' },
+                    horzLines: { color: '#f0f0f0' },
+                },
+                timeScale: { timeVisible: true },
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+                wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+            });
+
+            ema10Series = chart.addLineSeries({ color: '#0969da', lineWidth: 1, title: 'EMA 10' });
+            ema20Series = chart.addLineSeries({ color: '#cf222e', lineWidth: 1, title: 'EMA 20' });
+            demaSeries = chart.addLineSeries({ color: '#57606a', lineWidth: 2, title: 'DEMA 100' });
+
+            window.addEventListener('resize', () => {
+                chart.applyOptions({ width: chartElement.clientWidth, height: chartElement.clientHeight });
+            });
+        }
+
+        function clearZones() {
+            zoneSeriesList.forEach(s => chart.removeSeries(s));
+            zoneSeriesList = [];
+        }
+
+        async function runStrategy() {
+            const startStr = document.getElementById('start-date').value;
+            const endStr = document.getElementById('end-date').value;
+            const timeframe = document.getElementById('timeframe-select').value;
+            const loader = document.getElementById('loader');
+
+            loader.style.display = 'flex';
+            clearZones();
+
+            try {
+                // Collect settings
+                const settings = {
+                    fresh_zone: document.getElementById('use-fresh-zone').checked,
+                    fib_exit: document.getElementById('fib-exit').checked,
+                    zone_exit: document.getElementById('zone-exit').checked,
+                    atr_exit: document.getElementById('atr-exit').checked,
+                    start_time: document.getElementById('start-time').value,
+                    end_time: document.getElementById('end-time').value
+                };
+
+                const params = new URLSearchParams({
+                    start_date: startStr,
+                    end_date: endStr,
+                    timeframe: timeframe,
+                    ...settings
+                });
+
+                const res = await fetch(`/api/strategy/nifty-data?${params.toString()}`);
+                const dataRaw = await res.json();
+                if (dataRaw.error) { alert(dataRaw.error); return; }
+
+                const data = dataRaw.chart_data;
+                const zones = dataRaw.zones;
+
+                candleSeries.setData(data.filter(d => !d.is_gap).map(d => ({
+                    time: d.time, open: d.open, high: d.high, low: d.low, close: d.close
+                })));
+
+                // Line series use gaps (with undefined) to break the lines
+                ema10Series.setData(data.map(d => ({ 
+                    time: d.time, 
+                    value: (d.ema10 === null || d.is_gap) ? undefined : d.ema10 
+                })));
+                ema20Series.setData(data.map(d => ({ 
+                    time: d.time, 
+                    value: (d.ema20 === null || d.is_gap) ? undefined : d.ema20 
+                })));
+                demaSeries.setData(data.map(d => ({ 
+                    time: d.time, 
+                    value: (d.dema100 === null || d.is_gap) ? undefined : d.dema100 
+                })));
+
+                const allTimes = data.map(d => d.time);
+                const zoneMarkers = [];
+
+                zones.forEach(zone => {
+                    const zoneTimes = allTimes.filter(t => t >= zone.start_time && t <= zone.end_time);
+                    if (zoneTimes.length < 2) return;
+
+                    const color = zone.type === 'bull' ? '#26a69a' : '#800000';
+                    const upperS = chart.addLineSeries({ color: color, lineWidth: 2, lastValueVisible: false, priceLineVisible: false });
+                    const lowerS = chart.addLineSeries({ color: color, lineWidth: 2, lastValueVisible: false, priceLineVisible: false });
+                    
+                    upperS.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
+                    lowerS.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
+                    
+                    zoneSeriesList.push(upperS, lowerS);
+
+                    zoneMarkers.push({
+                        time: zoneTimes[zoneTimes.length - 1],
+                        position: 'inBar', color: color, shape: 'circle',
+                        text: `[${Math.round(zone.size)}]`
+                    });
+                });
+
+                const strategyMarkers = [];
+                data.forEach(d => {
+                    if (d.is_buy) strategyMarkers.push({ time: d.time, position: 'belowBar', color: '#26a69a', shape: 'arrowUp', text: 'BUY' });
+                    else if (d.is_sell) strategyMarkers.push({ time: d.time, position: 'aboveBar', color: '#ef5350', shape: 'arrowDown', text: 'SELL' });
+                });
+                
+                candleSeries.setMarkers([...strategyMarkers, ...zoneMarkers]);
+                chart.timeScale().fitContent();
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        document.getElementById('run-btn').addEventListener('click', runStrategy);
+        initChart();
+        runStrategy();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1856 @@
+//@version=5
+
+strategy(      "👨🏻‍🦱Arsalan_Continuation",      overlay = true,      pyramiding = 4,  margin_long = 100,      margin_short = 100,      process_orders_on_close = true      )
+
+
+//...........................⛱️⛱️⛱️........
+///// DATE TIME ////////////////////////
+//......................................
+
+startDate   = input.time(timestamp("2026-04-13 03:45"), title="Start Date", group="Date Range")
+endDate     = input.time(timestamp("2026-04-13 10:00"), title="End Date", group="Date Range")//10:00
+inDateRange = (time >= startDate and time <= endDate)
+
+
+
+// ================================
+// 🌐🕸️🌐🕸️ DHAN WEBHOOK INPUTS - Manual
+// ================================
+
+Continuation_Enable     = input.bool(true,  "🔀Continuation_Enable")
+
+
+// T1_Enable           = input.bool(false,  "🦖Manual Trade", group = "ManulEntry", inline = "A1")
+// T1_EntryHour        = input.int(10,  "H", minval = 0, maxval = 23, group = "ManulEntry", inline = "A")
+// T1_EntryMinute      = input.int(04, "M", minval = 0, maxval = 59, group = "ManulEntry" ,inline = "A")
+// T1_Strike_Input     = input.string("26250", title = "Strike",    group = "ManulEntry", inline = "B")
+// T1_Side             = input.string("SHORT", " ", options = ["LONG", "SHORT"], group = "ManulEntry", inline = "B")
+
+
+T1_Enable           = false
+T1_EntryHour        = 10
+T1_EntryMinute      = 01
+T1_Strike_Input     = 26250
+T1_Side             = "SHORT"
+
+Observation_text = ""
+dhanSecret = input.string("hRNMk", title = "dhanSecret",    group = "🗝️ Order Placement")
+ceDistanceStep = input.int(0, "CE Str Distance", options=[-3,-2,-1,0,1,2,3], tooltip="CALL: -ve = Sasta (OTM) | +ve = Mehnga (ITM)", group="🗝️ Order Placement", inline="yy")
+peDistanceStep = input.int(0, "PE Str Distance", options=[-3,-2,-1,0,1,2,3], tooltip="PUT: -ve = Mehnga (ITM) | +ve = Sasta (OTM)", group="🗝️ Order Placement", inline="yy")
+useManualStrike = input.bool(false, "Use Manual Strike",    group = "🗝️ Order Placement",inline = "xx")
+CE_Strike_Input = input.string("25950", title = "CE_Strike_Input",    group = "🗝️ Order Placement")
+PE_Strike_Input = input.string("25950", title = "PE_Strike_Input",     group = "🗝️ Order Placement")
+Lot_Input = input.string("1", title = "Lot_Input",     group = "🗝️ Order Placement")
+
+useFreshZoneOnly = input.bool(true, "Use Fresh Zone Only", group="🧠 Zone Logic")
+// Skip_BigCandle = input.bool(true, "Skip Big Candle Zone Exit", group="🧠 Zone Logic")
+Skip_BigCandle = true
+
+//
+// =================================================================
+// INPUT TOGGLES
+// =================================================================
+SL_Blw_Fib_Exit_Tog         = input.bool(true, title = "Fib Exit",group = "Exit ⏰")
+MainExit_Toggle             = input.bool(true, title = "Zone Exit",group = "Exit ⏰")
+AtrExit_Toggle              = input.bool(true, title = "AtrExit",group = "Exit ⏰")
+// TgtExit_Toggle              = input.bool(false, title = "Tgt Exit",group = "Exit ⏰",inline = "TGT_EXT")
+
+// Long_target_points = input.float(20, "L-TGT-PT",inline = "TGT_L",group = "Exit ⏰")
+// Long_sl_points     = input.float(20, "L-TGT-SL",inline = "TGT_L",group = "Exit ⏰")
+// Short_target_points = input.float(20, "S-TGT-PT",inline = "TGT_S",group = "Exit ⏰")
+// Short_sl_points     = input.float(20,  "S-TGT-SL",inline = "TGT_S",group = "Exit ⏰")
+
+TgtExit_Toggle      = false
+Long_target_points  = 20
+Long_sl_points      = 20
+Short_target_points = 20
+Short_sl_points     = 20
+
+// ================================
+// 🔁 COMMON STATE
+// ================================
+var int    remainingLots = 0
+var bool   exitSignal    = false
+var string exitSide      = ""
+var string exitReason    = ""   // 👈 YE LINE ADD KARO
+
+var bool   exitDoneLong  = false
+var bool   exitDoneShort = false
+
+
+
+// ================================
+// 🔁 EXIT SIGNAL RESET (EVERY BAR)
+// ================================
+exitSignal := false
+exitSide   := ""
+
+
+
+indexSymbol = "NSE:NIFTY"
+Expiry_date = input.string(
+     "2026-03-02",
+     title = "Expiry NIFTY ",
+     options = [
+        //  "2025-12-30", // 30 Dec
+        //  "2026-01-06", // 06 Jan
+        //  "2026-01-13", // 13 Jan
+        //  "2026-01-20",  // 20 Jan
+        //  "2026-01-27",  // 20 Jan            
+        //  "2026-02-03",  // 3 feb    
+        //  "2026-02-10",  // 10 feb    
+        //  "2026-02-17",  // 17 feb    
+        //  "2026-02-24",  // 24 feb    // month expiry
+         "2026-03-02",  // 2 March
+         "2026-03-10",  // 10 March
+         "2026-03-17",  // 17 March
+         "2026-03-24",  // 24 March
+         "2026-03-30"  // 30 March
+         ],     group = "🗝️ Order Placement",     inline = "expiry"     )
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === TradeCounter BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+var int tradesToday = 0
+// detect new day (resets at daily bar boundary)
+newDay = ta.change(time("D")) != 0
+if newDay
+    tradesToday := 0
+
+// // maxTradesPerDay = 2
+maxTradesPerDay = input.int(2, "Max Trades Per Day", minval=1, group = "🗝️ Order Placement")
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === WEBHOOK  BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+// Lot_Input = input.string("3", title = "Lot_Input",     group = "🗝️ Order Placement")
+
+var float lockedCEStrike = na
+var float lockedPEStrike = na
+
+
+
+stepSize  = 50
+atmStrike = math.round(close / stepSize) * stepSize
+
+
+ceStrike_calc = atmStrike - (ceDistanceStep * stepSize)  // CALL: +ve = ITM
+peStrike_calc = atmStrike + (peDistanceStep * stepSize)  // PUT : +ve = OTM
+
+ceStrike_str = useManualStrike ? CE_Strike_Input : str.tostring(math.round(ceStrike_calc))
+peStrike_str = useManualStrike ? PE_Strike_Input : str.tostring(math.round(peStrike_calc))
+
+
+
+// "strike_price":"'+CE_Strike_Input+'"
+// premLong_BuyCE      = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"B","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"CE","strike_price":"'+CE_Strike_Input+'","expiry_date":"'+Expiry_date+'"}]}'
+// premLong_ExitCE     = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"S","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"CE","strike_price":"'+CE_Strike_Input+'","expiry_date":"'+Expiry_date+'"}]}'
+// premShort_BuyPE     = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"B","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"PE","strike_price":"'+PE_Strike_Input+'","expiry_date":"'+Expiry_date+'"}]}'
+// premShort_ExitPE    = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"S","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"PE","strike_price":"'+PE_Strike_Input+'","expiry_date":"'+Expiry_date+'"}]}'
+
+
+premLong_BuyCE      = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"B","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"CE","strike_price":"'+ceStrike_str+'","expiry_date":"'+Expiry_date+'"}]}'
+premLong_ExitCE     = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"S","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"CE","strike_price":"'+ceStrike_str+'","expiry_date":"'+Expiry_date+'"}]}'
+premShort_BuyPE     = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"B","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"PE","strike_price":"'+peStrike_str+'","expiry_date":"'+Expiry_date+'"}]}'
+premShort_ExitPE    = '{"secret":"'+dhanSecret+'","alertType":"multi_leg_order","order_legs":[{"transactionType":"S","orderType":"MKT","quantity":"'+Lot_Input+'","exchange":"NSE","symbol":"NIFTY","instrument":"OPT","productType":"I","sort_order":"1","price":"0","option_type":"PE","strike_price":"'+peStrike_str+'","expiry_date":"'+Expiry_date+'"}]}'
+
+//
+
+
+// =================================================================
+// Daily Lines Draw
+// =================================================================
+deleteOld = true
+ShowShapes = true
+shapeSize     = size.small  
+lineLength    = 25
+width = 1
+mota = 2
+style = hline.style_solid
+//// === BANKNIFTY LINES ===
+// hline(BNF_R5, "BNF_R5", color=color.red, linestyle=style, linewidth=width)
+// hline(BNF_R4, "BNF_R4", color=color.red, linestyle=style, linewidth=width)
+// hline(BNF_R3, "BNF_R3", color=color.red, linestyle=style, linewidth=width)
+// hline(BNF_R2, "BNF_R2", color=color.red, linestyle=style, linewidth=width)
+// hline(BNF_R1, "BNF_R1", color=color.red, linestyle=style, linewidth=width)
+// hline(BNF_CP, "BNF_CP", color=color.blue, linestyle=style, linewidth=width)
+// hline(BNF_S1, "BNF_S1", color=color.green, linestyle=style, linewidth=width)
+// hline(BNF_S2, "BNF_S2", color=color.green, linestyle=style, linewidth=width)
+// hline(BNF_S3, "BNF_S3", color=color.green, linestyle=style, linewidth=width)
+// hline(BNF_S4, "BNF_S4", color=color.green, linestyle=style, linewidth=width)
+// hline(BNF_S5, "BNF_S5", color=color.green, linestyle=style, linewidth=width)
+// hline(BNF_PD_H, "BNF_PD_H", color=color.red, linestyle=style, linewidth=width)
+// hline(BNF_PD_C, "BNF_PD_C", color=color.blue, linestyle=style, linewidth=width)
+// hline(BNF_PD_L, "BNF_PD_L", color=color.green, linestyle=style, linewidth=width)
+
+// //// === NIFTY LINES ===
+// hline(NIFTY_R5, "NIFTY_R5", color=color.red, linestyle=style, linewidth=width)
+// hline(NIFTY_R4, "NIFTY_R4", color=color.red, linestyle=style, linewidth=width)
+// hline(NIFTY_R3, "NIFTY_R3", color=color.red, linestyle=style, linewidth=width)
+// hline(NIFTY_R2, "NIFTY_R2", color=color.red, linestyle=style, linewidth=width)
+// hline(NIFTY_R1, "NIFTY_R1", color=color.red, linestyle=style, linewidth=width)
+// hline(NIFTY_CP, "NIFTY_CP", color=color.blue, linestyle=style, linewidth=width)
+// hline(NIFTY_S1, "NIFTY_S1", color=color.green, linestyle=style, linewidth=width)
+// hline(NIFTY_S2, "NIFTY_S2", color=color.green, linestyle=style, linewidth=width)
+// hline(NIFTY_S3, "NIFTY_S3", color=color.green, linestyle=style, linewidth=width)
+// hline(NIFTY_S4, "NIFTY_S4", color=color.green, linestyle=style, linewidth=width)
+// hline(NIFTY_S5, "NIFTY_S5", color=color.green, linestyle=style, linewidth=width)
+
+// hline(NIFTY_PD_H, "NIFTY_PD_H", color=color.red, linestyle=style, linewidth=mota)
+// hline(NIFTY_PD_C, "NIFTY_PD_C", color=color.blue, linestyle=style, linewidth=mota)
+// hline(NIFTY_PD_L, "NIFTY_PD_L", color=color.green, linestyle=style, linewidth=mota)
+// //
+
+var bool  tradeActive = false
+var float RiskPt     = na
+var float SLamt      = na
+var float SLPercent  = na
+var line  entryPriceLine  = na
+var label entryPriceLabel = na
+var float tradeEntryPrice = na
+var int   entryBarIndex   = na
+var string TradeSide = ""   // "LONG" or "SHORT"
+int lotCount = na(str.tonumber(Lot_Input)) ? 1 : int(str.tonumber(Lot_Input))
+lot_size = 65 * lotCount
+var string timeCellText = na
+
+
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === FIB CONTROL BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+// 2️⃣ SINGLE ENTRY BLOCK (T1 + T2 BOTH)
+var float entryFib0 = na
+var float entryFib100  = na
+var line  fib100Line  = na
+var label fib100Label = na
+var int   fibDay      = na
+
+ShowFibLines_tog = input.bool(true, "Show Fib Lines",group = "3️⃣ Line Visibility👁️👁️",inline = "Fib")
+ShowFiblabel_tog = input.bool(false, "Show Fib label",group = "3️⃣ Line Visibility👁️👁️",inline = "Fib")
+// ShowFibLines_tog = input.bool(true, "Show Fib Lines",group = "3️⃣ Line Visibility👁️👁️",inline = "Fib")
+
+
+// // =====================================================
+// // 🔧 FORMAT (2 DECIMAL)
+// // =====================================================
+fmt(v) =>
+    str.format("{0,number,#.00}", v)
+// =====================================================
+// 📊 TRACK HH & LL ONLY INSIDE DATE RANGE
+// =====================================================
+var float dayHigh = na
+var float dayLow  = na
+var int   highBar = na
+var int   lowBar  = na
+
+if not inDateRange
+    dayHigh := na
+    dayLow  := na
+    highBar := na
+    lowBar  := na
+else
+    if na(dayHigh) or high > dayHigh
+        dayHigh := high
+        highBar := bar_index
+
+    if na(dayLow) or low < dayLow
+        dayLow := low
+        lowBar := bar_index
+
+// ✅ STEP 3: Base HH → LL line sirf range me
+var line baseLine = na
+
+// if not inDateRange
+//     line.delete(baseLine)
+//     baseLine := na
+// else if not na(dayHigh) and not na(dayLow)
+//     line.delete(baseLine)
+//     baseLine := line.new(
+//          highBar, dayHigh,
+//          lowBar,  dayLow,
+//          color = color.orange,
+//          width = 5
+//          )
+
+// ✅ STEP 4: Fibonacci levels range-gated
+
+rangeVal = dayHigh - dayLow
+
+// fib0       = input.float(26165, "FIB0", minval = 0, group = "1" ,inline = "Trade1a")
+// fib100       = input.float(26110, "FIB100", minval = 0,group = "1" ,inline = "Trade1a")
+
+fib0   = inDateRange ? dayHigh                    : na
+fib236 = inDateRange ? dayHigh - rangeVal * 0.236 : na
+fib382 = inDateRange ? dayHigh - rangeVal * 0.382 : na
+fib50  = inDateRange ? dayHigh - rangeVal * 0.5   : na
+fib618 = inDateRange ? dayHigh - rangeVal * 0.618 : na
+fib786 = inDateRange ? dayHigh - rangeVal * 0.786 : na
+fib100 = inDateRange ? dayLow                     : na
+// fib1618 = inDateRange ? dayLow - rangeVal * 0.618  : na //off
+
+
+
+plot(inDateRange and ShowFibLines_tog ? fib0    : na, "0",     color=color.gray,   style=plot.style_line)
+// plot(ShowFibLines_tog ? fib236  : na, "0.236", color=color.red)
+// plot(ShowFibLines_tog ? fib382  : na, "0.382", color=color.orange)
+plot(ShowFibLines_tog ? fib50   : na, "0.5",   color=color.green)
+// plot(ShowFibLines_tog ? fib618  : na, "0.618", color=color.teal)
+plot(inDateRange and ShowFibLines_tog ? fib786  : na, "0.786", color=color.blue, linewidth=4)
+plot(inDateRange and ShowFibLines_tog ? fib100  : na, "1.0",   color=color.gray,   style=plot.style_line)
+// plot(ShowFibLines_tog ? fib1618 : na, "1.618", color=color.aqua,   style=plot.style_line, linewidth=2)
+
+
+var label l0  = na
+var label l236  = na
+var label l382  = na
+var label l50   = na
+var label l618  = na
+var label l786  = na
+var label l100  = na
+var label l1618 = na
+
+if inDateRange and barstate.islast and ShowFiblabel_tog
+    // delete old labels
+    label.delete(l0)
+    label.delete(l236)
+    label.delete(l382)
+    label.delete(l50)
+    label.delete(l618)
+    label.delete(l786)
+    label.delete(l100)
+    label.delete(l1618)
+
+    // create fresh labels
+    l0   := label.new(bar_index+10, fib0, "0", style=label.style_label_left, color=color.gray,   textcolor=color.white,size = size.large)
+    l236 := label.new(bar_index+10, fib236, "0.236", style=label.style_label_left, color=color.red,    textcolor=color.white,size = size.large)
+    l382 := label.new(bar_index+10, fib382, "0.382", style=label.style_label_left, color=color.orange, textcolor=color.white,size = size.large)
+    l50  := label.new(bar_index+10, fib50,  "0.5", style=label.style_label_left, color=color.green,  textcolor=color.black,size = size.large)
+    l618 := label.new(bar_index+10, fib618, "0.618", style=label.style_label_left, color=color.teal,   textcolor=color.white,size = size.large)
+    l786 := label.new(bar_index+10, fib786, "0.786", style=label.style_label_left, color=color.blue,   textcolor=color.white,size = size.large)
+    l100 := label.new(bar_index+10, fib100, "1", style=label.style_label_left, color=color.gray,   textcolor=color.white,size = size.large)
+    // l1618:= label.new(bar_index+10, fib1618,"1.618", style=label.style_label_left, color=color.aqua,   textcolor=color.black,size = size.large)
+
+
+SL_Below_Fib_0 = not na(entryFib0) and close > entryFib0
+SL_Below_Fib_1 = not na(entryFib100) and close < entryFib100
+
+
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === PREMIUM CONTROL === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+t1Time = timestamp(syminfo.timezone, year, month, dayofmonth, T1_EntryHour, T1_EntryMinute)
+// t2Time = timestamp(syminfo.timezone, year, month, dayofmonth, T2_EntryHour, T2_EntryMinute)
+
+// 🔵 T1 LOGIC
+T1_Side_Match =
+     (T1_Side == "LONG")
+  or (T1_Side == "SHORT")
+
+var bool PremiumTradeActive = false
+var bool T1_Used = false
+var bool T2_Used = false
+
+T1_Side_Valid = T1_Side == "LONG" or T1_Side == "SHORT"
+
+// 1️⃣ COMMON ENTRY SIGNAL (reuse everywhere)
+T1_EntrySignal = inDateRange and T1_Enable and not T1_Used and time >= t1Time and T1_Side_Valid
+
+
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === Indicator - DEMA BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+showDEMA_toggle = true
+// showDEMA_toggle = input.bool(true,title = "showDEMA",group = "Line Visibility👁️👁️")
+
+length = 100
+src    = close
+e1   = ta.ema(src, length)
+e2   = ta.ema(e1, length)
+dema = 2 * e1 - e2
+plot(      (showDEMA_toggle) ? dema : na,      title = "DEMA (Step)",      color = color.black,      style = plot.style_stepline,      linewidth = 3      )
+priceAboveDEMA = close > dema
+priceBelowDEMA = close < dema
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === Indicator - EMA 10 & 20 BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+// --- EMA Calculations ---
+ema10 = ta.ema(close, 10)
+ema20 = ta.ema(close, 20)
+
+showEma10_toggle = true
+showEma20_toggle = true
+
+// showEma10_toggle = input.bool(true,title = "show Ema10",group = "Line Visibility👁️👁️",inline = "EMA")
+// showEma20_toggle = input.bool(true,title = "show Ema20",group = "Line Visibility👁️👁️",inline = "EMA")
+// --- Plot ---
+
+// --- Plot (toggle applied) ---
+plot(showEma10_toggle ? ema10 : na, title="EMA 10", color=color.blue, linewidth=1)
+plot(showEma20_toggle ? ema20 : na, title="EMA 20", color=color.red,  linewidth=1)
+
+
+//-------------------------------------------
+// 🔹 EMA Touch (store references)
+//-------------------------------------------
+
+ema10Touch = (low <= ema10 and high >= ema10)
+ema20Touch = (low <= ema20 and high >= ema20)
+
+emaTouch = ema10Touch or ema20Touch
+
+EMA_extendBars = 10
+EmaBar_Width = 5
+
+var line emaBullHighLine = na
+var line emaBullLowLine  = na
+var line emaBearHighLine = na
+var line emaBearLowLine  = na
+
+//-------------------------------------------
+// pure EMA-zone system ka “daily reset switch”
+//-------------------------------------------
+
+if newDay
+    if not na(emaBullHighLine)
+        line.delete(emaBullHighLine)
+    if not na(emaBullLowLine)
+        line.delete(emaBullLowLine)
+    if not na(emaBearHighLine)
+        line.delete(emaBearHighLine)
+    if not na(emaBearLowLine)
+        line.delete(emaBearLowLine)
+
+    emaBullHighLine := na
+    emaBullLowLine  := na
+    emaBearHighLine := na
+    emaBearLowLine  := na
+//
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === CANDLE PATTERNS BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+import arsalanali36/AA_CandlePatterns/2 as cp
+minBodySize     = 0.5
+wickRatio       = 2.5
+prevBodyMinPts  = 0.5
+
+// =====================================================
+// 📞 LIBRARY CALLS
+// =====================================================
+// 🔨 Hammer
+greenHammer = cp.greenHammer(minBodySize, wickRatio)
+redHammer   = cp.redHammer(minBodySize, wickRatio)
+invRedHam   = cp.invertedRedHammer(minBodySize, wickRatio)
+
+// 🔥 Engulfing
+bullEngulf = cp.bullishEngulfing(prevBodyMinPts)
+bearEngulf = cp.bearishEngulfing(prevBodyMinPts)
+
+// 🧩 Harami
+bullHarami = cp.bullishHarami()
+bearHarami = cp.bearishHarami()
+
+// =====================================================
+// 🔨 HAMMER ICONS (same as original)
+// =====================================================
+plotshape(inDateRange and greenHammer, title="Green Hammer", location=location.belowbar, style=shape.labelup,   color=color.green, text="🔨")
+plotshape(inDateRange and redHammer,   title="Red Hammer",   location=location.belowbar, style=shape.labelup,   color=color.red,   text="🔨")
+plotshape(inDateRange and invRedHam,   title="Inv Red Ham",  location=location.abovebar, style=shape.labeldown, color=#7f1e1e,     text="🔨ᶦ")
+
+// =====================================================
+// 🎨 BAR COLORS (Engulfing + Harami)
+// =====================================================
+barcolor(     bullEngulf ? color.black :     bearEngulf ? color.rgb(2, 0, 0) :     bullHarami ? color.new(color.green, 70) :     bearHarami ? color.new(color.red, 70) :     na     )
+
+// =================================================================
+// Bullish / Bearish Candle Combined
+// =================================================================
+bullish = (bullEngulf or bullHarami or greenHammer)
+prevBullish = (bullEngulf[1] or bullHarami[1] or greenHammer[1])
+
+bearish = (bearEngulf or bearHarami or invRedHam or redHammer)
+prevBearish = (bearEngulf[1] or bearHarami[1] or invRedHam[1] or redHammer[1])
+
+
+// =================================================================
+// Star (Morning/Evening)
+// =================================================================
+
+body(i) => math.abs(close[i] - open[i])
+isGreen(i) => close[i] > open[i]
+isRed(i)   => close[i] < open[i]
+
+// 🟢 Morning Star (Bullish)
+
+morningStar =
+     isRed(2)                               // 1st candle red
+ and body(2) > body(1)                     // strong selling
+ and body(1) < body(2) * 0.5               // small middle candle
+ and isGreen(0)                            // 3rd candle green
+ and close > (open[2] + close[2]) / 2      // closes into 1st candle body
+ and priceAboveDEMA
+ and inDateRange
+
+// 🔴 Evening Star mark (above candle)
+eveningStar =
+     isGreen(2)                             // 1st candle green
+ and body(2) > body(1)                     // strong buying
+ and body(1) < body(2) * 0.5               // small middle candle
+ and isRed(0)                              // 3rd candle red
+ and close < (open[2] + close[2]) / 2      // closes into 1st candle body
+ and priceBelowDEMA
+ and inDateRange
+
+
+trendUp   = close[3] > ta.ema(close, 20)
+trendDown = close[3] < ta.ema(close, 20)
+
+bullishMorningStar = morningStar and trendDown 
+bearishEveningStar = eveningStar and trendUp 
+
+
+// plotshape(morningStar, title="Morning Star (Bullish)", style=shape.labelup,   location=location.belowbar, color=color.new(color.green,0), textcolor=color.white, text="🌅", size=size.small)
+// plotshape(eveningStar, title="Evening Star (Bearish)", style=shape.labeldown, location=location.abovebar, color=color.new(color.red,0),   textcolor=color.white, text="🌃", size=size.small)
+
+plotshape(morningStar, title="Morning Star (Bullish)", style=shape.labelup,   location=location.belowbar, color=color.new(color.green,0), textcolor=color.white, size=size.small)
+plotshape(eveningStar, title="Evening Star (Bearish)", style=shape.labeldown, location=location.abovebar, color=color.new(color.red,0),   textcolor=color.white, size=size.small)
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === ZONE CREATION BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+
+// Bullish_Candle_exitingZone = (emaTouch and bullEngulf)  or (emaTouch and morningStar) or (emaTouch and greenHammer)// and priceAboveDEMA// or Green_HammerCandle)// or (demaTouch and bullish)
+Bullish_Candle_exitingZone = (emaTouch and bullEngulf)  or (emaTouch and morningStar) or (emaTouch and greenHammer)// and priceAboveDEMA// or Green_HammerCandle)// or (demaTouch and bullish)
+
+
+Bearish_Candle_exitingZone = (emaTouch and bearEngulf) or (emaTouch and eveningStar) or (emaTouch and invRedHam)// and priceBelowDEMA//or Inverted_Red_HammerCandle )// or (demaTouch and bearish)
+// Bearish_Candle_exitingZone = (emaTouch  and (bearEngulf or eveningStar or invRedHam)// and priceBelowDEMA//or Inverted_Red_HammerCandle )// or (demaTouch and bearish)
+
+
+var float _distance = na
+var bool Green_Zone_Touch_and_Candle     = false
+var bool Red_Zone_Touch_and_Candle       = false
+var bool HH_ZONE       = false
+
+var line zone_Upper_line    = na
+var line zone_Lower_line    = na
+var line bearLineHigh       = na
+var line bearLineLow        = na
+
+var label bullZoneLabel = na
+var float lastZoneSL = na
+
+
+//////////////////////////
+//////////////////////////
+var int lastGreenZoneBar = na
+var int lastRedZoneBar   = na
+
+if Bullish_Candle_exitingZone and inDateRange
+    lastGreenZoneBar := bar_index
+
+if Bearish_Candle_exitingZone and inDateRange
+    lastRedZoneBar := bar_index
+
+maxZoneAge = 2  // kitni candles tak zone valid rahe
+
+greenZoneFresh =
+     not na(lastGreenZoneBar)
+     and (bar_index - lastGreenZoneBar <= maxZoneAge)
+
+redZoneFresh =
+     not na(lastRedZoneBar)
+     and (bar_index - lastRedZoneBar <= maxZoneAge)
+
+Show_GAP_LABLE = false
+// Show_GAP_LABLE = input.bool(true,title = "Show_GAP_LABLE",tooltip = "round me value")
+
+//keepOldLines = true
+keepOldLines = input.bool(true, "Keep Old Breakout Lines")
+
+//////////////////////////////
+//////////////////////////////
+
+// Combined touch handling for Bearish_Candle_exitingZone or Bullish_Candle_exitingZone
+if ((Bearish_Candle_exitingZone or Bullish_Candle_exitingZone) and inDateRange)
+
+    // delete old lines only if toggle is OFF
+    if not keepOldLines 
+        if not na(zone_Upper_line)
+            line.delete(zone_Upper_line)
+            line.delete(zone_Lower_line)
+        if not na(bearLineHigh)
+            line.delete(bearLineHigh)
+            line.delete(bearLineLow)
+  
+
+    // decide color & message
+    _isBull = Bearish_Candle_exitingZone
+    _color  = _isBull ? color.new(color.maroon, 0) : color.new(color.green, 0)
+    _direction = _isBull ? "🔴 Bearish Touch Confirmed" : "🟢 Bullish Touch Confirmed"
+
+    // draw breakout lines (always drawn)
+
+    _highPrice = high
+    _lowPrice  = low
+
+    zone_Upper_line := line.new(bar_index, high, bar_index + 10, high, color=_color, width=5)
+    zone_Lower_line  := line.new(bar_index, low,  bar_index + 10, low,  color=_color, width=5)
+
+    Green_Zone_Touch_and_Candle := Bullish_Candle_exitingZone 
+    Red_Zone_Touch_and_Candle := Bearish_Candle_exitingZone
+
+    // send alert once
+    alert("Touch Confirmed — " + _direction, alert.freq_once_per_bar)
+
+//     // reset touch flags
+//     touchedHH_prev := false
+//     touchedLL_prev := false
+
+    _distance = math.round(math.abs(_highPrice - _lowPrice))
+// create label text (points and percent, rounded)
+    _distText = str.tostring(_distance)// + str.tostring(_percent, "#.##") + " %"
+    // _distText = str.tostring(_distance, format.mintick)// + str.tostring(_percent, "#.##") + " %"
+    
+    // 🔐 SL memory lock (IMPORTANT)
+    lastZoneSL := _distance
+
+    ////place label at midpoint a few bars ahead for clarity
+    bullZoneLabel := label.new(bar_index + 10, _highPrice, text=_distText, xloc=xloc.bar_index, yloc=yloc.price,
+                               style=label.style_label_center, color=_color, textcolor=color.white, size=size.small)
+
+
+
+// get current price of zone_Lower_line & zone_Upper_line
+var float zone_Lower_line_price  = na
+var float zone_Upper_line_price = na
+
+if not na(zone_Lower_line)
+    zone_Lower_line_price := line.get_price(zone_Lower_line, bar_index)
+if not na(zone_Upper_line)
+    zone_Upper_line_price := line.get_price(zone_Upper_line, bar_index)
+
+
+
+// =======================
+// Touch Detection (FIXED)
+// =======================
+demaTouch =
+     showDEMA_toggle
+     and inDateRange
+     and not na(dema)
+     and (low <= dema and high >= dema)
+
+// =======================
+// Lines on touch candle
+// =======================
+var line touchHighDEMALine = na
+var line touchLowDEMALine  = na
+extendBars = 5
+
+// =======================
+// 🔁 DAILY RESET – DEMA LINES
+// =======================
+if newDay
+    if not na(touchHighDEMALine)
+        line.delete(touchHighDEMALine)
+    if not na(touchLowDEMALine)
+        line.delete(touchLowDEMALine)
+
+    touchHighDEMALine := na
+    touchLowDEMALine  := na
+
+
+if demaTouch and (bullish or bearish)
+    touchHighDEMALine := line.new(         bar_index, high,         bar_index + extendBars, high,         color = color.aqua,         width = 5      )
+    touchLowDEMALine := line.new(         bar_index, low,         bar_index + extendBars, low,         color = color.aqua,         width = 5      )
+
+
+// =================================================================
+// DEMA TOUCH ZONE CREATE KARO
+// =================================================================
+
+//
+
+var line demaZoneHighLine = na
+var line demaZoneLowLine  = na
+var bool DEMA_Zone_Active = false
+
+
+if demaTouch and (bullish or bearish) and inDateRange
+    // purana DEMA zone delete (agar chaho)
+    if not keepOldLines
+        if not na(demaZoneHighLine)
+            line.delete(demaZoneHighLine)
+        if not na(demaZoneLowLine)
+            line.delete(demaZoneLowLine)
+
+    demaZoneHighLine := line.new(         bar_index, high,         bar_index + extendBars, high,         color = color.new(color.aqua, 0),         width = 5    )
+    demaZoneLowLine := line.new(         bar_index, low,         bar_index + extendBars, low,         color = color.new(color.aqua, 0),         width = 5    )
+
+    DEMA_Zone_Active := true
+
+float demaZoneHigh = na
+float demaZoneLow  = na
+
+if not na(demaZoneHighLine)
+    demaZoneHigh := line.get_price(demaZoneHighLine, bar_index)
+
+if not na(demaZoneLowLine)
+    demaZoneLow := line.get_price(demaZoneLowLine, bar_index)
+
+DEMA_Bullish_Exit =     DEMA_Zone_Active and not na(demaZoneHigh) and close > demaZoneHigh
+DEMA_Bearish_Exit =     DEMA_Zone_Active and not na(demaZoneLow) and close < demaZoneLow
+
+
+
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === ATR Trailing SL (TWO-WAY) BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+// ---- Detect fresh entry
+isNewLong  = strategy.position_size > 0 and strategy.position_size[1] == 0
+isNewShort = strategy.position_size < 0 and strategy.position_size[1] == 0
+
+atrLen  = 14
+atrMult = 2.0
+atrVal  = ta.atr(atrLen)
+
+// ---- SL holders
+var float atrSL_Long  = na
+var float atrSL_Short = na
+
+// ===============================
+// 🔵 LONG ATR SL
+// ===============================
+if isNewLong
+    atrSL_Long := strategy.position_avg_price - atrVal * atrMult
+    // ParaSarSL_Long := strategy.position_avg_price - psar
+
+
+if strategy.position_size > 0 and not na(atrSL_Long)
+    float newLongSL = close - atrVal * atrMult
+    // 🔒 only trail upwards
+    if newLongSL > atrSL_Long
+        atrSL_Long := newLongSL
+
+SL_Long_ATR = strategy.position_size > 0 and not na(atrSL_Long) and close < atrSL_Long
+
+// ===============================
+// 🔴 SHORT ATR SL
+// ===============================
+if isNewShort
+    atrSL_Short := strategy.position_avg_price + atrVal * atrMult
+
+if strategy.position_size < 0 and not na(atrSL_Short)
+    float newShortSL = close + atrVal * atrMult
+    // 🔒 only trail downwards
+    if newShortSL < atrSL_Short
+        atrSL_Short := newShortSL
+
+SL_Short_ATR = strategy.position_size < 0 and not na(atrSL_Short) and close > atrSL_Short
+
+
+// ===============================
+// 📊 PLOTS ATR - LONG / SHORT
+// ===============================
+plot(AtrExit_Toggle and strategy.position_size > 0 ? atrSL_Long  : na, title="ATR SL LONG",  color=color.orange, linewidth=3, style=plot.style_stepline_diamond)
+plot(AtrExit_Toggle and strategy.position_size < 0 ? atrSL_Short : na, title="ATR SL SHORT", color=color.aqua,   linewidth=3, style=plot.style_stepline_diamond)
+
+
+
+
+
+// =================================================================
+// CONDITIONS
+// =================================================================
+
+
+// isGreen/RED Candle
+//-----------------------------
+isGreenCandle = close > open
+isRedCandle   = close < open 
+Prev_Green    = Green_Zone_Touch_and_Candle and (close[1] > open[1])
+Prev_Red    = Red_Zone_Touch_and_Candle and (close[1] < open[1]) 
+
+close_Above_Green_zone          =  not na(zone_Upper_line_price) and (close > zone_Upper_line_price) 
+close_Below_Green_zone          =  not na(zone_Lower_line_price) and (close < zone_Lower_line_price) 
+close_Above_Red_zone            =  not na(zone_Upper_line_price) and (close > zone_Upper_line_price) 
+close_Below_Red_zone            =  not na(zone_Lower_line_price) and (close < zone_Lower_line_price) 
+priceAboveDEMA_U = close > dema
+priceBelowDEMA_U = close < dema
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === 🦣🦣🕯️🕎 Block candle & Zone sizeBLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+// ZoneNotToWide
+// -----------------------------
+maxZoneDistance = 25 // previous 25
+// maxZoneDistance = input.int(25, "maxZoneDistance", minval=1, tooltip="Set how many trades are allowed per day",group = "saftey 🦺")
+zoneDistance =
+     not na(zone_Lower_line_price) and not na(zone_Upper_line_price)
+     ? math.abs(zone_Upper_line_price - zone_Lower_line_price)
+     : na
+zoneTooWide   = not na(zoneDistance) and zoneDistance > maxZoneDistance
+ZoneNotToWide = not zoneTooWide
+
+
+
+candleSize    = high - low
+maxCandleSize = 25
+
+// Skip_BigCandle = input.bool(true, "Skip Big Candle Zone Exit", 
+//      group = "🛑 Big Candle Filter")
+
+// Skip_BigCandle = true
+
+var bool skipBigCandleZoneExit_Short = false
+
+if Skip_BigCandle
+    if close_Below_Red_zone
+        if candleSize > maxCandleSize
+            skipBigCandleZoneExit_Short := true
+        else
+            skipBigCandleZoneExit_Short := false
+else
+    skipBigCandleZoneExit_Short := false
+
+var bool skipBigCandleZoneExit_Long = false
+
+if Skip_BigCandle
+    if close_Above_Green_zone
+        if candleSize > maxCandleSize
+            skipBigCandleZoneExit_Long := true
+        else
+            skipBigCandleZoneExit_Long := false
+else
+    skipBigCandleZoneExit_Long := false
+
+
+Index_Long_ExitConditon = close_Below_Red_zone and (close < open)
+Index_Short_ExitConditon = close_Above_Red_zone  and (close > open)
+
+
+
+
+//────────────────────────────────────────────────────────────────────
+// 🟢🟢🟢🟢 === MAIN - COMBING ALL Entry CONDITIONS === 🟢🟢🟢🟢
+//────────────────────────────────────────────────────────────────────
+
+
+Index_Long_Signal =
+     (useFreshZoneOnly ? greenZoneFresh : Green_Zone_Touch_and_Candle)
+ and close_Above_Green_zone
+ and Prev_Green
+ and priceAboveDEMA_U
+ and ZoneNotToWide
+ and not skipBigCandleZoneExit_Long
+ and isGreenCandle
+
+
+Index_Short_Signal =
+     (useFreshZoneOnly ? redZoneFresh : Red_Zone_Touch_and_Candle)
+ and close_Below_Red_zone
+ and Prev_Red
+ and priceBelowDEMA_U
+ and ZoneNotToWide
+ and not skipBigCandleZoneExit_Short
+ and isRedCandle
+
+
+
+
+
+// =====================================================
+// 📦 ZONE BOX — START FROM CLOSE
+// =====================================================
+var box longBox = na
+
+if Index_Long_Signal and na(longBox) and inDateRange
+    longBox:=box.new(left=bar_index,right=bar_index,top=close,bottom=close,bgcolor=color.new(color.green,85),border_color=color.new(color.green,60))
+if not na(longBox)
+    box.set_right(longBox, bar_index)
+    box.set_top(longBox, math.max(box.get_top(longBox), high))
+    box.set_bottom(longBox, math.min(box.get_bottom(longBox), close))
+
+if not na(longBox) and Index_Long_ExitConditon
+    longBox := na
+/////////////////////////////////////////
+///////////////////////////////////////////
+var box shortBox = na
+
+if Index_Short_Signal and na(shortBox) and inDateRange
+    shortBox:=box.new(left=bar_index,right=bar_index,top=close,bottom=close,bgcolor=color.new(color.red,85),border_color=color.new(color.red,60))
+
+if not na(shortBox)
+    box.set_right(shortBox, bar_index)
+    box.set_top(shortBox, math.max(box.get_top(shortBox), close))
+    box.set_bottom(shortBox, math.min(box.get_bottom(shortBox), low))
+
+if not na(shortBox) and Index_Short_ExitConditon
+    shortBox := na
+
+
+
+
+
+
+// =================================================================
+// Default - EXIT 3:15
+// =================================================================
+exitHour   = 15
+exitMinute = 15
+exitTimeCondition = (hour == exitHour and minute >= exitMinute)
+// === Exit all trades at 3:15 PM ===
+if exitTimeCondition
+    strategy.close_all(comment="Daily Close Exit")
+
+
+
+
+
+
+// // ==================================================
+// // ===== 🏃🏻🏃🏻QUICK Working Alert🏃🏻🏃🏻 ===== BOTH INDEX/RQUITy/ INDICATOR BASED
+// // ==================================================
+
+// Index_Long_Signal = close>open
+// Index_Short_Signal = close<open
+
+// if Index_Long_Signal
+//      and (strategy.position_size == 0 )
+//      and tradesToday < maxTradesPerDay 
+//      and inDateRange 
+//     // strategy.order("Dhan_long",strategy.long,alert_message = buy_CE )//for dharn longorder Placement
+//     // alert(message = buy_CE,freq = alert.freq_once_per_bar_close)// iss order gaya
+//     strategy.order("Dhan_longEntry",strategy.long)//for dharn longorder Placement
+//     alert(message = premLong_BuyCE,freq = alert.freq_once_per_bar_close)
+
+// // ===== Execution =====
+// // if strategy.position_size > 0 and allowExit and Prem_base_exitLong
+// if strategy.position_size > 0 //and LongExitTrigger
+//     strategy.order("Dhan_longEXit", strategy.short)
+//     alert(message = premLong_ExitCE,freq = alert.freq_once_per_bar_close)//
+
+
+// if Index_Short_Signal
+//      and (strategy.position_size == 0 )
+//      and tradesToday < maxTradesPerDay 
+//      and inDateRange 
+//     strategy.order("Dhan_Short",strategy.short)//for dharn shortOrder Placement
+//     alert(message = premShort_BuyPE,freq = alert.freq_once_per_bar_close)
+
+
+// if strategy.position_size < 0//     and shortExitTrigger
+//     strategy.order("Dhan_Short_Exit", strategy.long)
+//     alert(message = premShort_ExitPE,freq = alert.freq_once_per_bar_close)//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ================================
+// ================================
+// Tables 😎😎💻
+// ================================
+// ================================
+// ================================
+// 1️⃣📊 Strike Selection Visual Table
+// ================================
+
+var table strikeTable = table.new(position.top_right, 2, 8, border_width = 1)
+StrikeTable_toggle = input.bool(false, "Show strike Table",group = "Table💻")
+
+
+f_expiryLabel(exp) =>
+     exp == "2025-12-30" ? "30 Dec Tue" :
+     exp == "2026-01-06" ? "06 Jan Tue" :
+     exp == "2026-01-13" ? "13 Jan Tue" :
+     exp == "2026-01-20" ? "20 Jan Tue" :
+     exp == "2026-01-27" ? "27 Jan Tue" :
+     exp == "2026-02-03" ? "03 feb Tue" :
+     exp == "2026-02-10" ? "10 Feb Tue" :
+     exp == "2026-02-17" ? "17 Feb Tue" :
+     exp == "2026-02-24" ? "24 Feb Tue" :
+     exp
+
+// ================================
+// 📊 Particular | Auto | Selected Table
+// ================================
+
+
+// Use calculated strike when not locked
+ceStrike_display = not na(lockedCEStrike) ? lockedCEStrike : ceStrike_calc
+peStrike_display = not na(lockedPEStrike) ? lockedPEStrike : peStrike_calc
+
+
+// 🔹 symbol (sirf jab lockedStrike valid ho)
+ceSymbol = not na(lockedCEStrike)
+     ? indexSymbol + Expiry_date + "C" + str.tostring(lockedCEStrike)
+     : na
+
+peSymbol = not na(lockedPEStrike)
+     ? indexSymbol + Expiry_date + "P" + str.tostring(lockedPEStrike)
+     : na
+
+maxPremium = 200
+// maxPremium = input.float(200, "Max Option Premium",group = "saftey 🦺")
+
+cePrice = not na(ceSymbol)
+     ? request.security(ceSymbol, timeframe.period, close)
+     : na
+
+pePrice = not na(peSymbol)
+     ? request.security(peSymbol, timeframe.period, close)
+     : na
+
+ceInputNum = str.tonumber(CE_Strike_Input)
+peInputNum = str.tonumber(PE_Strike_Input)
+
+ceMatch = not na(ceInputNum) and ceStrike_display == ceInputNum
+peMatch = not na(peInputNum) and peStrike_display == peInputNum
+
+
+//
+
+var table compareTable = table.new(position.top_right, 4, 6, border_width = 1)
+
+if barstate.islast and StrikeTable_toggle
+    // ================= HEADER =================
+    table.cell(compareTable, 0, 0, "Particular", bgcolor = color.rgb(60,120,220), text_color = color.white, text_size = size.normal)
+    table.cell(compareTable, 1, 0, "Auto",       bgcolor = color.rgb(60,120,220), text_color = color.white, text_size = size.normal)
+    table.cell(compareTable, 2, 0, "Selected",   bgcolor = color.rgb(60,120,220), text_color = color.white, text_size = size.normal)
+    // table.cell(compareTable, 0, 4, "Date📅",   bgcolor = color.rgb(60,120,220), text_color = color.white, text_size = size.normal)
+    table.cell(compareTable, 0, 4, "Date📅")
+
+    // ================= CE (ROW 1) =================
+    table.cell(compareTable, 0, 1, "CE⏫")
+    table.cell(compareTable, 1, 1, str.tostring(ceStrike_display))
+    table.cell(         compareTable,         2,         1,         str.tostring(CE_Strike_Input),
+         bgcolor = ceMatch ? color.new(color.green, 0) : color.new(color.red, 0),
+         text_color = color.white
+         )
+
+    // ================= ATM STRIKE (ROW 2) =================
+    table.cell(
+         compareTable,
+         0,
+         2,
+         "ATM (CE " + str.tostring(ceDistanceStep) +
+         " | PE " + str.tostring(peDistanceStep) + ")"
+         )
+
+    table.cell(compareTable, 1, 2, str.tostring(math.round(atmStrike)))
+    // table.cell(compareTable, 1, 4, str.tostring(math.round(atmStrike)))
+    table.cell(compareTable, 1, 4, f_expiryLabel(Expiry_date))
+
+    // ================= PE (ROW 3) =================
+    table.cell(compareTable, 0, 3, "PE⏬")
+    table.cell(compareTable, 1, 3, str.tostring(peStrike_display))
+    table.cell(
+         compareTable,
+         2,
+          3,
+         str.tostring(PE_Strike_Input),
+         bgcolor = peMatch ? color.new(color.green, 0) : color.new(color.red, 0),
+         text_color = color.white
+         )
+
+
+
+// ====================================================================================
+// ====================================================================================
+// 📊📊 TABLE FOR ENTRY/EXIT - P&L/RUNUP/DD/SL/RR
+// ==================================================
+// 📌 TRADE TRACKING VARIABLES
+// ==================================================
+// Comm_Target_At_fib_50 = "Tgt@fib_50"
+// Comm_SL_Below_Fib_1 = "SL_Blw_Fib_1"
+// Comm_SL_Trailing_ATR = "SL_ATR"
+
+
+// var float  tradeEntryPrice = na
+var int    tradeEntryTime  = na
+// var int tradeEntryTime = na
+var int     tradeExitTime  = na
+var string tradeExitReason  = ""
+var string exitReasonLocked = ""
+
+var string tradeSide       = ""
+var float  totalPnL        = 0.0
+var int    tradeCount      = 0
+var bool freezeRU_DD = false
+
+var bool exitFiredThisBar = false
+if barstate.isnew
+    exitFiredThisBar := false
+
+
+
+
+// ==================================================
+// 📈 RUN-UP TRACKING (MFE)
+// ==================================================
+var float tradeRunup     = na
+var float tradeBestPrice = na
+
+// ==================================================
+// 📉 DRAW-DOWN TRACKING (MAE)
+// ==================================================
+var float tradeDrawdown   = na
+var float tradeWorstPrice = na
+
+// ==================================================
+// 🛑 JOURNAL SL (REFERENCE RISK)
+// ==================================================
+var float tradeSL = na // 🛑 JOURNAL SL (REFERENCE RISK)
+
+// ==================================================
+// 🧠 LAST ZONE SL MEMORY (IMPORTANT)
+// ==================================================
+
+var float _highPrice = na // 🧠 LAST ZONE SL MEMORY (IMPORTANT)
+var float _lowPrice  = na
+
+
+// ==================================================
+// 🚪 EXIT REASON TRACKING
+// ==================================================
+// var string tradeExitReason = ""
+
+// ==================================================
+// 🎨 RUN-UP / DRAWDOWN HIGHLIGHT SETTINGS
+// ==================================================
+RU_DD_Threshold = 25
+
+runupBgClr   = color.new(color.green, 75)   // soft green
+drawdownBgClr= color.new(color.red,   75)   // soft red
+color normalBgClr   = na                           // default
+
+
+
+// ==================================================
+// 📐 TABLE SETTINGS
+// ==================================================
+showJournalTable = input.bool(false,title = "Journal Table",inline = "SJT",group = "Table💻")
+tablePos      = "bottom_right"
+
+// tablePos      = input.string("top_right", "Table Position",
+//      options = ["top_right", "top_left", "bottom_right", "bottom_left"])
+
+maxRows       = 15
+// maxRows       = input.int(15, "Max Rows in Table", minval = 5, maxval = 100)
+
+f_tablePos(pos) =>
+     pos == "top_left"     ? position.top_left :
+     pos == "bottom_left"  ? position.bottom_left :
+     pos == "bottom_right" ? position.bottom_right :
+                              position.top_right
+
+headerBg  = color.blue
+headerTxt = color.white
+headerBgColor   = color.new(color.gray, 0)
+
+// 🔹 PART-3 : TABLE (unchanged)
+var table tradeTable = table.new(     f_tablePos(tablePos),     13,                     maxRows + 1,            border_width = 1     )
+
+// ===============================
+// 🔴 EXIT → log trade in table
+// ===============================
+// var string exitReasonLocked = na
+
+
+
+
+
+////////////////////----------------------
+// FOR MUKUL_DEMA
+////////////////////----------------------
+
+Comm_Index_Long_ExitConditon = "MZoneLongSL"
+Comm_SL_Long_ATR = "ATR_SL_LONG"
+Comm_Index_Short_ExitConditon = "MZoneShortSL"
+Comm_SL_Short_ATR = "ATR_SL_SHORT"
+Comm_exitTimeCondition = "Exit@3:15"
+
+if Index_Long_ExitConditon
+     and strategy.position_size > 0
+     and na(exitReasonLocked)
+    exitReasonLocked := Comm_Index_Long_ExitConditon
+
+if SL_Long_ATR
+     and strategy.position_size > 0
+     and na(exitReasonLocked)
+    exitReasonLocked := Comm_SL_Long_ATR
+
+
+if Index_Short_ExitConditon
+     and strategy.position_size < 0
+     and na(exitReasonLocked)
+    exitReasonLocked := Comm_Index_Short_ExitConditon
+
+if SL_Short_ATR
+     and strategy.position_size < 0
+     and na(exitReasonLocked)
+    exitReasonLocked := Comm_SL_Short_ATR
+
+if exitTimeCondition
+     and strategy.position_size < 0
+     and na(exitReasonLocked)
+    exitReasonLocked := Comm_exitTimeCondition
+// ///////////////FOR MUKUL_DEMA --END ---------------
+
+// ==================================================
+// 🔠 TABLE SIZE CONTROL
+// ==================================================
+JT_textSize = input.string(     "large",     "Size",     options = ["tiny", "small", "normal", "large"],inline = "SJT",group = "Table💻")
+f_txtSize(sz) =>
+     sz == "tiny"   ? size.tiny  :
+     sz == "small"  ? size.small :
+     sz == "large"  ? size.large :
+                      size.normal
+
+
+
+if barstate.isfirst and showJournalTable
+    table.cell(tradeTable, 0, 0, "Trade#", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 1, 0, "ATM Strike", bgcolor=headerBg, text_color=headerTxt)  // ✅ NEW
+    table.cell(tradeTable, 2, 0, "Reason (In/Out)", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 3, 0, "Price (In/Out)", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 4, 0, "Time (In/Out)", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 5, 0, "SL", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 6, 0, "Run/DD", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 7, 0, "N.Pt", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 9, 0, "RR", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 10, 0, "Dur", bgcolor=headerBg, text_color=headerTxt)
+    table.cell(tradeTable, 11, 0, "Date", bgcolor=headerBg, text_color=headerTxt) // ✅ NEW
+    table.cell(tradeTable, 12, 0, "TF", bgcolor=headerBg, text_color=headerTxt)   // ⬅ shifted
+
+    
+    // table.cell(tradeTable, 11, 0, "Reason", bgcolor=headerBg, text_color=headerTxt)
+
+    
+
+// ==================================================
+// 🔹 PART-4 : ENTRY LOGIC (CLEAN & SAFE)
+// ==================================================
+enteredTrade_table =
+     strategy.position_size != 0
+ and strategy.position_size[1] == 0
+
+// ❌ trade without SL reference not allowed
+// enteredTrade_table := enteredTrade_table and not na(lastZoneSL) //////////////////
+enteredTrade_table := enteredTrade_table
+
+if enteredTrade_table
+    freezeRU_DD := false
+
+tradeClosed =
+     strategy.position_size == 0
+ and strategy.position_size[1] != 0
+
+
+// ==================================================
+// 🔹 PART-5 : RUN-UP & DRAWDOWN (unchanged)
+// ==================================================
+var float entryIndexPrice = na
+if enteredTrade_table
+    entryIndexPrice := close   // INDEX price
+
+
+if enteredTrade_table
+    exitReasonLocked := ""
+
+    tradeEntryTime  := time
+    tradeSide       := strategy.position_size > 0 ? "LONG" : "SHORT"
+    tradeSL         := lastZoneSL
+
+    entryIndexPrice := close
+
+
+
+// ==================================================
+// 🔹 PART-6 : TRADE CLOSE + TABLE FILL
+// ==================================================
+
+
+if tradeClosed and showJournalTable
+    // exitPrice = strategy.position_avg_price[1] ///////////////////////////////
+
+    lastClosedIndex = strategy.closedtrades - 1
+    float tvRunup = strategy.closedtrades.max_runup(lastClosedIndex)
+    float tvDD    = strategy.closedtrades.max_drawdown(lastClosedIndex)
+    exitPrice = strategy.closedtrades.exit_price(lastClosedIndex)
+    pnl = strategy.closedtrades.profit(lastClosedIndex)
+
+    durationM = (time - tradeEntryTime) / 60000
+
+    tradeCount += 1
+    totalPnL   += pnl
+    row = tradeCount
+
+    R = tradeSL != 0 ? pnl / tradeSL : na
+    tradeExitTime := time
+
+    int eH = hour(tradeEntryTime, "Asia/Kolkata")
+    int eM = minute(tradeEntryTime, "Asia/Kolkata")
+
+    int xH = hour(tradeExitTime, "Asia/Kolkata")
+    int xM = minute(tradeExitTime, "Asia/Kolkata")
+
+    string entryTimeStr = str.tostring(eH, "00") + ":" + str.tostring(eM, "00")
+    string exitTimeStr  = str.tostring(xH, "00") + ":" + str.tostring(xM, "00")
+
+    string tfStr = timeframe.period
+
+    int dY = year(time,  "Asia/Kolkata")
+    int dM = month(time, "Asia/Kolkata")
+    int dD = dayofmonth(time, "Asia/Kolkata")
+
+    string dateStr =
+         str.tostring(dayofmonth(time, "Asia/Kolkata"), "00") + "-" +
+         str.tostring(month(time, "Asia/Kolkata"), "00") + "-" +
+         str.tostring(year(time, "Asia/Kolkata") % 100, "00")
+    string dateTfStr = dateStr + " | " + timeframe.period
+
+
+
+
+    string timeCellTextTable = entryTimeStr + "/\n" + exitTimeStr
+    table.cell(tradeTable, 0, row,        str.tostring(tradeCount),        text_size = f_txtSize(JT_textSize))
+    table.cell(tradeTable, 1, row,        str.tostring(atmStrike),        text_size = f_txtSize(JT_textSize))
+
+    table.cell(tradeTable, 2, row, tradeSide + "/\n" + exitReasonLocked, text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 3, row, str.tostring(entryIndexPrice,"#") + "/\n" + str.tostring(exitPrice,"#"), text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 4, row, timeCellTextTable, text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 5, row, str.tostring(tradeSL), text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 6, row, str.tostring(tvRunup,"#")+"/\n"+str.tostring(tvDD,"#"), text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 7, row, str.tostring(math.round(pnl)), text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 9, row, str.tostring(R, "#.##"), text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 10,row, str.tostring(math.round(durationM))+"m", text_size=f_txtSize(JT_textSize))
+    table.cell(tradeTable, 11,row,dateStr, text_size = f_txtSize(JT_textSize))
+    table.cell(tradeTable, 12,row, tfStr, text_size = f_txtSize(JT_textSize))
+
+
+
+    // reset
+    tradeEntryPrice := na
+    entryIndexPrice := na
+    tradeEntryTime  := na
+    tradeSide       := ""
+    tradeRunup      := na
+    tradeBestPrice  := na
+    tradeDrawdown   := na
+    tradeWorstPrice := na
+    tradeSL         := na
+    tradeExitReason := ""
+    // exitReasonLocked := ""   // 🔄 reset after logging
+
+
+if tradeClosed
+    freezeRU_DD := true
+
+// ==================================================
+// 🔹 PART-7 : TOTAL ROW
+// ==================================================
+
+if barstate.islast and showJournalTable
+    totalRow = tradeCount + 1
+    table.cell(tradeTable, 0, totalRow, "TOTAL",
+         bgcolor=color.black, text_color=color.white, text_size=f_txtSize(JT_textSize))
+
+    table.cell(tradeTable, 6, totalRow, str.tostring(totalPnL),
+         bgcolor=color.black,
+         text_color = totalPnL >= 0 ? color.lime : color.red,
+         text_size=f_txtSize(JT_textSize))
+
+
+
+
+
+
+// // =================================================================
+// // LONG ENTRY
+// // =================================================================
+
+// if Index_Long_Signal
+//      and Continuation_Enable
+//      and (strategy.position_size == 0 )
+//      and tradesToday < maxTradesPerDay 
+//      and inDateRange 
+//     strategy.order("Cont_long",strategy.long)//for dharn longorder Placement
+//     alert(message = premLong_BuyCE,freq = alert.freq_once_per_bar_close)//
+//     tradesToday += 1
+//     Green_Zone_Touch_and_Candle := false
+//     Red_Zone_Touch_and_Candle := false
+//     // lockedCEStrike := ceStrike_calc //🔒 LONG ENTRY → CE STRIKE LOCK
+
+
+
+// if strategy.position_size > 0 and not exitFiredThisBar
+//     if SL_Long_ATR and AtrExit_Toggle
+//         exitReasonLocked := Comm_SL_Long_ATR
+//         strategy.order("EXIT_LONG", strategy.short, comment = exitReasonLocked)
+//         alert(message = premLong_ExitCE,freq = alert.freq_once_per_bar_close)
+//         exitFiredThisBar := true
+
+//     else if Index_Long_ExitConditon and MainExit_Toggle
+//         exitReasonLocked := Comm_Index_Long_ExitConditon
+//         strategy.order("EXIT_LONG", strategy.short, comment = exitReasonLocked)
+//         alert(message = premLong_ExitCE,freq = alert.freq_once_per_bar_close)
+//         exitFiredThisBar := true
+
+
+
+// // =================================================================
+// // SHORT ENTRY
+// // =================================================================
+// if Index_Short_Signal
+//      and Continuation_Enable
+//      and (strategy.position_size == 0 )
+//      and tradesToday < maxTradesPerDay 
+//      and inDateRange 
+//     //  and not dayProfitLocked
+//     strategy.order("Cont_Short",strategy.short)
+//     alert(message = premShort_BuyPE,freq = alert.freq_once_per_bar_close)//
+//     tradesToday += 1
+//     Green_Zone_Touch_and_Candle := false
+//     Red_Zone_Touch_and_Candle := false
+//     // lockedPEStrike := peStrike_calc //🔒 SHORT ENTRY → PE STRIKE LOCK
+
+
+
+
+// if strategy.position_size < 0 and not exitFiredThisBar
+//     // 🛑 1️⃣ ATR SL – HIGHEST PRIORITY
+//     if SL_Short_ATR and AtrExit_Toggle
+//         exitReasonLocked := Comm_SL_Short_ATR
+//         strategy.order(
+//              "EXIT_SHORT",
+//              strategy.long,
+//              comment = exitReasonLocked
+//              )
+//         alert(message = premShort_ExitPE, freq = alert.freq_once_per_bar_close)
+//         atrSL_Short := na
+//         exitFiredThisBar := true
+
+//     // 🔴 2️⃣ Main Exit – close_Above_Red_zone
+//     else if Index_Short_ExitConditon and MainExit_Toggle
+//         exitReasonLocked := Comm_Index_Short_ExitConditon
+//         strategy.order(
+//              "EXIT_SHORT",
+//              strategy.long,
+//              comment = exitReasonLocked
+//              )
+//         alert(message = premShort_ExitPE, freq = alert.freq_once_per_bar_close)
+//         exitFiredThisBar := true
+
+// Long_indexExitCondition  = (close_Below_Red_zone and (close < open) and (useFreshZoneOnly ? redZoneFresh : Red_Zone_Touch_and_Candle)) // long
+// Short_indexExitCondition = (close_Above_Red_zone  and (close > open) and (useFreshZoneOnly ? greenZoneFresh : Green_Zone_Touch_and_Candle)) // short
+
+
+// // // 🚨 EXIT - Tar/SL Line BASED
+// // // ==================================================
+// // if ManuShort_Togg
+// //      and PremiumTradeActive
+// //      and strategy.position_size < 0
+// //      and (ManuShort_Tar or ManuShort_SL)
+// //      and Short_indexExitCondition
+     
+// //     strategy.order("EXIT_Short", strategy.long, comment="ManLine_TGT_SL")
+// //     alert(message = premShort_ExitPE, freq = alert.freq_once_per_bar_close)
+
+// //     // 🔄 RESET
+// //     atrSL_Short := na
+// //     entryFib0 := na
+// //     entryFib100 := na
+// //     fib100Label := na 
+// //     TradeSide := ""
+// //     PremiumTradeActive := false
+
+
+// // // 🚨 EXIT - Tar/SL Line BASED
+// // // ==================================================
+// // if ManuLong_Togg
+// //      and PremiumTradeActive
+// //      and strategy.position_size > 0
+// //      and (ManuLong_Tar or ManuLong_SL)
+// //      and Long_indexExitCondition
+     
+// //     strategy.order("EXIT_LONG", strategy.short, comment="ManLine_TGT_SL")
+// //     alert(message = premLong_ExitCE, freq = alert.freq_once_per_bar_close)
+
+// //     // 🔄 RESET
+// //     atrSL_Long := na
+// //     entryFib0 := na
+// //     entryFib100 := na
+// //     fib100Label := na 
+// //     TradeSide := ""
+// //     PremiumTradeActive := false
+
+
+
+
+
+// ================================
+// 🔁 MIRACLE
+// ================================
+
+var bool allowNewZones = false
+var bool Green_Zone     = false
+var bool Red_Zone       = false
+
+
+Long_indexExitCondition  = (close_Below_Red_zone and (close < open) and (useFreshZoneOnly ? redZoneFresh : Red_Zone_Touch_and_Candle)) // long
+Short_indexExitCondition = (close_Above_Red_zone  and (close > open) and (useFreshZoneOnly ? greenZoneFresh : Green_Zone_Touch_and_Candle)) // short
+
+
+
+// ================================
+// 🔵 ENTRY GATE (ONLY ONE ENTRY PER TRADE)
+// ================================
+if strategy.position_size == 0
+     and tradesToday < maxTradesPerDay
+     and inDateRange
+
+    // 🔵 MANUAL ENTRY (T1)
+    if T1_EntrySignal
+
+        // 🔐 STRIKE LOCK
+        if T1_Side == "LONG" and na(lockedCEStrike)
+            lockedCEStrike := ceStrike_calc
+        if T1_Side == "SHORT" and na(lockedPEStrike)
+            lockedPEStrike := peStrike_calc
+
+        strategy.entry(
+             "PREMIUM_CONTROL",
+             T1_Side == "LONG" ? strategy.long : strategy.short
+             )
+
+        if T1_Side == "LONG"
+            alert(premLong_BuyCE, alert.freq_once_per_bar_close)
+        else
+            alert(premShort_BuyPE, alert.freq_once_per_bar_close)
+
+        // 🔑 INIT STATE
+        remainingLots := int(str.tonumber(Lot_Input))
+        exitDoneLong  := false
+        exitDoneShort := false
+
+        TradeSide := T1_Side
+        PremiumTradeActive := true
+        tradeActive := true
+        tradesToday += 1
+
+
+    // 🔵 INDEX LONG
+    else if Index_Long_Signal
+         and Continuation_Enable
+
+        // 🔐 STRIKE LOCK
+        if na(lockedCEStrike)
+            lockedCEStrike := ceStrike_calc
+
+        strategy.entry("Cont_Long", strategy.long)
+        alert(premLong_BuyCE, alert.freq_once_per_bar_close)
+
+        remainingLots := int(str.tonumber(Lot_Input))
+        exitDoneLong  := false
+        exitDoneShort := false
+
+        TradeSide := "LONG"
+        PremiumTradeActive := true
+        tradeActive := true
+        tradesToday += 1
+
+
+    // 🔵 INDEX SHORT
+    else if Index_Short_Signal
+         and Continuation_Enable
+
+        // 🔐 STRIKE LOCK
+        if na(lockedPEStrike)
+            lockedPEStrike := peStrike_calc
+
+        strategy.entry("Cont_Short", strategy.short)
+        alert(premShort_BuyPE, alert.freq_once_per_bar_close)
+
+        remainingLots := int(str.tonumber(Lot_Input))
+        exitDoneLong  := false
+        exitDoneShort := false
+
+        TradeSide := "SHORT"
+        PremiumTradeActive := true
+        tradeActive := true
+        tradesToday += 1
+
+
+
+
+
+
+
+// ================================
+// 🎯 TARGET / SL CALC (LONG)
+// ================================
+
+var float longTargetPrice = na
+var float longSLPrice     = na
+
+if TradeSide == "LONG"
+     and PremiumTradeActive
+     and strategy.position_size > 0
+     and na(longTargetPrice)
+
+    longTargetPrice := strategy.position_avg_price + Long_target_points
+    longSLPrice     := strategy.position_avg_price - Long_sl_points
+
+
+// ================================
+// 🎯 TARGET / SL CALC (SHORT)
+// ================================
+
+var float shortTargetPrice = na
+var float shortSLPrice     = na
+
+if TradeSide == "SHORT"
+     and PremiumTradeActive
+     and strategy.position_size < 0
+     and na(shortTargetPrice)
+
+    shortTargetPrice := strategy.position_avg_price - Short_target_points
+    shortSLPrice     := strategy.position_avg_price + Short_sl_points
+
+
+
+
+// ================================
+// 🔴 SHORT TARGET / SL LINE + LABEL
+// ================================
+
+var line  shortTarLine = na
+var line  shortSLLine  = na
+var label shortTarLbl  = na
+var label shortSLLbl   = na
+
+if TradeSide == "SHORT"
+ and PremiumTradeActive
+ and strategy.position_size < 0
+ and not na(shortTargetPrice)
+ and na(shortTarLine)   // ✅ sirf ek baar draw
+ and TgtExit_Toggle
+
+    // 🆕 create once
+    shortTarLine := line.new(bar_index, shortTargetPrice, bar_index + 20, shortTargetPrice, color=color.green, width=2)
+    shortSLLine  := line.new(bar_index, shortSLPrice,     bar_index + 20, shortSLPrice,     color=color.red,   width=2)
+    shortTarLbl  := label.new(bar_index + 20, shortTargetPrice,
+                     "SHORT TGT : " + str.tostring(Short_target_points),
+                     style=label.style_label_left, color=color.green, textcolor=color.white)
+    shortSLLbl   := label.new(bar_index + 20, shortSLPrice,
+                     "SHORT SL : " + str.tostring(Short_sl_points),
+                     style=label.style_label_left, color=color.red, textcolor=color.white)
+
+
+
+
+// ================================
+// 🟢 LONG TARGET / SL LINE + LABEL
+// ================================
+
+var line  longTarLine = na
+var line  longSLLine  = na
+var label longTarLbl  = na
+var label longSLLbl   = na
+
+if TradeSide == "LONG"
+ and PremiumTradeActive
+ and strategy.position_size > 0
+ and not na(longTargetPrice)
+ and na(longTarLine)
+ and TgtExit_Toggle
+
+    longTarLine := line.new(bar_index, longTargetPrice, bar_index + 20, longTargetPrice, color=color.green, width=2)
+    longSLLine  := line.new(bar_index, longSLPrice,     bar_index + 20, longSLPrice,     color=color.red,   width=2)
+    longTarLbl  := label.new(bar_index + 20, longTargetPrice,
+                     "LONG TGT : " + str.tostring(Long_target_points),
+                     style=label.style_label_left, color=color.green, textcolor=color.white)
+    longSLLbl   := label.new(bar_index + 20, longSLPrice,
+                     "LONG SL : " + str.tostring(Long_sl_points),
+                     style=label.style_label_left, color=color.red, textcolor=color.white)
+
+
+
+// ================================
+// 🚨 EXIT ENGINE – LONG (PRIORITY + PARTIAL + REASON)
+// ================================
+
+if TradeSide == "LONG"
+     and strategy.position_size > 0
+     and PremiumTradeActive
+     and remainingLots > 0
+     and not exitSignal
+     and barstate.isconfirmed
+
+    // 🎯 TARGET
+    if TgtExit_Toggle and high >= longTargetPrice
+        exitSignal := true
+        exitReason := "TGT_LONG"
+
+    // 🛑 SL
+    else if TgtExit_Toggle and close <= longSLPrice
+        exitSignal := true
+        exitReason := "SL_LONG"
+
+    // // ✋ MANUAL
+    // else if ManuLong_Togg and (ManuLong_Tar or ManuLong_SL)
+    //     exitSignal := true
+    //     exitReason := "MANUAL_LONG"
+
+    // 📉 FIB SL
+    else if SL_Below_Fib_1 and SL_Blw_Fib_Exit_Tog
+        exitSignal := true
+        exitReason := "FIB_LONG"
+
+    // 📊 ATR SL
+    else if SL_Long_ATR and AtrExit_Toggle
+        exitSignal := true
+        exitReason := "ATR_LONG"
+
+    // 🔴 ZONE / INDEX
+    else if MainExit_Toggle and Index_Long_ExitConditon
+        exitSignal := true
+        exitReason := "ZONE_LONG"
+
+    if exitSignal
+        strategy.order("Exit -" + exitReason, strategy.short)
+        exitSide       := "LONG"
+
+
+
+// ================================
+// 🚨 EXIT ENGINE – SHORT (PRIORITY + PARTIAL + REASON)
+// ================================
+
+if TradeSide == "SHORT"
+     and strategy.position_size < 0
+     and PremiumTradeActive
+     and remainingLots > 0
+     and not exitSignal
+     and barstate.isconfirmed
+
+    // 🎯 TARGET
+    if TgtExit_Toggle and low <= shortTargetPrice
+        exitSignal := true
+        exitReason := "TGT_SHORT"
+
+    // 🛑 SL
+    else if TgtExit_Toggle and close >= shortSLPrice
+        exitSignal := true
+        exitReason := "SL_SHORT"
+
+    // // ✋ MANUAL
+    // else if ManuShort_Togg and (ManuShort_Tar or ManuShort_SL)
+    //     exitSignal := true
+    //     exitReason := "MANUAL_SHORT"
+
+    // 📉 FIB SL
+    else if SL_Below_Fib_0 and SL_Blw_Fib_Exit_Tog
+        exitSignal := true
+        exitReason := "FIB_SHORT"
+
+    // 📊 ATR SL
+    else if SL_Short_ATR and AtrExit_Toggle
+        exitSignal := true
+        exitReason := "ATR_SHORT"
+
+    // 🔴 ZONE / INDEX
+    else if MainExit_Toggle and Index_Short_ExitConditon
+        exitSignal := true
+        exitReason := "ZONE_SHORT"
+
+    if exitSignal
+        strategy.order("Exit -" + exitReason, strategy.long)
+        exitSide       := "SHORT"
+
+
+
+
+
+
+
+// ================================
+// 🔔 EXIT ALERT (SINGLE PLACE)
+// ================================
+if exitSignal
+    if exitSide == "LONG"
+        alert(premLong_ExitCE, alert.freq_once_per_bar_close)
+    else if exitSide == "SHORT"
+        alert(premShort_ExitPE, alert.freq_once_per_bar_close)
+
+// ================================
+// 🏁 FULL EXIT FLAGS (ONLY WHEN LOTS FINISH)
+// ================================
+if exitSignal and remainingLots <= 0
+    if exitSide == "LONG"
+        exitDoneLong := true
+        lockedCEStrike := na      // 🔐 RESET CE LOCK
+    else if exitSide == "SHORT"
+        exitDoneShort := true
+        lockedPEStrike := na      // 🔐 RESET PE LOCK
+
+    PremiumTradeActive := false
+
+
+// ================================
+// 🔄 RESET (SAFE & CLEAN)
+// ================================
+
+if strategy.position_size == 0 and not PremiumTradeActive
+    TradeSide   := ""
+    tradeActive := false
+
+    longTargetPrice  := na
+    longSLPrice      := na
+    shortTargetPrice := na
+    shortSLPrice     := na
+
+if barstate.isconfirmed
+    exitSignal := false
+    exitSide   := ""
+    exitReason := ""
+
+
+

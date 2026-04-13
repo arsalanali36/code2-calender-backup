@@ -376,6 +376,13 @@ function _bindUIEvents() {
     });
   }
 
+  const strategyLabBtn = document.getElementById('strategy-lab-btn');
+  if (strategyLabBtn) {
+    strategyLabBtn.addEventListener('click', () => {
+      window.location.href = '/strategy-lab';
+    });
+  }
+
   // Fullscreen button — hides browser chrome on iPad/mobile
   const fsBtn = document.getElementById('fullscreen-btn');
   if (fsBtn) {

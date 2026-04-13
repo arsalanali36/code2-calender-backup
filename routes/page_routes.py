@@ -52,6 +52,11 @@ def gallery_classic():
     return render_template('gallery_classic_page.html', cache_bust=int(time.time()))
 
 
+@page_bp.route('/strategy-lab')
+def strategy_lab():
+    return render_template('strategy_lab.html', cache_bust=int(time.time()))
+
+
 @page_bp.route('/mobile/')
 @page_bp.route('/mobile')
 def mobile():
