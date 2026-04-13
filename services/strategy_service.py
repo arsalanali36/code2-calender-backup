@@ -94,10 +94,10 @@ def run_arsalan_continuation(df):
 
 def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30'):
     symbol = "^NSEI"
-    # Fetch extra 20 days of history (enough for DEMA 100 on intraday)
-    # yfinance limit for 3m/5m is 60 days total.
-    fetch_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=20)).strftime('%Y-%m-%d')
-    data = yf.download(symbol, start=fetch_start, end=end_date, interval=timeframe)
+    # yfinance end date is EXCLUSIVE. To get data for end_date, we must add +1 day.
+    yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
+    fetch_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
+    data = yf.download(symbol, start=fetch_start, end=yf_end, interval=timeframe)
     if data.empty: return pd.DataFrame(), []
     
     # Clean multi-index columns FIRST if they exist

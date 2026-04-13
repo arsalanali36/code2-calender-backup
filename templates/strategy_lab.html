@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strategy Lab | Trading Journal</title>
-    <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}">
     <style>
         :root {
             --bg-light: #ffffff;
             --sidebar-width: 320px;
             --accent: #0969da;
+            --blue: #0969da;
         }
 
         body {
@@ -20,6 +20,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
         }
 
         .lab-header {
@@ -29,6 +30,7 @@
             padding: 8px 20px;
             border-bottom: 1px solid #d0d7de;
             background: #ffffff;
+            z-index: 1000;
         }
 
         .lab-logo {
@@ -43,17 +45,56 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
         .lab-sidebar {
             width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             border-right: 1px solid #d0d7de;
             background: #ffffff;
-            padding: 15px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
             overflow-y: auto;
+            transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+            box-sizing: border-box;
+            opacity: 1;
+        }
+
+        .lab-sidebar.collapsed {
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            border-right: none;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            left: var(--sidebar-width);
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 1px solid #d0d7de;
+            border-left: none;
+            width: 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1500;
+            border-radius: 0 8px 8px 0;
+            transition: left 0.3s ease;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .lab-sidebar.collapsed + .sidebar-toggle {
+            left: 0;
         }
 
         .lab-main {
@@ -64,9 +105,43 @@
             flex-direction: column;
         }
 
-        .chart-wrapper {
-            flex: 1;
-            position: relative;
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #666;
         }
 
         .control-group {
@@ -86,9 +161,11 @@
             background: #ffffff;
             border: 1px solid #d0d7de;
             color: #24292f;
-            padding: 6px 10px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 0.9rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .lab-btn {
@@ -99,7 +176,10 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: 0.2s;
         }
+
+        .lab-btn:hover { opacity: 0.9; }
 
         .lab-btn-outline {
             background: transparent;
@@ -107,22 +187,34 @@
             color: #24292f;
         }
 
-        #chart-container {
-            width: 100%;
-            height: 100%;
-        }
-
         .setting-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
+            gap: 12px;
+            font-size: 0.9rem;
             cursor: pointer;
-            padding: 2px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #f6f8fa;
         }
 
-        .setting-item input {
+        .settings-trigger {
+            background: #f6f8fa;
+            border: 1px solid #d0d7de;
+            padding: 4px 8px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        #chart-container {
+            width: 100%;
+            height: 100%;
         }
 
         .loading-overlay {
@@ -139,20 +231,19 @@
     </style>
 </head>
 <body>
-
     <header class="lab-header">
         <div class="lab-logo">
-            <img src="/static/img/logo.png" height="30" alt="logo">
-            <span>Strategy Lab</span>
+            <span style="font-size: 1.5rem;">📊</span> Strategy Lab
         </div>
-        <div class="header-actions">
-            <button class="lab-btn-outline lab-btn" id="export-pdf-btn">📄 Export PDF</button>
-            <a href="/" class="lab-btn-outline lab-btn" style="text-decoration:none; margin-left:10px;">🏠 Home</a>
+        <div style="display: flex; gap: 10px;">
+            <button class="lab-btn-outline lab-btn" id="batch-export-btn">📄 Batch Export (D1-D10)</button>
+            <button class="lab-btn-outline lab-btn" id="export-pdf-btn">🖼️ Export View</button>
+            <a href="/" class="lab-btn-outline lab-btn" style="text-decoration:none">🏠 Home</a>
         </div>
     </header>
 
     <div class="lab-container">
-        <aside class="lab-sidebar">
+        <aside class="lab-sidebar" id="sidebar">
             <div class="control-group">
                 <span class="control-label">Symbol</span>
                 <input type="text" value="Nifty 50 (^NSEI)" class="lab-input" disabled>
@@ -160,9 +251,12 @@
 
             <div class="control-group">
                 <span class="control-label">Strategy</span>
-                <select id="strategy-select" class="lab-input">
-                    <option value="arsalan_continuation">Arsalan Continuation</option>
-                </select>
+                <div style="display:flex; gap:5px;">
+                    <select id="strategy-select" class="lab-input" style="flex:1;">
+                        <option value="arsalan_continuation">Arsalan Continuation</option>
+                    </select>
+                    <button class="settings-trigger" id="open-settings-btn" title="Strategy Settings">⚙️</button>
+                </div>
             </div>
 
             <div class="control-group">
@@ -191,25 +285,42 @@
                 </div>
             </div>
 
-            <div class="control-group" id="strategy-options">
-                <span class="control-label">Strategy Settings</span>
+            <button class="lab-btn" id="run-btn">🚀 Run Strategy</button>
+        </aside>
+
+        <div class="sidebar-toggle" id="sidebar-toggle-btn">◀</div>
+
+        <main class="lab-main">
+            <div class="loading-overlay" id="loader">Running Strategy...</div>
+            <div class="nav-controls" style="display:flex; justify-content:center; align-items:center; gap:15px; padding:10px; border-bottom:1px solid #d0d7de; background:#f6f8fa;">
+                <button class="lab-btn-outline lab-btn" id="prev-day-btn" title="Previous Day">◀</button>
+                <button class="lab-btn-outline lab-btn" id="fit-btn" style="min-width:80px; font-weight:bold;">FIT VIEW</button>
+                <button class="lab-btn-outline lab-btn" id="next-day-btn" title="Next Day">▶</button>
+            </div>
+            <div class="chart-wrapper">
+                <div id="chart-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Strategy Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Arsalan Continuation Settings</span>
+                <span class="close-modal" id="close-settings-btn">&times;</span>
+            </div>
+            <div class="modal-body" id="strategy-options">
                 <label class="setting-item"><input type="checkbox" id="use-fresh-zone" checked> Use Fresh Zone Only</label>
                 <label class="setting-item"><input type="checkbox" id="fib-exit" checked> Fib Exit</label>
                 <label class="setting-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
                 <label class="setting-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
                 <label class="setting-item"><input type="checkbox" id="show-fib" checked> Show Fib Lines</label>
-                <label class="setting-item"><input type="checkbox" id="keep-old-lines"> Keep Old Breakout Lines</label>
             </div>
-
-            <button class="lab-btn" id="run-btn">🚀 Run Strategy</button>
-        </aside>
-
-        <main class="lab-main">
-            <div class="loading-overlay" id="loader">Running Strategy...</div>
-            <div class="chart-wrapper">
-                <div id="chart-container"></div>
+            <div style="margin-top:20px; text-align:right;">
+                <button class="lab-btn" id="save-settings-btn" style="width:100%;">Apply Settings</button>
             </div>
-        </main>
+        </div>
     </div>
 
     <script src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
@@ -217,16 +328,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // Set default dates
-        const end = new Date();
-        const start = new Date();
-        start.setDate(start.getDate() - 7);
-        document.getElementById('end-date').value = end.toISOString().split('T')[0];
-        document.getElementById('start-date').value = start.toISOString().split('T')[0];
+        const endDay = new Date();
+        const startDay = new Date();
+        startDay.setDate(startDay.getDate() - 7);
+        document.getElementById('end-date').value = endDay.toISOString().split('T')[0];
+        document.getElementById('start-date').value = startDay.toISOString().split('T')[0];
 
         let chart;
         let candleSeries;
         let ema10Series, ema20Series, demaSeries;
         let zoneSeriesList = [];
+        let currentChartData = [];
 
         function initChart() {
             const chartElement = document.getElementById('chart-container');
@@ -261,17 +373,16 @@
             zoneSeriesList = [];
         }
 
-        async function runStrategy() {
+        async function runStrategy(silent = false) {
             const startStr = document.getElementById('start-date').value;
             const endStr = document.getElementById('end-date').value;
             const timeframe = document.getElementById('timeframe-select').value;
             const loader = document.getElementById('loader');
 
-            loader.style.display = 'flex';
+            if (!silent) loader.style.display = 'flex';
             clearZones();
 
             try {
-                // Collect settings
                 const settings = {
                     fresh_zone: document.getElementById('use-fresh-zone').checked,
                     fib_exit: document.getElementById('fib-exit').checked,
@@ -290,27 +401,29 @@
 
                 const res = await fetch(`/api/strategy/nifty-data?${params.toString()}`);
                 const dataRaw = await res.json();
-                if (dataRaw.error) { alert(dataRaw.error); return; }
+                if (dataRaw.error) { 
+                    if (!silent) alert(dataRaw.error); 
+                    return false; 
+                }
 
-                const data = dataRaw.chart_data;
+                currentChartData = dataRaw.chart_data; 
+                const data = currentChartData;
                 const zones = dataRaw.zones;
+
+                if (!data || data.length === 0) return false;
 
                 candleSeries.setData(data.filter(d => !d.is_gap).map(d => ({
                     time: d.time, open: d.open, high: d.high, low: d.low, close: d.close
                 })));
 
-                // Line series use gaps (with undefined) to break the lines
                 ema10Series.setData(data.map(d => ({ 
-                    time: d.time, 
-                    value: (d.ema10 === null || d.is_gap) ? undefined : d.ema10 
+                    time: d.time, value: (d.ema10 === null || d.is_gap) ? undefined : d.ema10 
                 })));
                 ema20Series.setData(data.map(d => ({ 
-                    time: d.time, 
-                    value: (d.ema20 === null || d.is_gap) ? undefined : d.ema20 
+                    time: d.time, value: (d.ema20 === null || d.is_gap) ? undefined : d.ema20 
                 })));
                 demaSeries.setData(data.map(d => ({ 
-                    time: d.time, 
-                    value: (d.dema100 === null || d.is_gap) ? undefined : d.dema100 
+                    time: d.time, value: (d.dema100 === null || d.is_gap) ? undefined : d.dema100 
                 })));
 
                 const allTimes = data.map(d => d.time);
@@ -319,21 +432,13 @@
                 zones.forEach(zone => {
                     const zoneTimes = allTimes.filter(t => t >= zone.start_time && t <= zone.end_time);
                     if (zoneTimes.length < 2) return;
-
                     const color = zone.type === 'bull' ? '#26a69a' : '#800000';
                     const upperS = chart.addLineSeries({ color: color, lineWidth: 2, lastValueVisible: false, priceLineVisible: false });
                     const lowerS = chart.addLineSeries({ color: color, lineWidth: 2, lastValueVisible: false, priceLineVisible: false });
-                    
                     upperS.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
                     lowerS.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
-                    
                     zoneSeriesList.push(upperS, lowerS);
-
-                    zoneMarkers.push({
-                        time: zoneTimes[zoneTimes.length - 1],
-                        position: 'inBar', color: color, shape: 'circle',
-                        text: `[${Math.round(zone.size)}]`
-                    });
+                    zoneMarkers.push({ time: zoneTimes[zoneTimes.length - 1], position: 'inBar', color: color, shape: 'circle', text: `[${Math.round(zone.size)}]` });
                 });
 
                 const strategyMarkers = [];
@@ -341,18 +446,96 @@
                     if (d.is_buy) strategyMarkers.push({ time: d.time, position: 'belowBar', color: '#26a69a', shape: 'arrowUp', text: 'BUY' });
                     else if (d.is_sell) strategyMarkers.push({ time: d.time, position: 'aboveBar', color: '#ef5350', shape: 'arrowDown', text: 'SELL' });
                 });
-                
                 candleSeries.setMarkers([...strategyMarkers, ...zoneMarkers]);
                 chart.timeScale().fitContent();
-
+                return true;
             } catch (err) {
                 console.error(err);
+                return false;
             } finally {
                 loader.style.display = 'none';
             }
         }
 
-        document.getElementById('run-btn').addEventListener('click', runStrategy);
+        async function batchExport() {
+            const startDateStr = document.getElementById('start-date').value;
+            const endDateStr = document.getElementById('end-date').value;
+            const loader = document.getElementById('loader');
+            const start = new Date(startDateStr);
+            const end = new Date(endDateStr);
+            const dates = [];
+            let current = new Date(start);
+            while (current <= end) {
+                dates.push(current.toISOString().split('T')[0]);
+                current.setDate(current.getDate() + 1);
+            }
+            if (dates.length > 31) { alert("Max 31 days."); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'px', [1400, 950]); 
+            loader.style.display = 'flex';
+            loader.innerText = "Premium Batch Export...";
+            let pagesAdded = 0;
+
+            for (let i = 0; i < dates.length; i++) {
+                const date = dates[i];
+                loader.innerHTML = `<div style="text-align:center">Day ${i + 1}/${dates.length}<br>${date}</div>`;
+                document.getElementById('start-date').value = date;
+                document.getElementById('end-date').value = date;
+                const success = await runStrategy(true); 
+                if (!success) continue; 
+                chart.timeScale().fitContent();
+                await new Promise(r => setTimeout(r, 2000)); 
+                const canvas = await html2canvas(document.getElementById('chart-container'), { scale: 3 });
+                const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                if (pagesAdded > 0) doc.addPage([1400, 950], 'l');
+                doc.addImage(imgData, 'JPEG', 30, 40, 1340, 870);
+                pagesAdded++;
+            }
+            if (pagesAdded > 0) doc.save(`Batch_Report.pdf`);
+            document.getElementById('start-date').value = startDateStr;
+            document.getElementById('end-date').value = endDateStr;
+            await runStrategy();
+            loader.style.display = 'none';
+        }
+
+        const settingsModal = document.getElementById('settings-modal');
+        document.getElementById('open-settings-btn').addEventListener('click', () => settingsModal.style.display = 'flex');
+        document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.style.display = 'none');
+        document.getElementById('save-settings-btn').addEventListener('click', () => { settingsModal.style.display = 'none'; runStrategy(); });
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle-btn');
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            sidebarToggle.innerText = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+            setTimeout(() => { chart.applyOptions({ width: document.getElementById('chart-container').clientWidth }); }, 350);
+        });
+
+        function focusOnDay(dateStr) {
+            if (!currentChartData) return;
+            const target = new Date(dateStr).toDateString();
+            const pts = currentChartData.filter(d => new Date(d.time * 1000).toDateString() === target);
+            if (pts.length > 0) {
+                chart.timeScale().setVisibleRange({ from: pts[0].time - 600, to: pts[pts.length - 1].time + 600 });
+            }
+        }
+
+        function shiftDay(offset) {
+            const currentStr = document.getElementById('start-date').value;
+            const parts = currentStr.split('-');
+            const current = new Date(parts[0], parts[1]-1, parts[2]);
+            current.setDate(current.getDate() + offset);
+            const newDate = current.toISOString().split('T')[0];
+            document.getElementById('start-date').value = newDate;
+            focusOnDay(newDate);
+        }
+
+        document.getElementById('prev-day-btn').addEventListener('click', () => shiftDay(-1));
+        document.getElementById('next-day-btn').addEventListener('click', () => shiftDay(1));
+        document.getElementById('fit-btn').addEventListener('click', () => focusOnDay(document.getElementById('start-date').value));
+        document.getElementById('run-btn').addEventListener('click', () => runStrategy());
+        document.getElementById('batch-export-btn').addEventListener('click', batchExport);
+
         initChart();
         runStrategy();
     </script>
