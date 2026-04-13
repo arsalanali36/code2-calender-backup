@@ -29,6 +29,7 @@ if (_TJ_CHANNEL) {
         dayData:     state.dayData,
         tagGroups:   state.tagGroups,
         pdfPageTags: state.pdfPageTags,
+        uiSettings:  state.uiSettings,
       });
     }
   });
@@ -70,6 +71,7 @@ function _applyBroadcastData(data) {
   state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
   state.pdfPageTags  = (data.pdfPageTags && typeof data.pdfPageTags === 'object') ? data.pdfPageTags : {};
   state.imgTypes    = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
+  state.uiSettings  = (data.uiSettings && typeof data.uiSettings === 'object') ? data.uiSettings : {};
   syncTagColumnRegistry();
   state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
   syncImageTagColumnValues();
@@ -78,6 +80,7 @@ function _applyBroadcastData(data) {
   state.serverStateHash = hashServerState(data);
   initShowHeads();
   initTableShowCols();
+  if (typeof applyVdChartModes === 'function') applyVdChartModes();
   render();
   _dismissLoadingOverlay();
 }
@@ -188,6 +191,7 @@ async function loadTrades() {
     state.pdfPageTags = (data.pdfPageTags && typeof data.pdfPageTags === 'object') ? data.pdfPageTags : {};
     state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
+    state.uiSettings = (data.uiSettings && typeof data.uiSettings === 'object') ? data.uiSettings : {};
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -200,6 +204,7 @@ async function loadTrades() {
     state.serverStateHash = hashServerState(data);
     initShowHeads();
     initTableShowCols();
+    if (typeof applyVdChartModes === 'function') applyVdChartModes();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
     _dismissLoadingOverlay();
@@ -240,7 +245,8 @@ async function saveTrades() {
       tagGroups: state.tagGroups,
       tagTemplates: state.tagTemplates,
       pdfPageTags: state.pdfPageTags,
-      imgTypes: state.imgTypes
+      imgTypes: state.imgTypes,
+      uiSettings: state.uiSettings || {}
     };
     await tradeService.saveTrades(payload);
     state.serverStateHash = hashServerState(payload);
@@ -259,7 +265,8 @@ function hashServerState(data) {
       importedPdfs: data?.importedPdfs || [],
       tagGroups: data?.tagGroups || {},
       tagTemplates: data?.tagTemplates || {},
-      pdfPageTags: data?.pdfPageTags || {}
+      pdfPageTags: data?.pdfPageTags || {},
+      uiSettings: data?.uiSettings || {}
     });
   } catch (e) {
     return '';

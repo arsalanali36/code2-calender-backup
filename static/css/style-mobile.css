@@ -662,7 +662,32 @@
   }
 }
 
-/* ── VISUAL DASHBOARD CHARTS → SINGLE COLUMN ──── */
+/* ── VISUAL DASHBOARD CHARTS → 2-COLUMN (iPad / tablet 769–1200px) ──── */
+@media (min-width: 769px) and (max-width: 1200px) {
+  /* Switch from 6-column to 2-column grid */
+  #vd-charts-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  /* Each card takes one column (half the grid = ~50% width) */
+  #vd-charts-grid .dash-card {
+    grid-column: span 1 !important;
+  }
+
+  /* Width selector irrelevant at this breakpoint */
+  .vd-width-select {
+    display: none !important;
+  }
+
+  /* Chart label row wraps to avoid overflow */
+  .dash-label.vd-drag-handle {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+/* ── VISUAL DASHBOARD CHARTS → SINGLE COLUMN (mobile ≤768px) ──── */
 @media (max-width: 768px) {
   /* Override inline grid-template-columns on the charts grid */
   #vd-charts-grid {

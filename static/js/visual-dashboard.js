@@ -23,7 +23,24 @@ const vdState = {
 
 function updateVdChartMode(chartKey, mode) {
     vdState.chartModes[chartKey] = mode;
+    // Persist to server so all devices see the same mode
+    if (typeof _vdUiSet === 'function') _vdUiSet('vdChartModes', vdState.chartModes);
     renderVisualDashboard();
+}
+
+// Called after trades load — restores saved chart modes into vdState and updates DOM selects
+function applyVdChartModes() {
+    if (typeof _vdUiGet !== 'function') return;
+    const saved = _vdUiGet('vdChartModes', null);
+    if (!saved || typeof saved !== 'object') return;
+    Object.assign(vdState.chartModes, saved);
+    // Sync the mode <select> elements in the DOM
+    document.querySelectorAll('.vd-mode-select').forEach(sel => {
+        const card = sel.closest('.dash-card[data-vd-stat]');
+        if (!card) return;
+        const key = card.getAttribute('data-vd-stat');
+        if (key && saved[key]) sel.value = saved[key];
+    });
 }
 
 function updateVdMtmValueType(type) {
