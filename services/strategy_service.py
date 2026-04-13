@@ -99,12 +99,16 @@ def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end
     if df.empty or source == 'yfinance':
         yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
         fetch_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
-        df = yf.download("^NSEI", start=fetch_start, end=yf_end, interval=timeframe)
+        # yfinance doesn't support 3m natively, use 1m and resample
+        yf_interval = '1m' if timeframe == '3m' else timeframe
+        df = yf.download("^NSEI", start=fetch_start, end=yf_end, interval=yf_interval)
         if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
 
     if df.empty: return pd.DataFrame(), []
     
-    if source != 'yfinance': df = resample_ohlc(df, timeframe)
+    # Resample if not using yfinance (except for 3m which always needs resampling)
+    if source != 'yfinance' or timeframe == '3m': 
+        df = resample_ohlc(df, timeframe)
     df = df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     if df.index.tz is not None: df.index = df.index.tz_convert('Asia/Kolkata').tz_localize(None)
     
