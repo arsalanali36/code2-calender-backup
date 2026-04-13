@@ -94,15 +94,20 @@ def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end
         path = "data/nifty_1m_dhan.csv"
         if os.path.exists(path):
             df = pd.read_csv(path); df['datetime'] = pd.to_datetime(df['datetime'])
-            df = df.rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
+            # STRICT FILTER
+            mask = (df['datetime'] >= pd.to_datetime(start_date)) & (df['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
+            df = df.loc[mask].rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
     
-    if df.empty or source == 'yfinance':
+    if source == 'yfinance':
         yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
-        fetch_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
-        # yfinance doesn't support 3m natively, use 1m and resample
         yf_interval = '1m' if timeframe == '3m' else timeframe
-        df = yf.download("^NSEI", start=fetch_start, end=yf_end, interval=yf_interval)
-        if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
+        # Historical intraday for >60 days is not possible on yfinance, but we try
+        try:
+            df = yf.download("^NSEI", start=start_date, end=yf_end, interval=yf_interval)
+            if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
+            if not df.empty:
+                df = df[df.index >= pd.to_datetime(start_date)] # Double check
+        except: df = pd.DataFrame()
 
     if df.empty: return pd.DataFrame(), []
     
@@ -114,7 +119,8 @@ def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end
     
     df_all = run_pinned_strategy_logic(df)
     start_ts = pd.to_datetime(start_date)
-    df_filtered = df_all[df_all.index >= start_ts].between_time(start_time, end_time)
+    end_ts = pd.to_datetime(end_date) + timedelta(days=1)
+    df_filtered = df_all[(df_all.index >= start_ts) & (df_all.index < end_ts)].between_time(start_time, end_time)
 
     zones = []
     if not df_filtered.empty:
@@ -149,3 +155,41 @@ def get_real_trades(start_date, end_date):
                     processed.append({'entry_time': calendar.timegm(e_dt_n.timetuple()), 'exit_time': calendar.timegm(x_dt_n.timetuple()), 'type': tr_type.upper(), 'instrument': t.get('Instrument', ''), 'pl': float(t.get('Net P/L', 0)), 'qty': int(t.get('Quantity', 0))})
                 except: pass
     return processed
+
+def get_archive_dates():
+    path = "data/nifty_1m_dhan.csv"
+    if not os.path.exists(path): return []
+    try:
+        df = pd.read_csv(path)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df['date'] = df['datetime'].dt.strftime('%Y-%m-%d')
+        
+        # Extract traded instruments
+        trades_map = {}
+        t_path = os.path.join('data', 'trades_1.json')
+        if os.path.exists(t_path):
+            try:
+                with open(t_path, 'r') as f:
+                    for t in json.load(f).get('trades', []):
+                        d_str = t.get('trade_date', t.get('date', ''))
+                        inst = t.get('Instrument', '').strip()
+                        if d_str and inst:
+                            if d_str not in trades_map: trades_map[d_str] = set()
+                            trades_map[d_str].add(inst)
+            except: pass
+
+        results = []
+        for date, group in df.groupby('date'):
+            if len(group) > 1:
+                median_diff = group['datetime'].diff().dropna().dt.total_seconds().median() / 60
+                res_str = f"{int(median_diff)}m" if median_diff >= 1 else "High"
+            else:
+                res_str = "N/A"
+            
+            insts = list(trades_map.get(date, set()))
+            results.append({'date': date, 'resolution': res_str, 'instruments': insts})
+            
+        return sorted(results, key=lambda x: x['date'], reverse=True)
+    except Exception as e:
+        print(f"Error reading archive dates: {e}")
+        return []

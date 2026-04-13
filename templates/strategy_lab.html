@@ -16,8 +16,8 @@
         .nav-controls { display: flex; align-items: center; gap: 12px; padding:10px; border-bottom:1px solid #d0d7de; background:#f6f8fa; }
         .nav-btn { padding: 6px 15px; border: 1px solid #d0d7de; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s;}
         .nav-btn:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
-        .chart-wrapper { flex: 1; position: relative; padding: 10px; }
-        #chart-container { width: 100%; height: 100%; }
+        .chart-wrapper { flex: 1; position: relative; padding: 10px; overflow: hidden; }
+        #chart-container { position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; }
         .setting-item { display: block; margin-bottom: 12px; font-size: 0.85rem; color: #1f2328; font-weight: 600; }
         .lab-btn { width: 100%; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .lab-btn-primary { background: #0969da; color: white; }
@@ -39,9 +39,8 @@
             <div style="margin-bottom:20px;">
                 <label class="setting-item">DATA SOURCE</label>
                 <select id="source-select" class="nav-btn" style="width:100%;">
-                    <option value="yfinance">yfinance (Free)</option>
+                    <option value="dhan_local" selected>Dhan Local (CSV)</option>
                     <option value="dhan_api">Dhan API (Live)</option>
-                    <option value="dhan_local">Dhan Local (CSV)</option>
                 </select>
             </div>
             
@@ -72,6 +71,7 @@
             <div class="nav-controls">
                 <button class="nav-btn" id="prev-day-btn">◀</button><button class="nav-btn" id="fit-btn" style="font-weight:600;">FIT VIEW</button><button class="nav-btn" id="next-day-btn">▶</button>
                 <div style="margin-left:auto; display:flex; gap:10px;">
+                    <button class="nav-btn" id="open-history-btn" style="border-color:#0969da; color:#0969da;">DATA HISTORY</button>
                     <button class="nav-btn" id="open-trades-modal-btn" style="border-color:#f9a825; color:#f9a825; font-weight:600;">REAL TRADES</button>
                     <button class="nav-btn" id="batch-export-btn">Batch Export</button>
                     <a href="/" class="nav-btn" style="text-decoration:none;">Home</a>
@@ -99,6 +99,26 @@
                     <textarea id="dhan-access-token" class="nav-btn" style="width:100%; height:80px; font-size: 0.7rem;" placeholder="Paste your JWT token here..."></textarea>
                 </div>
                 <button class="lab-btn lab-btn-primary" id="save-dhan-btn">Save & Continue</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="history-modal">
+        <div class="modal-content" style="width: 450px; max-height: 80vh; padding:0;">
+            <div class="modal-header" style="padding:15px 20px; border-bottom: 1px solid #eee;">
+                <div class="modal-title">Downloaded Data History</div>
+                <div class="close-modal" id="close-history-modal">&times;</div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; overflow-y: auto; max-height: 60vh;">
+                <table style="width:100%; border-collapse: collapse; margin-top:15px;">
+                    <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                        <tr>
+                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.8rem;">DATE</th>
+                            <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.8rem;">RESOLUTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -132,7 +152,11 @@
             demaSeries = chart.addLineSeries({ color: '#424242', lineWidth: 2, title: 'DEMA 100' });
             markerSeries = chart.addLineSeries({ color: 'transparent', lineWidth: 0, priceLineVisible: false, lastValueVisible: false });
 
-            window.addEventListener('resize', () => { chart.applyOptions({ width: container.clientWidth, height: container.clientHeight }); });
+            new ResizeObserver(entries => {
+                if (entries.length === 0 || entries[0].target !== container) { return; }
+                const newRect = entries[0].contentRect;
+                chart.applyOptions({ height: newRect.height, width: newRect.width });
+            }).observe(container);
         }
 
         function clearZones() { zoneSeriesList.forEach(s => chart.removeSeries(s)); zoneSeriesList = []; }
@@ -273,16 +297,67 @@
             `).join('') : '<div style="text-align:center; padding:20px; color:#999;">No trades.</div>';
         }
 
+        async function openHistoryModal() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#666;">Analyzing archive...</td></tr>';
+            document.getElementById('history-modal').style.display = 'flex';
+            
+            try {
+                const res = await fetch('/api/strategy/archive-dates');
+                const data = await res.json();
+                if (data.dates && data.dates.length) {
+                    tbody.innerHTML = data.dates.map(d => {
+                        let instHtml = '';
+                        if (d.instruments && d.instruments.length) {
+                            instHtml = `<details style="margin-top:8px; font-size:0.75rem; color:#64748b; cursor:pointer;">
+                                <summary style="font-weight:600; outline:none; user-select:none; color:#0969da;">${d.instruments.length} Trades Found</summary>
+                                <div style="margin-top:5px; padding-left:10px; border-left:2px solid #e2e8f0; line-height: 1.5;">
+                                    ${d.instruments.join('<br>')}
+                                </div>
+                            </details>`;
+                        }
+                        return `
+                        <tr>
+                            <td colspan="2" style="padding:0; border-bottom:1px solid #f1f5f9;">
+                                <table style="width:100%; border-collapse:collapse;">
+                                    <tr>
+                                        <td style="padding:12px 10px; font-weight:600; font-size:0.85rem; color:#1e293b;">
+                                            ${d.date}
+                                            ${instHtml}
+                                        </td>
+                                        <td style="padding:12px 10px; text-align:right; vertical-align:top;">
+                                            <span style="padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; background:${d.resolution === '1m' ? '#dcfce7' : '#f1f5f9'}; color:${d.resolution === '1m' ? '#166534' : '#64748b'};">
+                                                ${d.resolution}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    `}).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#999;">No local data files found.</td></tr>';
+                }
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#ef5350;">Error loading history.</td></tr>';
+            }
+        }
+
+        document.getElementById('close-history-modal').onclick = () => document.getElementById('history-modal').style.display = 'none';
+        document.getElementById('open-history-btn').onclick = openHistoryModal;
         document.getElementById('close-trades-modal-btn').onclick = () => document.getElementById('trades-modal').style.display = 'none';
         document.getElementById('open-trades-modal-btn').onclick = openTradesModal;
         document.getElementById('run-btn').onclick = () => runStrategy();
         document.getElementById('prev-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()-1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
         document.getElementById('next-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
         document.getElementById('fit-btn').onclick = () => chart.timeScale().fitContent();
-        document.getElementById('sidebar-toggle-btn').onclick = () => { const sb = document.getElementById('sidebar'); sb.classList.toggle('collapsed'); document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀'; setTimeout(() => chart.applyOptions({ width: document.getElementById('chart-container').clientWidth }), 300); };
+        document.getElementById('sidebar-toggle-btn').onclick = () => { const sb = document.getElementById('sidebar'); sb.classList.toggle('collapsed'); document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀'; };
 
-        initChart();
-        runStrategy();
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            runStrategy();
+        });
     </script>
 </body>
 </html>

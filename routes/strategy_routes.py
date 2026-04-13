@@ -71,3 +71,12 @@ def nifty_data():
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+@strategy_bp.route('/api/strategy/archive-dates')
+def archive_dates():
+    from services.strategy_service import get_archive_dates
+    try:
+        dates = get_archive_dates()
+        return jsonify({'dates': dates})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
