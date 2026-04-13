@@ -200,9 +200,11 @@ async function loadTrades() {
     state.serverStateHash = hashServerState(data);
     initShowHeads();
     initTableShowCols();
-    render();
+    // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
+    try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
     _dismissLoadingOverlay();
   } catch (e) {
+    console.error('[loadTrades] error:', e);
     _dismissLoadingOverlay();
     showToast('Failed to load data', 'error');
   }

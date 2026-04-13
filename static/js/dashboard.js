@@ -206,26 +206,37 @@ function renderDashboard(customTrades = null) {
   let net = 0;
   let hasGrossAndNetCols = false;
 
-  // Let's compute PNL accurately, preferring Gross P/L and Net P/L if available
+  // overall = sum of Gross P/L (shown as "OVERALL PAL")
+  // net     = sum of getTradePnl() — identical formula to the cumulative equity chart
   trades.forEach(t => {
     const gPl = parseNumber(t['Gross P/L']);
     const nPl = parseNumber(t['Net P/L']);
-    if (gPl !== null && nPl !== null) {
-      overall += gPl;
-      net += nPl;
-      hasGrossAndNetCols = true;
-    }
+    if (gPl !== null) { overall += gPl; hasGrossAndNetCols = true; }
+    if (nPl !== null) hasGrossAndNetCols = true;
   });
+
+  // net uses the same getTradePnl() formula as the cumulative chart so both show same value
+  if (typeof getTradePnl === 'function') {
+    net = trades.reduce((sum, t) => {
+      const v = getTradePnl(t);
+      return (v !== null && v !== undefined) ? sum + v : sum;
+    }, 0);
+    if (net !== 0) hasGrossAndNetCols = true;
+  }
 
   const charges = sumByKeys(trades, ['Other Charges', 'Charges', 'Charge', 'charges', 'charge', 'Transaction Charges', 'Charges (Total)', 'Total Charges']) || 0;
   const brokerage = sumByKeys(trades, ['Brokerage', 'brokerage', 'Brokerage Charges', 'Brokerage (Total)']) || 0;
   const totalFees = charges + brokerage;
 
   if (!hasGrossAndNetCols) {
+    // No recognised P/L columns at all — last-resort fallback
     const pnlList = trades.map(getTradePnl).filter(n => n !== null);
     overall = pnlList.reduce((a, b) => a + b, 0);
     net = overall - totalFees;
   }
+
+  // If no Gross P/L column exists, overall = net (same value)
+  if (overall === 0 && net !== 0) overall = net;
 
   // Use net for win/loss stats if available, otherwise fallback to what we use for overall
   const pnlListForStats = trades.map(t => {

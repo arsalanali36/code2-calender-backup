@@ -299,11 +299,15 @@
   };
 
   function openQuickStats() {
-    const from = state.dateRange?.from, to = state.dateRange?.to;
-    let initialTrades = (state.trades || []).filter(t => {
-      const d = t.trade_date || t.date || '';
-      return d && (!from || d >= from) && (!to || d <= to);
-    });
+    // Use getVdTrades() so the trade set matches the cumulative chart exactly
+    // (same date range filter, same broker filter, same normalization)
+    let initialTrades = typeof getVdTrades === 'function'
+      ? getVdTrades()
+      : (state.trades || []).filter(t => {
+          const from = state.dateRange?.from, to = state.dateRange?.to;
+          const d = t.trade_date || t.date || '';
+          return d && (!from || d >= from) && (!to || d <= to);
+        });
 
     const availableMonths = new Set();
     initialTrades.forEach(t => {
