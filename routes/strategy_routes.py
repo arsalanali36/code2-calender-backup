@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify
-from services.strategy_service import get_nifty_data, run_arsalan_continuation, get_real_trades
+from services.strategy_service import get_nifty_data, get_real_trades
 import pandas as pd
+import pytz
+import calendar
+import traceback
 
 strategy_bp = Blueprint('strategy', __name__)
 
@@ -11,32 +14,35 @@ def nifty_data():
     timeframe = request.args.get('timeframe', '5m')
     start_time = request.args.get('start_time', '09:15')
     end_time = request.args.get('end_time', '15:30')
+    source = request.args.get('source', 'yfinance')
+    dhan_token = request.args.get('dhan_token', '')
+    dhan_cid = request.args.get('dhan_cid', '')
     
     try:
-        df, zones = get_nifty_data(start_date, end_date, timeframe, start_time, end_time)
+        df, zones = get_nifty_data(start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid)
         real_trades = get_real_trades(start_date, end_date)
 
         if df.empty:
              return jsonify({'error': 'No data found for the selected range.'}), 404
         
-        # Format for Lightweight Charts
         chart_data = []
-        df = df.reset_index()
-        time_col = 'Datetime' if 'Datetime' in df.columns else 'Date'
+        df_reset = df.reset_index()
+        time_col = 'Datetime' if 'Datetime' in df_reset.columns else 'Date'
         
-        import pytz
-        ist_tz = pytz.timezone('Asia/Kolkata')
         prev_time = None
-        
-        import calendar
-        for idx, row in df.iterrows():
+        for idx, row in df_reset.iterrows():
             # Treat naive IST as UTC for fixed display
             dt = row[time_col].replace(tzinfo=None)
             curr_time = calendar.timegm(dt.timetuple())
             
-            # Detect day gap (>1 hour) to break line series
-            if prev_time and (curr_time - prev_time > 3600):
-                # Add a point with null value at 1 second before current trade to break the line
+            # Use the is_gap flag from service, or manual gap detection
+            is_gap = row.get('is_gap', False)
+
+            # Manual gap detection if no flag
+            if not is_gap and prev_time and (curr_time - prev_time > 3600):
+                is_gap = True
+
+            if is_gap and prev_time:
                 chart_data.append({
                     'time': curr_time - 1,
                     'ema10': None, 'ema20': None, 'dema100': None,
@@ -52,8 +58,7 @@ def nifty_data():
                 'ema10': float(row['ema10']) if pd.notnull(row['ema10']) else None,
                 'ema20': float(row['ema20']) if pd.notnull(row['ema20']) else None,
                 'dema100': float(row['dema100']) if pd.notnull(row['dema100']) else None,
-                'is_buy': bool(row['buy_signal']),
-                'is_sell': bool(row['sell_signal'])
+                'is_gap': is_gap
             }
             chart_data.append(item)
             prev_time = curr_time
@@ -64,6 +69,5 @@ def nifty_data():
             'real_trades': real_trades
         })
     except Exception as e:
-        import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500

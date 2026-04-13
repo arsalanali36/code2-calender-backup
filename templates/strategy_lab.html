@@ -7,202 +7,106 @@
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         .lab-container { display: flex; height: 100vh; overflow: hidden; background: #f6f8fa; }
-        
-        .lab-sidebar {
-            width: 300px;
-            background: white;
-            border-right: 1px solid #d0d7de;
-            padding: 20px;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-            position: relative;
-        }
-
+        .lab-sidebar { width: 300px; background: white; border-right: 1px solid #d0d7de; padding: 20px; overflow-y: auto; flex-shrink: 0; position: relative; }
         .lab-sidebar.collapsed { width: 0; padding: 0; border: none; overflow: hidden; }
-
-        .sidebar-toggle-btn {
-            position: absolute;
-            left: 300px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: white;
-            border: 1px solid #d0d7de;
-            border-left: none;
-            width: 20px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1500;
-            border-radius: 0 8px 8px 0;
-            transition: left 0.3s ease;
-            font-size: 0.7rem;
-            color: #666;
-        }
-
+        .sidebar-toggle-btn { position: absolute; left: 300px; top: 50%; transform: translateY(-50%); background: white; border: 1px solid #d0d7de; border-left: none; width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1500; border-radius: 0 8px 8px 0; transition: left 0.3s ease; font-size: 0.7rem; color: #666; }
         .lab-sidebar.collapsed + .sidebar-toggle-btn { left: 0; }
-
         .lab-main { flex: 1; position: relative; background: #ffffff; display: flex; flex-direction: column; }
-
-        .loading-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            font-weight: 600;
-            color: #0969da;
-        }
-
-        .nav-controls { display: flex; align-items: center; gap: 12px; }
-
-        .nav-btn {
-            padding: 6px 15px;
-            border: 1px solid #d0d7de;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
+        .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; font-weight: 600; color: #0969da; }
+        .nav-controls { display: flex; align-items: center; gap: 12px; padding:10px; border-bottom:1px solid #d0d7de; background:#f6f8fa; }
+        .nav-btn { padding: 6px 15px; border: 1px solid #d0d7de; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s;}
         .nav-btn:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
-
         .chart-wrapper { flex: 1; position: relative; padding: 10px; }
         #chart-container { width: 100%; height: 100%; }
-
         .setting-item { display: block; margin-bottom: 12px; font-size: 0.85rem; color: #1f2328; font-weight: 600; }
-        .lab-btn { width: 100%; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .lab-btn { width: 100%; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .lab-btn-primary { background: #0969da; color: white; }
-        .lab-btn-primary:hover { background: #0853ad; }
-
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-content { background: #ffffff; padding: 25px; border-radius: 12px; width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .modal-title { font-size: 1.1rem; font-weight: 600; }
         .close-modal { cursor: pointer; font-size: 1.5rem; color: #666; }
+        .toggle-group { margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .toggle-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8rem; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="lab-container">
         <div class="lab-sidebar" id="sidebar">
-            <h3 style="margin-top:0; font-size: 1.1rem; border-bottom:1px solid #eee; padding-bottom:10px;">Configuration</h3>
+            <h3 style="margin:0 0 20px 0; font-size: 1.1rem; border-bottom:1px solid #eee; padding-bottom:10px;">Configuration</h3>
             
+            <div style="margin-bottom:20px;"><label class="setting-item">SYMBOL</label><input type="text" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly></div>
             <div style="margin-bottom:20px;">
-                <label class="setting-item">SYMBOL</label>
-                <input type="text" id="symbol-input" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly>
+                <label class="setting-item">DATA SOURCE</label>
+                <select id="source-select" class="nav-btn" style="width:100%;">
+                    <option value="yfinance">yfinance (Free)</option>
+                    <option value="dhan_api">Dhan API (Live)</option>
+                    <option value="dhan_local">Dhan Local (CSV)</option>
+                </select>
             </div>
-
+            
             <div style="margin-bottom:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <label class="setting-item" style="margin:0;">STRATEGY</label>
-                    <button class="nav-btn" id="open-settings-btn" style="padding:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
                 </div>
-                <select id="strategy-select" class="nav-btn" style="width:100%;">
-                    <option>Arsalan Continuation</option>
-                </select>
-            </div>
-
-            <div style="margin-bottom:20px;">
-                <label class="setting-item">TIMEFRAME</label>
-                <select id="timeframe-select" class="nav-btn" style="width:100%;">
-                    <option value="1m">1 Minute</option>
-                    <option value="5m" selected>5 Minutes</option>
-                    <option value="15m">15 Minutes</option>
-                </select>
-            </div>
-
-            <div style="margin-bottom:20px;">
-                <label class="setting-item">DATE RANGE</label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <input type="date" id="start-date" class="nav-btn">
-                    <input type="date" id="end-date" class="nav-btn">
+                <select id="strategy-select" class="nav-btn" style="width:100%;"><option>Arsalan Continuation</option></select>
+                
+                <!-- Strategy Internal Logic Toggles (Pine Script Port) -->
+                <div class="toggle-group" style="margin-top:10px;">
+                    <div style="font-size:0.7rem; color:#64748b; font-weight:700; margin-bottom:8px; text-transform:uppercase;">Strategy Logic (Pine)</div>
+                    <label class="toggle-item"><input type="checkbox" id="use-fresh-zone" checked> Use Fresh Zone Only</label>
+                    <label class="toggle-item"><input type="checkbox" id="fib-exit" checked> SL Below Fib</label>
+                    <label class="toggle-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
+                    <label class="toggle-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
                 </div>
             </div>
 
-            <div style="margin-bottom:30px;">
-                <label class="setting-item">MARKET TIME</label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <input type="time" id="start-time" class="nav-btn" value="09:15">
-                    <input type="time" id="end-time" class="nav-btn" value="15:30">
-                </div>
-            </div>
-
-            <button class="lab-btn lab-btn-primary" id="run-btn" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
-                Run Strategy
-            </button>
+            <div style="margin-bottom:20px;"><label class="setting-item">TIMEFRAME</label><select id="timeframe-select" class="nav-btn" style="width:100%;"><option value="1m">1m</option><option value="5m" selected>5m</option><option value="15m">15m</option></select></div>
+            <div style="margin-bottom:20px;"><label class="setting-item">DATE RANGE</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="date" id="start-date" class="nav-btn"><input type="date" id="end-date" class="nav-btn"></div></div>
+            <div style="margin-bottom:30px;"><label class="setting-item">MARKET TIME</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="time" id="start-time" class="nav-btn" value="09:15"><input type="time" id="end-time" class="nav-btn" value="15:30"></div></div>
+            <button class="lab-btn lab-btn-primary" id="run-btn">Run Strategy</button>
         </div>
-
         <div class="sidebar-toggle-btn" id="sidebar-toggle-btn">◀</div>
-
         <main class="lab-main">
             <div class="loading-overlay" id="loader">Running Strategy...</div>
-            
-            <div class="nav-controls" style="padding:10px; border-bottom:1px solid #d0d7de; background:#f6f8fa;">
-                <div style="display:flex; gap:10px; margin: 0 auto 0 20px;">
-                    <button class="nav-btn" id="prev-day-btn">◀</button>
-                    <button class="nav-btn" id="fit-btn" style="min-width:80px; font-weight:600;">FIT VIEW</button>
-                    <button class="nav-btn" id="next-day-btn">▶</button>
-                </div>
-
-                <div style="margin-left:auto; display:flex; gap:10px; margin-right:20px;">
-                    <button class="nav-btn" id="open-trades-modal-btn" style="border-color:#f9a825; color:#f9a825; font-weight:600;">
-                        <svg width="14" height="14" style="margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        REAL TRADES
-                    </button>
+            <div class="nav-controls">
+                <button class="nav-btn" id="prev-day-btn">◀</button><button class="nav-btn" id="fit-btn" style="font-weight:600;">FIT VIEW</button><button class="nav-btn" id="next-day-btn">▶</button>
+                <div style="margin-left:auto; display:flex; gap:10px;">
+                    <button class="nav-btn" id="open-trades-modal-btn" style="border-color:#f9a825; color:#f9a825; font-weight:600;">REAL TRADES</button>
                     <button class="nav-btn" id="batch-export-btn">Batch Export</button>
                     <a href="/" class="nav-btn" style="text-decoration:none;">Home</a>
                 </div>
             </div>
-
-            <div class="chart-wrapper">
-                <div id="chart-container"></div>
-            </div>
+            <div class="chart-wrapper"><div id="chart-container"></div></div>
         </main>
     </div>
 
-    <!-- Strategy Settings Modal -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal-content">
+    <!-- Dhan Credentials Modal -->
+    <div class="modal-overlay" id="dhan-auth-modal">
+        <div class="modal-content" style="width: 400px;">
             <div class="modal-header">
-                <div class="modal-title">Settings</div>
-                <div class="close-modal" id="close-settings-btn">&times;</div>
+                <div class="modal-title">Dhan API Credentials</div>
+                <div class="close-modal" id="close-dhan-modal">&times;</div>
             </div>
-            <div class="modal-body">
-                <label class="setting-item"><input type="checkbox" id="use-fresh-zone" checked> Fresh Zone Only</label>
-                <label class="setting-item"><input type="checkbox" id="fib-exit" checked> Fib Exit</label>
-                <label class="setting-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
-                <label class="setting-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
+            <div style="padding: 10px 0;">
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">Credentials are saved for this session only.</p>
+                <div style="margin-bottom:15px;">
+                    <label class="setting-item">CLIENT ID</label>
+                    <input type="text" id="dhan-client-id" class="nav-btn" style="width:100%;" placeholder="e.g. 1101xxxx">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label class="setting-item">ACCESS TOKEN (JWT)</label>
+                    <textarea id="dhan-access-token" class="nav-btn" style="width:100%; height:80px; font-size: 0.7rem;" placeholder="Paste your JWT token here..."></textarea>
+                </div>
+                <button class="lab-btn lab-btn-primary" id="save-dhan-btn">Save & Continue</button>
             </div>
-            <button class="lab-btn lab-btn-primary" id="save-settings-btn" style="margin-top:20px;">Save & Apply</button>
         </div>
     </div>
-
-    <!-- Real Trades List Modal -->
-    <div class="modal-overlay" id="trades-modal">
-        <div class="modal-content" style="width: 500px; max-height: 80vh; overflow-y: auto;">
-            <div class="modal-header">
-                <div class="modal-title">Real Trades Found</div>
-                <div class="close-modal" id="close-trades-modal-btn">&times;</div>
-            </div>
-            <div id="trades-list-container"></div>
-        </div>
-    </div>
+    <div class="modal-overlay" id="trades-modal"><div class="modal-content" style="width: 500px; max-height: 80vh; overflow-y: auto;"><div class="modal-header"><div class="modal-title">Real Trades Found</div><div class="close-modal" id="close-trades-modal-btn">&times;</div></div><div id="trades-list-container"></div></div></div>
 
     <script src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
-    <script src="/static/js/vendor/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <script>
-        let chart, candleSeries, ema10Series, ema20Series, demaSeries;
+        let chart, candleSeries, ema10Series, ema20Series, demaSeries, markerSeries;
         let zoneSeriesList = [];
         let realTradeSeriesList = [];
         let currentChartData = [];
@@ -226,21 +130,45 @@
             ema10Series = chart.addLineSeries({ color: '#2196F3', lineWidth: 1, title: 'EMA 10' });
             ema20Series = chart.addLineSeries({ color: '#F44336', lineWidth: 1, title: 'EMA 20' });
             demaSeries = chart.addLineSeries({ color: '#424242', lineWidth: 2, title: 'DEMA 100' });
+            markerSeries = chart.addLineSeries({ color: 'transparent', lineWidth: 0, priceLineVisible: false, lastValueVisible: false });
 
-            window.addEventListener('resize', () => {
-                chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-            });
+            window.addEventListener('resize', () => { chart.applyOptions({ width: container.clientWidth, height: container.clientHeight }); });
         }
 
         function clearZones() { zoneSeriesList.forEach(s => chart.removeSeries(s)); zoneSeriesList = []; }
         function clearRealTrades() { realTradeSeriesList.forEach(s => chart.removeSeries(s)); realTradeSeriesList = []; }
 
+        function checkDhanAuth() {
+            const source = document.getElementById('source-select').value;
+            const savedToken = sessionStorage.getItem('dhan_access_token');
+            if (source === 'dhan_api' && !savedToken) {
+                document.getElementById('dhan-auth-modal').style.display = 'flex';
+            }
+        }
+
+        document.getElementById('source-select').onchange = checkDhanAuth;
+        document.getElementById('close-dhan-modal').onclick = () => document.getElementById('dhan-auth-modal').style.display = 'none';
+        document.getElementById('save-dhan-btn').onclick = () => {
+            const cid = document.getElementById('dhan-client-id').value;
+            const token = document.getElementById('dhan-access-token').value;
+            if (cid && token) {
+                sessionStorage.setItem('dhan_client_id', cid);
+                sessionStorage.setItem('dhan_access_token', token);
+                document.getElementById('dhan-auth-modal').style.display = 'none';
+                runStrategy();
+            } else {
+                alert('Please provide both Client ID and Token');
+            }
+        };
+
+        // Load existing session creds into fields
+        document.getElementById('dhan-client-id').value = sessionStorage.getItem('dhan_client_id') || '';
+        document.getElementById('dhan-access-token').value = sessionStorage.getItem('dhan_access_token') || '';
+
         async function runStrategy(silent = false) {
             const loader = document.getElementById('loader');
             if (!silent) loader.style.display = 'flex';
-            clearZones();
-            clearRealTrades();
-
+            
             try {
                 const params = new URLSearchParams({
                     start_date: document.getElementById('start-date').value,
@@ -251,32 +179,37 @@
                     zone_exit: document.getElementById('zone-exit').checked,
                     atr_exit: document.getElementById('atr-exit').checked,
                     start_time: document.getElementById('start-time').value,
-                    end_time: document.getElementById('end-time').value
+                    end_time: document.getElementById('end-time').value,
+                    source: document.getElementById('source-select').value,
+                    dhan_cid: sessionStorage.getItem('dhan_client_id') || '',
+                    dhan_token: sessionStorage.getItem('dhan_access_token') || ''
                 });
 
                 const res = await fetch(`/api/strategy/nifty-data?${params.toString()}`);
                 const dataRaw = await res.json();
                 if (dataRaw.error) { if (!silent) alert(dataRaw.error); return false; }
 
+                clearZones();
+                clearRealTrades();
+                markerSeries.setMarkers([]);
+
                 currentChartData = dataRaw.chart_data;
                 const zones = dataRaw.zones;
                 const realTrades = dataRaw.real_trades || [];
                 loadedRealTrades = realTrades;
 
-                if (!currentChartData.length) return false;
+                const visibleData = currentChartData.filter(d => !d.is_gap);
+                if (!visibleData.length) return false;
 
-                candleSeries.setData(currentChartData.filter(d => !d.is_gap).map(d => ({
-                    time: d.time, open: d.open, high: d.high, low: d.low, close: d.close
-                })));
-                
+                candleSeries.setData(visibleData.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
                 ema10Series.setData(currentChartData.map(d => ({ time: d.time, value: d.ema10 === null ? undefined : d.ema10 })));
                 ema20Series.setData(currentChartData.map(d => ({ time: d.time, value: d.ema20 === null ? undefined : d.ema20 })));
                 demaSeries.setData(currentChartData.map(d => ({ time: d.time, value: d.dema100 === null ? undefined : d.dema100 })));
+                markerSeries.setData(visibleData.map(d => ({ time: d.time, value: d.close })));
 
-                const allTimes = currentChartData.map(d => d.time);
                 const zoneMarkers = [];
                 zones.forEach(zone => {
-                    const zoneTimes = allTimes.filter(t => t >= zone.start_time && t <= zone.end_time);
+                    const zoneTimes = currentChartData.map(d => d.time).filter(t => t >= zone.start_time && t <= zone.end_time);
                     if (zoneTimes.length < 2) return;
                     const color = zone.type === 'bull' ? 'rgba(38, 166, 154, 0.4)' : 'rgba(128, 0, 0, 0.4)';
                     const u = chart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
@@ -284,58 +217,49 @@
                     u.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
                     l.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
                     zoneSeriesList.push(u, l);
-                    zoneMarkers.push({ time: zoneTimes[zoneTimes.length-1], position: 'inBar', color, shape: 'circle', text: `[${Math.round(zone.size)}]` });
+                    const lastVisible = visibleData.filter(d => d.time <= zoneTimes[zoneTimes.length-1]).pop();
+                    if (lastVisible) zoneMarkers.push({ time: lastVisible.time, position: 'inBar', color, shape: 'circle', text: `[${Math.round(zone.size)}]` });
                 });
 
                 const realTradeMarkers = [];
-                const grouped = {};
                 realTrades.forEach(rt => {
-                    if (!grouped[rt.entry_time]) grouped[rt.entry_time] = [];
-                    grouped[rt.entry_time].push(rt);
-                });
-
-                Object.keys(grouped).forEach(timeKey => {
-                    const trades = grouped[timeKey];
-                    const t = parseInt(timeKey);
-                    const ep = currentChartData.find(d => d.time >= t);
+                    const ep = visibleData.find(d => d.time >= rt.entry_time);
                     if (!ep) return;
-
-                    const maxExit = Math.max(...trades.map(tr => tr.exit_time));
-                    const totalPL = trades.reduce((s, tr) => s + tr.pl, 0);
-                    const color = totalPL > 0 ? '#26a69a' : '#ef5350';
+                    const duration = Math.round((rt.exit_time - rt.entry_time) / 60);
+                    const color = rt.pl > 0 ? '#26a69a' : '#ef5350';
+                    let instClean = rt.instrument;
+                    const instMatch = instClean.match(/(\d{4,5})\s*([CP]E)/);
+                    if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
+                    else instClean = instClean.split(' ').pop();
                     const line = chart.addLineSeries({ color, lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
-                    line.setData([{ time: ep.time, value: ep.open }, { time: Math.max(ep.time + 60, maxExit), value: ep.open }]);
+                    line.setData([{ time: ep.time, value: ep.open }, { time: Math.max(ep.time + 300, rt.exit_time), value: ep.open }]);
                     realTradeSeriesList.push(line);
-
-                    const first = trades[0];
+                    
+                    // Direction based on CE/PE
+                    const isPE = instClean.includes('PE');
+                    const position = isPE ? 'belowBar' : 'aboveBar';
+                    const shape = isPE ? 'arrowUp' : 'arrowDown';
+                    
                     realTradeMarkers.push({
-                        time: ep.time, position: first.type === 'BUY' ? 'belowBar' : 'aboveBar',
-                        color: '#f9a825', shape: first.type === 'BUY' ? 'arrowUp' : 'arrowDown',
-                        text: `REAL: ${trades.length} trades (${Math.round(totalPL)})`
+                        time: ep.time,
+                        position: position,
+                        color: '#f9a825', 
+                        shape: shape,
+                        size: 2,
+                        text: `${instClean} [${duration}m] ${rt.qty}L (₹${Math.round(rt.pl)})`
                     });
                 });
 
-                candleSeries.setMarkers([...zoneMarkers, ...realTradeMarkers]);
+                setTimeout(() => { markerSeries.setMarkers([...zoneMarkers, ...realTradeMarkers].sort((a,b) => a.time - b.time)); }, 50);
                 chart.timeScale().fitContent();
                 return true;
             } catch (e) { console.error(e); return false; }
             finally { loader.style.display = 'none'; }
         }
 
-        function focusOnDay(dateStr) {
-            if (!currentChartData.length) return;
-            const target = new Date(dateStr).toDateString();
-            const pts = currentChartData.filter(d => new Date(d.time * 1000).toDateString() === target);
-            if (pts.length) chart.timeScale().setVisibleRange({ from: pts[0].time - 600, to: pts[pts.length-1].time + 600 });
-        }
-
         function jumpToTrade(t) {
-            console.log("Jumping to trade at timestamp:", t, "Date:", new Date(t * 1000).toLocaleString());
             document.getElementById('trades-modal').style.display = 'none';
-            
-            // Force center the trade candle: 30 mins before to 30 mins after
-            const range = { from: t - 1800, to: t + 1800 };
-            chart.timeScale().setVisibleRange(range);
+            chart.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
         }
 
         function openTradesModal() {
@@ -343,41 +267,19 @@
             document.getElementById('trades-modal').style.display = 'flex';
             container.innerHTML = loadedRealTrades.length ? loadedRealTrades.map(t => `
                 <div style="padding:10px; border:1px solid #eee; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div>
-                        <div style="font-weight:600;">${t.instrument}</div>
-                        <div style="font-size:0.8rem; color:#666;">Time: ${new Date(t.entry_time * 1000).toISOString().replace('T',' ').substring(0, 19)}</div>
-                    </div>
+                    <div><div style="font-weight:600;">${t.instrument}</div><div style="font-size:0.8rem; color:#666;">Time: ${new Date(t.entry_time * 1000).toISOString().replace('T',' ').substring(0, 19)}</div></div>
                     <button class="nav-btn" onclick="jumpToTrade(${t.entry_time})">GOTO</button>
                 </div>
             `).join('') : '<div style="text-align:center; padding:20px; color:#999;">No trades.</div>';
         }
 
-        async function batchExport() {
-            // Placeholder for brevity, similar to previous turn's logic
-            alert("Exporting report...");
-        }
-
-        // Listeners
-        document.getElementById('open-settings-btn').onclick = () => document.getElementById('settings-modal').style.display = 'flex';
-        document.getElementById('close-settings-btn').onclick = () => document.getElementById('settings-modal').style.display = 'none';
-        document.getElementById('save-settings-btn').onclick = () => { document.getElementById('settings-modal').style.display = 'none'; runStrategy(); };
         document.getElementById('close-trades-modal-btn').onclick = () => document.getElementById('trades-modal').style.display = 'none';
         document.getElementById('open-trades-modal-btn').onclick = openTradesModal;
         document.getElementById('run-btn').onclick = () => runStrategy();
-        document.getElementById('prev-day-btn').onclick = () => {
-            const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()-1);
-            document.getElementById('start-date').value = d.toISOString().split('T')[0]; focusOnDay(document.getElementById('start-date').value);
-        };
-        document.getElementById('next-day-btn').onclick = () => {
-            const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1);
-            document.getElementById('start-date').value = d.toISOString().split('T')[0]; focusOnDay(document.getElementById('start-date').value);
-        };
-        document.getElementById('fit-btn').onclick = () => focusOnDay(document.getElementById('start-date').value);
-        document.getElementById('sidebar-toggle-btn').onclick = () => {
-            const sb = document.getElementById('sidebar'); sb.classList.toggle('collapsed');
-            document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀';
-            setTimeout(() => chart.applyOptions({ width: document.getElementById('chart-container').clientWidth }), 300);
-        };
+        document.getElementById('prev-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()-1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
+        document.getElementById('next-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
+        document.getElementById('fit-btn').onclick = () => chart.timeScale().fitContent();
+        document.getElementById('sidebar-toggle-btn').onclick = () => { const sb = document.getElementById('sidebar'); sb.classList.toggle('collapsed'); document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀'; setTimeout(() => chart.applyOptions({ width: document.getElementById('chart-container').clientWidth }), 300); };
 
         initChart();
         runStrategy();

@@ -5,9 +5,15 @@ import json
 import os
 import pytz
 import calendar
+import requests
+import time
+import sys
 from datetime import datetime, timedelta
 
 ist_tz = pytz.timezone('Asia/Kolkata')
+
+# DHAN CREDENTIALS
+DHAN_ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzc2MTY3NTQzLCJpYXQiOjE3NzYwODExNDMsInRva2VuQ29uc3VtZXJUeXBlIjoiU0VMRiIsIndlYmhvb2tVcmwiOiIiLCJkaGFuQ2xpZW50SWQiOiIxMTAxMzEwOTc2In0.AUpYSyowfCeRwffirCJLyCbvdsML-sk75RxUjFlUqvSMQXcnJsvwJivpZQd7_dVdzDjV5c9lE6488cJZpFp6XA"
 
 def calculate_ema(df, length):
     return df['Close'].ewm(span=length, adjust=False).mean()
@@ -19,165 +25,123 @@ def calculate_dema(df, length):
 
 def detect_candle_patterns(df):
     body = (df['Close'] - df['Open']).abs()
-    is_green = df['Close'] > df['Open']
-    is_red = df['Close'] < df['Open']
-    body_size = body
-    candle_range = df['High'] - df['Low']
-    upper_wick = df['High'] - df[['Open', 'Close']].max(axis=1)
-    lower_wick = df[['Open', 'Close']].min(axis=1) - df['Low']
-    
+    is_green = df['Close'] > df['Open']; is_red = df['Close'] < df['Open']
+    high = df['High']; low = df['Low']; open_p = df['Open']; close_p = df['Close']
+    upper_wick = high - close_p.where(is_green, open_p)
+    lower_wick = open_p.where(is_green, close_p) - low
     df['green_hammer'] = is_green & (lower_wick > body * 2.5) & (upper_wick < body * 0.5)
     df['red_hammer'] = is_red & (lower_wick > body * 2.5) & (upper_wick < body * 0.5)
     df['inv_red_hammer'] = is_red & (upper_wick > body * 2.5) & (lower_wick < body * 0.5)
-    
-    df['bull_engulf'] = is_green & (df['Close'] > df['Open'].shift(1)) & (df['Open'] < df['Close'].shift(1)) & (body > body.shift(1))
-    df['bear_engulf'] = is_red & (df['Close'] < df['Open'].shift(1)) & (df['Open'] > df['Close'].shift(1)) & (body > body.shift(1))
-    
-    ms_cond = (is_red.shift(2)) & (body.shift(2) > body.shift(1)) & (body.shift(1) < body.shift(2) * 0.5) & (is_green) & (df['Close'] > (df['Open'].shift(2) + df['Close'].shift(2)) / 2)
+    df['bull_engulf'] = is_green & (close_p > open_p.shift(1)) & (open_p < close_p.shift(1)) & (body > body.shift(1))
+    df['bear_engulf'] = is_red & (close_p < open_p.shift(1)) & (open_p > close_p.shift(1)) & (body > body.shift(1))
+    ms_cond = (is_red.shift(2)) & (body.shift(2) > body.shift(1)) & (body.shift(1) < body.shift(2) * 0.5) & (is_green) & (close_p > (open_p.shift(2) + close_p.shift(2)) / 2)
     df['morning_star'] = ms_cond
-    
-    es_cond = (is_green.shift(2)) & (body.shift(2) > body.shift(1)) & (body.shift(1) < body.shift(2) * 0.5) & (is_red) & (df['Close'] < (df['Open'].shift(2) + df['Close'].shift(2)) / 2)
+    es_cond = (is_green.shift(2)) & (body.shift(2) > body.shift(1)) & (body.shift(1) < body.shift(2) * 0.5) & (is_red) & (close_p < (open_p.shift(2) + close_p.shift(2)) / 2)
     df['evening_star'] = es_cond
-    
     return df
 
-def run_arsalan_continuation_logic(df):
-    df['ema10'] = calculate_ema(df, 10)
-    df['ema20'] = calculate_ema(df, 20)
-    df['dema100'] = calculate_dema(df, 100)
-    
+def run_pinned_strategy_logic(df):
+    if df.empty: return df
+    df['ema10'] = calculate_ema(df, 10); df['ema20'] = calculate_ema(df, 20); df['dema100'] = calculate_dema(df, 100)
     df = detect_candle_patterns(df)
-    
-    df['ema_touch'] = (df['Low'] <= df['ema10']) & (df['High'] >= df['ema10']) | \
-                      (df['Low'] <= df['ema20']) & (df['High'] >= df['ema20'])
-    
+    df['ema_touch'] = (df['Low'] <= df['ema10']) & (df['High'] >= df['ema10']) | (df['Low'] <= df['ema20']) & (df['High'] >= df['ema20'])
     df['bull_trigger'] = df['ema_touch'] & (df['bull_engulf'] | df['morning_star'] | df['green_hammer'])
-    df['bear_trigger'] = df['ema_touch'] & (df['bear_engulf'] | df['evening_star'] | df['inv_red_hammer'])
-    
-    last_upper = np.nan
-    last_lower = np.nan
-    last_type = None
-    last_trigger_idx = -100
-    
-    buy_signals = np.zeros(len(df), dtype=bool)
-    sell_signals = np.zeros(len(df), dtype=bool)
-    
-    for i in range(len(df)):
-        if df['bull_trigger'].iloc[i]:
-            last_upper, last_lower, last_type, last_trigger_idx = df['High'].iloc[i], df['Low'].iloc[i], 'bull', i
-        elif df['bear_trigger'].iloc[i]:
-            last_upper, last_lower, last_type, last_trigger_idx = df['High'].iloc[i], df['Low'].iloc[i], 'bear', i
-            
-        if last_type and (i - last_trigger_idx <= 10):
-            if last_type == 'bull' and df['Close'].iloc[i] > last_upper and df['Close'].iloc[i] > df['dema100'].iloc[i]:
-                if not buy_signals[last_trigger_idx:i].any(): buy_signals[i] = True
-            elif last_type == 'bear' and df['Close'].iloc[i] < last_lower and df['Close'].iloc[i] < df['dema100'].iloc[i]:
-                if not sell_signals[last_trigger_idx:i].any(): sell_signals[i] = True
-                    
-    df['buy_signal'] = buy_signals
-    df['sell_signal'] = sell_signals
+    df['bear_trigger'] = df['ema_touch'] & (df['bear_engulf'] | df['evening_star'] | df['inv_red_hammer'] | df['red_hammer'])
     return df
 
-def run_arsalan_continuation(df):
-    # This is used for generating the final zones list after filtering
-    df = run_arsalan_continuation_logic(df)
-    zones = []
-    # Re-calculate triggers for final zone list
-    for i in range(len(df)):
-        if df['bull_trigger'].iloc[i] or df['bear_trigger'].iloc[i]:
-            z_type = 'bull' if df['bull_trigger'].iloc[i] else 'bear'
-            # Look ahead for actual bars in the filtered df
-            end_idx = min(i+10, len(df)-1)
-            zones.append({
-                'start_time': int(df.index[i].timestamp()),
-                'end_time': int(df.index[end_idx].timestamp()),
-                'high': float(df['High'].iloc[i]),
-                'low': float(df['Low'].iloc[i]),
-                'type': z_type,
-                'size': float(df['High'].iloc[i] - df['Low'].iloc[i])
-            })
-    return df, zones
+def resample_ohlc(df, timeframe):
+    if timeframe == '1m': return df
+    freq = timeframe.replace('m', 'min').replace('M', 'min')
+    rules = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last'}
+    return df.resample(freq).agg(rules).dropna()
 
-def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30'):
-    symbol = "^NSEI"
-    # yfinance end date is EXCLUSIVE. To get data for end_date, we must add +1 day.
-    yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
-    fetch_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
-    data = yf.download(symbol, start=fetch_start, end=yf_end, interval=timeframe)
-    if data.empty: return pd.DataFrame(), []
+def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
+    url = "https://api.dhan.co/charts/intraday"
+    all_data = []
+    curr = datetime.strptime(from_date, '%Y-%m-%d'); end = datetime.strptime(to_date, '%Y-%m-%d')
+    while curr <= end:
+        ds = curr.strftime('%Y-%m-%d')
+        payload = {"securityId": "13", "exchangeSegment": "IDX_I", "instrument": "INDEX", "fromDate": ds, "toDate": ds}
+        headers = {"Content-Type": "application/json", "access-token": token}
+        try:
+            res = requests.post(url, headers=headers, json=payload)
+            if res.status_code == 200:
+                d = res.json()
+                if 'open' in d and d['open']:
+                    for i in range(len(d['open'])):
+                        dt = curr.replace(hour=9, minute=15) + timedelta(minutes=i)
+                        all_data.append({'Datetime': dt, 'Open': d['open'][i], 'High': d['high'][i], 'Low': d['low'][i], 'Close': d['close'][i]})
+        except: pass
+        curr += timedelta(days=1); time.sleep(0.4)
+    if not all_data: return pd.DataFrame()
+    return pd.DataFrame(all_data).set_index('Datetime')
+
+def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid=''):
+    df = pd.DataFrame()
+    today_str = datetime.now().strftime('%Y-%m-%d')
     
-    # Clean multi-index columns FIRST if they exist
-    if isinstance(data.columns, pd.MultiIndex): 
-        data.columns = data.columns.get_level_values(0)
+    if source == 'dhan_api':
+        # ONLY use Dhan API if requesting "Today" or very recent dates
+        # Historical requests on Dhan Intraday Chart API return "Today" erroneously
+        if start_date == today_str:
+            df = fetch_dhan_api_data(start_date, end_date, token=dhan_token if dhan_token else DHAN_ACCESS_TOKEN)
+        else:
+            # For past dates, fallback to local Dhan data or yfinance for accuracy
+            print(f"Historical request {start_date} on Dhan Live source -> switching to local/yfinance for accuracy.")
+            source = 'dhan_local' # Try local first
     
-    # Clean data: drop rows with 0 or NaN in Close/Open
-    data = data.dropna(subset=['Open', 'High', 'Low', 'Close'])
-    data = data[(data[['Open', 'High', 'Low', 'Close']] > 0).all(axis=1)]
+    if source == 'dhan_local':
+        path = "data/nifty_1m_dhan.csv"
+        if os.path.exists(path):
+            df = pd.read_csv(path); df['datetime'] = pd.to_datetime(df['datetime'])
+            df = df.rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
     
-    # Ensure index is in local time (naive) for between_time to work with simple strings
-    if data.index.tz is not None:
-        data.index = data.index.tz_convert('Asia/Kolkata').tz_localize(None)
+    if df.empty or source == 'yfinance':
+        yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
+        fetch_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
+        df = yf.download("^NSEI", start=fetch_start, end=yf_end, interval=timeframe)
+        if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
+
+    if df.empty: return pd.DataFrame(), []
     
-    df_all = run_arsalan_continuation_logic(data)
+    if source != 'yfinance': df = resample_ohlc(df, timeframe)
+    df = df.dropna(subset=['Open', 'High', 'Low', 'Close'])
+    if df.index.tz is not None: df.index = df.index.tz_convert('Asia/Kolkata').tz_localize(None)
     
+    df_all = run_pinned_strategy_logic(df)
     start_ts = pd.to_datetime(start_date)
-    df_filtered = df_all[df_all.index >= start_ts]
-    df_filtered = df_filtered.between_time(start_time, end_time)
-    
-    print(f"DEBUG: Symbol={symbol}, Fetched={len(data)}, AfterFilter={len(df_filtered)}")
-    
-    # Generate zones based on the filtered data points
-    _, zones = run_arsalan_continuation(df_filtered)
-    
+    df_filtered = df_all[df_all.index >= start_ts].between_time(start_time, end_time)
+
+    zones = []
+    if not df_filtered.empty:
+        for i in range(len(df_filtered)):
+            if df_filtered['bull_trigger'].iloc[i] or df_filtered['bear_trigger'].iloc[i]:
+                z_type = 'bull' if df_filtered['bull_trigger'].iloc[i] else 'bear'
+                end_idx = min(i+10, len(df_filtered)-1)
+                zones.append({
+                    'start_time': int(df_filtered.index[i].timestamp()), 'end_time': int(df_filtered.index[end_idx].timestamp()),
+                    'high': float(df_filtered['High'].iloc[i]), 'low': float(df_filtered['Low'].iloc[i]),
+                    'type': z_type, 'size': float(df_filtered['High'].iloc[i] - df_filtered['Low'].iloc[i])
+                })
     return df_filtered, zones
 
 def get_real_trades(start_date, end_date):
-    trades_path = os.path.join('data', 'trades_1.json')
-    if not os.path.exists(trades_path):
-        return []
+    path = os.path.join('data', 'trades_1.json')
+    if not os.path.exists(path): return []
     try:
-        with open(trades_path, 'r') as f:
-            data = json.load(f)
-            raw_trades = data.get('trades', [])
-    except:
-        return []
-
-    processed_trades = []
-    start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
-    end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
-
-    for t in raw_trades:
-        t_date_str = t.get('trade_date', t.get('date', ''))
-        if not t_date_str: continue
-        try:
-            t_date = datetime.strptime(t_date_str, '%Y-%m-%d').date()
+        with open(path, 'r') as f: data = json.load(f); raw = data.get('trades', [])
+    except: return []
+    processed = []; s_dt = datetime.strptime(start_date, '%Y-%m-%d').date(); e_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
+    for t in raw:
+        d_str = t.get('trade_date', t.get('date', ''))
+        try: t_dt = datetime.strptime(d_str, '%Y-%m-%d').date()
         except: continue
-            
-        if start_dt <= t_date <= end_dt:
-            tr_type = t.get('TradeType', 'buy')
-            entry_time = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time')
-            exit_time = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time')
-
-            if entry_time and exit_time:
+        if s_dt <= t_dt <= e_dt:
+            tr_type = t.get('TradeType', 'buy'); entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time'); exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time')
+            if entry_t and exit_t:
                 try:
-                    e_time = entry_time if len(entry_time.split(':')) == 3 else f"{entry_time}:00"
-                    x_time = exit_time if len(exit_time.split(':')) == 3 else f"{exit_time}:00"
-                    
-                    # Create naive datetime and treat it as UTC for display consistency
-                    e_dt_naive = datetime.strptime(f"{t_date_str} {e_time}", '%Y-%m-%d %H:%M:%S')
-                    x_dt_naive = datetime.strptime(f"{t_date_str} {x_time}", '%Y-%m-%d %H:%M:%S')
-                    
-                    e_ts = calendar.timegm(e_dt_naive.timetuple())
-                    x_ts = calendar.timegm(x_dt_naive.timetuple())
-
-                    processed_trades.append({
-                        'entry_time': e_ts,
-                        'exit_time': x_ts,
-                        'type': tr_type.upper(),
-                        'instrument': t.get('Instrument', ''),
-                        'pl': t.get('Net P/L', 0)
-                    })
-                except Exception as ex:
-                    print(f"DEBUG: Parse Error for {entry_time}: {ex}")
-                    pass
-    return processed_trades
+                    e_dt_n = datetime.strptime(f"{d_str} {entry_t if len(entry_t.split(':'))==3 else f'{entry_t}:00'}", '%Y-%m-%d %H:%M:%S')
+                    x_dt_n = datetime.strptime(f"{d_str} {exit_t if len(exit_t.split(':'))==3 else f'{exit_t}:00'}", '%Y-%m-%d %H:%M:%S')
+                    processed.append({'entry_time': calendar.timegm(e_dt_n.timetuple()), 'exit_time': calendar.timegm(x_dt_n.timetuple()), 'type': tr_type.upper(), 'instrument': t.get('Instrument', ''), 'pl': float(t.get('Net P/L', 0)), 'qty': int(t.get('Quantity', 0))})
+                except: pass
+    return processed
