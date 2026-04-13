@@ -295,18 +295,17 @@ function navigateGalleryDate(dir) {
 
     const nextDate = datesWithImages[nextIdx];
     const images = getImagesForDate(nextDate);
-    if (images.length) {
-      state.gallery.images = images;
-      state.gallery._baseImages = [...images];
-      state.gallery.date = nextDate;
-      state.gallery.sourceRow = null;
-      state.gallery.imageTimes = {};
-      
-      state.gallery.currentIndex = getInitialIndexForDate(nextDate, images);
+    
+    state.gallery.images = images;
+    state.gallery._baseImages = [...images];
+    state.gallery.date = nextDate;
+    state.gallery.sourceRow = null;
+    state.gallery.imageTimes = {};
+    
+    state.gallery.currentIndex = getInitialIndexForDate(nextDate, images);
 
-      renderGallery(); updateGalleryDateArrows();
-      if (state.gallery.showTime) fetchImageTimesForGallery();
-    }
+    renderGallery(); updateGalleryDateArrows();
+    if (state.gallery.showTime) fetchImageTimesForGallery();
 }
 
 function updateGalleryDateArrows() {

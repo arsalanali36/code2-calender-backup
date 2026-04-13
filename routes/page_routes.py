@@ -5,6 +5,7 @@ HTML page routes: main app and dev-blog updates.
 """
 import json
 import os
+import time
 
 from flask import Blueprint, render_template, jsonify, send_from_directory, redirect, request
 
@@ -35,7 +36,7 @@ def index():
     except Exception:
         initial_data_json = '{}'
     use_bundle = os.path.exists(BUNDLE_PATH)
-    return render_template('index.html', cache_bust=CACHE_BUST,
+    return render_template('index.html', cache_bust=int(time.time()),
                            initial_data_json=initial_data_json,
                            use_bundle=use_bundle)
 
@@ -43,12 +44,12 @@ def index():
 @page_bp.route('/updates')
 def updates():
     entries = get_blog_entries_for_template(BLOG_PATH)
-    return render_template('updates.html', entries=entries, cache_bust=CACHE_BUST)
+    return render_template('updates.html', entries=entries, cache_bust=int(time.time()))
 
 
 @page_bp.route('/gallery-classic')
 def gallery_classic():
-    return render_template('gallery_classic_page.html', cache_bust=CACHE_BUST)
+    return render_template('gallery_classic_page.html', cache_bust=int(time.time()))
 
 
 @page_bp.route('/mobile/')

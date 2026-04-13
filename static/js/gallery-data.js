@@ -29,7 +29,7 @@ function getImagesForDate(dateStr) {
     });
   }
 
-  getTradesForDate(dateStr).forEach(t => {
+  getTradesForDate(dateStr, true).forEach(t => {
     (t.images || []).forEach(url => out.push(url));
 
     // Migrate old trade.videos dict entries into the array (after their associated image)
@@ -69,7 +69,7 @@ async function fetchImageTimesForGallery() {
       if (!obj?.subImages) return;
       Object.values(obj.subImages).forEach(subs => subs.forEach(u => urlSet.add(u)));
     };
-    getTradesForDate(dayDate).forEach(addSubs);
+    getTradesForDate(dayDate, true).forEach(addSubs);
     if (state.dayData[dayDate]) addSubs(state.dayData[dayDate]);
   }
   const urls = Array.from(urlSet);
@@ -89,7 +89,6 @@ function getTradeForDateByImage(dateStr, imageUrl) {
 
 function getDatesWithImages() {
   const tradeDates = state.trades
-    .filter(t => (t.images || []).length > 0)
     .map(t => normalizeDate(extractDateFromTrade(t)))
     .filter(Boolean);
     

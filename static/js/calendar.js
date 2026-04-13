@@ -447,9 +447,10 @@ function getTradeForDate(dateStr) {
   return state.trades.find(t => normalizeDate(extractDateFromTrade(t)) === dateStr) || null;
 }
 
-function getTradesForDate(dateStr) {
+function getTradesForDate(dateStr, includeEmpty = false) {
   return state.trades.filter(t => {
     if (normalizeDate(extractDateFromTrade(t)) !== dateStr) return false;
+    if (includeEmpty) return true;
     
     // Check if the trade has any actual data OR images
     const hasData = (

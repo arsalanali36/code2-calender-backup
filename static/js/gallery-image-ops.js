@@ -36,7 +36,7 @@ function getOwnerTradeForImageUrl(imageUrl) {
         if (isTradeItem(t, imageUrl)) return t;
     }
     if (state.gallery.date) {
-        const row = getTradesForDate(state.gallery.date).find(t => isTradeItem(t, imageUrl));
+        const row = getTradesForDate(state.gallery.date, true).find(t => isTradeItem(t, imageUrl));
         if (row) return row;
         return null;
     }
@@ -90,7 +90,7 @@ function syncGalleryImageOrderToTrades() {
 
     if (state.gallery.date) {
         const dk = state.gallery.date;
-        const dayTrades = getTradesForDate(dk);
+        const dayTrades = getTradesForDate(dk, true);
         const currentDayData = state.dayData[dk];
 
         dayTrades.forEach(syncSubOrder);
@@ -242,6 +242,19 @@ async function removeGalleryImageAt(idx, force = false) {
     if (idx < 0 || idx >= arr.length) return;
     const imageUrl = arr[idx];
 
+    const normalizeUrl = (u) => {
+        if (!u) return '';
+        let s = String(u).trim();
+        if (s.startsWith('http')) {
+            try { s = new URL(s).pathname; } catch(e) {}
+        }
+        if (!s.startsWith('/')) s = '/' + s;
+        if (!s.startsWith('/uploads/') && !s.startsWith('/static/uploads/')) {
+            if (s.startsWith('/static/')) s = s.replace('/static/', '/');
+        }
+        return s;
+    };
+
     const ownerTrade = getOwnerTradeForImageUrl(imageUrl);
     const dayDate = state.gallery.date;
 
@@ -330,15 +343,17 @@ async function removeGalleryImageAt(idx, force = false) {
         return;
     }
 
-    const urlsToDelete = [imageUrl, ...subImages];
+    const normalizedToDelete = [imageUrl, ...subImages].map(normalizeUrl);
+    const urlsToDeleteSet = new Set(normalizedToDelete);
+    const isToDelete = (u) => urlsToDeleteSet.has(normalizeUrl(u));
 
     let activeDayDate = dayDate;
     if (!ownerTrade && !activeDayDate) {
         for (const [dKey, dObj] of Object.entries(state.dayData || {})) {
-            if ((dObj.images || []).some(u => urlsToDelete.includes(u)) ||
-                (dObj.newsImages || []).some(u => urlsToDelete.includes(u)) ||
-                (dObj.closeImages || []).some(u => urlsToDelete.includes(u)) ||
-                (dObj.closeGlobalImages || []).some(u => urlsToDelete.includes(u))) {
+            if ((dObj.images || []).some(isToDelete) ||
+                (dObj.newsImages || []).some(isToDelete) ||
+                (dObj.closeImages || []).some(isToDelete) ||
+                (dObj.closeGlobalImages || []).some(isToDelete)) {
                 activeDayDate = dKey;
                 break;
             }
@@ -354,33 +369,42 @@ async function removeGalleryImageAt(idx, force = false) {
     const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
 
     // Execute local state deletion
-    urlsToDelete.forEach(u => {
+    normalizedToDelete.forEach(u => {
+        if (state._localOverlays?.[u]) delete state._localOverlays[u];
+    });
+    // Fallback for non-normalized keys if any
+    [imageUrl, ...subImages].forEach(u => {
         if (state._localOverlays?.[u]) delete state._localOverlays[u];
     });
 
     if (ownerTrade) {
-        ownerTrade.images = (ownerTrade.images || []).filter(u => !urlsToDelete.includes(u));
-        urlsToDelete.forEach(u => {
+        ownerTrade.images = (ownerTrade.images || []).filter(u => !isToDelete(u));
+        normalizedToDelete.forEach(u => {
             if (ownerTrade.overlays && ownerTrade.overlays[u]) delete ownerTrade.overlays[u];
             if (ownerTrade.marqueeBoxes && ownerTrade.marqueeBoxes[u]) delete ownerTrade.marqueeBoxes[u];
             if (ownerTrade.videos) {
                 if (ownerTrade.videos[u]) delete ownerTrade.videos[u];
-                const key = Object.keys(ownerTrade.videos).find(k => ownerTrade.videos[k] === u);
+                const key = Object.keys(ownerTrade.videos).find(k => normalizeUrl(ownerTrade.videos[k]) === u);
                 if (key) delete ownerTrade.videos[key];
             }
             if (ownerTrade.audios) {
                 if (ownerTrade.audios[u]) delete ownerTrade.audios[u];
-                const key = Object.keys(ownerTrade.audios).find(k => ownerTrade.audios[k] === u);
+                const key = Object.keys(ownerTrade.audios).find(k => normalizeUrl(ownerTrade.audios[k]) === u);
                 if (key) delete ownerTrade.audios[key];
             }
             const store = ensureImageTagStore(ownerTrade);
             if (store[u]) delete store[u];
         });
+        // Also clean up non-normalized ones in case
+        [imageUrl, ...subImages].forEach(u => {
+            if (ownerTrade.overlays && ownerTrade.overlays[u]) delete ownerTrade.overlays[u];
+            if (ownerTrade.marqueeBoxes && ownerTrade.marqueeBoxes[u]) delete ownerTrade.marqueeBoxes[u];
+        });
         if (ownerTrade.subImages && ownerTrade.subImages[imageUrl]) delete ownerTrade.subImages[imageUrl];
         // Remove deleted URLs from any parent's subImages (handles sub-image deletion)
         if (ownerTrade.subImages) {
             for (const [pUrl, subs] of Object.entries(ownerTrade.subImages)) {
-                const filtered = subs.filter(u => !urlsToDelete.includes(u));
+                const filtered = subs.filter(u => !isToDelete(u));
                 if (filtered.length === 0) {
                     delete ownerTrade.subImages[pUrl];
                     if (state.gallery.expandedGroups) state.gallery.expandedGroups.delete(pUrl);
@@ -393,21 +417,21 @@ async function removeGalleryImageAt(idx, force = false) {
         cleanupImageTagStore(ownerTrade);
     } else if (activeDayDate && state.dayData[activeDayDate]) {
         const d = state.dayData[activeDayDate];
-        d.images = (d.images || []).filter(u => !urlsToDelete.includes(u));
-        d.newsImages = (d.newsImages || []).filter(u => !urlsToDelete.includes(u));
-        d.closeImages = (d.closeImages || []).filter(u => !urlsToDelete.includes(u));
-        d.closeGlobalImages = (d.closeGlobalImages || []).filter(u => !urlsToDelete.includes(u));
-        urlsToDelete.forEach(u => {
+        d.images = (d.images || []).filter(u => !isToDelete(u));
+        d.newsImages = (d.newsImages || []).filter(u => !isToDelete(u));
+        d.closeImages = (d.closeImages || []).filter(u => !isToDelete(u));
+        d.closeGlobalImages = (d.closeGlobalImages || []).filter(u => !isToDelete(u));
+        normalizedToDelete.forEach(u => {
             if (state.dayData[activeDayDate].overlays?.[u]) delete state.dayData[activeDayDate].overlays[u];
             if (state.dayData[activeDayDate].marqueeBoxes?.[u]) delete state.dayData[activeDayDate].marqueeBoxes[u];
             if (state.dayData[activeDayDate].videos) {
                 if (state.dayData[activeDayDate].videos[u]) delete state.dayData[activeDayDate].videos[u];
-                const key = Object.keys(state.dayData[activeDayDate].videos).find(k => state.dayData[activeDayDate].videos[k] === u);
+                const key = Object.keys(state.dayData[activeDayDate].videos).find(k => normalizeUrl(state.dayData[activeDayDate].videos[k]) === u);
                 if (key) delete state.dayData[activeDayDate].videos[key];
             }
             if (state.dayData[activeDayDate].audios) {
                 if (state.dayData[activeDayDate].audios[u]) delete state.dayData[activeDayDate].audios[u];
-                const key = Object.keys(state.dayData[activeDayDate].audios).find(k => state.dayData[activeDayDate].audios[k] === u);
+                const key = Object.keys(state.dayData[activeDayDate].audios).find(k => normalizeUrl(state.dayData[activeDayDate].audios[k]) === u);
                 if (key) delete state.dayData[activeDayDate].audios[key];
             }
         });
@@ -415,7 +439,7 @@ async function removeGalleryImageAt(idx, force = false) {
         // Remove deleted URLs from any parent's subImages (handles sub-image deletion)
         if (state.dayData[activeDayDate].subImages) {
             for (const [pUrl, subs] of Object.entries(state.dayData[activeDayDate].subImages)) {
-                const filtered = subs.filter(u => !urlsToDelete.includes(u));
+                const filtered = subs.filter(u => !isToDelete(u));
                 if (filtered.length === 0) {
                     delete state.dayData[activeDayDate].subImages[pUrl];
                     if (state.gallery.expandedGroups) state.gallery.expandedGroups.delete(pUrl);
@@ -431,7 +455,7 @@ async function removeGalleryImageAt(idx, force = false) {
         state.gallery.expandedGroups.delete(imageUrl);
     }
 
-    const updatedArr = arr.filter(u => !urlsToDelete.includes(u));
+    const updatedArr = arr.filter(u => !isToDelete(u));
     state.gallery.images = updatedArr;
     if (state.gallery.currentIndex >= updatedArr.length) state.gallery.currentIndex = Math.max(0, updatedArr.length - 1);
 
@@ -456,7 +480,7 @@ async function removeGalleryImageAt(idx, force = false) {
     const timerId = setTimeout(async () => {
         const idx = window.galleryUndoStack.indexOf(actionBackup);
         if (idx > -1) window.galleryUndoStack.splice(idx, 1);
-        for (const dictUrl of urlsToDelete) {
+        for (const dictUrl of normalizedToDelete) {
             try {
                 if (typeof isVideoUrl === 'function' && isVideoUrl(dictUrl)) {
                     await imageService.deleteVideo(dictUrl);
