@@ -85,21 +85,14 @@ const PdfHandler = (() => {
           if (typeof showToast === 'function') showToast('Please select a valid PDF file', 'error');
           return;
         }
-        if (typeof showToast === 'function') showToast('Uploading PDF...', 'info');
-        const result = await uploadPdfToServer(file);
-        if (result) {
-          if (typeof showToast === 'function') showToast(`Uploaded: ${file.name}`, 'success');
-          renderPdfList();
-        } else {
-          if (typeof showToast === 'function') showToast('Upload failed', 'error');
-        }
+        await _handlePdfUploadWithProgress(file);
         e.target.value = '';
       };
     }
     
     // Set worker source for pdf.js
     if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/js/vendor/pdf.worker.min.js';
     } else {
       console.warn('[PdfHandler] pdfjsLib not found in window');
     }
@@ -222,53 +215,41 @@ const PdfHandler = (() => {
     currentFile = null;
   }
 
-  async function openPdfInGallery(pdf) {
-    if (typeof showToast === 'function') showToast(`Opening ${pdf.name}...`, 'info');
-    closeListModal();
-    
-    try {
-      // If gallery isn't open, open it
-      const gModal = document.getElementById('gallery-modal');
-      if (gModal && !gModal.classList.contains('open')) {
-          if (typeof openGallery === 'function') openGallery();
-      }
-
-      const response = await fetch(pdf.url);
-      const arrayBuffer = await response.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const doc = await loadingTask.promise;
-      
-      pdfDoc = doc;
-      currentFileName = pdf.name;
-      currentFile = pdf;
-
-      // Switch Gallery State
-      const pdfId = pdf.filename || pdf.name;
-      pdfDocCache.set(pdfId, doc);
-
-      state.gallery.mode = 'pdf';
-      state.gallery.pdf = {
-          doc: doc,
-          name: pdf.name,
-          url: pdf.url,
-          id: pdfId
-      };
-      
-      const numPages = doc.numPages;
-      const virtualImages = [];
-      for(let i=1; i<=numPages; i++) {
-          virtualImages.push(`pdf://${state.gallery.pdf.id}/${i}`);
-      }
-      
-      state.gallery.images = virtualImages;
-      state.gallery.currentIndex = 0;
-      
-      if (typeof renderGallery === 'function') renderGallery();
-      
-    } catch (err) {
-      console.error('[PdfHandler] Failed to open PDF in Gallery:', err);
-      if (typeof showToast === 'function') showToast('Failed to load PDF', 'error');
+  async function openPdfInGallery(pdfOrId) {
+    // Accept either a pdf object {filename, name, pages, url} or just a filename string
+    let pdf = pdfOrId;
+    if (typeof pdfOrId === 'string') {
+      const list = await imageService.listPdfs() || [];
+      pdf = list.find(p => p.filename === pdfOrId || p.name === pdfOrId);
+      if (!pdf) { if (typeof showToast === 'function') showToast('PDF not found', 'error'); return; }
     }
+
+    closeListModal();
+
+    const pages = pdf.pages || [];
+    if (pages.length === 0) {
+      if (typeof showToast === 'function') showToast('PDF has no processed pages yet', 'error');
+      return;
+    }
+
+    // Open gallery if not open
+    const gModal = document.getElementById('gallery-modal');
+    if (gModal && !gModal.classList.contains('open')) {
+      if (typeof openGallery === 'function') openGallery();
+    }
+
+    currentFileName = pdf.name;
+    currentFile     = pdf;
+
+    state.gallery.mode         = 'pdf';
+    state.gallery.date         = null;
+    state.gallery.pdf          = { name: pdf.name, filename: pdf.filename, url: pdf.url, pages };
+    state.gallery.images       = [...pages];
+    state.gallery.currentIndex = 0;
+
+    registerActivePdf({ id: pdf.filename, name: pdf.name, url: pdf.url, filename: pdf.filename });
+
+    if (typeof renderGallery === 'function') renderGallery();
   }
 
   function registerActivePdf(pdf) {
@@ -537,9 +518,12 @@ const PdfHandler = (() => {
       const safeFilename = encodeURIComponent(pdf.filename);
       const pdfJson = JSON.stringify(pdf).replace(/"/g, '&quot;');
       
+      const thumbHtml = pdf.pages && pdf.pages.length
+        ? `<img src="${pdf.pages[0]}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,0.1);" loading="lazy">`
+        : `<div style="font-size:1.2rem;">📄</div>`;
       return `
         <div class="pdf-item-row" onclick="PdfHandler.openPdfInGallery(${pdfJson})">
-          <div class="pdf-item-icon" style="font-size: 1.2rem;">📄</div>
+          <div class="pdf-item-icon">${thumbHtml}</div>
           <div class="pdf-item-name" title="${safeName}">${safeName}</div>
           <div class="pdf-item-date">${dateStr}</div>
           <div class="pdf-item-size">${sizeMB} MB</div>
@@ -631,6 +615,120 @@ const PdfHandler = (() => {
       console.error('[PdfHandler] Delete failed:', err);
       if (typeof showToast === 'function') showToast('Delete failed', 'error');
     }
+  }
+
+  // ── Progress bar helpers ──────────────────────────────────────────────────
+
+  function _showProgressBar(visible) {
+    const el = document.getElementById('pdf-upload-progress');
+    if (el) el.style.display = visible ? 'block' : 'none';
+  }
+
+  function _setProgress(pct, label, sub, isError) {
+    const fill  = document.getElementById('pdf-progress-fill');
+    const pctEl = document.getElementById('pdf-progress-pct');
+    const lbl   = document.getElementById('pdf-progress-label');
+    const subEl = document.getElementById('pdf-progress-sub');
+    if (fill) {
+      fill.style.width      = Math.min(100, pct) + '%';
+      fill.style.background = isError
+        ? 'linear-gradient(90deg,#da3633,#f85149)'
+        : 'linear-gradient(90deg,#238636,#2ea043)';
+    }
+    if (pctEl) pctEl.textContent = isError ? 'Error' : (Math.min(100, Math.round(pct)) + '%');
+    if (lbl) lbl.style.color = isError ? '#f85149' : '#c9d1d9';
+    if (lbl && label)  lbl.textContent = label;
+    if (subEl && sub !== undefined) subEl.textContent = sub;
+  }
+
+  function _showProgressError(msg, detail) {
+    _showProgressBar(true);
+    _setProgress(100, msg, detail || '', true);
+    setTimeout(() => _showProgressBar(false), 5000);
+  }
+
+  // XHR upload → returns job_id, tracking upload bytes progress (0→15%)
+  function _uploadPdfXhr(file, onUploadPct) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd  = new FormData();
+      fd.append('pdf', file, file.name);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable && onUploadPct) onUploadPct(e.loaded / e.total);
+      });
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (data.job_id) resolve(data.job_id);
+            else reject(new Error(data.error || 'No job_id returned'));
+          } catch (e) { reject(e); }
+        } else {
+          reject(new Error('HTTP ' + xhr.status));
+        }
+      });
+      xhr.addEventListener('error', () => reject(new Error('Network error')));
+      xhr.open('POST', '/api/upload-pdf');
+      xhr.send(fd);
+    });
+  }
+
+  async function _handlePdfUploadWithProgress(file) {
+    _showProgressBar(true);
+    _setProgress(0, 'Uploading file...', file.name);
+
+    let jobId;
+    try {
+      jobId = await _uploadPdfXhr(file, (ratio) => {
+        _setProgress(ratio * 15, 'Uploading file...', file.name);
+      });
+    } catch (err) {
+      _showProgressError('Upload failed', err.message);
+      return;
+    }
+
+    _setProgress(15, 'Processing pages...', 'Starting...');
+
+    // SSE for page processing progress
+    const source = new EventSource('/api/pdf-job/' + jobId);
+
+    source.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+
+        if (data.status === 'done') {
+          source.close();
+          _setProgress(100, 'Done!', '');
+          setTimeout(() => {
+            _showProgressBar(false);
+            renderPdfList();
+            const pageCount = (data.record?.pages || []).length;
+            if (typeof showToast === 'function')
+              showToast(file.name + ' — ' + pageCount + ' pages ready', 'success');
+          }, 700);
+
+        } else if (data.status === 'error') {
+          source.close();
+          _showProgressError('Processing failed', data.error || 'unknown error');
+
+        } else {
+          // processing — current/total from backend
+          const cur   = data.current || 0;
+          const total = data.total   || 0;
+          const pct   = total > 0 ? 15 + Math.round((cur / total) * 85) : 15;
+          const sub   = total > 0 ? `Page ${cur} of ${total}` : 'Processing...';
+          _setProgress(pct, 'Processing pages...', sub);
+        }
+      } catch (err) {
+        console.error('[PdfHandler] SSE parse error', err);
+      }
+    };
+
+    source.onerror = () => {
+      source.close();
+      _showProgressError('Connection lost', 'Processing may still continue — please refresh');
+    };
   }
 
   function renderPdfGalleryThumbs(container) {

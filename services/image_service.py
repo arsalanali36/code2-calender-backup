@@ -194,6 +194,280 @@ def get_image_times(urls: list, uploads_dir: str) -> dict:
     return times
 
 
+# ── PDF page splitting ────────────────────────────────────────────────────────
+
+def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 220,
+                        progress_cb=None) -> list:
+    """
+    Render each PDF page to JPG and upload to Cloudinary (or save locally).
+    progress_cb(current_page, total_pages) called after each page.
+    Returns list of image URLs, one per page.
+    """
+    import io
+    import fitz  # PyMuPDF
+    import cloudinary.uploader
+    from config import USE_CLOUDINARY, UPLOADS_DIR
+
+    safe = re.sub(r'[^\w\-]', '_', os.path.splitext(os.path.basename(pdf_name))[0])[:35]
+    mat  = fitz.Matrix(dpi / 72, dpi / 72)
+    doc  = fitz.open(stream=pdf_bytes, filetype='pdf')
+    total = len(doc)
+    page_urls = []
+
+    try:
+        for i in range(total):
+            pix       = doc[i].get_pixmap(matrix=mat, alpha=False)
+            jpg_bytes = pix.tobytes('jpeg', jpg_quality=85)
+
+            if USE_CLOUDINARY:
+                pub_id = f'trading_journal/pdf_pages/{safe}_p{i+1}_{uuid.uuid4().hex[:6]}'
+                res    = cloudinary.uploader.upload(
+                    io.BytesIO(jpg_bytes),
+                    public_id=pub_id,
+                    resource_type='image',
+                    overwrite=False,
+                )
+                page_urls.append(res['secure_url'])
+            else:
+                fname = f'pdf_{safe}_p{i+1}_{uuid.uuid4().hex[:6]}.jpg'
+                fpath = os.path.join(UPLOADS_DIR, fname)
+                with open(fpath, 'wb') as f:
+                    f.write(jpg_bytes)
+                page_urls.append(f'/uploads/{fname}')
+
+            if progress_cb:
+                try:
+                    progress_cb(i + 1, total)
+                except Exception:
+                    pass
+    finally:
+        doc.close()
+
+    return page_urls
+
+
+# ── PDF helpers (Cloudinary or local) ────────────────────────────────────────
+
+def _load_pdf_meta(pdf_meta_file: str) -> list:
+    """Read pdfs.json; return [] if missing or corrupt."""
+    try:
+        with open(pdf_meta_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def _save_pdf_meta(records: list, pdf_meta_file: str):
+    os.makedirs(os.path.dirname(pdf_meta_file), exist_ok=True)
+    with open(pdf_meta_file, 'w', encoding='utf-8') as f:
+        json.dump(records, f)
+
+
+def save_pdf_bytes(pdf_bytes: bytes, orig_name: str, pdf_dir: str,
+                   pdf_meta_file: str, progress_cb=None) -> dict:
+    """Process pre-read PDF bytes (called from background thread with progress tracking).
+    Raw PDF is NOT uploaded to Cloudinary (free plan 10 MB raw limit).
+    Only the split JPEG pages are uploaded to Cloudinary.
+    """
+    import time as _time
+    from config import USE_CLOUDINARY
+
+    ext = os.path.splitext(orig_name)[1].lower()
+    if ext != '.pdf':
+        raise ValueError(f'Invalid file type: {ext}')
+    ts = int(_time.time() * 1000)
+
+    if USE_CLOUDINARY:
+        # Skip raw PDF upload — only pages (JPEGs) go to Cloudinary
+        uid = uuid.uuid4().hex
+        pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
+        record = {
+            'filename':  f'trading_journal/pdfs/{uid}',
+            'name':      orig_name,
+            'url':       '',          # no raw PDF on Cloudinary
+            'size':      len(pdf_bytes),
+            'timestamp': ts,
+            'pages':     pages,
+        }
+    else:
+        os.makedirs(pdf_dir, exist_ok=True)
+        fname = f'{uuid.uuid4().hex}_{secure_filename_safe(orig_name)}'
+        fpath = os.path.join(pdf_dir, fname)
+        with open(fpath, 'wb') as f:
+            f.write(pdf_bytes)
+        pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
+        record = {
+            'filename':  fname,
+            'name':      orig_name,
+            'url':       f'/uploads/pdfs/{fname}',
+            'size':      os.path.getsize(fpath),
+            'timestamp': ts,
+            'pages':     pages,
+        }
+
+    records = _load_pdf_meta(pdf_meta_file)
+    records.insert(0, record)
+    _save_pdf_meta(records, pdf_meta_file)
+    return record
+
+
+def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
+                      original_filename: str = None, progress_cb=None) -> dict:
+    """
+    Save / upload a PDF file.
+
+    • If CLOUDINARY_URL is set  → upload to Cloudinary (resource_type='raw'),
+                                   store metadata in pdfs.json, return Cloudinary URL.
+    • Otherwise                 → save to local pdf_dir, return /uploads/pdfs/<filename>.
+
+    Returns dict: {'url', 'name', 'filename', 'size', 'timestamp'}
+    """
+    import time as _time
+    from config import USE_CLOUDINARY
+
+    orig_name = original_filename or file_storage.filename or 'upload.pdf'
+    ext = os.path.splitext(orig_name)[1].lower()
+    if ext != '.pdf':
+        raise ValueError(f'Invalid file type: {ext}')
+
+    ts = int(_time.time() * 1000)
+
+    if USE_CLOUDINARY:
+        import cloudinary
+        import cloudinary.uploader
+        import io as _io
+
+        # Read bytes first (stream consumed after first upload)
+        pdf_bytes = file_storage.read()
+
+        # 1. Upload raw PDF for download reference
+        public_id = f'trading_journal/pdfs/{uuid.uuid4()}'
+        result = cloudinary.uploader.upload(
+            _io.BytesIO(pdf_bytes),
+            public_id=public_id,
+            resource_type='raw',
+            overwrite=False,
+        )
+        secure_url = result.get('secure_url', '')
+        stored_id  = result.get('public_id', public_id)
+        size       = result.get('bytes', len(pdf_bytes))
+
+        # 2. Split pages → individual JPG images on Cloudinary
+        pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
+
+        record = {
+            'filename':  stored_id,
+            'name':      orig_name,
+            'url':       secure_url,
+            'size':      size,
+            'timestamp': ts,
+            'pages':     pages,
+        }
+        records = _load_pdf_meta(pdf_meta_file)
+        records.insert(0, record)
+        _save_pdf_meta(records, pdf_meta_file)
+        return record
+
+    # ── Local disk ────────────────────────────────────────────────────────────
+    os.makedirs(pdf_dir, exist_ok=True)
+    fname = f'{uuid.uuid4().hex}_{secure_filename_safe(orig_name)}'
+    fpath = os.path.join(pdf_dir, fname)
+    pdf_bytes = file_storage.read()
+    with open(fpath, 'wb') as f:
+        f.write(pdf_bytes)
+    size = os.path.getsize(fpath)
+    pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
+    return {
+        'filename':  fname,
+        'name':      orig_name,
+        'url':       f'/uploads/pdfs/{fname}',
+        'size':      size,
+        'timestamp': ts,
+        'pages':     pages,
+    }
+
+
+def secure_filename_safe(name: str) -> str:
+    """Minimal safe filename — keep alphanumerics, dots, hyphens, underscores."""
+    import re as _re
+    name = os.path.basename(name)
+    name = _re.sub(r'[^\w.\-]', '_', name)
+    return name or 'upload.pdf'
+
+
+def list_uploaded_pdfs(pdf_dir: str, pdf_meta_file: str) -> list:
+    """
+    Return list of PDF metadata dicts sorted newest-first.
+
+    Cloudinary mode: read from pdfs.json.
+    Local mode:      scan pdf_dir filesystem.
+    """
+    from config import USE_CLOUDINARY
+
+    if USE_CLOUDINARY:
+        return _load_pdf_meta(pdf_meta_file)
+
+    # Local
+    result = []
+    if not os.path.isdir(pdf_dir):
+        return result
+    for fname in os.listdir(pdf_dir):
+        if not fname.lower().endswith('.pdf'):
+            continue
+        fpath = os.path.join(pdf_dir, fname)
+        stat  = os.stat(fpath)
+        parts = fname.split('_', 1)
+        display_name = parts[1] if len(parts) == 2 else fname
+        result.append({
+            'filename':  fname,
+            'name':      display_name,
+            'url':       f'/uploads/pdfs/{fname}',
+            'size':      stat.st_size,
+            'timestamp': int(stat.st_mtime * 1000),
+        })
+    result.sort(key=lambda x: x['timestamp'], reverse=True)
+    return result
+
+
+def update_pdf_pages(filename: str, pages: list, pdf_meta_file: str) -> bool:
+    """Update the pages array for a PDF (delete/reorder). Returns True if found."""
+    records = _load_pdf_meta(pdf_meta_file)
+    for r in records:
+        if r.get('filename') == filename:
+            r['pages'] = pages
+            _save_pdf_meta(records, pdf_meta_file)
+            return True
+    return False
+
+
+def delete_uploaded_pdf(filename: str, pdf_dir: str, pdf_meta_file: str) -> bool:
+    """
+    Delete a PDF by filename / Cloudinary public_id.
+    Returns True if deleted, False if not found.
+    """
+    from config import USE_CLOUDINARY
+
+    if USE_CLOUDINARY:
+        import cloudinary.uploader
+        try:
+            cloudinary.uploader.destroy(filename, resource_type='raw')
+        except Exception:
+            pass
+        records = _load_pdf_meta(pdf_meta_file)
+        before  = len(records)
+        records = [r for r in records if r.get('filename') != filename]
+        _save_pdf_meta(records, pdf_meta_file)
+        return len(records) < before
+
+    # Local
+    safe_name = os.path.basename(filename)
+    fpath = os.path.join(pdf_dir, safe_name)
+    if os.path.exists(fpath):
+        os.remove(fpath)
+        return True
+    return False
+
+
 def copy_image_to_clipboard(filename: str, uploads_dir: str):
     """
     Copy a LOCAL image file to the Windows clipboard as a CF_HDROP file reference.

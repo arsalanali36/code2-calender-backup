@@ -37,37 +37,54 @@ const VD_STATS = [
     { key: 'avg_buy_price', label: 'Avg Buy Price' }
 ];
 
-function getVdStatsState() {
+// ── uiSettings helpers ─────────────────────────────────────────────────────
+// Reads a key from state.uiSettings (server-persisted), falling back to
+// localStorage for backwards-compat on first load, then migrates to server.
+function _vdUiGet(key, def) {
+    if (typeof state !== 'undefined' && state.uiSettings && state.uiSettings[key] !== undefined)
+        return state.uiSettings[key];
+    // One-time migration: pull old value from localStorage if present
     try {
-        const raw = localStorage.getItem('vdStats');
-        if (raw) return JSON.parse(raw);
+        const raw = localStorage.getItem(key);
+        if (raw !== null) return JSON.parse(raw);
     } catch (e) { }
+    return def;
+}
+
+function _vdUiSet(key, val) {
+    if (typeof state === 'undefined') return;
+    if (!state.uiSettings) state.uiSettings = {};
+    state.uiSettings[key] = val;
+    // Remove migrated localStorage key so we don't read stale data again
+    try { localStorage.removeItem(key); } catch (e) { }
+    if (typeof saveTrades === 'function') saveTrades();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getVdStatsState() {
+    const saved = _vdUiGet('vdStats', null);
+    if (saved && typeof saved === 'object') return saved;
     const all = {};
     VD_STATS.forEach(s => { all[s.key] = true; });
     return all;
 }
 
 function saveVdStatsState(stateMap) {
-    try { localStorage.setItem('vdStats', JSON.stringify(stateMap)); } catch (e) { }
+    _vdUiSet('vdStats', stateMap);
 }
 
 function getVdStatsOrder() {
-    try {
-        const raw = localStorage.getItem('vdStatsOrder');
-        if (raw) {
-            const arr = JSON.parse(raw);
-            if (Array.isArray(arr) && arr.length) {
-                const valid = arr.filter(k => VD_STATS.some(s => s.key === k));
-                const missing = VD_STATS.map(s => s.key).filter(k => !valid.includes(k));
-                return [...valid, ...missing];
-            }
-        }
-    } catch (e) { }
+    const arr = _vdUiGet('vdStatsOrder', null);
+    if (Array.isArray(arr) && arr.length) {
+        const valid = arr.filter(k => VD_STATS.some(s => s.key === k));
+        const missing = VD_STATS.map(s => s.key).filter(k => !valid.includes(k));
+        return [...valid, ...missing];
+    }
     return VD_STATS.map(s => s.key);
 }
 
 function saveVdStatsOrder(order) {
-    try { localStorage.setItem('vdStatsOrder', JSON.stringify(order)); } catch (e) { }
+    _vdUiSet('vdStatsOrder', order);
 }
 
 function applyVdStatVisibility() {
@@ -322,15 +339,11 @@ window.updateVdChartType = updateVdChartType;
 
 
 function getVdCardWidths() {
-    try {
-        const raw = localStorage.getItem('vdCardWidths');
-        if (raw) return JSON.parse(raw);
-    } catch (e) { }
-    return {}; // Default
+    return _vdUiGet('vdCardWidths', {});
 }
 
 function saveVdCardWidths(w) {
-    try { localStorage.setItem('vdCardWidths', JSON.stringify(w)); } catch (e) { }
+    _vdUiSet('vdCardWidths', w);
 }
 
 function updateVdChartWidth(chartKey, cols) {

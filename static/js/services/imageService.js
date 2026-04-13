@@ -127,5 +127,9 @@ const imageService = (() => {
     return apiClient.post('/api/delete-pdf', { filename });
   }
 
-  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio, uploadVideo, deleteVideo, uploadPdf, listPdfs, deletePdf };
+  async function updatePdfPages(filename, pages) {
+    return apiClient.post('/api/update-pdf-pages', { filename, pages });
+  }
+
+  return { uploadImage, deleteImage, getImageTimes, copyToClipboard, uploadAudio, deleteAudio, uploadVideo, deleteVideo, uploadPdf, listPdfs, deletePdf, updatePdfPages };
 })();

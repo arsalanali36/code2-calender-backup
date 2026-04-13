@@ -64,6 +64,7 @@ const state = {
   dayData: {},   // keyed by YYYY-MM-DD: { images: [], tags: { ColName: [tag,...] } }
   importedPdfs: [], // List of imported PDF records: { name, date, images: [], timestamp }
   _localOverlays: {}, // temporary per-image overlay cache until upload completes
+  uiSettings: {},    // dashboard layout prefs (visibility, order, widths, modes) — synced to server
   serverStateHash: '',
   syncIntervalMs: 10000
 };

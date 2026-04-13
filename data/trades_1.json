@@ -17828,7 +17828,12 @@
     "BOTH",
     "News",
     "pin",
-    "[object Object]"
+    "[object Object]",
+    "Day Shuru me Kass ke Fall",
+    "WildSwing",
+    "Wild Fall",
+    "Wild Rise",
+    "V Shape Recovery"
   ],
   "tagColumns": [
     "Tags"
@@ -28141,6 +28146,13 @@
       "Clean",
       "BOTH"
     ],
+    "Speed/Momentum": [
+      "Day Shuru me Kass ke Fall",
+      "WildSwing",
+      "Wild Fall",
+      "Wild Rise",
+      "V Shape Recovery"
+    ],
     "TargetType": []
   },
   "tagTemplates": {
@@ -28201,22 +28213,118 @@
       "2": [
         "thumbnail"
       ],
+      "15": [
+        "WildSwing"
+      ],
+      "19": [
+        "WildSwing",
+        "Wild Rise",
+        "V Shape Recovery"
+      ],
+      "20": [
+        "WildSwing",
+        "Wild Rise"
+      ],
+      "22": [
+        "V Shape Recovery"
+      ],
+      "23": [
+        "Wild Rise"
+      ],
+      "26": [
+        "Wild Rise"
+      ],
+      "15_pins": [
+        {
+          "color": "#9b59b6",
+          "id": "mnuhzl2dtc05",
+          "tag": "WildSwing",
+          "x": 52.7,
+          "y": 80
+        }
+      ],
+      "19_pins": [
+        {
+          "color": "#9b59b6",
+          "id": "mnuhzvdglvx0",
+          "tag": "WildSwing",
+          "x": 51,
+          "y": 60
+        },
+        {
+          "color": "#ffd700",
+          "id": "mnui0iro58jg",
+          "tag": "Wild Rise",
+          "x": 59.9,
+          "y": 37.6
+        },
+        {
+          "color": "#e67e22",
+          "id": "mnui2i6rrmsn",
+          "tag": "V Shape Recovery",
+          "x": 58.4,
+          "y": 38.8
+        }
+      ],
       "1_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnuaa84moaoe",
           "tag": "thumbnail",
           "x": 59,
-          "y": 19.2,
-          "color": "#00d2ff"
+          "y": 19.2
+        }
+      ],
+      "20_pins": [
+        {
+          "color": "#9b59b6",
+          "id": "mnui005nqmao",
+          "tag": "WildSwing",
+          "x": 53.2,
+          "y": 85.7
+        },
+        {
+          "color": "#ffd700",
+          "id": "mnui0c5514bm",
+          "tag": "Wild Rise",
+          "x": 53,
+          "y": 28.9
+        }
+      ],
+      "22_pins": [
+        {
+          "color": "#e67e22",
+          "id": "mnui37f42wk0",
+          "tag": "V Shape Recovery",
+          "x": 53.3,
+          "y": 44.2
+        }
+      ],
+      "23_pins": [
+        {
+          "color": "#ffd700",
+          "id": "mnui0qsxmotz",
+          "tag": "Wild Rise",
+          "x": 71.6,
+          "y": 43.6
+        }
+      ],
+      "26_pins": [
+        {
+          "color": "#ffd700",
+          "id": "mnui13h0gh75",
+          "tag": "Wild Rise",
+          "x": 57.4,
+          "y": 84.1
         }
       ],
       "2_pins": [
         {
+          "color": "#00d2ff",
           "id": "mnuaad203sbg",
           "tag": "thumbnail",
           "x": 14.6,
-          "y": 64.1,
-          "color": "#00d2ff"
+          "y": 64.1
         }
       ]
     }

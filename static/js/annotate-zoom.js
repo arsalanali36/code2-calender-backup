@@ -53,6 +53,12 @@ function applyZoom() {
   img.style.transform = tf;
   img.style.transformOrigin = 'top left';
 
+  const pdfCanvas = document.getElementById('pdf-main-canvas');
+  if (pdfCanvas) {
+    pdfCanvas.style.transform = tf;
+    pdfCanvas.style.transformOrigin = 'top left';
+  }
+
   if (_mqCanvas) {
     _mqCanvas.style.transform = tf;
     _mqCanvas.style.transformOrigin = 'top left';
@@ -125,7 +131,7 @@ function bindZoomPan() {
     if (annotState.active) return;
     const t = e.target;
     const validTarget = t && (
-      t.id === 'gallery-img' || t.id === 'annot-canvas' ||
+      t.id === 'gallery-img' || t.id === 'annot-canvas' || t.id === 'pdf-main-canvas' ||
       t.id === 'gallery-img-wrapper' || t.id === 'gallery-zoom-layer' ||
       (t.classList && (t.classList.contains('lower-canvas') || t.classList.contains('upper-canvas')))
     );

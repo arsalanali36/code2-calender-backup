@@ -215,6 +215,10 @@
   transition: transform 0.05s linear;
   cursor: default;
   will-change: transform;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .gallery-img.zoomed {

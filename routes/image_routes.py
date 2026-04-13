@@ -7,16 +7,23 @@ and serving uploaded files.
 import os
 import uuid
 import time
+import json
+import threading
 
 from flask import Blueprint, request, jsonify, send_from_directory, Response
 from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
+    save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_CLOUDINARY
 
 image_bp = Blueprint('image', __name__)
+
+# ── PDF processing job tracker ────────────────────────────────────────────────
+_pdf_jobs      = {}   # job_id -> state dict
+_pdf_jobs_lock = threading.Lock()
 
 
 @image_bp.route('/api/upload-image', methods=['POST'])
@@ -219,59 +226,109 @@ def delete_tag_image():
 
 @image_bp.route('/api/upload-pdf', methods=['POST'])
 def upload_pdf():
-    """Store the raw PDF file on the server and return its URL + metadata."""
+    """Upload PDF, start background page-split processing, return job_id immediately."""
     if 'pdf' not in request.files:
         return jsonify({'error': 'No pdf'}), 400
     file = request.files['pdf']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
-    os.makedirs(PDF_DIR, exist_ok=True)
-    original_name = secure_filename(file.filename)
-    fname = f"{uuid.uuid4().hex}_{original_name}"
-    fpath = os.path.join(PDF_DIR, fname)
-    file.save(fpath)
-    size = os.path.getsize(fpath)
-    return jsonify({
-        'url': f'/uploads/pdfs/{fname}',
-        'name': file.filename,
-        'filename': fname,
-        'size': size,
-        'timestamp': int(time.time() * 1000)
-    })
+
+    try:
+        pdf_bytes = file.read()
+        orig_name = file.filename
+    except Exception as e:
+        return jsonify({'error': f'Read failed: {e}'}), 500
+
+    if not orig_name.lower().endswith('.pdf'):
+        return jsonify({'error': 'Invalid file type'}), 400
+
+    job_id = uuid.uuid4().hex
+    with _pdf_jobs_lock:
+        _pdf_jobs[job_id] = {
+            'status': 'processing',
+            'current': 0,
+            'total': 0,
+            'record': None,
+            'error': None,
+        }
+
+    def run():
+        def on_progress(current, total):
+            with _pdf_jobs_lock:
+                if job_id in _pdf_jobs:
+                    _pdf_jobs[job_id]['current'] = current
+                    _pdf_jobs[job_id]['total']   = total
+        try:
+            record = save_pdf_bytes(
+                pdf_bytes, orig_name,
+                PDF_DIR, PDF_META_FILE,
+                progress_cb=on_progress,
+            )
+            with _pdf_jobs_lock:
+                _pdf_jobs[job_id]['record'] = record
+                _pdf_jobs[job_id]['status'] = 'done'
+        except Exception as exc:
+            with _pdf_jobs_lock:
+                _pdf_jobs[job_id]['error']  = str(exc)
+                _pdf_jobs[job_id]['status'] = 'error'
+
+    threading.Thread(target=run, daemon=True).start()
+    return jsonify({'job_id': job_id})
+
+
+@image_bp.route('/api/pdf-job/<job_id>', methods=['GET'])
+def pdf_job_progress(job_id):
+    """SSE stream: sends job progress until done/error."""
+    def generate():
+        while True:
+            with _pdf_jobs_lock:
+                job = dict(_pdf_jobs.get(job_id, {}))
+            if not job:
+                yield f"data: {json.dumps({'error': 'not found'})}\n\n"
+                break
+            yield f"data: {json.dumps(job)}\n\n"
+            if job['status'] in ('done', 'error'):
+                # Clean up job entry after a short while
+                threading.Timer(30, lambda: _pdf_jobs.pop(job_id, None)).start()
+                break
+            time.sleep(0.35)
+
+    return Response(
+        generate(),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'},
+    )
 
 
 @image_bp.route('/api/list-pdfs', methods=['GET'])
 def list_pdfs():
     """Return metadata for all stored PDF files."""
-    os.makedirs(PDF_DIR, exist_ok=True)
-    result = []
-    for fname in os.listdir(PDF_DIR):
-        if not fname.lower().endswith('.pdf'):
-            continue
-        fpath = os.path.join(PDF_DIR, fname)
-        stat = os.stat(fpath)
-        # Original name is everything after the first underscore (uuid_ prefix)
-        parts = fname.split('_', 1)
-        display_name = parts[1] if len(parts) == 2 else fname
-        result.append({
-            'filename': fname,
-            'name': display_name,
-            'url': f'/uploads/pdfs/{fname}',
-            'size': stat.st_size,
-            'timestamp': int(stat.st_mtime * 1000)
-        })
-    result.sort(key=lambda x: x['timestamp'], reverse=True)
-    return jsonify(result)
+    return jsonify(list_uploaded_pdfs(PDF_DIR, PDF_META_FILE))
 
 
 @image_bp.route('/api/delete-pdf', methods=['POST'])
 def delete_pdf():
-    """Permanently delete a stored PDF file."""
+    """Delete a PDF from Cloudinary or local disk."""
     data = request.json or {}
     filename = data.get('filename', '')
-    if not filename or '/' in filename or '\\' in filename:
+    if not filename:
         return jsonify({'error': 'Invalid filename'}), 400
-    fpath = os.path.join(PDF_DIR, filename)
-    if os.path.exists(fpath):
-        os.remove(fpath)
+    # Local safety check — block path traversal for local filenames
+    if not USE_CLOUDINARY and ('/' in filename or '\\' in filename):
+        return jsonify({'error': 'Invalid filename'}), 400
+    delete_uploaded_pdf(filename, PDF_DIR, PDF_META_FILE)
     return jsonify({'success': True})
+
+
+@image_bp.route('/api/update-pdf-pages', methods=['POST'])
+def update_pdf_pages_route():
+    """Update pages array for a PDF (delete/reorder individual pages)."""
+    data = request.json or {}
+    filename = data.get('filename', '')
+    pages    = data.get('pages', [])
+    if not filename:
+        return jsonify({'error': 'No filename'}), 400
+    if not isinstance(pages, list):
+        return jsonify({'error': 'pages must be array'}), 400
+    found = update_pdf_pages(filename, pages, PDF_META_FILE)
+    return jsonify({'success': True, 'found': found})

@@ -293,9 +293,22 @@ function _bindKeyboardEvents() {
         if (btn && btn.style.display !== 'none') btn.click();
         return;
       }
-      if ((e.key === 'f' || e.key === 'F') && !e.altKey && !e.ctrlKey) {
+      if ((e.key === 'f' || e.key === 'F') && !e.altKey && !e.ctrlKey && !e.shiftKey) {
         if (annotState.active) return;
         e.preventDefault();
+        // f = hamburger (left panel) toggle
+        const ulpPanel = document.getElementById('gv2-ulp-panel');
+        if (ulpPanel) {
+          ulpPanel.classList.contains('open')
+            ? (typeof window._closeULP === 'function' && window._closeULP())
+            : (typeof window._openULP  === 'function' && window._openULP());
+        }
+        return;
+      }
+      if (e.key === 'F' && e.shiftKey && !e.altKey && !e.ctrlKey) {
+        if (annotState.active) return;
+        e.preventDefault();
+        // Shift+F = fullscreen viewer
         const _fsImages = state.gallery.images || [];
         const _fsCur = _fsImages[state.gallery.currentIndex];
         if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur, true);

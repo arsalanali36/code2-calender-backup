@@ -38,6 +38,15 @@
 
 <body>
 
+  <!-- ── Loading overlay — visible until first render() completes ── -->
+  <div id="app-loading-overlay">
+    <div class="alo-inner">
+      <img src="/static/img/logo.png" class="alo-logo" alt="logo" />
+      <div class="alo-spinner"></div>
+      <span class="alo-text">Loading…</span>
+    </div>
+  </div>
+
   <!-- HEADER -->
   <header class="app-header">
     <div class="logo">
@@ -329,96 +338,108 @@
   {% include 'gallery.html' %}
 
   <div class="toast" id="toast"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <!-- ── Service layer (load before all other modules) ── -->
-  <script src="/static/js/services/apiClient.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/services/tradeService.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/services/imageService.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/services/importService.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/services/csvlogService.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/state.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/quotes.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/data.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/dashboard.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/calendar.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-pnl-calendar.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/table-render.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/table-cols.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/table-colops.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/trade-review.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/trade-logger-core.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/trade-logger-render.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-open.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-rubberband.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-render-b.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-render-tray.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-render-thumbs.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-ref-cards.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-split-view.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-render.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-grid.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-core.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-image-ops.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-image-ops-b.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-ops.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-ops-group.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-layer.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-nav.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-tags.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-tags-filter.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-data.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-image-manager.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-sync.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-img-tags.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-audio.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/gallery-video.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-zoom.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-marquee.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-tools.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-canvas.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-ctx-menu.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-lifecycle.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/io.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-img.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-fields.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-day.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-vitals.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-placeholder.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-charts.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/csvlog-charts-b.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/ohlc-manager.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/tag-pins.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events-gallery-b.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events-gallery-c.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events-settings.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/trade-sidebar.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/events.js?v={{ cache_bust }}"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="/static/js/gallery-chart.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/fullscreen-viewer.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/visual-dashboard-stats.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/visual-dashboard.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/visual-dashboard-init.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/visual-dashboard-mtm.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/target-tracker-data.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/target-tracker-monthly.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/target-tracker-weekly.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/target-tracker.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/target-tracker-init.js?v={{ cache_bust }}"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="/static/js/pdf-handler.js?v={{ cache_bust }}"></script>
-  <script src="/static/js/quick-stats.js?v={{ cache_bust }}"></script>
+  <!-- Inline initial data — eliminates /api/trades round-trip on first load -->
+  <script>window.__INITIAL_DATA__ = {{ initial_data_json | safe }};</script>
+  <!-- Vendor libs (cached independently, always before app code) -->
+  <script defer src="/static/js/vendor/jspdf.umd.min.js"></script>
+  <script defer src="/static/js/vendor/fabric.min.js"></script>
+  <script defer src="/static/js/vendor/apexcharts.min.js"></script>
+  <script defer src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
+  <script defer src="/static/js/vendor/pdf.min.js"></script>
+  {% if use_bundle %}
+  <!-- App bundle (88 modules in one request) -->
+  <script defer src="/static/js/bundle.js?v={{ cache_bust }}"></script>
+  {% else %}
+  <!-- Dev mode: individual files (bundle.js not found — run python build.py) -->
+  <script defer src="/static/js/services/apiClient.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/services/tradeService.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/services/imageService.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/services/importService.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/services/csvlogService.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/state.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/quotes.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/data.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/data-utils.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/settings.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/dashboard.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/calendar.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/calendar-obs.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-pnl-calendar.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/table-render.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/table-cols.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/table-colops.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/trade-review.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/trade-logger-core.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/trade-logger-render.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-open.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-rubberband.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-render-b.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-render-tray.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-render-thumbs.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-render-thumbs-b.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-ref-cards.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-split-view.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-render.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-grid.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-stats-b.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-core.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-image-ops.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-image-ops-b.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-ops.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-ops-group.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-layer.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-nav.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-tags.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-tags-filter.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-data.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-image-manager.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-sync.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-img-tags.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-audio.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-video.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-zoom.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-marquee.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-tools.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-canvas.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-ctx-menu.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-lifecycle.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/io.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-img.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-fields.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-day.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-vitals.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-placeholder.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-charts.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/csvlog-charts-b.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/ohlc-manager.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/tag-pins.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-ui.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-gallery-b.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-gallery-c.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-gallery-d.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events-settings.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/trade-sidebar.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/events.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/gallery-chart.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/fullscreen-viewer.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/visual-dashboard-stats.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/visual-dashboard.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/visual-dashboard-init.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/visual-dashboard-mtm.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/target-tracker-data.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/target-tracker-monthly.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/target-tracker-weekly.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/target-tracker.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/target-tracker-init.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/pdf-handler.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/quick-stats.js?v={{ cache_bust }}"></script>
+  {% endif %}
 </body>
 
 </html>
