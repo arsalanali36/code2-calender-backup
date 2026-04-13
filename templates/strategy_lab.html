@@ -20,7 +20,11 @@
         .chart-container-box { flex: 1; position: relative; height: 100%; min-width: 0; transition: all 0.3s ease; }
         .chart-container-box:nth-child(2) { border-left: 1px solid #d0d7de; }
         #chart-main, #chart-opt { height: 100%; width: 100%; }
-        .chart-label { position: absolute; top: 10px; left: 60px; z-index: 10; background: rgba(255,255,255,0.8); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #d0d7de; pointer-events: none; }
+        .chart-label { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(255,255,255,0.9); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #d0d7de; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .tf-btn-group { display: flex; gap: 2px; background: #f1f5f9; padding: 2px; border-radius: 4px; }
+        .tf-btn { padding: 2px 6px; border: none; background: transparent; font-size: 0.65rem; cursor: pointer; border-radius: 3px; font-weight: 700; color: #64748b; }
+        .tf-btn.active { background: white; color: #0969da; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .tf-btn:hover:not(.active) { background: #e2e8f0; }
         .setting-item { display: block; margin-bottom: 12px; font-size: 0.85rem; color: #1f2328; font-weight: 600; }
         .lab-btn { width: 100%; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .lab-btn-primary { background: #0969da; color: white; }
@@ -69,8 +73,8 @@
                 </div>
             </div>
 
-            <div style="margin-bottom:20px;"><label class="setting-item">TIMEFRAME</label><select id="timeframe-select" class="nav-btn" style="width:100%;"><option value="1m">1m</option><option value="3m">3m</option><option value="5m" selected>5m</option><option value="15m">15m</option></select></div>
-            <div style="margin-bottom:20px;"><label class="setting-item">DATE RANGE</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="date" id="start-date" class="nav-btn"><input type="date" id="end-date" class="nav-btn"></div></div>
+            <div style="margin-bottom:20px;"><label class="setting-item">TIMEFRAME</label><select id="timeframe-select" class="nav-btn" style="width:100%;"><option value="1m">1m</option><option value="3m" selected>3m</option><option value="5m">5m</option><option value="15m">15m</option></select></div>
+            <div style="margin-bottom:20px;"><label class="setting-item">DATE RANGE</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="date" id="start-date" class="nav-btn" value="2026-04-01"><input type="date" id="end-date" class="nav-btn" value="2026-04-14"></div></div>
             <div style="margin-bottom:30px;"><label class="setting-item">MARKET TIME</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="time" id="start-time" class="nav-btn" value="09:15"><input type="time" id="end-time" class="nav-btn" value="15:30"></div></div>
             <button class="lab-btn lab-btn-primary" id="run-btn">Run Strategy</button>
         </div>
@@ -84,6 +88,8 @@
                 <button class="nav-btn" id="dual-view-btn" style="margin-left:10px; border-color:#8b5cf6; color:#8b5cf6; font-weight:700;">DUAL VIEW: OFF</button>
                 <div style="margin-left:auto; display:flex; gap:10px;">
                     <button class="nav-btn" id="open-history-btn" style="border-color:#0969da; color:#0969da;">DATA HISTORY</button>
+                    <button class="nav-btn" id="sync-all-btn" style="border-color:#10b981; color:#10b981; font-weight:700;" title="Sync All Instruments from Trades">SYNC DATA</button>
+                    <button class="nav-btn" id="relogin-btn" style="border-color:#ef4444; color:#ef4444; font-size:10px; padding:2px 4px;">RE-LOGIN</button>
                     <button class="nav-btn" id="open-trades-modal-btn" style="border-color:#f9a825; color:#f9a825; font-weight:600;">REAL TRADES</button>
                     <button class="nav-btn" id="batch-export-btn">Batch Export</button>
                     <a href="/" class="nav-btn" style="text-decoration:none;">Home</a>
@@ -91,11 +97,25 @@
             </div>
             <div class="chart-wrapper">
                 <div class="chart-container-box" id="container-main">
-                    <div class="chart-label">NIFTY 50 (INDEX)</div>
+                    <div class="chart-label">
+                        <span style="color:#475569;">NIFTY 50 (INDEX)</span>
+                        <div class="tf-btn-group" id="tf-group-main">
+                            <button class="tf-btn" onclick="switchTF('main', '1m')">1</button>
+                            <button class="tf-btn active" onclick="switchTF('main', '3m')">3</button>
+                            <button class="tf-btn" onclick="switchTF('main', '5m')">5</button>
+                        </div>
+                    </div>
                     <div id="chart-main"></div>
                 </div>
                 <div class="chart-container-box" id="container-opt" style="display: none;">
-                    <div class="chart-label" id="opt-label">OPTION CHART</div>
+                    <div class="chart-label">
+                        <span id="opt-label" style="color:#475569;">OPTION CHART</span>
+                        <div class="tf-btn-group" id="tf-group-opt">
+                            <button class="tf-btn" onclick="switchTF('opt', '1m')">1</button>
+                            <button class="tf-btn active" onclick="switchTF('opt', '3m')">3</button>
+                            <button class="tf-btn" onclick="switchTF('opt', '5m')">5</button>
+                        </div>
+                    </div>
                     <div id="chart-opt"></div>
                 </div>
             </div>
@@ -144,6 +164,33 @@
         </div>
     </div>
     <div class="modal-overlay" id="trades-modal"><div class="modal-content" style="width: 500px; max-height: 80vh; overflow-y: auto;"><div class="modal-header"><div class="modal-title">Real Trades Found</div><div class="close-modal" id="close-trades-modal-btn">&times;</div></div><div id="trades-list-container"></div></div></div>
+    
+    <div class="modal-overlay" id="sync-modal">
+        <div class="modal-content" style="width: 600px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+                <div class="modal-title">Sync Process</div>
+                <div class="close-modal" id="close-sync-modal-btn">&times;</div>
+            </div>
+            <div style="padding:15px;">
+                <p id="sync-modal-range-info" style="font-size:0.75rem; color:#64748b; margin-top:-10px; margin-bottom:15px;"></p>
+                <p id="sync-modal-main-status" style="font-size:0.9rem; margin-bottom:15px; font-weight:700; color:#10b981;">Starting sync...</p>
+                <div style="height:10px; background:#eee; border-radius:5px; overflow:hidden; margin-bottom:20px;">
+                    <div id="sync-modal-progress-bar" style="height:100%; width:0%; background:#10b981; transition:width 0.3s;"></div>
+                </div>
+                <table style="width:100%; border-collapse: collapse; font-size:0.8rem;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #eee; color:#64748b; font-size:0.75rem;">
+                            <th style="padding:8px; text-align:left;">INSTRUMENT</th>
+                            <th style="padding:8px; text-align:left;">DATE</th>
+                            <th style="padding:8px; text-align:center;">HISTORY (M T W T F)</th>
+                            <th style="padding:8px; text-align:right;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sync-modal-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
     <script>
@@ -213,6 +260,25 @@
         document.getElementById('dhan-client-id').value = sessionStorage.getItem('dhan_client_id') || '';
         document.getElementById('dhan-access-token').value = sessionStorage.getItem('dhan_access_token') || '';
 
+        let currentMainTF = '3m';
+        let currentOptTF = '3m';
+
+        async function switchTF(target, tf) {
+            if (target === 'main') currentMainTF = tf;
+            else currentOptTF = tf;
+            
+            // Update UI buttons
+            const group = document.getElementById(`tf-group-${target}`);
+            const btns = group.querySelectorAll('.tf-btn');
+            btns.forEach(b => {
+                const bVal = b.getAttribute('onclick').match(/'([^']+)'\s*,\s*'([^']+)'/)[2];
+                b.classList.toggle('active', bVal === tf);
+            });
+            
+            // Trigger refresh for only this chart
+            await runStrategy(target === 'opt', true);
+        }
+
         async function runStrategy(isOpt = false, silent = false) {
             const loader = document.getElementById('loader');
             if (!silent) {
@@ -230,19 +296,11 @@
             const targetDema = isOpt ? demaOpt : demaMain;
             const targetMarker = isOpt ? markerOpt : markerMain;
             
-            if (isOpt) {
-                zoneSeriesOpt = clearSeries(zoneSeriesOpt, chartOpt);
-                tradeSeriesOpt = clearSeries(tradeSeriesOpt, chartOpt);
-            } else {
-                zoneSeriesMain = clearSeries(zoneSeriesMain, chartMain);
-                tradeSeriesMain = clearSeries(tradeSeriesMain, chartMain);
-            }
-
             try {
                 const params = new URLSearchParams({
                     start_date: document.getElementById('start-date').value,
                     end_date: document.getElementById('end-date').value,
-                    timeframe: document.getElementById('timeframe-select').value,
+                    timeframe: isOpt ? currentOptTF : currentMainTF,
                     fresh_zone: document.getElementById('use-fresh-zone').checked,
                     fib_exit: document.getElementById('fib-exit').checked,
                     zone_exit: document.getElementById('zone-exit').checked,
@@ -258,6 +316,15 @@
                 const res = await fetch(`/api/strategy/nifty-data?${params.toString()}`);
                 const dataRaw = await res.json();
                 if (dataRaw.error) { if (!silent) console.error(dataRaw.error); return false; }
+
+                // CLEAR ONLY AFTER SUCCESSFUL FETCH to avoid "flashing" or hanging
+                if (isOpt) {
+                    zoneSeriesOpt = clearSeries(zoneSeriesOpt, chartOpt);
+                    tradeSeriesOpt = clearSeries(tradeSeriesOpt, chartOpt);
+                } else {
+                    zoneSeriesMain = clearSeries(zoneSeriesMain, chartMain);
+                    tradeSeriesMain = clearSeries(tradeSeriesMain, chartMain);
+                }
 
                 targetMarker.setMarkers([]);
                 const chartData = dataRaw.chart_data;
@@ -277,7 +344,7 @@
                 zones.forEach(zone => {
                     const zoneTimes = chartData.map(d => d.time).filter(t => t >= zone.start_time && t <= zone.end_time);
                     if (zoneTimes.length < 2) return;
-                    const color = zone.type === 'bull' ? 'rgba(38, 166, 154, 0.4)' : 'rgba(128, 0, 0, 0.4)';
+                    const color = zone.type === 'bull' ? 'rgba(38, 166, 154, 0.4)' : 'rgba(211, 47, 47, 0.4)';
                     const u = targetChart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
                     const l = targetChart.addLineSeries({ color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
                     u.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
@@ -294,7 +361,7 @@
                     const duration = Math.round((rt.exit_time - rt.entry_time) / 60);
                     const color = rt.pl > 0 ? '#26a69a' : '#ef5350';
                     let instClean = rt.instrument;
-                    const instMatch = instClean.match(/(\d{4,5})\s*([CP]E)/);
+                    const instMatch = instClean.match(/(\d{4,6})\s*([CP]E)/);
                     if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
                     else instClean = instClean.split(' ').pop();
                     const line = targetChart.addLineSeries({ color, lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
@@ -312,7 +379,12 @@
                 });
 
                 setTimeout(() => { targetMarker.setMarkers([...zMarkers, ...rtMarkers].sort((a,b) => a.time - b.time)); }, 50);
-                targetChart.timeScale().fitContent();
+                
+                // FIXED: Preserve zoom/view if silent (switcher) update
+                if (!silent) {
+                    targetChart.timeScale().fitContent();
+                }
+                
                 return true;
             } catch (e) { console.error(e); return false; }
             finally { if (!silent) loader.style.display = 'none'; }
@@ -329,18 +401,33 @@
             const optBox = document.getElementById('container-opt');
             const dualBtn = document.getElementById('dual-view-btn');
             
-            document.getElementById('symbol').value = symbol;
-            document.getElementById('start-date').value = date;
-            document.getElementById('end-date').value = date;
-
             if (isIndex) {
                 optBox.style.display = 'none';
                 dualBtn.innerText = 'DUAL VIEW: OFF';
+                
+                // Set 5-day lookback for EMA warmup
+                const dt = new Date(date);
+                dt.setDate(dt.getDate() - 5);
+                const lookbackDate = dt.toISOString().split('T')[0];
+                
+                document.getElementById('symbol').value = symbol;
+                document.getElementById('start-date').value = lookbackDate;
+                document.getElementById('end-date').value = date;
+                
                 await runStrategy(false);
             } else {
                 optBox.style.display = 'block';
                 dualBtn.innerText = 'DUAL VIEW: ON';
                 document.getElementById('opt-label').innerText = symbol;
+                
+                // Set 5-day lookback for EMA warmup
+                const dt = new Date(date);
+                dt.setDate(dt.getDate() - 5);
+                const lookbackDate = dt.toISOString().split('T')[0];
+                
+                document.getElementById('symbol').value = symbol;
+                document.getElementById('start-date').value = lookbackDate;
+                document.getElementById('end-date').value = date;
                 
                 // Force a resize calculation before loading data
                 setTimeout(() => {
@@ -352,6 +439,14 @@
 
                 await runStrategy(false, true); 
                 await runStrategy(true); 
+                
+                // Zoom into the actual trade date on both charts
+                const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
+                setTimeout(() => {
+                    const range = { from: tradeTs - 3600, to: tradeTs + 25200 }; // Focus on trading hours
+                    chartMain.timeScale().setVisibleRange(range);
+                    chartOpt.timeScale().setVisibleRange(range);
+                }, 100);
             }
             document.getElementById('history-modal').style.display = 'none';
         }
@@ -474,9 +569,133 @@
         // Prevent closing when clicking inside sidebar
         document.getElementById('sidebar').onclick = (e) => e.stopPropagation();
 
+        async function syncAllData(silent = false) {
+            const btn = document.getElementById('sync-all-btn');
+            const modal = document.getElementById('sync-modal');
+            const table = document.getElementById('sync-modal-table-body');
+            const progressBar = document.getElementById('sync-modal-progress-bar');
+            const mainStatus = document.getElementById('sync-modal-main-status');
+            
+            if (!silent) {
+                modal.style.display = 'flex';
+                table.innerHTML = '';
+                progressBar.style.width = '0%';
+                mainStatus.innerText = 'Initializing sync list...';
+            }
+            
+            try {
+                const sDate = document.getElementById('start-date').value || '';
+                const eDate = document.getElementById('end-date').value || '';
+                
+                document.getElementById('sync-modal-range-info').innerText = `Range: ${sDate || 'All'} to ${eDate || 'Today'}`;
+                mainStatus.innerText = 'Fetching tasks for selected range...';
+                
+                const listResp = await fetch(`/api/strategy/sync-tasks?start_date=${sDate}&end_date=${eDate}&_=${Date.now()}`);
+                const tasks = await listResp.json();
+                
+                if (tasks.length === 0) {
+                    if (!silent) {
+                        mainStatus.innerText = 'No instruments found for this range.';
+                        alert('No new instruments found to sync in this date range.');
+                    }
+                    return;
+                }
+                
+                mainStatus.innerText = `Syncing ${tasks.length} instruments...`;
+                let completed = 0;
+                let errorDetails = "";
+                const cid = sessionStorage.getItem('dhan_client_id') || '';
+                const token = sessionStorage.getItem('dhan_access_token') || '';
+
+                for (const task of tasks) {
+                    const taskId = (task.symbol + "_" + task.date).replace(/[^a-zA-Z0-9]/g, "_");
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid #f8f9fa';
+                    row.innerHTML = `
+                        <td style="padding:6px; font-weight:600;">${task.symbol}</td>
+                        <td style="padding:6px;">${task.date}</td>
+                        <td style="padding:6px; text-align:center;">
+                            <div style="display:flex; gap:3px; justify-content:center;">
+                                ${['M','T','W','T','F'].map((d,i) => `<span id="dot-${taskId}-${i}" style="width:6px; height:6px; background:#ddd; border-radius:30%; display:inline-block;" title="${d}"></span>`).join('')}
+                            </div>
+                        </td>
+                        <td id="status-${taskId}" style="padding:6px; text-align:right; color:#0969da; font-weight:700; width:100px;">Pending...</td>
+                    `;
+                    table.appendChild(row);
+                    
+                    const statusCell = row.querySelector(`#status-${taskId}`);
+                    statusCell.innerText = 'Syncing...';
+
+                    try {
+                        const res = await fetch('/api/strategy/sync-single', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...task,
+                                dhan_cid: cid,
+                                dhan_token: token
+                            })
+                        });
+                        const resData = await res.json();
+                        if (resData.day_results) {
+                            resData.day_results.forEach(day => {
+                                const dot = document.getElementById(`dot-${taskId}-${day.weekday}`);
+                                if (dot) {
+                                    dot.style.background = (day.status === 'OK' || day.status === 'SKIP') ? '#10b981' : '#ef4444';
+                                    dot.style.opacity = '1';
+                                    dot.title = `${day.date}: ${day.status}`;
+                                } else {
+                                    console.log("Missing dot:", `dot-${taskId}-${day.weekday}`);
+                                }
+                            });
+                        }
+                        if (resData.errors > 0) {
+                            statusCell.innerText = `Partial (${resData.synced} OK)`;
+                            statusCell.style.color = '#f59e0b';
+                            errorDetails += `${task.symbol} (${resData.errors} err). `;
+                        } else if (resData.synced === 0 && !resData.error) {
+                            statusCell.innerText = 'Already Synced/No Data';
+                            statusCell.style.color = '#64748b';
+                        } else {
+                            statusCell.innerText = 'Completed';
+                            statusCell.style.color = '#10b981';
+                        }
+                    } catch (e) { 
+                        statusCell.innerText = 'Failed';
+                        statusCell.style.color = '#ef4444';
+                        errorDetails += `${task.symbol} failed. `;
+                    }
+                    
+                    completed++;
+                    const pct = Math.round((completed / tasks.length) * 100);
+                    progressBar.style.width = pct + '%';
+                }
+                
+                if (!silent) {
+                    mainStatus.innerText = 'Sync Completed!';
+                    if (errorDetails) {
+                        alert('Sync Completed with some issues. See table for details.');
+                    } else {
+                        alert('Sync successful! Now run your strategy on these dates.');
+                    }
+                }
+            } catch (e) { 
+                console.error('Sync failed', e); 
+                if (!silent) alert('Sync error: ' + e.message);
+            }
+        }
+
+        document.getElementById('sync-all-btn').onclick = () => syncAllData();
+        document.getElementById('relogin-btn').onclick = () => {
+            document.getElementById('dhan-auth-modal').style.display = 'flex';
+        };
+
+        document.getElementById('close-sync-modal-btn').onclick = () => document.getElementById('sync-modal').style.display = 'none';
         window.addEventListener('DOMContentLoaded', () => {
             initChart();
             runStrategy(false);
+            // Auto-sync in background on load
+            syncAllData(true);
         });
     </script>
 </body>

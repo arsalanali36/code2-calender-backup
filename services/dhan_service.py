@@ -77,11 +77,8 @@ _STRIKE_STEP = {
 
 
 def _expired_option_cache_path(symbol, trade_date=None):
-    from datetime import datetime
     safe = symbol.replace('_', ' ')
-    if trade_date:
-        fmt_date = datetime.strptime(trade_date, '%Y-%m-%d').strftime('%d_%m_%a')
-        return os.path.join(OHLC_CACHE_DIR, f"{safe}_{fmt_date}.csv")
+    # Simple naming: just SYMBOL.csv (contains all days)
     return os.path.join(OHLC_CACHE_DIR, f"{safe}.csv")
 
 
@@ -95,6 +92,25 @@ def _fetch_underlying_spot(underlying, trade_date, headers, entry_time=None):
     if not sec_id:
         return None
 
+    # FIRST: Try local archive for NIFTY
+    if underlying == 'NIFTY':
+        path = "data/Historical_OHLC/nifty_1m_dhan.csv"
+        if os.path.exists(path):
+            try:
+                import pandas as pd
+                df = pd.read_csv(path)
+                df['datetime'] = pd.to_datetime(df['datetime'])
+                t = entry_time if entry_time else '09:30'
+                dt_str = f"{trade_date} {t}"
+                # Handle cases where exact second might not match
+                target = pd.to_datetime(dt_str)
+                mask = (df['datetime'] >= target) & (df['datetime'] < target + pd.Timedelta(minutes=5))
+                match = df.loc[mask].head(1)
+                if not match.empty:
+                    return float(match.iloc[0]['close'])
+            except: pass
+
+    # SECOND: Try API
     t = entry_time[:5] if entry_time else '09:30'
     from_str = f"{trade_date} {t}:00"
     try:
@@ -129,20 +145,27 @@ def _fetch_underlying_spot(underlying, trade_date, headers, entry_time=None):
     return None
 
 
-def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
-    """
-    Fetch 1-min OHLC for an expired option via Dhan /v2/charts/rollingoption.
+def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None, config=None):
+    # 1. SKIP check at TOP for speed
+    meta = _read_meta(symbol, trade_date)
+    last_candle = meta.get('last_candle_time') or ''
+    if last_candle.endswith('15:29'):
+        return "ALREADY_COMPLETE"
 
-    Steps:
-      1. Parse symbol → underlying, strike, expiry day/month, option type
-      2. Fetch underlying spot at entry_time → calculate ATM
-      3. Compute strike offset N (ATM±N)
-      4. Try WEEK/MONTH × expiryCode 0,1,2 until we get data for trade_date
-      5. Cache and return DataFrame
-    """
-    config = get_config()
     if not config:
-        raise ValueError("Dhan credentials not configured")
+        config = get_config()
+    if not config:
+        raise ValueError("Dhan credentials not configured.")
+    
+    # STEP 1: Try Auto-Mapper to get real SecurityID
+    try:
+        mapping = auto_map_instruments({symbol: trade_date})
+        m = mapping.get(symbol)
+        if m and m.get('security_id'):
+            print(f"DEBUG: Found SecurityID {m['security_id']} for {symbol}. Using historical API.")
+            return fetch_and_cache_ohlc(m['security_id'], m['exchange_segment'], m['instrument'], trade_date, m.get('expiry'), config=config)
+    except Exception as e:
+        print(f"DEBUG: Auto-mapper fallback: {e}")
 
     parsed = _parse_nse_symbol(symbol, trade_date)
     if not parsed:
@@ -158,22 +181,19 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
     strike   = float(parsed['strike'])
     opt_type = 'CALL' if parsed['option_type'] == 'CE' else 'PUT'
 
-    # ── Build expiry candidates — try ALL (flag, code) combos ───────────────
-    # Monthly options on a Thursday: expiryCode=1 = today's weekly (wrong!),
-    # expiryCode=2 = the monthly. We don't know which is correct without Dhan's
-    # internal calendar, so just try all 6 combinations.
+    # ── Build expiry candidates — try a wider range ───────────────
     expiry_candidates = [
-        ('WEEK', 1), ('WEEK', 2), ('WEEK', 3),
-        ('MONTH', 1), ('MONTH', 2), ('MONTH', 3),
+        ('WEEK', 1), ('WEEK', 2), ('WEEK', 3), ('WEEK', 0),
+        ('MONTH', 1), ('MONTH', 2), ('MONTH', 3), ('MONTH', 0),
     ]
 
     # ── Get underlying spot to determine ATM → compute N ─────────────────────
     spot = _fetch_underlying_spot(underlying, trade_date, headers, entry_time)
+    print(f"DEBUG: Found spot for {trade_date}: {spot}")
     if spot is not None:
         atm    = round(spot / step) * step
         n_calc = round((strike - atm) / step)
-        # Try exact N ± small window. NO abs cap — the old abs(n)<=15 was wrong
-        # and dropped correct values for strikes that are OTM/ITM > 15 ticks.
+        print(f"DEBUG: Targeting ATM {atm}, strike {strike}, n_calc {n_calc}")
         n_tries = list(dict.fromkeys([n_calc, n_calc-1, n_calc+1, n_calc-2, n_calc+2]))
     else:
         # Spot unavailable — search ±10 around 0 (covers near-ATM trades)
@@ -205,21 +225,139 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None):
             "fromDate":        trade_date,
             "toDate":          to_date,
         }
-        try:
-            resp = _post_json(url, payload, headers)
-            df   = _parse_rollingoption_response(resp, trade_date, opt_type)
-            if df.empty:
-                last_error = f"no_data strike={strike_str} expCode={exp_code}"
-                continue
+        resp = _post_json(url, payload, headers)
+        df = _parse_rollingoption_response(resp, trade_date, opt_type)
+        if not df.empty:
+            # Merge logic
             cp = _expired_option_cache_path(symbol, trade_date)
+            if os.path.exists(cp):
+                import pandas as pd
+                df_old = pd.read_csv(cp)
+                df = (pd.concat([df_old, df])
+                        .drop_duplicates('datetime')
+                        .sort_values('datetime')
+                        .reset_index(drop=True))
+            
             df.to_csv(cp, index=False)
             _write_meta(symbol, trade_date, df['datetime'].max())
             return df
-        except Exception as e:
-            last_error = str(e)
-            continue
+    raise ValueError(f"Could not fetch data for {symbol} on {trade_date}")
 
-    raise ValueError(f"{spot_debug} | tried={expiry_candidates} | n={n_tries} | {last_error}")
+def get_sync_tasks(start_date=None, end_date=None):
+    """Extract unique instrument-week tasks from trades_1.json within date range"""
+    import pandas as pd
+    trades_path = os.path.join('data', 'trades_1.json')
+    if not os.path.exists(trades_path): return []
+    try:
+        with open(trades_path, 'r') as f:
+            trades = json.load(f).get('trades', [])
+    except: return []
+    
+    unique_tasks = []
+    seen = set()
+    
+    # Range check - be very explicit
+    s_filter = start_date if (start_date and str(start_date) != 'None' and str(start_date) != '') else "0000-00-00"
+    e_filter = end_date if (end_date and str(end_date) != 'None' and str(end_date) != '') else "9999-99-99"
+    
+    for t in trades:
+        sym = t.get('Instrument', '').strip()
+        dt_str = t.get('trade_date', t.get('date', ''))
+        if sym and dt_str and sym.upper() != 'INDEX' and '^' not in sym:
+            # STRICT STRING COMPARISON (YYYY-MM-DD is lexicographical)
+            if dt_str < s_filter or dt_str > e_filter:
+                continue
+            
+            # Group by instrument and trade date (Exact task)
+            key = f"{sym}_{dt_str}"
+            if key not in seen:
+                unique_tasks.append({'symbol': sym, 'start_date': dt_str, 'date': dt_str})
+                seen.add(key)
+    return unique_tasks
+
+def sync_single_task(symbol, trade_date, config=None):
+    """Sync specific instrument for 10 days lookback to ensure indicator warmup"""
+    end_dt = datetime.strptime(trade_date, '%Y-%m-%d')
+    start_dt = end_dt - timedelta(days=10) # 10 days lookback for EMA warmup
+    
+    synced = 0
+    errors = 0
+    curr = start_dt
+    day_results = []
+    while curr <= end_dt:
+        if curr.weekday() < 5: 
+            c_str = curr.strftime('%Y-%m-%d')
+            try:
+                res = fetch_expired_option_ohlc(symbol, c_str, config=config)
+                synced += 1
+                status = 'OK'
+                if res == "ALREADY_COMPLETE": status = 'SKIP'
+                day_results.append({'date': c_str, 'status': status, 'weekday': curr.weekday()})
+            except Exception as e:
+                print(f"Sync error for {symbol} on {c_str}: {e}")
+                errors += 1
+                day_results.append({'date': c_str, 'status': 'ERR', 'weekday': curr.weekday()})
+        curr += timedelta(days=1)
+    return {'synced': synced, 'errors': errors, 'day_results': day_results}
+
+def sync_all_traded_instruments():
+    """
+    Sync all instruments found in trades_1.json from their trade date 
+    back to the start of that week (to ensure EMA warmup).
+    """
+    import pandas as pd
+    trades_path = os.path.join('data', 'trades_1.json')
+    if not os.path.exists(trades_path): return {"error": "trades_1.json not found"}
+    
+    try:
+        with open(trades_path, 'r') as f:
+            trades = json.load(f).get('trades', [])
+    except: return {"error": "could not parse trades_1.json"}
+    
+    if not trades: return {"status": "success", "synced": 0}
+    
+    synced_count = 0
+    errors = []
+    
+    # Group by instrument to avoid redundant hits
+    unique_insts = {}
+    for t in trades:
+        sym = t.get('Instrument', '').strip()
+        dt = t.get('trade_date', t.get('date', ''))
+        if sym and dt:
+            if sym not in unique_insts: unique_insts[sym] = set()
+            unique_insts[sym].add(dt)
+            
+    for sym, dates in unique_insts.items():
+        if sym.upper() == 'INDEX' or '^' in sym: continue
+        
+        # For each date this instrument was traded, fetch week-to-date
+        for dt_str in sorted(list(dates)):
+            try:
+                # Find start of week (Monday)
+                dt_obj = datetime.strptime(dt_str, '%Y-%m-%d')
+                days_to_subtract = dt_obj.weekday() # 0 = Monday
+                start_of_week = (dt_obj - timedelta(days=days_to_subtract)).strftime('%Y-%m-%d')
+                
+                # We fetch day by day from start_of_week to dt_str to ensure good merge
+                curr = datetime.strptime(start_of_week, '%Y-%m-%d')
+                end = datetime.strptime(dt_str, '%Y-%m-%d')
+                
+                while curr <= end:
+                    c_str = curr.strftime('%Y-%m-%d')
+                    # Weekends check
+                    if curr.weekday() < 5: 
+                        try:
+                            # Use existing fetch logic (it handles merging internally now)
+                            fetch_expired_option_ohlc(sym, c_str)
+                            synced_count += 1
+                        except Exception as e:
+                            errors.append(f"{sym} on {c_str}: {str(e)}")
+                    curr += timedelta(days=1)
+            except Exception as e:
+                errors.append(f"Global error for {sym}: {str(e)}")
+                
+    return {"status": "success", "synced": synced_count, "errors": errors}
 
 
 def get_expired_option_ohlc_status(symbol, trade_date):
@@ -440,23 +578,43 @@ def _cache_path(security_id, trade_date):
 
 
 def _meta_path(security_id, trade_date):
-    return os.path.join(OHLC_CACHE_DIR, f"{security_id}_{trade_date}.meta.json")
+    if str(security_id).startswith('NIFTY'):
+        return os.path.join(OHLC_CACHE_DIR, f"{security_id}.meta")
+    return os.path.join(OHLC_CACHE_DIR, f"{security_id}_{trade_date}.meta")
 
 
 def _read_meta(security_id, trade_date):
     mp = _meta_path(security_id, trade_date)
     if not os.path.exists(mp):
         return {}
-    with open(mp) as f:
-        return json.load(f)
+    try:
+        with open(mp) as f:
+            data = json.load(f)
+            # If it's a consolidated meta, return the section for this date
+            if str(security_id).startswith('NIFTY'):
+                return {'last_candle_time': data.get(trade_date)}
+            return data
+    except: return {}
 
 
 def _write_meta(security_id, trade_date, last_candle_time):
-    with open(_meta_path(security_id, trade_date), 'w') as f:
-        json.dump({
-            'last_candle_time': last_candle_time,
-            'fetched_at': datetime.now().isoformat()
-        }, f)
+    path = _meta_path(security_id, trade_date)
+    if str(security_id).startswith('NIFTY'):
+        # Consolidated meta logic for options
+        meta = {}
+        if os.path.exists(path):
+            try:
+                with open(path, 'r') as f: meta = json.load(f)
+            except: pass
+        meta[trade_date] = last_candle_time
+        with open(path, 'w') as f: json.dump(meta, f)
+    else:
+        # Standard logic for indices
+        with open(path, 'w') as f:
+            json.dump({
+                'last_candle_time': last_candle_time,
+                'fetched_at': datetime.now().isoformat()
+            }, f)
 
 
 def get_ohlc_status(security_id, trade_date):
@@ -486,15 +644,12 @@ def load_cached_ohlc(security_id, trade_date):
 
 # ── OHLC Fetch ────────────────────────────────────────────────────────────────
 
-def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_date, expiry_date=None):
-    """
-    Fetch 1-min OHLC from Dhan for given security + date.
-    - Today  → intraday endpoint (live session)
-    - Past   → historical endpoint
-    - Auto-fill: if cache partial, fetches only missing candles
-    """
+def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_date, expiry_date=None, config=None):
+    """Fetch 1-min OHLC from Dhan and save to local artifact directory."""
     import pandas as pd
-    config = get_config()
+    if not config:
+        config = get_config()
+        
     if not config:
         raise ValueError("Dhan credentials not configured")
 
@@ -539,12 +694,14 @@ def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_d
             "exchangeSegment": exchange_segment,
             "instrument":      instrument_type,
             "expiryCode":      exp_code,
-            "interval":        "1",
+            "interval":        1, # Use integer for 1-minute
             "fromDate":        trade_date,
             "toDate":          to_date,
         }
+        print(f"DEBUG: Historical Payload: {payload}")
 
     resp = _post_json(url, payload, headers)
+    print(f"DEBUG: Response keys: {resp.keys() if isinstance(resp, dict) else 'not-dict'}")
     df_new = _parse_dhan_response(resp, trade_date)
 
     if df_new.empty:

@@ -81,3 +81,35 @@ def archive_dates():
         return jsonify({'dates': dates})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@strategy_bp.route('/api/strategy/sync-tasks', methods=['GET'])
+def get_sync_tasks_route():
+    from services.dhan_service import get_sync_tasks
+    s = request.args.get('start_date')
+    e = request.args.get('end_date')
+    print(f"DEBUG SYNC: Received start_date={s}, end_date={e}")
+    tasks = get_sync_tasks(start_date=s, end_date=e)
+    print(f"DEBUG SYNC: Returning {len(tasks)} tasks")
+    return jsonify(tasks)
+
+@strategy_bp.route('/api/strategy/sync-single', methods=['POST'])
+def sync_single_route():
+    from services.dhan_service import sync_single_task
+    data = request.json
+    sym = data.get('symbol')
+    dt = data.get('end_date') or data.get('date') # Use the trade date
+    
+    # Pass session creds if provided
+    cid = data.get('dhan_cid')
+    token = data.get('dhan_token')
+    
+    if not sym or not dt: return jsonify({'error': 'missing params'}), 400
+    try:
+        config = None
+        if cid and token:
+            config = {'client_id': cid, 'access_token': token}
+            
+        synced, errors = sync_single_task(sym, dt, config=config)
+        return jsonify({'status': 'success', 'synced': synced, 'errors': errors})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

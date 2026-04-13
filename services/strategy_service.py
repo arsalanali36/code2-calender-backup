@@ -8,9 +8,19 @@ import calendar
 import requests
 import time
 import sys
+import functools
 from datetime import datetime, timedelta
 
 ist_tz = pytz.timezone('Asia/Kolkata')
+
+# Global cache for OHLC Dataframes to make switching near-instant
+@functools.lru_cache(maxsize=128)
+def _get_cached_raw_data(path, mtime):
+    # mtime is passed so that if file changes, cache is invalidated
+    df = pd.read_csv(path)
+    if 'datetime' in df.columns:
+        df['datetime'] = pd.to_datetime(df['datetime'])
+    return df
 
 # DHAN CREDENTIALS
 DHAN_ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzc2MTY3NTQzLCJpYXQiOjE3NzYwODExNDMsInRva2VuQ29uc3VtZXJUeXBlIjoiU0VMRiIsIndlYmhvb2tVcmwiOiIiLCJkaGFuQ2xpZW50SWQiOiIxMTAxMzEwOTc2In0.AUpYSyowfCeRwffirCJLyCbvdsML-sk75RxUjFlUqvSMQXcnJsvwJivpZQd7_dVdzDjV5c9lE6488cJZpFp6XA"
@@ -52,8 +62,12 @@ def run_pinned_strategy_logic(df):
 def resample_ohlc(df, timeframe):
     if timeframe == '1m': return df
     freq = timeframe.replace('m', 'min').replace('M', 'min')
+    # Normalize input columns to match rules
+    df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume'] else c for c in df.columns]
     rules = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last'}
-    return df.resample(freq).agg(rules).dropna()
+    # origin='start_day' ensures 09:15 aligns perfectly with 3min/5min bins
+    resampled = df.resample(freq, label='left', closed='left', origin='start_day').agg(rules)
+    return resampled.dropna()
 
 def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     url = "https://api.dhan.co/charts/intraday"
@@ -76,56 +90,62 @@ def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     if not all_data: return pd.DataFrame()
     return pd.DataFrame(all_data).set_index('Datetime')
 
+@functools.lru_cache(maxsize=128)
+def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source):
+    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe}")
+    return _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source)
+
 def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid=''):
+    st = time.time()
+    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source)
+    print(f"DEBUG: get_nifty_data took {time.time()-st:.4f}s")
+    return res
+
+def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance'):
     df = pd.DataFrame()
     today_str = datetime.now().strftime('%Y-%m-%d')
-    
-    if source == 'dhan_api':
-        # ONLY use Dhan API if requesting "Today" or very recent dates
-        # Historical requests on Dhan Intraday Chart API return "Today" erroneously
-        if start_date == today_str:
-            df = fetch_dhan_api_data(start_date, end_date, token=dhan_token if dhan_token else DHAN_ACCESS_TOKEN)
-        else:
-            # For past dates, fallback to local Dhan data or yfinance for accuracy
-            print(f"Historical request {start_date} on Dhan Live source -> switching to local/yfinance for accuracy.")
-            source = 'dhan_local' # Try local first
-    
+    # Use cached CSV loader for speed
     if source == 'dhan_local':
         if symbol == 'Nifty 50 (^NSEI)':
             path = "data/Historical_OHLC/nifty_1m_dhan.csv"
+            if os.path.exists(path):
+                mtime = os.path.getmtime(path)
+                df_raw = _get_cached_raw_data(path, mtime)
+                warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
+                mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
+                df = df_raw.loc[mask].rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
         else:
-            fmt_date = pd.to_datetime(start_date).strftime('%d_%m_%a')
-            path = f"data/Historical_OHLC/Options/{symbol}_{fmt_date}.csv"
-        
-        if os.path.exists(path):
-            df = pd.read_csv(path); df['datetime'] = pd.to_datetime(df['datetime'])
-            # STRICT FILTER
-            mask = (df['datetime'] >= pd.to_datetime(start_date)) & (df['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
-            df = df.loc[mask].rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
+            path = f"data/Historical_OHLC/Options/{symbol}.csv"
+            if os.path.exists(path):
+                mtime = os.path.getmtime(path)
+                df_raw = _get_cached_raw_data(path, mtime)
+                warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
+                mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
+                df = df_raw.loc[mask].copy()
+                df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume','datetime'] else c for c in df.columns]
+                if 'Datetime' in df.columns: df = df.set_index('Datetime')
     
-    if source == 'yfinance':
+    if source == 'yfinance' or (source == 'dhan_api' and start_date != today_str):
+        # Fallback to yfinance if local missing or api requested for past
         yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
         yf_interval = '1m' if timeframe == '3m' else timeframe
-        # Historical intraday for >60 days is not possible on yfinance, but we try
         try:
             df = yf.download("^NSEI", start=start_date, end=yf_end, interval=yf_interval)
             if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
-            if not df.empty:
-                df = df[df.index >= pd.to_datetime(start_date)] # Double check
+            if not df.empty: df = df[df.index >= pd.to_datetime(start_date)]
         except: df = pd.DataFrame()
 
     if df.empty: return pd.DataFrame(), []
-    
-    # Resample if not using yfinance (except for 3m which always needs resampling)
-    if source != 'yfinance' or timeframe == '3m': 
-        df = resample_ohlc(df, timeframe)
+    df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume'] else c for c in df.columns]
+    if source != 'yfinance' or timeframe == '3m': df = resample_ohlc(df, timeframe)
     df = df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     if df.index.tz is not None: df.index = df.index.tz_convert('Asia/Kolkata').tz_localize(None)
     
     df_all = run_pinned_strategy_logic(df)
-    start_ts = pd.to_datetime(start_date)
-    end_ts = pd.to_datetime(end_date) + timedelta(days=1)
-    df_filtered = df_all[(df_all.index >= start_ts) & (df_all.index < end_ts)].between_time(start_time, end_time)
+    start_ts = pd.to_datetime(start_date); end_ts = pd.to_datetime(end_date) + timedelta(days=1)
+    df_filtered = df_all[(df_all.index >= start_ts) & (df_all.index < end_ts)]
+    df_filtered = df_filtered.between_time('09:14', '15:31') 
+    df_filtered = df_filtered[df_filtered.index.strftime('%H:%M') >= '09:15']
 
     zones = []
     if not df_filtered.empty:
@@ -197,9 +217,7 @@ def get_archive_dates():
             
             insts = []
             for inst in trades_map.get(date, set()):
-                # Format the date as DD_MM_Day (e.g., 13_04_Mon)
-                fmt_date = pd.to_datetime(date).strftime('%d_%m_%a')
-                cp = f"data/Historical_OHLC/Options/{inst}_{fmt_date}.csv"
+                cp = f"data/Historical_OHLC/Options/{inst}.csv"
                 insts.append({'symbol': inst, 'has_data': os.path.exists(cp)})
             results.append({'date': date, 'resolution': res_str, 'instruments': insts})
             
