@@ -581,8 +581,8 @@ function renderGalleryThumbs() {
       lastTradeIdxRendered++;
     }
   }
-  if (!_filterActive3 && !renderedCloseSep && date) thumbs.appendChild(createSpecialSeparator('CLOSE', true));
-  if (!_filterActive3 && !renderedCloseGlobalSep && date) thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
+  if (!_filterActive3 && !_perDateRenderedSeps.has(date + ':CLOSE') && date) thumbs.appendChild(createSpecialSeparator('CLOSE', true));
+  if (!_filterActive3 && !_perDateRenderedSeps.has(date + ':CLOSE_GLOBAL') && date) thumbs.appendChild(createSpecialSeparator('CLOSE GLOBAL', 'CLOSE_GLOBAL'));
 
   // ── PREMIUM SECTION ──────────────────────────────────────────────────────
   if (!_filterActive3 && date && uniqueInsts.length > 0) {

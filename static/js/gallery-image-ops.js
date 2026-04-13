@@ -326,17 +326,29 @@ async function removeGalleryImageAt(idx, force = false) {
         t2.innerHTML = `Parent removed, ${subImages.length} image(s) ungrouped. <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
         t2.className = 'toast success show';
         setTimeout(() => { t2.className = 'toast'; }, 4000);
-        if (!state.gallery.images.length) { document.getElementById('gallery-modal').classList.remove('open'); unlockBodyScroll(); }
-        await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
+        if (typeof window.saveTrades === 'function') await window.saveTrades();
         return;
     }
 
     const urlsToDelete = [imageUrl, ...subImages];
 
+    let activeDayDate = dayDate;
+    if (!ownerTrade && !activeDayDate) {
+        for (const [dKey, dObj] of Object.entries(state.dayData || {})) {
+            if ((dObj.images || []).some(u => urlsToDelete.includes(u)) ||
+                (dObj.newsImages || []).some(u => urlsToDelete.includes(u)) ||
+                (dObj.closeImages || []).some(u => urlsToDelete.includes(u)) ||
+                (dObj.closeGlobalImages || []).some(u => urlsToDelete.includes(u))) {
+                activeDayDate = dKey;
+                break;
+            }
+        }
+    }
+
     // Backup for undo
     const backupTradeIdx = ownerTrade ? state.trades.indexOf(ownerTrade) : -1;
     const backupTradeClone = ownerTrade ? JSON.parse(JSON.stringify(ownerTrade)) : null;
-    const backupDay = dayDate && state.dayData[dayDate] ? JSON.parse(JSON.stringify(state.dayData[dayDate])) : null;
+    const backupDay = (!ownerTrade && activeDayDate && state.dayData[activeDayDate]) ? JSON.parse(JSON.stringify(state.dayData[activeDayDate])) : null;
     const backupArr = [...arr];
     const backupCurrentIndex = state.gallery.currentIndex;
     const backupExpanded = state.gallery.expandedGroups ? new Set(state.gallery.expandedGroups) : null;
@@ -379,39 +391,39 @@ async function removeGalleryImageAt(idx, force = false) {
             if (Object.keys(ownerTrade.subImages).length === 0) delete ownerTrade.subImages;
         }
         cleanupImageTagStore(ownerTrade);
-    } else if (dayDate && state.dayData[dayDate]) {
-        const d = state.dayData[dayDate];
+    } else if (activeDayDate && state.dayData[activeDayDate]) {
+        const d = state.dayData[activeDayDate];
         d.images = (d.images || []).filter(u => !urlsToDelete.includes(u));
         d.newsImages = (d.newsImages || []).filter(u => !urlsToDelete.includes(u));
         d.closeImages = (d.closeImages || []).filter(u => !urlsToDelete.includes(u));
         d.closeGlobalImages = (d.closeGlobalImages || []).filter(u => !urlsToDelete.includes(u));
         urlsToDelete.forEach(u => {
-            if (state.dayData[dayDate].overlays?.[u]) delete state.dayData[dayDate].overlays[u];
-            if (state.dayData[dayDate].marqueeBoxes?.[u]) delete state.dayData[dayDate].marqueeBoxes[u];
-            if (state.dayData[dayDate].videos) {
-                if (state.dayData[dayDate].videos[u]) delete state.dayData[dayDate].videos[u];
-                const key = Object.keys(state.dayData[dayDate].videos).find(k => state.dayData[dayDate].videos[k] === u);
-                if (key) delete state.dayData[dayDate].videos[key];
+            if (state.dayData[activeDayDate].overlays?.[u]) delete state.dayData[activeDayDate].overlays[u];
+            if (state.dayData[activeDayDate].marqueeBoxes?.[u]) delete state.dayData[activeDayDate].marqueeBoxes[u];
+            if (state.dayData[activeDayDate].videos) {
+                if (state.dayData[activeDayDate].videos[u]) delete state.dayData[activeDayDate].videos[u];
+                const key = Object.keys(state.dayData[activeDayDate].videos).find(k => state.dayData[activeDayDate].videos[k] === u);
+                if (key) delete state.dayData[activeDayDate].videos[key];
             }
-            if (state.dayData[dayDate].audios) {
-                if (state.dayData[dayDate].audios[u]) delete state.dayData[dayDate].audios[u];
-                const key = Object.keys(state.dayData[dayDate].audios).find(k => state.dayData[dayDate].audios[k] === u);
-                if (key) delete state.dayData[dayDate].audios[key];
+            if (state.dayData[activeDayDate].audios) {
+                if (state.dayData[activeDayDate].audios[u]) delete state.dayData[activeDayDate].audios[u];
+                const key = Object.keys(state.dayData[activeDayDate].audios).find(k => state.dayData[activeDayDate].audios[k] === u);
+                if (key) delete state.dayData[activeDayDate].audios[key];
             }
         });
-        if (state.dayData[dayDate].subImages && state.dayData[dayDate].subImages[imageUrl]) delete state.dayData[dayDate].subImages[imageUrl];
+        if (state.dayData[activeDayDate].subImages && state.dayData[activeDayDate].subImages[imageUrl]) delete state.dayData[activeDayDate].subImages[imageUrl];
         // Remove deleted URLs from any parent's subImages (handles sub-image deletion)
-        if (state.dayData[dayDate].subImages) {
-            for (const [pUrl, subs] of Object.entries(state.dayData[dayDate].subImages)) {
+        if (state.dayData[activeDayDate].subImages) {
+            for (const [pUrl, subs] of Object.entries(state.dayData[activeDayDate].subImages)) {
                 const filtered = subs.filter(u => !urlsToDelete.includes(u));
                 if (filtered.length === 0) {
-                    delete state.dayData[dayDate].subImages[pUrl];
+                    delete state.dayData[activeDayDate].subImages[pUrl];
                     if (state.gallery.expandedGroups) state.gallery.expandedGroups.delete(pUrl);
                 } else if (filtered.length < subs.length) {
-                    state.dayData[dayDate].subImages[pUrl] = filtered;
+                    state.dayData[activeDayDate].subImages[pUrl] = filtered;
                 }
             }
-            if (Object.keys(state.dayData[dayDate].subImages).length === 0) delete state.dayData[dayDate].subImages;
+            if (Object.keys(state.dayData[activeDayDate].subImages).length === 0) delete state.dayData[activeDayDate].subImages;
         }
     }
 
@@ -474,6 +486,6 @@ async function removeGalleryImageAt(idx, force = false) {
         unlockBodyScroll();
     }
 
-    await tradeService.saveTrades({ trades: state.trades, columns: state.columns, allTags: state.allTags, tagColumns: state.tagColumns, userColumns: state.userColumns, dayData: state.dayData, tagGroups: state.tagGroups });
+    if (typeof window.saveTrades === 'function') await window.saveTrades();
 }
 

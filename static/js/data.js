@@ -206,24 +206,30 @@ function setPdfPageTags(pdfId, pageNo, tags) {
   }
 }
 
+let _saveTradesQueue = Promise.resolve();
 async function saveTrades() {
-  try {
-    const payload = {
-      trades: state.trades,
-      columns: state.columns,
-      allTags: state.allTags,
-      tagColumns: state.tagColumns,
-      userColumns: state.userColumns,
-      dayData: state.dayData,
-      importedPdfs: state.importedPdfs,
-      tagGroups: state.tagGroups,
-      tagTemplates: state.tagTemplates,
-      pdfPageTags: state.pdfPageTags,
-      imgTypes: state.imgTypes
-    };
-    await tradeService.saveTrades(payload);
-    state.serverStateHash = hashServerState(payload);
-  } catch (e) { showToast('Save failed', 'error'); }
+  const previous = _saveTradesQueue;
+  _saveTradesQueue = (async () => {
+    try { await previous; } catch (e) {}
+    try {
+      const payload = {
+        trades: state.trades,
+        columns: state.columns,
+        allTags: state.allTags,
+        tagColumns: state.tagColumns,
+        userColumns: state.userColumns,
+        dayData: state.dayData,
+        importedPdfs: state.importedPdfs,
+        tagGroups: state.tagGroups,
+        tagTemplates: state.tagTemplates,
+        pdfPageTags: state.pdfPageTags,
+        imgTypes: state.imgTypes
+      };
+      await tradeService.saveTrades(payload);
+      state.serverStateHash = hashServerState(payload);
+    } catch (e) { showToast('Save failed', 'error'); }
+  })();
+  await _saveTradesQueue;
 }
 
 function hashServerState(data) {

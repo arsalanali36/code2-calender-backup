@@ -259,6 +259,7 @@ function showGalleryContextMenu(x, y) {
             const cleanupObj = (obj) => {
                 if (!obj) return;
                 obj.images = (obj.images || []).filter(u => !toDelete.has(u));
+                if (obj.newsImages) obj.newsImages = obj.newsImages.filter(u => !toDelete.has(u));
                 if (obj.closeImages) obj.closeImages = obj.closeImages.filter(u => !toDelete.has(u));
                 if (obj.closeGlobalImages) obj.closeGlobalImages = obj.closeGlobalImages.filter(u => !toDelete.has(u));
                 if (obj.subImages) {
@@ -271,10 +272,8 @@ function showGalleryContextMenu(x, y) {
                 }
             };
 
-            if (dayDate) {
-                getTradesForDate(dayDate).forEach(cleanupObj);
-                if (state.dayData[dayDate]) cleanupObj(state.dayData[dayDate]);
-            }
+            state.trades.forEach(cleanupObj);
+            Object.values(state.dayData || {}).forEach(cleanupObj);
 
             state.gallery.images = arr.filter(u => !toDelete.has(u));
             state.gallery.selectedIndices = new Set();
@@ -290,8 +289,27 @@ function showGalleryContextMenu(x, y) {
             renderGallery(); renderTable(); renderCalendar();
             await saveTrades();
 
+            const timerId = setTimeout(async () => {
+                const idx = window.galleryUndoStack.indexOf(actionBackup);
+                if (idx > -1) window.galleryUndoStack.splice(idx, 1);
+                for (const dictUrl of toDelete) {
+                    try {
+                        if (typeof isVideoUrl === 'function' && isVideoUrl(dictUrl)) {
+                            await imageService.deleteVideo(dictUrl);
+                        } else if (dictUrl.endsWith('.webm') || dictUrl.endsWith('.mp3')) {
+                            await imageService.deleteAudio(dictUrl);
+                        } else {
+                            const filename = String(dictUrl || '').split('/').pop();
+                            await imageService.deleteImage('/uploads/' + filename);
+                        }
+                    } catch (e) { }
+                }
+            }, 5000);
+
+            const actionBackup = { backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate, deleteTimer: timerId };
             window.galleryUndoStack = window.galleryUndoStack || [];
-            window.galleryUndoStack.push({ backupAllTrades, backupAllDayData, backupArr, backupCurrentIndex, backupExpanded, dayDate });
+            window.galleryUndoStack.push(actionBackup);
+            
             const t = document.getElementById('toast');
             t.innerHTML = `Deleted ${toDelete.size} image(s). <button id="undo-del-btn" style="margin-left:10px;padding:2px 8px;background:var(--blue);color:#fff;border:none;border-radius:4px;cursor:pointer;" onclick="performGalleryUndo()">Undo</button>`;
             t.className = 'toast success show';

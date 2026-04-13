@@ -197,6 +197,7 @@ function renderGallery() {
     renderGridContent();
   }
 
+  const mtmPanel = document.getElementById('gv2-mtm-panel');
   if (mtmPanel && mtmPanel.style.display !== 'none') {
     if (typeof renderGalleryMtmPanel === 'function') renderGalleryMtmPanel(mtmPanel);
   }
