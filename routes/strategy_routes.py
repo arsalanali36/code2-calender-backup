@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.strategy_service import get_nifty_data, run_arsalan_continuation
+from services.strategy_service import get_nifty_data, run_arsalan_continuation, get_real_trades
 import pandas as pd
 
 strategy_bp = Blueprint('strategy', __name__)
@@ -14,6 +14,8 @@ def nifty_data():
     
     try:
         df, zones = get_nifty_data(start_date, end_date, timeframe, start_time, end_time)
+        real_trades = get_real_trades(start_date, end_date)
+
         if df.empty:
              return jsonify({'error': 'No data found for the selected range.'}), 404
         
@@ -22,9 +24,15 @@ def nifty_data():
         df = df.reset_index()
         time_col = 'Datetime' if 'Datetime' in df.columns else 'Date'
         
+        import pytz
+        ist_tz = pytz.timezone('Asia/Kolkata')
         prev_time = None
+        
+        import calendar
         for idx, row in df.iterrows():
-            curr_time = int(row[time_col].timestamp())
+            # Treat naive IST as UTC for fixed display
+            dt = row[time_col].replace(tzinfo=None)
+            curr_time = calendar.timegm(dt.timetuple())
             
             # Detect day gap (>1 hour) to break line series
             if prev_time and (curr_time - prev_time > 3600):
@@ -41,9 +49,9 @@ def nifty_data():
                 'high': float(row['High']),
                 'low': float(row['Low']),
                 'close': float(row['Close']),
-                'ema10': float(row['ema10']),
-                'ema20': float(row['ema20']),
-                'dema100': float(row['dema100']),
+                'ema10': float(row['ema10']) if pd.notnull(row['ema10']) else None,
+                'ema20': float(row['ema20']) if pd.notnull(row['ema20']) else None,
+                'dema100': float(row['dema100']) if pd.notnull(row['dema100']) else None,
                 'is_buy': bool(row['buy_signal']),
                 'is_sell': bool(row['sell_signal'])
             }
@@ -52,7 +60,10 @@ def nifty_data():
             
         return jsonify({
             'chart_data': chart_data,
-            'zones': zones
+            'zones': zones,
+            'real_trades': real_trades
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500

@@ -1,7 +1,13 @@
 import pandas as pd
 import numpy as np
 import yfinance as yf
+import json
+import os
+import pytz
+import calendar
 from datetime import datetime, timedelta
+
+ist_tz = pytz.timezone('Asia/Kolkata')
 
 def calculate_ema(df, length):
     return df['Close'].ewm(span=length, adjust=False).mean()
@@ -124,3 +130,54 @@ def get_nifty_data(start_date, end_date, timeframe='5m', start_time='09:15', end
     _, zones = run_arsalan_continuation(df_filtered)
     
     return df_filtered, zones
+
+def get_real_trades(start_date, end_date):
+    trades_path = os.path.join('data', 'trades_1.json')
+    if not os.path.exists(trades_path):
+        return []
+    try:
+        with open(trades_path, 'r') as f:
+            data = json.load(f)
+            raw_trades = data.get('trades', [])
+    except:
+        return []
+
+    processed_trades = []
+    start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
+    end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+    for t in raw_trades:
+        t_date_str = t.get('trade_date', t.get('date', ''))
+        if not t_date_str: continue
+        try:
+            t_date = datetime.strptime(t_date_str, '%Y-%m-%d').date()
+        except: continue
+            
+        if start_dt <= t_date <= end_dt:
+            tr_type = t.get('TradeType', 'buy')
+            entry_time = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time')
+            exit_time = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time')
+
+            if entry_time and exit_time:
+                try:
+                    e_time = entry_time if len(entry_time.split(':')) == 3 else f"{entry_time}:00"
+                    x_time = exit_time if len(exit_time.split(':')) == 3 else f"{exit_time}:00"
+                    
+                    # Create naive datetime and treat it as UTC for display consistency
+                    e_dt_naive = datetime.strptime(f"{t_date_str} {e_time}", '%Y-%m-%d %H:%M:%S')
+                    x_dt_naive = datetime.strptime(f"{t_date_str} {x_time}", '%Y-%m-%d %H:%M:%S')
+                    
+                    e_ts = calendar.timegm(e_dt_naive.timetuple())
+                    x_ts = calendar.timegm(x_dt_naive.timetuple())
+
+                    processed_trades.append({
+                        'entry_time': e_ts,
+                        'exit_time': x_ts,
+                        'type': tr_type.upper(),
+                        'instrument': t.get('Instrument', ''),
+                        'pl': t.get('Net P/L', 0)
+                    })
+                except Exception as ex:
+                    print(f"DEBUG: Parse Error for {entry_time}: {ex}")
+                    pass
+    return processed_trades
