@@ -423,7 +423,7 @@
                         patternMarkers.push({ time: d.time, position: 'belowBar', color: '#26a69a', shape: 'arrowUp', size: 2, text: 'ENTRY-L' });
                     }
                     if (d.bear_trigger) {
-                        patternMarkers.push({ time: d.time, position: 'aboveBar', color: '#ef5350', shape: 'arrowDown', size: 2, text: 'ENTRY-S' });
+                        patternMarkers.push({ time: d.time, position: 'aboveBar', color: '#ffa726', shape: 'arrowDown', size: 2, text: 'ENTRY-S' });
                     }
                 });
 
@@ -459,12 +459,12 @@
                     if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
                     else instClean = instClean.split(' ').pop();
                     
-                    const isPE = instClean.includes('PE');
-                    const position = isPE ? 'belowBar' : 'aboveBar';
-                    const shape = isPE ? 'arrowUp' : 'arrowDown';
+                    const shape = rt.type === 'CE' || rt.type === 'CALL' ? 'arrowUp' : 'arrowDown';
+                    const position = rt.type === 'CE' || rt.type === 'CALL' ? 'belowBar' : 'aboveBar';
+                    const rtColor = (rt.type === 'CE' || rt.type === 'CALL') ? '#26a69a' : '#ef5350';
                     
                     rtMarkers.push({
-                        time: ep.time, position, color: '#f9a825', shape, size: 2,
+                        time: ep.time, position, color: rtColor, shape, size: 2,
                         text: `${instClean} [${duration}m] ${rt.qty}L (₹${Math.round(rt.pl)})`
                     });
                 });
