@@ -19,9 +19,11 @@ def nifty_data():
     dhan_cid = request.args.get('dhan_cid', '')
     symbol = request.args.get('symbol', 'Nifty 50 (^NSEI)')
     strategy = request.args.get('strategy', 'Arsalan Continuation')
+    hawa_me_zone = request.args.get('hawa_me_zone', 'false').lower() == 'true'
+    strategy_params = {'hawa_me_zone': hawa_me_zone}
     
     try:
-        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy)
+        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy, strategy_params=strategy_params)
         real_trades = get_real_trades(start_date, end_date, symbol)
 
         if df.empty:
@@ -66,7 +68,6 @@ def nifty_data():
                 'close': float(row['Close']),
                 'ema10': float(row['ema10']) if pd.notnull(row['ema10']) else None,
                 'ema20': float(row['ema20']) if pd.notnull(row['ema20']) else None,
-                'dema100': float(row['dema100']) if pd.notnull(row['dema100']) else None,
                 'is_gap': is_gap,
                 # Sandbox Levels
                 'pdh': float(row['pdh']) if 'pdh' in row and pd.notnull(row['pdh']) else None,
@@ -82,7 +83,18 @@ def nifty_data():
                 'r4': float(row['r4']) if 'r4' in row and pd.notnull(row['r4']) else None,
                 's4': float(row['s4']) if 's4' in row and pd.notnull(row['s4']) else None,
                 'r5': float(row['r5']) if 'r5' in row and pd.notnull(row['r5']) else None,
-                's5': float(row['s5']) if 's5' in row and pd.notnull(row['s5']) else None
+                's5': float(row['s5']) if 's5' in row and pd.notnull(row['s5']) else None,
+                # Pattern Flags
+                'green_hammer': bool(row['green_hammer']) if 'green_hammer' in row else False,
+                'red_hammer': bool(row['red_hammer']) if 'red_hammer' in row else False,
+                'inv_red_hammer': bool(row['inv_red_hammer']) if 'inv_red_hammer' in row else False,
+                'bull_engulf': bool(row['bull_engulf']) if 'bull_engulf' in row else False,
+                'bear_engulf': bool(row['bear_engulf']) if 'bear_engulf' in row else False,
+                'morning_star': bool(row['morning_star']) if 'morning_star' in row else False,
+                'evening_star': bool(row['evening_star']) if 'evening_star' in row else False,
+                'bull_harami': bool(row['bull_harami']) if 'bull_harami' in row else False,
+                'bear_harami': bool(row['bear_harami']) if 'bear_harami' in row else False,
+                'bar_color': row['bar_color'] if 'bar_color' in row and pd.notnull(row['bar_color']) else None
             }
             chart_data.append(item)
             prev_time = curr_time

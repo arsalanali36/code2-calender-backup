@@ -1,0 +1,1214 @@
+//@version=5
+strategy("📏Arsalan_SandBox", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// indicator("UTILITY - My-Scale (PP/HLC/candle)", overlay=true) 
+
+// === Time Filter Inputs ===
+startDate                   = input.time(timestamp("2026-04-10 03:40"), title="Start Date", group="Date Range")
+endDate                     = input.time(timestamp("2026-04-10 10:00"), title="End Date", group="Date Range")
+inDateRange                 = (time >= startDate and time <= endDate)
+showExtra_PP              = true
+
+
+
+////────────────────────────────────────────────────────────────────────
+// Y_OHLC Lines🟡🟡🟡🟡🟡====
+////────────────────────────────────────────────────────────────────────
+
+lineWidthOpt_Yest_OHLC       = 2         // Line Thickness
+styleMap_Yest_OHLC           = line.style_dashed
+
+OHLC_line_OpacityPercent = 5.0   // Line Opacity (%)
+OHLC_lineOpacity         = math.round(OHLC_line_OpacityPercent / 100 * 255)
+// === PIVOT COLORS ===
+pivotColor              = color.new(color.blue,   OHLC_lineOpacity)
+resistanceColor         = color.new(color.red,   OHLC_lineOpacity)
+supportColor            = color.new(color.green,   OHLC_lineOpacity)
+
+mode = 0 // 0 for current  | 1 for BackTesting
+
+isFirstBarOfDay = (ta.change(time("D")) != 0)
+prevBarIndex = bar_index - 1  // previous candle = last candle of yesterday
+
+// OHLC values
+prevHigh  = request.security(syminfo.tickerid, "D", high[mode])
+prevLow   = request.security(syminfo.tickerid, "D", low[mode])
+prevClose = request.security(syminfo.tickerid, "D", close[mode])
+
+
+Yest_OHLC                       = true  // OHLC Auto - Line OHLC | AUTO //@@
+// Persistent lines
+var line lineHigh = na
+var line lineLow = na
+var line lineClose = na
+
+// Draw lines
+if isFirstBarOfDay and inDateRange// and Yest_OHLC
+    lineHigh := line.new(x1=prevBarIndex, y1=prevHigh, x2=bar_index + 200, y2=prevHigh, extend=extend.none, color=resistanceColor, width=lineWidthOpt_Yest_OHLC, style=styleMap_Yest_OHLC)
+    lineLow := line.new(x1=prevBarIndex, y1=prevLow, x2=bar_index + 200, y2=prevLow, extend=extend.none, color=supportColor, width=lineWidthOpt_Yest_OHLC, style=styleMap_Yest_OHLC)
+    lineClose := line.new(x1=prevBarIndex, y1=prevClose, x2=bar_index + 200, y2=prevClose, extend=extend.none, color=pivotColor, width=lineWidthOpt_Yest_OHLC, style=styleMap_Yest_OHLC)
+
+    // --- Draw labels to show price at end of line ---
+    label.new(bar_index + 40, prevHigh, text=str.tostring(prevHigh), style=label.style_label_left,             color=resistanceColor, textcolor=color.white, size=size.large)
+    label.new(bar_index + 80, prevClose, text=str.tostring(prevClose), style=label.style_label_left,             color=pivotColor, textcolor=color.white, size=size.large)
+    label.new(bar_index + 120, prevLow, text=str.tostring(prevLow), style=label.style_label_left,             color=supportColor, textcolor=color.white, size=size.large)
+    
+
+// === Store price levels for touch detection
+var float lineHighPrice = na
+var float lineLowPrice = na
+var float lineClosePrice = na
+
+if isFirstBarOfDay and inDateRange and Yest_OHLC
+    lineHighPrice := prevHigh
+    lineLowPrice := prevLow 
+    lineClosePrice := prevClose 
+
+////────────────────────────────────────────────────────────────────────
+// Dynamic Pivot Point🔵🔵🔵🔵====
+////────────────────────────────────────────────────────────────────────
+
+//lineLengthOpt                       = 60 //"PP SR Length"
+lineStyleOpt_PIVOT                  = line.style_solid   // Line Style (PIVOT)
+
+lineWidthOpt_PIVOT                  = 3  // Line Thickness (PIVOT)
+numberOfPivotsToDraw                = 1  // Lines Back (PIVOT)
+lookbackCandles                     = 5  // Look back Candles (PIVOT)
+
+showP           = true   // (P)
+showLabelsInput = true  // Labels
+showPricesInput = true  // Prices
+
+showR1          = true   // R1
+showR2          = true   // R2
+showR3          = true   // R3
+showR4          = true and showExtra_PP // R4
+showR5          = true and showExtra_PP // R5
+
+showS1          = true   // S1
+showS2          = true   // S2
+showS3          = true  // S3
+showS4          = true and showExtra_PP  // S4
+showS5          = true and showExtra_PP // S5
+
+Pivot_line_OpacityPercent = 5.0   // Line Opacity (%)
+Pivor_lineOpacity         = math.round(Pivot_line_OpacityPercent / 100 * 255)
+
+
+labelSizeInput = size.large
+
+// --- Map string input to actual size constant ---
+labelSize = labelSizeInput == "tiny"  ? size.tiny  :            labelSizeInput == "small" ? size.small :            labelSizeInput == "normal"? size.normal:            labelSizeInput == "large" ? size.large :            labelSizeInput == "huge"  ? size.huge  : size.auto
+
+enablePivotLines       = input.bool(true, title="Pivot Lines",inline = "x")
+PIVOT_INLINE_PP        = "PP"
+PIVOT_INLINE_R         = "R"
+PIVOT_INLINE_S         = "S"
+
+
+// === FIXED SETTINGS ===
+pivotTypeInput         = "Traditional"
+pivotTimeframe         = "1D"
+positionLabelsInput    = "Left"
+
+// === STRUCTURES ===
+type GraphicSettings
+    string levelName
+    color levelColor
+    bool showLevel
+
+type PivotGraphic
+    line pivotLine
+    label pivotLabel
+
+method delete(PivotGraphic graphic) =>
+    graphic.pivotLine.delete()
+    graphic.pivotLabel.delete()
+
+// === INITIALIZE SETTINGS ARRAY ===
+initGraphicSettings() => 
+     array.from( 
+         GraphicSettings.new("P",  pivotColor,       showP),
+         GraphicSettings.new("R1", resistanceColor,  showR1),
+         GraphicSettings.new("S1", supportColor,     showS1),
+         GraphicSettings.new("R2", resistanceColor,  showR2),
+         GraphicSettings.new("S2", supportColor,     showS2),
+         GraphicSettings.new("R3", resistanceColor,  showR3),
+         GraphicSettings.new("S3", supportColor,     showS3),
+         GraphicSettings.new("R4", resistanceColor,  showR4),
+         GraphicSettings.new("S4", supportColor,     showS4),
+         GraphicSettings.new("R5", resistanceColor,  showR5),
+         GraphicSettings.new("S5", supportColor,     showS5)
+     )
+
+// === DRAW FUNCTIONS ===
+affixOldPivots(matrix<PivotGraphic> drawnGraphics, string labelPosition, int endTime) =>
+    if drawnGraphics.rows() > 0
+        lastGraphics = drawnGraphics.row(drawnGraphics.rows() - 1)
+        for graphic in lastGraphics
+            graphic.pivotLine.set_x2(endTime)
+            if labelPosition == "Right"
+                graphic.pivotLabel.set_x(endTime)
+
+drawPivotLevels(array<float> pivotPointsArray, array<GraphicSettings> graphicSettingsArray, matrix<PivotGraphic> drawnGraphics, int startTime, int yearMultiplier) =>
+    newGraphics = array.new<PivotGraphic>()
+    for [index, coord] in pivotPointsArray
+        levelSettings = graphicSettingsArray.get(index)
+        if not na(coord) and levelSettings.showLevel
+            lineEndTime = startTime + timeframe.in_seconds(pivotTimeframe) * 1000 * yearMultiplier
+            pivotLine = line.new(startTime, coord, lineEndTime, coord, xloc = xloc.bar_time, color=levelSettings.levelColor, width=lineWidthOpt_PIVOT,style = lineStyleOpt_PIVOT)
+            pivotLabel = label.new(    x = positionLabelsInput == "Left" ? startTime : lineEndTime,    y = coord,    text = (showLabelsInput ? levelSettings.levelName + " " : "") + (showPricesInput ? "(" + str.tostring(coord, format.mintick) + ")" : ""),    style = positionLabelsInput == "Left" ? label.style_label_right : label.style_label_left,    textcolor = levelSettings.levelColor,    color = #00000000,    xloc = xloc.bar_time,    size = labelSize )    // <-- added: controls font size)         
+            newGraphics.push(PivotGraphic.new(pivotLine, pivotLabel))
+    drawnGraphics.add_row(array_id = newGraphics)
+    if drawnGraphics.rows() > numberOfPivotsToDraw
+        oldGraphics = drawnGraphics.remove_row(0)
+        for graphic in oldGraphics
+            graphic.delete()
+
+// === MAIN EXECUTION ===
+var graphicSettingsArray = initGraphicSettings()
+var drawnGraphics        = matrix.new<PivotGraphic>()
+pivotYearMultiplier      = 1
+
+// === TIMEFRAME CHANGE DETECTION ===
+pivotTimeframeChangeCounter(condition) => 
+    var count = 0
+    if condition and bar_index > 0
+        count += 1
+    count
+
+localTimeframeChange    = timeframe.change(pivotTimeframe)
+securityTimeframeChange = timeframe.change(timeframe.period)
+
+localPivots      = ta.pivot_point_levels(pivotTypeInput, localTimeframeChange)
+securityPivotsArray = ta.pivot_point_levels(pivotTypeInput, securityTimeframeChange)
+
+
+// lookaheadOption = input.string("Off", "Lookahead", options=["On", "Off"], tooltip="Choose whether to use lookahead in request.security")
+
+// lookaheadValue = lookaheadOption == "On" ? barmerge.lookahead_on : barmerge.lookahead_off
+
+[securityPivots, pivotDrawTrigger] = request.security(syminfo.tickerid, pivotTimeframe, [securityPivotsArray, pivotTimeframeChangeCounter(securityTimeframeChange)], 
+ lookahead = barmerge.lookahead_on) // off me previous day pe calculate,on me current day pe calculate
+
+pivotP  = array.get(securityPivots, 0)  // P
+pivotR1 = array.get(securityPivots, 1)  // R1
+pivotS1 = array.get(securityPivots, 2)  // S1
+pivotR2 = array.get(securityPivots, 3)
+pivotS2 = array.get(securityPivots, 4)
+pivotR3 = array.get(securityPivots, 5)
+pivotS3 = array.get(securityPivots, 6)
+pivotS4 = array.get(securityPivots, 7)
+pivotR4 = array.get(securityPivots, 8)
+pivotS5 = array.get(securityPivots, 9)
+pivotR5 = array.get(securityPivots, 10)
+
+// === DRAW IF ENABLED ===
+if enablePivotLines and inDateRange and isFirstBarOfDay
+    if pivotDrawTrigger != pivotDrawTrigger[1]
+        affixOldPivots(drawnGraphics, positionLabelsInput, time)
+        drawPivotLevels(securityPivots, graphicSettingsArray, drawnGraphics, time, pivotYearMultiplier)
+
+    var FIRST_BAR_TIME = time
+    if inDateRange and barstate.islastconfirmedhistory and drawnGraphics.columns() == 0
+        if not na(securityPivots) and pivotDrawTrigger > 0
+            drawPivotLevels(securityPivots, graphicSettingsArray, drawnGraphics, FIRST_BAR_TIME, pivotYearMultiplier)
+        else
+            runtime.error("Not enough data to calculate Pivot Points. Lower the Pivot Timeframe in the settings.")
+
+
+//────────────────────────────────────────────────────────────
+// 🟢 COLLECT ALL PIVOT + OHLC LEVELS IN ONE VARIABLE
+//────────────────────────────────────────────────────────────
+
+Toggle_Use_lookaheadBars = false
+lookaheadBars = 10
+includePIVOT = true
+includeOHLC = true
+useExtraLevels = false
+Extra    = 55510
+
+var selectedLines = array.new_float()
+
+// Har bar naya data aane par array ko refresh karte hain
+array.clear(selectedLines)
+
+
+if includePIVOT
+    array.push(selectedLines, pivotP)   // 0
+    array.push(selectedLines, pivotR1)  // 1
+    array.push(selectedLines, pivotR2)  // 2
+    array.push(selectedLines, pivotR3)  // 3
+    array.push(selectedLines, pivotR4)  // 4
+    array.push(selectedLines, pivotR5)  // 5
+    array.push(selectedLines, pivotS1)  // 6
+    array.push(selectedLines, pivotS2)  // 7
+    array.push(selectedLines, pivotS3)  // 8
+    array.push(selectedLines, pivotS4)  // 9
+    array.push(selectedLines, pivotS5)  // 10
+
+
+// if includePIVOT
+//     array.push(selectedLines, pivot)   // 0
+//     array.push(selectedLines, R1)  // 1
+//     array.push(selectedLines, R2)  // 2
+//     array.push(selectedLines, R3)  // 3
+//     array.push(selectedLines, R4)  // 4
+//     array.push(selectedLines, R5)  // 5
+//     array.push(selectedLines, S1)  // 6
+//     array.push(selectedLines, S2)  // 7
+//     array.push(selectedLines, S3)  // 8
+//     array.push(selectedLines, S4)  // 9
+//     array.push(selectedLines, S5)  // 10
+
+
+
+if includeOHLC
+    array.push(selectedLines, prevHigh)   // 11
+    array.push(selectedLines, prevLow)    // 12
+    array.push(selectedLines, prevClose)  // 13
+
+if useExtraLevels
+    array.push(selectedLines, Extra)
+
+// ✅ Must stay in global scope (no if-block)
+hline(     useExtraLevels ? Extra : na,      "EXTRA Line",      color=color.black,      linestyle=hline.style_solid,      linewidth=3     )
+
+//==============================
+
+
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+////////////////// paste below ///////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+
+// // =================================================================
+// // ISKO ON KARNA HAI
+// // =================================================================
+isNifty     = str.contains(syminfo.ticker, "NIFTY") and not str.contains(syminfo.ticker, "BANK")
+isBankNifty = str.contains(syminfo.ticker, "BANKNIFTY")
+Observation_text ="👍Good👍"
+deleteOld = true
+ShowShapes = true
+shapeSize     = size.small  
+lineLength    = 25
+
+
+
+
+//icon pack 🎯👍✅👇👊🔥📝 ⚠️❌🧠
+// face 😄
+
+
+// =================================================================
+// Basic Inputs
+// =================================================================
+
+// maxTradesPerDay = 2
+maxTradesPerDay = input.int(4, "Max Trades Per Day", minval=1, tooltip="Set how many trades are allowed per day")
+showLatest = true
+// showLatest = input.bool(true, "Show latest HH / Latest LL")
+
+
+
+// =================================================================
+// TradeCounter
+// =================================================================
+var int tradesToday = 0
+// detect new day (resets at daily bar boundary)
+newDay = ta.change(time("D")) != 0
+if newDay
+    tradesToday := 0
+
+
+// =================================================================
+// JOURNAL Table INPUTS
+// =================================================================
+
+Journal_table_toggle = input.bool(false, "Journal Toggle",inline = "Journal")
+text_SIZEs = input.string("Normal","Size",options = ["Small", "Normal", "Large"],inline = "Journal")
+
+textSize =
+     text_SIZEs == "Small"  ? size.small  :
+     text_SIZEs == "Normal" ? size.normal :
+     text_SIZEs == "Large"  ? size.large  :
+                              size.huge
+
+
+text_AlignS = text.align_left
+
+var table journalTable = table.new(     position.bottom_right,     2, 3,     frame_color = color.gray,     frame_width = 1     )
+
+if barstate.islast and Journal_table_toggle
+    table.cell(journalTable, 1, 0, Observation_text,
+         text_size  = textSize,
+         text_halign = text_AlignS)
+
+
+
+
+
+// =================================================================
+// Indicator - DEMA 
+// =================================================================
+showDEMA_toggle = true
+// showDEMA_toggle = input.bool(true, "Show DEMA")
+length = 100
+// length = input.int(100, minval=1)
+// src    = input(close, title="Source")
+src    = close
+e1   = ta.ema(src, length)
+e2   = ta.ema(e1, length)
+dema = 2 * e1 - e2
+
+plot(
+     (showDEMA_toggle and inDateRange) ? dema : na,   // 👈 toggle logic
+     title = "DEMA (Step)",
+     color = color.black,
+     style = plot.style_stepline,
+     linewidth = 3
+     )
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === CANDLE PATTERNS BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+// // =================================================================
+// // Hammer Pattern 
+// // =================================================================
+
+// showHammer = true
+
+// bodySize  = math.abs(close - open)
+// lowerWick = math.min(open, close) - low
+// upperWick = high - math.max(open, close)
+
+// // --- Minimum body filter ---
+// minBodySize = 0.5
+// validBody   = bodySize >= minBodySize
+
+// // --- Base hammer structure ---
+// hammerShape = validBody
+//      and lowerWick >= 2.5 * bodySize
+//      and upperWick <= bodySize
+
+
+// // --- Candle colors ---
+// isGreen = close > open
+// isRed   = close < open
+
+// // --- Green Hammer ---
+// greenHammer = hammerShape and isGreen
+// plotshape(series = showHammer and greenHammer and inDateRange,     location = location.belowbar,     color = color.green,     style = shape.labelup,     text = "🔨"     )
+
+// // --- Red Hammer ---
+// RedHammerCandle = hammerShape and isRed
+// plotshape(     series = showHammer and RedHammerCandle and inDateRange,     location = location.belowbar,     color = color.red,     style = shape.labelup,     text = "🔨"     )
+
+// // --- Inverted Hammer structure ---
+// invertedHammerShape =
+//      validBody
+//  and upperWick >= 2.5 * bodySize
+//  and lowerWick <= bodySize
+
+
+// // // --- Green Inverted Hammer (Bullish) ---
+// // GreenInvertedHammerCondition =     invertedHammerShape and isGreen
+// // plotshape(
+// //       series   = showHammer and GreenInvertedHammerCondition and inDateRange,      location = location.belowbar,      color    = color.lime,      style    = shape.labelup,      text     = "🔨ᶦ"     )
+
+// invRedHam =     invertedHammerShape and isRed
+// plotshape(      series   = showHammer and invRedHam and inDateRange,      location = location.abovebar,      color    = #7f1e1e,      style    = shape.labeldown,      text     = "🔨ᶦ"     )
+
+
+
+// // barcolor(showHammer and hammerCondition and inDateRange ? color.green : na)
+
+// //=========================================================
+// // Engulfing Patterns 
+// //=========================================================
+// // --- Inputs ---
+// showBullish = true
+// showBearish = true
+// prevBodyMinPoints = .5
+
+// // --- Body sizes ---
+// prevBody = math.abs(open[1] - close[1])
+// currBody = math.abs(open - close)
+
+// // --- Bullish Engulfing ---
+// bullishEngulfing = showBullish and (close[1] < open[1]) and (open < close) and (open <= close[1]) and (close >= open[1]) and (currBody > (open[1] - close[1])) 
+//      and (prevBody >= prevBodyMinPoints)
+
+// // --- Bearish Engulfing ---
+// bearishEngulfing = showBearish and (close[1] > open[1]) and (open > close) and (open >= close[1]) and (close <= open[1]) and (currBody > (close[1] - open[1])) 
+//      and (prevBody >= prevBodyMinPoints)
+
+
+// barcolor(showBullish and bullishEngulfing and inDateRange ? #000000 :
+//          showBearish and bearishEngulfing and inDateRange ? #020000 : na)
+
+
+// // =================================================================
+// // Harami Patterns
+// // =================================================================
+
+
+
+// showBullishHarami = true
+// showBearishHarami = true
+
+
+// body50pct  = currBody >= prevBody * 0.5     // 50% condition
+
+// // --- Bullish Harami ---
+// bullishHarami = showBullishHarami and
+//      (close[1] < open[1]) and (open < close)  and (open > close[1])  and (close < open[1])  and body50pct                      
+
+// // --- Bearish Harami ---
+// bearishHarami = showBearishHarami and
+//      (close[1] > open[1])  and (open > close)  and (open < close[1])  and (close > open[1])  and body50pct
+
+// barcolor(showBullishHarami and bullishHarami and inDateRange ? color.new(color.green, 70) : 
+//          showBearishHarami and bearishHarami and inDateRange ? color.new(color.red, 70) : na)
+
+
+
+// // =================================================================
+// // Bullish / Bearish Candle Combined
+// // =================================================================
+// bullish = (bullishEngulfing or bullishHarami or greenHammer)
+// prevBullish = (bullishEngulfing[1] or bullishHarami[1] or greenHammer[1])
+
+// bearish = (bearishEngulfing or bearishHarami or invRedHam or RedHammerCandle)
+// prevBearish = (bearishEngulfing[1] or bearishHarami[1] or invRedHam[1] or RedHammerCandle[1])
+
+
+
+
+
+// //────────────────────────────────────────────────────────────────────
+// // 🟢🟢🟢🟢 === CANDLE PATTERNS BLOCK === 🟢🟢🟢🟢
+// //────────────────────────────────────────────────────────────────────
+
+import arsalanali36/AA_CandlePatterns/2 as cp
+minBodySize     = 0.5
+wickRatio       = 2.5
+prevBodyMinPts  = 0.5
+
+// =====================================================
+// 📞 LIBRARY CALLS
+// =====================================================
+// 🔨 Hammer
+greenHammer = cp.greenHammer(minBodySize, wickRatio)
+redHammer   = cp.redHammer(minBodySize, wickRatio)
+invRedHam   = cp.invertedRedHammer(minBodySize, wickRatio)
+
+// 🔥 Engulfing
+bullEngulf = cp.bullishEngulfing(prevBodyMinPts)
+bearEngulf = cp.bearishEngulfing(prevBodyMinPts)
+
+// 🧩 Harami
+bullHarami = cp.bullishHarami()
+bearHarami = cp.bearishHarami()
+
+// =====================================================
+// 🔨 HAMMER ICONS (same as original)
+// =====================================================
+plotshape(     greenHammer,     title = "Green Hammer",      location = location.belowbar,     style = shape.labelup,     color = color.green,     text = "🔨"     )
+plotshape(     redHammer,       title = "Red Hammer",        location = location.belowbar,     style = shape.labelup,     color = color.red,     text = "🔨"     )
+plotshape(     invRedHam,       title = "Inv Red Hammer",     location = location.abovebar,     style = shape.labeldown,     color = #7f1e1e,     text = "🔨ᶦ"     )
+
+// =====================================================
+// 🎨 BAR COLORS (Engulfing + Harami)
+// =====================================================
+barcolor(     bullEngulf ? color.black :     bearEngulf ? color.rgb(2, 0, 0) :     bullHarami ? color.new(color.green, 70) :     bearHarami ? color.new(color.red, 70) :     na     )
+
+// =================================================================
+// Bullish / Bearish Candle Combined
+// =================================================================
+bullish = (bullEngulf or bullHarami or greenHammer)
+prevBullish = (bullEngulf[1] or bullHarami[1] or greenHammer[1])
+
+bearish = (bearEngulf or bearHarami or invRedHam or redHammer)
+prevBearish = (bearEngulf[1] or bearHarami[1] or invRedHam[1] or redHammer[1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// =================================================================
+// Detect Touch on Daily Lines
+// =================================================================
+
+
+// --- Detect touch on any selected line ---
+var float selectedLine = na
+for i = 0 to array.size(selectedLines) - 1
+    lineVal = array.get(selectedLines, i)
+    if not na(lineVal) and (low <= lineVal and high >= lineVal)
+        selectedLine := lineVal
+
+// --- Tracking Variables ---
+var float trackedHigh   = na
+var float trackedLow    = na
+var int trackedHighBar  = na
+var int trackedLowBar   = na
+var int touchStartBar   = na
+var bool touchActive    = false
+var line hhLine         = na
+var line llLine         = na
+var color hhColor       = na
+var color llColor       = na
+// --- Store HH / LL price for future conditions ---
+var float hhPrice = na
+var float llPrice = na
+
+// --- Detect touch only if valid line and in range ---
+touched = inDateRange and not na(selectedLine) and (low <= selectedLine and high >= selectedLine)
+
+if touched and not touchActive
+    touchActive     := true
+    touchStartBar   := bar_index
+    trackedHigh     := high
+    trackedLow      := low
+    trackedHighBar  := bar_index
+    trackedLowBar   := bar_index
+    
+// --- Detect touch on any selected line ---
+// var float selectedLine = na
+var string lineType    = ""  // "RESISTANCE", "SUPPORT", "CP", "PD_H", "PD_L", "PD_C"
+
+for i = 0 to array.size(selectedLines) - 1
+    lineVal = array.get(selectedLines, i)
+    if not na(lineVal) and (low <= lineVal and high >= lineVal)
+        selectedLine := lineVal
+        
+        // --- Detect line type ---
+        if i <= 4
+            lineType := "RESISTANCE"      // R5-R1
+        else if i == 5
+            lineType := "CP"     // CP
+        else if i >= 6 and i <= 10
+            lineType := "SUPPORT"      // S1-S5
+        else if i == 11
+            lineType := "PD_H"   // PD_H
+        else if i == 12
+            lineType := "PD_C"   // PD_C
+        else if i == 13
+            lineType := "PD_L"   // PD_L
+
+// --- Assign color automatically based on line type ---
+hhColor := na
+llColor := na
+if not na(selectedLine) and showLatest
+    if lineType == "RESISTANCE" or lineType == "PD_H"
+        hhColor := color.red
+        llColor := color.black
+    else if lineType == "SUPPORT" or lineType == "PD_L"
+        hhColor := color.black
+        llColor := color.green
+    else if lineType == "CP" or lineType == "PD_C"
+        hhColor := color.orange
+        llColor := color.orange
+
+
+// --- Touch logic
+if touchActive
+    if inDateRange and not na(selectedLine) and low <= selectedLine and high >= selectedLine
+        // --- Track high for any line ---
+        if high > trackedHigh or na(trackedHigh)
+            trackedHigh    := high
+            trackedHighBar := bar_index
+            hhPrice        := high   // 🔥 store HH price
+        // --- Track low for any line ---
+        if low < trackedLow or na(trackedLow)
+            trackedLow     := low
+            trackedLowBar  := bar_index
+            llPrice        := low    // 🔥 store LL price
+    // if Toggle_Use_lookaheadBars and bar_index - touchStartBar >= lookaheadBars
+    //     touchActive := false
+
+// --- Line widths (black = 2, others = 5) ---
+hhWidth = (hhColor == color.black) ? 2 : 5
+llWidth = (llColor == color.black) ? 2 : 5
+
+/// ===========//=========/// ===========//=========/// ===========//=========/// ===========//=========
+
+
+
+// =================================================================
+// HH/LL lines & Labels
+// =================================================================
+
+// --- Horizontal lines for HH and LL ---=
+showHHLLLabels = true
+// showHHLLLabels = input.bool(true, "Show HH/LL Labels", inline="lbl",group = "T")
+var label hhLabel = na
+var label llLabel = na
+
+if inDateRange and bar_index == trackedHighBar
+    if deleteOld and not na(hhLine)
+        line.delete(hhLine)
+        if not na(hhLabel)
+            label.delete(hhLabel)
+    hhLine := line.new(         bar_index, trackedHigh, bar_index + lineLength, trackedHigh,         color = hhColor,         width = hhWidth         )
+    if showHHLLLabels
+        hhLabel := label.new(bar_index + lineLength, trackedHigh,"HH",style = label.style_label_left,color=color.new(color.blue, 80), textcolor=color.black)
+
+
+if inDateRange and bar_index == trackedLowBar 
+    if deleteOld and not na(llLine)
+        line.delete(llLine)
+        if not na(llLabel)
+            label.delete(llLabel)    
+    llLine := line.new(         bar_index, trackedLow, bar_index + lineLength, trackedLow,         color = llColor,         width = llWidth         )
+    if showHHLLLabels
+        llLabel := label.new(bar_index + lineLength,trackedLow,"LL",style = label.style_label_left,color= color.new(color.blue,80),textcolor=color.black)
+
+
+// // --- Get latest HH/LL line values ---
+latestHH = na(hhLine) ? na : line.get_y1(hhLine)
+latestLL = na(llLine) ? na : line.get_y1(llLine)
+
+touchHH = high >= latestHH //orignal
+touchLL = low <= latestLL//orignal
+
+
+// =================================================================
+// Selected Lines Creating Candle Zones
+// =================================================================
+var bool touchedHH_prev = false
+var bool touchedLL_prev = false
+
+if touchHH
+    touchedHH_prev := true
+if touchLL
+    touchedLL_prev := true
+
+
+// =================================================================
+// OG - Original Condition for Candle Exiting Zones
+// =================================================================
+
+Bearish_Candle_exitingZone = (touched or touchedHH_prev) and bearish and (lineType != "SUPPORT") and (lineType != "PD_L") // will avoid redcandle on green line (PDL/S) // and draw breakout line when redcandle price above latest HH(or within its body and not within any previous breakout)
+Bullish_Candle_exitingZone = (touched or touchedLL_prev) and bullish and (lineType != "RESISTANCE") and (lineType != "PD_H") // will avoid greencandle on green line (PDH/R)
+
+
+
+var bool Green_Zone     = false
+var bool Red_Zone       = false
+var bool HH_ZONE       = false
+
+var line zone_Upper_line    = na
+var line zone_Lower_line    = na
+var line bearLineHigh       = na
+var line bearLineLow        = na
+
+var label bullZoneLabel = na
+
+
+Show_GAP_LABLE = false
+// Show_GAP_LABLE = input.bool(true,title = "Show_GAP_LABLE",tooltip = "round me value")
+
+keepOldLines = true
+// keepOldLines = input.bool(true, "Keep Old Breakout Lines")
+
+// Combined touch handling for Bearish_Candle_exitingZone or Bullish_Candle_exitingZone
+if ((Bearish_Candle_exitingZone or Bullish_Candle_exitingZone) and inDateRange)
+
+    // delete old lines only if toggle is OFF
+    if not keepOldLines 
+        if not na(zone_Upper_line)
+            line.delete(zone_Upper_line)
+            line.delete(zone_Lower_line)
+        if not na(bearLineHigh)
+            line.delete(bearLineHigh)
+            line.delete(bearLineLow)
+  
+
+    // decide color & message
+    _isBull = Bearish_Candle_exitingZone
+    _color  = _isBull ? color.new(color.red, 0) : color.new(color.teal, 0)
+    _direction = _isBull ? "🟢 Bullish Touch Confirmed" : "🔴 Bearish Touch Confirmed"
+
+    // draw breakout lines (always drawn)
+
+    _highPrice = high
+    _lowPrice  = low
+
+    zone_Upper_line := line.new(bar_index, high, bar_index + 10, high, color=_color, width=5)
+    zone_Lower_line  := line.new(bar_index, low,  bar_index + 10, low,  color=_color, width=5)
+
+    Green_Zone := Bullish_Candle_exitingZone 
+    Red_Zone := Bearish_Candle_exitingZone
+
+    // send alert once
+    alert("Touch Confirmed — " + _direction, alert.freq_once_per_bar)
+
+    // reset touch flags
+    touchedHH_prev := false
+    touchedLL_prev := false
+
+    _distance = math.round(math.abs(_highPrice - _lowPrice))
+// create label text (points and percent, rounded)
+    _distText = str.tostring(_distance)// + str.tostring(_percent, "#.##") + " %"
+    // _distText = str.tostring(_distance, format.mintick)// + str.tostring(_percent, "#.##") + " %"
+
+    ////place label at midpoint a few bars ahead for clarity
+    bullZoneLabel := label.new(bar_index + 10, _highPrice, text=_distText, xloc=xloc.bar_index, yloc=yloc.price,
+                               style=label.style_label_center, color=_color, textcolor=color.white, size=size.small)
+
+
+// get current price of zone_Lower_line & zone_Upper_line
+var float zone_Lower_line_price  = na
+var float zone_Upper_line_price = na
+
+if not na(zone_Lower_line)
+    zone_Lower_line_price := line.get_price(zone_Lower_line, bar_index)
+if not na(zone_Upper_line)
+    zone_Upper_line_price := line.get_price(zone_Upper_line, bar_index)
+    
+
+//────────────────────────────────────────────────────────────────────
+// 🟢🟢🟢🟢 === ENTRY CONDITION BLOCK === 🟢🟢🟢🟢
+//────────────────────────────────────────────────────────────────────
+
+// =================================================================
+// CONDITIONS - OG -Condition to detect Close above/Below Zones
+// =================================================================
+
+close_Above_Green_zone          =  not na(zone_Upper_line_price) and (close > zone_Upper_line_price) 
+close_Below_Green_zone          =  not na(zone_Lower_line_price) and (close < zone_Lower_line_price) 
+
+close_Above_Red_zone            =  not na(zone_Upper_line_price) and (close > zone_Upper_line_price) 
+close_Below_Red_zone            =  not na(zone_Lower_line_price) and (close < zone_Lower_line_price) 
+
+
+
+// =================================================================
+// CONDITIONS - 2 Consecutive same-color closes after touch) 
+// =================================================================
+
+isGreenCandle = close > open
+isRedCandle   = close < open 
+
+
+//OG - orignal
+Prev_Green    = Green_Zone and (close[1] > open[1])
+Prev_Red    = Red_Zone and (close[1] < open[1]) 
+
+// =================================================================
+// CONDITIONS - Exclusion of lines
+// =================================================================
+Not_on_Gren_line    = (lineType != "SUPPORT") and (lineType != "PD_L")
+Not_on_Red_line     = (lineType != "RESISTANCE") and (lineType != "PD_H")
+
+on_Red_line = (lineType == "RESISTANCE") and (lineType == "PD_H") 
+on_Green_line = (lineType == "SUPPORT") and (lineType == "PD_L") 
+
+// =================================================================
+// CONDITIONS - Hammer at Key Levels
+// =================================================================
+
+GreenHammer_at_keyLevel_entry   =  (touched) and bullish and Not_on_Red_line and greenHammer 
+RedHammer_at_keyLevel_entry     =  (touched) and bearish and Not_on_Gren_line and invRedHam 
+
+
+
+//────────────────────────────────────────────────────────────────────
+// 🟢🟢🟢🟢 === SAFETY CONDITION BLOCK === 🟢🟢🟢🟢
+//────────────────────────────────────────────────────────────────────
+// =================================================================
+// Safty CONDITIONS - ⚠️ Candle body sizes xTime Size 
+// =================================================================
+
+// currBody_exiting                = math.abs(close - open)
+// // prevBody_exiting                = math.abs(close[1] - open[1]) 
+// prevBody_exiting                = 3
+
+
+
+// Green_Safty_lessthan_3xSize     = (currBody_exiting <= 3 * prevBody_exiting) and isGreenCandle 
+// Red_Safty_lessthan_3xSize       = (currBody_exiting <= 3 * prevBody_exiting) and isRedCandle
+
+
+// Trap_G_Safe_lessthan_2xSize     = (currBody_exiting <= 2 * prevBody_exiting) and isGreenCandle
+// Trap_R_Safe_lessthan_2xSize     = (currBody_exiting <= 2 * prevBody_exiting) and isRedCandle  
+
+// //OG - HH/LL bar ke liye par isko use nahi kar sakte, ki bahut sakht ho jaye ga maamla!!
+
+// closeAboveHH_for_long   =     not na(hhPrice)     and close > hhPrice
+// closeBelowHH_for_Short  =     not na(hhPrice)     and close < hhPrice
+
+
+// closeAboveLL_for_long   =     not na(llPrice)     and close < llPrice
+// closeBelowLL_for_short  =     not na(llPrice)     and close > llPrice
+
+
+
+
+// =================================================================
+// Safty CONDITIONS - 📏 Label Size
+// =================================================================
+// // === Label Size Dropdown ===
+// SafetySafetylabelSizeInput = input.string(
+//      "tiny",
+//      title = "Safety Label Size",
+//      options = ["tiny", "small", "normal", "large", "huge"],
+//      inline = "Safty"
+//      )
+// SafetylabelSize =
+//      SafetySafetylabelSizeInput == "tiny"   ? size.tiny  :
+//      SafetySafetylabelSizeInput == "small"  ? size.small :
+//      SafetySafetylabelSizeInput == "normal" ? size.normal:
+//      SafetySafetylabelSizeInput == "large"  ? size.large :
+//                                   size.huge
+
+
+// for HH too Close
+// for LL too Close
+// Entry BLOCKED
+
+// =================================================================
+// Safty CONDITIONS - ⚠️ Wide GAP - Switch to Higher TimeFrame
+// =================================================================
+// --- First candle of the day ---
+isFirstCandle = ta.change(time("D"))
+
+// --- Previous day close ---
+prevDayClose = request.security(
+     syminfo.tickerid,
+     "D",
+     close,
+     lookahead = barmerge.lookahead_on
+     )[1]
+
+// --- GAP calculation ---
+gapPoints = math.abs(open - prevDayClose)
+
+// --- First candle range ---
+firstCandleRange = high - low
+
+// --- User toggle ---
+GapWarning_toggle = true
+// GapWarning_toggle = input.bool(true, "Gap Warning",     inline = "Safty")
+
+// --- GAP condition ---
+gapValid =
+     (isNifty     and gapPoints > 80)
+  or (isBankNifty and gapPoints > 150)
+
+if timeframe.isminutes and timeframe.multiplier == 2
+    if isFirstCandle and gapValid and GapWarning_toggle and inDateRange
+        label.new(
+             bar_index,
+             high,
+             "⚠️ Wide GAP\n" +
+             str.tostring(math.round(gapPoints)) + " pts\n" +
+             "Switch to Higher TF",
+             style = label.style_label_down,
+             color = color.yellow,
+             textcolor = color.black,
+             size = size.large
+             )
+
+
+// =================================================================
+// Safty CONDITIONS - 🔴 FIRST CANDLE RANGE HIGHLIGHT
+// =================================================================
+firstCandleBigRange = isFirstCandle and (firstCandleRange >= 50)
+
+// --- Highlight candle ---
+barcolor(
+     firstCandleBigRange ? color.new(color.orange, 0) : na
+     )
+
+// --- Label for big first candle ---
+if timeframe.isminutes and timeframe.multiplier == 2
+    if firstCandleBigRange and GapWarning_toggle and inDateRange
+        label.new(
+             bar_index,
+             high,
+             "🔥 Big First Candle\n" +
+             str.tostring(math.round(firstCandleRange)) + " pts",
+             style = label.style_label_down,
+             color = color.aqua,
+             textcolor = color.white,
+             size = size.large
+             )
+
+
+// =================================================================
+// Safty CONDITIONS - 📏 TooClose TrackedLow vs zone_Lower_line
+// =================================================================
+
+
+var float lastTrackedLow = na
+var float lastZoneLow    = na
+var bool llTooCloseShown = false
+
+if not na(trackedLow)
+    lastTrackedLow := trackedLow
+
+if not na(zone_Lower_line_price)
+    lastZoneLow := zone_Lower_line_price
+
+var float trackedLowZoneDiff = na
+
+if not na(lastTrackedLow) and not na(lastZoneLow)
+    trackedLowZoneDiff := math.abs(lastTrackedLow - lastZoneLow)
+
+trackedLowTooClose =
+     not na(trackedLowZoneDiff)
+ and trackedLowZoneDiff < 20
+
+
+// LongCloseText =
+//      "⛔ LL too close" +
+//      "\nDiff: " + str.tostring(trackedLowZoneDiff) +
+//      "\nYahan short mat karna !!" +
+//      "\n long ke liye sooch sakte"
+
+
+// if trackedLowTooClose and not llTooCloseShown
+//     label.new(
+//          bar_index,
+//          lastTrackedLow,
+//          LongCloseText,
+//          style = label.style_label_up,
+//          color = color.green,
+//          textcolor = color.white,
+//          size = SafetylabelSize
+//          )
+//     llTooCloseShown := true
+
+
+
+
+// =================================================================
+// Safty CONDITIONS -🔺 TooClose TrackedHigh vs zone_Upper_line
+// =================================================================
+var float lastTrackedHigh = na
+var float lastZoneHigh    = na
+var bool  hhTooCloseShown = false
+
+// store last valid values
+if not na(trackedHigh)
+    lastTrackedHigh := trackedHigh
+
+if not na(zone_Upper_line_price)
+    lastZoneHigh := zone_Upper_line_price
+
+// diff calculation
+var float trackedHighZoneDiff = na
+
+if not na(lastTrackedHigh) and not na(lastZoneHigh)
+    trackedHighZoneDiff := math.abs(lastTrackedHigh - lastZoneHigh)
+
+// block condition
+trackedHighTooClose =
+     not na(trackedHighZoneDiff)
+ and trackedHighZoneDiff < 20
+
+// show label only once per zone
+
+// ShortCloseText =
+//      "⛔ HH too close" +
+//      "\nDiff: " + str.tostring(trackedHighZoneDiff) +
+//      "\nYahan Long mat karna !!" +
+//      "\nShort ke liye sooch sakte"
+     
+
+// if trackedHighTooClose and not hhTooCloseShown
+//     label.new(
+//          bar_index,
+//          lastTrackedHigh,
+//          ShortCloseText,
+//          style = label.style_label_down,
+//          color = color.red,
+//          textcolor = color.white,
+//          size = SafetylabelSize
+//          )
+//     hhTooCloseShown := true
+
+
+/// RESET LOGIC (VERY IMPORTANT – same as LL) // ina ka lable spam ko rokne ke liye
+if (Bearish_Candle_exitingZone or Bullish_Candle_exitingZone) and inDateRange
+    llTooCloseShown := false
+    hhTooCloseShown := false
+
+
+// =================================================================
+// MAIN - COMBING ALL Entry CONDITIONS
+// =================================================================
+
+longCondition = (Green_Zone and Not_on_Red_line  and close_Above_Green_zone 
+     and Prev_Green
+     and not trackedHighTooClose
+     )
+shortCondition = (Red_Zone and Not_on_Gren_line and close_Below_Red_zone 
+     and Prev_Red
+     and not trackedLowTooClose
+     )
+
+// =================================================================
+// LONG ENTRY
+// =================================================================
+if longCondition
+     and tradesToday < maxTradesPerDay 
+     and inDateRange 
+    strategy.entry("Long", strategy.long)
+    tradesToday += 1
+    Green_Zone := false
+    Red_Zone := false
+// Immediate alert (fires when condition is true)
+    //OG
+    // alert("LONG ENTRY | SL: " + str.tostring(slLevelLong) + " | lineType: " + lineType + " | tradesToday: " + str.tostring(tradesToday), alert.freq_once_per_bar_close)
+    alert("LONG ENTRY @"  + lineType, alert.freq_once_per_bar_close)
+
+// =================================================================
+// SHORT ENTRY
+// =================================================================
+if shortCondition
+     and tradesToday < maxTradesPerDay 
+     and inDateRange 
+    strategy.entry("Short", strategy.short)
+    tradesToday += 1
+    Green_Zone := false
+    Red_Zone := false
+
+// Immediate alert (fires when condition is true)
+    //OG
+    // alert("SHORT ENTRY | SL: " + str.tostring(slLevelShort) + " | lineType: " + lineType + " | tradesToday: " + str.tostring(tradesToday), alert.freq_once_per_bar_close)
+    alert("SHORT ENTRY @" + lineType, alert.freq_once_per_bar_close)
+
+// =================================================================
+// MAIN - Auto Exit CONDITION
+// =================================================================
+
+var float slLevelLong  = na
+var float slLevelShort = na
+
+// LONG: close when price closes BELOW zone_Lower_line_price AND the candle is RED
+if (strategy.position_size > 0)  // currently long
+    if (not na(zone_Lower_line_price) and close < zone_Lower_line_price and close < open)
+        strategy.close("Long",comment = "long SL")
+        alert("EXIT LONG - candle closed BELOW zone_Lower_line (" + str.tostring(zone_Lower_line_price) + ") and candle is RED.", alert.freq_once_per_bar_close)
+
+// SHORT: close when price closes ABOVE zone_Upper_line_price AND the candle is GREEN
+if (strategy.position_size < 0)  // currently short
+    if (not na(zone_Upper_line_price) and close > zone_Upper_line_price and close > open)//OG
+        strategy.close("Short",comment = "short SL")
+        alert("EXIT SHOR - candle closed BELOW zone_Lower_line  (" + str.tostring(zone_Upper_line_price) + ") and candle is GREEN.", alert.freq_once_per_bar_close)
+
+// =================================================================
+// Default - EXIT 3:15
+// =================================================================
+exitHour   = 15
+exitMinute = 15
+exitTimeCondition = (hour == exitHour and minute >= exitMinute)
+// === Exit all trades at 3:15 PM ===
+if exitTimeCondition
+    strategy.close_all(comment="Daily Close Exit")
+
+
+// =================================================================
+// Safety Label for Blocking Entry
+// =================================================================
+// --- Base directional setup (without safety filters) ---
+baseLongSetup  = Green_Zone and Not_on_Red_line  and close_Above_Green_zone
+baseShortSetup = Red_Zone   and Not_on_Gren_line and close_Below_Red_zone
+
+
+if baseLongSetup
+     and not longCondition
+     and inDateRange
+     and tradesToday < maxTradesPerDay
+    // string reason = "LONG BLOCKED:\n"
+    string reason = "🔺⚠️"
+    // if not zoneTooWide
+    //     reason += "❌zone to wide\n"
+    // if not Prev_Green
+    //     reason += "❌Breakout se just Pehli waali Greeen nahi hai"
+    // label.new(bar_index, high,reason, style = label.style_label_down, color = color.new(color.green, 100), textcolor = color.black, size = SafetylabelSize)
+
+
+if baseShortSetup
+     and not shortCondition
+     and inDateRange
+     and tradesToday < maxTradesPerDay
+    // string reason = "SHORT BLOCKED:\n"
+    string reason = "🔻⚠️"
+    // if zoneTooWide
+    //     reason += "❌ Zone too wide\n"
+    // if not Prev_Green
+    //     reason += "❌ Breakout se just pehle green candle nahi hai\n"
+    // label.new(bar_index, high, reason, style = label.style_label_down, color = color.new(color.red, 100), textcolor = color.black, size = SafetylabelSize)
+
+
+
+// //@version=5
+// indicator("PDL First Candle Bias", overlay=true)
+
+// ================================
+// Previous Day Low
+// ================================
+pdl = request.security(
+     syminfo.tickerid,
+     "D",
+     low,
+     lookahead = barmerge.lookahead_on
+     )[1]
+
+// ================================
+// Detect first candle of the day
+// ================================
+// isFirstCandle = ta.change(time("D"))
+
+// ================================
+// Condition
+// ================================
+belowPDL_FirstOpen = isFirstCandle and open < prevLow
+
+// ================================
+// TABLE
+// ================================
+var table biasTable = table.new(position.top_right, 1, 1, border_width = 1)
+
+// if isFirstCandle and belowPDL_FirstOpen
+//     table.cell(
+//          biasTable,
+//          0, 0,
+//          belowPDL_FirstOpen ? "⬇️ Neeche jayega" : "⚖️ Neutral / Support Hold",
+//          bgcolor    = belowPDL_FirstOpen ? color.red : color.gray,
+//          text_color = color.white,
+//          text_size  = size.large
+//          )
+
+
+
+
+// =================================================================
+// End Of main Script ====xx===========xx=======
+// =================================================================
