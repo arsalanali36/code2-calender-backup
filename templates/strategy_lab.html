@@ -160,7 +160,7 @@
         </div>
     </div>
     <div class="modal-overlay" id="history-modal">
-        <div class="modal-content" style="width: 450px; max-height: 80vh; padding:0;">
+        <div class="modal-content" style="width: 650px; max-height: 80vh; padding:0;">
             <div class="modal-header" style="padding:15px 20px; border-bottom: 1px solid #eee;">
                 <div class="modal-title">Downloaded Data History</div>
                 <div class="close-modal" id="close-history-modal">&times;</div>
@@ -169,8 +169,10 @@
                 <table style="width:100%; border-collapse: collapse; margin-top:15px;">
                     <thead style="position: sticky; top: 0; background: white; z-index: 10;">
                         <tr>
-                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.8rem;">DATE</th>
-                            <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.8rem;">RESOLUTION</th>
+                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">DATE</th>
+                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">INSTRUMENTS</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">RES.</th>
+                            <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">AMT/PL</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body">
@@ -671,39 +673,52 @@
                 const data = await res.json();
                 if (data.dates && data.dates.length) {
                     tbody.innerHTML = data.dates.map(d => {
-                        let instHtml = '';
-                        if (d.instruments && d.instruments.length) {
-                            instHtml = `<details style="margin-top:8px; font-size:0.75rem; color:#64748b; cursor:pointer;">
-                                <summary style="font-weight:600; outline:none; user-select:none; color:#0969da;">${d.instruments.length} Trades Found</summary>
-                                <div style="margin-top:5px; padding-left:10px; border-left:2px solid #e2e8f0; line-height: 1.5;">
-                                    ${d.instruments.map(i => `
-                                        <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:3px 0;" onclick="loadInstrument('${i.symbol}', '${d.date}')" title="Click to load this instrument chart">
-                                            <span style="color:#0969da; text-decoration:underline;">${i.symbol}</span>
-                                            <span style="font-size:0.65rem; padding: 2px 5px; border-radius: 4px; background: ${i.has_data ? '#dcfce7' : '#fee2e2'}; color: ${i.has_data ? '#166534' : '#991b1b'};">${i.has_data ? '✅ Data Saved' : '❌ No Data'}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </details>`;
-                        }
-                        return `
-                        <tr>
-                            <td colspan="2" style="padding:0; border-bottom:1px solid #f1f5f9;">
-                                <table style="width:100%; border-collapse:collapse;">
-                                    <tr>
-                                        <td style="padding:12px 10px; font-weight:600; font-size:0.85rem; color:#1e293b;">
-                                            ${d.date}
-                                            ${instHtml}
-                                        </td>
-                                        <td style="padding:12px 10px; text-align:right; vertical-align:top;">
-                                            <span style="padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; background:${d.resolution === '1m' ? '#dcfce7' : '#f1f5f9'}; color:${d.resolution === '1m' ? '#166534' : '#64748b'};">
-                                                ${d.resolution}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </table>
+                        const plColor = d.total_pl > 0 ? '#10b981' : (d.total_pl < 0 ? '#ef4444' : '#64748b');
+                        
+                        // Main Date Row (Summary)
+                        let dateHtml = `
+                        <tr style="background:#f8fafc; border-top:1px solid #e2e8f0;">
+                            <td style="padding:10px; font-weight:800; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #f1f5f9;">
+                                📅 ${d.date}
                             </td>
-                        </tr>
-                    `}).join('');
+                            <td style="padding:10px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:0.75rem;">
+                                ${d.instruments.length} Instruments
+                            </td>
+                            <td style="padding:10px; text-align:center; border-bottom:1px solid #f1f5f9;">
+                                <span style="padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700; background:${d.resolution === '1m' ? '#dcfce7' : '#f1f5f9'}; color:${d.resolution === '1m' ? '#166534' : '#64748b'};">
+                                    ${d.resolution}
+                                </span>
+                            </td>
+                            <td style="padding:10px; text-align:right; font-weight:900; font-size:0.9rem; color:${plColor}; border-bottom:1px solid #f1f5f9;">
+                                ${d.total_pl !== 0 ? (d.total_pl > 0 ? '+' : '') + Math.round(d.total_pl).toLocaleString() : '₹ 0'}
+                            </td>
+                        </tr>`;
+
+                        // Instrument Sub-rows
+                        let instRows = d.instruments.map(i => {
+                            const iPlColor = i.pl > 0 ? '#059669' : (i.pl < 0 ? '#dc2626' : '#64748b');
+                            return `
+                            <tr style="border-bottom:1px solid #f8fafc;">
+                                <td colspan="2" style="padding:6px 10px 6px 30px; font-size:0.8rem; color:#64748b;">
+                                    <span style="color:#94a3b8; margin-right:8px;">↳</span>
+                                    <span onclick="loadInstrument('${i.symbol}', '${d.date}')" 
+                                          style="cursor:pointer; color:#0969da; text-decoration:underline; font-weight:500;">
+                                        ${i.symbol}
+                                    </span>
+                                </td>
+                                <td style="padding:6px 10px; text-align:center;">
+                                    <span style="font-size:0.65rem; padding: 2px 5px; border-radius: 4px; background: ${i.has_data ? '#f0f9ff' : '#fff1f2'}; color: ${i.has_data ? '#0369a1' : '#be123c'};">
+                                        ${i.has_data ? 'Data OK' : 'No Data'}
+                                    </span>
+                                </td>
+                                <td style="padding:6px 10px; text-align:right; font-weight:700; font-size:0.8rem; color:${iPlColor};">
+                                    ${i.pl !== 0 ? (i.pl > 0 ? '+' : '') + Math.round(i.pl).toLocaleString() : '0'}
+                                </td>
+                            </tr>
+                        `;}).join('');
+
+                        return dateHtml + instRows;
+                    }).join('');
                 } else {
                     tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#999;">No local data files found.</td></tr>';
                 }

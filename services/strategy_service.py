@@ -469,8 +469,9 @@ def get_archive_dates():
         df['datetime'] = pd.to_datetime(df['datetime'])
         df['date'] = df['datetime'].dt.strftime('%Y-%m-%d')
         
-        # Extract traded instruments
+        # Extract traded instruments and calculate total P/L per date
         trades_map = {}
+        total_pl_map = {}
         t_path = os.path.join('data', 'trades_1.json')
         if os.path.exists(t_path):
             try:
@@ -478,10 +479,13 @@ def get_archive_dates():
                     for t in json.load(f).get('trades', []):
                         d_str = t.get('trade_date', t.get('date', ''))
                         inst = t.get('Instrument', '').strip()
+                        pl = float(t.get('Net P/L', 0))
                         if d_str and inst:
-                            if d_str not in trades_map: trades_map[d_str] = set()
-                            trades_map[d_str].add(inst)
-            except: pass
+                            if d_str not in trades_map: trades_map[d_str] = []
+                            trades_map[d_str].append({'symbol': inst, 'pl': pl})
+                            total_pl_map[d_str] = total_pl_map.get(d_str, 0) + pl
+            except Exception as e: 
+                print(f"Error parsing trades_1.json: {e}")
 
         results = []
         for date, group in df.groupby('date'):
@@ -491,11 +495,29 @@ def get_archive_dates():
             else:
                 res_str = "N/A"
             
-            insts = []
-            for inst in trades_map.get(date, set()):
-                cp = f"data/Historical_OHLC/Options/{inst}.csv"
-                insts.append({'symbol': inst, 'has_data': os.path.exists(cp)})
-            results.append({'date': date, 'resolution': res_str, 'instruments': insts})
+            day_total_pl = total_pl_map.get(date, 0)
+            day_insts = []
+            seen_insts = {} # Map symbol -> total_pl for that day
+            
+            for inst_batch in trades_map.get(date, []):
+                sym = inst_batch['symbol']
+                pl = inst_batch['pl']
+                seen_insts[sym] = seen_insts.get(sym, 0) + pl
+
+            for sym, pl in seen_insts.items():
+                cp = f"data/Historical_OHLC/Options/{sym}.csv"
+                day_insts.append({
+                    'symbol': sym, 
+                    'has_data': os.path.exists(cp),
+                    'pl': round(pl, 2)
+                })
+
+            results.append({
+                'date': date, 
+                'resolution': res_str, 
+                'instruments': day_insts,
+                'total_pl': round(day_total_pl, 2)
+            })
             
         return sorted(results, key=lambda x: x['date'], reverse=True)
     except Exception as e:
