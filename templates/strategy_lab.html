@@ -61,7 +61,10 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <label class="setting-item" style="margin:0;">STRATEGY</label>
                 </div>
-                <select id="strategy-select" class="nav-btn" style="width:100%;"><option>Arsalan Continuation</option></select>
+                <select id="strategy-select" class="nav-btn" style="width:100%;">
+                    <option value="Arsalan Continuation" selected>Arsalan Continuation</option>
+                    <option value="Arsalan Sandbox">Arsalan Sandbox</option>
+                </select>
                 
                 <!-- Strategy Internal Logic Toggles (Pine Script Port) -->
                 <div class="toggle-group" style="margin-top:10px;">
@@ -195,7 +198,9 @@
     <script src="/static/js/vendor/lightweight-charts.standalone.production.js"></script>
     <script>
         let chartMain, candleMain, ema10Main, ema20Main, demaMain, markerMain;
+        let pdhMain, pdlMain, pdcMain, ppMain, r1Main, s1Main, r2Main, s2Main, r3Main, s3Main, r4Main, s4Main, r5Main, s5Main;
         let chartOpt, candleOpt, ema10Opt, ema20Opt, demaOpt, markerOpt;
+        let pdhOpt, pdlOpt, pdcOpt, ppOpt, r1Opt, s1Opt, r2Opt, s2Opt, r3Opt, s3Opt, r4Opt, s4Opt, r5Opt, s5Opt;
         let zonesMain = [], tradesMain = [], zonesOpt = [], tradesOpt = [];
         let zoneSeriesMain = [], tradeSeriesMain = [], zoneSeriesOpt = [], tradeSeriesOpt = [];
 
@@ -211,9 +216,25 @@
                 const candle = c.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350' });
                 const e10 = c.addLineSeries({ color: '#2196F3', lineWidth: 1, title: 'EMA 10' });
                 const e20 = c.addLineSeries({ color: '#F44336', lineWidth: 1, title: 'EMA 20' });
-                const dema = c.addLineSeries({ color: '#424242', lineWidth: 2, title: 'DEMA 100' });
+                const dema = c.addAreaSeries({ lineColor: '#424242', lineWidth: 1, topColor: 'rgba(66, 66, 66, 0.05)', bottomColor: 'rgba(66, 66, 66, 0)', title: 'DEMA 100' });
                 const marker = c.addLineSeries({ color: 'transparent', lineWidth: 0, priceLineVisible: false, lastValueVisible: false });
                 
+                // Static Levels (Sandbox)
+                const pdh = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.6)', lineWidth: 2, lineStyle: 2, title: 'PDH' });
+                const pdl = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.6)', lineWidth: 2, lineStyle: 2, title: 'PDL' });
+                const pdc = c.addLineSeries({ color: 'rgba(33, 150, 243, 0.6)', lineWidth: 1, lineStyle: 2, title: 'PDC' });
+                const pp = c.addLineSeries({ color: 'rgba(156, 39, 176, 0.5)', lineWidth: 1, lineStyle: 2, title: 'PP' });
+                const r1 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.4)', lineWidth: 1, lineStyle: 2, title: 'R1' });
+                const s1 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.4)', lineWidth: 1, lineStyle: 2, title: 'S1' });
+                const r2 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.3)', lineWidth: 1, lineStyle: 2, title: 'R2' });
+                const s2 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.3)', lineWidth: 1, lineStyle: 2, title: 'S2' });
+                const r3 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.2)', lineWidth: 1, lineStyle: 2, title: 'R3' });
+                const s3 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.2)', lineWidth: 1, lineStyle: 2, title: 'S3' });
+                const r4 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.15)', lineWidth: 1, lineStyle: 2, title: 'R4' });
+                const s4 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.15)', lineWidth: 1, lineStyle: 2, title: 'S4' });
+                const r5 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.1)', lineWidth: 1, lineStyle: 2, title: 'R5' });
+                const s5 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.1)', lineWidth: 1, lineStyle: 2, title: 'S5' });
+
                 new ResizeObserver(() => {
                     const box = document.getElementById(id);
                     if (box.clientWidth > 0) {
@@ -221,14 +242,18 @@
                     }
                 }).observe(document.getElementById(id));
                 
-                return { c, candle, e10, e20, dema, marker };
+                return { c, candle, e10, e20, dema, marker, pdh, pdl, pdc, pp, r1, s1, r2, s2, r3, s3, r4, s4, r5, s5 };
             };
 
             const m = setup('chart-main');
             chartMain = m.c; candleMain = m.candle; ema10Main = m.e10; ema20Main = m.e20; demaMain = m.dema; markerMain = m.marker;
+            pdhMain = m.pdh; pdlMain = m.pdl; pdcMain = m.pdc; ppMain = m.pp; r1Main = m.r1; s1Main = m.s1; r2Main = m.r2; s2Main = m.s2; r3Main = m.r3; s3Main = m.s3;
+            r4Main = m.r4; s4Main = m.s4; r5Main = m.r5; s5Main = m.s5;
 
             const o = setup('chart-opt');
             chartOpt = o.c; candleOpt = o.candle; ema10Opt = o.e10; ema20Opt = o.e20; demaOpt = o.dema; markerOpt = o.marker;
+            pdhOpt = o.pdh; pdlOpt = o.pdl; pdcOpt = o.pdc; ppOpt = o.pp; r1Opt = o.r1; s1Opt = o.s1; r2Opt = o.r2; s2Opt = o.s2; r3Opt = o.r3; s3Opt = o.s3;
+            r4Opt = o.r4; s4Opt = o.s4; r5Opt = o.r5; s5Opt = o.s5;
         }
 
         function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
@@ -309,6 +334,7 @@
                     end_time: document.getElementById('end-time').value,
                     source: document.getElementById('source-select').value,
                     symbol: targetSymbol,
+                    strategy: document.getElementById('strategy-select').value,
                     dhan_cid: sessionStorage.getItem('dhan_client_id') || '',
                     dhan_token: sessionStorage.getItem('dhan_access_token') || ''
                 });
@@ -335,10 +361,23 @@
                 if (!visibleData.length) return false;
 
                 targetCandle.setData(visibleData.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
-                targetE10.setData(chartData.map(d => ({ time: d.time, value: d.ema10 === null ? undefined : d.ema10 })));
-                targetE20.setData(chartData.map(d => ({ time: d.time, value: d.ema20 === null ? undefined : d.ema20 })));
-                targetDema.setData(chartData.map(d => ({ time: d.time, value: d.dema100 === null ? undefined : d.dema100 })));
+                targetE10.setData(chartData.map(d => ({ time: d.time, value: d.ema10 === null ? null : d.ema10 })));
+                targetE20.setData(chartData.map(d => ({ time: d.time, value: d.ema20 === null ? null : d.ema20 })));
+                targetDema.setData(chartData.map(d => ({ time: d.time, value: d.dema100 === null ? null : d.dema100 })));
                 targetMarker.setData(visibleData.map(d => ({ time: d.time, value: d.close })));
+
+                // Update Static Levels
+                const isSandbox = document.getElementById('strategy-select').value === 'Arsalan Sandbox';
+                const targetLvl = isOpt ? { pdh: pdhOpt, pdl: pdlOpt, pdc: pdcOpt, pp: ppOpt, r1: r1Opt, s1: s1Opt, r2: r2Opt, s2: s2Opt, r3: r3Opt, s3: s3Opt, r4: r4Opt, s4: s4Opt, r5: r5Opt, s5: s5Opt } 
+                                       : { pdh: pdhMain, pdl: pdlMain, pdc: pdcMain, pp: ppMain, r1: r1Main, s1: s1Main, r2: r2Main, s2: s2Main, r3: r3Main, s3: s3Main, r4: r4Main, s4: s4Main, r5: r5Main, s5: s5Main };
+                
+                Object.keys(targetLvl).forEach(k => {
+                    if (isSandbox) {
+                        targetLvl[k].setData(chartData.map(d => ({ time: d.time, value: d[k] === null ? null : d[k] })));
+                    } else {
+                        targetLvl[k].setData([]);
+                    }
+                });
 
                 const zMarkers = [];
                 zones.forEach(zone => {

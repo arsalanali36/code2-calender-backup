@@ -18,9 +18,10 @@ def nifty_data():
     dhan_token = request.args.get('dhan_token', '')
     dhan_cid = request.args.get('dhan_cid', '')
     symbol = request.args.get('symbol', 'Nifty 50 (^NSEI)')
+    strategy = request.args.get('strategy', 'Arsalan Continuation')
     
     try:
-        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid)
+        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy)
         real_trades = get_real_trades(start_date, end_date, symbol)
 
         if df.empty:
@@ -44,11 +45,18 @@ def nifty_data():
                 is_gap = True
 
             if is_gap and prev_time:
-                chart_data.append({
-                    'time': curr_time - 1,
+                # Terminate exactly 1 minute after previous day closes
+                gap_time = prev_time + 60
+                gap_item = {
+                    'time': gap_time,
                     'ema10': None, 'ema20': None, 'dema100': None,
                     'is_gap': True
-                })
+                }
+                # Add Sandbox level keys to gap to terminate lines
+                sandbox_keys = ['pdh', 'pdl', 'pdc', 'pp', 'r1', 'r2', 'r3', 'r4', 'r5', 's1', 's2', 's3', 's4', 's5']
+                for k in sandbox_keys:
+                    gap_item[k] = None
+                chart_data.append(gap_item)
 
             item = {
                 'time': curr_time,
@@ -59,7 +67,22 @@ def nifty_data():
                 'ema10': float(row['ema10']) if pd.notnull(row['ema10']) else None,
                 'ema20': float(row['ema20']) if pd.notnull(row['ema20']) else None,
                 'dema100': float(row['dema100']) if pd.notnull(row['dema100']) else None,
-                'is_gap': is_gap
+                'is_gap': is_gap,
+                # Sandbox Levels
+                'pdh': float(row['pdh']) if 'pdh' in row and pd.notnull(row['pdh']) else None,
+                'pdl': float(row['pdl']) if 'pdl' in row and pd.notnull(row['pdl']) else None,
+                'pdc': float(row['pdc']) if 'pdc' in row and pd.notnull(row['pdc']) else None,
+                'pp': float(row['pp']) if 'pp' in row and pd.notnull(row['pp']) else None,
+                'r1': float(row['r1']) if 'r1' in row and pd.notnull(row['r1']) else None,
+                's1': float(row['s1']) if 's1' in row and pd.notnull(row['s1']) else None,
+                'r2': float(row['r2']) if 'r2' in row and pd.notnull(row['r2']) else None,
+                's2': float(row['s2']) if 's2' in row and pd.notnull(row['s2']) else None,
+                'r3': float(row['r3']) if 'r3' in row and pd.notnull(row['r3']) else None,
+                's3': float(row['s3']) if 's3' in row and pd.notnull(row['s3']) else None,
+                'r4': float(row['r4']) if 'r4' in row and pd.notnull(row['r4']) else None,
+                's4': float(row['s4']) if 's4' in row and pd.notnull(row['s4']) else None,
+                'r5': float(row['r5']) if 'r5' in row and pd.notnull(row['r5']) else None,
+                's5': float(row['s5']) if 's5' in row and pd.notnull(row['s5']) else None
             }
             chart_data.append(item)
             prev_time = curr_time

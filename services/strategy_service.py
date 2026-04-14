@@ -59,6 +59,124 @@ def run_pinned_strategy_logic(df):
     df['bear_trigger'] = df['ema_touch'] & (df['bear_engulf'] | df['evening_star'] | df['inv_red_hammer'] | df['red_hammer'])
     return df
 
+def run_sandbox_strategy_logic(df):
+    if df.empty: return df, []
+    
+    # Pre-calculate Indicators
+    df['ema10'] = calculate_ema(df, 10)
+    df['ema20'] = calculate_ema(df, 20)
+    df['dema100'] = calculate_dema(df, 100)
+    df = detect_candle_patterns(df)
+    
+    # 1. Load Manual Levels from JSON
+    manual_data = {}
+    json_path = os.path.join('data', 'manual_pivots.json')
+    if os.path.exists(json_path):
+        import json
+        with open(json_path, 'r') as f:
+            manual_data = json.load(f)
+
+    sym_key = 'NIFTY' if 'Nifty' in df.attrs.get('symbol', 'Nifty') else df.attrs.get('symbol', 'NIFTY')
+    
+    df = df.copy()
+    # Add columns for levels
+    for col in ['pdh', 'pdl', 'pdc', 'pp', 'r1', 's1', 'r2', 's2', 'r3', 's3', 'r4', 's4', 'r5', 's5']:
+        df[col] = np.nan
+
+    unique_dates = pd.Series(df.index.date).unique()
+    
+    for d in unique_dates:
+        d_str = d.strftime('%Y-%m-%d')
+        m_levels = None
+        if sym_key in manual_data and d_str in manual_data[sym_key]:
+            m_levels = manual_data[sym_key][d_str]
+        
+        mask = df.index.date == d
+        if m_levels:
+            day_indices = np.where(mask)[0]
+            active_levels = {k: False for k in m_levels.keys()}
+            
+            for idx in day_indices:
+                row = df.iloc[idx]
+                low, high = row['Low'], row['High']
+                
+                for k, val in m_levels.items():
+                    # If already active, keep filling
+                    if active_levels[k]:
+                        df.iloc[idx, df.columns.get_loc(k)] = val
+                    # If not active, check for touch (Key Candle)
+                    elif low <= val <= high:
+                        active_levels[k] = True
+                        df.iloc[idx, df.columns.get_loc(k)] = val
+        else:
+            # Explicitly skip/leave as NaN if manual data is missing
+            pass
+    
+    # 2. Logic state variables
+    touch_active = False
+    line_type = None 
+    hh_price = None; ll_price = None
+    active_green_zone = None; active_red_zone = None
+    
+    df['bull_trigger'] = False
+    df['bear_trigger'] = False
+    final_zones = []
+    level_cols = ['pp', 'r1', 's1', 'r2', 's2', 'r3', 's3', 'pdh', 'pdl', 'pdc']
+    
+    for i in range(len(df)):
+        row = df.iloc[i]
+        curr_time = df.index[i]
+        if i > 0 and df.index[i].date() != df.index[i-1].date():
+            touch_active = False; active_green_zone = None; active_red_zone = None; hh_price = None; ll_price = None
+
+        touched = False; current_line_type = None
+        low, high = row['Low'], row['High']
+        
+        for col in level_cols:
+            val = row[col]
+            if pd.notnull(val) and low <= val <= high:
+                touched = True
+                if col in ['r1', 'r2', 'r3']: current_line_type = 'RESISTANCE'
+                elif col in ['s1', 's2', 's3']: current_line_type = 'SUPPORT'
+                elif col == 'pp': current_line_type = 'CP'
+                elif col == 'pdh': current_line_type = 'PD_H'
+                elif col == 'pdl': current_line_type = 'PD_L'
+                elif col == 'pdc': current_line_type = 'PD_C'
+                break
+        
+        if touched:
+            if not touch_active:
+                touch_active = True
+                hh_price = high; ll_price = low
+                line_type = current_line_type
+            else:
+                hh_price = max(hh_price, high) if hh_price else high
+                ll_price = min(ll_price, low) if ll_price else low
+            
+        is_bullish = row['Close'] > row['Open']; is_bearish = row['Close'] < row['Open']
+        
+        if touch_active and is_bullish and line_type not in ['RESISTANCE', 'PD_H']:
+            active_green_zone = {'upper': high, 'lower': low}
+            touch_active = False
+            final_zones.append({'start_time': int(curr_time.timestamp()), 'end_time': int((curr_time + timedelta(minutes=45)).timestamp()), 'high': float(high), 'low': float(low), 'type': 'bull', 'size': float(high - low)})
+            
+        if touch_active and is_bearish and line_type not in ['SUPPORT', 'PD_L']:
+            active_red_zone = {'upper': high, 'lower': low}
+            touch_active = False
+            final_zones.append({'start_time': int(curr_time.timestamp()), 'end_time': int((curr_time + timedelta(minutes=45)).timestamp()), 'high': float(high), 'low': float(low), 'type': 'bear', 'size': float(high - low)})
+
+        if active_green_zone and row['Close'] > active_green_zone['upper']:
+            if i > 0 and df.iloc[i-1]['Close'] > df.iloc[i-1]['Open']:
+                df.iloc[i, df.columns.get_loc('bull_trigger')] = True
+                active_green_zone = None
+        
+        if active_red_zone and row['Close'] < active_red_zone['lower']:
+            if i > 0 and df.iloc[i-1]['Close'] < df.iloc[i-1]['Open']:
+                df.iloc[i, df.columns.get_loc('bear_trigger')] = True
+                active_red_zone = None
+
+    return df, final_zones
+
 def resample_ohlc(df, timeframe):
     if timeframe == '1m': return df
     freq = timeframe.replace('m', 'min').replace('M', 'min')
@@ -91,17 +209,17 @@ def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     return pd.DataFrame(all_data).set_index('Datetime')
 
 @functools.lru_cache(maxsize=128)
-def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source):
-    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe}")
-    return _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source)
+def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type='Arsalan Continuation'):
+    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe} ({strategy_type})")
+    return _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type)
 
-def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid=''):
+def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid='', strategy_type='Arsalan Continuation'):
     st = time.time()
-    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source)
+    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type)
     print(f"DEBUG: get_nifty_data took {time.time()-st:.4f}s")
     return res
 
-def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance'):
+def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', strategy_type='Arsalan Continuation'):
     df = pd.DataFrame()
     today_str = datetime.now().strftime('%Y-%m-%d')
     # Use cached CSV loader for speed
@@ -141,23 +259,32 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
     df = df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     if df.index.tz is not None: df.index = df.index.tz_convert('Asia/Kolkata').tz_localize(None)
     
-    df_all = run_pinned_strategy_logic(df)
+    df_all = df
+    zones = []
+    
+    if strategy_type == 'Arsalan Sandbox':
+        df_all, strategy_zones = run_sandbox_strategy_logic(df)
+        zones = strategy_zones
+    else:
+        df_all = run_pinned_strategy_logic(df)
+
     start_ts = pd.to_datetime(start_date); end_ts = pd.to_datetime(end_date) + timedelta(days=1)
     df_filtered = df_all[(df_all.index >= start_ts) & (df_all.index < end_ts)]
     df_filtered = df_filtered.between_time('09:14', '15:31') 
     df_filtered = df_filtered[df_filtered.index.strftime('%H:%M') >= '09:15']
 
-    zones = []
-    if not df_filtered.empty:
-        for i in range(len(df_filtered)):
-            if df_filtered['bull_trigger'].iloc[i] or df_filtered['bear_trigger'].iloc[i]:
-                z_type = 'bull' if df_filtered['bull_trigger'].iloc[i] else 'bear'
-                end_idx = min(i+10, len(df_filtered)-1)
-                zones.append({
-                    'start_time': int(df_filtered.index[i].timestamp()), 'end_time': int(df_filtered.index[end_idx].timestamp()),
-                    'high': float(df_filtered['High'].iloc[i]), 'low': float(df_filtered['Low'].iloc[i]),
-                    'type': z_type, 'size': float(df_filtered['High'].iloc[i] - df_filtered['Low'].iloc[i])
-                })
+    if strategy_type != 'Arsalan Sandbox':
+        if not df_filtered.empty:
+            for i in range(len(df_filtered)):
+                if df_filtered['bull_trigger'].iloc[i] or df_filtered['bear_trigger'].iloc[i]:
+                    z_type = 'bull' if df_filtered['bull_trigger'].iloc[i] else 'bear'
+                    end_idx = min(i+10, len(df_filtered)-1)
+                    zones.append({
+                        'start_time': int(df_filtered.index[i].timestamp()), 'end_time': int(df_filtered.index[end_idx].timestamp()),
+                        'high': float(df_filtered['High'].iloc[i]), 'low': float(df_filtered['Low'].iloc[i]),
+                        'type': z_type, 'size': float(df_filtered['High'].iloc[i] - df_filtered['Low'].iloc[i])
+                    })
+    
     return df_filtered, zones
 
 def get_real_trades(start_date, end_date, symbol=None):
