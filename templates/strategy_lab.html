@@ -459,12 +459,17 @@
                     if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
                     else instClean = instClean.split(' ').pop();
                     
-                    const shape = rt.type === 'CE' || rt.type === 'CALL' ? 'arrowUp' : 'arrowDown';
-                    const position = rt.type === 'CE' || rt.type === 'CALL' ? 'belowBar' : 'aboveBar';
-                    const rtColor = (rt.type === 'CE' || rt.type === 'CALL') ? '#26a69a' : '#ef5350';
+                    const isCE = instClean.toUpperCase().includes('CE') || instClean.toUpperCase().includes('CALL');
+                    const shape = isCE ? 'arrowDown' : 'arrowUp';
+                    const position = isCE ? 'aboveBar' : 'belowBar';
+                    const rtColor = isCE ? '#f9a825' : '#ef5350';
                     
                     rtMarkers.push({
-                        time: ep.time, position, color: rtColor, shape, size: 2,
+                        time: ep.time, 
+                        position, 
+                        color: rtColor, 
+                        shape, 
+                        size: 2,
                         text: `${instClean} [${duration}m] ${rt.qty}L (₹${Math.round(rt.pl)})`
                     });
                 });
