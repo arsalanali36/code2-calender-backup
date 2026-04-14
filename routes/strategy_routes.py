@@ -4,6 +4,8 @@ import pandas as pd
 import pytz
 import calendar
 import traceback
+import os
+import json
 
 strategy_bp = Blueprint('strategy', __name__)
 
@@ -35,7 +37,6 @@ def nifty_data():
         
         prev_time = None
         for idx, row in df_reset.iterrows():
-            # Treat naive IST as UTC for fixed display
             dt = row[time_col].replace(tzinfo=None)
             curr_time = calendar.timegm(dt.timetuple())
             
@@ -47,7 +48,6 @@ def nifty_data():
                 'close': float(row['Close']),
                 'ema10': float(row['ema10']) if pd.notnull(row['ema10']) else None,
                 'ema20': float(row['ema20']) if pd.notnull(row['ema20']) else None,
-                # Sandbox Levels
                 'pdh': float(row['pdh']) if 'pdh' in row and pd.notnull(row['pdh']) else None,
                 'pdl': float(row['pdl']) if 'pdl' in row and pd.notnull(row['pdl']) else None,
                 'pdc': float(row['pdc']) if 'pdc' in row and pd.notnull(row['pdc']) else None,
@@ -62,7 +62,6 @@ def nifty_data():
                 's4': float(row['s4']) if 's4' in row and pd.notnull(row['s4']) else None,
                 'r5': float(row['r5']) if 'r5' in row and pd.notnull(row['r5']) else None,
                 's5': float(row['s5']) if 's5' in row and pd.notnull(row['s5']) else None,
-                # Pattern Flags
                 'green_hammer': bool(row['green_hammer']) if 'green_hammer' in row else False,
                 'red_hammer': bool(row['red_hammer']) if 'red_hammer' in row else False,
                 'inv_red_hammer': bool(row['inv_red_hammer']) if 'inv_red_hammer' in row else False,
@@ -100,9 +99,7 @@ def get_sync_tasks_route():
     from services.dhan_service import get_sync_tasks
     s = request.args.get('start_date')
     e = request.args.get('end_date')
-    print(f"DEBUG SYNC: Received start_date={s}, end_date={e}")
     tasks = get_sync_tasks(start_date=s, end_date=e)
-    print(f"DEBUG SYNC: Returning {len(tasks)} tasks")
     return jsonify(tasks)
 
 @strategy_bp.route('/api/strategy/sync-single', methods=['POST'])
@@ -110,9 +107,7 @@ def sync_single_route():
     from services.dhan_service import sync_single_task
     data = request.json
     sym = data.get('symbol')
-    dt = data.get('end_date') or data.get('date') # Use the trade date
-    
-    # Pass session creds if provided
+    dt = data.get('end_date') or data.get('date')
     cid = data.get('dhan_cid')
     token = data.get('dhan_token')
     
@@ -121,8 +116,38 @@ def sync_single_route():
         config = None
         if cid and token:
             config = {'client_id': cid, 'access_token': token}
-            
         synced, errors = sync_single_task(sym, dt, config=config)
         return jsonify({'status': 'success', 'synced': synced, 'errors': errors})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@strategy_bp.route('/api/strategy/pivot-levels', methods=['GET'])
+def get_pivot_levels():
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify({"error": "Date is required"}), 400
+    levels_path = os.path.join('data', 'daily_pivot_levels.json')
+    if not os.path.exists(levels_path):
+        return jsonify({})
+    with open(levels_path, 'r', encoding='utf-8') as f:
+        all_levels = json.load(f)
+    return jsonify(all_levels.get(date_str, {}))
+
+@strategy_bp.route('/api/strategy/pivot-levels', methods=['POST'])
+def save_pivot_levels():
+    data = request.json
+    date_str = data.get('date')
+    levels = data.get('levels')
+    if not date_str or not levels:
+        return jsonify({"error": "Date and levels are required"}), 400
+    levels_path = os.path.join('data', 'daily_pivot_levels.json')
+    if os.path.exists(levels_path):
+        with open(levels_path, 'r', encoding='utf-8') as f:
+            all_levels = json.load(f)
+    else:
+        all_levels = {}
+    all_levels[date_str] = levels
+    os.makedirs('data', exist_ok=True)
+    with open(levels_path, 'w', encoding='utf-8') as f:
+        json.dump(all_levels, f, indent=4)
+    return jsonify({"status": "OK"})

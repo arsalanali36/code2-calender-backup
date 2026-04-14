@@ -347,16 +347,20 @@ def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
 
 def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid='', strategy_type='Arsalan Continuation', strategy_params=None):
     st = time.time()
+    # Cache invalidation via pivot file mtime
+    pivot_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'daily_pivot_levels.json')
+    pivot_mtime = os.path.getmtime(pivot_path) if os.path.exists(pivot_path) else 0
+    
     # Convert dict to string for caching
     params_str = json.dumps(strategy_params, sort_keys=True) if strategy_params else "{}"
-    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str)
+    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime)
     print(f"DEBUG: get_nifty_data took {time.time()-st:.4f}s")
     return res
 
 @functools.lru_cache(maxsize=128)
-def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str):
+def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime):
     params = json.loads(params_str) if params_str else {}
-    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe} ({strategy_type})")
+    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe} ({strategy_type}) - Pivot MTime: {pivot_mtime}")
     return _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params)
 
 def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', strategy_type='Arsalan Continuation', strategy_params=None):

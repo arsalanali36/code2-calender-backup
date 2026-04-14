@@ -103,6 +103,8 @@
                     <button class="nav-btn" id="sync-all-btn" style="border-color:#10b981; color:#10b981; font-weight:700;" title="Sync All Instruments from Trades">SYNC DATA</button>
                     <button class="nav-btn" id="relogin-btn" style="border-color:#ef4444; color:#ef4444; font-size:10px; padding:2px 4px;">RE-LOGIN</button>
                     <button class="nav-btn" id="open-trades-modal-btn" style="border-color:#f9a825; color:#f9a825; font-weight:600;">REAL TRADES</button>
+                    <button class="nav-btn" onclick="showEquityCurve()" style="border-color:#ec4899; color:#ec4899; font-weight:700;" title="Day Equity Curve (MTM)">📈 MTM</button>
+                    <button class="nav-btn" onclick="openPivotModal()" style="border-color:#6366f1; color:#6366f1; font-weight:600;" title="Manual Pivot Editor">🛠️ PIVOTS</button>
                     <button class="nav-btn" id="batch-export-btn">Batch Export</button>
                     <a href="/" class="nav-btn" style="text-decoration:none;">Home</a>
                 </div>
@@ -115,6 +117,7 @@
                             <button class="tf-btn" onclick="switchTF('main', '1m')">1</button>
                             <button class="tf-btn active" onclick="switchTF('main', '3m')">3</button>
                             <button class="tf-btn" onclick="switchTF('main', '5m')">5</button>
+                            <button class="tf-btn" id="lock-btn-main" onclick="toggleLockRatio('main')" title="Lock Price to Bar Ratio" style="margin-left:5px; border-color:#6366f1; color:#6366f1;">🔒</button>
                         </div>
                     </div>
                     <div id="chart-main"></div>
@@ -126,6 +129,7 @@
                             <button class="tf-btn" onclick="switchTF('opt', '1m')">1</button>
                             <button class="tf-btn active" onclick="switchTF('opt', '3m')">3</button>
                             <button class="tf-btn" onclick="switchTF('opt', '5m')">5</button>
+                            <button class="tf-btn" id="lock-btn-opt" onclick="toggleLockRatio('opt')" title="Lock Price to Bar Ratio" style="margin-left:5px; border-color:#6366f1; color:#6366f1;">🔒</button>
                         </div>
                     </div>
                     <div id="chart-opt"></div>
@@ -212,6 +216,76 @@
         let pdhOpt, pdlOpt, pdcOpt, ppOpt, r1Opt, s1Opt, r2Opt, s2Opt, r3Opt, s3Opt, r4Opt, s4Opt, r5Opt, s5Opt;
         let zonesMain = [], tradesMain = [], zonesOpt = [], tradesOpt = [];
         let zoneSeriesMain = [], tradeSeriesMain = [], zoneSeriesOpt = [], tradeSeriesOpt = [];
+        let lastStrategyData = { realTrades: [] };
+        let loadedRealTrades = [];
+
+        const lockStates = { main: false, opt: false };
+        const lockRatios = { main: null, opt: null };
+
+        function toggleLockRatio(target) {
+            const chart = target === 'main' ? chartMain : chartOpt;
+            const container = document.getElementById(`chart-${target}`);
+            const btn = document.getElementById(`lock-btn-${target}`);
+            lockStates[target] = !lockStates[target];
+            
+            if (lockStates[target]) {
+                btn.classList.add('active');
+                btn.style.background = '#6366f1';
+                btn.style.color = '#fff';
+                
+                const pScale = chart.priceScale('right');
+                const pRange = pScale.priceRange();
+                const tScale = chart.timeScale();
+                const tRange = tScale.getVisibleRange();
+                
+                if (pRange && tRange) {
+                    const priceSpan = pRange.to - pRange.from;
+                    const timeSpan = tRange.to - tRange.from;
+                    lockRatios[target] = priceSpan / timeSpan;
+                }
+                
+                // Allow Scaling via Wheel (X), but disable dragging/axis-panning
+                chart.applyOptions({
+                    handleScroll: { mouseWheel: false, pressedMouseMove: false },
+                    handleScale: { mouseWheel: true, axisPressedMouseMove: false }
+                });
+                pScale.applyOptions({ autoScale: false });
+            } else {
+                btn.classList.remove('active');
+                btn.style.background = '';
+                btn.style.color = '#6366f1';
+                
+                // Restore defaults
+                chart.applyOptions({
+                    handleScroll: { mouseWheel: true, pressedMouseMove: true },
+                    handleScale: { mouseWheel: true, axisPressedMouseMove: true }
+                });
+                chart.priceScale('right').applyOptions({ autoScale: true });
+                lockRatios[target] = null;
+            }
+        }
+
+        function handleTimeScaleChange(target) {
+            if (!lockStates[target] || !lockRatios[target]) return;
+            const chart = target === 'main' ? chartMain : chartOpt;
+            const tRange = chart.timeScale().getVisibleRange();
+            if (!tRange) return;
+            
+            const timeSpan = tRange.to - tRange.from;
+            const targetPriceSpan = timeSpan * lockRatios[target];
+            const pScale = chart.priceScale('right');
+            const pRange = pScale.priceRange();
+            if (!pRange) return;
+            
+            const mid = (pRange.from + pRange.to) / 2;
+            pScale.applyOptions({
+                autoScale: false,
+                priceRange: {
+                    from: mid - (targetPriceSpan / 2),
+                    to: mid + (targetPriceSpan / 2)
+                }
+            });
+        }
 
         function initChart() {
             const setup = (id) => {
@@ -262,6 +336,9 @@
             chartOpt = o.c; candleOpt = o.candle; ema10Opt = o.e10; ema20Opt = o.e20; markerOpt = o.marker;
             pdhOpt = o.pdh; pdlOpt = o.pdl; pdcOpt = o.pdc; ppOpt = o.pp; r1Opt = o.r1; s1Opt = o.s1; r2Opt = o.r2; s2Opt = o.s2; r3Opt = o.r3; s3Opt = o.s3;
             r4Opt = o.r4; s4Opt = o.s4; r5Opt = o.r5; s5Opt = o.s5;
+
+            chartMain.timeScale().subscribeVisibleTimeRangeChange(() => handleTimeScaleChange('main'));
+            chartOpt.timeScale().subscribeVisibleTimeRangeChange(() => handleTimeScaleChange('opt'));
         }
 
         function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
@@ -364,6 +441,8 @@
                 const chartData = dataRaw.chart_data;
                 const zones = dataRaw.zones;
                 const realTrades = dataRaw.real_trades || [];
+                lastStrategyData.realTrades = realTrades;
+                loadedRealTrades = realTrades;
 
                 const visibleData = chartData.filter(d => !d.is_gap);
                 if (!visibleData.length) return false;
@@ -384,7 +463,8 @@
 
                 // Update Static Levels
                 const strategy = document.getElementById('strategy-select').value;
-                const showLevels = strategy === 'Arsalan Sandbox' || strategy === 'Arsalan Reversal';
+                // ONLY show levels and strategy markers on MAIN chart, not OPTION chart
+                const showLevels = (!isOpt) && (strategy === 'Arsalan Sandbox' || strategy === 'Arsalan Reversal');
                 
                 const targetLvl = isOpt ? { pdh: pdhOpt, pdl: pdlOpt, pdc: pdcOpt, pp: ppOpt, r1: r1Opt, s1: s1Opt, r2: r2Opt, s2: s2Opt, r3: r3Opt, s3: s3Opt, r4: r4Opt, s4: s4Opt, r5: r5Opt, s5: s5Opt } 
                                        : { pdh: pdhMain, pdl: pdlMain, pdc: pdcMain, pp: ppMain, r1: r1Main, s1: s1Main, r2: r2Main, s2: s2Main, r3: r3Main, s3: s3Main, r4: r4Main, s4: s4Main, r5: r5Main, s5: s5Main };
@@ -409,44 +489,38 @@
                 const zMarkers = [];
                 const patternMarkers = [];
 
-                visibleData.forEach(d => {
-                    /*
-                    if (d.green_hammer || d.red_hammer) {
-                        patternMarkers.push({ time: d.time, position: 'belowBar', color: d.green_hammer ? '#22c55e' : '#ef4444', shape: 'arrowUp', text: d.green_hammer ? '🔨G' : '🔨R' });
-                    }
-                    if (d.inv_red_hammer) {
-                        patternMarkers.push({ time: d.time, position: 'aboveBar', color: '#7f1e1e', shape: 'arrowDown', text: '🔨ᶦ' });
-                    }
-                    */
-                    // Entry Signals
-                    if (d.bull_trigger) {
-                        patternMarkers.push({ time: d.time, position: 'belowBar', color: '#26a69a', shape: 'arrowUp', size: 2, text: 'ENTRY-L' });
-                    }
-                    if (d.bear_trigger) {
-                        patternMarkers.push({ time: d.time, position: 'aboveBar', color: '#ffa726', shape: 'arrowDown', size: 2, text: 'ENTRY-S' });
-                    }
-                });
+                if (!isOpt) {
+                    visibleData.forEach(d => {
+                        // Entry Signals
+                        if (d.bull_trigger) {
+                            patternMarkers.push({ time: d.time, position: 'belowBar', color: '#26a69a', shape: 'arrowUp', size: 2, text: 'ENTRY-L' });
+                        }
+                        if (d.bear_trigger) {
+                            patternMarkers.push({ time: d.time, position: 'aboveBar', color: '#ffa726', shape: 'arrowDown', size: 2, text: 'ENTRY-S' });
+                        }
+                    });
 
-                zones.forEach(zone => {
-                    const zoneTimes = chartData.map(d => d.time).filter(t => t >= zone.start_time && t <= zone.end_time);
-                    if (zoneTimes.length < 2) return;
-                    const color = zone.type === 'bull' ? 'rgba(38, 166, 154, 0.4)' : 'rgba(211, 47, 47, 0.4)';
-                    const u = targetChart.addLineSeries({ color, lineWidth: 3, priceLineVisible: false, lastValueVisible: false });
-                    const l = targetChart.addLineSeries({ color, lineWidth: 3, priceLineVisible: false, lastValueVisible: false });
-                    u.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
-                    l.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
-                    
-                    // Add Size Label at the end of the zone
-                    u.setMarkers([{
-                        time: zoneTimes[zoneTimes.length - 1],
-                        position: 'inBar',
-                        color: zone.type === 'bull' ? '#00695c' : '#c62828',
-                        shape: 'circle',
-                        size: 0,
-                        text: Math.round(zone.high - zone.low).toString()
-                    }]);
-                    if (isOpt) zoneSeriesOpt.push(u, l); else zoneSeriesMain.push(u, l);
-                });
+                    zones.forEach(zone => {
+                        const zoneTimes = chartData.map(d => d.time).filter(t => t >= zone.start_time && t <= zone.end_time);
+                        if (zoneTimes.length < 2) return;
+                        const color = zone.type === 'bull' ? 'rgba(38, 166, 154, 0.4)' : 'rgba(211, 47, 47, 0.4)';
+                        const u = targetChart.addLineSeries({ color, lineWidth: 3, priceLineVisible: false, lastValueVisible: false });
+                        const l = targetChart.addLineSeries({ color, lineWidth: 3, priceLineVisible: false, lastValueVisible: false });
+                        u.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
+                        l.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
+                        
+                        // Add Size Label at the end of the zone
+                        u.setMarkers([{
+                            time: zoneTimes[zoneTimes.length - 1],
+                            position: 'inBar',
+                            color: zone.type === 'bull' ? '#00695c' : '#c62828',
+                            shape: 'circle',
+                            size: 0,
+                            text: Math.round(zone.high - zone.low).toString()
+                        }]);
+                        zoneSeriesMain.push(u, l);
+                    });
+                }
 
                 const rtMarkers = [];
                 realTrades.forEach(rt => {
@@ -462,7 +536,7 @@
                     const isCE = instClean.toUpperCase().includes('CE') || instClean.toUpperCase().includes('CALL');
                     const shape = isCE ? 'arrowDown' : 'arrowUp';
                     const position = isCE ? 'aboveBar' : 'belowBar';
-                    const rtColor = isCE ? '#f9a825' : '#ef5350';
+                    const rtColor = isCE ? '#f9a825' : '#9c27b0';
                     
                     rtMarkers.push({
                         time: ep.time, 
@@ -536,15 +610,18 @@
                 await runStrategy(false, true); 
                 await runStrategy(true); 
                 
-                // Zoom into the actual trade date on both charts
-                const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
-                setTimeout(() => {
-                    const range = { from: tradeTs - 3600, to: tradeTs + 25200 }; // Focus on trading hours
-                    chartMain.timeScale().setVisibleRange(range);
-                    chartOpt.timeScale().setVisibleRange(range);
-                }, 100);
             }
             document.getElementById('history-modal').style.display = 'none';
+
+            // Common Zoom into market hours for both Index and Option
+            const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
+            setTimeout(() => {
+                const from = tradeTs + (9 * 3600); // 09:00 AM
+                const to = tradeTs + (16 * 3600);   // 04:00 PM
+                const range = { from, to };
+                chartMain.timeScale().setVisibleRange(range);
+                if (chartOpt) chartOpt.timeScale().setVisibleRange(range);
+            }, 300);
         }
 
         function toggleDualView() {
@@ -667,6 +744,110 @@
 
         // Prevent closing when clicking inside sidebar
         document.getElementById('sidebar').onclick = (e) => e.stopPropagation();
+
+        window.resetChart = async function() {
+            await fetchAndDrawStrategyData();
+            if (chartMain) chartMain.timeScale().fitContent();
+        }
+
+        let equityChart = null;
+        window.showEquityCurve = function() {
+            const modal = document.getElementById('equity-curve-modal');
+            modal.style.display = 'flex';
+            
+            const trades = lastStrategyData.realTrades || [];
+            if (trades.length === 0) {
+                alert("No real trades found for this range.");
+                // modal.style.display = 'none';
+                // return;
+            }
+
+            // Calculate Cumulative MTM
+            const sortedTrades = [...trades].sort((a, b) => a.entry_time - b.entry_time);
+            let runningPL = 0;
+            const data = [];
+            
+            // Initial point
+            if (sortedTrades.length > 0) {
+                data.push({ time: sortedTrades[0].entry_time - 300, value: 0 });
+            } else {
+                data.push({ time: Math.floor(Date.now()/1000) - 3600, value: 0 });
+            }
+
+            sortedTrades.forEach(t => {
+                runningPL += (t.pl || 0);
+                data.push({ time: t.entry_time, value: runningPL });
+            });
+
+            const totalPL = Math.round(runningPL);
+            const mtmDisplay = document.getElementById('mtm-total-display');
+            mtmDisplay.innerText = (totalPL >= 0 ? '+' : '') + totalPL.toLocaleString();
+            mtmDisplay.style.color = totalPL >= 0 ? '#10b981' : '#ef4444';
+            document.getElementById('mtm-count-text').innerText = trades.length;
+
+            // Initialize or update chart
+            setTimeout(() => {
+                const container = document.getElementById('equity-chart');
+                if (!equityChart) {
+                    equityChart = LightweightCharts.createChart(container, {
+                        layout: { backgroundColor: 'transparent', textColor: '#666' },
+                        grid: { vertLines: { color: '#222' }, horzLines: { color: '#222' } },
+                        timeScale: { borderColor: '#333', timeVisible: true, secondsVisible: false },
+                        priceScale: { borderColor: '#333' }
+                    });
+                    const lineSeries = equityChart.addLineSeries({
+                        color: '#ef4444', 
+                        lineWidth: 3,
+                        lineType: 0,
+                        lastValueVisible: false,
+                        priceLineVisible: false
+                    });
+                    equityChart.lineSeries = lineSeries;
+                    
+                    const areaSeries = equityChart.addAreaSeries({
+                        topColor: 'rgba(239, 68, 68, 0.4)',
+                        bottomColor: 'rgba(239, 68, 68, 0)',
+                        lineVisible: false,
+                        lastValueVisible: false,
+                        priceLineVisible: false
+                    });
+                    equityChart.areaSeries = areaSeries;
+                }
+
+                const color = totalPL >= 0 ? '#10b981' : '#ef4444';
+                const areaTop = totalPL >= 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+                
+                equityChart.lineSeries.applyOptions({ color: color });
+                equityChart.areaSeries.applyOptions({ topColor: areaTop });
+
+                equityChart.lineSeries.setData(data);
+                equityChart.areaSeries.setData(data);
+                
+                // Add Markers for Peak and Low
+                const peak = Math.max(...data.map(d => d.value));
+                const low = Math.min(...data.map(d => d.value));
+                const peakPoint = data.find(d => d.value === peak);
+                const lowPoint = data.find(d => d.value === low);
+
+                const markers = [];
+                if (peakPoint && data.length > 2) markers.push({ time: peakPoint.time, position: 'aboveBar', color: '#10b981', shape: 'arrowDown', text: 'PEAK: ' + Math.round(peak) });
+                if (lowPoint && data.length > 2) markers.push({ time: lowPoint.time, position: 'belowBar', color: '#ef4444', shape: 'arrowUp', text: 'LOW: ' + Math.round(low) });
+                equityChart.lineSeries.setMarkers(markers);
+
+                // Add Click Handler to jump to trade on main chart
+                equityChart.subscribeClick(param => {
+                    if (param.time) {
+                        const targetTrade = sortedTrades.find(t => t.entry_time === param.time);
+                        if (targetTrade) {
+                            window.jumpToTrade(targetTrade.entry_time);
+                            modal.style.display = 'none';
+                        }
+                    }
+                });
+
+                equityChart.timeScale().fitContent();
+            }, 100);
+        }
 
         async function syncAllData(silent = false) {
             const btn = document.getElementById('sync-all-btn');
@@ -796,6 +977,141 @@
             // Auto-sync in background on load
             syncAllData(true);
         });
+
+        window.openPivotModal = function() {
+            document.getElementById('pivot-modal').style.display = 'flex';
+            document.getElementById('pivot-edit-date').value = document.getElementById('start-date').value;
+            loadPivotsForDate();
+        };
+
+        window.loadPivotsForDate = async function() {
+            const date = document.getElementById('pivot-edit-date').value;
+            if (!date) return;
+            const res = await fetch(`/api/strategy/pivot-levels?date=${date}`);
+            const levels = await res.json();
+            
+            const fields = ['pdh','pdc','pdl','pp','r1','r2','r3','r4','r5','s1','s2','s3','s4','s5'];
+            fields.forEach(f => {
+                const el = document.getElementById(`inp-${f}`);
+                if (el) el.value = levels[f] || '';
+            });
+        };
+
+        window.savePivots = async function() {
+            const date = document.getElementById('pivot-edit-date').value;
+            if (!date) { alert("Please select a date"); return; }
+            
+            const fields = ['pdh','pdc','pdl','pp','r1','r2','r3','r4','r5','s1','s2','s3','s4','s5'];
+            const levels = {};
+            fields.forEach(f => {
+                const val = document.getElementById(`inp-${f}`).value;
+                levels[f] = val ? parseFloat(val) : null;
+            });
+            
+            const res = await fetch('/api/strategy/pivot-levels', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, levels })
+            });
+            
+            if (res.ok) {
+                alert("Pivot levels saved successfully!");
+                document.getElementById('pivot-modal').style.display = 'none';
+                runStrategy(); 
+            } else {
+                alert("Failed to save levels.");
+            }
+        };
+
+        window.autoFillFromPaste = function() {
+            const text = document.getElementById('pivot-bulk-paste').value;
+            if (!text) return;
+            
+            const mapping = {
+                'pdh': /NIFTY_PD_H\s*=\s*([\d.]+)/,
+                'pdc': /NIFTY_PD_C\s*=\s*([\d.]+)/,
+                'pdl': /NIFTY_PD_L\s*=\s*([\d.]+)/,
+                'pp': /NIFTY_CP\s*=\s*([\d.]+)/,
+                'r5': /NIFTY_R5\s*=\s*([\d.]+)/,
+                'r4': /NIFTY_R4\s*=\s*([\d.]+)/,
+                'r3': /NIFTY_R3\s*=\s*([\d.]+)/,
+                'r2': /NIFTY_R2\s*=\s*([\d.]+)/,
+                'r1': /NIFTY_R1\s*=\s*([\d.]+)/,
+                's1': /NIFTY_S1\s*=\s*([\d.]+)/,
+                's2': /NIFTY_S2\s*=\s*([\d.]+)/,
+                's3': /NIFTY_S3\s*=\s*([\d.]+)/,
+                's4': /NIFTY_S4\s*=\s*([\d.]+)/,
+                's5': /NIFTY_S5\s*=\s*([\d.]+)/
+            };
+            
+            Object.keys(mapping).forEach(key => {
+                const match = text.match(mapping[key]);
+                if (match && match[1]) {
+                    document.getElementById(`inp-${key}`).value = match[1];
+                }
+            });
+            alert("Auto-Fill complete! Check the boxes above before saving.");
+        };
+
+        document.getElementById('close-pivot-modal').onclick = () => document.getElementById('pivot-modal').style.display = 'none';
     </script>
+    <!-- Pivot Editor Modal -->
+    <div class="modal-overlay" id="pivot-modal" style="background: rgba(0,0,0,0.85); display:none; z-index: 9999;">
+        <div style="width: 600px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #ddd;">
+            <div style="padding: 15px 20px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">🛠️</span>
+                    <h2 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 700;">Manual Pivot Level Editor</h2>
+                </div>
+                <div id="close-pivot-modal" style="cursor:pointer; font-size:24px; color:#94a3b8;">&times;</div>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                    <label style="font-weight: 600; font-size: 13px;">Date:</label>
+                    <input type="date" id="pivot-edit-date" class="nav-btn" style="flex:1;">
+                    <button onclick="loadPivotsForDate()" class="nav-btn" style="background: #e2e8f0;">Load</button>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_PD_H</label><input type="number" id="inp-pdh" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_PD_C</label><input type="number" id="inp-pdc" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_PD_L</label><input type="number" id="inp-pdl" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_CP (PP)</label><input type="number" id="inp-pp" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R5</label><input type="number" id="inp-r5" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S5</label><input type="number" id="inp-s5" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R4</label><input type="number" id="inp-r4" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S4</label><input type="number" id="inp-s4" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R3</label><input type="number" id="inp-r3" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S3</label><input type="number" id="inp-s3" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R2</label><input type="number" id="inp-r2" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S2</label><input type="number" id="inp-s2" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R1</label><input type="number" id="inp-r1" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S1</label><input type="number" id="inp-s1" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
+                    <label style="font-size:11px; font-weight:700; color:#6366f1;">BULK PASTE AREA (Paste your list here):</label>
+                    <textarea id="pivot-bulk-paste" placeholder="NIFTY_PD_H = 24074.05&#10;NIFTY_PD_C = 24050.6..." style="width:100%; height:80px; font-size:11px; font-family:monospace; margin-top:5px; padding:8px; border:1px solid #ddd; border-radius:4px;"></textarea>
+                    <button onclick="autoFillFromPaste()" class="nav-btn" style="width:100%; margin-top:5px; background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;">⚡ AUTO-FILL FROM PASTE</button>
+                </div>
+            </div>
+            <div style="padding: 15px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="document.getElementById('pivot-modal').style.display='none'" class="nav-btn" style="border:none; background:transparent;">Cancel</button>
+                <button onclick="savePivots()" class="nav-btn" style="background:#6366f1; color:#fff; border:none; padding:8px 25px; font-weight:700;">SAVE LEVELS</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
