@@ -560,22 +560,27 @@
                             });
                             
                             const tradeTrack = chartData.filter(d => d.time >= entryT && d.time <= exitT);
-                            if (tradeTrack.length >= 2) {
-                                const totalSteps = tradeTrack.length - 1;
-                                tSeries.setData(tradeTrack.map((d, index) => ({
-                                    time: d.time,
-                                    value: entryP + (exitP - entryP) * (index / totalSteps)
-                                })));
+                            if (tradeTrack.length >= 1) {
+                                if (tradeTrack.length === 1) {
+                                    tSeries.setData([{ time: tradeTrack[0].time, value: entryP }, { time: tradeTrack[0].time + 60, value: exitP }]);
+                                } else {
+                                    const totalSteps = tradeTrack.length - 1 || 1;
+                                    tSeries.setData(tradeTrack.map((d, index) => ({
+                                        time: d.time,
+                                        value: entryP + (exitP - entryP) * (index / totalSteps)
+                                    })));
+                                }
                                 tradeSeriesOpt.push(tSeries);
                                 
                                 rtMarkers.push({
                                     time: entryT, position: isCE ? 'aboveBar' : 'belowBar',
-                                    color: '#6366f1', shape: 'circle', size: 0, text: `IN: ${entryP}`
+                                    color: '#6366f1', shape: 'circle', size: 0, 
+                                    text: isOpt ? `IN: ${Math.round(entryP)}` : 'ENTRY'
                                 });
                                 rtMarkers.push({
                                     time: exitT, position: isCE ? 'aboveBar' : 'belowBar',
                                     color: rt.pl > 0 ? '#10b981' : '#ef4444', shape: 'circle', size: 1,
-                                    text: `OUT: ${exitP} (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})`
+                                    text: isOpt ? `OUT: ${Math.round(exitP)} (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})` : `EXIT (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})`
                                 });
                             }
                         } else {

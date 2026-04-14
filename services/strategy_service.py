@@ -468,7 +468,7 @@ def get_real_trades(start_date, end_date, symbol=None):
                         'entry_price': entry_p,
                         'exit_price': exit_p,
                         'type': tr_type.upper(), 
-                        'instrument': t.get('Instrument', ''), 
+                        'instrument': inst, 
                         'pl': float(t.get('Net P/L', 0)), 
                         'qty': int(t.get('Quantity', 0) if 'Quantity' in t else t.get('Qty', 0))
                     })
