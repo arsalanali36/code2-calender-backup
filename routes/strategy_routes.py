@@ -39,27 +39,6 @@ def nifty_data():
             dt = row[time_col].replace(tzinfo=None)
             curr_time = calendar.timegm(dt.timetuple())
             
-            # Use the is_gap flag from service, or manual gap detection
-            is_gap = row.get('is_gap', False)
-
-            # Manual gap detection if no flag
-            if not is_gap and prev_time and (curr_time - prev_time > 3600):
-                is_gap = True
-
-            if is_gap and prev_time:
-                # Terminate exactly 1 minute after previous day closes
-                gap_time = prev_time + 60
-                gap_item = {
-                    'time': gap_time,
-                    'ema10': None, 'ema20': None, 'dema100': None,
-                    'is_gap': True
-                }
-                # Add Sandbox level keys to gap to terminate lines
-                sandbox_keys = ['pdh', 'pdl', 'pdc', 'pp', 'r1', 'r2', 'r3', 'r4', 'r5', 's1', 's2', 's3', 's4', 's5']
-                for k in sandbox_keys:
-                    gap_item[k] = None
-                chart_data.append(gap_item)
-
             item = {
                 'time': curr_time,
                 'open': float(row['Open']),
@@ -68,7 +47,6 @@ def nifty_data():
                 'close': float(row['Close']),
                 'ema10': float(row['ema10']) if pd.notnull(row['ema10']) else None,
                 'ema20': float(row['ema20']) if pd.notnull(row['ema20']) else None,
-                'is_gap': is_gap,
                 # Sandbox Levels
                 'pdh': float(row['pdh']) if 'pdh' in row and pd.notnull(row['pdh']) else None,
                 'pdl': float(row['pdl']) if 'pdl' in row and pd.notnull(row['pdl']) else None,

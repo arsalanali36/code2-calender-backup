@@ -29,10 +29,10 @@ def calculate_ema(df, length):
     return df['Close'].ewm(span=length, adjust=False).mean()
 
 def detect_candle_patterns(df):
-    # Parameters from Arsalan_Reversal_NIFTY.txt
-    min_body_size = 0.5
+    # Parameters from Arsalan_Reversal_NIFTY.txt (Tightened to reduce noise)
+    min_body_size = 2.0
     wick_ratio = 2.5
-    prev_body_min_pts = 0.5
+    prev_body_min_pts = 2.0
 
     body = (df['Close'] - df['Open']).abs()
     is_green = df['Close'] > df['Open']
@@ -251,8 +251,10 @@ def run_reversal_strategy_logic(df, hawa_me_zone=False):
         # Load levels for THIS specific day
         levels = daily_levels_map.get(curr_date_str, default_levels)
         # Apply levels to dataframe columns for chart display
+        # Apply levels with sanity cap (Prevent 30k+ scaling bugs)
         for k, v in levels.items():
-            if k not in df.columns: df[k] = None # Ensure column exists
+            if k not in df.columns: df[k] = None
+            if v is not None and isinstance(v, (int, float)) and v > 30000: v = None
             df.iloc[i, df.columns.get_loc(k)] = v
         
         row = df.iloc[i]
@@ -370,6 +372,7 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
                 warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
                 mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
                 df = df_raw.loc[mask].rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
+                df = df[~df.index.duplicated(keep='first')]
         else:
             path = f"data/Historical_OHLC/Options/{symbol}.csv"
             if os.path.exists(path):
@@ -399,21 +402,21 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
     
     df_all = df
     zones = []
+    start_ts = pd.to_datetime(start_date); end_ts = pd.to_datetime(end_date) + timedelta(days=2)
+    df_filtered = df_all[(df_all.index >= start_ts) & (df_all.index < end_ts)]
+    df_filtered = df_filtered.sort_index()
     
+    if df_filtered.empty: return pd.DataFrame(), []
+
     if strategy_type == 'Arsalan Sandbox':
-        df_all, strategy_zones = run_sandbox_strategy_logic(df)
+        df_filtered, strategy_zones = run_sandbox_strategy_logic(df_filtered)
         zones = strategy_zones
     elif strategy_type == 'Arsalan Reversal':
         hawa = strategy_params.get('hawa_me_zone', False) if strategy_params else False
-        df_all, strategy_zones = run_reversal_strategy_logic(df, hawa_me_zone=hawa)
+        df_filtered, strategy_zones = run_reversal_strategy_logic(df_filtered, hawa_me_zone=hawa)
         zones = strategy_zones
     else:
-        df_all = run_pinned_strategy_logic(df)
-
-    start_ts = pd.to_datetime(start_date); end_ts = pd.to_datetime(end_date) + timedelta(days=1)
-    df_filtered = df_all[(df_all.index >= start_ts) & (df_all.index < end_ts)]
-    df_filtered = df_filtered.between_time('09:14', '15:31') 
-    df_filtered = df_filtered[df_filtered.index.strftime('%H:%M') >= '09:15']
+        df_filtered = run_pinned_strategy_logic(df_filtered)
 
     if strategy_type != 'Arsalan Sandbox':
         if not df_filtered.empty:

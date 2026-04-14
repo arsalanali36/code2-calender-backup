@@ -62,9 +62,9 @@
                     <label class="setting-item" style="margin:0;">STRATEGY</label>
                 </div>
                 <select id="strategy-select" class="nav-btn" style="width:100%;">
-                    <option value="Arsalan Continuation" selected>Arsalan Continuation</option>
+                    <option value="Arsalan Continuation">Arsalan Continuation</option>
                     <option value="Arsalan Sandbox">Arsalan Sandbox</option>
-                    <option value="Arsalan Reversal">Arsalan Reversal</option>
+                    <option value="Arsalan Reversal" selected>Arsalan Reversal</option>
                 </select>
                 
                 <!-- Strategy Internal Logic Toggles (Pine Script Port) -->
@@ -94,7 +94,8 @@
             <div class="loading-overlay" id="loader">Running Strategy...</div>
             <div class="nav-controls">
                 <button class="nav-btn" id="prev-day-btn">◀</button>
-                <button class="nav-btn" id="fit-btn" style="font-weight:600;">FIT VIEW</button>
+                <button id="fit-btn" title="Fit View" style="padding:4px 8px; border:1px solid #e2e8f0; border-radius:4px; background:#f8fafc; cursor:pointer;">⛶</button>
+                <button id="reset-btn" title="Reset Chart" style="padding:4px 8px; border:1px solid #e2e8f0; border-radius:4px; background:#f8fafc; cursor:pointer;">↺</button>
                 <button class="nav-btn" id="next-day-btn">▶</button>
                 <button class="nav-btn" id="dual-view-btn" style="margin-left:10px; border-color:#8b5cf6; color:#8b5cf6; font-weight:700;">DUAL VIEW: OFF</button>
                 <div style="margin-left:auto; display:flex; gap:10px;">
@@ -409,13 +410,14 @@
                 const patternMarkers = [];
 
                 visibleData.forEach(d => {
-                    // One marker for Hammers
+                    /*
                     if (d.green_hammer || d.red_hammer) {
                         patternMarkers.push({ time: d.time, position: 'belowBar', color: d.green_hammer ? '#22c55e' : '#ef4444', shape: 'arrowUp', text: d.green_hammer ? '🔨G' : '🔨R' });
                     }
                     if (d.inv_red_hammer) {
                         patternMarkers.push({ time: d.time, position: 'aboveBar', color: '#7f1e1e', shape: 'arrowDown', text: '🔨ᶦ' });
                     }
+                    */
                     // Entry Signals
                     if (d.bull_trigger) {
                         patternMarkers.push({ time: d.time, position: 'belowBar', color: '#26a69a', shape: 'arrowUp', size: 2, text: 'ENTRY-L' });
@@ -433,14 +435,22 @@
                     const l = targetChart.addLineSeries({ color, lineWidth: 3, priceLineVisible: false, lastValueVisible: false });
                     u.setData(zoneTimes.map(t => ({ time: t, value: zone.high })));
                     l.setData(zoneTimes.map(t => ({ time: t, value: zone.low })));
+                    
+                    // Add Size Label at the end of the zone
+                    u.setMarkers([{
+                        time: zoneTimes[zoneTimes.length - 1],
+                        position: 'inBar',
+                        color: zone.type === 'bull' ? '#00695c' : '#c62828',
+                        shape: 'circle',
+                        size: 0,
+                        text: Math.round(zone.high - zone.low).toString()
+                    }]);
                     if (isOpt) zoneSeriesOpt.push(u, l); else zoneSeriesMain.push(u, l);
-                    const lastVisible = visibleData.filter(d => d.time <= zoneTimes[zoneTimes.length-1]).pop();
-                    if (lastVisible) zMarkers.push({ time: lastVisible.time, position: 'inBar', color, shape: 'circle', text: `[${Math.round(zone.size)}]` });
                 });
 
                 const rtMarkers = [];
                 realTrades.forEach(rt => {
-                    const ep = visibleData.find(d => d.time >= rt.entry_time);
+                    const ep = visibleData.filter(d => d.time <= rt.entry_time).pop();
                     if (!ep) return;
                     const duration = Math.round((rt.exit_time - rt.entry_time) / 60);
                     const color = rt.pl > 0 ? '#26a69a' : '#ef5350';
@@ -448,9 +458,6 @@
                     const instMatch = instClean.match(/(\d{4,6})\s*([CP]E)/);
                     if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
                     else instClean = instClean.split(' ').pop();
-                    const line = targetChart.addLineSeries({ color, lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
-                    line.setData([{ time: ep.time, value: ep.open }, { time: Math.max(ep.time + 300, rt.exit_time), value: ep.open }]);
-                    if (isOpt) tradeSeriesOpt.push(line); else tradeSeriesMain.push(line);
                     
                     const isPE = instClean.includes('PE');
                     const position = isPE ? 'belowBar' : 'aboveBar';
@@ -633,6 +640,9 @@
         document.getElementById('next-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
         document.getElementById('dual-view-btn').onclick = toggleDualView;
         document.getElementById('fit-btn').onclick = () => { chartMain.timeScale().fitContent(); if(chartOpt) chartOpt.timeScale().fitContent(); };
+        document.getElementById('reset-btn').onclick = () => { 
+            runStrategy(); // Re-runs and fits content
+        };
         document.getElementById('sidebar-toggle-btn').onclick = (e) => { 
             e.stopPropagation();
             const sb = document.getElementById('sidebar'); 
