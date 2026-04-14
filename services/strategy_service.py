@@ -448,16 +448,30 @@ def get_real_trades(start_date, end_date, symbol=None):
         try: t_dt = datetime.strptime(d_str, '%Y-%m-%d').date()
         except: continue
         if s_dt <= t_dt <= e_dt:
-            inst = t.get('Instrument', '')
-            if symbol and symbol != 'Nifty 50 (^NSEI)' and inst != symbol:
+            raw_inst = t.get('Instrument', '').strip()
+            if not raw_inst: continue
+            inst = raw_inst.replace('/', '').strip().upper()
+            
+            if symbol and symbol != 'Nifty 50 (^NSEI)' and inst != symbol.upper().strip():
                 continue
             
             tr_type = t.get('TradeType', 'buy'); entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time'); exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time')
+            entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0))
+            exit_p = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0))
             if entry_t and exit_t:
                 try:
                     e_dt_n = datetime.strptime(f"{d_str} {entry_t if len(entry_t.split(':'))==3 else f'{entry_t}:00'}", '%Y-%m-%d %H:%M:%S')
                     x_dt_n = datetime.strptime(f"{d_str} {exit_t if len(exit_t.split(':'))==3 else f'{exit_t}:00'}", '%Y-%m-%d %H:%M:%S')
-                    processed.append({'entry_time': calendar.timegm(e_dt_n.timetuple()), 'exit_time': calendar.timegm(x_dt_n.timetuple()), 'type': tr_type.upper(), 'instrument': t.get('Instrument', ''), 'pl': float(t.get('Net P/L', 0)), 'qty': int(t.get('Quantity', 0))})
+                    processed.append({
+                        'entry_time': calendar.timegm(e_dt_n.timetuple()), 
+                        'exit_time': calendar.timegm(x_dt_n.timetuple()), 
+                        'entry_price': entry_p,
+                        'exit_price': exit_p,
+                        'type': tr_type.upper(), 
+                        'instrument': t.get('Instrument', ''), 
+                        'pl': float(t.get('Net P/L', 0)), 
+                        'qty': int(t.get('Quantity', 0) if 'Quantity' in t else t.get('Qty', 0))
+                    })
                 except: pass
     return processed
 
@@ -478,11 +492,37 @@ def get_archive_dates():
                 with open(t_path, 'r') as f:
                     for t in json.load(f).get('trades', []):
                         d_str = t.get('trade_date', t.get('date', ''))
-                        inst = t.get('Instrument', '').strip()
+                        raw_inst = t.get('Instrument', '').strip()
+                        if not raw_inst: continue
+                        inst = raw_inst.replace('/', '').strip().upper()
+                        
                         pl = float(t.get('Net P/L', 0))
+                        qty = float(t.get('Qty', 0))
+                        tr_type = t.get('TradeType', 'buy').lower()
+                        entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time', '')
+                        exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time', '')
+                        entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0))
+                        exit_p = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0))
+                        pt = float(t.get('Pt', 0))
+                        
+                        # Calculate duration if both times exist
+                        duration = ""
+                        if entry_t and exit_t:
+                            try:
+                                t1 = datetime.strptime(entry_t, '%H:%M:%S')
+                                t2 = datetime.strptime(exit_t, '%H:%M:%S')
+                                diff = (t2 - t1).total_seconds() / 60
+                                duration = f"{int(abs(diff))}m"
+                            except: pass
+
                         if d_str and inst:
                             if d_str not in trades_map: trades_map[d_str] = []
-                            trades_map[d_str].append({'symbol': inst, 'pl': pl})
+                            trades_map[d_str].append({
+                                'symbol': inst, 'pl': pl, 'qty': qty,
+                                'entry_time': entry_t, 'exit_time': exit_t,
+                                'entry_price': entry_p, 'exit_price': exit_p,
+                                'pt': pt, 'duration': duration
+                            })
                             total_pl_map[d_str] = total_pl_map.get(d_str, 0) + pl
             except Exception as e: 
                 print(f"Error parsing trades_1.json: {e}")
@@ -496,26 +536,28 @@ def get_archive_dates():
                 res_str = "N/A"
             
             day_total_pl = total_pl_map.get(date, 0)
-            day_insts = []
-            seen_insts = {} # Map symbol -> total_pl for that day
+            day_trades = []
             
-            for inst_batch in trades_map.get(date, []):
-                sym = inst_batch['symbol']
-                pl = inst_batch['pl']
-                seen_insts[sym] = seen_insts.get(sym, 0) + pl
-
-            for sym, pl in seen_insts.items():
-                cp = f"data/Historical_OHLC/Options/{sym}.csv"
-                day_insts.append({
-                    'symbol': sym, 
-                    'has_data': os.path.exists(cp),
-                    'pl': round(pl, 2)
+            for t_raw in trades_map.get(date, []):
+                sym = t_raw['symbol']
+                pl = t_raw['pl']
+                qty = t_raw.get('qty', 0)
+                
+                day_trades.append({
+                    'symbol': sym,
+                    'pl': round(pl, 2),
+                    'qty': qty,
+                    'entry_time': t_raw.get('entry_time', ''),
+                    'exit_time': t_raw.get('exit_time', ''),
+                    'duration': t_raw.get('duration', ''),
+                    'pt': t_raw.get('pt', 0),
+                    'has_data': os.path.exists(f"data/Historical_OHLC/Options/{sym}.csv")
                 })
 
             results.append({
                 'date': date, 
                 'resolution': res_str, 
-                'instruments': day_insts,
+                'trades': day_trades,
                 'total_pl': round(day_total_pl, 2)
             })
             

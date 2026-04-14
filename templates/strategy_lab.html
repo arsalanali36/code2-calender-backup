@@ -160,7 +160,7 @@
         </div>
     </div>
     <div class="modal-overlay" id="history-modal">
-        <div class="modal-content" style="width: 650px; max-height: 80vh; padding:0;">
+        <div class="modal-content" style="width: 750px; max-height: 80vh; padding:0;">
             <div class="modal-header" style="padding:15px 20px; border-bottom: 1px solid #eee;">
                 <div class="modal-title">Downloaded Data History</div>
                 <div class="close-modal" id="close-history-modal">&times;</div>
@@ -169,10 +169,10 @@
                 <table style="width:100%; border-collapse: collapse; margin-top:15px;">
                     <thead style="position: sticky; top: 0; background: white; z-index: 10;">
                         <tr>
-                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">DATE</th>
-                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">INSTRUMENTS</th>
-                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">RES.</th>
-                            <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.75rem;">AMT/PL</th>
+                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem;">DATE / TRADE DETAILS</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:60px;">DUR</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:60px;">PT</th>
+                            <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:100px;">AMT/PL</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body">
@@ -526,28 +526,75 @@
 
                 const rtMarkers = [];
                 realTrades.forEach(rt => {
-                    const ep = visibleData.filter(d => d.time <= rt.entry_time).pop();
-                    if (!ep) return;
-                    const duration = Math.round((rt.exit_time - rt.entry_time) / 60);
-                    const color = rt.pl > 0 ? '#26a69a' : '#ef5350';
-                    let instClean = rt.instrument;
-                    const instMatch = instClean.match(/(\d{4,6})\s*([CP]E)/);
-                    if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
-                    else instClean = instClean.split(' ').pop();
+                    const entryT = rt.entry_time;
+                    const exitT = rt.exit_time;
                     
-                    const isCE = instClean.toUpperCase().includes('CE') || instClean.toUpperCase().includes('CALL');
-                    const shape = isCE ? 'arrowDown' : 'arrowUp';
-                    const position = isCE ? 'aboveBar' : 'belowBar';
-                    const rtColor = isCE ? '#f9a825' : '#9c27b0';
+                    // Use actual trade prices for Opt chart, but Index prices for Main chart
+                    const entryCandle = visibleData.find(d => d.time === entryT) || visibleData.filter(d => d.time <= entryT).pop();
+                    const exitCandle = visibleData.find(d => d.time === exitT) || visibleData.filter(d => d.time <= exitT).pop();
                     
-                    rtMarkers.push({
-                        time: ep.time, 
-                        position, 
-                        color: rtColor, 
-                        shape, 
-                        size: 2,
-                        text: `${instClean} [${duration}m] ${rt.qty}L (₹${Math.round(rt.pl)})`
-                    });
+                    if (!entryCandle || !exitCandle) return;
+
+                    const isCE = rt.instrument.toUpperCase().includes('CE') || rt.instrument.toUpperCase().includes('CALL');
+                    
+                    let entryP, exitP;
+                    if (isOpt) {
+                        entryP = rt.entry_price || 0;
+                        exitP = rt.exit_price || 0;
+                    } else {
+                        // Plot at Candle High/Low on Index Chart
+                        entryP = isCE ? entryCandle.high : entryCandle.low;
+                        exitP = isCE ? exitCandle.high : exitCandle.low;
+                    }
+                    
+                    if (entryT && exitT && entryP && exitP) {
+                        const tradeColor = rt.pl > 0 ? 'rgba(38, 166, 154, 0.8)' : 'rgba(239, 83, 80, 0.8)';
+                        const duration = Math.round((exitT - entryT) / 60);
+                        const isCE = rt.instrument.toUpperCase().includes('CE') || rt.instrument.toUpperCase().includes('CALL');
+
+                        if (isOpt) {
+                            // PREMIUM CHART: Lines + Labels
+                            const tSeries = targetChart.addLineSeries({
+                                color: tradeColor, lineWidth: 2, lineStyle: 0, 
+                                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
+                            });
+                            
+                            const tradeTrack = chartData.filter(d => d.time >= entryT && d.time <= exitT);
+                            if (tradeTrack.length >= 2) {
+                                const totalSteps = tradeTrack.length - 1;
+                                tSeries.setData(tradeTrack.map((d, index) => ({
+                                    time: d.time,
+                                    value: entryP + (exitP - entryP) * (index / totalSteps)
+                                })));
+                                tradeSeriesOpt.push(tSeries);
+                                
+                                rtMarkers.push({
+                                    time: entryT, position: isCE ? 'aboveBar' : 'belowBar',
+                                    color: '#6366f1', shape: 'circle', size: 0, text: `IN: ${entryP}`
+                                });
+                                rtMarkers.push({
+                                    time: exitT, position: isCE ? 'aboveBar' : 'belowBar',
+                                    color: rt.pl > 0 ? '#10b981' : '#ef4444', shape: 'circle', size: 1,
+                                    text: `OUT: ${exitP} (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})`
+                                });
+                            }
+                        } else {
+                            // INDEX CHART: Only Arrows
+                            let instClean = rt.instrument;
+                            const instMatch = instClean.match(/(\d{4,6})\s*([CP]E)/);
+                            if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
+                            else instClean = instClean.split(' ').pop();
+                            
+                            rtMarkers.push({
+                                time: entryT,
+                                position: isCE ? 'aboveBar' : 'belowBar',
+                                color: isCE ? '#f9a825' : '#9c27b0',
+                                shape: isCE ? 'arrowDown' : 'arrowUp',
+                                size: 2,
+                                text: `${instClean} [${duration}m] (₹${Math.round(rt.pl)})`
+                            });
+                        }
+                    }
                 });
 
                 setTimeout(() => { targetMarker.setMarkers([...zMarkers, ...rtMarkers, ...patternMarkers].sort((a,b) => a.time - b.time)); }, 50);
@@ -677,42 +724,67 @@
                         
                         // Main Date Row (Summary)
                         let dateHtml = `
-                        <tr style="background:#f8fafc; border-top:1px solid #e2e8f0;">
-                            <td style="padding:10px; font-weight:800; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #f1f5f9;">
-                                📅 ${d.date}
+                        <tr style="background:#f1f5f9; border-top:2px solid #e2e8f0;">
+                            <td style="padding:10px; font-weight:900; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #cbd5e1;">
+                                📅 ${d.date} <span style="font-weight:400; font-size:0.7rem; color:#64748b; margin-left:10px;">(${d.trades.length} Trades | ${d.resolution})</span>
                             </td>
-                            <td style="padding:10px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:0.75rem;">
-                                ${d.instruments.length} Instruments
-                            </td>
-                            <td style="padding:10px; text-align:center; border-bottom:1px solid #f1f5f9;">
-                                <span style="padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700; background:${d.resolution === '1m' ? '#dcfce7' : '#f1f5f9'}; color:${d.resolution === '1m' ? '#166534' : '#64748b'};">
-                                    ${d.resolution}
-                                </span>
-                            </td>
-                            <td style="padding:10px; text-align:right; font-weight:900; font-size:0.9rem; color:${plColor}; border-bottom:1px solid #f1f5f9;">
+                            <td colspan="2" style="border-bottom:1px solid #cbd5e1;"></td>
+                            <td style="padding:10px; text-align:right; font-weight:900; font-size:0.95rem; color:${plColor}; border-bottom:1px solid #cbd5e1;">
                                 ${d.total_pl !== 0 ? (d.total_pl > 0 ? '+' : '') + Math.round(d.total_pl).toLocaleString() : '₹ 0'}
                             </td>
                         </tr>`;
 
-                        // Instrument Sub-rows
-                        let instRows = d.instruments.map(i => {
-                            const iPlColor = i.pl > 0 ? '#059669' : (i.pl < 0 ? '#dc2626' : '#64748b');
+                        // Count occurrences to only color duplicates
+                        const instCounts = {};
+                        d.trades.forEach(t => instCounts[t.symbol] = (instCounts[t.symbol] || 0) + 1);
+
+                        // Helper for per-instrument color grouping
+                        const instColorMap = {};
+                        const getInstColor = (str) => {
+                            if (instCounts[str] <= 1) return 'transparent'; // Only color duplicates
+                            if (instColorMap[str]) return instColorMap[str];
+                            const colors = ['#f0fdf4', '#fdf2f8', '#fefce8', '#f0f9ff', '#f5f3ff', '#fff7ed', '#f0fdfa'];
+                            let hash = 0;
+                            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                            const color = colors[Math.abs(hash) % colors.length];
+                            instColorMap[str] = color;
+                            return color;
+                        };
+
+                        // Trade Sub-rows
+                        let instRows = d.trades.map(t => {
+                            const tPlColor = t.pl > 0 ? '#059669' : (t.pl < 0 ? '#dc2626' : '#64748b');
+                            const timeStr = (t.entry_time && t.exit_time) ? `<span style="color:#94a3b8; font-weight:400;"> [${t.entry_time.substring(0,5)}-${t.exit_time.substring(0,5)}]</span>` : '';
+                            const bgGroup = getInstColor(t.symbol);
+                            const isGrouped = instCounts[t.symbol] > 1;
+                            const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
+                            const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
+
                             return `
-                            <tr style="border-bottom:1px solid #f8fafc;">
-                                <td colspan="2" style="padding:6px 10px 6px 30px; font-size:0.8rem; color:#64748b;">
-                                    <span style="color:#94a3b8; margin-right:8px;">↳</span>
-                                    <span onclick="loadInstrument('${i.symbol}', '${d.date}')" 
-                                          style="cursor:pointer; color:#0969da; text-decoration:underline; font-weight:500;">
-                                        ${i.symbol}
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:8px 10px 8px 30px; font-size:0.8rem; color:#334155; vertical-align:middle;">
+                                    <span style="color:#cbd5e1; margin-right:8px;">↳</span>
+                                    <span style="font-family:monospace; font-size:0.75rem; color:#64748b;">${timeStr}</span>
+                                    <span style="margin-left:5px; white-space:nowrap;">
+                                        ${statusIcon}
+                                        <span onclick="loadInstrument('${t.symbol}', '${d.date}')" 
+                                              title="Click to load chart" 
+                                              style="cursor:pointer; color:#0e7490; font-weight:700; padding:2px 6px; border-radius:4px; 
+                                                     background:${bgGroup}; 
+                                                     border:${isGrouped ? '1px solid rgba(0,0,0,0.05)' : 'none'};">
+                                            ${t.symbol}
+                                        </span>
+                                        <span style="font-size:0.7rem; font-weight:800; color:#64748b; margin-left:3px;">(${lots}L)</span>
                                     </span>
                                 </td>
-                                <td style="padding:6px 10px; text-align:center;">
-                                    <span style="font-size:0.65rem; padding: 2px 5px; border-radius: 4px; background: ${i.has_data ? '#f0f9ff' : '#fff1f2'}; color: ${i.has_data ? '#0369a1' : '#be123c'};">
-                                        ${i.has_data ? 'Data OK' : 'No Data'}
-                                    </span>
+                                <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
+                                    ${t.duration || '--'}
                                 </td>
-                                <td style="padding:6px 10px; text-align:right; font-weight:700; font-size:0.8rem; color:${iPlColor};">
-                                    ${i.pl !== 0 ? (i.pl > 0 ? '+' : '') + Math.round(i.pl).toLocaleString() : '0'}
+                                <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
+                                    ${t.pt !== 0 ? (t.pt > 0 ? '+' : '') + t.pt.toFixed(1) : '0'}
+                                </td>
+                                <td style="padding:6px 10px; text-align:right; font-weight:700; font-size:0.85rem; color:${tPlColor};">
+                                    ${t.pl !== 0 ? (t.pl > 0 ? '+' : '') + Math.round(t.pl).toLocaleString() : '0'}
                                 </td>
                             </tr>
                         `;}).join('');
