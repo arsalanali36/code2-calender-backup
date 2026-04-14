@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strategy Lab | Trading Journal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { margin: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .lab-container { display: flex; height: 100vh; overflow: hidden; background: #f6f8fa; }
-        .lab-sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; background: white; border-right: 1px solid #d0d7de; padding: 20px; overflow-y: auto; z-index: 2500; transition: transform 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .lab-sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; background: white; border-right: 1px solid #d0d7de; padding: 20px; overflow-y: auto; z-index: 10000; transition: transform 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
         .lab-sidebar.collapsed { transform: translateX(-100%); padding: 20px; }
-        .sidebar-toggle-btn { position: absolute; left: 300px; top: 50%; transform: translateY(-50%); background: white; border: 1px solid #d0d7de; border-left: none; width: 22px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2501; border-radius: 0 8px 8px 0; transition: left 0.3s ease; font-size: 0.75rem; color: #0969da; font-weight: bold; }
+        .sidebar-toggle-btn { position: absolute; left: 300px; top: 50%; transform: translateY(-50%); background: white; border: 1px solid #d0d7de; border-left: none; width: 22px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10002; border-radius: 0 8px 8px 0; transition: left 0.3s ease; font-size: 0.75rem; color: #0969da; font-weight: bold; }
         .lab-sidebar.collapsed + .sidebar-toggle-btn { left: 0; }
         .lab-main { flex: 1; position: relative; background: #ffffff; display: flex; flex-direction: column; }
         .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; font-weight: 600; color: #0969da; }
@@ -17,8 +20,12 @@
         .nav-btn { padding: 6px 15px; border: 1px solid #d0d7de; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s;}
         .nav-btn:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
         .chart-wrapper { flex: 1; position: relative; display: flex; gap: 0; overflow: hidden; background: #fff; }
-        .chart-container-box { flex: 1; position: relative; height: 100%; min-width: 0; transition: all 0.3s ease; }
-        .chart-container-box:nth-child(2) { border-left: 1px solid #d0d7de; }
+        .chart-container-box { position: relative; height: 100%; min-width: 0; }
+        #container-main { flex: 1; }
+        #container-opt { flex: 1; border-left: 1px solid #d0d7de; }
+        .resizer { width: 6px; background: #cbd5e1; cursor: col-resize; z-index: 10001; transition: background 0.2s; position: relative; border-left: 1px solid #94a3b8; border-right: 1px solid #94a3b8; }
+        .resizer:hover, .resizer.dragging { background: #0969da; border-color: #0969da; }
+        .resizer::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 2px; height: 30px; background: rgba(0,0,0,0.2); border-radius: 2px; }
         #chart-main, #chart-opt { height: 100%; width: 100%; }
         .chart-label { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(255,255,255,0.9); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #d0d7de; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .tf-btn-group { display: flex; gap: 2px; background: #f1f5f9; padding: 2px; border-radius: 4px; }
@@ -35,61 +42,43 @@
         .close-modal { cursor: pointer; font-size: 1.5rem; color: #666; }
         .toggle-group { margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
         .toggle-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8rem; cursor: pointer; }
+        
+        /* Premium Pill Labels */
+        .trade-label-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .trade-pill {
+            position: absolute;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            transform: translateX(-50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .pill-win { background: #059669; }
+        .pill-loss { background: #dc2626; }
+        .pill-neutral { background: #475569; }
+        .pill-ce { border-bottom: 3px solid #f59e0b; }
+        .pill-pe { border-bottom: 3px solid #8b5cf6; }
     </style>
 </head>
 <body>
     <div class="lab-container">
-        <div class="lab-sidebar" id="sidebar">
-            <h3 style="margin:0 0 20px 0; font-size: 1.1rem; border-bottom:1px solid #eee; padding-bottom:10px;">Configuration</h3>
-            
-            <div style="margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <label class="setting-item" style="margin:0;">SYMBOL</label>
-                    <span style="font-size:0.7rem; color:#0969da; cursor:pointer; font-weight:600;" onclick="loadInstrument('Nifty 50 (^NSEI)', document.getElementById('start-date').value)">RESET TO INDEX</span>
-                </div>
-                <input type="text" id="symbol" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly>
-            </div>
-            <div style="margin-bottom:20px;">
-                <label class="setting-item">DATA SOURCE</label>
-                <select id="source-select" class="nav-btn" style="width:100%;">
-                    <option value="dhan_local" selected>Dhan Local (CSV)</option>
-                    <option value="dhan_api">Dhan API (Live)</option>
-                </select>
-            </div>
-            
-            <div style="margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <label class="setting-item" style="margin:0;">STRATEGY</label>
-                </div>
-                <select id="strategy-select" class="nav-btn" style="width:100%;">
-                    <option value="Arsalan Continuation">Arsalan Continuation</option>
-                    <option value="Arsalan Sandbox">Arsalan Sandbox</option>
-                    <option value="Arsalan Reversal" selected>Arsalan Reversal</option>
-                </select>
-                
-                <!-- Strategy Internal Logic Toggles (Pine Script Port) -->
-                <div class="toggle-group" style="margin-top:10px;">
-                    <div style="font-size:0.7rem; color:#64748b; font-weight:700; margin-bottom:8px; text-transform:uppercase;">Strategy Logic (Pine)</div>
-                    <label class="toggle-item"><input type="checkbox" id="use-fresh-zone" checked> Use Fresh Zone Only</label>
-                    <label class="toggle-item"><input type="checkbox" id="fib-exit" checked> SL Below Fib</label>
-                    <label class="toggle-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
-                    <label class="toggle-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
-                </div>
-            </div>
-
-            <div style="margin-bottom:20px;"><label class="setting-item">TIMEFRAME</label><select id="timeframe-select" class="nav-btn" style="width:100%;"><option value="1m">1m</option><option value="3m" selected>3m</option><option value="5m">5m</option><option value="15m">15m</option></select></div>
-            <div style="margin-bottom:20px;"><label class="setting-item">DATE RANGE</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="date" id="start-date" class="nav-btn" value="2026-04-01"><input type="date" id="end-date" class="nav-btn" value="2026-04-14"></div></div>
-            <div style="margin-bottom:30px;"><label class="setting-item">MARKET TIME</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="time" id="start-time" class="nav-btn" value="09:15"><input type="time" id="end-time" class="nav-btn" value="15:30"></div></div>
-            <div style="margin-bottom:20px;">
-                <label class="setting-item">REVERSAL SETTINGS</label>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="checkbox" id="hawa-me-zone-toggle" style="width:20px; height:20px; cursor:pointer;">
-                    <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Hawa me Zone (Floating)</span>
-                </div>
-            </div>
-            <button class="lab-btn lab-btn-primary" id="run-btn">Run Strategy</button>
-        </div>
-        <div class="sidebar-toggle-btn" id="sidebar-toggle-btn">◀</div>
         <main class="lab-main">
             <div class="loading-overlay" id="loader">Running Strategy...</div>
             <div class="nav-controls">
@@ -117,11 +106,16 @@
                             <button class="tf-btn" onclick="switchTF('main', '1m')">1</button>
                             <button class="tf-btn active" onclick="switchTF('main', '3m')">3</button>
                             <button class="tf-btn" onclick="switchTF('main', '5m')">5</button>
+                            <div style="width:1px; height:12px; background:#cbd5e1; margin:0 4px;"></div>
+                            <button class="tf-btn" onclick="event.stopPropagation(); zoomY('main', 0.8)" title="Stretch Vertically (Zoom In)" style="font-size:12px; padding:0 8px;">+</button>
+                            <button class="tf-btn" onclick="event.stopPropagation(); zoomY('main', 1.2)" title="Squeeze Vertically (Zoom Out)" style="font-size:12px; padding:0 8px;">-</button>
                             <button class="tf-btn" id="lock-btn-main" onclick="toggleLockRatio('main')" title="Lock Price to Bar Ratio" style="margin-left:5px; border-color:#6366f1; color:#6366f1;">🔒</button>
                         </div>
                     </div>
                     <div id="chart-main"></div>
+                    <div id="overlay-main" class="trade-label-overlay"></div>
                 </div>
+                <div class="resizer" id="chart-resizer" style="display: none;"></div>
                 <div class="chart-container-box" id="container-opt" style="display: none;">
                     <div class="chart-label">
                         <span id="opt-label" style="color:#475569;">OPTION CHART</span>
@@ -129,13 +123,63 @@
                             <button class="tf-btn" onclick="switchTF('opt', '1m')">1</button>
                             <button class="tf-btn active" onclick="switchTF('opt', '3m')">3</button>
                             <button class="tf-btn" onclick="switchTF('opt', '5m')">5</button>
+                            <div style="width:1px; height:12px; background:#cbd5e1; margin:0 4px;"></div>
+                            <button class="tf-btn" onclick="event.stopPropagation(); zoomY('opt', 0.8)" title="Stretch Vertically (Zoom In)" style="font-size:12px; padding:0 8px;">+</button>
+                            <button class="tf-btn" onclick="event.stopPropagation(); zoomY('opt', 1.2)" title="Squeeze Vertically (Zoom Out)" style="font-size:12px; padding:0 8px;">-</button>
                             <button class="tf-btn" id="lock-btn-opt" onclick="toggleLockRatio('opt')" title="Lock Price to Bar Ratio" style="margin-left:5px; border-color:#6366f1; color:#6366f1;">🔒</button>
                         </div>
                     </div>
                     <div id="chart-opt"></div>
+                    <div id="overlay-opt" class="trade-label-overlay"></div>
                 </div>
             </div>
         </main>
+        <div class="lab-sidebar" id="sidebar">
+            <h3 style="margin:0 0 20px 0; font-size: 1.1rem; border-bottom:1px solid #eee; padding-bottom:10px;">Configuration</h3>
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label class="setting-item" style="margin:0;">SYMBOL</label>
+                    <span style="font-size:0.7rem; color:#0969da; cursor:pointer; font-weight:600;" onclick="loadInstrument('Nifty 50 (^NSEI)', document.getElementById('start-date').value)">RESET TO INDEX</span>
+                </div>
+                <input type="text" id="symbol" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label class="setting-item">DATA SOURCE</label>
+                <select id="source-select" class="nav-btn" style="width:100%;">
+                    <option value="dhan_local" selected>Dhan Local (CSV)</option>
+                    <option value="dhan_api">Dhan API (Live)</option>
+                </select>
+            </div>
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label class="setting-item" style="margin:0;">STRATEGY</label>
+                </div>
+                <select id="strategy-select" class="nav-btn" style="width:100%;">
+                    <option value="Arsalan Continuation">Arsalan Continuation</option>
+                    <option value="Arsalan Sandbox">Arsalan Sandbox</option>
+                    <option value="Arsalan Reversal" selected>Arsalan Reversal</option>
+                </select>
+                <div class="toggle-group" style="margin-top:10px;">
+                    <div style="font-size:0.7rem; color:#64748b; font-weight:700; margin-bottom:8px; text-transform:uppercase;">Strategy Logic (Pine)</div>
+                    <label class="toggle-item"><input type="checkbox" id="use-fresh-zone" checked> Use Fresh Zone Only</label>
+                    <label class="toggle-item"><input type="checkbox" id="fib-exit" checked> SL Below Fib</label>
+                    <label class="toggle-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
+                    <label class="toggle-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
+                </div>
+            </div>
+            <div style="margin-bottom:20px;"><label class="setting-item">TIMEFRAME</label><select id="timeframe-select" class="nav-btn" style="width:100%;"><option value="1m">1m</option><option value="3m" selected>3m</option><option value="5m">5m</option><option value="15m">15m</option></select></div>
+            <div style="margin-bottom:20px;"><label class="setting-item">DATE RANGE</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="date" id="start-date" class="nav-btn" value="2026-04-01"><input type="date" id="end-date" class="nav-btn" value="2026-04-14"></div></div>
+            <div style="margin-bottom:30px;"><label class="setting-item">MARKET TIME</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="time" id="start-time" class="nav-btn" value="09:15"><input type="time" id="end-time" class="nav-btn" value="15:30"></div></div>
+            <div style="margin-bottom:20px;">
+                <label class="setting-item">REVERSAL SETTINGS</label>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="hawa-me-zone-toggle" style="width:20px; height:20px; cursor:pointer;">
+                    <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Hawa me Zone (Floating)</span>
+                </div>
+            </div>
+            <button class="lab-btn lab-btn-primary" id="run-btn">Run Strategy</button>
+        </div>
+        <div class="sidebar-toggle-btn" id="sidebar-toggle-btn">◀</div>
     </div>
 
     <!-- Dhan Credentials Modal -->
@@ -170,6 +214,7 @@
                     <thead style="position: sticky; top: 0; background: white; z-index: 10;">
                         <tr>
                             <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem;">DATE / TRADE DETAILS</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:80px;">DATA (M-F)</th>
                             <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:60px;">DUR</th>
                             <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:60px;">PT</th>
                             <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:100px;">AMT/PL</th>
@@ -220,6 +265,7 @@
         let zoneSeriesMain = [], tradeSeriesMain = [], zoneSeriesOpt = [], tradeSeriesOpt = [];
         let lastStrategyData = { realTrades: [] };
         let loadedRealTrades = [];
+        let tradePills = { main: [], opt: [] };
 
         const lockStates = { main: false, opt: false };
         const lockRatios = { main: null, opt: null };
@@ -267,6 +313,41 @@
             }
         }
 
+        function zoomY(target, factor) {
+            const chart = target === 'main' ? chartMain : chartOpt;
+            if (!chart) return;
+            
+            const pScale = chart.priceScale('right');
+            const pRange = pScale.priceRange();
+            if (!pRange || pRange.from === null || pRange.to === null) return;
+
+            const currentFrom = pRange.from;
+            const currentTo = pRange.to;
+            const mid = (currentFrom + currentTo) / 2;
+            const halfSpan = (currentTo - currentFrom) / 2;
+            const newHalfSpan = halfSpan * factor;
+
+            // Apply new range and disable autoScale
+            pScale.applyOptions({
+                autoScale: false,
+                priceRange: {
+                    from: mid - newHalfSpan,
+                    to: mid + newHalfSpan
+                }
+            });
+            
+            // Recalculate ratio if currently locked or just turned on
+            if (lockStates[target]) {
+                const tRange = chart.timeScale().getVisibleRange();
+                if (tRange) {
+                    lockRatios[target] = (newHalfSpan * 2) / (tRange.to - tRange.from);
+                }
+            } else {
+                // If not locked, the chart will still stay on manual scale until Reset is clicked
+                console.log("Manual vertical zoom applied");
+            }
+        }
+
         function handleTimeScaleChange(target) {
             if (!lockStates[target] || !lockRatios[target]) return;
             const chart = target === 'main' ? chartMain : chartOpt;
@@ -289,15 +370,54 @@
             });
         }
 
+        function syncTradePills(target) {
+            try {
+                const chart = target === 'main' ? chartMain : chartOpt;
+                const overlay = document.getElementById(`overlay-${target}`);
+                if (!chart || !overlay) return;
+
+                overlay.innerHTML = '';
+                const pills = tradePills[target];
+                if (!pills || !pills.length) return;
+
+                const timeScale = chart.timeScale();
+                const priceScale = chart.priceScale('right');
+                const visibleRange = timeScale.getVisibleRange();
+                if (!visibleRange) return;
+
+                pills.forEach(p => {
+                    if (p.time < visibleRange.from - 600 || p.time > visibleRange.to + 600) return;
+                    const x = timeScale.timeToCoordinate(p.time);
+                    const y = priceScale.priceToCoordinate(p.price);
+                    if (x === null || y === null) return;
+                    if (x < 0 || x > overlay.clientWidth || y < 0 || y > overlay.clientHeight) return;
+
+                    const div = document.createElement('div');
+                    const winLossClass = p.pl > 0 ? 'pill-win' : (p.pl < 0 ? 'pill-loss' : 'pill-neutral');
+                    const typeClass = p.isCE ? 'pill-ce' : 'pill-pe';
+                    div.className = `trade-pill ${winLossClass} ${typeClass}`;
+                    div.style.left = `${x}px`;
+                    div.style.top = `${y + (p.position === 'above' ? -35 : 35)}px`;
+                    div.innerHTML = p.text;
+                    overlay.appendChild(div);
+                });
+            } catch (err) { console.warn("Pill Sync Err:", err); }
+        }
+
         function initChart() {
             const setup = (id) => {
                 const c = LightweightCharts.createChart(document.getElementById(id), {
-                    layout: { background: { color: '#ffffff' }, textColor: '#333' },
+                    layout: { 
+                        background: { color: '#ffffff' }, 
+                        textColor: '#333',
+                        fontFamily: "'Inter', sans-serif"
+                    },
                     grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
                     timeScale: { timeVisible: true, secondsVisible: false },
                     rightPriceScale: { visible: true, borderColor: '#d0d7de' },
                     crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
                 });
+                
                 const candle = c.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350' });
                 const e10 = c.addLineSeries({ color: '#2196F3', lineWidth: 1, title: 'EMA 10' });
                 const e20 = c.addLineSeries({ color: '#F44336', lineWidth: 1, title: 'EMA 20' });
@@ -339,8 +459,71 @@
             pdhOpt = o.pdh; pdlOpt = o.pdl; pdcOpt = o.pdc; ppOpt = o.pp; r1Opt = o.r1; s1Opt = o.s1; r2Opt = o.r2; s2Opt = o.s2; r3Opt = o.r3; s3Opt = o.s3;
             r4Opt = o.r4; s4Opt = o.s4; r5Opt = o.r5; s5Opt = o.s5;
 
-            chartMain.timeScale().subscribeVisibleTimeRangeChange(() => handleTimeScaleChange('main'));
-            chartOpt.timeScale().subscribeVisibleTimeRangeChange(() => handleTimeScaleChange('opt'));
+            chartMain.timeScale().subscribeVisibleTimeRangeChange(() => {
+                handleTimeScaleChange('main');
+                syncTradePills('main');
+            });
+            chartOpt.timeScale().subscribeVisibleTimeRangeChange(() => {
+                handleTimeScaleChange('opt');
+                syncTradePills('opt');
+            });
+            initResizer();
+        }
+
+        function initResizer() {
+            const resizer = document.getElementById('chart-resizer');
+            const leftSide = document.getElementById('container-main');
+            const rightSide = document.getElementById('container-opt');
+            const wrapper = document.querySelector('.chart-wrapper');
+
+            let x = 0;
+            let leftWidth = 0;
+
+            const mouseDownHandler = function (e) {
+                x = e.clientX;
+                leftWidth = leftSide.getBoundingClientRect().width;
+
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+                resizer.classList.add('dragging');
+                document.body.style.cursor = 'col-resize';
+                // Add a temporary overlay to prevent chart interaction during drag
+                const overlay = document.createElement('div');
+                overlay.id = 'resize-overlay';
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.right = '0';
+                overlay.style.bottom = '0';
+                overlay.style.zIndex = '5000';
+                document.body.appendChild(overlay);
+            };
+
+            const mouseMoveHandler = function (e) {
+                const dx = e.clientX - x;
+                const newLeftWidth = ((leftWidth + dx) * 100) / wrapper.getBoundingClientRect().width;
+                leftSide.style.flex = `0 0 ${newLeftWidth}%`;
+                rightSide.style.flex = `1 1 0%`;
+            };
+
+            const mouseUpHandler = function () {
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                resizer.classList.remove('dragging');
+                document.body.style.cursor = 'default';
+                const overlay = document.getElementById('resize-overlay');
+                if (overlay) overlay.remove();
+
+                // Force charts to resize after manual movement
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    const optB = document.getElementById('chart-opt');
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                }, 10);
+            };
+
+            resizer.addEventListener('mousedown', mouseDownHandler);
         }
 
         function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
@@ -383,8 +566,13 @@
             const group = document.getElementById(`tf-group-${target}`);
             const btns = group.querySelectorAll('.tf-btn');
             btns.forEach(b => {
-                const bVal = b.getAttribute('onclick').match(/'([^']+)'\s*,\s*'([^']+)'/)[2];
-                b.classList.toggle('active', bVal === tf);
+                const clickAttr = b.getAttribute('onclick') || '';
+                if (clickAttr.includes('switchTF')) {
+                    const match = clickAttr.match(/'([^']+)'\s*,\s*'([^']+)'/);
+                    if (match && match[2]) {
+                        b.classList.toggle('active', match[2] === tf);
+                    }
+                }
             });
             
             // Trigger refresh for only this chart
@@ -395,9 +583,6 @@
             const loader = document.getElementById('loader');
             if (!silent) {
                 loader.style.display = 'flex';
-                // Auto-collapse sidebar on run
-                document.getElementById('sidebar').classList.add('collapsed');
-                document.getElementById('sidebar-toggle-btn').innerText = '▶';
             }
             
             const targetSymbol = isOpt ? document.getElementById('symbol').value : 'Nifty 50 (^NSEI)';
@@ -434,9 +619,11 @@
                 if (isOpt) {
                     zoneSeriesOpt = clearSeries(zoneSeriesOpt, chartOpt);
                     tradeSeriesOpt = clearSeries(tradeSeriesOpt, chartOpt);
+                    tradePills.opt = [];
                 } else {
                     zoneSeriesMain = clearSeries(zoneSeriesMain, chartMain);
                     tradeSeriesMain = clearSeries(tradeSeriesMain, chartMain);
+                    tradePills.main = [];
                 }
 
                 targetMarker.setMarkers([]);
@@ -574,35 +761,55 @@
                                 
                                 rtMarkers.push({
                                     time: entryT, position: isCE ? 'aboveBar' : 'belowBar',
-                                    color: '#6366f1', shape: 'circle', size: 0, 
-                                    text: isOpt ? `IN: ${Math.round(entryP)}` : 'ENTRY'
+                                    color: '#6366f1', shape: 'circle', size: 0,
+                                    text: `IN @ ${Math.round(entryP)}`
                                 });
                                 rtMarkers.push({
                                     time: exitT, position: isCE ? 'aboveBar' : 'belowBar',
                                     color: rt.pl > 0 ? '#10b981' : '#ef4444', shape: 'circle', size: 1,
-                                    text: isOpt ? `OUT: ${Math.round(exitP)} (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})` : `EXIT (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})`
+                                    text: `OUT @ ${Math.round(exitP)} (₹${Math.round(rt.pl)})`
+                                });
+
+                                // Add Pills for Option Chart
+                                tradePills.opt.push({
+                                    time: entryT, price: entryP, pl: 0, text: 'IN', isCE, position: isCE ? 'above' : 'below'
+                                });
+                                tradePills.opt.push({
+                                    time: exitT, price: exitP, pl: rt.pl, text: `OUT (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})`, isCE, position: isCE ? 'above' : 'below'
                                 });
                             }
                         } else {
-                            // INDEX CHART: Only Arrows
+                            // INDEX CHART
                             let instClean = rt.instrument;
                             const instMatch = instClean.match(/(\d{4,6})\s*([CP]E)/);
                             if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
                             else instClean = instClean.split(' ').pop();
                             
                             rtMarkers.push({
-                                time: entryT,
-                                position: isCE ? 'aboveBar' : 'belowBar',
-                                color: isCE ? '#f9a825' : '#9c27b0',
-                                shape: isCE ? 'arrowDown' : 'arrowUp',
-                                size: 2,
-                                text: `${instClean} [${duration}m] (₹${Math.round(rt.pl)})`
+                                 time: entryT,
+                                 position: isCE ? 'aboveBar' : 'belowBar',
+                                 color: isCE ? '#f9a825' : '#9c27b0',
+                                 shape: isCE ? 'arrowDown' : 'arrowUp',
+                                 size: 2,
+                                 text: `${instClean} | ₹${Math.round(rt.pl)}`
+                             });
+
+                            tradePills.main.push({
+                                time: exitT,
+                                price: exitP,
+                                pl: rt.pl,
+                                text: `${instClean} | ${duration}m | ₹${Math.round(rt.pl)}`,
+                                isCE,
+                                position: isCE ? 'above' : 'below'
                             });
                         }
                     }
                 });
 
-                setTimeout(() => { targetMarker.setMarkers([...zMarkers, ...rtMarkers, ...patternMarkers].sort((a,b) => a.time - b.time)); }, 50);
+                setTimeout(() => { 
+                    targetMarker.setMarkers([...zMarkers, ...rtMarkers, ...patternMarkers].sort((a,b) => a.time - b.time)); 
+                    syncTradePills(isOpt ? 'opt' : 'main');
+                }, 50);
                 
                 // FIXED: Preserve zoom/view if silent (switcher) update
                 if (!silent) {
@@ -623,11 +830,14 @@
         async function loadInstrument(symbol, date) {
             const isIndex = symbol === 'Nifty 50 (^NSEI)';
             const optBox = document.getElementById('container-opt');
+            const resizer = document.getElementById('chart-resizer');
             const dualBtn = document.getElementById('dual-view-btn');
             
             if (isIndex) {
                 optBox.style.display = 'none';
+                resizer.style.display = 'none';
                 dualBtn.innerText = 'DUAL VIEW: OFF';
+                document.getElementById('container-main').style.flex = '1';
                 
                 // Set 5-day lookback for EMA warmup
                 const dt = new Date(date);
@@ -641,6 +851,7 @@
                 await runStrategy(false);
             } else {
                 optBox.style.display = 'block';
+                resizer.style.display = 'block';
                 dualBtn.innerText = 'DUAL VIEW: ON';
                 document.getElementById('opt-label').innerText = symbol;
                 
@@ -680,11 +891,13 @@
 
         function toggleDualView() {
             const optBox = document.getElementById('container-opt');
+            const resizer = document.getElementById('chart-resizer');
             const dualBtn = document.getElementById('dual-view-btn');
             const isHidden = optBox.style.display === 'none';
             
             if (isHidden) {
                 optBox.style.display = 'block';
+                resizer.style.display = 'block';
                 dualBtn.innerText = 'DUAL VIEW: ON';
                 // Force resize check
                 setTimeout(() => {
@@ -696,6 +909,8 @@
                 }, 20);
             } else {
                 optBox.style.display = 'none';
+                resizer.style.display = 'none';
+                document.getElementById('container-main').style.flex = '1';
                 dualBtn.innerText = 'DUAL VIEW: OFF';
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
@@ -733,7 +948,7 @@
                             <td style="padding:10px; font-weight:900; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #cbd5e1;">
                                 📅 ${d.date} <span style="font-weight:400; font-size:0.7rem; color:#64748b; margin-left:10px;">(${d.trades.length} Trades | ${d.resolution})</span>
                             </td>
-                            <td colspan="2" style="border-bottom:1px solid #cbd5e1;"></td>
+                            <td colspan="3" style="border-bottom:1px solid #cbd5e1;"></td>
                             <td style="padding:10px; text-align:right; font-weight:900; font-size:0.95rem; color:${plColor}; border-bottom:1px solid #cbd5e1;">
                                 ${d.total_pl !== 0 ? (d.total_pl > 0 ? '+' : '') + Math.round(d.total_pl).toLocaleString() : '₹ 0'}
                             </td>
@@ -765,6 +980,14 @@
                             const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
                             const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
 
+                            const weekDots = t.weekly_history ? t.weekly_history.map((hasData, i) => {
+                                const dStr = t.weekly_dates[i];
+                                const cursor = hasData ? 'default' : 'pointer';
+                                const title = hasData ? `Data Available: ${dStr}` : `Click to sync: ${dStr}`;
+                                const action = hasData ? '' : `onclick="event.stopPropagation(); syncSpecificDay('${t.symbol}', '${dStr}')"`;
+                                return `<span ${action} style="width:7px; height:7px; background:${hasData ? '#10b981' : '#e2e8f0'}; border-radius:50%; display:inline-block; margin:0 1px; cursor:${cursor};" title="${title}"></span>`;
+                            }).join('') : '';
+
                             return `
                             <tr style="border-bottom:1px solid #f1f5f9;">
                                 <td style="padding:8px 10px 8px 30px; font-size:0.8rem; color:#334155; vertical-align:middle;">
@@ -772,15 +995,23 @@
                                     <span style="font-family:monospace; font-size:0.75rem; color:#64748b;">${timeStr}</span>
                                     <span style="margin-left:5px; white-space:nowrap;">
                                         ${statusIcon}
-                                        <span onclick="loadInstrument('${t.symbol}', '${d.date}')" 
-                                              title="Click to load chart" 
-                                              style="cursor:pointer; color:#0e7490; font-weight:700; padding:2px 6px; border-radius:4px; 
-                                                     background:${bgGroup}; 
-                                                     border:${isGrouped ? '1px solid rgba(0,0,0,0.05)' : 'none'};">
-                                            ${t.symbol}
-                                        </span>
-                                        <span style="font-size:0.7rem; font-weight:800; color:#64748b; margin-left:3px;">(${lots}L)</span>
-                                    </span>
+                                          <span onclick="loadInstrument('${t.symbol}', '${d.date}')" 
+                                               title="Click to load chart" 
+                                               style="cursor:pointer; color:#0e7490; font-weight:700; padding:2px 6px; border-radius:4px; 
+                                                      background:${bgGroup}; 
+                                                      border:${isGrouped ? '1px solid rgba(0,0,0,0.05)' : 'none'};">
+                                             ${t.symbol}
+                                         </span>
+                                         <span style="font-size:0.7rem; font-weight:800; color:#64748b; margin-left:3px;">(${lots}L)</span>
+                                         <span onclick="event.stopPropagation(); syncInstrumentWeek('${t.symbol}', '${d.date}')" 
+                                               title="Sync Full Week Data for this instrument"
+                                               style="cursor:pointer; margin-left:8px; font-size:0.7rem; color:#6366f1; background:#eef2ff; padding:2px 6px; border-radius:4px; border:1px solid #c7d2fe;">
+                                               🔄 SYNC WEEK
+                                         </span>
+                                     </span>
+                                 </td>
+                                <td style="padding:6px; text-align:center; vertical-align:middle;">
+                                    <div style="display:flex; justify-content:center; gap:2px;">${weekDots}</div>
                                 </td>
                                 <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
                                     ${t.duration || '--'}
@@ -1144,6 +1375,120 @@
             });
             alert("Auto-Fill complete! Check the boxes above before saving.");
         };
+
+        async function syncInstrumentWeek(sym, date) {
+            const cid = sessionStorage.getItem('dhan_client_id');
+            const token = sessionStorage.getItem('dhan_access_token');
+            if (!cid || !token) {
+                alert("Please login with Dhan Credentials first.");
+                return;
+            }
+
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⌛ SYNCING...';
+            btn.style.opacity = '0.6';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                const res = await fetch('/api/strategy/sync-single', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: sym, date: date, dhan_cid: cid, dhan_token: token })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Success! Refresh the modal to show green dots
+                    await openHistoryModal(); 
+                    alert(`Sync Complete for ${sym}! ${data.synced} days updated.`);
+                } else {
+                    alert(`Sync Error: ${data.error || 'Unknown error'}`);
+                    btn.innerHTML = originalText;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }
+            } catch (e) {
+                alert("Sync request failed.");
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        async function syncInstrumentWeek(sym, date) {
+            const cid = sessionStorage.getItem('dhan_client_id');
+            const token = sessionStorage.getItem('dhan_access_token');
+            if (!cid || !token) {
+                alert("Please login with Dhan Credentials first.");
+                return;
+            }
+
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⌛ SYNCING...';
+            btn.style.opacity = '0.6';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                const res = await fetch('/api/strategy/sync-single', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: sym, date: date, dhan_cid: cid, dhan_token: token })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Success! Refresh the modal to show green dots
+                    await openHistoryModal(); 
+                    alert(`Sync Complete for ${sym}! ${data.synced} days updated.`);
+                } else {
+                    alert(`Sync Error: ${data.error || 'Unknown error'}`);
+                    btn.innerHTML = originalText;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }
+            } catch (e) {
+                alert("Sync request failed.");
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        async function syncSpecificDay(sym, date) {
+            const cid = sessionStorage.getItem('dhan_client_id');
+            const token = sessionStorage.getItem('dhan_access_token');
+            if (!cid || !token) {
+                alert("Please login with Dhan Credentials first (Settings -> Re-Login).");
+                return;
+            }
+
+            // Visual feedback - temporary change color of clicked dot would be nice but we'll just show status
+            const originalColor = '#e2e8f0';
+            const btn = event.target;
+            if (btn) btn.style.background = '#f59e0b'; // Amber for processing
+
+            try {
+                const res = await fetch('/api/strategy/sync-single', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: sym, date: date, dhan_cid: cid, dhan_token: token })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.synced > 0) {
+                    if (btn) btn.style.background = '#10b981';
+                    alert(`Successfully synced ${sym} for ${date}`);
+                } else if (data.status === 'success' && data.synced === 0) {
+                    if (btn) btn.style.background = '#64748b';
+                    alert(`No data found for ${sym} on ${date} (Market might be closed).`);
+                } else {
+                    if (btn) btn.style.background = '#ef4444';
+                    alert(`Sync Error: ${data.error || 'Unknown error'}`);
+                }
+            } catch (e) {
+                if (btn) btn.style.background = '#ef4444';
+                alert("Sync request failed.");
+            }
+        }
 
         document.getElementById('close-pivot-modal').onclick = () => document.getElementById('pivot-modal').style.display = 'none';
     </script>

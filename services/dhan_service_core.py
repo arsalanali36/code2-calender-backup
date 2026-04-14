@@ -36,12 +36,16 @@ def _post_json(url, payload, headers):
 
 
 def _dhan_headers(config):
-    return {
-        'client-id':    config['client_id'],
-        'access-token': config['access_token'],
+    h = {
+        'access-token': str(config['access_token']).strip(),
         'Content-Type': 'application/json',
         'Accept':       'application/json',
     }
+    # Only add client-id if it's explicitly provided and looks like a real ID
+    cid = str(config.get('client_id', '')).strip()
+    if cid and cid != '0' and len(cid) > 2:
+        h['client-id'] = cid
+    return h
 
 
 # ── Config ────────────────────────────────────────────────────────────────────

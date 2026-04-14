@@ -115,8 +115,21 @@ def sync_single_route():
     try:
         config = None
         if cid and token:
+            cid = str(cid).strip()
+            token = str(token).strip()
             config = {'client_id': cid, 'access_token': token}
-        synced, errors = sync_single_task(sym, dt, config=config)
+            # Masked logging for debugging
+            masked = token[:6] + "..." + token[-4:] if len(token) > 10 else "***"
+            print(f"DEBUG: Syncing {sym} on {dt} with CID: {cid} | Token: {masked}")
+
+        res = sync_single_task(sym, dt, config=config)
+        
+        # Check if service returned a structured error
+        if isinstance(res, dict) and res.get('status') == 'error':
+            return jsonify(res), 200 # Return as 200 so UI can show the message
+
+        synced = res.get('synced', 0)
+        errors = res.get('errors', 0)
         return jsonify({'status': 'success', 'synced': synced, 'errors': errors})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

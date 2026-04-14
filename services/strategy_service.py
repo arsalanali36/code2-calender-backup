@@ -527,6 +527,30 @@ def get_archive_dates():
             except Exception as e: 
                 print(f"Error parsing trades_1.json: {e}")
 
+        # Optimization: Identify all unique symbols mentioned in trades to pre-calculate availability
+        all_unique_syms = set()
+        for d_trades in trades_map.values():
+            for t in d_trades:
+                all_unique_syms.add(t['symbol'])
+        
+        # Pre-calculate available dates for each instrument CSV (Optimized)
+        sym_availability = {}
+        for sym in all_unique_syms:
+            csv_path = f"data/Historical_OHLC/Options/{sym}.csv"
+            if os.path.exists(csv_path):
+                try:
+                    # Optimized: Read only the 'datetime' column and use string slicing for speed
+                    temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
+                    if not temp_df.empty:
+                        # Extract YYYY-MM-DD from 'YYYY-MM-DD HH:MM:SS' using string slicing is faster than pd.to_datetime
+                        dates = temp_df['datetime'].str.slice(0, 10).unique()
+                        sym_availability[sym] = set(dates)
+                    else:
+                        sym_availability[sym] = set()
+                except Exception as e:
+                    print(f"Skipping {sym} due to read error: {e}")
+                    sym_availability[sym] = set()
+
         results = []
         for date, group in df.groupby('date'):
             if len(group) > 1:
@@ -543,6 +567,30 @@ def get_archive_dates():
                 pl = t_raw['pl']
                 qty = t_raw.get('qty', 0)
                 
+                # Calculate lookback history (Last 5 trading days including today)
+                d_obj = datetime.strptime(date, '%Y-%m-%d')
+                weekly_history = []
+                weekly_dates = []
+                
+                # Check current day and 4 previous days
+                for i in range(5):
+                    # We subtract days and skip weekends to find 5 "trading" days
+                    check_day = d_obj
+                    offset = 0
+                    count = 0
+                    while count < i:
+                        offset += 1
+                        prev = d_obj - timedelta(days=offset)
+                        if prev.weekday() < 5:
+                            count += 1
+                            check_day = prev
+                    
+                    day_str = check_day.strftime('%Y-%m-%d')
+                    has_day_data = day_str in sym_availability.get(sym, set())
+                    # Insert at front because we are going backwards
+                    weekly_history.insert(0, has_day_data)
+                    weekly_dates.insert(0, day_str)
+
                 day_trades.append({
                     'symbol': sym,
                     'pl': round(pl, 2),
@@ -551,7 +599,9 @@ def get_archive_dates():
                     'exit_time': t_raw.get('exit_time', ''),
                     'duration': t_raw.get('duration', ''),
                     'pt': t_raw.get('pt', 0),
-                    'has_data': os.path.exists(f"data/Historical_OHLC/Options/{sym}.csv")
+                    'has_data': os.path.exists(f"data/Historical_OHLC/Options/{sym}.csv"),
+                    'weekly_history': weekly_history, # Boolean array for M, T, W, T, F
+                    'weekly_dates': weekly_dates
                 })
 
             results.append({

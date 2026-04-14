@@ -162,8 +162,10 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None, config=None):
         mapping = auto_map_instruments({symbol: trade_date})
         m = mapping.get(symbol)
         if m and m.get('security_id'):
-            print(f"DEBUG: Found SecurityID {m['security_id']} for {symbol}. Using historical API.")
+            print(f"DEBUG: Found SecurityID {m['security_id']} for {symbol}. Fetching via Historical API.")
             return fetch_and_cache_ohlc(m['security_id'], m['exchange_segment'], m['instrument'], trade_date, m.get('expiry'), config=config)
+        else:
+            print(f"DEBUG: Auto-mapper could not find ID for {symbol}. Falling back to RollingOptions.")
     except Exception as e:
         print(f"DEBUG: Auto-mapper fallback: {e}")
 
@@ -181,10 +183,11 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None, config=None):
     strike   = float(parsed['strike'])
     opt_type = 'CALL' if parsed['option_type'] == 'CE' else 'PUT'
 
-    # ── Build expiry candidates — try a wider range ───────────────
+    # -- Build expiry candidates (rollingoption)
+    # expiryCode: 1 = current, 2 = next, 3 = far. 0 is for cash which is invalid for options.
     expiry_candidates = [
-        ('WEEK', 1), ('WEEK', 2), ('WEEK', 3), ('WEEK', 0),
-        ('MONTH', 1), ('MONTH', 2), ('MONTH', 3), ('MONTH', 0),
+        ('WEEK', 1), ('WEEK', 2), ('WEEK', 3),
+        ('MONTH', 1), ('MONTH', 2), ('MONTH', 3),
     ]
 
     # ── Get underlying spot to determine ATM → compute N ─────────────────────
@@ -194,10 +197,13 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None, config=None):
         atm    = round(spot / step) * step
         n_calc = round((strike - atm) / step)
         print(f"DEBUG: Targeting ATM {atm}, strike {strike}, n_calc {n_calc}")
-        n_tries = list(dict.fromkeys([n_calc, n_calc-1, n_calc+1, n_calc-2, n_calc+2]))
+        # Focused search: try exactly the calculated offset, then +/- 1 for spot variance
+        n_tries = list(dict.fromkeys([n_calc, n_calc-1, n_calc+1]))
     else:
-        # Spot unavailable — search ±10 around 0 (covers near-ATM trades)
-        n_tries = list(range(-10, 11))
+        # Without spot, we can't accurately use RollingOption for specific strikes.
+        # Fallback to a very small range if absolutely needed, or fail early.
+        n_tries = [0] 
+        print("DEBUG: Spot missing, targeting ATM(0) only.")
 
     # toDate must be exclusive (next day)
     from_dt = datetime.strptime(trade_date, '%Y-%m-%d')
@@ -209,39 +215,55 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None, config=None):
     last_error = None
     # Outer loop: try each (expiryFlag, expiryCode) combo; inner loop: try each N
     for expiry_flag, exp_code in expiry_candidates:
-      for n in n_tries:
-        strike_str = 'ATM' if n == 0 else (f'ATM+{n}' if n > 0 else f'ATM{n}')
-        time.sleep(0.3)      # stay under Dhan rate limit
-        payload = {
-            "securityId":      sec_id,
-            "exchangeSegment": "NSE_FNO",
-            "instrument":      parsed['instrument'],
-            "interval":        1,
-            "expiryCode":      exp_code,
-            "expiryFlag":      expiry_flag,
-            "strike":          strike_str,
-            "drvOptionType":   opt_type,
-            "requiredData":    ["open", "high", "low", "close", "volume"],
-            "fromDate":        trade_date,
-            "toDate":          to_date,
-        }
-        resp = _post_json(url, payload, headers)
-        df = _parse_rollingoption_response(resp, trade_date, opt_type)
-        if not df.empty:
-            # Merge logic
-            cp = _expired_option_cache_path(symbol, trade_date)
-            if os.path.exists(cp):
+        for n in n_tries:
+            strike_str = 'ATM' if n == 0 else (f'ATM+{n}' if n > 0 else f'ATM{n}')
+            time.sleep(0.6)      # Relaxed throttle to avoid 429 Rate Limit Breach
+            payload = {
+                "securityId":      str(sec_id),
+                "exchangeSegment": "NSE_FNO",
+                "instrument":      str(parsed.get('instrument', 'OPTIDX')),
+                "interval":        1,
+                "expiryCode":      int(exp_code),
+                "expiryFlag":      str(expiry_flag),
+                "strike":          str(strike_str),
+                "drvOptionType":   str(opt_type),
+                "requiredData":    ["open", "high", "low", "close", "volume"],
+                "fromDate":        str(trade_date),
+                "toDate":          str(to_date),
+            }
+            try:
+                resp = _post_json(url, payload, headers)
+            except RuntimeError as e:
+                if "401" in str(e):
+                    print("CRITICAL: Dhan Authentication failed (401). Please re-login.")
+                    return "AUTH_FAILED"
+                if "429" in str(e):
+                    print("ALERT: Rate Limit hit (429)! Sleeping 30s as backoff...")
+                    time.sleep(30)
+                    continue
+                raise e # Other errors
+
+            try:
                 import pandas as pd
-                df_old = pd.read_csv(cp)
-                df = (pd.concat([df_old, df])
-                        .drop_duplicates('datetime')
-                        .sort_values('datetime')
-                        .reset_index(drop=True))
-            
-            df.to_csv(cp, index=False)
-            _write_meta(symbol, trade_date, df['datetime'].max())
-            return df
-    raise ValueError(f"Could not fetch data for {symbol} on {trade_date}")
+                df = _parse_rollingoption_response(resp, trade_date, opt_type)
+                if not df.empty:
+                    # Merge logic
+                    cp = _expired_option_cache_path(symbol, trade_date)
+                    if os.path.exists(cp):
+                        import pandas as pd
+                        df_old = pd.read_csv(cp)
+                        df = (pd.concat([df_old, df])
+                                .drop_duplicates('datetime')
+                                .sort_values('datetime')
+                                .reset_index(drop=True))
+                    
+                    df.to_csv(cp, index=False)
+                    _write_meta(symbol, trade_date, df['datetime'].max())
+                    return df
+            except Exception as e:
+                print(f"ERROR parsing response for {expiry_flag}/{exp_code} @ {strike_str}: {e}")
+                continue
+    raise ValueError(f"Could not fetch data for {symbol} on {trade_date} even after trying all strikes/expiries.")
 
 def get_sync_tasks(start_date=None, end_date=None):
     """Extract unique instrument-week tasks from trades_1.json within date range"""
@@ -277,6 +299,22 @@ def get_sync_tasks(start_date=None, end_date=None):
 
 def sync_single_task(symbol, trade_date, config=None):
     """Sync specific instrument for 10 days lookback to ensure indicator warmup"""
+    if not config:
+        config = get_config()
+
+    if not config:
+        return {'status': 'error', 'error': 'Dhan credentials not found. Please login.'}
+
+    # Ensure clean credentials for headers
+    if 'access_token' in config:
+        config['access_token'] = str(config['access_token']).strip()
+    if 'client_id' in config:
+        config['client_id'] = str(config['client_id']).strip()
+
+    # Debug: Confirm active session
+    masked = (config['access_token'][:8] + "...") if len(config['access_token']) > 8 else "***"
+    print(f"DEBUG: Syncing {symbol} for {trade_date} | CID: {config.get('client_id')} | Token: {masked}")
+
     end_dt = datetime.strptime(trade_date, '%Y-%m-%d')
     start_dt = end_dt - timedelta(days=10) # 10 days lookback for EMA warmup
     
@@ -289,16 +327,23 @@ def sync_single_task(symbol, trade_date, config=None):
             c_str = curr.strftime('%Y-%m-%d')
             try:
                 res = fetch_expired_option_ohlc(symbol, c_str, config=config)
+                
+                # Use isinstance checks to avoid DataFrame ambiguity errors
+                if isinstance(res, str) and res == "AUTH_FAILED":
+                    print("CRITICAL: Sync aborted due to Auth Failure.")
+                    return {'status': 'error', 'error': 'Dhan Authentication Failed. Please check your Access Token.', 'synced': synced, 'results': day_results}
+                
                 synced += 1
                 status = 'OK'
-                if res == "ALREADY_COMPLETE": status = 'SKIP'
+                if isinstance(res, str) and res == "ALREADY_COMPLETE": 
+                    status = 'SKIP'
                 day_results.append({'date': c_str, 'status': status, 'weekday': curr.weekday()})
             except Exception as e:
                 print(f"Sync error for {symbol} on {c_str}: {e}")
                 errors += 1
                 day_results.append({'date': c_str, 'status': 'ERR', 'weekday': curr.weekday()})
         curr += timedelta(days=1)
-    return {'synced': synced, 'errors': errors, 'day_results': day_results}
+    return {'status': 'success', 'synced': synced, 'errors': errors, 'day_results': day_results}
 
 def sync_all_traded_instruments():
     """
