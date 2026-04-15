@@ -160,6 +160,12 @@ function _bindKeyboardEvents() {
         openGalleryImageTagManager();
         return;
       }
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && e.key === 'Delete' && !annotState.active) {
+        e.preventDefault();
+        if (typeof removeGalleryImageAt === 'function')
+          removeGalleryImageAt(state.gallery.currentIndex);
+        return;
+      }
       if (!e.ctrlKey && !e.altKey && !typingInField && e.key === ']') {
         e.preventDefault();
         if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(+1);

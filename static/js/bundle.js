@@ -697,6 +697,7 @@ const state = {
   uploadRow: null,
   pendingFiles: [],
   tagImages: {},   // { tagName: imageURL } — for image-based tags
+  tagNotes: {},    // { tagName: noteText } — user notes per tag
   tagTemplates: {}, // { templateName: [tags...] } — saved filter presets
   quotes: [],
   quoteIndex: 0,
@@ -5135,14 +5136,17 @@ function loadTagGroups() {
     if (Array.isArray(mTags)) state.gallery.managerTags = mTags;
     const mSort = localStorage.getItem('tj_managerSortDir') || 'desc';
     state.gallery.managerSortDir = mSort;
+    const notes = JSON.parse(localStorage.getItem('tj_tagNotes') || '{}');
+    if (notes && typeof notes === 'object') state.tagNotes = notes;
   } catch (e) { }
 }
 function saveTagGroups() {
-  try { 
-    localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); 
+  try {
+    localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups));
     localStorage.setItem('tj_tagImages', JSON.stringify(state.tagImages));
     localStorage.setItem('tj_managerTags', JSON.stringify(state.gallery.managerTags || []));
     localStorage.setItem('tj_managerSortDir', state.gallery.managerSortDir || 'desc');
+    localStorage.setItem('tj_tagNotes', JSON.stringify(state.tagNotes || {}));
   } catch (e) { }
 }
 
@@ -14489,6 +14493,14 @@ function renderGalleryTagsTray() {
       } else if (imageAssignedSet.has(tag)) chip.title = 'Image tag assigned';
       else if (currentImageTagSet.has(tag)) chip.title = 'Marquee tag present on this image';
     }
+    // Note display below chip label
+    if (state.tagNotes && state.tagNotes[tag]) {
+      const noteLbl = document.createElement('div');
+      noteLbl.className = 'gv2-tag-note';
+      noteLbl.textContent = state.tagNotes[tag];
+      noteLbl.style.cssText = 'font-size:0.65rem; color:rgba(255,220,100,0.75); font-style:italic; margin-top:2px; white-space:pre-wrap; word-break:break-word; pointer-events:none; line-height:1.3; max-width:100%;';
+      chip.appendChild(noteLbl);
+    }
     chip.setAttribute('draggable', 'true');
     chip.addEventListener('click', async () => {
       if (state.tagDeleteMode) {
@@ -14542,7 +14554,8 @@ function renderGalleryTagsTray() {
         showToast('No image row found to assign tag', 'error');
         return;
       }
-      const next = liveAssignedSet.has(tag)
+      const isRemoving = liveAssignedSet.has(tag);
+      const next = isRemoving
         ? liveInfo.imageTags.filter(t => t !== tag)
         : [...liveInfo.imageTags, tag];
       if (liveInfo.ownerType === 'trade' && liveInfo.trade) setImageTagsForUrl(liveInfo.trade, liveInfo.imgUrl, next);
@@ -14553,6 +14566,19 @@ function renderGalleryTagsTray() {
       else {
         showToast('No image row found to assign tag', 'error');
         return;
+      }
+      // Push to undo stack on removal
+      if (isRemoving) {
+        window._tagUndoStack = window._tagUndoStack || [];
+        window._tagUndoStack.push({
+          tag,
+          imgUrl:    liveInfo.imgUrl,
+          ownerType: liveInfo.ownerType,
+          trade:     liveInfo.trade || null,
+          dateKey:   liveInfo.dateKey || '',
+          pdfId:     liveInfo.pdfId  || null,
+          pageNo:    liveInfo.pageNo ?? null,
+        });
       }
       normalizeAllTagsFromTrades();
       await saveTrades();
@@ -14578,6 +14604,10 @@ function renderGalleryTagsTray() {
       const availableGroups = Object.keys(state.tagGroups).filter(g => !(state.tagGroups[g] || []).includes(tag));
       const inGroups = Object.keys(state.tagGroups).filter(g => (state.tagGroups[g] || []).includes(tag));
       const items = [
+        {
+          label: (state.tagNotes && state.tagNotes[tag]) ? '📝 Edit note' : '📝 Add note',
+          action: () => openTagNoteEditor(tag, chip)
+        },
         {
           label: '✏ Rename tag', action: () => {
             const newTag = prompt('Rename tag:', tag);
@@ -14976,6 +15006,124 @@ window.openCreateTagModal = () => {
     showToast(`Tag "${t}" created ${g ? `in group "${g}"` : ''}`, 'success');
   };
 };
+
+/**
+ * Inline note editor for a tag chip
+ */
+function openTagNoteEditor(tag, anchorEl) {
+  // Remove any existing popover
+  const existing = document.getElementById('tag-note-popover');
+  if (existing) existing.remove();
+
+  const pop = document.createElement('div');
+  pop.id = 'tag-note-popover';
+  pop.style.cssText = 'position:fixed; z-index:9999; background:#1e2130; border:1px solid #ffd700; border-radius:8px; padding:10px; box-shadow:0 4px 20px rgba(0,0,0,0.6); min-width:220px; max-width:300px;';
+
+  const title = document.createElement('div');
+  title.textContent = `Note for "${tag}"`;
+  title.style.cssText = 'font-size:0.75rem; color:#ffd700; font-weight:700; margin-bottom:6px;';
+  pop.appendChild(title);
+
+  const ta = document.createElement('textarea');
+  ta.value = (state.tagNotes && state.tagNotes[tag]) || '';
+  ta.placeholder = 'Type note here...';
+  ta.rows = 4;
+  ta.style.cssText = 'width:100%; box-sizing:border-box; background:#111420; color:#e0e0e0; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:6px 8px; font-size:0.8rem; resize:vertical; outline:none; font-family:inherit;';
+  pop.appendChild(ta);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex; gap:6px; margin-top:7px; justify-content:flex-end;';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  saveBtn.style.cssText = 'background:#ffd700; color:#111; border:none; border-radius:5px; padding:4px 14px; cursor:pointer; font-weight:700; font-size:0.78rem;';
+
+  const clearBtn = document.createElement('button');
+  clearBtn.textContent = 'Clear';
+  clearBtn.style.cssText = 'background:transparent; color:rgba(255,100,100,0.8); border:1px solid rgba(255,100,100,0.4); border-radius:5px; padding:4px 10px; cursor:pointer; font-size:0.78rem;';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'background:transparent; color:#aaa; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:4px 10px; cursor:pointer; font-size:0.78rem;';
+
+  const doSave = (text) => {
+    if (!state.tagNotes) state.tagNotes = {};
+    if (text) state.tagNotes[tag] = text;
+    else delete state.tagNotes[tag];
+    saveTagGroups();
+    pop.remove();
+    renderGalleryTagsTray();
+  };
+
+  saveBtn.addEventListener('click', () => doSave(ta.value.trim()));
+  clearBtn.addEventListener('click', () => doSave(''));
+  cancelBtn.addEventListener('click', () => pop.remove());
+
+  // Ctrl+Enter to save
+  ta.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.ctrlKey) { ev.preventDefault(); doSave(ta.value.trim()); }
+    if (ev.key === 'Escape') pop.remove();
+  });
+
+  btnRow.appendChild(clearBtn);
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(saveBtn);
+  pop.appendChild(btnRow);
+  document.body.appendChild(pop);
+
+  // Position near anchor
+  const rect = anchorEl.getBoundingClientRect();
+  const pw = 300, ph = 160;
+  let top = rect.bottom + 6;
+  let left = rect.left;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 10;
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+
+  ta.focus();
+
+  // Close on outside click
+  setTimeout(() => {
+    const onOut = (ev) => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', onOut); } };
+    document.addEventListener('mousedown', onOut);
+  }, 50);
+}
+
+/**
+ * Undo last image-tag removal (Ctrl+Z in gallery)
+ */
+async function restoreLastDeletedImageTag() {
+  const stack = window._tagUndoStack;
+  if (!stack || !stack.length) return;
+  const entry = stack.pop();
+  const { tag, imgUrl, ownerType, trade, dateKey, pdfId, pageNo } = entry;
+
+  if (ownerType === 'trade' && trade) {
+    const current = getImageTagsForUrl(trade, imgUrl);
+    if (!current.includes(tag)) setImageTagsForUrl(trade, imgUrl, [...current, tag]);
+  } else if (ownerType === 'day' && dateKey) {
+    const current = getDayImageTagsForUrl(dateKey, imgUrl);
+    if (!current.includes(tag)) setDayImageTagsForUrl(dateKey, imgUrl, [...current, tag]);
+  } else if (ownerType === 'pdf' && pdfId !== null && typeof setPdfPageTags === 'function') {
+    // getPdfPageTags not available — restore by setting tag directly
+    setPdfPageTags(pdfId, pageNo, [tag]);
+  } else {
+    showToast('Undo failed — image no longer found', 'error');
+    return;
+  }
+
+  normalizeAllTagsFromTrades();
+  await saveTrades();
+  renderGalleryImageTags();
+  renderGalleryTagCloud();
+  renderGalleryTagsTray();
+  if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
+  renderGallery();
+  renderTable();
+  renderCalendar();
+  showToast(`Tag "${tag}" restored`, 'success');
+}
 
 
 /* ── /static/js/gallery-tags-filter.js ── */
@@ -24894,8 +25042,19 @@ function renderTagPins() {
 
     const tt = document.createElement('span');
     tt.className      = 'tag-pin-tooltip';
-    tt.textContent    = pin.tag;
     tt.style.borderColor = pin.color;
+    if (pin.note) {
+      const tagLine = document.createElement('div');
+      tagLine.style.cssText = 'font-weight:700; margin-bottom:3px;';
+      tagLine.textContent = pin.tag;
+      const noteLine = document.createElement('div');
+      noteLine.style.cssText = 'font-style:italic; color:rgba(255,220,100,0.9); font-size:0.78rem; white-space:pre-wrap; max-width:180px;';
+      noteLine.textContent = pin.note;
+      tt.appendChild(tagLine);
+      tt.appendChild(noteLine);
+    } else {
+      tt.textContent = pin.tag;
+    }
     dot.appendChild(tt);
 
     if (deleteMode) {
@@ -24905,6 +25064,12 @@ function renderTagPins() {
         removeTagPin(pin.id);
       });
     } else {
+      // Right-click → note editor
+      dot.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        _openPinNoteEditor(pin, dot);
+      });
       // Drag → move pin (mouse + touch)
       _bindPinDrag(dot, pin);
     }
@@ -25092,6 +25257,94 @@ function initTagPinHeaderButtons() {
   _updatePinHeaderBtns();
 }
 
+// ── Pin note editor ───────────────────────────────────────────────────────────
+
+function _openPinNoteEditor(pin, anchorEl) {
+  const existing = document.getElementById('pin-note-popover');
+  if (existing) existing.remove();
+
+  const pop = document.createElement('div');
+  pop.id = 'pin-note-popover';
+  pop.style.cssText = 'position:fixed; z-index:9999; background:#1e2130; border:1px solid ' + pin.color + '; border-radius:8px; padding:10px; box-shadow:0 4px 20px rgba(0,0,0,0.65); min-width:220px; max-width:300px;';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:0.75rem; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;';
+  const dot = document.createElement('span');
+  dot.style.cssText = 'display:inline-block; width:10px; height:10px; border-radius:50%; background:' + pin.color + ';';
+  title.appendChild(dot);
+  title.appendChild(document.createTextNode(pin.tag));
+  pop.appendChild(title);
+
+  const ta = document.createElement('textarea');
+  ta.value = pin.note || '';
+  ta.placeholder = 'Note likhein...';
+  ta.rows = 4;
+  ta.style.cssText = 'width:100%; box-sizing:border-box; background:#111420; color:#e0e0e0; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:6px 8px; font-size:0.8rem; resize:vertical; outline:none; font-family:inherit;';
+  pop.appendChild(ta);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex; gap:6px; margin-top:7px; justify-content:flex-end;';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  saveBtn.style.cssText = 'background:' + pin.color + '; color:#111; border:none; border-radius:5px; padding:4px 14px; cursor:pointer; font-weight:700; font-size:0.78rem;';
+
+  const clearBtn = document.createElement('button');
+  clearBtn.textContent = 'Clear';
+  clearBtn.style.cssText = 'background:transparent; color:rgba(255,100,100,0.8); border:1px solid rgba(255,100,100,0.4); border-radius:5px; padding:4px 10px; cursor:pointer; font-size:0.78rem;';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'background:transparent; color:#aaa; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:4px 10px; cursor:pointer; font-size:0.78rem;';
+
+  const doSave = (text) => {
+    const imgUrl = _currentPinImgUrl();
+    if (!imgUrl) return;
+    const pins = getTagPinsForUrl(imgUrl);
+    const p = pins.find(p => p.id === pin.id);
+    if (p) {
+      if (text) p.note = text;
+      else delete p.note;
+      setTagPinsForUrl(imgUrl, pins);
+      if (typeof saveTrades === 'function') saveTrades();
+      renderTagPins();
+    }
+    pop.remove();
+  };
+
+  saveBtn.addEventListener('click', () => doSave(ta.value.trim()));
+  clearBtn.addEventListener('click', () => doSave(''));
+  cancelBtn.addEventListener('click', () => pop.remove());
+  ta.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' && ev.ctrlKey) { ev.preventDefault(); doSave(ta.value.trim()); }
+    if (ev.key === 'Escape') pop.remove();
+  });
+
+  btnRow.appendChild(clearBtn);
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(saveBtn);
+  pop.appendChild(btnRow);
+  document.body.appendChild(pop);
+
+  // Position near the dot
+  const rect = anchorEl.getBoundingClientRect();
+  const pw = 300, ph = 170;
+  let top  = rect.bottom + 8;
+  let left = rect.left - pw / 2 + rect.width / 2;
+  if (top  + ph > window.innerHeight) top  = rect.top - ph - 8;
+  if (left + pw > window.innerWidth)  left = window.innerWidth - pw - 10;
+  if (left < 6) left = 6;
+  pop.style.top  = top  + 'px';
+  pop.style.left = left + 'px';
+
+  ta.focus();
+
+  setTimeout(() => {
+    const onOut = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', onOut); } };
+    document.addEventListener('mousedown', onOut);
+  }, 50);
+}
+
 function _updatePinHeaderBtns() {
   if (!state.gallery) return;
   const v = state.gallery._tagPinsVisible;
@@ -25277,6 +25530,12 @@ function _bindKeyboardEvents() {
       if (e.altKey && !e.ctrlKey && !e.shiftKey && String(e.key || '').toLowerCase() === 't') {
         e.preventDefault();
         openGalleryImageTagManager();
+        return;
+      }
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && e.key === 'Delete' && !annotState.active) {
+        e.preventDefault();
+        if (typeof removeGalleryImageAt === 'function')
+          removeGalleryImageAt(state.gallery.currentIndex);
         return;
       }
       if (!e.ctrlKey && !e.altKey && !typingInField && e.key === ']') {

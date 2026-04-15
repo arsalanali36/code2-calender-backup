@@ -209,14 +209,17 @@ function loadTagGroups() {
     if (Array.isArray(mTags)) state.gallery.managerTags = mTags;
     const mSort = localStorage.getItem('tj_managerSortDir') || 'desc';
     state.gallery.managerSortDir = mSort;
+    const notes = JSON.parse(localStorage.getItem('tj_tagNotes') || '{}');
+    if (notes && typeof notes === 'object') state.tagNotes = notes;
   } catch (e) { }
 }
 function saveTagGroups() {
-  try { 
-    localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups)); 
+  try {
+    localStorage.setItem('tj_tagGroups', JSON.stringify(state.tagGroups));
     localStorage.setItem('tj_tagImages', JSON.stringify(state.tagImages));
     localStorage.setItem('tj_managerTags', JSON.stringify(state.gallery.managerTags || []));
     localStorage.setItem('tj_managerSortDir', state.gallery.managerSortDir || 'desc');
+    localStorage.setItem('tj_tagNotes', JSON.stringify(state.tagNotes || {}));
   } catch (e) { }
 }
 
