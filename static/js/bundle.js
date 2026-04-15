@@ -8821,7 +8821,7 @@ function renderGalleryThumbs() {
 
   // ── Footer: PREMIUM + blank button + scroll (in gallery-render-thumbs-b.js)
   _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
-                      savedScrollTop, savedScrollLeft, _filterActive3);
+                      savedScrollTop, savedScrollLeft, _filterActive3, createSpecialSeparator);
 }
 
 
@@ -8896,7 +8896,7 @@ function _renderPdfModeThumbs(thumbs) {
 
 // ── PREMIUM section + blank button + scroll ───────────────────────────────────
 function _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
-                              savedScrollTop, savedScrollLeft, _filterActive3) {
+                              savedScrollTop, savedScrollLeft, _filterActive3, createSpecialSeparator) {
   // ── PREMIUM SECTION ───────────────────────────────────────────────────────
   if (!_filterActive3 && date && uniqueInsts.length > 0) {
     thumbs.appendChild(createSpecialSeparator('PREMIUM', 'PREMIUM'));

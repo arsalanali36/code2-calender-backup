@@ -564,5 +564,5 @@ function renderGalleryThumbs() {
 
   // ── Footer: PREMIUM + blank button + scroll (in gallery-render-thumbs-b.js)
   _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
-                      savedScrollTop, savedScrollLeft, _filterActive3);
+                      savedScrollTop, savedScrollLeft, _filterActive3, createSpecialSeparator);
 }
