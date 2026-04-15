@@ -112,37 +112,7 @@
         }
 
         function syncTradePills(target) {
-            try {
-                const chart = target === 'main' ? chartMain : chartOpt;
-                const overlay = document.getElementById(`overlay-${target}`);
-                if (!chart || !overlay) return;
-
-                overlay.innerHTML = '';
-                const pills = tradePills[target];
-                if (!pills || !pills.length) return;
-
-                const timeScale = chart.timeScale();
-                const priceScale = chart.priceScale('right');
-                const visibleRange = timeScale.getVisibleRange();
-                if (!visibleRange) return;
-
-                pills.forEach(p => {
-                    if (p.time < visibleRange.from - 600 || p.time > visibleRange.to + 600) return;
-                    const x = timeScale.timeToCoordinate(p.time);
-                    const y = priceScale.priceToCoordinate(p.price);
-                    if (x === null || y === null) return;
-                    if (x < 0 || x > overlay.clientWidth || y < 0 || y > overlay.clientHeight) return;
-
-                    const div = document.createElement('div');
-                    const winLossClass = p.pl > 0 ? 'pill-win' : (p.pl < 0 ? 'pill-loss' : 'pill-neutral');
-                    const typeClass = p.isCE ? 'pill-ce' : 'pill-pe';
-                    div.className = `trade-pill ${winLossClass} ${typeClass}`;
-                    div.style.left = `${x}px`;
-                    div.style.top = `${y + (p.position === 'above' ? -35 : 35)}px`;
-                    div.innerHTML = p.text;
-                    overlay.appendChild(div);
-                });
-            } catch (err) { console.warn("Pill Sync Err:", err); }
+            // Simplified: User preferred single line markers for stability
         }
 
         function initChart() {
@@ -379,10 +349,10 @@
                 const chartData = dataRaw.chart_data;
                 const zones = dataRaw.zones;
                 const realTrades = dataRaw.real_trades || [];
-                lastStrategyData.realTrades = realTrades;
-                loadedRealTrades = realTrades;
-
                 const visibleData = chartData.filter(d => !d.is_gap);
+                
+                // CRITICAL: Store the raw chartData so we have access to .datetime strings for fitting
+                lastStrategyData.visibleData = chartData; 
                 if (!visibleData.length) return false;
 
                 targetCandle.setData(visibleData.map(d => ({ 
@@ -461,7 +431,9 @@
                 }
 
                 const rtMarkers = [];
-                realTrades.forEach(rt => {
+                const dailyCounts = {};
+
+                realTrades.forEach((rt, idx) => {
                     const entryT = rt.entry_time;
                     const exitT = rt.exit_time;
                     
@@ -472,6 +444,11 @@
                     if (!entryCandle || !exitCandle) return;
 
                     const isCE = rt.instrument.toUpperCase().includes('CE') || rt.instrument.toUpperCase().includes('CALL');
+                    
+                    // DAILY RESET LOGIC: Count trades within the specific date
+                    const tradeDate = new Date(entryT * 1000).toISOString().split('T')[0];
+                    dailyCounts[tradeDate] = (dailyCounts[tradeDate] || 0) + 1;
+                    const tradeNum = dailyCounts[tradeDate];
                     
                     let entryP, exitP;
                     if (isOpt) {
@@ -511,43 +488,38 @@
                                 rtMarkers.push({
                                     time: entryT, position: isCE ? 'aboveBar' : 'belowBar',
                                     color: '#6366f1', shape: 'circle', size: 0,
-                                    text: `IN @ ${Math.round(entryP)}`
+                                    text: `t${tradeNum} IN @ ${Math.round(entryP)}`
                                 });
                                 rtMarkers.push({
                                     time: exitT, position: isCE ? 'aboveBar' : 'belowBar',
                                     color: rt.pl > 0 ? '#10b981' : '#ef4444', shape: 'circle', size: 1,
-                                    text: `OUT @ ${Math.round(exitP)} (₹${Math.round(rt.pl)})`
+                                    text: `t${tradeNum} OUT (₹${Math.round(rt.pl)})`
                                 });
 
                                 // Add Pills for Option Chart
                                 tradePills.opt.push({
-                                    time: entryT, price: entryP, pl: 0, text: 'IN', isCE, position: isCE ? 'above' : 'below'
+                                    time: entryT, price: entryP, pl: 0, text: `t${tradeNum}<br>IN`, isCE, position: isCE ? 'above' : 'below'
                                 });
                                 tradePills.opt.push({
-                                    time: exitT, price: exitP, pl: rt.pl, text: `OUT (${rt.pl > 0 ? '+' : ''}${Math.round(rt.pl)})`, isCE, position: isCE ? 'above' : 'below'
+                                    time: exitT, price: exitP, pl: rt.pl, text: `t${tradeNum}<br>₹${Math.round(rt.pl)}`, isCE, position: isCE ? 'above' : 'below'
                                 });
                             }
                         } else {
                             // INDEX CHART
-                            let instClean = rt.instrument;
-                            const instMatch = instClean.match(/(\d{4,6})\s*([CP]E)/);
-                            if (instMatch) instClean = instMatch[1] + " " + instMatch[2];
-                            else instClean = instClean.split(' ').pop();
-                            
-                            rtMarkers.push({
+                             rtMarkers.push({
                                  time: entryT,
                                  position: isCE ? 'aboveBar' : 'belowBar',
                                  color: isCE ? '#f9a825' : '#9c27b0',
                                  shape: isCE ? 'arrowDown' : 'arrowUp',
                                  size: 2,
-                                 text: `${instClean} | ₹${Math.round(rt.pl)}`
+                                 text: `t${tradeNum} | ₹${Math.round(rt.pl)}`
                              });
 
                             tradePills.main.push({
                                 time: exitT,
                                 price: exitP,
                                 pl: rt.pl,
-                                text: `${instClean} | ${duration}m | ₹${Math.round(rt.pl)}`,
+                                text: `t${tradeNum}<br>₹${Math.round(rt.pl)}`,
                                 isCE,
                                 position: isCE ? 'above' : 'below'
                             });

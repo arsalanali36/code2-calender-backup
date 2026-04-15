@@ -11790,7 +11790,7 @@
       "Buy Price (Avg)": 239.45,
       "Buy Time": "09:41:15",
       "Gross P/L": -45.5,
-      "Image Tags": "palat gaya",
+      "Image Tags": "",
       "Instrument": "NIFTY2631024550CE",
       "Net P/L": -150.51,
       "Note": "",
@@ -11824,11 +11824,7 @@
           "version": "5.3.0"
         }
       },
-      "imageTags": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381562/trading_journal/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png": [
-          "palat gaya"
-        ]
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381562/trading_journal/2631d3b9-b73a-4ad2-bdf7-a7f1a8f392bc.png"
       ],
@@ -14174,7 +14170,7 @@
       "Buy Price (Avg)": 194.283333,
       "Buy Time": "09:35:30",
       "Gross P/L": -1495,
-      "Image Tags": "Day Open, dddd, NO ZONE",
+      "Image Tags": "Day Open, NO ZONE",
       "Instrument": "NIFTY2632422750CE",
       "Net P/L": -1610.52,
       "Note": "",
@@ -14213,7 +14209,7 @@
       "Buy Price (Avg)": 271.633333,
       "Buy Time": "09:42:35",
       "Gross P/L": -1998.75,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422800PE",
       "Net P/L": -2141.59,
       "Note": "",
@@ -14248,7 +14244,7 @@
       "Buy Price (Avg)": 161.8,
       "Buy Time": "09:56:05",
       "Gross P/L": 2951,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422750CE",
       "Net P/L": 2860.52,
       "Note": "",
@@ -14289,7 +14285,7 @@
       "Buy Price (Avg)": 277.2,
       "Buy Time": "09:42:35",
       "Gross P/L": -357.5,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422800PE",
       "Net P/L": -471.19,
       "Note": "",
@@ -14317,7 +14313,7 @@
       "Buy Price (Avg)": 213,
       "Buy Time": "10:15:51",
       "Gross P/L": 1774.5,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": 1673.31,
       "Note": "",
@@ -14353,7 +14349,7 @@
       "Buy Price (Avg)": 248.3,
       "Buy Time": "10:39:04",
       "Gross P/L": 221,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422600PE",
       "Net P/L": 113.48,
       "Note": "",
@@ -14389,7 +14385,7 @@
       "Buy Price (Avg)": 223.95,
       "Buy Time": "11:07:23",
       "Gross P/L": 2255.5,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422550PE",
       "Net P/L": 2150.99,
       "Note": "",
@@ -14426,7 +14422,7 @@
       "Buy Price (Avg)": 169.45,
       "Buy Time": "12:24:45",
       "Gross P/L": 2645.5,
-      "Image Tags": "Day Open, dddd",
+      "Image Tags": "Day Open",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": 2553.61,
       "Note": "",
@@ -14460,7 +14456,7 @@
       "Buy Price (Avg)": 110.533333,
       "Buy Time": "10:46:17",
       "Gross P/L": 1215.5,
-      "Image Tags": "chotu, dddd, NO ZONE, pintu, ZONE ENTRY",
+      "Image Tags": "chotu, NO ZONE, pintu, ZONE ENTRY",
       "Instrument": "NIFTY2632422700PE",
       "Net P/L": 1126.51,
       "Note": "",
@@ -14480,7 +14476,6 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/462f9718-57f4-4216-92db-c8c6486423d5.png": [
           "ZONE ENTRY",
           "NO ZONE",
-          "dddd",
           "chotu"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/86890efb-648f-47fe-995e-262786d07139.png": [
@@ -14567,7 +14562,7 @@
       "Buy Price (Avg)": 154.9,
       "Buy Time": "11:16:01",
       "Gross P/L": -263.25,
-      "Image Tags": "NO ZONE, palat gaya",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2632422600CE",
       "Net P/L": -328.8,
       "Note": "",
@@ -14584,9 +14579,6 @@
       "Video": "",
       "date": "2026-03-24",
       "imageTags": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774333726/trading_journal/3002baaa-a586-472a-812a-5d74bfebac8d.png": [
-          "palat gaya"
-        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774333726/trading_journal/756d4384-77f7-426b-ab4d-6834a6f68da3.png": [
           "NO ZONE"
         ]
@@ -17560,7 +17552,7 @@
       "Buy Price (Avg)": 101.233333,
       "Buy Time": "10:19:53",
       "Gross P/L": -448.5,
-      "Image Tags": "",
+      "Image Tags": "palat gaya, Palat Gaya",
       "Instrument": "NIFTY2641323600CE",
       "Net P/L": -602.56,
       "Note": "",
@@ -17577,12 +17569,37 @@
       "Video": "",
       "date": "2026-04-13",
       "fill_count": 5,
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776081984/trading_journal/66863b31-abb1-4332-ae0a-a9785c7f3466.png": [
+          "palat gaya",
+          "Palat Gaya"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776081981/trading_journal/ae9eb8e3-d63c-4a30-b5d2-99a2110cf3df.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776081984/trading_journal/66863b31-abb1-4332-ae0a-a9785c7f3466.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776081984/trading_journal/66863b31-abb1-4332-ae0a-a9785c7f3466.png": [
+          {
+            "color": "#9b59b6",
+            "id": "mnzzf7xyuibj",
+            "note": "ye hui na baat",
+            "tag": "palat gaya",
+            "x": 31,
+            "y": 61.8
+          },
+          {
+            "color": "#e74c3c",
+            "id": "mnzzmeovviie",
+            "note": "shandaar!!!",
+            "tag": "Palat Gaya",
+            "x": 65,
+            "y": 37.9
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-13"
     },
@@ -17839,7 +17856,7 @@
       "Buy Price (Avg)": 209.6,
       "Buy Time": "12:20:04",
       "Gross P/L": -393.25,
-      "Image Tags": "",
+      "Image Tags": "Momentum Slow ka intezar karna cahiye, news, Realisation, shandaar",
       "Instrument": "NIFTY2642124200PE",
       "Net P/L": -465.22,
       "Note": "",
@@ -17855,13 +17872,29 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-15",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246710/trading_journal/23342773-32cb-485a-b740-26dca78fe19b.png": [
+          "Realisation"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246706/trading_journal/acf4937a-a8a0-4a59-96d9-a68a1761641b.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246707/trading_journal/42cfe63e-ac4a-4dac-98a9-6767ab8428f9.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246710/trading_journal/23342773-32cb-485a-b740-26dca78fe19b.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246710/trading_journal/23342773-32cb-485a-b740-26dca78fe19b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253683/trading_journal/92a90cd5-045e-406c-bbdd-8f055145a684.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246710/trading_journal/23342773-32cb-485a-b740-26dca78fe19b.png": [
+          {
+            "color": "#ffd700",
+            "id": "mnzyyjsmu831",
+            "tag": "Realisation",
+            "x": 20.2,
+            "y": 73
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-15"
     },
@@ -17871,7 +17904,7 @@
       "Buy Price (Avg)": 241.066667,
       "Buy Time": "12:24:26",
       "Gross P/L": 757.25,
-      "Image Tags": "",
+      "Image Tags": "Momentum Slow ka intezar karna cahiye, news, palat gaya, shandaar",
       "Instrument": "NIFTY2642124200CE",
       "Net P/L": 621.59,
       "Note": "",
@@ -17887,16 +17920,40 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-15",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246709/trading_journal/8bcbe2eb-19e5-46f9-bc4a-78d2a052a073.png": [
+          "palat gaya"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246707/trading_journal/5244e345-d146-480f-8b7b-45274641fd29.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246708/trading_journal/cfd816cf-becb-4a63-863f-b4fa8c9f87b4.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246709/trading_journal/49926227-8298-4844-b143-1face7cbfed5.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246711/trading_journal/fc0e533b-d512-47b4-813c-3ed5059a855c.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246709/trading_journal/8bcbe2eb-19e5-46f9-bc4a-78d2a052a073.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246712/trading_journal/9909a0bc-6875-40b3-afb8-a66637c4733c.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246712/trading_journal/9909a0bc-6875-40b3-afb8-a66637c4733c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253700/trading_journal/3d160013-17db-4928-8b13-1dd71afbf843.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246709/trading_journal/8bcbe2eb-19e5-46f9-bc4a-78d2a052a073.png": [
+          {
+            "color": "#9b59b6",
+            "id": "mnzz53p14d1w",
+            "note": "lag raha tha neeche jayega ,accha hua tha trailing sl rakha tha !",
+            "tag": "palat gaya",
+            "x": 59.2,
+            "y": 55.3
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246711/trading_journal/fc0e533b-d512-47b4-813c-3ed5059a855c.png": [
+          {
+            "color": "#9b59b6",
+            "id": "mnzz4y9qj4qk",
+            "tag": "palat gaya",
+            "x": 57.9,
+            "y": 57.6
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-15"
     },
@@ -17906,7 +17963,7 @@
       "Buy Price (Avg)": 212,
       "Buy Time": "12:48:08",
       "Gross P/L": -721.5,
-      "Image Tags": "",
+      "Image Tags": "Double Zone Me Fase, Momentum Slow ka intezar karna cahiye, Nahi dekh paaya, news, shandaar",
       "Instrument": "NIFTY2642124200PE",
       "Net P/L": -844.53,
       "Note": "",
@@ -17922,14 +17979,50 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-15",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246711/trading_journal/c8c7021c-b045-4093-88da-c50b6ef642a6.png": [
+          "Double Zone Me Fase"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/236a726b-c089-4e32-a9da-ab47993ec173.png": [
+          "Double Zone Me Fase",
+          "Nahi dekh paaya"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246710/trading_journal/c9d44098-531d-4c16-90dc-e4200970978b.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246711/trading_journal/c8c7021c-b045-4093-88da-c50b6ef642a6.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/236a726b-c089-4e32-a9da-ab47993ec173.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/5d89d84c-a3f4-40f9-9988-965bc55e1424.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/5d89d84c-a3f4-40f9-9988-965bc55e1424.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253683/trading_journal/92a90cd5-045e-406c-bbdd-8f055145a684.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246711/trading_journal/c8c7021c-b045-4093-88da-c50b6ef642a6.png": [
+          {
+            "color": "#00d2ff",
+            "id": "mnzz6bu8i66v",
+            "tag": "Double Zone Me Fase",
+            "x": 50.7,
+            "y": 41.2
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/236a726b-c089-4e32-a9da-ab47993ec173.png": [
+          {
+            "color": "#00d2ff",
+            "id": "mo04iv47tz2m",
+            "tag": "Double Zone Me Fase",
+            "x": 66.3,
+            "y": 48.7
+          },
+          {
+            "color": "#2ecc71",
+            "id": "mo04ji8eo87l",
+            "tag": "Nahi dekh paaya",
+            "x": 54,
+            "y": 58.1
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-15"
     },
@@ -17939,7 +18032,7 @@
       "Buy Price (Avg)": 213.5,
       "Buy Time": "12:48:09",
       "Gross P/L": 0,
-      "Image Tags": "",
+      "Image Tags": "Momentum Slow ka intezar karna cahiye, news, shandaar, SL moved, Zone Bana",
       "Instrument": "NIFTY2642124200PE",
       "Net P/L": -124.6,
       "Note": "",
@@ -17955,13 +18048,42 @@
       "TradeType": "buy",
       "Video": "",
       "date": "2026-04-15",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246712/trading_journal/2ed9c876-aced-4df8-8f55-6d53ec24b5cf.png": [
+          "SL moved"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246715/trading_journal/eeb7b094-606d-4db3-8e61-f715bf982e2c.png": [
+          "Zone Bana"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246712/trading_journal/2ed9c876-aced-4df8-8f55-6d53ec24b5cf.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246715/trading_journal/eeb7b094-606d-4db3-8e61-f715bf982e2c.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246713/trading_journal/99eac02a-6001-4836-bc2f-07bed97343ff.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246713/trading_journal/99eac02a-6001-4836-bc2f-07bed97343ff.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253683/trading_journal/92a90cd5-045e-406c-bbdd-8f055145a684.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246712/trading_journal/2ed9c876-aced-4df8-8f55-6d53ec24b5cf.png": [
+          {
+            "color": "#00d2ff",
+            "id": "mo04kbdlqyjz",
+            "note": "upar tip pe sl tha, usko move kar diya maine !!",
+            "tag": "SL moved",
+            "x": 52.6,
+            "y": 46.2
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246715/trading_journal/eeb7b094-606d-4db3-8e61-f715bf982e2c.png": [
+          {
+            "color": "#00d2ff",
+            "id": "mo04ngn1e0ub",
+            "tag": "Zone Bana",
+            "x": 57.1,
+            "y": 24.5
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-15"
     },
@@ -17971,7 +18093,7 @@
       "Buy Price (Avg)": 275.3,
       "Buy Time": "12:51:49",
       "Gross P/L": -1963,
-      "Image Tags": "",
+      "Image Tags": "darr ka nikal gaye, Momentum Slow ka intezar karna cahiye, news, shandaar",
       "Instrument": "NIFTY2642124150CE",
       "Net P/L": -2107.22,
       "Note": "",
@@ -17987,12 +18109,29 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-15",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/4b94f51b-2d99-47e5-b961-46fb12a6a6ed.png": [
+          "darr ka nikal gaye"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246713/trading_journal/93ba6b20-4d6c-41dd-a923-5d7092a82027.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/4b94f51b-2d99-47e5-b961-46fb12a6a6ed.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/4b94f51b-2d99-47e5-b961-46fb12a6a6ed.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253719/trading_journal/dd9762ce-df63-4acd-8ffd-10eb3d749208.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246714/trading_journal/4b94f51b-2d99-47e5-b961-46fb12a6a6ed.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mo04nxwgtztx",
+            "note": "pata nahi kun itna darr lag raha tha<div>shayed is strike pe pehle loss ho gaya tha !!</div>",
+            "tag": "darr ka nikal gaye",
+            "x": 53.7,
+            "y": 54
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-15"
     },
@@ -18002,7 +18141,7 @@
       "Buy Price (Avg)": 269.616667,
       "Buy Time": "13:12:23",
       "Gross P/L": -1020.5,
-      "Image Tags": "",
+      "Image Tags": "darr ka nikal gaye, Momentum Slow ka intezar karna cahiye, news, Realisation, shandaar",
       "Instrument": "NIFTY2642124150CE",
       "Net P/L": -1164,
       "Note": "",
@@ -18018,15 +18157,35 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-15",
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246716/trading_journal/d0bd9078-bd48-48fb-8308-2b890b0ae574.png": [
+          "Realisation"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253066/trading_journal/896d0298-0abe-4e62-bcf0-2ad4bebaa186.png": [
+          "darr ka nikal gaye"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246717/trading_journal/42b27f0e-f38e-45ec-a91e-79c940152745.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246715/trading_journal/c08d98a7-00e8-4059-907c-6a831dbc1894.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246717/trading_journal/2f491976-5bf1-4ee3-89f6-393746175bbc.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246716/trading_journal/d0bd9078-bd48-48fb-8308-2b890b0ae574.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246716/trading_journal/cd5cb195-c166-4d6c-952f-bab3d543bad0.png"
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246716/trading_journal/cd5cb195-c166-4d6c-952f-bab3d543bad0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253066/trading_journal/896d0298-0abe-4e62-bcf0-2ad4bebaa186.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253719/trading_journal/dd9762ce-df63-4acd-8ffd-10eb3d749208.png"
       ],
       "observation": "",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253066/trading_journal/896d0298-0abe-4e62-bcf0-2ad4bebaa186.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mnzz86ytl3x5",
+            "tag": "darr ka nikal gaye",
+            "x": 55.3,
+            "y": 49.9
+          }
+        ]
+      },
       "tags": [],
       "trade_date": "2026-04-15"
     }
@@ -18095,8 +18254,6 @@
     "news+",
     "sdadssdsd",
     "ide",
-    "carxx",
-    "dddd",
     "SL Nahi lagya",
     "ZONE ENTRY",
     "NO ZONE",
@@ -18109,8 +18266,13 @@
     "Day Close",
     "Clean",
     "War",
-    "Politics",
-    "itna neeche girne pe key candle exempt?"
+    "itna neeche girne pe key candle exempt?",
+    "shandaar",
+    "Double Zone Me Fase",
+    "darr ka nikal gaye",
+    "Nahi dekh paaya",
+    "SL moved",
+    "Zone Bana"
   ],
   "tagColumns": [
     "Tags"
@@ -27172,7 +27334,6 @@
       ],
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774245422/trading_journal/c7e02db0-ff2d-4ab4-9647-2fb6995287b0.png": [
-          "dddd",
           "Day Open"
         ]
       },
@@ -27316,8 +27477,7 @@
           "Day Open"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775473863/trading_journal/ee4a92f3-2730-4410-a753-be8d0c18cf62.jpg": [
-          "War",
-          "Politics"
+          "War"
         ]
       },
       "images": [
@@ -27522,13 +27682,572 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246705/trading_journal/f5075d8a-3eb9-4537-ac42-493556f26ab5.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246707/trading_journal/c443f047-2805-4c02-9077-b756cf70b45c.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246707/trading_journal/c443f047-2805-4c02-9077-b756cf70b45c.png": [
+          "shandaar"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246705/trading_journal/f5075d8a-3eb9-4537-ac42-493556f26ab5.png": [
+          "shandaar"
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246702/trading_journal/252542f6-b306-42da-9827-74b61e7bd004.png": [
+          "news",
+          "Momentum Slow ka intezar karna cahiye"
+        ]
+      },
       "newsImages": [],
       "closeImages": [],
       "closeGlobalImages": [],
-      "tradeRefCards": {}
+      "tradeRefCards": {},
+      "premiumImages": {
+        "NIFTY2642124200PE": [
+          "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253683/trading_journal/92a90cd5-045e-406c-bbdd-8f055145a684.png"
+        ],
+        "NIFTY2642124200CE": [
+          "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253700/trading_journal/3d160013-17db-4928-8b13-1dd71afbf843.png"
+        ],
+        "NIFTY2642124150CE": [
+          "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776253719/trading_journal/dd9762ce-df63-4acd-8ffd-10eb3d749208.png"
+        ]
+      },
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246702/trading_journal/252542f6-b306-42da-9827-74b61e7bd004.png": [
+          {
+            "id": "mnzzvqt3eiyw",
+            "tag": "news",
+            "x": 71.4,
+            "y": 51,
+            "color": "#1abc9c",
+            "note": "ye double blockade ki baat ho rahi, trump bol raha ham bhi block kar denge\n\nfir hua ki ab jaldi hi war kahatm ho jaye gi<div><br></div><div><ol><li>ghj</li><li>fgjgh</li></ol><ul><li><span style=\"font-size: 11.48px;\">dfgdfgd</span></li></ul></div>"
+          },
+          {
+            "id": "mo00etz1vj9i",
+            "tag": "Momentum Slow ka intezar karna cahiye",
+            "x": 69.4,
+            "y": 34.4,
+            "color": "#e74c3c",
+            "note": "asdasdasdasdsadd<div>dsasdsa</div><div>dsasdas</div><div>dsdadsa</div>"
+          }
+        ]
+      },
+      "fabricData": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246702/trading_journal/252542f6-b306-42da-9827-74b61e7bd004.png": {
+          "version": "5.3.0",
+          "objects": [
+            {
+              "type": "path",
+              "version": "5.3.0",
+              "originX": "left",
+              "originY": "top",
+              "left": 242.02,
+              "top": 188.67,
+              "width": 206.3,
+              "height": 86.43,
+              "fill": null,
+              "stroke": "#f85149",
+              "strokeWidth": 3,
+              "strokeDashArray": null,
+              "strokeLineCap": "round",
+              "strokeDashOffset": 0,
+              "strokeLineJoin": "round",
+              "strokeUniform": false,
+              "strokeMiterLimit": 10,
+              "scaleX": 1,
+              "scaleY": 1,
+              "angle": 0,
+              "flipX": false,
+              "flipY": false,
+              "opacity": 1,
+              "shadow": null,
+              "visible": true,
+              "backgroundColor": "",
+              "fillRule": "nonzero",
+              "paintFirst": "fill",
+              "globalCompositeOperation": "source-over",
+              "skewX": 0,
+              "skewY": 0,
+              "selectable": true,
+              "evented": true,
+              "hoverCursor": null,
+              "path": [
+                [
+                  "M",
+                  243.5178965615346,
+                  190.16649808859384
+                ],
+                [
+                  "Q",
+                  243.52089656153458,
+                  190.16649808859384,
+                  244.0179936984386,
+                  190.16649808859384
+                ],
+                [
+                  "Q",
+                  244.5150908353426,
+                  190.16649808859384,
+                  245.26073654069862,
+                  190.16649808859384
+                ],
+                [
+                  "Q",
+                  246.00638224605464,
+                  190.16649808859384,
+                  252.96574216271085,
+                  190.16649808859384
+                ],
+                [
+                  "Q",
+                  259.9251020793671,
+                  190.16649808859384,
+                  266.3873648591193,
+                  190.66325052400612
+                ],
+                [
+                  "Q",
+                  272.8496276388715,
+                  191.16000295941842,
+                  278.5662447132677,
+                  193.64376513647989
+                ],
+                [
+                  "Q",
+                  284.2828617876638,
+                  196.12752731354132,
+                  287.0168960406359,
+                  199.10804192601506
+                ],
+                [
+                  "Q",
+                  289.750930293608,
+                  202.0885565384888,
+                  292.7335131150321,
+                  206.31095223949328
+                ],
+                [
+                  "Q",
+                  295.7160959364562,
+                  210.53334794049775,
+                  298.2015816209763,
+                  217.4878820362698
+                ],
+                [
+                  "Q",
+                  300.6870673054964,
+                  224.44241613204187,
+                  301.6812615793044,
+                  230.40344535698935
+                ],
+                [
+                  "Q",
+                  302.67545585311245,
+                  236.36447458193683,
+                  302.67545585311245,
+                  241.82875137147204
+                ],
+                [
+                  "Q",
+                  302.67545585311245,
+                  247.29302816100724,
+                  302.67545585311245,
+                  253.2540573859547
+                ],
+                [
+                  "Q",
+                  302.67545585311245,
+                  259.2150866109022,
+                  302.67545585311245,
+                  262.19560122337595
+                ],
+                [
+                  "Q",
+                  302.67545585311245,
+                  265.1761158358497,
+                  303.17255299001647,
+                  267.6598780129111
+                ],
+                [
+                  "Q",
+                  303.6696501269205,
+                  270.1436401899726,
+                  304.4152958322765,
+                  270.88876884309104
+                ],
+                [
+                  "Q",
+                  305.16094153763254,
+                  271.63389749620944,
+                  305.65803867453656,
+                  271.63389749620944
+                ],
+                [
+                  "Q",
+                  306.1551358114406,
+                  271.63389749620944,
+                  309.3862672013166,
+                  271.63389749620944
+                ],
+                [
+                  "Q",
+                  312.61739859119274,
+                  271.63389749620944,
+                  318.58256423404094,
+                  268.9017591014418
+                ],
+                [
+                  "Q",
+                  324.54772987688915,
+                  266.16962070667427,
+                  334.48967261496944,
+                  261.9472250056698
+                ],
+                [
+                  "Q",
+                  344.4316153530498,
+                  257.7248293046653,
+                  355.3677523649381,
+                  254.74431469219158
+                ],
+                [
+                  "Q",
+                  366.3038893768264,
+                  251.76380007971784,
+                  379.22841493633086,
+                  248.03815681412567
+                ],
+                [
+                  "Q",
+                  392.15294049583525,
+                  244.31251354853347,
+                  401.8463346654636,
+                  242.8222562422966
+                ],
+                [
+                  "Q",
+                  411.5397288350919,
+                  241.33199893605973,
+                  415.765054498776,
+                  240.83524650064746
+                ],
+                [
+                  "Q",
+                  419.9903801624601,
+                  240.33849406523518,
+                  420.4874772993642,
+                  240.5868702829413
+                ],
+                [
+                  "Q",
+                  420.9845744362682,
+                  240.83524650064743,
+                  421.4816715731722,
+                  241.82875137147204
+                ],
+                [
+                  "Q",
+                  421.9787687100762,
+                  242.82225624229662,
+                  422.7244144154322,
+                  247.54140437871337
+                ],
+                [
+                  "Q",
+                  423.4700601207882,
+                  252.26055251513014,
+                  424.71280296304826,
+                  258.4699579577838
+                ],
+                [
+                  "Q",
+                  425.9555458053083,
+                  264.6793634004374,
+                  428.1924829213764,
+                  269.15013531914803
+                ],
+                [
+                  "Q",
+                  430.4294200374445,
+                  273.6209072378586,
+                  431.6721628797045,
+                  274.61441210868315
+                ],
+                [
+                  "Q",
+                  432.91490572196454,
+                  275.60791697950776,
+                  433.16345429041655,
+                  275.8562931972139
+                ],
+                [
+                  "Q",
+                  433.41200285886856,
+                  276.10466941492007,
+                  434.4061971326766,
+                  276.3530456326262
+                ],
+                [
+                  "Q",
+                  435.40039140648463,
+                  276.6014218503324,
+                  437.3887799541007,
+                  276.6014218503324
+                ],
+                [
+                  "Q",
+                  439.37716850171677,
+                  276.6014218503324,
+                  444.59668843920895,
+                  276.6014218503324
+                ],
+                [
+                  "L",
+                  449.81920837670106,
+                  276.6014218503324
+                ]
+              ]
+            },
+            {
+              "type": "path",
+              "version": "5.3.0",
+              "originX": "left",
+              "originY": "top",
+              "left": 587.41,
+              "top": 136.88,
+              "width": 114.98,
+              "height": 199.83,
+              "fill": null,
+              "stroke": "#f85149",
+              "strokeWidth": 3,
+              "strokeDashArray": null,
+              "strokeLineCap": "round",
+              "strokeDashOffset": 0,
+              "strokeLineJoin": "round",
+              "strokeUniform": false,
+              "strokeMiterLimit": 10,
+              "scaleX": 1,
+              "scaleY": 1,
+              "angle": 0,
+              "flipX": false,
+              "flipY": false,
+              "opacity": 1,
+              "shadow": null,
+              "visible": true,
+              "backgroundColor": "",
+              "fillRule": "nonzero",
+              "paintFirst": "fill",
+              "globalCompositeOperation": "source-over",
+              "skewX": 0,
+              "skewY": 0,
+              "selectable": true,
+              "evented": true,
+              "hoverCursor": null,
+              "path": [
+                [
+                  "M",
+                  703.8902698158528,
+                  338.21409530583213
+                ],
+                [
+                  "Q",
+                  703.8872698158527,
+                  338.21109530583215,
+                  700.8877502001601,
+                  334.71408250355614
+                ],
+                [
+                  "Q",
+                  697.8882305844675,
+                  331.2170697012802,
+                  689.3895916733386,
+                  324.2230440967283
+                ],
+                [
+                  "Q",
+                  680.8909527622097,
+                  317.2290184921764,
+                  666.3932746196957,
+                  303.24096728307256
+                ],
+                [
+                  "Q",
+                  651.8955964771817,
+                  289.2529160739687,
+                  644.3967974379503,
+                  279.7610241820768
+                ],
+                [
+                  "Q",
+                  636.897998398719,
+                  270.2691322901849,
+                  629.8991192954363,
+                  258.2793741109531
+                ],
+                [
+                  "Q",
+                  622.9002401921537,
+                  246.2896159317212,
+                  614.4016012810248,
+                  234.29985775248934
+                ],
+                [
+                  "Q",
+                  605.9029623698959,
+                  222.31009957325747,
+                  600.4038430744596,
+                  209.3211948790896
+                ],
+                [
+                  "Q",
+                  594.9047237790232,
+                  196.33229018492176,
+                  591.9052041633306,
+                  188.83869132290184
+                ],
+                [
+                  "Q",
+                  588.9056845476381,
+                  181.34509246088192,
+                  588.9056845476381,
+                  174.85064011379802
+                ],
+                [
+                  "Q",
+                  588.9056845476381,
+                  168.3561877667141,
+                  588.9056845476381,
+                  162.36130867709818
+                ],
+                [
+                  "Q",
+                  588.9056845476381,
+                  156.36642958748223,
+                  593.4049639711769,
+                  151.87027027027028
+                ],
+                [
+                  "Q",
+                  597.9042433947158,
+                  147.3741109530583,
+                  605.4030424339471,
+                  144.37667140825033
+                ],
+                [
+                  "Q",
+                  612.9018414731785,
+                  141.37923186344239,
+                  622.4003202562049,
+                  140.38008534850638
+                ],
+                [
+                  "Q",
+                  631.8987990392313,
+                  139.3809388335704,
+                  644.896717373899,
+                  138.8813655761024
+                ],
+                [
+                  "Q",
+                  657.8946357085669,
+                  138.3817923186344,
+                  659.8943154523619,
+                  138.3817923186344
+                ],
+                [
+                  "Q",
+                  661.8939951961569,
+                  138.3817923186344,
+                  663.8936749399519,
+                  140.38008534850638
+                ],
+                [
+                  "Q",
+                  665.8933546837469,
+                  142.3783783783784,
+                  667.893034427542,
+                  150.37155049786628
+                ],
+                [
+                  "Q",
+                  669.892714171337,
+                  158.3647226173542,
+                  670.3926341072859,
+                  169.85490753911807
+                ],
+                [
+                  "Q",
+                  670.8925540432346,
+                  181.34509246088192,
+                  670.8925540432346,
+                  195.33314366998576
+                ],
+                [
+                  "Q",
+                  670.8925540432346,
+                  209.3211948790896,
+                  668.8928742994395,
+                  223.30924608819345
+                ],
+                [
+                  "Q",
+                  666.8931945556445,
+                  237.2972972972973,
+                  662.8938350680544,
+                  251.28534850640114
+                ],
+                [
+                  "Q",
+                  658.8944755804644,
+                  265.273399715505,
+                  657.394715772618,
+                  277.2631578947369
+                ],
+                [
+                  "Q",
+                  655.8949559647717,
+                  289.2529160739687,
+                  654.8951160928743,
+                  299.24438122332856
+                ],
+                [
+                  "Q",
+                  653.8952762209768,
+                  309.23584637268846,
+                  653.8952762209768,
+                  313.73200568990046
+                ],
+                [
+                  "Q",
+                  653.8952762209768,
+                  318.2281650071124,
+                  656.3948759007205,
+                  323.22389758179236
+                ],
+                [
+                  "Q",
+                  658.8944755804644,
+                  328.21963015647225,
+                  659.8943154523619,
+                  329.21877667140825
+                ],
+                [
+                  "L",
+                  660.8971553242594,
+                  330.2209231863442
+                ]
+              ]
+            }
+          ],
+          "hoverCursor": "move"
+        }
+      },
+      "marqueeBoxes": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246702/trading_journal/252542f6-b306-42da-9827-74b61e7bd004.png": []
+      },
+      "overlays": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776246702/trading_journal/252542f6-b306-42da-9827-74b61e7bd004.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776263942/trading_journal/13d3941b-053d-40a4-95be-20e49644b9bf.png"
+      }
     }
   },
+  "importedPdfs": [],
   "tagGroups": {
     "BAT": [
       "chotu",
@@ -27556,20 +28275,25 @@
       "ZONE ENTRY",
       "NO ZONE",
       "Momentum Slow ka intezar karna cahiye",
-      "palat gaya"
+      "palat gaya",
+      "Nahi dekh paaya",
+      "Zone Bana"
     ],
     "Exit Type": [
       "Partial Exit",
       "Bach Gaye",
       "bach gaye",
       "SL Nahi lagya",
-      "Over-Confidence"
+      "Over-Confidence",
+      "darr ka nikal gaye",
+      "SL moved"
     ],
     "Idea/New": [
       "idea",
       "new",
       "news",
-      "Realisation"
+      "Realisation",
+      "shandaar"
     ],
     "Img Manager": [
       "Day Open",
@@ -27589,10 +28313,15 @@
       "Manual",
       "Random",
       "expiryDay",
-      "algo"
+      "algo",
+      "Double Zone Me Fase"
     ],
     "TargetType": [
       "Palat Gaya"
     ]
-  }
+  },
+  "tagTemplates": {},
+  "pdfPageTags": {},
+  "imgTypes": {},
+  "uiSettings": {}
 }

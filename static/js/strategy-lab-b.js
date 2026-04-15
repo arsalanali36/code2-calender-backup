@@ -40,6 +40,7 @@
                 document.getElementById('symbol').value = symbol;
                 document.getElementById('start-date').value = lookbackDate;
                 document.getElementById('end-date').value = date;
+                document.getElementById('nav-date-picker').value = date;
                 
                 // Force a resize calculation before loading data
                 setTimeout(() => {
@@ -232,10 +233,53 @@
         document.getElementById('prev-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()-1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
         document.getElementById('next-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
         document.getElementById('dual-view-btn').onclick = toggleDualView;
-        document.getElementById('fit-btn').onclick = () => { chartMain.timeScale().fitContent(); if(chartOpt) chartOpt.timeScale().fitContent(); };
+        document.getElementById('fit-btn').onclick = () => { 
+            const selDate = document.getElementById('nav-date-picker').value; 
+            if (selDate && lastStrategyData.visibleData) {
+                const parts = selDate.split('-');
+                const y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
+                
+                // Get Local Day Start/End in Seconds
+                const dayStart = Math.floor(new Date(y, m-1, d, 0, 0, 0).getTime() / 1000);
+                const dayEnd = dayStart + 86400; // 24 hours later
+                
+                const dayData = lastStrategyData.visibleData.filter(item => {
+                    return item.time >= dayStart && item.time <= dayEnd;
+                });
+
+                if (dayData.length > 0) {
+                    const from = dayData[0].time;
+                    const to = dayData[dayData.length - 1].time;
+                    
+                    // Zoom to the exact range
+                    chartMain.timeScale().setVisibleRange({ from, to });
+                    if (chartOpt) chartOpt.timeScale().setVisibleRange({ from, to });
+                    
+                    // Force a thicker candle view by adjusting bar spacing if it's too thin
+                    const containerWidth = document.getElementById('chart-main').clientWidth;
+                    const barCount = dayData.length;
+                    if (barCount > 0) {
+                        const spacing = (containerWidth / barCount) * 0.8;
+                        chartMain.timeScale().applyOptions({ barSpacing: spacing });
+                        if (chartOpt) chartOpt.timeScale().applyOptions({ barSpacing: spacing });
+                    }
+                } else {
+                    alert("No data found in chart for: " + selDate);
+                }
+            }
+        };
         document.getElementById('reset-btn').onclick = () => { 
             runStrategy(); // Re-runs and fits content
         };
+
+        // KEYBOARD SHORTCUT: Alt + R for Smart Fit
+        window.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key.toLowerCase() === 'r') {
+                e.preventDefault();
+                const btn = document.getElementById('fit-btn');
+                if (btn) btn.click();
+            }
+        });
         document.getElementById('sidebar-toggle-btn').onclick = (e) => { 
             e.stopPropagation();
             const sb = document.getElementById('sidebar'); 

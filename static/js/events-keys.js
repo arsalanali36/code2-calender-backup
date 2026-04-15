@@ -113,7 +113,7 @@ function _bindKeyboardEvents() {
         if (annotState.active) saveAnnotOverlay();
         return;
       }
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'v' || e.key === 'V')) {
+      if (shortcutMatches(e, state.shortcuts.selectTool)) {
         e.preventDefault();
         if (e.repeat) return;
         if (annotState.active && annotState.tool === 'marquee') {
@@ -130,6 +130,7 @@ function _bindKeyboardEvents() {
         setAnnotTool('pen');
         return;
       }
+      // 'b' is kept as a legacy alias for pen — not configurable separately
       if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
         if (!annotState.active) startAnnotation();
@@ -155,12 +156,12 @@ function _bindKeyboardEvents() {
         if (typeof dp.showPicker === 'function') dp.showPicker();
         return;
       }
-      if (e.altKey && !e.ctrlKey && !e.shiftKey && String(e.key || '').toLowerCase() === 't') {
+      if (shortcutMatches(e, state.shortcuts.imageTagManager)) {
         e.preventDefault();
         openGalleryImageTagManager();
         return;
       }
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && e.key === 'Delete' && !annotState.active) {
+      if (shortcutMatches(e, state.shortcuts.deleteImage) && !annotState.active) {
         e.preventDefault();
         if (typeof removeGalleryImageAt === 'function')
           removeGalleryImageAt(state.gallery.currentIndex);
@@ -247,16 +248,16 @@ function _bindKeyboardEvents() {
       }
 
       // Arrow keys handled at top of galleryOpen block (before typingInField guard)
-      if (e.key === 'r' || e.key === 'R') resetZoom();
-      if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAnnotation(); }
+      if (shortcutMatches(e, state.shortcuts.resetZoom)) { e.preventDefault(); resetZoom(); return; }
+      if (shortcutMatches(e, state.shortcuts.annotToggle)) { e.preventDefault(); toggleAnnotation(); return; }
 
-      if ((e.key === 'e' || e.key === 'E') && !e.altKey && !e.ctrlKey) {
+      if (shortcutMatches(e, state.shortcuts.eraser)) {
         e.preventDefault();
         if (!annotState.active) startAnnotation();
         setAnnotTool('eraser');
         return;
       }
-      if ((e.key === 't' || e.key === 'T') && !e.altKey && !e.ctrlKey) {
+      if (shortcutMatches(e, state.shortcuts.textTool)) {
         e.preventDefault();
         if (!annotState.active) {
           annotState.tool = 'text';
@@ -272,7 +273,7 @@ function _bindKeyboardEvents() {
         document.getElementById('gv2-marquee-btn')?.classList.remove('active');
         return;
       }
-      if ((e.key === 'm' || e.key === 'M') && !e.altKey && !e.ctrlKey) {
+      if (shortcutMatches(e, state.shortcuts.marquee)) {
         e.preventDefault();
         e.stopPropagation();
         const mqBtn = document.getElementById('gv2-marquee-btn');
@@ -287,30 +288,29 @@ function _bindKeyboardEvents() {
         }
       }
 
-      if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      if (shortcutMatches(e, state.shortcuts.layerPanel)) {
         if (annotState.active) return;
         e.preventDefault();
         if (typeof toggleLayerPanel === 'function') toggleLayerPanel();
         return;
       }
-      if (e.key === 'h' || e.key === 'H') {
+      if (shortcutMatches(e, state.shortcuts.showHeads)) {
         if (annotState.active) return;
         e.preventDefault();
         const toggleBtn = document.getElementById('gallery-show-heads-btn');
         if (toggleBtn) toggleBtn.click();
         return;
       }
-      if ((e.key === 'i' || e.key === 'I') && !e.altKey && !e.ctrlKey) {
+      if (shortcutMatches(e, state.shortcuts.imageImport)) {
         if (annotState.active) return;
         e.preventDefault();
         const btn = document.getElementById('gallery-upload-btn');
         if (btn && btn.style.display !== 'none') btn.click();
         return;
       }
-      if ((e.key === 'f' || e.key === 'F') && !e.altKey && !e.ctrlKey && !e.shiftKey) {
+      if (shortcutMatches(e, state.shortcuts.leftPanel)) {
         if (annotState.active) return;
         e.preventDefault();
-        // f = hamburger (left panel) toggle
         const ulpPanel = document.getElementById('gv2-ulp-panel');
         if (ulpPanel) {
           ulpPanel.classList.contains('open')
@@ -319,10 +319,9 @@ function _bindKeyboardEvents() {
         }
         return;
       }
-      if (e.key === 'F' && e.shiftKey && !e.altKey && !e.ctrlKey) {
+      if (shortcutMatches(e, state.shortcuts.fullscreen)) {
         if (annotState.active) return;
         e.preventDefault();
-        // Shift+F = fullscreen viewer
         const _fsImages = state.gallery.images || [];
         const _fsCur = _fsImages[state.gallery.currentIndex];
         if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur, true);

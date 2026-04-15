@@ -124,7 +124,18 @@ const DEFAULT_SHORTCUTS = {
   eraser: 'E',
   datePicker: 'D',
   mergeSave: 'Ctrl+Shift+S',
-  overlaySave: 'Ctrl+S'
+  overlaySave: 'Ctrl+S',
+  selectTool: 'V',
+  textTool: 'Alt+T',
+  marquee: 'M',
+  annotToggle: 'A',
+  resetZoom: 'Alt+R',
+  showHeads: 'H',
+  layerPanel: 'L',
+  leftPanel: 'F',
+  fullscreen: 'Shift+F',
+  deleteImage: 'Delete',
+  imageTagManager: 'Alt+Shift+T'
 };
 const DASHBOARD_STATS = [
   { key: 'overall', label: 'Overall P&L' },

@@ -100,23 +100,47 @@ function loadShortcutsFromStorage() {
   populateShortcutPanel();
 }
 
+function _scVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function _scSet(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+
 function populateShortcutPanel() {
-  document.getElementById('sc-pen').value = state.shortcuts.pen;
-  document.getElementById('sc-image').value = state.shortcuts.imageImport;
-  document.getElementById('sc-eraser').value = state.shortcuts.eraser;
-  document.getElementById('sc-date').value = state.shortcuts.datePicker;
-  document.getElementById('sc-merge').value = state.shortcuts.mergeSave;
-  document.getElementById('sc-overlay').value = state.shortcuts.overlaySave;
+  _scSet('sc-pen',          state.shortcuts.pen);
+  _scSet('sc-image',        state.shortcuts.imageImport);
+  _scSet('sc-eraser',       state.shortcuts.eraser);
+  _scSet('sc-date',         state.shortcuts.datePicker);
+  _scSet('sc-merge',        state.shortcuts.mergeSave);
+  _scSet('sc-overlay',      state.shortcuts.overlaySave);
+  _scSet('sc-select-tool',  state.shortcuts.selectTool);
+  _scSet('sc-text-tool',    state.shortcuts.textTool);
+  _scSet('sc-marquee',      state.shortcuts.marquee);
+  _scSet('sc-annot-toggle', state.shortcuts.annotToggle);
+  _scSet('sc-reset-zoom',   state.shortcuts.resetZoom);
+  _scSet('sc-show-heads',   state.shortcuts.showHeads);
+  _scSet('sc-layer-panel',  state.shortcuts.layerPanel);
+  _scSet('sc-left-panel',      state.shortcuts.leftPanel);
+  _scSet('sc-fullscreen',      state.shortcuts.fullscreen);
+  _scSet('sc-delete-image',    state.shortcuts.deleteImage);
+  _scSet('sc-img-tag-manager', state.shortcuts.imageTagManager);
 }
 
 function readShortcutsFromPanel() {
   return {
-    pen: document.getElementById('sc-pen').value.trim() || DEFAULT_SHORTCUTS.pen,
-    imageImport: document.getElementById('sc-image').value.trim() || DEFAULT_SHORTCUTS.imageImport,
-    eraser: document.getElementById('sc-eraser').value.trim() || DEFAULT_SHORTCUTS.eraser,
-    datePicker: document.getElementById('sc-date').value.trim() || DEFAULT_SHORTCUTS.datePicker,
-    mergeSave: document.getElementById('sc-merge').value.trim() || DEFAULT_SHORTCUTS.mergeSave,
-    overlaySave: document.getElementById('sc-overlay').value.trim() || DEFAULT_SHORTCUTS.overlaySave
+    pen:          _scVal('sc-pen').trim()          || DEFAULT_SHORTCUTS.pen,
+    imageImport:  _scVal('sc-image').trim()        || DEFAULT_SHORTCUTS.imageImport,
+    eraser:       _scVal('sc-eraser').trim()       || DEFAULT_SHORTCUTS.eraser,
+    datePicker:   _scVal('sc-date').trim()         || DEFAULT_SHORTCUTS.datePicker,
+    mergeSave:    _scVal('sc-merge').trim()        || DEFAULT_SHORTCUTS.mergeSave,
+    overlaySave:  _scVal('sc-overlay').trim()      || DEFAULT_SHORTCUTS.overlaySave,
+    selectTool:   _scVal('sc-select-tool').trim()  || DEFAULT_SHORTCUTS.selectTool,
+    textTool:     _scVal('sc-text-tool').trim()    || DEFAULT_SHORTCUTS.textTool,
+    marquee:      _scVal('sc-marquee').trim()      || DEFAULT_SHORTCUTS.marquee,
+    annotToggle:  _scVal('sc-annot-toggle').trim() || DEFAULT_SHORTCUTS.annotToggle,
+    resetZoom:    _scVal('sc-reset-zoom').trim()   || DEFAULT_SHORTCUTS.resetZoom,
+    showHeads:    _scVal('sc-show-heads').trim()   || DEFAULT_SHORTCUTS.showHeads,
+    layerPanel:   _scVal('sc-layer-panel').trim()  || DEFAULT_SHORTCUTS.layerPanel,
+    leftPanel:    _scVal('sc-left-panel').trim()   || DEFAULT_SHORTCUTS.leftPanel,
+    fullscreen:   _scVal('sc-fullscreen').trim()   || DEFAULT_SHORTCUTS.fullscreen,
+    deleteImage:  _scVal('sc-delete-image').trim() || DEFAULT_SHORTCUTS.deleteImage
   };
 }
 

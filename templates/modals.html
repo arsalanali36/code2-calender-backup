@@ -144,60 +144,67 @@
       </div>
 
       <div class="settings-group">
-        <div class="settings-group-title">Preview Shortcuts</div>
+        <div class="settings-group-title">Gallery View Shortcuts</div>
+
+        <div class="settings-subgroup-title">Navigation</div>
         <div class="settings-row">
-          <label>Pen</label>
-          <input type="text" id="sc-pen" class="shortcut-input" />
+          <label>Left / Right</label>
+          <span class="settings-hint">Previous / next image</span>
         </div>
         <div class="settings-row">
-          <label>Image Import</label>
-          <input type="text" id="sc-image" class="shortcut-input" />
+          <label>Shift + Left/Right</label>
+          <span class="settings-hint">Previous / next date</span>
         </div>
         <div class="settings-row">
-          <label>Eraser</label>
-          <input type="text" id="sc-eraser" class="shortcut-input" />
+          <label>&lt; / &gt;</label>
+          <span class="settings-hint">Previous / next date (alt keys)</span>
+        </div>
+        <div class="settings-row">
+          <label>Ctrl + Up / Down</label>
+          <span class="settings-hint">Navigate between trade blocks</span>
+        </div>
+
+        <div class="settings-subgroup-title">View</div>
+        <div class="settings-row">
+          <label>Reset Zoom</label>
+          <input type="text" id="sc-reset-zoom" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Toggle Left Panel</label>
+          <input type="text" id="sc-left-panel" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Fullscreen Viewer</label>
+          <input type="text" id="sc-fullscreen" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Toggle Show Heads</label>
+          <input type="text" id="sc-show-heads" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Toggle Layers Panel</label>
+          <input type="text" id="sc-layer-panel" class="shortcut-input" />
         </div>
         <div class="settings-row">
           <label>Date Picker</label>
           <input type="text" id="sc-date" class="shortcut-input" />
         </div>
+
+        <div class="settings-subgroup-title">Images</div>
         <div class="settings-row">
-          <label>Merge &amp; Save</label>
-          <input type="text" id="sc-merge" class="shortcut-input" />
+          <label>Import Image</label>
+          <input type="text" id="sc-image" class="shortcut-input" />
         </div>
         <div class="settings-row">
-          <label>Overlay Save</label>
-          <input type="text" id="sc-overlay" class="shortcut-input" />
-        </div>
-        <div class="settings-row">
-          <label>Shift + Left/Right</label>
-          <span class="settings-hint">Date backward/forward</span>
+          <label>Delete Image</label>
+          <input type="text" id="sc-delete-image" class="shortcut-input" />
         </div>
         <div class="settings-row">
           <label>Alt + T</label>
-          <span class="settings-hint">Open Image Tag menu</span>
+          <span class="settings-hint">Open Image Tag manager</span>
         </div>
-        <div class="settings-row">
-          <label>Left/Right</label>
-          <span class="settings-hint">Previous/next image</span>
-        </div>
-        <div class="settings-row">
-          <label>A</label>
-          <span class="settings-hint">Toggle annotation mode</span>
-        </div>
-        <div class="settings-row">
-          <label>R</label>
-          <span class="settings-hint">Reset image zoom</span>
-        </div>
-        <div class="settings-row">
-          <label>Esc</label>
-          <span class="settings-hint">Close active popup/modal</span>
-        </div>
-        <!-- New gallery shortcuts -->
-        <div class="settings-row">
-          <label>Ctrl + L/R</label>
-          <span class="settings-hint">Group expand / collapse</span>
-        </div>
+
+        <div class="settings-subgroup-title">Grouping &amp; Selection</div>
         <div class="settings-row">
           <label>Alt + G</label>
           <span class="settings-hint">Group all images</span>
@@ -207,20 +214,73 @@
           <span class="settings-hint">Ungroup all</span>
         </div>
         <div class="settings-row">
+          <label>Ctrl + Left/Right</label>
+          <span class="settings-hint">Expand / collapse group</span>
+        </div>
+        <div class="settings-row">
           <label>Shift + Alt + L/R</label>
-          <span class="settings-hint">Select / deselect tile</span>
+          <span class="settings-hint">Select / deselect adjacent tile</span>
         </div>
         <div class="settings-row">
           <label>Ctrl + Shift + L/R</label>
-          <span class="settings-hint">Move tile</span>
-        </div>
-        <div class="settings-row">
-          <label>L</label>
-          <span class="settings-hint">Toggle Layers panel</span>
+          <span class="settings-hint">Move tile left / right</span>
         </div>
         <div class="settings-row">
           <label>ContextMenu key</label>
           <span class="settings-hint">Open context menu for current thumbnail</span>
+        </div>
+
+        <div class="settings-subgroup-title">Annotation Tools</div>
+        <div class="settings-row">
+          <label>Toggle Annotation</label>
+          <input type="text" id="sc-annot-toggle" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Select Tool</label>
+          <input type="text" id="sc-select-tool" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Pen</label>
+          <input type="text" id="sc-pen" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Eraser</label>
+          <input type="text" id="sc-eraser" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Text Tool</label>
+          <input type="text" id="sc-text-tool" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Marquee Mode</label>
+          <input type="text" id="sc-marquee" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>[ / ]</label>
+          <span class="settings-hint">Decrease / increase brush size</span>
+        </div>
+        <div class="settings-row">
+          <label>Merge &amp; Save</label>
+          <input type="text" id="sc-merge" class="shortcut-input" />
+        </div>
+        <div class="settings-row">
+          <label>Overlay Save</label>
+          <input type="text" id="sc-overlay" class="shortcut-input" />
+        </div>
+
+        <div class="settings-subgroup-title">Calendar Mode (also works in Gallery)</div>
+        <div class="settings-row">
+          <label>C</label>
+          <span class="settings-hint">Switch to Consolidated mode</span>
+        </div>
+        <div class="settings-row">
+          <label>Shift + C</label>
+          <span class="settings-hint">Switch to Individual mode</span>
+        </div>
+
+        <div class="settings-row">
+          <label>Esc</label>
+          <span class="settings-hint">Close popup / stop annotation / exit gallery</span>
         </div>
       </div>
 

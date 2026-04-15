@@ -691,6 +691,17 @@
   border-bottom: 1px solid var(--border);
 }
 
+.settings-subgroup-title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #888);
+  margin-top: 8px;
+  margin-bottom: 2px;
+  padding-left: 2px;
+}
+
 .settings-row {
   display: flex;
   align-items: center;
