@@ -201,7 +201,8 @@ function _bindSettingsEvents() {
       return;
     }
 
-    if (state._galleryUploadCallback && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
+    const _galleryOpen = document.getElementById('gallery-modal')?.classList.contains('open');
+    if (_galleryOpen && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
       const targetDate = state.gallery.date;
       const sel = state.gallery.selectedSeparator;
       if (sel === 'NEWS') {

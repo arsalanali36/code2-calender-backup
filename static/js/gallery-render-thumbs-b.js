@@ -158,7 +158,8 @@ function _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
             const newUrl = rv.url;
             const selSep = state.gallery.selectedSeparator;
             const dayKey = date;
-            if (dayKey && state.dayData[dayKey]) {
+            if (dayKey) {
+              if (!state.dayData[dayKey]) state.dayData[dayKey] = {};
               const dData = state.dayData[dayKey];
               if (selSep === 'NEWS') { dData.newsImages = dData.newsImages || []; dData.newsImages.push(newUrl); }
               else if (selSep === 'CLOSE') { dData.closeImages = dData.closeImages || []; dData.closeImages.push(newUrl); }

@@ -8986,7 +8986,8 @@ function _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
             const newUrl = rv.url;
             const selSep = state.gallery.selectedSeparator;
             const dayKey = date;
-            if (dayKey && state.dayData[dayKey]) {
+            if (dayKey) {
+              if (!state.dayData[dayKey]) state.dayData[dayKey] = {};
               const dData = state.dayData[dayKey];
               if (selSep === 'NEWS') { dData.newsImages = dData.newsImages || []; dData.newsImages.push(newUrl); }
               else if (selSep === 'CLOSE') { dData.closeImages = dData.closeImages || []; dData.closeImages.push(newUrl); }
@@ -27487,7 +27488,8 @@ function _bindSettingsEvents() {
       return;
     }
 
-    if (state._galleryUploadCallback && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
+    const _galleryOpen = document.getElementById('gallery-modal')?.classList.contains('open');
+    if (_galleryOpen && state.gallery.selectedSeparator !== undefined && state.gallery.selectedSeparator !== null) {
       const targetDate = state.gallery.date;
       const sel = state.gallery.selectedSeparator;
       if (sel === 'NEWS') {
