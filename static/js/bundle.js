@@ -14051,8 +14051,8 @@ function navigateGalleryBlock(dir) {
   if (nextBlockIdx < 0 || nextBlockIdx >= blocks.length) return;
 
   const nextBlock = blocks[nextBlockIdx];
-  // Going back (Up) → land on last image of prev block; going forward (Down) → first image
-  const targetImg = dir < 0 ? nextBlock.images[nextBlock.images.length - 1] : nextBlock.images[0];
+  // Always land on first image of the target block
+  const targetImg = nextBlock.images[0];
   const globalIdx = images.indexOf(targetImg);
   if (globalIdx < 0) return;
 
@@ -25669,6 +25669,14 @@ function _bindKeyboardEvents() {
           const currentImageUrl = state.gallery.images[state.gallery.currentIndex];
           if (currentImageUrl) toggleGalleryGroupExpand(currentImageUrl);
         }
+        return;
+      }
+
+      // Ctrl+Up/Down — navigate between trade blocks (trade remote)
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        if (typeof navigateGalleryBlock === 'function')
+          navigateGalleryBlock(e.key === 'ArrowDown' ? 1 : -1);
         return;
       }
 

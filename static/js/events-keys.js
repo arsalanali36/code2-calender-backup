@@ -186,6 +186,14 @@ function _bindKeyboardEvents() {
         return;
       }
 
+      // Ctrl+Up/Down — navigate between trade blocks (trade remote)
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        if (typeof navigateGalleryBlock === 'function')
+          navigateGalleryBlock(e.key === 'ArrowDown' ? 1 : -1);
+        return;
+      }
+
       // Ctrl+Shift+L/R — move selected/current tile
       if (e.ctrlKey && e.shiftKey && !e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
