@@ -14516,15 +14516,18 @@ function renderGalleryTagsTray() {
         if (typeof renderGalleryTagFilterPanel === 'function') renderGalleryTagFilterPanel();
         return;
       }
+      // Re-read fresh at click time (avoids stale closure pointing to wrong image)
+      const liveInfo = getCurrentGalleryImageTagInfo();
+      const liveAssignedSet = new Set(liveInfo.imageTags);
       // Trade assign mode
       if (state.gallery.tagAssignMode === 'trade') {
-        if (!imgInfo.trade) {
+        if (!liveInfo.trade) {
           showToast('No trade found for current image', 'error');
           return;
         }
-        const tradeTags = getTradeTagsForTrade(imgInfo.trade);
+        const tradeTags = getTradeTagsForTrade(liveInfo.trade);
         const hasTag = tradeTags.includes(tag);
-        setTradeTagsForTrade(imgInfo.trade, hasTag ? tradeTags.filter(t => t !== tag) : [...tradeTags, tag]);
+        setTradeTagsForTrade(liveInfo.trade, hasTag ? tradeTags.filter(t => t !== tag) : [...tradeTags, tag]);
         normalizeAllTagsFromTrades();
         await saveTrades();
         renderGalleryImageTags();
@@ -14535,16 +14538,17 @@ function renderGalleryTagsTray() {
         renderCalendar();
         return;
       }
-      if (!imgInfo.imgUrl) {
+      if (!liveInfo.imgUrl) {
         showToast('No image row found to assign tag', 'error');
         return;
       }
-      const next = imageAssignedSet.has(tag)
-        ? imgInfo.imageTags.filter(t => t !== tag)
-        : [...imgInfo.imageTags, tag];
-      if (imgInfo.ownerType === 'trade' && imgInfo.trade) setImageTagsForUrl(imgInfo.trade, imgInfo.imgUrl, next);
-      else if (imgInfo.ownerType === 'pdf') {
-        setPdfPageTags(imgInfo.pdfId, imgInfo.pageNo, next);
+      const next = liveAssignedSet.has(tag)
+        ? liveInfo.imageTags.filter(t => t !== tag)
+        : [...liveInfo.imageTags, tag];
+      if (liveInfo.ownerType === 'trade' && liveInfo.trade) setImageTagsForUrl(liveInfo.trade, liveInfo.imgUrl, next);
+      else if (liveInfo.ownerType === 'day' && liveInfo.dateKey) setDayImageTagsForUrl(liveInfo.dateKey, liveInfo.imgUrl, next);
+      else if (liveInfo.ownerType === 'pdf') {
+        setPdfPageTags(liveInfo.pdfId, liveInfo.pageNo, next);
       }
       else {
         showToast('No image row found to assign tag', 'error');
