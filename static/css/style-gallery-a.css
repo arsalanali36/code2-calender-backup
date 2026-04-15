@@ -910,9 +910,12 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  padding: 4px 9px;
+  padding: 6px 10px;
   border-radius: 6px;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  width: max-content;
+  max-width: 240px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -929,6 +932,18 @@
   border: 5px solid transparent;
   border-top-color: rgba(12, 12, 18, 0.96);
 }
+.tag-pin-tooltip ul,
+.tag-pin-tooltip ol {
+  margin: 4px 0 2px 16px;
+  padding: 0;
+  list-style-position: outside;
+}
+.tag-pin-tooltip ul { list-style-type: disc; }
+.tag-pin-tooltip ol { list-style-type: decimal; }
+.tag-pin-tooltip li { margin: 2px 0; padding-left: 2px; }
+.tag-pin-tooltip strong { font-weight: 900; }
+.tag-pin-tooltip em { font-style: italic; }
+.tag-pin-tooltip u  { text-decoration: underline; }
 
 /* Delete mode — pulsing + pointer cursor */
 .tag-pin-delete-mode {

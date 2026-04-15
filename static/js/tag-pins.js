@@ -205,11 +205,11 @@ function renderTagPins() {
     tt.style.borderColor = pin.color;
     if (pin.note) {
       const tagLine = document.createElement('div');
-      tagLine.style.cssText = 'font-weight:700; margin-bottom:3px;';
+      tagLine.style.cssText = 'font-weight:700; margin-bottom:4px;';
       tagLine.textContent = pin.tag;
       const noteLine = document.createElement('div');
-      noteLine.style.cssText = 'font-style:italic; color:rgba(255,220,100,0.9); font-size:0.78rem; white-space:pre-wrap; max-width:180px;';
-      noteLine.textContent = pin.note;
+      noteLine.style.cssText = 'color:rgba(255,220,100,0.9); font-size:0.78rem; max-width:200px; line-height:1.4;';
+      noteLine.innerHTML = pin.note; // stored as HTML
       tt.appendChild(tagLine);
       tt.appendChild(noteLine);
     } else {
@@ -425,46 +425,114 @@ function _openPinNoteEditor(pin, anchorEl) {
 
   const pop = document.createElement('div');
   pop.id = 'pin-note-popover';
-  pop.style.cssText = 'position:fixed; z-index:9999; background:#1e2130; border:1px solid ' + pin.color + '; border-radius:8px; padding:10px; box-shadow:0 4px 20px rgba(0,0,0,0.65); min-width:220px; max-width:300px;';
+  pop.style.cssText = 'position:fixed; z-index:9999; background:#1e2130; border:1px solid ' + pin.color + '; border-radius:8px; padding:10px; box-shadow:0 4px 24px rgba(0,0,0,0.7); width:300px;';
 
+  // Title row
   const title = document.createElement('div');
-  title.style.cssText = 'font-size:0.75rem; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;';
-  const dot = document.createElement('span');
-  dot.style.cssText = 'display:inline-block; width:10px; height:10px; border-radius:50%; background:' + pin.color + ';';
-  title.appendChild(dot);
+  title.style.cssText = 'font-size:0.75rem; font-weight:700; margin-bottom:7px; display:flex; align-items:center; gap:6px;';
+  const colorDot = document.createElement('span');
+  colorDot.style.cssText = 'display:inline-block; width:10px; height:10px; border-radius:50%; flex-shrink:0; background:' + pin.color + ';';
+  title.appendChild(colorDot);
   title.appendChild(document.createTextNode(pin.tag));
   pop.appendChild(title);
 
-  const ta = document.createElement('textarea');
-  ta.value = pin.note || '';
-  ta.placeholder = 'Note likhein...';
-  ta.rows = 4;
-  ta.style.cssText = 'width:100%; box-sizing:border-box; background:#111420; color:#e0e0e0; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:6px 8px; font-size:0.8rem; resize:vertical; outline:none; font-family:inherit;';
-  pop.appendChild(ta);
+  // Toolbar
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex; gap:4px; margin-bottom:5px; flex-wrap:wrap;';
+  const toolBtnStyle = 'background:#111420; color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:4px; width:30px; height:28px; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; justify-content:center; font-family:serif;';
+  const tools = [
+    { label: 'B',  title: 'Bold',      cmd: 'bold',        style: 'font-weight:900;' },
+    { label: 'I',  title: 'Italic',    cmd: 'italic',      style: 'font-style:italic;' },
+    { label: 'U',  title: 'Underline', cmd: 'underline',   style: 'text-decoration:underline;' },
+    { label: '≡',  title: 'Bullets',   cmd: 'insertUnorderedList', style: '' },
+    { label: '1.', title: 'Numbered',  cmd: 'insertOrderedList',   style: 'font-size:0.7rem; font-weight:700; font-family:monospace;' },
+  ];
+  tools.forEach(t => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.title = t.title;
+    btn.innerHTML = `<span style="${t.style}">${t.label}</span>`;
+    btn.style.cssText = toolBtnStyle;
+    btn.addEventListener('mousedown', ev => {
+      ev.preventDefault(); // don't blur editor
+      document.execCommand(t.cmd, false, null);
+      editor.focus();
+    });
+    toolbar.appendChild(btn);
+  });
 
+  // Divider
+  const div1 = document.createElement('span');
+  div1.style.cssText = 'width:1px; height:28px; background:rgba(255,255,255,0.1); margin:0 2px;';
+  toolbar.appendChild(div1);
+
+  // Font size buttons
+  ['-', '+'].forEach(sym => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.title = sym === '+' ? 'Increase font size' : 'Decrease font size';
+    btn.textContent = sym;
+    btn.style.cssText = toolBtnStyle + 'font-weight:700; font-size:1rem;';
+    btn.addEventListener('mousedown', ev => {
+      ev.preventDefault();
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      if (range.collapsed) return;
+      const span = document.createElement('span');
+      const cur = parseFloat(window.getComputedStyle(editor).fontSize) || 13;
+      span.style.fontSize = (cur + (sym === '+' ? 2 : -2)) + 'px';
+      range.surroundContents(span);
+      editor.focus();
+    });
+    toolbar.appendChild(btn);
+  });
+
+  pop.appendChild(toolbar);
+
+  // Contenteditable editor
+  const editor = document.createElement('div');
+  editor.contentEditable = 'true';
+  editor.style.cssText = 'min-height:100px; max-height:220px; overflow-y:auto; background:#111420; color:#e0e0e0; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:9px 11px; font-size:1rem; outline:none; line-height:1.6; word-break:break-word;';
+  editor.innerHTML = pin.note || '';
+  if (!pin.note) editor.setAttribute('data-placeholder', 'Note likhein...');
+  editor.addEventListener('keydown', ev => {
+    // Stop all keys from bubbling to gallery handlers
+    ev.stopPropagation();
+    if (ev.key === 'Escape') { ev.preventDefault(); pop.remove(); }
+  });
+  editor.addEventListener('keyup',    ev => ev.stopPropagation());
+  editor.addEventListener('keypress', ev => ev.stopPropagation());
+  // Placeholder style via CSS injection (once)
+  if (!document.getElementById('pin-editor-css')) {
+    const s = document.createElement('style');
+    s.id = 'pin-editor-css';
+    s.textContent = '[contenteditable][data-placeholder]:empty::before{content:attr(data-placeholder);color:rgba(255,255,255,0.25);pointer-events:none;} #pin-note-popover ul,#pin-note-popover ol{margin:4px 0 4px 18px;padding:0;} #pin-note-popover li{margin:2px 0;}';
+    document.head.appendChild(s);
+  }
+  pop.appendChild(editor);
+
+  // Action buttons
   const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex; gap:6px; margin-top:7px; justify-content:flex-end;';
+  btnRow.style.cssText = 'display:flex; gap:6px; margin-top:8px; justify-content:flex-end;';
 
-  const saveBtn = document.createElement('button');
-  saveBtn.textContent = 'Save';
-  saveBtn.style.cssText = 'background:' + pin.color + '; color:#111; border:none; border-radius:5px; padding:4px 14px; cursor:pointer; font-weight:700; font-size:0.78rem;';
+  const makeBtn = (text, css) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = text; b.style.cssText = css;
+    return b;
+  };
+  const saveBtn   = makeBtn('Save',   'background:' + pin.color + '; color:#111; border:none; border-radius:5px; padding:5px 16px; cursor:pointer; font-weight:700; font-size:0.8rem;');
+  const clearBtn  = makeBtn('Clear',  'background:transparent; color:rgba(255,100,100,0.8); border:1px solid rgba(255,100,100,0.4); border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.8rem;');
+  const cancelBtn = makeBtn('Cancel', 'background:transparent; color:#aaa; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.8rem;');
 
-  const clearBtn = document.createElement('button');
-  clearBtn.textContent = 'Clear';
-  clearBtn.style.cssText = 'background:transparent; color:rgba(255,100,100,0.8); border:1px solid rgba(255,100,100,0.4); border-radius:5px; padding:4px 10px; cursor:pointer; font-size:0.78rem;';
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'background:transparent; color:#aaa; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:4px 10px; cursor:pointer; font-size:0.78rem;';
-
-  const doSave = (text) => {
+  const doSave = (html) => {
     const imgUrl = _currentPinImgUrl();
     if (!imgUrl) return;
     const pins = getTagPinsForUrl(imgUrl);
     const p = pins.find(p => p.id === pin.id);
     if (p) {
-      if (text) p.note = text;
-      else delete p.note;
+      const clean = html.replace(/<br\s*\/?>\s*$/i, '').trim();
+      if (clean) p.note = clean; else delete p.note;
       setTagPinsForUrl(imgUrl, pins);
       if (typeof saveTrades === 'function') saveTrades();
       renderTagPins();
@@ -472,13 +540,9 @@ function _openPinNoteEditor(pin, anchorEl) {
     pop.remove();
   };
 
-  saveBtn.addEventListener('click', () => doSave(ta.value.trim()));
-  clearBtn.addEventListener('click', () => doSave(''));
+  saveBtn.addEventListener('click',   () => doSave(editor.innerHTML));
+  clearBtn.addEventListener('click',  () => doSave(''));
   cancelBtn.addEventListener('click', () => pop.remove());
-  ta.addEventListener('keydown', ev => {
-    if (ev.key === 'Enter' && ev.ctrlKey) { ev.preventDefault(); doSave(ta.value.trim()); }
-    if (ev.key === 'Escape') pop.remove();
-  });
 
   btnRow.appendChild(clearBtn);
   btnRow.appendChild(cancelBtn);
@@ -488,7 +552,7 @@ function _openPinNoteEditor(pin, anchorEl) {
 
   // Position near the dot
   const rect = anchorEl.getBoundingClientRect();
-  const pw = 300, ph = 170;
+  const pw = 300, ph = 220;
   let top  = rect.bottom + 8;
   let left = rect.left - pw / 2 + rect.width / 2;
   if (top  + ph > window.innerHeight) top  = rect.top - ph - 8;
@@ -497,7 +561,14 @@ function _openPinNoteEditor(pin, anchorEl) {
   pop.style.top  = top  + 'px';
   pop.style.left = left + 'px';
 
-  ta.focus();
+  // Focus at end of content
+  editor.focus();
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
 
   setTimeout(() => {
     const onOut = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', onOut); } };

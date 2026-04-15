@@ -101,13 +101,28 @@ function renderGalleryTagsTray() {
 
   // Search input
   const searchRow = document.createElement('div');
-  searchRow.style.cssText = 'padding:4px 8px 5px; border-bottom:1px solid var(--border);';
+  searchRow.style.cssText = 'padding:5px 8px 6px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:5px;';
   const searchInp = document.createElement('input');
   searchInp.className = 'panel-search';
   searchInp.placeholder = 'Search tags...';
   searchInp.value = state.gallery._tagTraySearch || '';
-  searchInp.style.cssText = 'width:100%; box-sizing:border-box;';
+  searchInp.style.cssText = 'flex:1; box-sizing:border-box; min-width:0; height:32px; font-size:0.9rem; padding:0 8px;';
+  const searchClear = document.createElement('button');
+  searchClear.textContent = '×';
+  searchClear.title = 'Clear search';
+  searchClear.style.cssText = 'flex-shrink:0; width:28px; height:32px; background:transparent; border:1px solid rgba(255,255,255,0.15); border-radius:5px; color:#aaa; font-size:1.2rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.15s;';
+  searchClear.style.display = (state.gallery._tagTraySearch || '') ? 'flex' : 'none';
+  searchClear.addEventListener('mouseenter', () => searchClear.style.color = '#fff');
+  searchClear.addEventListener('mouseleave', () => searchClear.style.color = '#aaa');
+  searchClear.addEventListener('click', () => {
+    searchInp.value = '';
+    state.gallery._tagTraySearch = '';
+    searchClear.style.display = 'none';
+    _applyTagFilter('');
+    searchInp.focus();
+  });
   searchRow.appendChild(searchInp);
+  searchRow.appendChild(searchClear);
   if (fixed) fixed.appendChild(searchRow);
   else body.appendChild(searchRow);
 
@@ -573,12 +588,14 @@ function renderGalleryTagsTray() {
   _applyTagFilter(searchInp.value);
   searchInp.addEventListener('input', () => {
     state.gallery._tagTraySearch = searchInp.value;
+    searchClear.style.display = searchInp.value ? 'flex' : 'none';
     _applyTagFilter(searchInp.value);
   });
   searchInp.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       searchInp.value = '';
       state.gallery._tagTraySearch = '';
+      searchClear.style.display = 'none';
       _applyTagFilter('');
     }
   });
