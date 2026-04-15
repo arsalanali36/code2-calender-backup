@@ -1,0 +1,351 @@
+        function jumpToTrade(t) {
+            document.getElementById('trades-modal').style.display = 'none';
+            chartMain.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+            if (chartOpt) chartOpt.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+        }
+
+        async function loadInstrument(symbol, date) {
+            const isIndex = symbol === 'Nifty 50 (^NSEI)';
+            const optBox = document.getElementById('container-opt');
+            const resizer = document.getElementById('chart-resizer');
+            const dualBtn = document.getElementById('dual-view-btn');
+            
+            if (isIndex) {
+                optBox.style.display = 'none';
+                resizer.style.display = 'none';
+                dualBtn.innerText = 'DUAL VIEW: OFF';
+                document.getElementById('container-main').style.flex = '1';
+                
+                // Set 5-day lookback for EMA warmup
+                const dt = new Date(date);
+                dt.setDate(dt.getDate() - 5);
+                const lookbackDate = dt.toISOString().split('T')[0];
+                
+                document.getElementById('symbol').value = symbol;
+                document.getElementById('start-date').value = lookbackDate;
+                document.getElementById('end-date').value = date;
+                
+                await runStrategy(false);
+            } else {
+                optBox.style.display = 'block';
+                resizer.style.display = 'block';
+                dualBtn.innerText = 'DUAL VIEW: ON';
+                document.getElementById('opt-label').innerText = symbol;
+                
+                // Set 5-day lookback for EMA warmup
+                const dt = new Date(date);
+                dt.setDate(dt.getDate() - 5);
+                const lookbackDate = dt.toISOString().split('T')[0];
+                
+                document.getElementById('symbol').value = symbol;
+                document.getElementById('start-date').value = lookbackDate;
+                document.getElementById('end-date').value = date;
+                
+                // Force a resize calculation before loading data
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    const optB = document.getElementById('chart-opt');
+                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                }, 10);
+
+                await runStrategy(false, true); 
+                await runStrategy(true); 
+                
+            }
+            document.getElementById('history-modal').style.display = 'none';
+
+            // Common Zoom into market hours for both Index and Option
+            const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
+            setTimeout(() => {
+                const from = tradeTs + (9 * 3600); // 09:00 AM
+                const to = tradeTs + (16 * 3600);   // 04:00 PM
+                const range = { from, to };
+                chartMain.timeScale().setVisibleRange(range);
+                if (chartOpt) chartOpt.timeScale().setVisibleRange(range);
+            }, 300);
+        }
+
+        function toggleDualView() {
+            const optBox = document.getElementById('container-opt');
+            const resizer = document.getElementById('chart-resizer');
+            const dualBtn = document.getElementById('dual-view-btn');
+            const isHidden = optBox.style.display === 'none';
+            
+            if (isHidden) {
+                optBox.style.display = 'block';
+                resizer.style.display = 'block';
+                dualBtn.innerText = 'DUAL VIEW: ON';
+                // Force resize check
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    const optB = document.getElementById('chart-opt');
+                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                    runStrategy(true); 
+                }, 20);
+            } else {
+                optBox.style.display = 'none';
+                resizer.style.display = 'none';
+                document.getElementById('container-main').style.flex = '1';
+                dualBtn.innerText = 'DUAL VIEW: OFF';
+                setTimeout(() => {
+                    const mainB = document.getElementById('chart-main');
+                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                }, 20);
+            }
+        }
+
+        function openTradesModal() {
+            const container = document.getElementById('trades-list-container');
+            document.getElementById('trades-modal').style.display = 'flex';
+            container.innerHTML = loadedRealTrades.length ? loadedRealTrades.map(t => `
+                <div style="padding:10px; border:1px solid #eee; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div><div style="font-weight:600;">${t.instrument}</div><div style="font-size:0.8rem; color:#666;">Time: ${new Date(t.entry_time * 1000).toISOString().replace('T',' ').substring(0, 19)}</div></div>
+                    <button class="nav-btn" onclick="jumpToTrade(${t.entry_time})">GOTO</button>
+                </div>
+            `).join('') : '<div style="text-align:center; padding:20px; color:#999;">No trades.</div>';
+        }
+
+        async function openHistoryModal() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#666;">Analyzing archive...</td></tr>';
+            document.getElementById('history-modal').style.display = 'flex';
+            
+            try {
+                const res = await fetch('/api/strategy/archive-dates');
+                const data = await res.json();
+                if (data.dates && data.dates.length) {
+                    tbody.innerHTML = data.dates.map(d => {
+                        const plColor = d.total_pl > 0 ? '#10b981' : (d.total_pl < 0 ? '#ef4444' : '#64748b');
+                        
+                        // Main Date Row (Summary)
+                        let dateHtml = `
+                        <tr style="background:#f1f5f9; border-top:2px solid #e2e8f0;">
+                            <td style="padding:10px; font-weight:900; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #cbd5e1;">
+                                📅 ${d.date} <span style="font-weight:400; font-size:0.7rem; color:#64748b; margin-left:10px;">(${d.trades.length} Trades | ${d.resolution})</span>
+                            </td>
+                            <td colspan="3" style="border-bottom:1px solid #cbd5e1;"></td>
+                            <td style="padding:10px; text-align:right; font-weight:900; font-size:0.95rem; color:${plColor}; border-bottom:1px solid #cbd5e1;">
+                                ${d.total_pl !== 0 ? (d.total_pl > 0 ? '+' : '') + Math.round(d.total_pl).toLocaleString() : '₹ 0'}
+                            </td>
+                        </tr>`;
+
+                        // Count occurrences to only color duplicates
+                        const instCounts = {};
+                        d.trades.forEach(t => instCounts[t.symbol] = (instCounts[t.symbol] || 0) + 1);
+
+                        // Helper for per-instrument color grouping
+                        const instColorMap = {};
+                        const getInstColor = (str) => {
+                            if (instCounts[str] <= 1) return 'transparent'; // Only color duplicates
+                            if (instColorMap[str]) return instColorMap[str];
+                            const colors = ['#f0fdf4', '#fdf2f8', '#fefce8', '#f0f9ff', '#f5f3ff', '#fff7ed', '#f0fdfa'];
+                            let hash = 0;
+                            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                            const color = colors[Math.abs(hash) % colors.length];
+                            instColorMap[str] = color;
+                            return color;
+                        };
+
+                        // Trade Sub-rows
+                        let instRows = d.trades.map(t => {
+                            const tPlColor = t.pl > 0 ? '#059669' : (t.pl < 0 ? '#dc2626' : '#64748b');
+                            const timeStr = (t.entry_time && t.exit_time) ? `<span style="color:#94a3b8; font-weight:400;"> [${t.entry_time.substring(0,5)}-${t.exit_time.substring(0,5)}]</span>` : '';
+                            const bgGroup = getInstColor(t.symbol);
+                            const isGrouped = instCounts[t.symbol] > 1;
+                            const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
+                            const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
+
+                            const weekDots = t.weekly_history ? t.weekly_history.map((hasData, i) => {
+                                const dStr = t.weekly_dates[i];
+                                const cursor = hasData ? 'default' : 'pointer';
+                                const title = hasData ? `Data Available: ${dStr}` : `Click to sync: ${dStr}`;
+                                const action = hasData ? '' : `onclick="event.stopPropagation(); syncSpecificDay('${t.symbol}', '${dStr}')"`;
+                                return `<span ${action} style="width:7px; height:7px; background:${hasData ? '#10b981' : '#e2e8f0'}; border-radius:50%; display:inline-block; margin:0 1px; cursor:${cursor};" title="${title}"></span>`;
+                            }).join('') : '';
+
+                            return `
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:8px 10px 8px 30px; font-size:0.8rem; color:#334155; vertical-align:middle;">
+                                    <span style="color:#cbd5e1; margin-right:8px;">↳</span>
+                                    <span style="font-family:monospace; font-size:0.75rem; color:#64748b;">${timeStr}</span>
+                                    <span style="margin-left:5px; white-space:nowrap;">
+                                        ${statusIcon}
+                                          <span onclick="loadInstrument('${t.symbol}', '${d.date}')" 
+                                               title="Click to load chart" 
+                                               style="cursor:pointer; color:#0e7490; font-weight:700; padding:2px 6px; border-radius:4px; 
+                                                      background:${bgGroup}; 
+                                                      border:${isGrouped ? '1px solid rgba(0,0,0,0.05)' : 'none'};">
+                                             ${t.symbol}
+                                         </span>
+                                         <span style="font-size:0.7rem; font-weight:800; color:#64748b; margin-left:3px;">(${lots}L)</span>
+                                         <span onclick="event.stopPropagation(); syncInstrumentWeek('${t.symbol}', '${d.date}')" 
+                                               title="Sync Full Week Data for this instrument"
+                                               style="cursor:pointer; margin-left:8px; font-size:0.7rem; color:#6366f1; background:#eef2ff; padding:2px 6px; border-radius:4px; border:1px solid #c7d2fe;">
+                                               🔄 SYNC WEEK
+                                         </span>
+                                     </span>
+                                 </td>
+                                <td style="padding:6px; text-align:center; vertical-align:middle;">
+                                    <div style="display:flex; justify-content:center; gap:2px;">${weekDots}</div>
+                                </td>
+                                <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
+                                    ${t.duration || '--'}
+                                </td>
+                                <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
+                                    ${t.pt !== 0 ? (t.pt > 0 ? '+' : '') + t.pt.toFixed(1) : '0'}
+                                </td>
+                                <td style="padding:6px 10px; text-align:right; font-weight:700; font-size:0.85rem; color:${tPlColor};">
+                                    ${t.pl !== 0 ? (t.pl > 0 ? '+' : '') + Math.round(t.pl).toLocaleString() : '0'}
+                                </td>
+                            </tr>
+                        `;}).join('');
+
+                        return dateHtml + instRows;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#999;">No local data files found.</td></tr>';
+                }
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#ef5350;">Error loading history.</td></tr>';
+            }
+        }
+
+        document.getElementById('close-history-modal').onclick = () => document.getElementById('history-modal').style.display = 'none';
+        document.getElementById('open-history-btn').onclick = openHistoryModal;
+        document.getElementById('close-trades-modal-btn').onclick = () => document.getElementById('trades-modal').style.display = 'none';
+        document.getElementById('open-trades-modal-btn').onclick = openTradesModal;
+        document.getElementById('run-btn').onclick = () => runStrategy();
+        document.getElementById('prev-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()-1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
+        document.getElementById('next-day-btn').onclick = () => { const d = new Date(document.getElementById('start-date').value); d.setDate(d.getDate()+1); document.getElementById('start-date').value = d.toISOString().split('T')[0]; runStrategy(); };
+        document.getElementById('dual-view-btn').onclick = toggleDualView;
+        document.getElementById('fit-btn').onclick = () => { chartMain.timeScale().fitContent(); if(chartOpt) chartOpt.timeScale().fitContent(); };
+        document.getElementById('reset-btn').onclick = () => { 
+            runStrategy(); // Re-runs and fits content
+        };
+        document.getElementById('sidebar-toggle-btn').onclick = (e) => { 
+            e.stopPropagation();
+            const sb = document.getElementById('sidebar'); 
+            sb.classList.toggle('collapsed'); 
+            document.getElementById('sidebar-toggle-btn').innerText = sb.classList.contains('collapsed') ? '▶' : '◀'; 
+        };
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            const sb = document.getElementById('sidebar');
+            const btn = document.getElementById('sidebar-toggle-btn');
+            if (!sb.contains(e.target) && e.target !== btn && !sb.classList.contains('collapsed')) {
+                sb.classList.add('collapsed');
+                btn.innerText = '▶';
+            }
+        });
+
+        // Prevent closing when clicking inside sidebar
+        document.getElementById('sidebar').onclick = (e) => e.stopPropagation();
+
+        window.resetChart = async function() {
+            await fetchAndDrawStrategyData();
+            if (chartMain) chartMain.timeScale().fitContent();
+        }
+
+        let equityChart = null;
+        window.showEquityCurve = function() {
+            const modal = document.getElementById('equity-curve-modal');
+            modal.style.display = 'flex';
+            
+            const trades = lastStrategyData.realTrades || [];
+            if (trades.length === 0) {
+                alert("No real trades found for this range.");
+                // modal.style.display = 'none';
+                // return;
+            }
+
+            // Calculate Cumulative MTM
+            const sortedTrades = [...trades].sort((a, b) => a.entry_time - b.entry_time);
+            let runningPL = 0;
+            const data = [];
+            
+            // Initial point
+            if (sortedTrades.length > 0) {
+                data.push({ time: sortedTrades[0].entry_time - 300, value: 0 });
+            } else {
+                data.push({ time: Math.floor(Date.now()/1000) - 3600, value: 0 });
+            }
+
+            sortedTrades.forEach(t => {
+                runningPL += (t.pl || 0);
+                data.push({ time: t.entry_time, value: runningPL });
+            });
+
+            const totalPL = Math.round(runningPL);
+            const mtmDisplay = document.getElementById('mtm-total-display');
+            mtmDisplay.innerText = (totalPL >= 0 ? '+' : '') + totalPL.toLocaleString();
+            mtmDisplay.style.color = totalPL >= 0 ? '#10b981' : '#ef4444';
+            document.getElementById('mtm-count-text').innerText = trades.length;
+
+            // Initialize or update chart
+            setTimeout(() => {
+                const container = document.getElementById('equity-chart');
+                if (!equityChart) {
+                    equityChart = LightweightCharts.createChart(container, {
+                        layout: { backgroundColor: 'transparent', textColor: '#666' },
+                        grid: { vertLines: { color: '#222' }, horzLines: { color: '#222' } },
+                        timeScale: { borderColor: '#333', timeVisible: true, secondsVisible: false },
+                        priceScale: { borderColor: '#333' }
+                    });
+                    const lineSeries = equityChart.addLineSeries({
+                        color: '#ef4444', 
+                        lineWidth: 3,
+                        lineType: 0,
+                        lastValueVisible: false,
+                        priceLineVisible: false
+                    });
+                    equityChart.lineSeries = lineSeries;
+                    
+                    const areaSeries = equityChart.addAreaSeries({
+                        topColor: 'rgba(239, 68, 68, 0.4)',
+                        bottomColor: 'rgba(239, 68, 68, 0)',
+                        lineVisible: false,
+                        lastValueVisible: false,
+                        priceLineVisible: false
+                    });
+                    equityChart.areaSeries = areaSeries;
+                }
+
+                const color = totalPL >= 0 ? '#10b981' : '#ef4444';
+                const areaTop = totalPL >= 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+                
+                equityChart.lineSeries.applyOptions({ color: color });
+                equityChart.areaSeries.applyOptions({ topColor: areaTop });
+
+                equityChart.lineSeries.setData(data);
+                equityChart.areaSeries.setData(data);
+                
+                // Add Markers for Peak and Low
+                const peak = Math.max(...data.map(d => d.value));
+                const low = Math.min(...data.map(d => d.value));
+                const peakPoint = data.find(d => d.value === peak);
+                const lowPoint = data.find(d => d.value === low);
+
+                const markers = [];
+                if (peakPoint && data.length > 2) markers.push({ time: peakPoint.time, position: 'aboveBar', color: '#10b981', shape: 'arrowDown', text: 'PEAK: ' + Math.round(peak) });
+                if (lowPoint && data.length > 2) markers.push({ time: lowPoint.time, position: 'belowBar', color: '#ef4444', shape: 'arrowUp', text: 'LOW: ' + Math.round(low) });
+                equityChart.lineSeries.setMarkers(markers);
+
+                // Add Click Handler to jump to trade on main chart
+                equityChart.subscribeClick(param => {
+                    if (param.time) {
+                        const targetTrade = sortedTrades.find(t => t.entry_time === param.time);
+                        if (targetTrade) {
+                            window.jumpToTrade(targetTrade.entry_time);
+                            modal.style.display = 'none';
+                        }
+                    }
+                });
+
+                equityChart.timeScale().fitContent();
+            }, 100);
+        }
+

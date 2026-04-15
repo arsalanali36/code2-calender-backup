@@ -8,8 +8,10 @@ import os
 import time
 
 from flask import Blueprint, render_template, jsonify, send_from_directory, redirect, request
+from flask_login import current_user
 
 from config import BASE_DIR, CACHE_BUST, DATA_FILE
+from processors.data_processors import get_user_data_file
 BUNDLE_PATH = os.path.join(BASE_DIR, 'static', 'js', 'bundle.js')
 from services.page_service import get_blog_entries_for_template, get_blog_entries_for_api
 
@@ -28,8 +30,11 @@ def index():
     if any(k in ua for k in MOBILE_KEYWORDS):
         return redirect('/mobile/')
     # Embed trades data directly in HTML — eliminates the /api/trades round-trip on load
+    # Must read the user-specific file so authenticated users see their own data
     try:
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        user_id = current_user.id if current_user.is_authenticated else None
+        user_data_file = get_user_data_file(user_id)
+        with open(user_data_file, 'r', encoding='utf-8') as f:
             initial_data_json = f.read()
         # Validate it's real JSON (don't embed corrupt data)
         json.loads(initial_data_json)

@@ -1,0 +1,131 @@
+    <!-- Dhan Credentials Modal -->
+    <div class="modal-overlay" id="dhan-auth-modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title">Dhan API Credentials</div>
+                <div class="close-modal" id="close-dhan-modal">&times;</div>
+            </div>
+            <div style="padding: 10px 0;">
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">Credentials are saved for this session only.</p>
+                <div style="margin-bottom:15px;">
+                    <label class="setting-item">CLIENT ID</label>
+                    <input type="text" id="dhan-client-id" class="nav-btn" style="width:100%;" placeholder="e.g. 1101xxxx">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label class="setting-item">ACCESS TOKEN (JWT)</label>
+                    <textarea id="dhan-access-token" class="nav-btn" style="width:100%; height:80px; font-size: 0.7rem;" placeholder="Paste your JWT token here..."></textarea>
+                </div>
+                <button class="lab-btn lab-btn-primary" id="save-dhan-btn">Save & Continue</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="history-modal">
+        <div class="modal-content" style="width: 750px; max-height: 80vh; padding:0;">
+            <div class="modal-header" style="padding:15px 20px; border-bottom: 1px solid #eee;">
+                <div class="modal-title">Downloaded Data History</div>
+                <div class="close-modal" id="close-history-modal">&times;</div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; overflow-y: auto; max-height: 60vh;">
+                <table style="width:100%; border-collapse: collapse; margin-top:15px;">
+                    <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                        <tr>
+                            <th style="text-align:left; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem;">DATE / TRADE DETAILS</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:80px;">DATA (M-F)</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:60px;">DUR</th>
+                            <th style="text-align:center; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:60px;">PT</th>
+                            <th style="text-align:right; padding:10px; border-bottom:2px solid #eee; color:#64748b; font-size:0.7rem; width:100px;">AMT/PL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="trades-modal"><div class="modal-content" style="width: 500px; max-height: 80vh; overflow-y: auto;"><div class="modal-header"><div class="modal-title">Real Trades Found</div><div class="close-modal" id="close-trades-modal-btn">&times;</div></div><div id="trades-list-container"></div></div></div>
+    
+    <div class="modal-overlay" id="sync-modal">
+        <div class="modal-content" style="width: 600px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+                <div class="modal-title">Sync Process</div>
+                <div class="close-modal" id="close-sync-modal-btn">&times;</div>
+            </div>
+            <div style="padding:15px;">
+                <p id="sync-modal-range-info" style="font-size:0.75rem; color:#64748b; margin-top:-10px; margin-bottom:15px;"></p>
+                <p id="sync-modal-main-status" style="font-size:0.9rem; margin-bottom:15px; font-weight:700; color:#10b981;">Starting sync...</p>
+                <div style="height:10px; background:#eee; border-radius:5px; overflow:hidden; margin-bottom:20px;">
+                    <div id="sync-modal-progress-bar" style="height:100%; width:0%; background:#10b981; transition:width 0.3s;"></div>
+                </div>
+                <table style="width:100%; border-collapse: collapse; font-size:0.8rem;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #eee; color:#64748b; font-size:0.75rem;">
+                            <th style="padding:8px; text-align:left;">INSTRUMENT</th>
+                            <th style="padding:8px; text-align:left;">DATE</th>
+                            <th style="padding:8px; text-align:center;">HISTORY (M T W T F)</th>
+                            <th style="padding:8px; text-align:right;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sync-modal-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pivot Editor Modal -->
+    <div class="modal-overlay" id="pivot-modal" style="background: rgba(0,0,0,0.85); display:none; z-index: 9999;">
+        <div style="width: 600px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #ddd;">
+            <div style="padding: 15px 20px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">🛠️</span>
+                    <h2 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 700;">Manual Pivot Level Editor</h2>
+                </div>
+                <div id="close-pivot-modal" style="cursor:pointer; font-size:24px; color:#94a3b8;">&times;</div>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                    <label style="font-weight: 600; font-size: 13px;">Date:</label>
+                    <input type="date" id="pivot-edit-date" class="nav-btn" style="flex:1;">
+                    <button onclick="loadPivotsForDate()" class="nav-btn" style="background: #e2e8f0;">Load</button>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_PD_H</label><input type="number" id="inp-pdh" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_PD_C</label><input type="number" id="inp-pdc" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_PD_L</label><input type="number" id="inp-pdl" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                        <div style="margin-bottom:8px;"><label style="font-size:11px; font-weight:700; color:#64748b;">NIFTY_CP (PP)</label><input type="number" id="inp-pp" step="0.05" style="width:100%; padding:5px; border:1px solid #ddd; border-radius:4px;"></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R5</label><input type="number" id="inp-r5" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S5</label><input type="number" id="inp-s5" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R4</label><input type="number" id="inp-r4" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S4</label><input type="number" id="inp-s4" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R3</label><input type="number" id="inp-r3" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S3</label><input type="number" id="inp-s3" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R2</label><input type="number" id="inp-r2" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S2</label><input type="number" id="inp-s2" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#ef4444;">R1</label><input type="number" id="inp-r1" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                            <div style="flex:1;"><label style="font-size:9px; font-weight:700; color:#10b981;">S1</label><input type="number" id="inp-s1" step="0.05" style="width:100%; border:1px solid #ddd; border-radius:4px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
+                    <label style="font-size:11px; font-weight:700; color:#6366f1;">BULK PASTE AREA (Paste your list here):</label>
+                    <textarea id="pivot-bulk-paste" placeholder="NIFTY_PD_H = 24074.05&#10;NIFTY_PD_C = 24050.6..." style="width:100%; height:80px; font-size:11px; font-family:monospace; margin-top:5px; padding:8px; border:1px solid #ddd; border-radius:4px;"></textarea>
+                    <button onclick="autoFillFromPaste()" class="nav-btn" style="width:100%; margin-top:5px; background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;">⚡ AUTO-FILL FROM PASTE</button>
+                </div>
+            </div>
+            <div style="padding: 15px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="document.getElementById('pivot-modal').style.display='none'" class="nav-btn" style="border:none; background:transparent;">Cancel</button>
+                <button onclick="savePivots()" class="nav-btn" style="background:#6366f1; color:#fff; border:none; padding:8px 25px; font-weight:700;">SAVE LEVELS</button>
+            </div>
+        </div>
+    </div>

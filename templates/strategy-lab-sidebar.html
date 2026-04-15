@@ -1,0 +1,46 @@
+        <div class="lab-sidebar" id="sidebar">
+            <h3 style="margin:0 0 20px 0; font-size: 1.1rem; border-bottom:1px solid #eee; padding-bottom:10px;">Configuration</h3>
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label class="setting-item" style="margin:0;">SYMBOL</label>
+                    <span style="font-size:0.7rem; color:#0969da; cursor:pointer; font-weight:600;" onclick="loadInstrument('Nifty 50 (^NSEI)', document.getElementById('start-date').value)">RESET TO INDEX</span>
+                </div>
+                <input type="text" id="symbol" class="nav-btn" style="width:100%;" value="Nifty 50 (^NSEI)" readonly>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label class="setting-item">DATA SOURCE</label>
+                <select id="source-select" class="nav-btn" style="width:100%;">
+                    <option value="dhan_local" selected>Dhan Local (CSV)</option>
+                    <option value="dhan_api">Dhan API (Live)</option>
+                </select>
+            </div>
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label class="setting-item" style="margin:0;">STRATEGY</label>
+                </div>
+                <select id="strategy-select" class="nav-btn" style="width:100%;">
+                    <option value="Arsalan Continuation">Arsalan Continuation</option>
+                    <option value="Arsalan Sandbox">Arsalan Sandbox</option>
+                    <option value="Arsalan Reversal" selected>Arsalan Reversal</option>
+                </select>
+                <div class="toggle-group" style="margin-top:10px;">
+                    <div style="font-size:0.7rem; color:#64748b; font-weight:700; margin-bottom:8px; text-transform:uppercase;">Strategy Logic (Pine)</div>
+                    <label class="toggle-item"><input type="checkbox" id="use-fresh-zone" checked> Use Fresh Zone Only</label>
+                    <label class="toggle-item"><input type="checkbox" id="fib-exit" checked> SL Below Fib</label>
+                    <label class="toggle-item"><input type="checkbox" id="zone-exit" checked> Zone Exit</label>
+                    <label class="toggle-item"><input type="checkbox" id="atr-exit" checked> Atr Exit</label>
+                </div>
+            </div>
+            <div style="margin-bottom:20px;"><label class="setting-item">TIMEFRAME</label><select id="timeframe-select" class="nav-btn" style="width:100%;"><option value="1m">1m</option><option value="3m" selected>3m</option><option value="5m">5m</option><option value="15m">15m</option></select></div>
+            <div style="margin-bottom:20px;"><label class="setting-item">DATE RANGE</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="date" id="start-date" class="nav-btn" value="2026-04-01"><input type="date" id="end-date" class="nav-btn" value="2026-04-14"></div></div>
+            <div style="margin-bottom:30px;"><label class="setting-item">MARKET TIME</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="time" id="start-time" class="nav-btn" value="09:15"><input type="time" id="end-time" class="nav-btn" value="15:30"></div></div>
+            <div style="margin-bottom:20px;">
+                <label class="setting-item">REVERSAL SETTINGS</label>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="hawa-me-zone-toggle" style="width:20px; height:20px; cursor:pointer;">
+                    <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Hawa me Zone (Floating)</span>
+                </div>
+            </div>
+            <button class="lab-btn lab-btn-primary" id="run-btn">Run Strategy</button>
+        </div>
+        <div class="sidebar-toggle-btn" id="sidebar-toggle-btn">◀</div>
