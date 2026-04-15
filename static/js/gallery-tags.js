@@ -309,6 +309,23 @@ function renderGalleryTagsTray() {
         return;
       }
       const isRemoving = liveAssignedSet.has(tag);
+
+      // If removing, also clean up pins for this tag on current image
+      if (isRemoving && typeof getTagPinsForUrl === 'function') {
+        const imgUrl = liveInfo.imgUrl;
+        const existingPins = getTagPinsForUrl(imgUrl);
+        const pinsForTag = existingPins.filter(p => p.tag === tag);
+        if (pinsForTag.length > 0) {
+          const hasNotes = pinsForTag.some(p => p.note);
+          if (hasNotes) {
+            if (!confirm(`"${tag}" tag ke ${pinsForTag.length} pin(s) hain jinme note bhi hai. Pin bhi hata dein?`)) return;
+          }
+          const remainingPins = existingPins.filter(p => p.tag !== tag);
+          if (typeof setTagPinsForUrl === 'function') setTagPinsForUrl(imgUrl, remainingPins);
+          if (typeof renderTagPins === 'function') renderTagPins();
+        }
+      }
+
       const next = isRemoving
         ? liveInfo.imageTags.filter(t => t !== tag)
         : [...liveInfo.imageTags, tag];

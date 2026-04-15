@@ -7,6 +7,7 @@ Core helpers (config, scrip, symbol parser) → dhan_service_core.py
 import os
 import json
 import time
+import threading
 from datetime import datetime, timedelta
 
 from config import OHLC_CACHE_DIR, DHAN_SCRIP_MASTER, SYMBOL_EXPIRY_MAP_FILE, TRADEBOOK_SYNC_QUEUE_FILE
@@ -616,7 +617,18 @@ def _try_match(symbol, trade_date, df, sym_index, cid, csym, cseg, cinst, cstk, 
             'confidence': 0, 'matched_symbol': '', 'error': 'no_match'}
 
 
-# ── OHLC Cache helpers ────────────────────────────────────────────────────────
+# ── Global Locks ──────────────────────────────────────────────────────────────
+_file_locks = {}
+_lock_mutex = threading.RLock()
+
+def _get_lock(security_id, trade_date):
+    key = f"{security_id}_{trade_date}"
+    with _lock_mutex:
+        if key not in _file_locks:
+            _file_locks[key] = threading.RLock()
+        return _file_locks[key]
+
+# ── Cache Helpers ─────────────────────────────────────────────────────────────
 
 def _cache_path(security_id, trade_date):
     return os.path.join(OHLC_CACHE_DIR, f"{security_id}_{trade_date}.csv")
@@ -690,7 +702,12 @@ def load_cached_ohlc(security_id, trade_date):
 # ── OHLC Fetch ────────────────────────────────────────────────────────────────
 
 def fetch_and_cache_ohlc(security_id, exchange_segment, instrument_type, trade_date, expiry_date=None, config=None):
-    """Fetch 1-min OHLC from Dhan and save to local artifact directory."""
+    """Fetch 1-min OHLC from Dhan and save with thread safety."""
+    lock = _get_lock(security_id, trade_date)
+    with lock:
+        return _perform_fetch_and_cache(security_id, exchange_segment, instrument_type, trade_date, expiry_date, config)
+
+def _perform_fetch_and_cache(security_id, exchange_segment, instrument_type, trade_date, expiry_date, config):
     import pandas as pd
     if not config:
         config = get_config()

@@ -14570,6 +14570,23 @@ function renderGalleryTagsTray() {
         return;
       }
       const isRemoving = liveAssignedSet.has(tag);
+
+      // If removing, also clean up pins for this tag on current image
+      if (isRemoving && typeof getTagPinsForUrl === 'function') {
+        const imgUrl = liveInfo.imgUrl;
+        const existingPins = getTagPinsForUrl(imgUrl);
+        const pinsForTag = existingPins.filter(p => p.tag === tag);
+        if (pinsForTag.length > 0) {
+          const hasNotes = pinsForTag.some(p => p.note);
+          if (hasNotes) {
+            if (!confirm(`"${tag}" tag ke ${pinsForTag.length} pin(s) hain jinme note bhi hai. Pin bhi hata dein?`)) return;
+          }
+          const remainingPins = existingPins.filter(p => p.tag !== tag);
+          if (typeof setTagPinsForUrl === 'function') setTagPinsForUrl(imgUrl, remainingPins);
+          if (typeof renderTagPins === 'function') renderTagPins();
+        }
+      }
+
       const next = isRemoving
         ? liveInfo.imageTags.filter(t => t !== tag)
         : [...liveInfo.imageTags, tag];
@@ -25397,10 +25414,19 @@ function _openPinNoteEditor(pin, anchorEl) {
     pop.remove();
   };
 
+  const deleteBtn = makeBtn('🗑 Pin hatao', 'background:transparent; color:rgba(255,80,80,0.85); border:1px solid rgba(255,80,80,0.35); border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.78rem; margin-right:auto;');
+  deleteBtn.addEventListener('click', () => {
+    pop.remove();
+    removeTagPin(pin.id);
+    const imgUrl = _currentPinImgUrl();
+    if (imgUrl) _updateThumbBadge(imgUrl);
+  });
+
   saveBtn.addEventListener('click',   () => doSave(editor.innerHTML));
   clearBtn.addEventListener('click',  () => doSave(''));
   cancelBtn.addEventListener('click', () => pop.remove());
 
+  btnRow.appendChild(deleteBtn);
   btnRow.appendChild(clearBtn);
   btnRow.appendChild(cancelBtn);
   btnRow.appendChild(saveBtn);

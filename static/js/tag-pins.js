@@ -540,10 +540,19 @@ function _openPinNoteEditor(pin, anchorEl) {
     pop.remove();
   };
 
+  const deleteBtn = makeBtn('🗑 Pin hatao', 'background:transparent; color:rgba(255,80,80,0.85); border:1px solid rgba(255,80,80,0.35); border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.78rem; margin-right:auto;');
+  deleteBtn.addEventListener('click', () => {
+    pop.remove();
+    removeTagPin(pin.id);
+    const imgUrl = _currentPinImgUrl();
+    if (imgUrl) _updateThumbBadge(imgUrl);
+  });
+
   saveBtn.addEventListener('click',   () => doSave(editor.innerHTML));
   clearBtn.addEventListener('click',  () => doSave(''));
   cancelBtn.addEventListener('click', () => pop.remove());
 
+  btnRow.appendChild(deleteBtn);
   btnRow.appendChild(clearBtn);
   btnRow.appendChild(cancelBtn);
   btnRow.appendChild(saveBtn);

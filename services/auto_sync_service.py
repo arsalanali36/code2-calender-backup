@@ -121,13 +121,21 @@ def _sync_index_data(config):
                 _current_task = f"NIFTY INDEX | {date_str}"
                 logger.info(f"AUTO-SYNC: Index update for {date_str}")
                 
-                # Fetch via Dhan (ID 13, Segment NSE_EQ, Instrument INDEX)
-                df_day = fetch_and_cache_ohlc('13', 'NSE_EQ', 'INDEX', date_str, config=config)
+                # Fetch via Dhan (ID 13, Segment IDX_I, Instrument INDEX)
+                df_day = fetch_and_cache_ohlc('13', 'IDX_I', 'INDEX', date_str, config=config)
                 if df_day is not None and not df_day.empty:
+                    # SAFETY CHECK: Ensure price is in Nifty 50 range (approx 20k+)
+                    avg_price = df_day['close'].mean()
+                    if avg_price < 18000:
+                        logger.warning(f"AUTO-SYNC: Skipping Index for {date_str} - Price {avg_price:.2f} looks wrong (too low).")
+                        curr += timedelta(days=1)
+                        continue
+                        
                     # Append to main file
                     if df_main.empty: df_main = df_day
                     else: df_main = pd.concat([df_main, df_day]).drop_duplicates('datetime').sort_values('datetime')
                     df_main.to_csv(INDEX_PATH, index=False)
+                    logger.info(f"AUTO-SYNC: Successfully updated Index for {date_str}")
             curr += timedelta(days=1)
     except Exception as e:
         logger.error(f"AUTO-SYNC Index Error: {e}")
@@ -158,12 +166,20 @@ def _perform_actual_sync(pending):
             if not tasks: break
             tasks.sort(key=lambda x: x[1], reverse=True)
             
+            # Initial total for THIS session
+            if not hasattr(_perform_actual_sync, 'initial_total'):
+                _perform_actual_sync.initial_total = len(tasks)
+            
             _total_tasks = len(tasks)
+            # Progress calculation: How many we've done in this specific session
+            processed_in_session = _perform_actual_sync.initial_total - _total_tasks
+            _done_tasks = processed_in_session + 1
+            
             # Pick the TOP task (highest priority date)
             inst, date = tasks[0]
             
             _current_task = f"{inst} | {date}"
-            logger.info(f"AUTO-SYNC: Syncing {inst} for {date} (Remaining: {_total_tasks})")
+            logger.info(f"AUTO-SYNC: Syncing {inst} for {date} (Ref: {_done_tasks}/{_perform_actual_sync.initial_total})")
             
             try:
                 m_weekly = re.match(r'^([A-Z]+?)(\d{2})([1-9OND])(\d{2})(\d+)([CP]E)$', inst)

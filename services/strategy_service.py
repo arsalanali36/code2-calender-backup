@@ -548,23 +548,49 @@ def get_archive_dates():
             for t in d_trades:
                 all_unique_syms.add(t['symbol'])
         
-        # Pre-calculate available dates for each instrument CSV (Optimized)
+        # NEW: High-performance Archive Inventory Cache
+        INVENTORY_FILE = "data/archive_inventory.json"
+        INVENTORY_META = "data/inventory_meta.json"
         sym_availability = {}
-        for sym in all_unique_syms:
-            csv_path = f"data/Historical_OHLC/Options/{sym}.csv"
-            if os.path.exists(csv_path):
-                try:
-                    # Optimized: Read only the 'datetime' column and use string slicing for speed
-                    temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
-                    if not temp_df.empty:
-                        # Extract YYYY-MM-DD from 'YYYY-MM-DD HH:MM:SS' using string slicing is faster than pd.to_datetime
-                        dates = temp_df['datetime'].str.slice(0, 10).unique()
-                        sym_availability[sym] = set(dates)
-                    else:
-                        sym_availability[sym] = set()
-                except Exception as e:
-                    print(f"Skipping {sym} due to read error: {e}")
-                    sym_availability[sym] = set()
+        
+        # We check if inventory is "stale" (older than 30 mins)
+        stale = True
+        if os.path.exists(INVENTORY_META):
+            try:
+                with open(INVENTORY_META, 'r') as f: m = json.load(f)
+                if time.time() - m.get('updated_at', 0) < 1800: # 30 mins
+                    stale = False
+            except: pass
+
+        if not stale and os.path.exists(INVENTORY_FILE):
+            try:
+                with open(INVENTORY_FILE, 'r') as f: 
+                    # Convert list back to set for fast lookups
+                    raw_inv = json.load(f)
+                    sym_availability = {k: set(v) for k,v in raw_inv.items()}
+            except: stale = True
+
+        if stale:
+            print("🚀 Refreshing Archive Inventory (Background Scan)...")
+            for sym in all_unique_syms:
+                csv_path = f"data/Historical_OHLC/Options/{sym}.csv"
+                if os.path.exists(csv_path):
+                    try:
+                        temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
+                        if not temp_df.empty:
+                            dates = temp_df['datetime'].str.slice(0, 10).unique()
+                            sym_availability[sym] = set(dates)
+                        else: sym_availability[sym] = set()
+                    except: sym_availability[sym] = set()
+            
+            # Save for next time (convert sets to lists for JSON)
+            try:
+                os.makedirs('data', exist_ok=True)
+                with open(INVENTORY_FILE, 'w') as f:
+                    json.dump({k: list(v) for k,v in sym_availability.items()}, f)
+                with open(INVENTORY_META, 'w') as f:
+                    json.dump({'updated_at': time.time()}, f)
+            except: pass
 
         # Determine the Master Timeline from TRADES instead of Index to allow viewing missing index days
         all_trade_dates = sorted(list(trades_map.keys()), reverse=True)
