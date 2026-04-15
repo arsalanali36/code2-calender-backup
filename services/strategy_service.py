@@ -566,13 +566,19 @@ def get_archive_dates():
                     print(f"Skipping {sym} due to read error: {e}")
                     sym_availability[sym] = set()
 
+        # Determine the Master Timeline from TRADES instead of Index to allow viewing missing index days
+        all_trade_dates = sorted(list(trades_map.keys()), reverse=True)
+        
         results = []
-        for date, group in df.groupby('date'):
-            if len(group) > 1:
-                median_diff = group['datetime'].diff().dropna().dt.total_seconds().median() / 60
+        for date in all_trade_dates:
+            # Check for index data for this date
+            day_index_df = df[df['date'] == date] if not df.empty else pd.DataFrame()
+            
+            if not day_index_df.empty:
+                median_diff = day_index_df['datetime'].diff().dropna().dt.total_seconds().median() / 60
                 res_str = f"{int(median_diff)}m" if median_diff >= 1 else "High"
             else:
-                res_str = "N/A"
+                res_str = "MISSING ❌"
             
             day_total_pl = total_pl_map.get(date, 0)
             day_trades = []

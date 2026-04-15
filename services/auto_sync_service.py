@@ -145,21 +145,25 @@ def _perform_actual_sync(pending):
     try:
         # STEP 1: PRIORITY - Sync Index Data first
         _sync_index_data(config)
-        
-        # STEP 2: Sync Pending Instruments
-        tasks = []
-        for inst, dates in pending.items():
-            for d in dates: tasks.append((inst, d))
-        
-        # Sort by date DESCENDING (priority)
-        tasks.sort(key=lambda x: x[1], reverse=True)
-        
-        _total_tasks = len(tasks)
-        _done_tasks = 0
-        
-        for inst, date in tasks:
+        while True:
+            # Re-load pending every time to catch new force-added tasks
+            pending = load_pending()
+            if not pending: break
+            
+            # Convert to flat list and sort by date DESC
+            tasks = []
+            for inst, dates in pending.items():
+                for d in dates: tasks.append((inst, d))
+            
+            if not tasks: break
+            tasks.sort(key=lambda x: x[1], reverse=True)
+            
+            _total_tasks = len(tasks)
+            # Pick the TOP task (highest priority date)
+            inst, date = tasks[0]
+            
             _current_task = f"{inst} | {date}"
-            logger.info(f"AUTO-SYNC: {_done_tasks + 1}/{_total_tasks} - Syncing {inst} for {date}")
+            logger.info(f"AUTO-SYNC: Syncing {inst} for {date} (Remaining: {_total_tasks})")
             
             try:
                 m_weekly = re.match(r'^([A-Z]+?)(\d{2})([1-9OND])(\d{2})(\d+)([CP]E)$', inst)
