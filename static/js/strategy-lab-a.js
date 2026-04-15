@@ -279,13 +279,21 @@
 
         document.getElementById('source-select').onchange = checkDhanAuth;
         document.getElementById('close-dhan-modal').onclick = () => document.getElementById('dhan-auth-modal').style.display = 'none';
-        document.getElementById('save-dhan-btn').onclick = () => {
+        document.getElementById('save-dhan-btn').onclick = async () => {
             const cid = document.getElementById('dhan-client-id').value;
             const token = document.getElementById('dhan-access-token').value;
             if (cid && token) {
                 sessionStorage.setItem('dhan_client_id', cid);
                 sessionStorage.setItem('dhan_access_token', token);
                 document.getElementById('dhan-auth-modal').style.display = 'none';
+                
+                // Trigger background sync immediately
+                try {
+                    await fetch('/api/strategy/trigger-sync', { method: 'POST' });
+                    // Give it a second and then check status
+                    setTimeout(() => checkSyncStatus(), 1500);
+                } catch(e) { console.error("Trigger fail", e); }
+
                 runStrategy();
             } else {
                 alert('Please provide both Client ID and Token');

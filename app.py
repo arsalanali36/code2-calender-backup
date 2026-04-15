@@ -53,6 +53,7 @@ from routes.whatif_routes  import whatif_bp
 from routes.strategy_routes import strategy_bp
 from models import db, User
 from flask_login import LoginManager
+from services.auto_sync_service import start_background_sync
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -198,6 +199,7 @@ def _cleanup_trash():
 
 _bootstrap_persistent_storage()
 threading.Thread(target=_cleanup_trash, daemon=True).start()
+start_background_sync()
 
 # ── JS bundle (rebuild if any source file changed) ────────────────────────────
 try:

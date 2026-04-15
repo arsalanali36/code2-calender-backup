@@ -360,3 +360,67 @@
             }, 100);
         }
 
+        async function checkSyncStatus() {
+            try {
+                const res = await fetch('/api/strategy/sync-status');
+                const status = await res.json();
+                const banner = document.getElementById('sync-banner');
+                if (!banner) return;
+
+                if (status.pending_count > 0) {
+                    banner.style.display = 'flex';
+                    let text = `<b>AUTO-SYNC:</b> ${status.pending_count} instruments pending.`;
+                    if (status.token_missing) {
+                        text = `<b>⚠️ ACTION REQUIRED:</b> ${status.pending_count} syncs paused. <a href="/settings" style="color:white; text-decoration:underline;">Update Dhan Token</a>`;
+                        banner.style.background = '#e11d48';
+                    } else if (status.is_syncing) {
+                        const current = status.current_task ? ` | Fetching: <span style="font-family:monospace; background:rgba(0,0,0,0.2); padding:2px 5px; border-radius:3px;">${status.current_task}</span>` : '';
+                        text = `<b>🔄 SYNCING:</b> [${status.progress}]${current}`;
+                        banner.style.background = '#0891b2';
+                    } else {
+                        banner.style.background = '#4f46e5';
+                    }
+                    banner.innerHTML = `<span>${text}</span> <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer; margin-left:15px;">✕</button>`;
+                } else {
+                    banner.style.display = 'none';
+                }
+            } catch (e) { console.error("Sync check failed", e); }
+        }
+
+        async function syncInstrumentWeek(sym, date) {
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'WAIT...';
+            btn.style.opacity = '0.5';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/strategy/sync-single', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: sym, date: date })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    btn.innerText = 'DONE!';
+                    btn.style.background = '#10b981';
+                    btn.style.color = 'white';
+                    setTimeout(() => openHistoryModal(), 1000); // Reload table
+                } else {
+                    alert("Sync failed: " + (data.error || "Unknown error"));
+                    btn.innerText = 'RETRY';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+                btn.innerText = 'RETRY';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+
+        // Initialize sync polling
+        setInterval(checkSyncStatus, 60000); // Every 1 minute
+        checkSyncStatus(); // Initial call
+

@@ -13,6 +13,12 @@ from datetime import datetime, timedelta
 
 ist_tz = pytz.timezone('Asia/Kolkata')
 
+# Import auto sync service
+try:
+    from services.auto_sync_service import add_to_sync
+except ImportError:
+    def add_to_sync(inst, dt): pass
+
 # Global cache for OHLC Dataframes to make switching near-instant
 @functools.lru_cache(maxsize=128)
 def _get_cached_raw_data(path, mtime):
@@ -596,6 +602,13 @@ def get_archive_dates():
                     
                     day_str = check_day.strftime('%Y-%m-%d')
                     has_day_data = day_str in sym_availability.get(sym, set())
+                    
+                    # Auto-register missing data for sync
+                    if not has_day_data:
+                        try:
+                            add_to_sync(sym, day_str)
+                        except: pass
+
                     # Insert at front because we are going backwards
                     weekly_history.insert(0, has_day_data)
                     weekly_dates.insert(0, day_str)

@@ -164,3 +164,13 @@ def save_pivot_levels():
     with open(levels_path, 'w', encoding='utf-8') as f:
         json.dump(all_levels, f, indent=4)
     return jsonify({"status": "OK"})
+
+@strategy_bp.route('/api/strategy/sync-status')
+def sync_status():
+    from services.auto_sync_service import get_sync_status
+    return jsonify(get_sync_status())
+@strategy_bp.route('/api/strategy/trigger-sync', methods=['POST'])
+def trigger_sync():
+    from services.auto_sync_service import trigger_sync_now
+    trigger_sync_now()
+    return jsonify({'status': 'OK'})

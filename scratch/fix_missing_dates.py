@@ -16,17 +16,43 @@ from services.dhan_service import _parse_rollingoption_response
 config = get_config()
 headers = _dhan_headers(config)
 
-def fetch_and_stitch(sym, target_strike, otype):
-    dates = ["2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13"]
+def fetch_and_stitch(sym, target_strike, otype, dates=None):
+    if dates is None:
+        dates = ["2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-15"]
+    
     nifty_df = pd.read_csv(os.path.join(BASE_DIR, "data", "Historical_OHLC", "nifty_1m_dhan.csv"))
     nifty_df['datetime'] = pd.to_datetime(nifty_df['datetime'])
+    
+    csv_path = os.path.join(BASE_DIR, "data", "Historical_OHLC", "Options", f"{sym}.csv")
+    meta_path = os.path.join(BASE_DIR, "data", "Historical_OHLC", "Options", f"{sym}.meta")
+    
+    # Load existing data
+    existing_df = pd.DataFrame()
+    existing_meta = {}
+    if os.path.exists(csv_path):
+        try:
+            existing_df = pd.read_csv(csv_path)
+            existing_df['datetime'] = pd.to_datetime(existing_df['datetime'])
+        except: pass
+    
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path, 'r') as f:
+                existing_meta = json.load(f)
+        except: pass
+
     all_rows = []
     actual_synced_dates = []
     
     for d in dates:
+        # Skip if already in meta (optimization)
+        if d in existing_meta:
+            print(f"Skipping {sym} for {d} (Already in meta)")
+            continue
+            
         print(f"Deep Syncing {sym} for {d}...")
         strikedata = {}
-        # Use wider range to ensure we find the strike
+        # Use range to find the strike
         for n in range(-10, 11):
             s_str = "ATM" if n == 0 else (f"ATM+{n}" if n > 0 else f"ATM{n}")
             url = f"{DHAN_API_BASE}/v2/charts/rollingoption"
@@ -60,17 +86,31 @@ def fetch_and_stitch(sym, target_strike, otype):
                     if not match.empty:
                         all_rows.append(match.iloc[0])
                         found_any = True
-            if found_any: actual_synced_dates.append(d)
+            if found_any: 
+                actual_synced_dates.append(d)
+                existing_meta[d] = f"{d} 15:29:00"
             
     if all_rows:
-        final_df = pd.DataFrame(all_rows).sort_values('datetime')
-        csv_path = os.path.join(BASE_DIR, "data", "Historical_OHLC", "Options", f"{sym}.csv")
+        new_df = pd.DataFrame(all_rows)
+        if not existing_df.empty:
+            final_df = pd.concat([existing_df, new_df]).drop_duplicates(subset=['datetime']).sort_values('datetime')
+        else:
+            final_df = new_df.sort_values('datetime')
+            
         final_df.to_csv(csv_path, index=False)
-        meta_path = os.path.join(BASE_DIR, "data", "Historical_OHLC", "Options", f"{sym}.meta")
-        meta_data = {d: f"{d} 15:29:00" for d in actual_synced_dates}
-        with open(meta_path, 'w') as f: json.dump(meta_data, f)
-        print(f"DONE: {sym} updated.")
+        with open(meta_path, 'w') as f: 
+            json.dump(existing_meta, f, indent=2)
+        print(f"DONE: {sym} updated with {len(new_df)} new rows.")
+    else:
+        print(f"NO DATA: Nothing found for {sym} on requested dates.")
 
-# FIX BOTH PROBLEM INSTRUMENTS
-fetch_and_stitch("NIFTY2641323600CE", 23600, "CALL")
-fetch_and_stitch("NIFTY2641324000PE", 24000, "PUT")
+if __name__ == "__main__":
+    # Test/Example
+    if len(sys.argv) > 1:
+        # Can run from CLI if needed
+        pass
+    else:
+        # fetch_and_stitch("NIFTY2641323600CE", 23600, "CALL")
+        # fetch_and_stitch("NIFTY2641324000PE", 24000, "PUT")
+        pass
+
