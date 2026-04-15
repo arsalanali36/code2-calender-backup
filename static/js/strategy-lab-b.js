@@ -107,114 +107,125 @@
             `).join('') : '<div style="text-align:center; padding:20px; color:#999;">No trades.</div>';
         }
 
+        let cachedHistoryData = null;
+
+        function formatSymbol(sym) {
+            // NIFTY2641323600CE -> NIFTY | 26 | 4 | 13 | 23600 | CE
+            // Try Weekly pattern
+            const matchW = sym.match(/^(NIFTY)(\d{2})([1-9OND])(\d{2})(\d+)([CP]E)$/);
+            if (matchW) {
+                const [_, name, yy, mm, dd, strike, type] = matchW;
+                // Convert O/N/D to 10/11/12 for display
+                const mDisplay = mm === 'O' ? '10' : (mm === 'N' ? '11' : (mm === 'D' ? '12' : mm.padStart(2, '0')));
+                return `${name} <span style="color:#cbd5e1; margin:0 4px;">|</span> ${yy} <span style="color:#cbd5e1; margin:0 4px;">|</span> ${mDisplay} <span style="color:#cbd5e1; margin:0 4px;">|</span> ${dd} <span style="color:#cbd5e1; margin:0 4px;">|</span> <span style="color:#0ea5e9;">${strike}</span> <span style="color:#cbd5e1; margin:0 4px;">|</span> ${type}`;
+            }
+            // Try Monthly pattern
+            const matchM = sym.match(/^(NIFTY)(\d{2})([A-Z]{3})(\d+)([CP]E)$/);
+            if (matchM) {
+                const [_, name, yy, mon, strike, type] = matchM;
+                return `${name} <span style="color:#cbd5e1; margin:0 4px;">|</span> ${yy} <span style="color:#cbd5e1; margin:0 4px;">|</span> ${mon} <span style="color:#cbd5e1; margin:0 4px;">|</span> <span style="color:#0ea5e9;">${strike}</span> <span style="color:#cbd5e1; margin:0 4px;">|</span> ${type}`;
+            }
+            return sym;
+        }
+
         async function openHistoryModal() {
             const tbody = document.getElementById('history-table-body');
-            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#666;">Analyzing archive...</td></tr>';
+            const searchInput = document.getElementById('history-search-input');
+            searchInput.value = ''; // Clear search on open
+            
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">Analyzing archive...</td></tr>';
             document.getElementById('history-modal').style.display = 'flex';
             
             try {
                 const res = await fetch('/api/strategy/archive-dates');
                 const data = await res.json();
-                if (data.dates && data.dates.length) {
-                    tbody.innerHTML = data.dates.map(d => {
-                        const plColor = d.total_pl > 0 ? '#10b981' : (d.total_pl < 0 ? '#ef4444' : '#64748b');
-                        
-                        // Main Date Row (Summary)
-                        let dateHtml = `
-                        <tr style="background:#f1f5f9; border-top:2px solid #e2e8f0;">
-                            <td style="padding:10px; font-weight:900; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #cbd5e1;">
-                                📅 ${d.date} <span style="font-weight:400; font-size:0.7rem; color:#64748b; margin-left:10px;">(${d.trades.length} Trades | ${d.resolution})</span>
-                            </td>
-                            <td colspan="3" style="border-bottom:1px solid #cbd5e1;"></td>
-                            <td style="padding:10px; text-align:right; font-weight:900; font-size:0.95rem; color:${plColor}; border-bottom:1px solid #cbd5e1;">
-                                ${d.total_pl !== 0 ? (d.total_pl > 0 ? '+' : '') + Math.round(d.total_pl).toLocaleString() : '₹ 0'}
-                            </td>
-                        </tr>`;
-
-                        // Count occurrences to only color duplicates
-                        const instCounts = {};
-                        d.trades.forEach(t => instCounts[t.symbol] = (instCounts[t.symbol] || 0) + 1);
-
-                        // Helper for per-instrument color grouping
-                        const instColorMap = {};
-                        const getInstColor = (str) => {
-                            if (instCounts[str] <= 1) return 'transparent'; // Only color duplicates
-                            if (instColorMap[str]) return instColorMap[str];
-                            const colors = ['#f0fdf4', '#fdf2f8', '#fefce8', '#f0f9ff', '#f5f3ff', '#fff7ed', '#f0fdfa'];
-                            let hash = 0;
-                            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                            const color = colors[Math.abs(hash) % colors.length];
-                            instColorMap[str] = color;
-                            return color;
-                        };
-
-                        // Trade Sub-rows
-                        let instRows = d.trades.map(t => {
-                            const tPlColor = t.pl > 0 ? '#059669' : (t.pl < 0 ? '#dc2626' : '#64748b');
-                            const timeStr = (t.entry_time && t.exit_time) ? `<span style="color:#94a3b8; font-weight:400;"> [${t.entry_time.substring(0,5)}-${t.exit_time.substring(0,5)}]</span>` : '';
-                            const bgGroup = getInstColor(t.symbol);
-                            const isGrouped = instCounts[t.symbol] > 1;
-                            const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
-                            const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
-
-                            const weekDots = t.weekly_history ? t.weekly_history.map((hasData, i) => {
-                                const dStr = t.weekly_dates[i];
-                                const cursor = hasData ? 'default' : 'pointer';
-                                const title = hasData ? `Data Available: ${dStr}` : `Click to sync: ${dStr}`;
-                                const action = hasData ? '' : `onclick="event.stopPropagation(); syncSpecificDay('${t.symbol}', '${dStr}')"`;
-                                return `<span ${action} style="width:7px; height:7px; background:${hasData ? '#10b981' : '#e2e8f0'}; border-radius:50%; display:inline-block; margin:0 1px; cursor:${cursor};" title="${title}"></span>`;
-                            }).join('') : '';
-
-                            return `
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:8px 10px 8px 30px; font-size:0.8rem; color:#334155; vertical-align:middle;">
-                                    <span style="color:#cbd5e1; margin-right:8px;">↳</span>
-                                    <span style="font-family:monospace; font-size:0.75rem; color:#64748b;">${timeStr}</span>
-                                    <span style="margin-left:5px; white-space:nowrap;">
-                                        ${statusIcon}
-                                          <span onclick="loadInstrument('${t.symbol}', '${d.date}')" 
-                                               title="Click to load chart" 
-                                               style="cursor:pointer; color:#0e7490; font-weight:700; padding:2px 6px; border-radius:4px; 
-                                                      background:${bgGroup}; 
-                                                      border:${isGrouped ? '1px solid rgba(0,0,0,0.05)' : 'none'};">
-                                             ${t.symbol}
-                                         </span>
-                                         <span style="font-size:0.7rem; font-weight:800; color:#64748b; margin-left:3px;">(${lots}L)</span>
-                                         <span onclick="event.stopPropagation(); syncInstrumentWeek('${t.symbol}', '${d.date}')" 
-                                               title="Sync Full Week Data for this instrument"
-                                               style="cursor:pointer; margin-left:8px; font-size:0.7rem; color:#6366f1; background:#eef2ff; padding:2px 6px; border-radius:4px; border:1px solid #c7d2fe;">
-                                               🔄 SYNC WEEK
-                                         </span>
-                                     </span>
-                                 </td>
-                                <td style="padding:6px; text-align:center; vertical-align:middle;">
-                                    <div style="display:flex; justify-content:center; gap:2px;">${weekDots}</div>
-                                </td>
-                                <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
-                                    ${t.duration || '--'}
-                                </td>
-                                <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">
-                                    ${t.pt !== 0 ? (t.pt > 0 ? '+' : '') + t.pt.toFixed(1) : '0'}
-                                </td>
-                                <td style="padding:6px 10px; text-align:right; font-weight:700; font-size:0.85rem; color:${tPlColor};">
-                                    ${t.pl !== 0 ? (t.pl > 0 ? '+' : '') + Math.round(t.pl).toLocaleString() : '0'}
-                                </td>
-                            </tr>
-                        `;}).join('');
-
-                        return dateHtml + instRows;
-                    }).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#999;">No local data files found.</td></tr>';
-                }
+                cachedHistoryData = data.dates || [];
+                renderHistoryTable();
             } catch (e) {
                 console.error(e);
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#ef5350;">Error loading history.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef5350;">Error loading history.</td></tr>';
             }
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            const query = document.getElementById('history-search-input').value.toLowerCase();
+            
+            if (!cachedHistoryData || !cachedHistoryData.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">No local data files found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            cachedHistoryData.forEach(d => {
+                const filteredTrades = d.trades.filter(t => t.symbol.toLowerCase().includes(query));
+                if (filteredTrades.length === 0 && query !== '') return; // Skip date if no trades match search
+
+                const plColor = d.total_pl > 0 ? '#10b981' : (d.total_pl < 0 ? '#ef4444' : '#64748b');
+                
+                // Main Date Row
+                html += `
+                <tr style="background:#f1f5f9; border-top:2px solid #e2e8f0;">
+                    <td style="padding:10px; font-weight:900; font-size:0.85rem; color:#1e293b; border-bottom:1px solid #cbd5e1;">
+                        📅 ${d.date} <span style="font-weight:400; font-size:0.7rem; color:#64748b; margin-left:10px;">(${filteredTrades.length} Trades | ${d.resolution})</span>
+                    </td>
+                    <td colspan="3" style="border-bottom:1px solid #cbd5e1;"></td>
+                    <td style="padding:10px; text-align:right; font-weight:900; font-size:0.95rem; color:${plColor}; border-bottom:1px solid #cbd5e1;">
+                        ${d.total_pl !== 0 ? (d.total_pl > 0 ? '+' : '') + Math.round(d.total_pl).toLocaleString() : '₹ 0'}
+                    </td>
+                </tr>`;
+
+                const instCounts = {};
+                filteredTrades.forEach(t => instCounts[t.symbol] = (instCounts[t.symbol] || 0) + 1);
+                const instColorMap = {};
+                const getInstColor = (str) => {
+                    if (instCounts[str] <= 1) return 'transparent';
+                    if (instColorMap[str]) return instColorMap[str];
+                    const colors = ['#f0fdf4', '#fdf2f8', '#fefce8', '#f0f9ff', '#f5f3ff', '#fff7ed', '#f0fdfa'];
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                    return colors[Math.abs(hash) % colors.length];
+                };
+
+                html += filteredTrades.map(t => {
+                    const tPlColor = t.pl > 0 ? '#059669' : (t.pl < 0 ? '#dc2626' : '#64748b');
+                    const timeStr = (t.entry_time && t.exit_time) ? `<span style="color:#94a3b8; font-weight:400;"> [${t.entry_time.substring(0,5)}-${t.exit_time.substring(0,5)}]</span>` : '';
+                    const bgGroup = getInstColor(t.symbol);
+                    const isGrouped = instCounts[t.symbol] > 1;
+                    const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
+                    const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
+                    const weekDots = t.weekly_history ? t.weekly_history.map((hasData, i) => {
+                        const dStr = t.weekly_dates[i];
+                        return `<span style="width:7px; height:7px; background:${hasData ? '#10b981' : '#e2e8f0'}; border-radius:50%; display:inline-block; margin:0 1px;" title="${hasData ? 'Available' : 'Missing'}: ${dStr}"></span>`;
+                    }).join('') : '';
+
+                    return `
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 10px 8px 30px; font-size:0.8rem; color:#334155; vertical-align:middle;">
+                            <span style="color:#cbd5e1; margin-right:8px;">↳</span>
+                            <span style="font-family:monospace; font-size:0.75rem; color:#64748b;">${timeStr}</span>
+                            <span style="margin-left:5px; white-space:nowrap;">
+                                ${statusIcon}
+                                <span onclick="loadInstrument('${t.symbol}', '${d.date}')" style="cursor:pointer; color:#0e7490; font-weight:700; padding:4px 8px; border-radius:6px; background:${bgGroup}; border:${isGrouped ? '1px solid rgba(0,0,0,0.1)' : 'none'}; font-size: 0.85rem; letter-spacing: 0.5px;">
+                                    ${formatSymbol(t.symbol)}
+                                </span>
+                                <span style="font-size:0.7rem; font-weight:800; color:#64748b; margin-left:3px;">(${lots}L)</span>
+                                <span onclick="event.stopPropagation(); syncInstrumentWeek('${t.symbol}', '${d.date}')" style="cursor:pointer; margin-left:8px; font-size:0.7rem; color:#6366f1; background:#eef2ff; padding:2px 6px; border-radius:4px; border:1px solid #c7d2fe;">🔄 SYNC</span>
+                            </span>
+                        </td>
+                        <td style="padding:6px; text-align:center; vertical-align:middle;"><div style="display:flex; justify-content:center; gap:2px;">${weekDots}</div></td>
+                        <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">${t.duration || '--'}</td>
+                        <td style="padding:6px 10px; text-align:center; font-size:0.75rem; font-weight:600; color:#475569;">${t.pt !== 0 ? (t.pt > 0 ? '+' : '') + t.pt.toFixed(1) : '0'}</td>
+                        <td style="padding:6px 10px; text-align:right; font-weight:700; font-size:0.85rem; color:${tPlColor};">${t.pl !== 0 ? (t.pl > 0 ? '+' : '') + Math.round(t.pl).toLocaleString() : '0'}</td>
+                    </tr>`;
+                }).join('');
+            });
+            tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">No matching instruments found.</td></tr>';
         }
 
         document.getElementById('close-history-modal').onclick = () => document.getElementById('history-modal').style.display = 'none';
         document.getElementById('open-history-btn').onclick = openHistoryModal;
+        document.getElementById('history-search-input').oninput = renderHistoryTable;
         document.getElementById('close-trades-modal-btn').onclick = () => document.getElementById('trades-modal').style.display = 'none';
         document.getElementById('open-trades-modal-btn').onclick = openTradesModal;
         document.getElementById('run-btn').onclick = () => runStrategy();

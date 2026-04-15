@@ -21,9 +21,16 @@
     </div>
     <div class="modal-overlay" id="history-modal">
         <div class="modal-content" style="width: 750px; max-height: 80vh; padding:0;">
-            <div class="modal-header" style="padding:15px 20px; border-bottom: 1px solid #eee;">
-                <div class="modal-title">Downloaded Data History</div>
-                <div class="close-modal" id="close-history-modal">&times;</div>
+            <div class="modal-header" style="padding:15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                    <div class="modal-title">Downloaded Data History</div>
+                    <div style="position: relative; flex: 1; max-width: 300px;">
+                        <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem;">🔍</span>
+                        <input type="text" id="history-search-input" placeholder="Search instrument (e.g. 23750)..." 
+                               style="width: 100%; padding: 6px 10px 6px 30px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; outline: none;">
+                    </div>
+                </div>
+                <div class="close-modal" id="close-history-modal" style="position: static; margin-left: 10px;">&times;</div>
             </div>
             <div style="padding: 0 20px 20px 20px; overflow-y: auto; max-height: 60vh;">
                 <table style="width:100%; border-collapse: collapse; margin-top:15px;">
