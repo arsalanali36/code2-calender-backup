@@ -383,7 +383,8 @@ function renderGalleryThumbs() {
           if (i >= 0 && i < state.gallery.images.length) state.gallery.selectedIndices.add(i);
         }
         state.gallery.lastClickedIdx = globalIdx;
-        renderGallery(); 
+        state.gallery._skipScrollIntoView = true;
+        renderGallery();
         return;
       }
 
@@ -391,6 +392,7 @@ function renderGalleryThumbs() {
         if (state.gallery.selectedIndices.has(globalIdx)) state.gallery.selectedIndices.delete(globalIdx);
         else state.gallery.selectedIndices.add(globalIdx);
         state.gallery.lastClickedIdx = globalIdx;
+        state.gallery._skipScrollIntoView = true;
         renderGallery();
         return;
       }
@@ -399,6 +401,7 @@ function renderGalleryThumbs() {
       state.gallery.selectedIndices = new Set([globalIdx]);
       state.gallery.currentIndex = globalIdx;
       state.gallery.lastClickedIdx = globalIdx;
+      state.gallery._skipScrollIntoView = true;
       renderGallery();
     });
 
@@ -418,6 +421,7 @@ function renderGalleryThumbs() {
       if (Math.abs(e.changedTouches[0].clientY - _tStartY) > 10) return;
       e.preventDefault();
       state.gallery.currentIndex = globalIdx;
+      state.gallery._skipScrollIntoView = true;
       renderGallery();
     }, { passive: false });
 

@@ -189,31 +189,31 @@ function _renderThumbsFooter(thumbs, date, dayTrades, uniqueInsts, premiumObj,
   } else {
     const doScroll = () => {
       if (!thumbs) return;
-      const activeUrl  = state.gallery.images[state.gallery.currentIndex];
-      const ownerTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(activeUrl) : null;
-      const trades     = state.gallery.date ? getTradesForDate(state.gallery.date) : [];
-      const tIdx       = ownerTrade ? trades.indexOf(ownerTrade) : -1;
-      let targetEl     = null;
-      if (tIdx !== -1 || state.gallery.selectedSeparator !== null) {
-        const selIdx = typeof state.gallery.selectedSeparator === 'number' ? state.gallery.selectedSeparator : -1;
-        if (selIdx !== -1 && (selIdx !== tIdx || state.gallery._forceScrollToSeparator))
-          targetEl = thumbs.querySelector(`.gv2-thumb-separator[data-trade-idx="${selIdx}"]`);
-        if (!targetEl && tIdx !== -1)
-          targetEl = thumbs.querySelector(`.gv2-thumb-separator[data-trade-idx="${tIdx}"]`);
-        if (!targetEl && tIdx !== -1) {
-          const seps = thumbs.querySelectorAll('.gv2-thumb-separator');
-          for (const s of seps) { if (s.textContent.includes('T' + (tIdx + 1))) { targetEl = s; break; } }
+      // Separator scroll only when explicitly forced (block navigation)
+      if (state.gallery._forceScrollToSeparator) {
+        const activeUrl  = state.gallery.images[state.gallery.currentIndex];
+        const ownerTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(activeUrl) : null;
+        const trades     = state.gallery.date ? getTradesForDate(state.gallery.date) : [];
+        const tIdx       = ownerTrade ? trades.indexOf(ownerTrade) : -1;
+        let sepEl = null;
+        if (tIdx !== -1) {
+          sepEl = thumbs.querySelector(`.gv2-thumb-separator[data-trade-idx="${tIdx}"]`);
+          if (!sepEl) {
+            const seps = thumbs.querySelectorAll('.gv2-thumb-separator');
+            for (const s of seps) { if (s.textContent.includes('T' + (tIdx + 1))) { sepEl = s; break; } }
+          }
+        }
+        if (sepEl) {
+          const rect = sepEl.getBoundingClientRect();
+          const cr   = thumbs.getBoundingClientRect();
+          if (cr.height > 0) thumbs.scrollTo({ top: thumbs.scrollTop + rect.top - cr.top - 10, behavior: 'smooth' });
+          return;
         }
       }
-      if (!targetEl) {
-        const activeThumb = thumbs.querySelector('.gv2-thumb.active');
-        targetEl = activeThumb?.closest('.gv2-thumb-wrap');
-      }
-      if (targetEl) {
-        const rect = targetEl.getBoundingClientRect();
-        const cr   = thumbs.getBoundingClientRect();
-        if (cr.height > 0) thumbs.scrollTo({ top: thumbs.scrollTop + rect.top - cr.top - 10, behavior: 'smooth' });
-      }
+      // Default: scroll active thumb into view only if off-screen
+      const activeThumb = thumbs.querySelector('.gv2-thumb.active');
+      const targetEl = activeThumb?.closest('.gv2-thumb-wrap');
+      if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
     setTimeout(doScroll, 80);
     setTimeout(() => { doScroll(); state.gallery._forceScrollToSeparator = false; }, 250);
