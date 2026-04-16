@@ -28383,8 +28383,7 @@
           "NIFTY"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357041/trading_journal/b665282f-4086-41f5-9a9a-3fa8fcc10f8a.png": [
-          "NIFTY",
-          "missing"
+          "NIFTY"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357043/trading_journal/e4e38d23-ceeb-436a-bd39-5b40c0b2a461.png": [
           "NIFTY"
@@ -28397,22 +28396,12 @@
       ],
       "tradeRefCards": {},
       "closeGlobalImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354766/trading_journal/ecf81d46-30d9-4cc7-a04f-6ed3276ec9cd.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354769/trading_journal/bb4bd706-007c-44d3-a764-65f4608b33be.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357041/trading_journal/b665282f-4086-41f5-9a9a-3fa8fcc10f8a.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357043/trading_journal/e4e38d23-ceeb-436a-bd39-5b40c0b2a461.png"
       ],
-      "newsImages": [],
-      "tagPins": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357041/trading_journal/b665282f-4086-41f5-9a9a-3fa8fcc10f8a.png": [
-          {
-            "id": "mo1ttsfzs5qe",
-            "tag": "missing",
-            "x": 25.6,
-            "y": 30.7,
-            "color": "#9b59b6",
-            "note": "bank nifty ka 10 march ka data missing hai&nbsp;"
-          }
-        ]
-      }
+      "newsImages": []
     },
     "2026-03-11": {
       "audios": {},
@@ -28423,8 +28412,7 @@
       ],
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354867/trading_journal/16d837cb-b7e0-4437-a8ac-68f7227ffa8b.png": [
-          "BNF",
-          "Blue Line level"
+          "BNF"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354869/trading_journal/effd192b-4b1b-4592-a676-c13f2b6a186d.png": [
           "BNF"
@@ -28456,18 +28444,7 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354869/trading_journal/bb1e6b78-e00c-481c-9824-898e5b2e1daa.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357214/trading_journal/3e8ff736-e8b1-4312-b866-749fea3449c0.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357216/trading_journal/b59bcc2f-166b-4719-b83d-8a75cd574bfa.png"
-      ],
-      "tagPins": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354867/trading_journal/16d837cb-b7e0-4437-a8ac-68f7227ffa8b.png": [
-          {
-            "id": "mo1tvlwuqhu9",
-            "tag": "Blue Line",
-            "x": 27.4,
-            "y": 26.6,
-            "color": "#9b59b6"
-          }
-        ]
-      }
+      ]
     },
     "2026-03-12": {
       "audios": {},
@@ -28516,7 +28493,9 @@
           "BNF"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357362/trading_journal/448fe803-02a3-43b1-8b38-18443ea6490e.png": [
-          "NIFTY"
+          "NIFTY",
+          "Reversal-Fail",
+          "hawa me , zone hi nahi , levels nahi banenge,levels bahut door"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357364/trading_journal/42eb4a6f-0594-4aba-bb20-a73d974dceb3.png": [
           "NIFTY"
@@ -28536,7 +28515,32 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357362/trading_journal/448fe803-02a3-43b1-8b38-18443ea6490e.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357364/trading_journal/42eb4a6f-0594-4aba-bb20-a73d974dceb3.png"
       ],
-      "newsImages": []
+      "newsImages": [],
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357362/trading_journal/448fe803-02a3-43b1-8b38-18443ea6490e.png": [
+          {
+            "id": "mo1u21cf1nd6",
+            "tag": "Reversal-Fail",
+            "x": 49.6,
+            "y": 29,
+            "color": "#ffd700"
+          },
+          {
+            "id": "mo1u24jqkx5j",
+            "tag": "Reversal-Fail",
+            "x": 30.7,
+            "y": 20.6,
+            "color": "#ffd700"
+          },
+          {
+            "id": "mo1u283irvrk",
+            "tag": "hawa me , zone hi nahi , levels nahi banenge,levels bahut door",
+            "x": 26.5,
+            "y": 17,
+            "color": "#e74c3c"
+          }
+        ]
+      }
     },
     "2026-03-16": {
       "audios": {},
