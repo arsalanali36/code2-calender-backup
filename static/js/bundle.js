@@ -25857,7 +25857,7 @@ function _bindKeyboardEvents() {
     }
 
     if (galleryOpen) {
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && !typingInField) {
         if (e.key === 't' || e.key === 'T') {
           e.preventDefault();
           const tagsBtn = document.getElementById('gv2-tags-btn');

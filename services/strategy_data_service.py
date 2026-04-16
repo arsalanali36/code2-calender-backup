@@ -158,47 +158,110 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
     return df_filtered, zones
 
 def get_real_trades(start_date, end_date, symbol=None, user_id=None):
+    from services.debug_service import log_ai_event
     path = get_user_data_file(user_id)
-    if not os.path.exists(path): return []
+    if not os.path.exists(path):
+        log_ai_event("STRATEGY_DEBUG", f"Trades file not found at {path}")
+        return []
+    
+    # Identify if we are looking for a broad index match
+    index_prefix = ""
+    if symbol:
+        s_up = symbol.upper()
+        if 'NSEI' in s_up or 'NIFTY' in s_up: index_prefix = 'NIFTY'
+        elif 'BSESN' in s_up or 'SENSEX' in s_up: index_prefix = 'SENSEX'
+        elif 'BANKNIFTY' in s_up: index_prefix = 'BANKNIFTY'
+
     try:
-        with open(path, 'r') as f: data = json.load(f); raw = data.get('trades', [])
-    except: return []
-    processed = []; s_dt = datetime.strptime(start_date, '%Y-%m-%d').date(); e_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
+        with open(path, 'r', encoding='utf-8') as f:
+            raw = json.load(f).get('trades', [])
+    except Exception as e:
+        log_ai_event("STRATEGY_ERROR", f"Failed to load trades file {path}: {e}")
+        return []
+
+    processed = []
+    # Resilience: Strategy Lab sometimes passes ISO timestamps
+    try:
+        s_dt = datetime.strptime(start_date[:10], '%Y-%m-%d').date()
+        e_dt = datetime.strptime(end_date[:10], '%Y-%m-%d').date()
+    except Exception as e:
+        log_ai_event("STRATEGY_ERROR", f"Invalid date range {start_date} to {end_date}: {e}")
+        return []
+
+    found_count = 0
+    skipped_count = 0
     for t in raw:
         d_str = t.get('trade_date', t.get('date', ''))
         if not d_str: continue
         try:
-            t_dt = datetime.strptime(d_str, '%Y-%m-%d').date()
-            if not (s_dt <= t_dt <= e_dt): continue
+            t_dt = datetime.strptime(d_str[:10], '%Y-%m-%d').date()
+            if not (s_dt <= t_dt <= e_dt):
+                continue
         except: continue
-        inst = t.get('Instrument', '').strip()
-        if symbol and inst.upper() != symbol.upper(): continue
+
+        # Instrument key can be 'Instrument' or 'instrument'
+        inst = t.get('Instrument', t.get('instrument', '')).strip()
+        if not inst: continue
+        
+        inst_up = inst.upper()
+        match = False
+        if index_prefix:
+            # If viewing index chart, show all trades containing the index name (NIFTY, etc.)
+            if index_prefix in inst_up: match = True
+        elif symbol:
+            # If viewing specific option chart, do exact match
+            # Some symbols in ledger might have spaces or slashes removed
+            clean_sym = symbol.replace('/', '').replace(' ', '').upper()
+            clean_inst = inst_up.replace('/', '').replace(' ', '')
+            if clean_inst == clean_sym: match = True
+        else:
+            match = True # No filter
+
+        if not match:
+            skipped_count += 1
+            continue
+        
         tr_type = t.get('TradeType', 'buy').lower()
-        entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0) or 0)
-        exit_p  = float(t.get('Buy Price (Avg)'  if tr_type == 'sell' else 'Sell Price (Avg)', 0) or 0)
         entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time', '')
         exit_t  = t.get('Buy Time'  if tr_type == 'sell' else 'Sell Time', '')
-        qty     = float(t.get('Qty', 0) or 0)
-        try:
-            entry_dt = datetime.strptime(f"{d_str} {entry_t}", '%Y-%m-%d %H:%M:%S') if entry_t else None
-            exit_dt  = datetime.strptime(f"{d_str} {exit_t}",  '%Y-%m-%d %H:%M:%S') if exit_t  else None
-        except: entry_dt = exit_dt = None
+        entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0) or 0)
+        exit_p  = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0) or 0)
+        
+        entry_dt = None
+        if entry_t:
+            try: entry_dt = datetime.strptime(f"{d_str[:10]} {entry_t}", '%Y-%m-%d %H:%M:%S')
+            except: pass
+        
+        exit_dt = None
+        if exit_t:
+            try: exit_dt = datetime.strptime(f"{d_str[:10]} {exit_t}", '%Y-%m-%d %H:%M:%S')
+            except: pass
+
         processed.append({
-            'date': d_str, 'instrument': inst,
+            'date': d_str[:10],
+            'instrument': inst,
             'type': 'SHORT' if tr_type == 'sell' else 'LONG',
-            'entry_price': entry_p, 'exit_price': exit_p,
-            'entry_time': entry_t, 'exit_time': exit_t,
+            'entry_price': entry_p,
+            'exit_price': exit_p,
+            'entry_time': entry_t,
+            'exit_time': exit_t,
             'entry_dt': entry_dt.isoformat() if entry_dt else None,
             'exit_dt':  exit_dt.isoformat()  if exit_dt  else None,
-            'qty': qty, 'pnl': float(t.get('Net P/L', 0) or 0),
+            'qty': float(t.get('Qty', 0) or 0),
+            'pnl': float(t.get('Net P/L', 0) or 0),
         })
-        try: pass
-        except: pass
+        found_count += 1
+    
+    log_ai_event("STRATEGY_DEBUG", f"User {user_id}: Scanned {len(raw)} trades for {symbol}. Matched: {found_count}, Skipped: {skipped_count} (Filter: {index_prefix or symbol})")
     return processed
 
+
 def get_archive_dates(user_id=None):
+    from services.debug_service import log_ai_event
     path = "data/Historical_OHLC/nifty_1m_dhan.csv"
-    if not os.path.exists(path): return []
+    if not os.path.exists(path):
+        log_ai_event("STRATEGY_DEBUG", "Base CSV for history not found: nifty_1m_dhan.csv")
+        return []
     try:
         df = pd.read_csv(path)
         df['datetime'] = pd.to_datetime(df['datetime'])
@@ -209,20 +272,24 @@ def get_archive_dates(user_id=None):
         t_path = get_user_data_file(user_id)
         if os.path.exists(t_path):
             try:
-                with open(t_path, 'r') as f:
-                    for t in json.load(f).get('trades', []):
+                with open(t_path, 'r', encoding='utf-8') as f:
+                    payload = json.load(f)
+                    trades_list = payload.get('trades', [])
+                    log_ai_event("STRATEGY_DEBUG", f"Scanning {len(trades_list)} trades from {t_path} for history modal.")
+                    for t in trades_list:
                         d_str = t.get('trade_date', t.get('date', ''))
-                        raw_inst = t.get('Instrument', '').strip()
+                        if d_str: d_str = d_str[:10]
+                        raw_inst = t.get('Instrument', t.get('instrument', '')).strip()
                         if not raw_inst: continue
                         inst = raw_inst.replace('/', '').strip().upper()
-                        pl = float(t.get('Net P/L', 0))
-                        qty = float(t.get('Qty', 0))
+                        pl = float(t.get('Net P/L', 0) or 0)
+                        qty = float(t.get('Qty', 0) or 0)
                         tr_type = t.get('TradeType', 'buy').lower()
                         entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time', '')
                         exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time', '')
-                        entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0))
-                        exit_p = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0))
-                        pt = float(t.get('Pt', 0))
+                        entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0) or 0)
+                        exit_p = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0) or 0)
+                        pt = float(t.get('Pt', 0) or 0)
                         duration = ""
                         if entry_t and exit_t:
                             try:
@@ -241,7 +308,7 @@ def get_archive_dates(user_id=None):
                             })
                             total_pl_map[d_str] = total_pl_map.get(d_str, 0) + pl
             except Exception as e:
-                print(f"Error parsing trades_1.json: {e}")
+                log_ai_event("STRATEGY_ERROR", f"Error parsing trades file {t_path}: {e}")
 
         all_unique_syms = set()
         for d_trades in trades_map.values():
@@ -269,16 +336,26 @@ def get_archive_dates(user_id=None):
 
         if stale:
             print("Refreshing Archive Inventory (Background Scan)...")
+            from services.debug_service import log_ai_event
             for sym in all_unique_syms:
+                if not sym: continue
                 csv_path = f"data/Historical_OHLC/Options/{sym}.csv"
-                if os.path.exists(csv_path):
+                if os.path.exists(csv_path) and os.path.getsize(csv_path) > 0:
                     try:
-                        temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
-                        if not temp_df.empty:
+                        # Use a more resilient way to get columns
+                        temp_df = pd.read_csv(csv_path, nrows=5)
+                        if 'datetime' in temp_df.columns:
+                            # Re-read only datetime with optimized settings
+                            temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
                             dates = temp_df['datetime'].str.slice(0, 10).unique()
                             sym_availability[sym] = set(dates)
-                        else: sym_availability[sym] = set()
-                    except: sym_availability[sym] = set()
+                        else:
+                            sym_availability[sym] = set()
+                    except Exception as e:
+                        print(f"Skipping corrupted file {sym}.csv: {e}")
+                        sym_availability[sym] = set()
+                else: 
+                    sym_availability[sym] = set()
             try:
                 os.makedirs('data', exist_ok=True)
                 with open(INVENTORY_FILE, 'w') as f:
