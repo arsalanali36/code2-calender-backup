@@ -15,6 +15,7 @@ import os
 import functools
 import requests
 import time
+import calendar
 from datetime import datetime, timedelta
 
 from processors.data_processors import get_user_data_file
@@ -71,16 +72,12 @@ def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:
 
     params_str = json.dumps(strategy_params, sort_keys=True) if strategy_params else "{}"
     res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime, csv_mtime, user_id)
-    print(f"DEBUG: get_nifty_data took {time.time()-st:.4f}s")
     return res
 
 @functools.lru_cache(maxsize=128)
 def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime, csv_mtime, user_id):
     params = json.loads(params_str) if params_str else {}
-    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe} ({strategy_type}) - Pivot MTime: {pivot_mtime}, CSV MTime: {csv_mtime}, User: {user_id}")
     df, zones = _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params)
-    
-    # We don't cache real_trades as they might change without csv/pivot change
     real_trades = get_real_trades(start_date, end_date, symbol, user_id=user_id)
     return df, zones, real_trades
 
@@ -158,13 +155,10 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
     return df_filtered, zones
 
 def get_real_trades(start_date, end_date, symbol=None, user_id=None):
-    from services.debug_service import log_ai_event
     path = get_user_data_file(user_id)
-    if not os.path.exists(path):
-        log_ai_event("STRATEGY_DEBUG", f"Trades file not found at {path}")
-        return []
+    if not os.path.exists(path): return []
     
-    # Identify if we are looking for a broad index match
+    # Prefix for broad matching on index charts
     index_prefix = ""
     if symbol:
         s_up = symbol.upper()
@@ -175,51 +169,38 @@ def get_real_trades(start_date, end_date, symbol=None, user_id=None):
     try:
         with open(path, 'r', encoding='utf-8') as f:
             raw = json.load(f).get('trades', [])
-    except Exception as e:
-        log_ai_event("STRATEGY_ERROR", f"Failed to load trades file {path}: {e}")
-        return []
+    except: return []
 
     processed = []
-    # Resilience: Strategy Lab sometimes passes ISO timestamps
+    # Force date conversion
     try:
         s_dt = datetime.strptime(start_date[:10], '%Y-%m-%d').date()
         e_dt = datetime.strptime(end_date[:10], '%Y-%m-%d').date()
-    except Exception as e:
-        log_ai_event("STRATEGY_ERROR", f"Invalid date range {start_date} to {end_date}: {e}")
-        return []
+    except: return []
 
-    found_count = 0
-    skipped_count = 0
     for t in raw:
         d_str = t.get('trade_date', t.get('date', ''))
         if not d_str: continue
         try:
             t_dt = datetime.strptime(d_str[:10], '%Y-%m-%d').date()
-            if not (s_dt <= t_dt <= e_dt):
-                continue
+            if not (s_dt <= t_dt <= e_dt): continue
         except: continue
 
-        # Instrument key can be 'Instrument' or 'instrument'
         inst = t.get('Instrument', t.get('instrument', '')).strip()
         if not inst: continue
         
         inst_up = inst.upper()
         match = False
         if index_prefix:
-            # If viewing index chart, show all trades containing the index name (NIFTY, etc.)
             if index_prefix in inst_up: match = True
         elif symbol:
-            # If viewing specific option chart, do exact match
-            # Some symbols in ledger might have spaces or slashes removed
             clean_sym = symbol.replace('/', '').replace(' ', '').upper()
             clean_inst = inst_up.replace('/', '').replace(' ', '')
             if clean_inst == clean_sym: match = True
         else:
-            match = True # No filter
+            match = True
 
-        if not match:
-            skipped_count += 1
-            continue
+        if not match: continue
         
         tr_type = t.get('TradeType', 'buy').lower()
         entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time', '')
@@ -227,104 +208,73 @@ def get_real_trades(start_date, end_date, symbol=None, user_id=None):
         entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0) or 0)
         exit_p  = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0) or 0)
         
-        entry_dt = None
-        if entry_t:
-            try: entry_dt = datetime.strptime(f"{d_str[:10]} {entry_t}", '%Y-%m-%d %H:%M:%S')
+        if entry_t and exit_t:
+            try:
+                # CRITICAL: JS expects UNIX timestamps (seconds)
+                e_dt_n = datetime.strptime(f"{d_str[:10]} {entry_t if len(entry_t.split(':'))==3 else f'{entry_t}:00'}", '%Y-%m-%d %H:%M:%S')
+                x_dt_n = datetime.strptime(f"{d_str[:10]} {exit_t if len(exit_t.split(':'))==3 else f'{exit_t}:00'}", '%Y-%m-%d %H:%M:%S')
+                processed.append({
+                    'entry_time': calendar.timegm(e_dt_n.timetuple()), 
+                    'exit_time': calendar.timegm(x_dt_n.timetuple()), 
+                    'entry_price': entry_p,
+                    'exit_price': exit_p,
+                    'type': tr_type.upper(), 
+                    'instrument': inst, 
+                    'pl': float(t.get('Net P/L', 0) or 0), 
+                    'qty': float(t.get('Qty', 0) or 0)
+                })
             except: pass
-        
-        exit_dt = None
-        if exit_t:
-            try: exit_dt = datetime.strptime(f"{d_str[:10]} {exit_t}", '%Y-%m-%d %H:%M:%S')
-            except: pass
-
-        processed.append({
-            'date': d_str[:10],
-            'instrument': inst,
-            'type': 'SHORT' if tr_type == 'sell' else 'LONG',
-            'entry_price': entry_p,
-            'exit_price': exit_p,
-            'entry_time': entry_t,
-            'exit_time': exit_t,
-            'entry_dt': entry_dt.isoformat() if entry_dt else None,
-            'exit_dt':  exit_dt.isoformat()  if exit_dt  else None,
-            'qty': float(t.get('Qty', 0) or 0),
-            'pnl': float(t.get('Net P/L', 0) or 0),
-        })
-        found_count += 1
-    
-    log_ai_event("STRATEGY_DEBUG", f"User {user_id}: Scanned {len(raw)} trades for {symbol}. Matched: {found_count}, Skipped: {skipped_count} (Filter: {index_prefix or symbol})")
     return processed
 
-
 def get_archive_dates(user_id=None):
-    from services.debug_service import log_ai_event
-    path = "data/Historical_OHLC/nifty_1m_dhan.csv"
-    if not os.path.exists(path):
-        log_ai_event("STRATEGY_DEBUG", "Base CSV for history not found: nifty_1m_dhan.csv")
-        return []
+    base_path = "data/Historical_OHLC/nifty_1m_dhan.csv"
+    if not os.path.exists(base_path): return []
     try:
-        df = pd.read_csv(path)
+        df = pd.read_csv(base_path)
         df['datetime'] = pd.to_datetime(df['datetime'])
         df['date'] = df['datetime'].dt.strftime('%Y-%m-%d')
-
+        
         trades_map = {}
         total_pl_map = {}
         t_path = get_user_data_file(user_id)
         if os.path.exists(t_path):
-            try:
-                with open(t_path, 'r', encoding='utf-8') as f:
-                    payload = json.load(f)
-                    trades_list = payload.get('trades', [])
-                    log_ai_event("STRATEGY_DEBUG", f"Scanning {len(trades_list)} trades from {t_path} for history modal.")
-                    for t in trades_list:
-                        d_str = t.get('trade_date', t.get('date', ''))
-                        if d_str: d_str = d_str[:10]
-                        raw_inst = t.get('Instrument', t.get('instrument', '')).strip()
-                        if not raw_inst: continue
-                        inst = raw_inst.replace('/', '').strip().upper()
-                        pl = float(t.get('Net P/L', 0) or 0)
-                        qty = float(t.get('Qty', 0) or 0)
-                        tr_type = t.get('TradeType', 'buy').lower()
-                        entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time', '')
-                        exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time', '')
-                        entry_p = float(t.get('Sell Price (Avg)' if tr_type == 'sell' else 'Buy Price (Avg)', 0) or 0)
-                        exit_p = float(t.get('Buy Price (Avg)' if tr_type == 'sell' else 'Sell Price (Avg)', 0) or 0)
-                        pt = float(t.get('Pt', 0) or 0)
-                        duration = ""
-                        if entry_t and exit_t:
-                            try:
-                                t1 = datetime.strptime(entry_t, '%H:%M:%S')
-                                t2 = datetime.strptime(exit_t, '%H:%M:%S')
-                                diff = (t2 - t1).total_seconds() / 60
-                                duration = f"{int(abs(diff))}m"
-                            except: pass
-                        if d_str and inst:
-                            if d_str not in trades_map: trades_map[d_str] = []
-                            trades_map[d_str].append({
-                                'symbol': inst, 'pl': pl, 'qty': qty,
-                                'entry_time': entry_t, 'exit_time': exit_t,
-                                'entry_price': entry_p, 'exit_price': exit_p,
-                                'pt': pt, 'duration': duration
-                            })
-                            total_pl_map[d_str] = total_pl_map.get(d_str, 0) + pl
-            except Exception as e:
-                log_ai_event("STRATEGY_ERROR", f"Error parsing trades file {t_path}: {e}")
+            with open(t_path, 'r', encoding='utf-8') as f:
+                trades_list = json.load(f).get('trades', [])
+                for t in trades_list:
+                    d_str = t.get('trade_date', t.get('date', ''))
+                    if d_str: d_str = d_str[:10]
+                    sym = t.get('Instrument', t.get('instrument', '')).strip()
+                    pl = float(t.get('Net P/L', 0) or 0)
+                    qty = float(t.get('Qty', 0) or 0)
+                    tr_type = t.get('TradeType', 'buy').lower()
+                    entry_t = t.get('Sell Time' if tr_type == 'sell' else 'Buy Time', '')
+                    exit_t = t.get('Buy Time' if tr_type == 'sell' else 'Sell Time', '')
+                    pt = float(t.get('Pt', 0) or 0)
+                    duration = ""
+                    if entry_t and exit_t:
+                        try:
+                            t1 = datetime.strptime(entry_t, '%H:%M:%S')
+                            t2 = datetime.strptime(exit_t, '%H:%M:%S')
+                            duration = f"{int(abs((t2-t1).total_seconds()/60))}m"
+                        except: pass
+                    if d_str and sym:
+                        if d_str not in trades_map: trades_map[d_str] = []
+                        trades_map[d_str].append({'symbol': sym, 'pl': pl, 'qty': qty, 'entry_time': entry_t, 'exit_time': exit_t, 'duration': duration, 'pt': pt})
+                        total_pl_map[d_str] = total_pl_map.get(d_str, 0) + pl
 
+        # Background Scan (Yesterday's logic)
         all_unique_syms = set()
         for d_trades in trades_map.values():
-            for t in d_trades:
-                all_unique_syms.add(t['symbol'])
+            for t in d_trades: all_unique_syms.add(t['symbol'])
 
         INVENTORY_FILE = "data/archive_inventory.json"
         INVENTORY_META = "data/inventory_meta.json"
         sym_availability = {}
-
         stale = True
         if os.path.exists(INVENTORY_META):
             try:
                 with open(INVENTORY_META, 'r') as f: m = json.load(f)
-                if time.time() - m.get('updated_at', 0) < 1800:
-                    stale = False
+                if time.time() - m.get('updated_at', 0) < 1800: stale = False
             except: pass
 
         if not stale and os.path.exists(INVENTORY_FILE):
@@ -335,95 +285,53 @@ def get_archive_dates(user_id=None):
             except: stale = True
 
         if stale:
-            print("Refreshing Archive Inventory (Background Scan)...")
-            from services.debug_service import log_ai_event
             for sym in all_unique_syms:
                 if not sym: continue
                 csv_path = f"data/Historical_OHLC/Options/{sym}.csv"
                 if os.path.exists(csv_path) and os.path.getsize(csv_path) > 0:
                     try:
-                        # Use a more resilient way to get columns
-                        temp_df = pd.read_csv(csv_path, nrows=5)
-                        if 'datetime' in temp_df.columns:
-                            # Re-read only datetime with optimized settings
-                            temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
-                            dates = temp_df['datetime'].str.slice(0, 10).unique()
-                            sym_availability[sym] = set(dates)
-                        else:
-                            sym_availability[sym] = set()
-                    except Exception as e:
-                        print(f"Skipping corrupted file {sym}.csv: {e}")
-                        sym_availability[sym] = set()
-                else: 
-                    sym_availability[sym] = set()
+                        temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
+                        dates = temp_df['datetime'].str.slice(0, 10).unique()
+                        sym_availability[sym] = set(dates)
+                    except: sym_availability[sym] = set()
+                else: sym_availability[sym] = set()
             try:
                 os.makedirs('data', exist_ok=True)
-                with open(INVENTORY_FILE, 'w') as f:
-                    json.dump({k: list(v) for k,v in sym_availability.items()}, f)
-                with open(INVENTORY_META, 'w') as f:
-                    json.dump({'updated_at': time.time()}, f)
+                with open(INVENTORY_FILE, 'w') as f: json.dump({k: list(v) for k,v in sym_availability.items()}, f)
+                with open(INVENTORY_META, 'w') as f: json.dump({'updated_at': time.time()}, f)
             except: pass
 
         all_trade_dates = sorted(list(trades_map.keys()), reverse=True)
-
         results = []
         for date in all_trade_dates:
             day_index_df = df[df['date'] == date] if not df.empty else pd.DataFrame()
-            if not day_index_df.empty:
-                median_diff = day_index_df['datetime'].diff().dropna().dt.total_seconds().median() / 60
-                res_str = f"{int(median_diff)}m" if median_diff >= 1 else "High"
-            else:
-                res_str = "MISSING"
-
+            res_str = "1m" if not day_index_df.empty else "MISSING"
             day_total_pl = total_pl_map.get(date, 0)
             day_trades = []
-
             for t_raw in trades_map.get(date, []):
                 sym = t_raw['symbol']
-                pl = t_raw['pl']
-                qty = t_raw.get('qty', 0)
                 d_obj = datetime.strptime(date, '%Y-%m-%d')
-                weekly_history = []
-                weekly_dates = []
+                weekly_history = []; weekly_dates = []
                 for i in range(5):
-                    check_day = d_obj
-                    offset = 0
-                    count = 0
+                    check_day = d_obj; offset = 0; count = 0
                     while count < i:
-                        offset += 1
-                        prev = d_obj - timedelta(days=offset)
-                        if prev.weekday() < 5:
-                            count += 1
-                            check_day = prev
+                        offset += 1; prev = d_obj - timedelta(days=offset)
+                        if prev.weekday() < 5: count += 1; check_day = prev
                     day_str = check_day.strftime('%Y-%m-%d')
                     has_day_data = day_str in sym_availability.get(sym, set())
                     if not has_day_data:
-                        try:
-                            add_to_sync(sym, day_str)
+                        try: add_to_sync(sym, day_str)
                         except: pass
-                    weekly_history.insert(0, has_day_data)
-                    weekly_dates.insert(0, day_str)
+                    weekly_history.insert(0, has_day_data); weekly_dates.insert(0, day_str)
 
                 day_trades.append({
-                    'symbol': sym,
-                    'pl': round(pl, 2),
-                    'qty': qty,
-                    'entry_time': t_raw.get('entry_time', ''),
-                    'exit_time': t_raw.get('exit_time', ''),
-                    'duration': t_raw.get('duration', ''),
-                    'pt': t_raw.get('pt', 0),
+                    'symbol': sym, 'pl': round(t_raw['pl'], 2), 'qty': t_raw['qty'],
+                    'entry_time': t_raw['entry_time'], 'exit_time': t_raw['exit_time'],
+                    'duration': t_raw['duration'], 'pt': t_raw['pt'],
                     'has_data': os.path.exists(f"data/Historical_OHLC/Options/{sym}.csv"),
-                    'weekly_history': weekly_history,
-                    'weekly_dates': weekly_dates
+                    'weekly_history': weekly_history, 'weekly_dates': weekly_dates
                 })
-
-            results.append({
-                'date': date,
-                'resolution': res_str,
-                'trades': day_trades,
-                'total_pl': round(day_total_pl, 2)
-            })
-
+            results.append({'date': date, 'resolution': res_str, 'trades': day_trades, 'total_pl': round(day_total_pl, 2)})
         return sorted(results, key=lambda x: x['date'], reverse=True)
     except Exception as e:
         print(f"Error reading archive dates: {e}")

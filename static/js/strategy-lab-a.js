@@ -349,10 +349,12 @@
                 const chartData = dataRaw.chart_data;
                 const zones = dataRaw.zones;
                 const realTrades = dataRaw.real_trades || [];
+                loadedRealTrades = realTrades; // Fix: Populate global variable for modals
                 const visibleData = chartData.filter(d => !d.is_gap);
                 
                 // CRITICAL: Store the raw chartData so we have access to .datetime strings for fitting
                 lastStrategyData.visibleData = chartData; 
+                lastStrategyData.realTrades = realTrades;
                 if (!visibleData.length) return false;
 
                 targetCandle.setData(visibleData.map(d => ({ 

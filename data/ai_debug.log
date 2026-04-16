@@ -2547,3 +2547,8 @@
 {"timestamp": "2026-04-16 15:16:18", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-13: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
 {"timestamp": "2026-04-16 15:16:18", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-17: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
 {"timestamp": "2026-04-16 15:16:18", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-27: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-16 15:20:51", "type": "STRATEGY_DEBUG", "message": "User 1: Scanned 266 trades for Nifty 50 (^NSEI). Matched: 14, Skipped: 0 (Filter: NIFTY)", "data": {}}
+{"timestamp": "2026-04-16 15:20:53", "type": "STRATEGY_DEBUG", "message": "Scanning 266 trades from D:\\KHAZANA\\KHAZANA\\PYTHON\\CODE2- CALENDER\\data\\trades_1.json for history modal.", "data": {}}
+{"timestamp": "2026-04-16 15:20:59", "type": "STRATEGY_DEBUG", "message": "User 1: Scanned 266 trades for NIFTY2642124200PE. Matched: 14, Skipped: 0 (Filter: NIFTY)", "data": {}}
+{"timestamp": "2026-04-16 15:21:31", "type": "STRATEGY_DEBUG", "message": "Scanning 266 trades from D:\\KHAZANA\\KHAZANA\\PYTHON\\CODE2- CALENDER\\data\\trades_1.json for history modal.", "data": {}}
+{"timestamp": "2026-04-16 15:33:06", "type": "STRATEGY_DEBUG", "message": "Scanned 266 trades for Nifty 50 (^NSEI). Matched: 81, Skipped: 0 (Filter: NIFTY)", "data": {}}
