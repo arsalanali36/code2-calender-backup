@@ -239,6 +239,12 @@
 
         function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
 
+        function handleTimeScaleChange(source) {
+            // Automatic sync disabled to prevent recursion and "2 bar" crashes.
+            // Charts will only align during initial load or explicit "Jump".
+            syncTradePills(source);
+        }
+
         function checkDhanAuth() {
             const source = document.getElementById('source-select').value;
             const savedToken = sessionStorage.getItem('dhan_access_token');
@@ -298,7 +304,7 @@
             await runStrategy(target === 'opt', true);
         }
 
-        async function runStrategy(isOpt = false, silent = false) {
+        async function runStrategy(isOpt = false, silent = false, noFit = false) {
             const loader = document.getElementById('loader');
             if (!silent) {
                 loader.style.display = 'flex';
@@ -537,8 +543,8 @@
                     syncTradePills(isOpt ? 'opt' : 'main');
                 }, 50);
                 
-                // FIXED: Preserve zoom/view if silent (switcher) update
-                if (!silent) {
+                // FIXED: Preserve zoom/view if silent (switcher) update or noFit requested
+                if (!silent && !noFit) {
                     targetChart.timeScale().fitContent();
                 }
                 

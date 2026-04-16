@@ -135,9 +135,10 @@
                     await loadInstrument(sym, dt);
                     
                     if (jump) {
+                        // Increase delay to 1.5s to ensure ALL data and markers are rendered
                         setTimeout(() => {
                             if (typeof jumpToTrade === 'function') jumpToTrade(parseInt(jump));
-                        }, 500);
+                        }, 1500);
                     }
                 }, 200);
             } else {

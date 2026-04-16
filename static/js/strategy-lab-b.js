@@ -2,8 +2,11 @@ function jumpToTrade(t) {
             if (!chartMain || !t) return;
             document.getElementById('trades-modal').style.display = 'none';
             try {
-                chartMain.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
-                if (chartOpt) chartOpt.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+                // Expanded window: 90 mins before, 90 mins after for better context
+                const from = t - 5400; 
+                const to = t + 5400;
+                chartMain.timeScale().setVisibleRange({ from, to });
+                if (chartOpt) chartOpt.timeScale().setVisibleRange({ from, to });
             } catch(e) { console.warn("Jump failed - chart not ready", e); }
         }
 
@@ -19,9 +22,9 @@ function jumpToTrade(t) {
                 dualBtn.innerText = 'DUAL VIEW: OFF';
                 document.getElementById('container-main').style.flex = '1';
                 
-                // Set 5-day lookback for EMA warmup
+                // Set 2-day lookback for EMA warmup
                 const dt = new Date(date);
-                dt.setDate(dt.getDate() - 5);
+                dt.setDate(dt.getDate() - 2);
                 const lookbackDate = dt.toISOString().split('T')[0];
                 
                 document.getElementById('symbol').value = symbol;
@@ -35,9 +38,9 @@ function jumpToTrade(t) {
                 dualBtn.innerText = 'DUAL VIEW: ON';
                 document.getElementById('opt-label').innerText = symbol;
                 
-                // Set 5-day lookback for EMA warmup
+                // Set 2-day lookback for EMA warmup
                 const dt = new Date(date);
-                dt.setDate(dt.getDate() - 5);
+                dt.setDate(dt.getDate() - 2);
                 const lookbackDate = dt.toISOString().split('T')[0];
                 
                 document.getElementById('symbol').value = symbol;
@@ -45,9 +48,9 @@ function jumpToTrade(t) {
                 document.getElementById('end-date').value = date;
                 document.getElementById('nav-date-picker').value = date;
                 
-                // Force load BOTH charts
-                await runStrategy(false, false);
-                await runStrategy(true, false);
+                // Force load BOTH charts with noFit to prevent zooming out
+                await runStrategy(false, false, true);
+                await runStrategy(true, false, true);
                 
                 // Force a resize calculation 
                 setTimeout(() => {
@@ -59,15 +62,15 @@ function jumpToTrade(t) {
             }
             document.getElementById('history-modal').style.display = 'none';
 
-            // Common Zoom into market hours for both Index and Option
+            // Fixed Initial Zoom: Standard Market Hours (09:15 - 15:30)
             const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
             setTimeout(() => {
-                const from = tradeTs + (9 * 3600); // 09:00 AM
-                const to = tradeTs + (16 * 3600);   // 04:00 PM
+                const from = tradeTs + (9.15 * 3600); // 09:15 AM
+                const to = tradeTs + (15.55 * 3600);   // 03:30ish PM
                 const range = { from, to };
-                chartMain.timeScale().setVisibleRange(range);
+                if (chartMain) chartMain.timeScale().setVisibleRange(range);
                 if (chartOpt) chartOpt.timeScale().setVisibleRange(range);
-            }, 300);
+            }, 1000);
         }
 
         function toggleDualView(forceState = null) {
@@ -87,7 +90,8 @@ function jumpToTrade(t) {
                     const optB = document.getElementById('chart-opt');
                     if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
                     if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
-                    runStrategy(true, true); 
+                    // Use noFit=true here to preserve any deep-link zoom
+                    runStrategy(true, true, true); 
                 }, 100);
             } else {
                 optBox.style.display = 'none';
