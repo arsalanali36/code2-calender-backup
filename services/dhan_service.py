@@ -626,6 +626,8 @@ from services.dhan_ohlc_service import (
     _parse_rollingoption_response,
     _parse_dhan_response,
     _cache_path,
+    _read_meta,
+    _write_meta,
 )
 # ── Removed from this file (now in dhan_ohlc_service.py) ─────────────────────
 # _get_lock, _cache_path, _meta_path, _read_meta, _write_meta,

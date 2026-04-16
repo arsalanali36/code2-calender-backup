@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bulk OHLC Download</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #c9d1d9; font-family: 'Courier New', monospace; padding: 24px; }
+  h1 { color: #58a6ff; font-size: 20px; margin-bottom: 20px; }
+
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+
+  label { color: #8b949e; font-size: 13px; display: block; margin-bottom: 4px; }
+  input[type=text], input[type=password] {
+    width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 6px; color: #c9d1d9; font-family: monospace; font-size: 14px;
+    margin-bottom: 12px;
+  }
+  input:focus { outline: none; border-color: #58a6ff; }
+
+  button {
+    padding: 10px 28px; border-radius: 6px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 600; transition: opacity .15s;
+  }
+  button:hover { opacity: .85; }
+  #startBtn  { background: #238636; color: #fff; }
+  #startBtn:disabled { background: #3d4449; color: #666; cursor: not-allowed; opacity: 1; }
+
+  /* Progress bar */
+  .progress-wrap { background: #21262d; border-radius: 4px; height: 12px; margin: 12px 0 6px; overflow: hidden; }
+  .progress-bar  { height: 100%; background: #238636; transition: width .4s; border-radius: 4px; width: 0%; }
+
+  .stats { display: flex; gap: 20px; font-size: 13px; flex-wrap: wrap; }
+  .stat  { display: flex; flex-direction: column; align-items: center; }
+  .stat-num  { font-size: 22px; font-weight: 700; }
+  .stat-lbl  { color: #8b949e; font-size: 11px; margin-top: 2px; }
+  .ok    { color: #3fb950; }
+  .skip  { color: #d29922; }
+  .fail  { color: #f85149; }
+  .info  { color: #58a6ff; }
+
+  /* Terminal log */
+  #logBox {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+    height: 420px; overflow-y: auto; padding: 12px; font-size: 12.5px; line-height: 1.7;
+  }
+  .log-ok   { color: #3fb950; }
+  .log-skip { color: #d29922; }
+  .log-fail { color: #f85149; }
+  .log-info { color: #58a6ff; }
+  .log-sep  { color: #30363d; }
+  .log-dl   { color: #c9d1d9; }
+
+  #currentTask { color: #58a6ff; font-size: 13px; min-height: 18px; margin-top: 6px; }
+  #pct { color: #8b949e; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>📥 Bulk OHLC Download</h1>
+
+<!-- Credentials -->
+<div class="card" id="credCard">
+  <label>Dhan Client ID</label>
+  <input type="text" id="clientId" placeholder="e.g. 1101310976" value="">
+
+  <label>Dhan Access Token</label>
+  <input type="password" id="token" placeholder="eyJ0eX...">
+
+  <button id="startBtn" onclick="startDownload()">▶ Start Download</button>
+  <span id="errMsg" style="color:#f85149;margin-left:12px;font-size:13px;"></span>
+</div>
+
+<!-- Progress -->
+<div class="card" id="progressCard" style="display:none">
+  <div class="stats">
+    <div class="stat"><span class="stat-num info" id="sTot">0</span><span class="stat-lbl">TOTAL</span></div>
+    <div class="stat"><span class="stat-num ok"   id="sOk">0</span><span class="stat-lbl">OK</span></div>
+    <div class="stat"><span class="stat-num skip" id="sSkip">0</span><span class="stat-lbl">SKIPPED</span></div>
+    <div class="stat"><span class="stat-num fail" id="sFail">0</span><span class="stat-lbl">FAILED</span></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pBar"></div></div>
+  <span id="pct">0%</span>
+
+  <div id="currentTask">Initializing...</div>
+</div>
+
+<!-- Log terminal -->
+<div class="card" id="logCard" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <span style="color:#8b949e;font-size:12px;">Live Log</span>
+    <button onclick="document.getElementById('logBox').innerHTML=''" style="background:#21262d;color:#8b949e;padding:4px 10px;font-size:11px;">Clear</button>
+  </div>
+  <div id="logBox"></div>
+</div>
+
+<script>
+let polling = null;
+let lastLogCount = 0;
+let autoScroll = true;
+
+const logBox = document.getElementById('logBox');
+logBox.addEventListener('scroll', () => {
+  autoScroll = logBox.scrollTop + logBox.clientHeight >= logBox.scrollHeight - 20;
+});
+
+function startDownload() {
+  const token = document.getElementById('token').value.trim();
+  const cid   = document.getElementById('clientId').value.trim();
+  const err   = document.getElementById('errMsg');
+
+  if (!token || !cid) { err.textContent = 'Token aur Client ID dono chahiye'; return; }
+  err.textContent = '';
+
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('progressCard').style.display = 'block';
+  document.getElementById('logCard').style.display = 'block';
+
+  fetch('/api/strategy/bulk-dl-start', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({token, client_id: cid})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) { document.getElementById('errMsg').textContent = d.error; document.getElementById('startBtn').disabled = false; return; }
+    polling = setInterval(pollStatus, 1500);
+  })
+  .catch(e => { document.getElementById('errMsg').textContent = String(e); document.getElementById('startBtn').disabled = false; });
+}
+
+function colorLine(line) {
+  if (line.includes('ALREADY OK') || line.includes('→ OK'))  return `<span class="log-ok">${line}</span>`;
+  if (line.includes('SKIP') || line.includes('skip'))         return `<span class="log-skip">${line}</span>`;
+  if (line.includes('FAIL') || line.includes('ERROR'))        return `<span class="log-fail">${line}</span>`;
+  if (line.includes('===') || line.includes('─'))             return `<span class="log-sep">${line}</span>`;
+  if (line.includes('DOWNLOADING'))                           return `<span class="log-dl">${line}</span>`;
+  if (line.includes('→'))                                     return `<span class="log-info">${line}</span>`;
+  return line;
+}
+
+function pollStatus() {
+  fetch('/api/strategy/bulk-dl-status')
+  .then(r => r.json())
+  .then(s => {
+    document.getElementById('sTot').textContent  = s.total  || 0;
+    document.getElementById('sOk').textContent   = s.ok     || 0;
+    document.getElementById('sSkip').textContent = s.skipped|| 0;
+    document.getElementById('sFail').textContent = s.failed || 0;
+
+    const pct = s.total ? Math.round((s.current / s.total) * 100) : 0;
+    document.getElementById('pBar').style.width = pct + '%';
+    document.getElementById('pct').textContent  = pct + '%';
+    document.getElementById('currentTask').textContent = s.current_task || '';
+
+    // Append new log lines
+    const lines = s.log || [];
+    if (lines.length > lastLogCount) {
+      const newLines = lines.slice(lastLogCount);
+      newLines.forEach(line => {
+        logBox.innerHTML += colorLine(escHtml(line)) + '<br>';
+      });
+      lastLogCount = lines.length;
+      if (autoScroll) logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    if (s.done && !s.running) {
+      clearInterval(polling);
+      document.getElementById('currentTask').textContent = '✅ Download Complete!';
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').textContent = '▶ Run Again';
+      document.getElementById('pBar').style.width = '100%';
+      document.getElementById('pct').textContent  = '100%';
+    }
+  })
+  .catch(() => {});
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Auto-fill if token was used before (from URL params)
+const p = new URLSearchParams(location.search);
+if (p.get('cid'))   document.getElementById('clientId').value = p.get('cid');
+if (p.get('token')) document.getElementById('token').value    = p.get('token');
+</script>
+</body>
+</html>

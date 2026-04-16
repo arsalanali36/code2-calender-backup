@@ -176,3 +176,21 @@ def trigger_sync():
     from services.auto_sync_service import trigger_sync_now
     trigger_sync_now()
     return jsonify({'status': 'OK'})
+
+@strategy_bp.route('/api/strategy/bulk-dl-start', methods=['POST'])
+def bulk_dl_start():
+    from services.bulk_download_service import start_bulk_download
+    data   = request.get_json(silent=True) or {}
+    token  = data.get('token', '').strip()
+    cid    = data.get('client_id', '').strip()
+    if not token or not cid:
+        return jsonify({'error': 'token and client_id required'}), 400
+    started = start_bulk_download(token, cid)
+    if not started:
+        return jsonify({'error': 'Already running'}), 409
+    return jsonify({'status': 'started'})
+
+@strategy_bp.route('/api/strategy/bulk-dl-status')
+def bulk_dl_status():
+    from services.bulk_download_service import get_status
+    return jsonify(get_status())

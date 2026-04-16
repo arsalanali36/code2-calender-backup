@@ -76,3 +76,8 @@ def mobile_assets(filename):
 @page_bp.route('/api/blog-posts')
 def blog_posts_api():
     return jsonify(get_blog_entries_for_api(BLOG_PATH))
+
+
+@page_bp.route('/bulk-download')
+def bulk_download_page():
+    return render_template('bulk_download.html')
