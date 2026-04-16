@@ -339,14 +339,7 @@ function _bindKeyboardEvents() {
         }
         return;
       }
-      if (shortcutMatches(e, state.shortcuts.fullscreen)) {
-        if (annotState.active) return;
-        e.preventDefault();
-        const _fsImages = state.gallery.images || [];
-        const _fsCur = _fsImages[state.gallery.currentIndex];
-        if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur, true);
-        return;
-      }
+      // Fullscreen (f) mapping removed to keep key free for Tag Filter
 
       if (e.key === 'c' && !e.shiftKey) {
         if (annotState.active) return;
@@ -414,11 +407,7 @@ function _bindKeyboardEvents() {
       .some(id => document.getElementById(id)?.classList.contains('open'));
     const chartsModalOpen = !!document.querySelector('.clc-backdrop');
     if (!typingInField && !galleryOpen && !anyModalOpen && !chartsModalOpen && !e.ctrlKey && !e.altKey) {
-      if (e.key === 'f' && !e.shiftKey) {
-        e.preventDefault();
-        document.body.classList.toggle('calendar-full');
-        document.body.classList.remove('table-full');
-      } else if (e.key === 'c' && !e.shiftKey) {
+      if (e.key === 'c' && !e.shiftKey) {
         e.preventDefault();
         state.calendarMode = 'consolidated';
         updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
