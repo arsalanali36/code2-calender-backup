@@ -122,39 +122,21 @@ def get_symbol_map():
 def auto_map():
     """
     Auto-map all unmapped instruments from user's trades.
-    Downloads scrip master if needed, runs matching, saves high-confidence hits.
-    Body (optional): { symbols: [...] }  — if omitted, uses all trade instruments.
+    Body (optional): { symbols: [...], date_from, date_to }
     """
     body       = request.json or {}
     symbols_in = body.get('symbols', [])
     date_from  = body.get('date_from', '')
     date_to    = body.get('date_to',   '')
 
-    # If not provided, collect from trades with earliest trade_date per symbol
     if not symbols_in:
         trades = _load_trades_for_current_user()
-
-        # Apply date range filter if given
-        if date_from:
-            trades = [t for t in trades if t.get('date', t.get('trade_date', '')) >= date_from]
-        if date_to:
-            trades = [t for t in trades if t.get('date', t.get('trade_date', '')) <= date_to]
-
-        # Build { symbol: earliest_trade_date } — date helps determine expiry year
-        sym_date_map = {}
-        for t in trades:
-            sym  = t.get('Instrument', '')
-            date = t.get('date', t.get('trade_date', ''))
-            if not sym:
-                continue
-            if sym not in sym_date_map or date < sym_date_map[sym]:
-                sym_date_map[sym] = date
-        symbols_in = sym_date_map  # pass the dict directly
+        sym_date_map, _ = whatif_service.collect_trade_pairs(trades, date_from, date_to)
+        symbols_in = sym_date_map
 
     if not symbols_in:
         return jsonify({'results': {}, 'saved': 0})
 
-    # Normalise: list → dict with None dates
     if isinstance(symbols_in, list):
         symbols_in = {s: None for s in symbols_in}
 
@@ -163,26 +145,11 @@ def auto_map():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    # Enrich each result with the trade date used for matching
     for sym, res in results.items():
-        if isinstance(symbols_in, dict):
-            res['trade_date'] = symbols_in.get(sym, '')
+        res['trade_date'] = symbols_in.get(sym, '')
 
-    # Auto-save entries with confidence >= 70
-    # Also remove any previously saved entry for expired options (wrong security_id)
     mapping = dhan_service.load_symbol_map()
-    saved   = 0
-    for sym, res in results.items():
-        if res.get('expired_opt'):
-            mapping.pop(sym, None)   # clear wrong mapping if saved before
-            continue
-        if res.get('confidence', 0) >= 70 and res.get('security_id'):
-            mapping[sym] = {
-                'security_id':      res['security_id'],
-                'exchange_segment': res['exchange_segment'],
-                'instrument':       res['instrument'],
-            }
-            saved += 1
+    mapping, saved = whatif_service.apply_confidence_mapping(results, mapping)
     dhan_service.save_symbol_map(mapping)
 
     return jsonify({'results': results, 'saved': saved})
@@ -396,28 +363,8 @@ def sync_all_ohlc():
             yield evt(f'Error loading trades: {e}', ok=False, done=True)
             return
 
-        # Collect unique (symbol, date) pairs and earliest date per symbol
-        sym_date_map = {}   # symbol → earliest trade date
-        pairs = []          # list of {symbol, date, entry_time}
-        seen_pairs = set()
-        for t in trades:
-            sym  = t.get('Instrument', '')
-            date = t.get('date', t.get('trade_date', ''))
-            if not sym or not date:
-                continue
-            # track earliest date per symbol for auto-mapping
-            if sym not in sym_date_map or date < sym_date_map[sym]:
-                sym_date_map[sym] = date
-            key = (sym, date)
-            if key not in seen_pairs:
-                seen_pairs.add(key)
-                tt = t.get('TradeType', 'sell').lower()
-                entry_time = str(t.get('Sell Time' if tt == 'sell' else 'Buy Time', '') or '')[:8]
-                pairs.append({'symbol': sym, 'date': date, 'entry_time': entry_time})
-
-        total_symbols = len(sym_date_map)
-        total_pairs   = len(pairs)
-        yield evt(f'Found {total_symbols} instruments across {total_pairs} trade days.')
+        sym_date_map, pairs = whatif_service.collect_trade_pairs(trades)
+        yield evt(f'Found {len(sym_date_map)} instruments across {len(pairs)} trade days.')
 
         if not pairs:
             yield evt('No trades with instruments found.', done=True)
@@ -430,19 +377,8 @@ def sync_all_ohlc():
         if unmapped:
             yield evt(f'Phase 1/2 — Auto-mapping {len(unmapped)} unmapped instruments…')
             try:
-                results = dhan_service.auto_map_instruments(unmapped)
-                new_saved = 0
-                for sym, res in results.items():
-                    if res.get('expired_opt'):
-                        symbol_map.pop(sym, None)
-                        continue
-                    if res.get('confidence', 0) >= 70 and res.get('security_id'):
-                        symbol_map[sym] = {
-                            'security_id':      res['security_id'],
-                            'exchange_segment': res['exchange_segment'],
-                            'instrument':       res['instrument'],
-                        }
-                        new_saved += 1
+                results   = dhan_service.auto_map_instruments(unmapped)
+                symbol_map, new_saved = whatif_service.apply_confidence_mapping(results, symbol_map)
                 dhan_service.save_symbol_map(symbol_map)
                 yield evt(f'Mapped {new_saved}/{len(unmapped)} new instruments.')
             except Exception as e:
@@ -556,15 +492,8 @@ def sync_all_ohlc():
 def import_tradebook():
     """
     Parse a Zerodha F&O tradebook CSV.
-    Extracts:
-      - symbol → actual expiry_date mapping  (saved to symbol_expiry_map.json)
-      - list of (symbol, trade_date, expiry_date, entry_time) pairs  (saved as sync queue)
-    Returns: {ok, imported, pairs} — UI then auto-starts SSE sync.
+    Saves symbol→expiry map and sync queue; returns {ok, imported, pairs}.
     """
-    import io
-    import csv as _csv
-    from datetime import datetime as _dt
-
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     f = request.files['file']
@@ -580,86 +509,14 @@ def import_tradebook():
         except Exception as e:
             return jsonify({'error': f'Cannot decode file: {e}'}), 400
 
-    reader   = _csv.DictReader(io.StringIO(content))
-    fields   = reader.fieldnames or []
-    fl       = [h.strip().lower() for h in fields]
+    try:
+        expiry_map, queue = whatif_service.parse_tradebook_csv(content)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
-    def _col(*names):
-        for n in names:
-            for i, h in enumerate(fl):
-                if h == n or h.replace(' ', '_') == n:
-                    return fields[i]
-        return None
-
-    sym_col    = _col('tradingsymbol', 'symbol', 'trading_symbol')
-    expiry_col = _col('expiry_date', 'expiry date', 'expiry')
-    date_col   = _col('trade_date', 'order_execution_time', 'date')
-    time_col   = _col('order_execution_time', 'trade_time', 'time')
-
-    if not sym_col or not expiry_col:
-        return jsonify({'error': f'Cannot find symbol/expiry columns. Got: {fields}'}), 400
-
-    def _norm_date(s):
-        for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y', '%Y/%m/%d', '%d-%b-%Y', '%Y-%m-%d %H:%M:%S'):
-            try:
-                return _dt.strptime(s.strip(), fmt).strftime('%Y-%m-%d')
-            except ValueError:
-                continue
-        return s.strip()[:10]   # fallback: take first 10 chars
-
-    def _norm_time(s):
-        # "2026-02-24 09:17:43" → "09:17"; "09:17:43" → "09:17"
-        s = s.strip()
-        if ' ' in s:
-            s = s.split(' ', 1)[1]
-        return s[:5]
-
-    expiry_map = {}   # symbol → actual expiry YYYY-MM-DD
-    pairs_seen = {}   # (symbol, trade_date) → {symbol, trade_date, expiry_date, entry_time}
-
-    for row in reader:
-        sym    = str(row.get(sym_col, '') or '').strip().upper()
-        expiry = str(row.get(expiry_col, '') or '').strip()
-        if not sym or not expiry or expiry.lower() in ('nan', 'none', '', '-'):
-            continue
-        if not (sym.endswith('CE') or sym.endswith('PE')):
-            continue
-
-        expiry = _norm_date(expiry)
-        expiry_map[sym] = expiry
-
-        if date_col:
-            raw_date = str(row.get(date_col, '') or '').strip()
-            trade_date = _norm_date(raw_date) if raw_date else ''
-        else:
-            trade_date = ''
-
-        entry_time = ''
-        if time_col:
-            raw_time = str(row.get(time_col, '') or '').strip()
-            if raw_time:
-                entry_time = _norm_time(raw_time)
-
-        if trade_date:
-            key = (sym, trade_date)
-            if key not in pairs_seen:
-                pairs_seen[key] = {
-                    'symbol':      sym,
-                    'trade_date':  trade_date,
-                    'expiry_date': expiry,
-                    'entry_time':  entry_time,
-                }
-
-    if not expiry_map:
-        return jsonify({'error': 'No option symbols with expiry dates found in file'}), 400
-
-    # Save symbol → expiry map (used by fetch_expired_option_ohlc)
     existing = dhan_service.load_symbol_expiry_map()
     existing.update(expiry_map)
     dhan_service.save_symbol_expiry_map(existing)
-
-    # Save sync queue (used by sync-tradebook-ohlc SSE)
-    queue = list(pairs_seen.values())
     dhan_service.save_tradebook_queue(queue)
 
     return jsonify({'ok': True, 'imported': len(expiry_map), 'pairs': len(queue)})
@@ -762,17 +619,13 @@ def run_simulation():
         'direction':         body.get('direction', ''),
     }
 
-    # Load trades
     trades = _load_trades_for_current_user()
-
-    # Filter by date range
     if date_from:
         trades = [t for t in trades if t.get('date', t.get('trade_date', '')) >= date_from]
     if date_to:
         trades = [t for t in trades if t.get('date', t.get('trade_date', '')) <= date_to]
 
-    # Build OHLC map from cache.
-    # Priority: security_id (historical, accurate) > rollingoption (fallback)
+    # Build OHLC cache map. Priority: security_id (historical) > rollingoption (fallback)
     symbol_map = dhan_service.load_symbol_map()
     ohlc_map   = {}
     for t in trades:
@@ -782,77 +635,14 @@ def run_simulation():
         if key in ohlc_map:
             continue
         if sym in symbol_map:
-            # Has security_id — use accurate historical endpoint
-            info = symbol_map[sym]
-            df   = dhan_service.load_cached_ohlc(info['security_id'], date)
+            df = dhan_service.load_cached_ohlc(symbol_map[sym]['security_id'], date)
         else:
-            # No security_id — fall back to rollingoption (options) or skip
             df = dhan_service.load_cached_expired_option_ohlc(sym, date)
         if df is not None:
             ohlc_map[key] = df
 
-    # Simulate
     results = whatif_service.simulate_trades(trades, ohlc_map, params)
     summary = whatif_service.summary_stats(results)
-
-    # Build T-number: per (instrument, date), number trades in time order → T1, T2, T3...
-    trade_seq = {}   # (instrument, date) → counter
-    out = []
-    for r in results:
-        sim  = r.get('_sim')
-        tt   = r.get('TradeType', 'sell').lower()
-        inst = r.get('Instrument', '')
-        date = r.get('date', r.get('trade_date', ''))
-        qty  = r.get('Qty', 1)
-        broker     = r.get('Broker', '')
-        fill_count = r.get('fill_count', 2)
-        key  = (inst, date)
-        trade_seq[key] = trade_seq.get(key, 0) + 1
-        t_num = f"T{trade_seq[key]}"
-
-        # Actual net P/L — from precomputed trade field (already has taxes)
-        actual_net = r.get('Net P/L')
-
-        # Planned net P/L — calculate charges on simulated exit price
-        planned_net = None
-        if sim and sim.get('planned_exit_price') is not None:
-            ep  = sim['entry_price']
-            xp  = sim['planned_exit_price']
-            dir_  = sim['direction']
-            buy_p  = xp if dir_ == 'short' else ep
-            sell_p = ep if dir_ == 'short' else xp
-            _, _, planned_net = _net_pnl(buy_p, sell_p, qty, broker, fill_count)
-
-        # Missed net = planned_net - actual_net
-        missed_net = None
-        if planned_net is not None and actual_net is not None:
-            missed_net = round(planned_net - actual_net, 2)
-
-        out.append({
-            'date':       date,
-            'time':            r.get('Sell Time') if tt == 'sell' else r.get('Buy Time', ''),
-            'actual_exit_time': r.get('Buy Time',  '') if tt == 'sell' else r.get('Sell Time', ''),
-            'instrument': inst,
-            't_num':      t_num,
-            'direction':  'SHORT' if tt == 'sell' else 'LONG',
-            'entry':      r.get('Sell Price (Avg)') if tt == 'sell' else r.get('Buy Price (Avg)'),
-            'exit_actual': r.get('Buy Price (Avg)') if tt == 'sell' else r.get('Sell Price (Avg)'),
-            'qty':        qty,
-            'tags':       r.get('tags', []),
-            'actual_pnl':      sim['actual_pnl']  if sim else None,
-            'actual_net':      actual_net,
-            'actual_pts':      sim['actual_pts']   if sim else None,
-            'planned_pnl':     sim['planned_pnl']  if sim else None,
-            'planned_net':     planned_net,
-            'planned_pts':     sim['planned_pts']  if sim else None,
-            'missed_pts':      sim['missed_pts']   if sim else None,
-            'missed_net':      missed_net,
-            'mfe':             sim['mfe']           if sim else None,
-            'mae':             sim['mae']           if sim else None,
-            'efficiency':      sim['efficiency']    if sim else None,
-            'exit_reason':     sim['exit_reason']   if sim else 'no_ohlc',
-            'exit_time':       sim['exit_time']     if sim else None,
-            'trail_triggered': sim['trail_triggered'] if sim else False,
-        })
+    out     = whatif_service.format_simulation_output(results, _net_pnl)
 
     return jsonify({'summary': summary, 'trades': out})

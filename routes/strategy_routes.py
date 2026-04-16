@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.strategy_service import get_nifty_data, get_real_trades
+from services.strategy_data_service import get_nifty_data, get_real_trades
 import pandas as pd
 import pytz
 import calendar
@@ -87,7 +87,7 @@ def nifty_data():
 
 @strategy_bp.route('/api/strategy/archive-dates')
 def archive_dates():
-    from services.strategy_service import get_archive_dates
+    from services.strategy_data_service import get_archive_dates
     try:
         dates = get_archive_dates()
         return jsonify({'dates': dates})

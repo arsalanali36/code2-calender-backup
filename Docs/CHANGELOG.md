@@ -1,11 +1,161 @@
-# Memory Logs - Changelog
-Consolidated code context for AI assistants.
-
-
-## File: `CHANGELOG.md`
-```
 # 📖 Trading Journal - Update & Feature History (Changelog)
 Here is a complete, date-wise breakdown of all the features, updates, and refactoring efforts recorded in your Git commit history.
+
+## EOD Summary - April 09, 2026
+
+### v3.x — Gallery Tray iPad Fixes + Close-Global-Tray UX Polish
+
+**Close-Global-Tray — Position Persistence Fix:**
+- `_tEndDrag`: now commits `translate3d` offset back into `left/top` via `getBoundingClientRect()` and resets transform to zero — tray no longer jumps back to old position after swipe/navigation
+- `localStorage` always saves the true final pixel position
+
+**Close-Global-Tray — Context-Aware Direction (iPad fix):**
+- SNAP threshold increased `80 → 120px` for easier triggering
+- Direction detection now uses both cursor position AND tray midpoint (`getBoundingClientRect`) — previously only cursor was checked which was unreliable on iPad touch
+- Tray switches to `column` (vertical) near thumbnail panel left edge or right screen edge; stays `row` (horizontal) in center
+
+**Gallery Tray — Trade Pill Restored:**
+- `renderGalleryTradePill()`: removed dependency on missing `gv2-active-trade-bar` element that caused early return (pill was invisible)
+- T-badge rendered as solid colored circle (green/red by P&L), e.g. `T3, ₹461, 4 Pt`
+
+**P&L Dropdown Fixes:**
+- Removed `pill.onclick` that caused double-toggle (was firing before and after the event listener)
+- Dropdown moved to `document.body` to escape parent container clipping
+- Active trade marked with blue dot indicator in dropdown rows
+- 7-column grid layout for cleaner trade list alignment
+
+**PWA / Fullscreen (iPad):**
+- Added `apple-mobile-web-app-capable` meta tags for home screen fullscreen mode
+- Added `⛶` fullscreen toggle button via `requestFullscreen()` API
+
+## EOD Summary - April 01, 2026
+
+### v3.0.3 — Target Tracker Weekly View + Module Split
+
+**Weekly Performance Breakdown (Target Tracker):**
+- New "Weekly Target" tab added to Target Tracker modal
+- Weekly progress bars with actual vs target P&L per week, color-coded by pacing %
+- Monthly total bar at bottom with full-month pacing %
+- Hover tooltip on weekly rows: shows trades, avg duration, tax, avg pts
+- Metric comparison chart (SVG bar chart) with toggles: Points / Avg Pt / Trades / Tax / Avg Duration
+- Chart type toggles: BAR (week comparison) and BELL (trade distribution histogram)
+- Aggregation mode toggles: TOTAL / AVG
+
+**Target Tracker Enhancements:**
+- `getMonthlyPerformance()` now collects per-day: tradeCount, points, fees, duration (via Buy/Sell Time)
+- `getAvailableDates()` now also includes dayData dates and uses `extractDateFromTrade` helper
+- Date counter + nav arrows (prev/next day) now disabled correctly at boundaries
+- Monthly chart tooltip: shared `tt-chart-tooltip` element, hidden on chart type switch
+- Monthly chart: improved SVG styling (drop-shadow filter, thinner expected line)
+- Net total color in Numbers tab changed to neutral `var(--text2)`
+
+**Module Split (30KB enforcement):**
+- `target-tracker.js` (87KB) split into 5 focused modules:
+  - `target-tracker-data.js` — state vars + pure data functions
+  - `target-tracker-monthly.js` — `renderTtMonthlySection()` (monthly tab + chart)
+  - `target-tracker-weekly.js` — `renderTtWeeklyView()` + bell curve + comparison chart + tooltip helpers
+  - `target-tracker.js` — `renderTargetTracker()` core orchestrator (Numbers + Daily tabs)
+  - `target-tracker-init.js` — `showTargetTrackerModal()` + DOMContentLoaded bindings
+- `modals.html` (57.6KB) split into 3 Jinja2 includes:
+  - `modals.html` — Settings + Observation + Stats Config
+  - `modals-ohlc.html` — Add Column + OHLC Manager + Edit Column
+  - `modals-target-tracker.html` — Target Tracker Modal (full)
+- Also fixed: `diff` variable undefined in weekly tooltip (now correctly set to `actual - target`)
+
+**Outstanding (needs future split):**
+- `gallery-render.js` still 37.7KB (not touched today)
+- `style-misc.css` still 30.2KB (not touched today)
+
+## EOD Summary - March 25, 2026
+
+### v3.0.2 — Tag Images, Gallery Sync, OHLC Manager UI, Stash Restore
+
+**Tag Images Feature:**
+- Tags can now have images assigned (uploaded or drawn pattern canvas)
+- Tag chips in gallery show thumbnail of assigned image
+- New routes: `/api/upload-tag-image`, `/api/delete-tag-image`
+- `state.tagImages` added to state for image-URL mapping per tag
+
+**Gallery Enhancements:**
+- Recording tools toolbar relocated to tray with toggle button (localStorage persisted)
+- Popout button: opens current image in new window via share-link URL params
+- Trades panel: Gain/Loss filter dropdown added
+- Filter mode: Ctrl+Click on thumbnail expands/collapses all images for that trade
+- `gallery-sync.js`: cross-window gallery sync (multi-monitor support)
+
+**OHLC Manager UI:**
+- New modal: `/static/js/ohlc-manager.js` + `style-ohlc-manager.css`
+- OHLC button added to profile menu
+- Tradebook CSV import, instrument status table, sync log
+
+**OHLC Backend:**
+- `whatif_routes.py`: EXP_ cache fallback check for expired options in status/sync endpoints
+
+**Stash Restore + Bug Fixes (2026-03-25):**
+- Fixed: `events-gallery.js` crash — `gv2-tc-mode-btn` null addEventListener (added `?.`)
+- Fixed: `gallery-image-tags` div was relocated to top-tags-band (overlapped thumbnails) → moved back inside `gv2-img-area`
+- Fixed: `gallery-heads-display` had `display:none` removed to restore trade stats bar
+- Setup: `auto_git_backup.ps1` + Windows Task Scheduler every 2 hours
+
+## EOD Summary - March 24, 2026
+
+### Gallery Filter Mode — Multi-Date Fix
+- **Root fix**: `getOwnerTradeForImageUrl` was returning `null` for images from dates other than `state.gallery.date`, causing all cross-date images to land under OPEN separator
+- **Fix**: In filter mode, use `sourceRow` from `_filteredMeta` directly instead of calling `getOwnerTradeForImageUrl`
+- **Fix**: `applyGalleryImageScopeByTagFilter()` (no args) now auto-preserves current context instead of resetting to index 0
+- **Fix**: Per-date separator rendering — OPEN/T1/T2/T3/CLOSE now rendered per date in filter mode
+- **Fix**: Empty trade separators suppressed — only render separator if that trade has matching filter images
+- **Feature**: Date label (e.g. "Mar 20 Fri") shown on trade separators in filter mode
+- **Feature**: `Vid` button moved to sidebar below filter-tags button
+- **Feature**: Admin API key endpoint `/api/admin/push-data` for live data sync without login
+- **Split**: `gallery.html` → `gallery.html` + `gallery-modals.html` (30KB rule)
+- **Split**: `style-gallery-b.css` → split into `b` + `d` (30KB rule)
+
+## EOD Summary - March 23, 2026
+
+### v3.0.0 — What-If Simulator + Dhan OHLC Integration
+
+**What-If Simulator (new `/whatif` page):**
+- Full trade simulation engine: given fixed Target/SL pts (and optional trailing trigger), replays each trade forward candle-by-candle from entry time with no hindsight bias.
+- Supports 1/2/3/4/5 min timeframes via resample on 1-min OHLC cache.
+- Direction auto-detected from TradeType (sell=SHORT, buy=LONG) or overridden per-run.
+- Computes: actual PnL, planned PnL, missed PnL (opportunity cost), MFE, MAE, efficiency%, exit reason (target/sl/trail_sl/eod).
+- Trail SL: move SL to break-even when price moves `trail_trigger_pts` in your favour.
+- Exit order: SL checked before target within same candle (pessimistic/realistic).
+- OHLC sanity check: warns if first candle open is >20% away from entry (wrong strike).
+- Summary stats: total trades, actual/planned/missed PnL, avg efficiency, target/sl/trail_sl/eod exit counts, no-OHLC count.
+
+**Dhan API Integration (new `services/dhan_service.py` + `dhan_service_core.py`):**
+- Credential storage: client_id + access_token saved to `data/dhan_config.json` (token masked in UI).
+- Scrip master: download from Dhan CDN, fuzzy column-name search (handles API version differences).
+- Symbol auto-mapper: parses NSE symbols in Zerodha monthly/weekly format, Dhan space format, and futures. Auto-saves high-confidence (≥70%) matches to `data/dhan_symbol_map.json`.
+- Expired options via `/v2/charts/rollingoption`: fetches ATM±N OHLC without needing security_id. Entry time used to pick correct ATM strike.
+- Historical + intraday OHLC endpoints, CSV cache in `data/ohlc_cache/`, with auto-fill for partial days.
+- OHLC status endpoint: reports missing/partial/complete per (symbol, date).
+
+**New backend files:**
+- `routes/whatif_routes.py` — blueprint with 10 routes (config, scrip, symbol-map, auto-map, OHLC status/fetch/data/chart, simulation run)
+- `services/dhan_service_core.py` — config, scrip, symbol-map, NSE parser (split from dhan_service for 30KB rule)
+- `services/dhan_service.py` — expired options, auto-mapper, OHLC cache + fetch
+- `services/whatif_service.py` — simulation engine (no Flask, pure data transform)
+- `config.py` — added OHLC_CACHE_DIR, DHAN_CONFIG_FILE, DHAN_SYMBOL_MAP_FILE, DHAN_SCRIP_MASTER
+
+**Gallery separator improvements:**
+- Trade separator (`T1`, `T2`…) now shows P&L + Pt as styled `<span>` elements with color coding.
+- OPEN/CLOSE separators use `<span class="gv2-sep-label">` for consistent styling.
+- Clicking a separator now toggles `state.gallery.selectedSeparator` so upload button targets correct trade/OPEN/CLOSE.
+
+**Gallery events improvements:**
+- Ctrl+drag scroll rate-limited with `requestAnimationFrame`.
+- Select/deselect logic improved for ctrl+drag in gallery.
+- Fullscreen button in gallery modal: clicking toggles `requestFullscreen`/`exitFullscreen`.
+- Thumb panel resize: max width increased from 160 to 800px.
+- Panel width restored from localStorage on init.
+
+**30KB rule splits (EOD):**
+- `events-gallery.js` (33.6KB) → `events-gallery.js` + `events-gallery-b.js` (trades panel extracted).
+- `gallery-render.js` (31.7KB) → `gallery-render-b.js` (video blob cache) + `gallery-render.js`.
+- `services/dhan_service.py` (33.6KB) → `dhan_service_core.py` + `dhan_service.py`.
 
 ## EOD Summary - March 18, 2026
 
@@ -274,5 +424,3 @@ D a s h b o a r d   T o o l t i p   F i x e d ,   C o n s o l i d a t e   c o n 
  A d d e d   I n d i v i d u a l   /   C o n s o l i d a t e d   m o d e s   p e r   c h a r t ,   w i t h   d r o p - d o w n s   i n   c h a r t   h e a d e r s . 
  
  
-
-```

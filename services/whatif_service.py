@@ -266,3 +266,208 @@ def _result(actual_pnl, actual_pts, planned_pts, mfe, mae, exit_reason, trail_ac
         'planned_exit_price': planned_exit_price,
         'direction':          direction,
     }
+
+
+# ── Route business-logic helpers (extracted from whatif_routes) ───────────────
+
+def parse_tradebook_csv(content):
+    """
+    Parse a Zerodha F&O tradebook CSV string.
+    Returns (expiry_map, queue) where:
+      expiry_map : {symbol → actual_expiry YYYY-MM-DD}
+      queue      : [{symbol, trade_date, expiry_date, entry_time}]
+    Raises ValueError if structure is invalid or no options found.
+    """
+    import io, csv as _csv
+    from datetime import datetime as _dt
+
+    reader = _csv.DictReader(io.StringIO(content))
+    fields = reader.fieldnames or []
+    fl     = [h.strip().lower() for h in fields]
+
+    def _col(*names):
+        for n in names:
+            for i, h in enumerate(fl):
+                if h == n or h.replace(' ', '_') == n:
+                    return fields[i]
+        return None
+
+    sym_col    = _col('tradingsymbol', 'symbol', 'trading_symbol')
+    expiry_col = _col('expiry_date', 'expiry date', 'expiry')
+    date_col   = _col('trade_date', 'order_execution_time', 'date')
+    time_col   = _col('order_execution_time', 'trade_time', 'time')
+
+    if not sym_col or not expiry_col:
+        raise ValueError(f'Cannot find symbol/expiry columns. Got: {fields}')
+
+    def _norm_date(s):
+        for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y', '%Y/%m/%d', '%d-%b-%Y', '%Y-%m-%d %H:%M:%S'):
+            try:
+                return _dt.strptime(s.strip(), fmt).strftime('%Y-%m-%d')
+            except ValueError:
+                continue
+        return s.strip()[:10]
+
+    def _norm_time(s):
+        s = s.strip()
+        if ' ' in s:
+            s = s.split(' ', 1)[1]
+        return s[:5]
+
+    expiry_map = {}
+    pairs_seen = {}
+
+    for row in reader:
+        sym    = str(row.get(sym_col, '') or '').strip().upper()
+        expiry = str(row.get(expiry_col, '') or '').strip()
+        if not sym or not expiry or expiry.lower() in ('nan', 'none', '', '-'):
+            continue
+        if not (sym.endswith('CE') or sym.endswith('PE')):
+            continue
+
+        expiry = _norm_date(expiry)
+        expiry_map[sym] = expiry
+
+        trade_date = ''
+        if date_col:
+            raw = str(row.get(date_col, '') or '').strip()
+            trade_date = _norm_date(raw) if raw else ''
+
+        entry_time = ''
+        if time_col:
+            raw = str(row.get(time_col, '') or '').strip()
+            if raw:
+                entry_time = _norm_time(raw)
+
+        if trade_date:
+            key = (sym, trade_date)
+            if key not in pairs_seen:
+                pairs_seen[key] = {
+                    'symbol':      sym,
+                    'trade_date':  trade_date,
+                    'expiry_date': expiry,
+                    'entry_time':  entry_time,
+                }
+
+    if not expiry_map:
+        raise ValueError('No option symbols with expiry dates found in file')
+
+    return expiry_map, list(pairs_seen.values())
+
+
+def collect_trade_pairs(trades, date_from='', date_to=''):
+    """
+    From a trade list, build:
+      sym_date_map : {symbol → earliest trade date}  (used for auto-mapping)
+      pairs        : [{symbol, date, entry_time}]     (used for OHLC sync)
+    Applies optional date range filter.
+    """
+    if date_from:
+        trades = [t for t in trades if t.get('date', t.get('trade_date', '')) >= date_from]
+    if date_to:
+        trades = [t for t in trades if t.get('date', t.get('trade_date', '')) <= date_to]
+
+    sym_date_map = {}
+    pairs        = []
+    seen_pairs   = set()
+
+    for t in trades:
+        sym  = t.get('Instrument', '')
+        date = t.get('date', t.get('trade_date', ''))
+        if not sym or not date:
+            continue
+        if sym not in sym_date_map or date < sym_date_map[sym]:
+            sym_date_map[sym] = date
+        key = (sym, date)
+        if key not in seen_pairs:
+            seen_pairs.add(key)
+            tt = t.get('TradeType', 'sell').lower()
+            entry_time = str(t.get('Sell Time' if tt == 'sell' else 'Buy Time', '') or '')[:8]
+            pairs.append({'symbol': sym, 'date': date, 'entry_time': entry_time})
+
+    return sym_date_map, pairs
+
+
+def apply_confidence_mapping(results, existing_mapping):
+    """
+    Apply auto_map results to an existing symbol mapping dict.
+    Saves entries with confidence >= 70, removes stale expired-option entries.
+    Returns (updated_mapping, saved_count).
+    """
+    mapping = dict(existing_mapping)
+    saved   = 0
+    for sym, res in results.items():
+        if res.get('expired_opt'):
+            mapping.pop(sym, None)
+            continue
+        if res.get('confidence', 0) >= 70 and res.get('security_id'):
+            mapping[sym] = {
+                'security_id':      res['security_id'],
+                'exchange_segment': res['exchange_segment'],
+                'instrument':       res['instrument'],
+            }
+            saved += 1
+    return mapping, saved
+
+
+def format_simulation_output(results, net_pnl_fn):
+    """
+    Convert simulate_trades output → API response shape.
+    Assigns T1/T2/… numbers per (instrument, date) in time order.
+    net_pnl_fn: callable matching net_pnl(buy_p, sell_p, qty, broker, fill_count) → (gross, fees, net)
+    """
+    trade_seq = {}
+    out       = []
+    for r in results:
+        sim        = r.get('_sim')
+        tt         = r.get('TradeType', 'sell').lower()
+        inst       = r.get('Instrument', '')
+        date       = r.get('date', r.get('trade_date', ''))
+        qty        = r.get('Qty', 1)
+        broker     = r.get('Broker', '')
+        fill_count = r.get('fill_count', 2)
+        key        = (inst, date)
+        trade_seq[key] = trade_seq.get(key, 0) + 1
+        t_num      = f"T{trade_seq[key]}"
+
+        actual_net  = r.get('Net P/L')
+        planned_net = None
+        if sim and sim.get('planned_exit_price') is not None:
+            ep    = sim['entry_price']
+            xp    = sim['planned_exit_price']
+            dir_  = sim['direction']
+            buy_p  = xp if dir_ == 'short' else ep
+            sell_p = ep if dir_ == 'short' else xp
+            _, _, planned_net = net_pnl_fn(buy_p, sell_p, qty, broker, fill_count)
+
+        missed_net = None
+        if planned_net is not None and actual_net is not None:
+            missed_net = round(planned_net - actual_net, 2)
+
+        out.append({
+            'date':             date,
+            'time':             r.get('Sell Time') if tt == 'sell' else r.get('Buy Time', ''),
+            'actual_exit_time': r.get('Buy Time',  '') if tt == 'sell' else r.get('Sell Time', ''),
+            'instrument':       inst,
+            't_num':            t_num,
+            'direction':        'SHORT' if tt == 'sell' else 'LONG',
+            'entry':            r.get('Sell Price (Avg)') if tt == 'sell' else r.get('Buy Price (Avg)'),
+            'exit_actual':      r.get('Buy Price (Avg)') if tt == 'sell' else r.get('Sell Price (Avg)'),
+            'qty':              qty,
+            'tags':             r.get('tags', []),
+            'actual_pnl':       sim['actual_pnl']      if sim else None,
+            'actual_net':       actual_net,
+            'actual_pts':       sim['actual_pts']       if sim else None,
+            'planned_pnl':      sim['planned_pnl']      if sim else None,
+            'planned_net':      planned_net,
+            'planned_pts':      sim['planned_pts']      if sim else None,
+            'missed_pts':       sim['missed_pts']       if sim else None,
+            'missed_net':       missed_net,
+            'mfe':              sim['mfe']               if sim else None,
+            'mae':              sim['mae']               if sim else None,
+            'efficiency':       sim['efficiency']        if sim else None,
+            'exit_reason':      sim['exit_reason']       if sim else 'no_ohlc',
+            'exit_time':        sim['exit_time']         if sim else None,
+            'trail_triggered':  sim['trail_triggered']   if sim else False,
+        })
+    return out
