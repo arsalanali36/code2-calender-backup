@@ -75,6 +75,24 @@ def add_cache_header(response):
         response.headers['Cache-Control'] = 'public, max-age=0'
     return response
 
+@app.context_processor
+def override_url_for():
+    """
+    Append a version timestamp (?v=...) to static file URLs automatically.
+    """
+    return dict(url_for=dated_url_for)
+
+def dated_url_for(endpoint, **values):
+    if endpoint == 'static':
+        filename = values.get('filename', None)
+        if filename:
+            file_path = os.path.join(app.static_folder, filename)
+            if os.path.exists(file_path):
+                values['v'] = int(os.stat(file_path).st_mtime)
+    return url_for(endpoint, **values)
+
+# ── App setup ─────────────────────────────────────────────────────────────────
+
 db.init_app(app)
 
 limiter.init_app(app)

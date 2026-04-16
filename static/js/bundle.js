@@ -25596,8 +25596,24 @@ function _openPinNoteEditor(pin, anchorEl) {
   sel.addRange(range);
 
   setTimeout(() => {
-    const onOut = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', onOut); } };
+    const onOut = ev => {
+      if (!pop.contains(ev.target)) {
+        // Auto-save on click-out
+        doSave(editor.innerHTML);
+        document.removeEventListener('mousedown', onOut);
+      }
+    };
     document.addEventListener('mousedown', onOut);
+    
+    // Also clean up listener if manually saved/cancelled/deleted
+    const originalDoSave = doSave;
+    doSave = (html) => {
+      document.removeEventListener('mousedown', onOut);
+      originalDoSave(html);
+    };
+    const originalCancel = cancelBtn.onclick; // wait, let's just add it
+    cancelBtn.addEventListener('click', () => document.removeEventListener('mousedown', onOut));
+    deleteBtn.addEventListener('click', () => document.removeEventListener('mousedown', onOut));
   }, 50);
 }
 

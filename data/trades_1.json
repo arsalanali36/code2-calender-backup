@@ -18725,7 +18725,7 @@
       "Buy Time": "09:39:24",
       "Day P&L": 3091.5,
       "Gross P/L": 3091.5,
-      "Image Tags": "",
+      "Image Tags": "Palat Gaya",
       "Instrument": "BANKNIFTY26APR56700CE",
       "Net P/L": 2951.3,
       "Note": "",
@@ -18761,7 +18761,7 @@
       "Buy Time": "09:39:24",
       "Day P&L": 3556.5,
       "Gross P/L": 465,
-      "Image Tags": "Gatli se order lag gaya",
+      "Image Tags": "Gatli se order lag gaya, Palat Gaya",
       "Instrument": "BANKNIFTY26APR56700CE",
       "Net P/L": 372.95,
       "Note": "",
@@ -18787,20 +18787,20 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322451/trading_journal/a1507ab3-8347-4a24-9bba-2d91eb1d4f9a.png"
       ],
       "observation": "",
-      "tags": [],
-      "trade_date": "2026-04-16",
       "tagPins": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322451/trading_journal/a1507ab3-8347-4a24-9bba-2d91eb1d4f9a.png": [
           {
+            "color": "#1abc9c",
             "id": "mo14jmwed6ya",
+            "note": "galti se maine sell ke liye order lagaya tha wo buy me convert ho gaya accha hua nikal gaye warna gadbad ho jaata&nbsp;",
             "tag": "Gatli se order lag gaya",
             "x": 45.4,
-            "y": 55.4,
-            "color": "#1abc9c",
-            "note": "galti se maine sell ke liye order lagaya tha wo buy me convert ho gaya accha hua nikal gaye warna gadbad ho jaata&nbsp;"
+            "y": 55.4
           }
         ]
-      }
+      },
+      "tags": [],
+      "trade_date": "2026-04-16"
     },
     {
       "Broker": "zerodha",
@@ -18809,7 +18809,7 @@
       "Buy Time": "11:57:40",
       "Day P&L": 3007.25,
       "Gross P/L": -549.25,
-      "Image Tags": "",
+      "Image Tags": "Palat Gaya",
       "Instrument": "NIFTY2642124200PE",
       "Net P/L": -619.44,
       "Note": "",
@@ -18851,7 +18851,7 @@
       "Buy Time": "12:12:02",
       "Day P&L": 4021.25,
       "Gross P/L": 1014,
-      "Image Tags": "",
+      "Image Tags": "Palat Gaya",
       "Instrument": "NIFTY2642124150PE",
       "Net P/L": 919.8,
       "Note": "",
@@ -28954,11 +28954,27 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/e7963d27-b6f5-4096-9658-298ba189df78.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/2631c163-026e-4395-b637-57bea950ee12.png"
       ],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/b736821a-e14f-487f-ac2a-d2d54032d05a.png": [
+          "Palat Gaya"
+        ]
+      },
       "newsImages": [],
       "closeImages": [],
       "closeGlobalImages": [],
-      "tradeRefCards": {}
+      "tradeRefCards": {},
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/b736821a-e14f-487f-ac2a-d2d54032d05a.png": [
+          {
+            "id": "mo14okh2jv6b",
+            "tag": "Palat Gaya",
+            "x": 69.8,
+            "y": 44.6,
+            "color": "#e74c3c",
+            "note": "sadsad"
+          }
+        ]
+      }
     }
   },
   "importedPdfs": [],
