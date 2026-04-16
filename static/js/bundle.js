@@ -11204,20 +11204,19 @@ function renderGalleryStats() {
 function renderGalleryPnlPill() {
     const wrap = document.getElementById('gv2-pnl-wrap');
     const pill = document.getElementById('gv2-pnl-pill');
-    const drop = document.getElementById('gv2-pnl-dropdown');
-    if (!wrap || !pill || !drop) return;
+    // Target both potential dropdowns
+    const drops = [
+        document.getElementById('gv2-pnl-dropdown'),
+        document.getElementById('gv2-trade-dropdown')
+    ].filter(d => !!d);
+
+    if (!wrap || !pill || !drops.length) return;
 
     const date = state.gallery.date;
-    if (!date) {
-        wrap.style.display = 'none';
-        return;
-    }
+    if (!date) { wrap.style.display = 'none'; return; }
 
     const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
-    if (!trades.length) {
-        wrap.style.display = 'none';
-        return;
-    }
+    if (!trades.length) { wrap.style.display = 'none'; return; }
 
     wrap.style.display = 'flex';
     let totalPnl = 0;
@@ -11229,10 +11228,13 @@ function renderGalleryPnlPill() {
     pill.textContent = fmtPnl(totalPnl);
     pill.style.color = totalPnl > 0 ? '#2ecc71' : totalPnl < 0 ? '#e74c3c' : 'var(--text2)';
 
-    // Dropdown Logic (Relocated from trade pill)
+    // Find WHICH dropdown is currently open to populate it
+    const drop = drops.find(d => d.classList.contains('open'));
+    if (!drop) return;
+
     drop.innerHTML = '';
     drop.onclick = e => e.stopPropagation();
-    drop.style.width = '750px'; // Wider for full instrument names
+    drop.style.width = '750px'; 
     drop.style.minWidth = '580px';
     drop.style.maxWidth = '98vw';
     drop.style.boxSizing = 'border-box';
@@ -11341,12 +11343,12 @@ function renderGalleryPnlPill() {
              } else if (state.gallery.tagFilter?.length) {
                  if (typeof showToast === 'function') showToast('No images of this trade match the current filter', 'info');
              }
-             const drop = document.getElementById('gv2-pnl-dropdown');
-             if (drop) drop.classList.remove('open');
+             // Close all dropdowns
+             document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open'));
+             document.querySelectorAll('.gv2-pnl-dropdown').forEach(d => d.classList.remove('open'));
         });
         drop.appendChild(row);
     });
-
 }
 
 // ── Trade pill (current image's trade + its P/L) ──────────────────────────
@@ -11427,18 +11429,20 @@ function renderGalleryTradePill() {
           + `</span>`;
 
     // ── Dropdown Toggle logic ────────────────────────────────────────────────
-    const drop = document.getElementById('gv2-pnl-dropdown');
+    const drop = document.getElementById('gv2-trade-dropdown');
     pill.style.cursor = 'pointer';
     pill.addEventListener('click', (e) => {
         e.stopPropagation();
         if (drop) {
             const isOpened = drop.classList.contains('open');
             // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open'));
             document.querySelectorAll('.gv2-pnl-dropdown').forEach(d => d.classList.remove('open'));
+            
             if (!isOpened) {
                 drop.classList.add('open');
-                // Ensure it's re-rendered
-                renderGalleryPnlPill();
+                // Ensure it's re-rendered (shared population logic)
+                renderGalleryPnlPill(); 
             }
         }
     });

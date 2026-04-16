@@ -149,22 +149,36 @@ function renderGalleryPnlPill() {
     const fmtPnl = v => (v < 0 ? '-' : '') + '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
     pill.textContent = fmtPnl(totalPnl);
     pill.style.color = totalPnl > 0 ? '#2ecc71' : totalPnl < 0 ? '#e74c3c' : 'var(--text2)';
-
-    // Find WHICH dropdown is currently open to populate it
-    const drop = drops.find(d => d.classList.contains('open'));
-    if (!drop) return;
-
-    drop.innerHTML = '';
-    drop.onclick = e => e.stopPropagation();
-    drop.style.width = '750px'; 
-    drop.style.minWidth = '580px';
-    drop.style.maxWidth = '98vw';
-    drop.style.boxSizing = 'border-box';
-    drop.style.overflowX = 'hidden';
-    drop.style.padding = '8px 0';
+    
+    // Fix font size to match others
+    pill.style.fontSize = 'calc(var(--pill-font-size, 0.82rem) * 1.1)';
+    pill.style.fontWeight = '800';
+    pill.style.cursor = 'default'; // No menu here as requested
+    
+    // Clear any existing dropdown listeners/logic from this pill specifically
+    const drop = document.getElementById('gv2-pnl-dropdown');
+    if (drop) drop.classList.remove('open');
+    pill.onclick = null; 
 
     const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
     const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
+    const activeIdx = activeTrade ? trades.indexOf(activeTrade) : -1;
+
+    // Find WHICH dropdown is currently open to populate it (only if open)
+    const activeDrop = [
+        document.getElementById('gv2-pnl-dropdown'),
+        document.getElementById('gv2-trade-dropdown')
+    ].find(d => d && d.classList.contains('open'));
+
+    if (!activeDrop) return;
+    activeDrop.innerHTML = '';
+    activeDrop.onclick = e => e.stopPropagation();
+    activeDrop.style.width = '750px'; 
+    activeDrop.style.minWidth = '580px';
+    activeDrop.style.maxWidth = '98vw';
+    activeDrop.style.boxSizing = 'border-box';
+    activeDrop.style.overflowX = 'hidden';
+    activeDrop.style.padding = '8px 0';
     const activeIdx = activeTrade ? trades.indexOf(activeTrade) : -1;
 
     let runningTotal = 0;
@@ -269,7 +283,7 @@ function renderGalleryPnlPill() {
              document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open'));
              document.querySelectorAll('.gv2-pnl-dropdown').forEach(d => d.classList.remove('open'));
         });
-        drop.appendChild(row);
+        activeDrop.appendChild(row);
     });
 }
 
@@ -353,7 +367,17 @@ function renderGalleryTradePill() {
     // ── Dropdown Toggle logic ────────────────────────────────────────────────
     const drop = document.getElementById('gv2-trade-dropdown');
     pill.style.cursor = 'pointer';
-    pill.addEventListener('click', (e) => {
+    
+    // Arrow cleanup: check if already exists to avoid duplicates
+    let arrow = pill.querySelector('.gv2-pill-arrow');
+    if (!arrow) {
+        arrow = document.createElement('span');
+        arrow.className = 'gv2-pill-arrow';
+        arrow.innerHTML = ' ▾';
+        arrow.style.cssText = 'color:rgba(255,255,255,0.4); margin-left:6px; font-size:0.8rem; pointer-events:none;';
+    }
+
+    pill.onclick = (e) => {
         e.stopPropagation();
         if (drop) {
             const isOpened = drop.classList.contains('open');
@@ -363,17 +387,12 @@ function renderGalleryTradePill() {
             
             if (!isOpened) {
                 drop.classList.add('open');
-                // Ensure it's re-rendered (shared population logic)
                 renderGalleryPnlPill(); 
             }
         }
-    });
-
-    // Add arrow indicator
-    const arrow = document.createElement('span');
-    arrow.innerHTML = ' ▾';
-    arrow.style.cssText = 'color:rgba(255,255,255,0.4); margin-left:6px; font-size:0.8rem;';
-    pill.appendChild(arrow);
+    };
+    
+    if (!pill.contains(arrow)) pill.appendChild(arrow);
 }
 
 // renderGalleryTrayState, renderGalleryTradeInfoDisplay, renderGalleryTrayCounter, renderGalleryMtmPanel
