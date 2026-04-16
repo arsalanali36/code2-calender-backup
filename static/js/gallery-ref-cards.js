@@ -252,6 +252,7 @@ function initOtherDropdown() {
   // Local staging variables (only save to state/localStorage on "Save Settings" click)
   let stagedShowRefCards = true;
   let stagedSidebarDisabled = true;
+  let stagedPillFontSize = '0.82rem';
 
   const openModal = (e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -270,8 +271,16 @@ function initOtherDropdown() {
       } catch(e) { window._tradeSidebarDisabled = true; }
     }
 
+    if (state.gallery.pillFontSize === undefined) {
+      try {
+        const stored = localStorage.getItem('tj_gv2_pillFontSize');
+        state.gallery.pillFontSize = stored || '0.82rem';
+      } catch(e) { state.gallery.pillFontSize = '0.82rem'; }
+    }
+
     stagedShowRefCards = state.gallery.showRefCards;
     stagedSidebarDisabled = window._tradeSidebarDisabled;
+    stagedPillFontSize = state.gallery.pillFontSize;
 
     _updateStagedUI();
     overlay.classList.add('open');
@@ -289,6 +298,10 @@ function initOtherDropdown() {
       tsBadge.textContent = !stagedSidebarDisabled ? 'ON' : 'OFF';
       document.getElementById('gv2-tradesidebar-toggle').classList.toggle('active', !stagedSidebarDisabled);
     }
+    const fsSelect = document.getElementById('gv2-pill-font-size');
+    if (fsSelect) {
+      fsSelect.value = stagedPillFontSize;
+    }
   };
 
   const closeModal = () => {
@@ -303,11 +316,16 @@ function initOtherDropdown() {
     // Persist staging variables
     state.gallery.showRefCards = stagedShowRefCards;
     window._tradeSidebarDisabled = stagedSidebarDisabled;
+    state.gallery.pillFontSize = stagedPillFontSize;
 
     try {
       localStorage.setItem('tj_gv2_showRefCards', state.gallery.showRefCards);
       localStorage.setItem('tj_gv2_sidebarDisabled', window._tradeSidebarDisabled);
+      localStorage.setItem('tj_gv2_pillFontSize', state.gallery.pillFontSize);
     } catch(err) { console.error("LocalStorage Save Error:", err); }
+
+    // Apply CSS scale
+    document.documentElement.style.setProperty('--pill-font-size', state.gallery.pillFontSize);
 
     // Apply UI changes immediately
     if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
@@ -347,6 +365,11 @@ function initOtherDropdown() {
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
     tsToggle.addEventListener('click', () => { stagedSidebarDisabled = !stagedSidebarDisabled; _updateStagedUI(); });
+  }
+
+  const fsSelect = document.getElementById('gv2-pill-font-size');
+  if (fsSelect) {
+    fsSelect.addEventListener('change', (e) => { stagedPillFontSize = e.target.value; });
   }
 
   // Export Current View PDF
@@ -599,4 +622,12 @@ function _syncTradeSidebarBtn() {
   badge.textContent = enabled ? 'ON' : 'OFF';
   row.classList.toggle('active', enabled);
 }
+
+// Initialize Saved Font Size on Load
+(function() {
+  try {
+    const storedFs = localStorage.getItem('tj_gv2_pillFontSize');
+    if (storedFs) document.documentElement.style.setProperty('--pill-font-size', storedFs);
+  } catch(e) {}
+})();
 

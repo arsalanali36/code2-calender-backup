@@ -214,7 +214,7 @@ function renderGalleryPnlPill() {
 
         const lbl = document.createElement('span');
         lbl.className = 'gv2-pnl-trade-label';
-        lbl.style.cssText = `font-weight:${isActive ? '900' : '700'}; font-size:0.82rem; color:${isActive ? '#60a5fa' : 'var(--text3)'};`;
+        lbl.style.cssText = `font-weight:${isActive ? '900' : '700'}; font-size:var(--pill-font-size, 0.82rem); color:${isActive ? '#60a5fa' : 'var(--text3)'};`;
         lbl.textContent = `T${i + 1}`;
 
         const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
@@ -227,24 +227,24 @@ function renderGalleryPnlPill() {
 
         const inst = document.createElement('span');
         inst.className = 'gv2-pnl-trade-inst';
-        inst.style.cssText = `font-size:0.73rem; color:${instColor}; font-weight:700; white-space:nowrap;`;
+        inst.style.cssText = `font-size:calc(var(--pill-font-size, 0.82rem) * 0.9); color:${instColor}; font-weight:700; white-space:nowrap;`;
         inst.textContent = instText || '—';
 
         const info = document.createElement('span');
-        info.style.cssText = 'font-size:0.73rem; color:var(--text3); white-space:nowrap; overflow:hidden;';
+        info.style.cssText = 'font-size:calc(var(--pill-font-size, 0.82rem) * 0.9); color:var(--text3); white-space:nowrap; overflow:hidden;';
         info.innerHTML = `<span style="color:var(--text2)">${entryTime}</span>${dur ? ` <span style="font-weight:700; color:#fff;">[${dur}]</span>` : ''}${lot ? ` <span style="color:var(--text2);">${lot}</span>` : ''}`;
 
         const ptWrap = document.createElement('span');
         ptWrap.textContent = Math.abs(Math.round(pt)) + ' Pt';
-        ptWrap.style.cssText = `text-align:right; color:${pt >= 0 ? '#2ecc71' : '#e74c3c'}; font-size:0.78rem; font-weight:600; white-space:nowrap;`;
+        ptWrap.style.cssText = `text-align:right; color:${pt >= 0 ? '#2ecc71' : '#e74c3c'}; font-size:calc(var(--pill-font-size, 0.82rem) * 0.95); font-weight:600; white-space:nowrap;`;
 
         const val = document.createElement('span');
         val.textContent = fmtPnl(p);
-        val.style.cssText = `text-align:right; font-weight:700; font-size:0.85rem; color:${p > 0 ? '#2ecc71' : (p < 0 ? '#e74c3c' : 'var(--text2)')}; white-space:nowrap;`;
+        val.style.cssText = `text-align:right; font-weight:700; font-size:calc(var(--pill-font-size, 0.82rem) * 1.05); color:${p > 0 ? '#2ecc71' : (p < 0 ? '#e74c3c' : 'var(--text2)')}; white-space:nowrap;`;
 
         const cumVal = document.createElement('span');
         cumVal.textContent = fmtPnl(runningTotal);
-        cumVal.style.cssText = `text-align:right; font-weight:600; font-size:0.82rem; border-left:1px solid rgba(255,255,255,0.12); padding-left:8px; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; white-space:nowrap;`;
+        cumVal.style.cssText = `text-align:right; font-weight:600; font-size:var(--pill-font-size, 0.82rem); border-left:1px solid rgba(255,255,255,0.12); padding-left:8px; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; white-space:nowrap;`;
 
         row.appendChild(dot); row.appendChild(lbl); row.appendChild(inst); row.appendChild(info); row.appendChild(ptWrap); row.appendChild(val); row.appendChild(cumVal);
         row.addEventListener('click', () => {
@@ -335,9 +335,9 @@ function renderGalleryTradePill() {
     pill.style.background = 'rgba(255,255,255,0.08)';
     pill.style.transform = 'scale(1.02)';
     pill.innerHTML =
-        `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:0.78rem;color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
-      + `<span class="gv2-tp-inst" style="margin-left:8px; font-weight:700; color:#fff; font-size:0.85rem; letter-spacing:0.2px;">${instText}</span>`
-      + `<span class="gv2-tp-info" style="margin-left:8px; font-size:0.75rem; color:rgba(255,255,255,0.5); border-left:1px solid rgba(255,255,255,0.1); padding-left:8px;">`
+        `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:calc(var(--pill-font-size, 0.82) * 0.95);color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
+      + `<span class="gv2-tp-inst" style="margin-left:8px; font-weight:700; color:#fff; font-size:var(--pill-font-size, 0.85rem); letter-spacing:0.2px;">${instText}</span>`
+      + `<span class="gv2-tp-info" style="margin-left:8px; font-size:calc(var(--pill-font-size, 0.82rem) * 0.9); color:rgba(255,255,255,0.5); border-left:1px solid rgba(255,255,255,0.1); padding-left:8px;">`
          + `<span style="color:#fff">${entryTime}</span>`
          + `${dur ? ` <span style="color:#fff; font-weight:700;">[${dur}]</span>` : ''}`
          + `${lot ? ` <span style="color:var(--text3);">${lot}L</span>` : ''}`
