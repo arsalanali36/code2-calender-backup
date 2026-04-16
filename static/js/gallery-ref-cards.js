@@ -402,6 +402,24 @@ function initOtherDropdown() {
       }
     });
   }
+
+  // 📤 Restore Backup (ZIP / JSON)
+  const restoreBtn = document.getElementById('gv2-restore-backup-btn');
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', () => {
+      closeModal();
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.zip,.json';
+      inp.onchange = e => {
+        const file = e.target.files[0];
+        if (file && typeof importJson === 'function') {
+          importJson(file);
+        }
+      };
+      inp.click();
+    });
+  }
 }
 
 /**

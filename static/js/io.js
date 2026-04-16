@@ -368,30 +368,146 @@ async function importDhanCsv(file) {
 }
 
 async function importJson(file) {
-  try {
-    showToast('Restoring backup...', '');
-    const data = await importService.importJsonOrZip(file);
+  handleRestoreWithProgress(file);
+}
+
+/**
+ * Enhanced Restore handler with a % progress bar for clarity.
+ */
+async function handleRestoreWithProgress(file) {
+    const modal = document.getElementById('restore-progress-modal');
+    const bar = document.getElementById('restore-progress-fill');
+    const text = document.getElementById('restore-progress-text');
+    const pctTxt = document.getElementById('restore-progress-percent');
+    
+    if (!modal) {
+        // Fallback
+        try {
+            showToast('Restoring backup...', '');
+            const data = await importService.importJsonOrZip(file);
+            _completeRestore(data);
+        } catch(e) { showToast(e.message || 'Restore failed', 'error'); }
+        return;
+    }
+
+    modal.style.display = 'flex';
+    bar.style.width = '2%';
+    text.textContent = 'Uploading backup...';
+    pctTxt.textContent = '2%';
+    
+    let progress = 2;
+    const interval = setInterval(() => {
+        if (progress < 98) {
+            const inc = progress < 50 ? 3 : (progress < 85 ? 1 : 0.2);
+            progress += inc;
+            bar.style.width = `${progress.toFixed(1)}%`;
+            pctTxt.textContent = `${Math.floor(progress)}%`;
+            if (progress > 40) text.textContent = 'Extracting data & images...';
+            if (progress > 80) text.textContent = 'Rebuilding project state...';
+        }
+    }, 250);
+
+    try {
+        const data = await importService.importJsonOrZip(file);
+        clearInterval(interval);
+        bar.style.width = '100%';
+        pctTxt.textContent = '100%';
+        text.textContent = 'Restore Complete! 🏁';
+        
+        _completeRestore(data);
+
+        setTimeout(() => { modal.style.display = 'none'; }, 1000);
+    } catch (err) {
+        clearInterval(interval);
+        modal.style.display = 'none';
+        showToast(err.message || 'Restore failed', 'error');
+    }
+}
+
+function _completeRestore(data) {
     if (data.error) { showToast(data.error, 'error'); return; }
-    state.trades = data.trades;
-    state.columns = data.columns;
+    
+    // Core data restore
+    state.trades = data.trades || [];
+    state.columns = data.columns || [];
     state.allTags = data.allTags || state.allTags || [];
-    state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
-    state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    state.tagColumns = data.tagColumns || state.tagColumns || [];
+    state.userColumns = data.userColumns || [];
+    state.dayData = data.dayData || {};
+
+    // Finalize UI Refresh
     ensurePermanentColumns();
     syncTagColumnRegistry();
     syncImageTagColumnValues();
-    state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
+    state.userColumns = (state.userColumns || []).filter(c => state.columns.includes(c));
     normalizeStructuredDateColumns();
     migrateLegacyTagsData();
     initShowHeads(); initTableShowCols();
     render();
-    showToast('Backup restored!', 'success');
-  } catch (e) { showToast('Restore failed', 'error'); }
+    showToast('Backup restored successfully! ✨', 'success');
 }
 
 function backupJson() {
   const name = prompt('Backup name (optional):') || '';
-  exportService.downloadBackup(String(name).trim());
+  handleBackupWithProgress(String(name).trim());
+}
+
+/**
+ * Enhanced backup handler with a % progress slider/bar as requested.
+ * Since backend zipping is a single request, we use a "simulated" progress 
+ * that climbs while waiting for the server response.
+ */
+async function handleBackupWithProgress(name = '') {
+    const modal = document.getElementById('backup-progress-modal');
+    const bar = document.getElementById('backup-progress-fill');
+    const text = document.getElementById('backup-progress-text');
+    const pctTxt = document.getElementById('backup-progress-percent');
+    
+    if (!modal) {
+        // Fallback to old method if UI doesn't exist
+        exportService.downloadBackup(name);
+        return;
+    }
+
+    // Show modal
+    modal.style.display = 'flex';
+    bar.style.width = '2%';
+    text.textContent = 'Preparing files...';
+    pctTxt.textContent = '2%';
+    
+    let progress = 2;
+    const interval = setInterval(() => {
+        if (progress < 98) {
+            // Slow down as we get closer to "finish"
+            const inc = progress < 70 ? 2 : (progress < 90 ? 0.5 : 0.1);
+            progress += inc;
+            bar.style.width = `${progress.toFixed(1)}%`;
+            pctTxt.textContent = `${Math.floor(progress)}%`;
+            
+            if (progress > 30 && progress < 60) text.textContent = 'Compressing images & videos...';
+            if (progress >= 60) text.textContent = 'Finalizing ZIP architecture...';
+        }
+    }, 200);
+
+    try {
+        await exportService.downloadBackup(name);
+        
+        // Finish
+        clearInterval(interval);
+        bar.style.width = '100%';
+        pctTxt.textContent = '100%';
+        text.textContent = 'Backup Ready! Download started.';
+        showToast('Full Backup Downloaded! ✨', 'success');
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 1500);
+        
+    } catch (err) {
+        clearInterval(interval);
+        modal.style.display = 'none';
+        showToast('Backup failed: ' + err.message, 'error');
+    }
 }
 
 async function exportExcel() {

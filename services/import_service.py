@@ -136,37 +136,103 @@ def import_dhan_csv(file_storage, output_csv_path: str | None = None) -> dict:
 
 def import_json_or_zip(file_storage, uploads_dir: str, user_id=None) -> dict:
     """
-    Restore from a .json or .zip backup file.
-    Returns {'success': True, 'trades': [...], 'columns': [...]}.
-    Raises ValueError on invalid file.
+    Restore journal from a .json or .zip backup file.
+    Memory-efficient version that handles large archives by streaming.
     """
+    from services.debug_service import log_ai_event
+    
     filename = (file_storage.filename or '').lower()
+    data = None
+    
+    # Correctly target the 'data' folder next to the 'static' folder
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(uploads_dir)))
+    data_dir = os.path.join(base_dir, 'data')
 
-    if filename.endswith('.zip'):
-        file_bytes = file_storage.read()
-        with zipfile.ZipFile(io.BytesIO(file_bytes)) as zf:
-            with zf.open('trades.json') as jf:
-                data = json.load(jf)
-            if 'trades' not in data:
-                raise ValueError('Invalid backup file')
-            save_trades_to_file(data, user_id)
-            os.makedirs(uploads_dir, exist_ok=True)
-            for name in zf.namelist():
-                if name.startswith('uploads/') and not name.endswith('/'):
-                    img_fname = os.path.basename(name)
-                    if img_fname:
-                        img_path = os.path.join(uploads_dir, img_fname)
+    try:
+        # Seek to start in case of previous reads
+        file_storage.seek(0)
+
+        if filename.endswith('.zip'):
+            print(f"[Import] Processing ZIP backup: {filename}")
+            # ZipFile can read directly from the file stream if it supports seek/tell
+            with zipfile.ZipFile(file_storage) as zf:
+                raw_list = zf.namelist()
+                valid_list = [n for n in raw_list if not n.startswith('__MACOSX/') and not n.endswith('/.DS_Store')]
+                
+                # 1. Find trades.json (Legacy root or new data/ folder)
+                json_name = None
+                for name in ['data/trades.json', 'trades.json']:
+                    if name in valid_list:
+                        json_name = name
+                        break
+                
+                if not json_name:
+                    raise ValueError('Backup ZIP missing trades.json (not found in root or data/ folder)')
+
+                # Load trades data
+                with zf.open(json_name) as jf:
+                    # Handle BOM if present
+                    content = jf.read().decode('utf-8-sig')
+                    data = json.loads(content)
+                
+                if not isinstance(data, dict) or 'trades' not in data:
+                    raise ValueError('Invalid backup: trades.json missing "trades" key')
+
+                # Save main data file first
+                save_trades_to_file(data, user_id)
+
+                # 2. Extract media and supplemental files recursively
+                for name in valid_list:
+                    if name == json_name:
+                        continue
+                        
+                    # Extract images/media
+                    if name.startswith('uploads/') and not name.endswith('/'):
+                        rel_path = name[len('uploads/'):]
+                        target_path = os.path.join(uploads_dir, rel_path)
+                        os.makedirs(os.path.dirname(target_path), exist_ok=True)
                         with zf.open(name) as src:
-                            with open(img_path, 'wb') as dst:
-                                dst.write(src.read())
-    else:
-        data = json.load(file_storage)
-        if 'trades' not in data:
-            raise ValueError('Invalid backup file')
-        save_trades_to_file(data, user_id)
+                            with open(target_path, 'wb') as dst:
+                                shutil.copyfileobj(src, dst)
+                    
+                    # Extract other data files from zip's 'data/' folder
+                    elif name.startswith('data/') and not name.endswith('/') and name != 'data/trades.json':
+                        rel_path = name[len('data/'):]
+                        target_path = os.path.join(data_dir, rel_path)
+                        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                        with zf.open(name) as src:
+                            with open(target_path, 'wb') as dst:
+                                shutil.copyfileobj(src, dst)
 
-    return {
-        'success': True,
-        'trades': data.get('trades', []),
-        'columns': data.get('columns', []),
-    }
+            print(f"[Import] ZIP backup restored successfully.")
+        else:
+            # Direct JSON upload
+            print(f"[Import] Processing JSON backup: {filename}")
+            # Handle BOM if present
+            content = file_storage.read().decode('utf-8-sig')
+            data = json.loads(content)
+            
+            if not isinstance(data, dict) or 'trades' not in data:
+                raise ValueError('Invalid backup: JSON missing "trades" key')
+            
+            save_trades_to_file(data, user_id)
+            print(f"[Import] JSON backup restored successfully.")
+
+        if not data:
+            raise ValueError("No data processed from the backup file.")
+
+        return {
+            'success': True,
+            'trades': data.get('trades', []),
+            'columns': data.get('columns', []),
+            'allTags': data.get('allTags', []),
+            'tagColumns': data.get('tagColumns', []),
+            'userColumns': data.get('userColumns', []),
+            'dayData': data.get('dayData', {}),
+        }
+
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        # This will be caught by the route which also logs, but we log here for internal service granularity
+        log_ai_error(f"import_json_or_zip critical failure: {str(e)}", e)
+        raise ValueError(f"Restore failed: {str(e)}")

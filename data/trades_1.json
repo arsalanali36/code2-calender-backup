@@ -14781,7 +14781,7 @@
       "Buy Time": "10:46:17",
       "Day P&L": 1215.5,
       "Gross P/L": 1215.5,
-      "Image Tags": "chotu, NO ZONE, pintu, ZONE ENTRY",
+      "Image Tags": "",
       "Instrument": "NIFTY2632422700PE",
       "Net P/L": 1126.51,
       "Note": "",
@@ -14799,20 +14799,11 @@
       "Video": "",
       "date": "2026-03-24",
       "imageTags": {
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/462f9718-57f4-4216-92db-c8c6486423d5.png": [
-          "ZONE ENTRY",
-          "NO ZONE",
-          "chotu"
-        ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/86890efb-648f-47fe-995e-262786d07139.png": [
           "pintu"
         ]
       },
-      "images": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/462f9718-57f4-4216-92db-c8c6486423d5.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329644/trading_journal/86890efb-648f-47fe-995e-262786d07139.png",
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1774329645/trading_journal/e177b3f2-6325-4a5d-8f3b-8fe38c48f19e.png"
-      ],
+      "images": [],
       "observation": "",
       "tags": [],
       "tradeTags": [
@@ -19905,7 +19896,6 @@
         ]
       },
       "images": [
-        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381545/trading_journal/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381688/trading_journal/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381863/trading_journal/d7fa3298-cb75-4e73-aa88-79cf098f2860.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381666/trading_journal/62565683-03fb-4c3d-971a-9f586e4f69a8.png"
@@ -19925,7 +19915,9 @@
           "bina zone"
         ]
       },
-      "video": "https://youtu.be/sQe00rCxL44?si=-UyWbUH4ONhWVmmZ"
+      "video": "https://youtu.be/sQe00rCxL44?si=-UyWbUH4ONhWVmmZ",
+      "newsImages": [],
+      "closeGlobalImages": []
     },
     "2026-02-25": {
       "audios": {},
@@ -30009,7 +30001,6 @@
       ]
     }
   },
-  "importedPdfs": [],
   "tagGroups": {
     "BAT": [
       "chotu",
@@ -30090,9 +30081,5 @@
       "3 min",
       "5 min"
     ]
-  },
-  "tagTemplates": {},
-  "pdfPageTags": {},
-  "imgTypes": {},
-  "uiSettings": {}
+  }
 }

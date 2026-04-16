@@ -222,7 +222,7 @@ def build_backup_zip(data_file: str, uploads_dir: str) -> tuple[bytes, str]:
                     zf.write(fpath, f'uploads/{rel_path}')
 
         # 3. Add the generated Excel and HTML reports
-        zf.writestr('trades_export.xlsx', build_excel_bytes(journal_data))
+        zf.writestr('trades_export.xlsx', build_excel_bytes(journal_data).getvalue())
         zf.writestr('observations.html', build_observations_html(journal_data, timestamp))
         
     buf.seek(0)
