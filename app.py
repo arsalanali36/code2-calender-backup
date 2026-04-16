@@ -55,9 +55,23 @@ from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
 
+# ── CACHE BUSTING ────────────────────────────────────────────────────────────
+@app.after_request
+def add_header(response):
+    """
+    Disable caching for static files during development.
+    """
+    if app.debug:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
+
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 Compress(app)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI

@@ -482,3 +482,15 @@ function tradeMatchesDateRange(trade) {
   if (state.dateRange.to && dk > state.dateRange.to) return false;
   return true;
 }
+
+function cleanInstrumentName(symbol) {
+  if (!symbol) return '';
+  const s = String(symbol).toUpperCase().trim();
+  // Pattern: Look for 3 or more digits followed by CE or PE at the end.
+  // This covers NIFTY24APR24200PE -> 24200 PE, BANKNIFTY2442556700CE -> 56700 CE
+  const match = s.match(/(\d{3,})(CE|PE)$/);
+  if (match) {
+    return `${match[1]} ${match[2]}`;
+  }
+  return s;
+}

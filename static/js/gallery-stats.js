@@ -219,8 +219,7 @@ function renderGalleryPnlPill() {
 
         const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
         const instNum = rawInst.toUpperCase();
-        const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-        const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : instNum;
+        const instText = cleanInstrumentName(rawInst);
 
         let instColor = '#ffd700';
         if (instNum.endsWith('CE')) instColor = '#c084fc';
@@ -300,8 +299,7 @@ function renderGalleryTradePill() {
 
     const rawInst = owner.Instrument || owner.instrument || owner.Symbol || owner.symbol || '';
     const instNum = rawInst.toUpperCase();
-    const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-    const instText = m ? `${m[5]} ${m[6]}` : instNum;
+    const instText = cleanInstrumentName(rawInst);
 
     const buyTime = (owner['Buy Time'] || owner['buy_time'] || '').slice(0, 5);
     const sellTime = (owner['Sell Time'] || owner['sell_time'] || '').slice(0, 5);

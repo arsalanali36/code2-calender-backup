@@ -159,9 +159,10 @@ const VIDEO_COLUMN = 'Video';
 const TOTAL_FEES_COLUMN = 'Total Fees';
 const TOTAL_TRADES_COLUMN = 'Total Trades';
 const IMAGE_PERMANENT_TAGS = ['thumbnail'];
-const PERMANENT_COLUMNS = [BROKER_COLUMN, IMAGE_TAG_COLUMN, NOTE_COLUMN, VIDEO_COLUMN, TOTAL_TRADES_COLUMN];
+const PERMANENT_COLUMNS = ['Sequence', 'Day P&L', BROKER_COLUMN, IMAGE_TAG_COLUMN, NOTE_COLUMN, VIDEO_COLUMN, TOTAL_TRADES_COLUMN];
 const COMPUTED_COLUMNS = ['Brokerage', 'Other Charges', 'Gross P/L', 'Net P/L', TOTAL_FEES_COLUMN];
 const UNIFIED_STRUCTURED_COLUMNS = [
+  'Sequence',
   'Instrument',
   BROKER_COLUMN,
   'TradeType',
@@ -172,6 +173,7 @@ const UNIFIED_STRUCTURED_COLUMNS = [
   'Buy Price (Avg)',
   'Pt',
   'Rs',
+  'Day P&L',
   'trade_date'
 ];
 const IS_TOUCH_DEVICE = ('ontouchstart' in window) || 

@@ -243,19 +243,52 @@ function initOtherDropdown() {
   const btn     = document.getElementById('gv2-other-btn');
   const overlay = document.getElementById('gv2-settings-overlay');
   const closeBtn = document.getElementById('gv2-settings-close');
+  const saveBtn  = document.getElementById('gv2-settings-save-btn');
   if (!btn || !overlay) return;
 
   if (btn.dataset.initialized) return;
   btn.dataset.initialized = 'true';
 
+  // Local staging variables (only save to state/localStorage on "Save Settings" click)
+  let stagedShowRefCards = true;
+  let stagedSidebarDisabled = true;
+
   const openModal = (e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (state.gallery.showRefCards === undefined) state.gallery.showRefCards = true;
-    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
-    _syncRefCardsBtn();
-    _syncTradeSidebarBtn();
+    
+    // 1. Initial Load of current state into staging
+    if (state.gallery.showRefCards === undefined) {
+      try {
+        const stored = localStorage.getItem('tj_gv2_showRefCards');
+        state.gallery.showRefCards = (stored !== null) ? (stored === 'true') : true;
+      } catch(e) { state.gallery.showRefCards = true; }
+    }
+    if (window._tradeSidebarDisabled === undefined) {
+      try {
+        const stored = localStorage.getItem('tj_gv2_sidebarDisabled');
+        window._tradeSidebarDisabled = (stored !== null) ? (stored === 'true') : true;
+      } catch(e) { window._tradeSidebarDisabled = true; }
+    }
+
+    stagedShowRefCards = state.gallery.showRefCards;
+    stagedSidebarDisabled = window._tradeSidebarDisabled;
+
+    _updateStagedUI();
     overlay.classList.add('open');
     btn.classList.add('active');
+  };
+
+  const _updateStagedUI = () => {
+    const rcBadge = document.getElementById('gv2-refcards-badge');
+    if (rcBadge) {
+      rcBadge.textContent = stagedShowRefCards ? 'ON' : 'OFF';
+      document.getElementById('gv2-refcards-toggle').classList.toggle('active', stagedShowRefCards);
+    }
+    const tsBadge = document.getElementById('gv2-tradesidebar-badge');
+    if (tsBadge) {
+      tsBadge.textContent = !stagedSidebarDisabled ? 'ON' : 'OFF';
+      document.getElementById('gv2-tradesidebar-toggle').classList.toggle('active', !stagedSidebarDisabled);
+    }
   };
 
   const closeModal = () => {
@@ -263,71 +296,66 @@ function initOtherDropdown() {
     btn.classList.remove('active');
   };
 
-  btn.addEventListener('click', openModal);
-  btn.addEventListener('touchstart', openModal, { passive: false });
+  const handleSave = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    console.log("[GallerySettings] Saving staged values...", { stagedShowRefCards, stagedSidebarDisabled });
+    
+    // Persist staging variables
+    state.gallery.showRefCards = stagedShowRefCards;
+    window._tradeSidebarDisabled = stagedSidebarDisabled;
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeModal);
-    closeBtn.addEventListener('touchstart', closeModal, { passive: false });
+    try {
+      localStorage.setItem('tj_gv2_showRefCards', state.gallery.showRefCards);
+      localStorage.setItem('tj_gv2_sidebarDisabled', window._tradeSidebarDisabled);
+    } catch(err) { console.error("LocalStorage Save Error:", err); }
+
+    // Apply UI changes immediately
+    if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
+      toggleTradeSidebar(false);
+    }
+    
+    state.gallery._skipScrollIntoView = true;
+    if (typeof renderGallery === 'function') renderGallery();
+    
+    // Visual Confirmation
+    if (typeof showToast === 'function') {
+        showToast('✅ Gallery Settings Saved & Applied!', 'success');
+    } else {
+        alert('Settings Saved!');
+    }
+    
+    closeModal();
+  };
+
+  btn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  
+  // Re-fetch button to be absolutely sure it's in DOM
+  const finalBtn = document.getElementById('gv2-settings-save-btn');
+  if (finalBtn) {
+      finalBtn.addEventListener('click', handleSave);
+      console.log("[GallerySettings] Save button listener attached successfully.");
   }
 
-  // Close on overlay backdrop click
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeModal();
-  });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 
-  // Ref Cards toggle
+  // Staging Toggles
   const rcToggle = document.getElementById('gv2-refcards-toggle');
   if (rcToggle) {
-    const handleRc = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      state.gallery.showRefCards = !state.gallery.showRefCards;
-      _syncRefCardsBtn();
-      state.gallery._skipScrollIntoView = true;
-      renderGallery();
-    };
-    rcToggle.addEventListener('click', handleRc);
-    rcToggle.addEventListener('touchstart', handleRc, { passive: false });
+    rcToggle.addEventListener('click', () => { stagedShowRefCards = !stagedShowRefCards; _updateStagedUI(); });
   }
-
-  // Trade Sidebar toggle
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
-    const handleTs = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
-      if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
-        toggleTradeSidebar(false);
-      }
-      _syncTradeSidebarBtn();
-    };
-    tsToggle.addEventListener('click', handleTs);
-    tsToggle.addEventListener('touchstart', handleTs, { passive: false });
+    tsToggle.addEventListener('click', () => { stagedSidebarDisabled = !stagedSidebarDisabled; _updateStagedUI(); });
   }
 
   // Export Current View PDF
   const pdfBtn = document.getElementById('gv2-export-current-pdf-btn');
-  if (pdfBtn) {
-    const handlePdf = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      closeModal();
-      if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
-    };
-    pdfBtn.addEventListener('click', handlePdf);
-    pdfBtn.addEventListener('touchstart', handlePdf, { passive: false });
-  }
+  if (pdfBtn) pdfBtn.addEventListener('click', () => { closeModal(); if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF(); });
 
   // Export Ref Cards PDF Summary
   const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
-  if (allPdfBtn) {
-    const handleAllPdf = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      closeModal();
-      if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
-    };
-    allPdfBtn.addEventListener('click', handleAllPdf);
-    allPdfBtn.addEventListener('touchstart', handleAllPdf, { passive: false });
-  }
+  if (allPdfBtn) allPdfBtn.addEventListener('click', () => { closeModal(); if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF(); });
 }
 
 /**
