@@ -40,12 +40,15 @@ const apiClient = (() => {
 
   /**
    * POST multipart FormData (for file uploads). Returns parsed JSON.
-   * @param {string} path
-   * @param {FormData} formData
    */
   async function upload(path, formData) {
     const res = await fetch(BASE + path, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error(`UPLOAD ${path} → ${res.status}`);
+    if (!res.ok) {
+        let errJson = null;
+        try { errJson = await res.json(); } catch(e) {}
+        if (errJson && errJson.error) throw new Error(errJson.error);
+        throw new Error(`UPLOAD ${path} → ${res.status}`);
+    }
     return res.json();
   }
 
@@ -9540,6 +9543,38 @@ function initOtherDropdown() {
   // Export Ref Cards PDF Summary
   const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
   if (allPdfBtn) allPdfBtn.addEventListener('click', () => { closeModal(); if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF(); });
+
+  // 📦 Full Backup (Data + Images)
+  const fullBackupBtn = document.getElementById('gv2-full-backup-btn');
+  if (fullBackupBtn) {
+    fullBackupBtn.addEventListener('click', () => {
+      closeModal();
+      if (typeof backupJson === 'function') {
+        backupJson();
+      } else {
+        // Fallback if backupJson is not in scope
+        exportService.downloadBackup();
+      }
+    });
+  }
+
+  // 📤 Restore Backup (ZIP / JSON)
+  const restoreBtn = document.getElementById('gv2-restore-backup-btn');
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', () => {
+      closeModal();
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.zip,.json';
+      inp.onchange = e => {
+        const file = e.target.files[0];
+        if (file && typeof importJson === 'function') {
+          importJson(file);
+        }
+      };
+      inp.click();
+    });
+  }
 }
 
 /**
@@ -21098,30 +21133,146 @@ async function importDhanCsv(file) {
 }
 
 async function importJson(file) {
-  try {
-    showToast('Restoring backup...', '');
-    const data = await importService.importJsonOrZip(file);
+  handleRestoreWithProgress(file);
+}
+
+/**
+ * Enhanced Restore handler with a % progress bar for clarity.
+ */
+async function handleRestoreWithProgress(file) {
+    const modal = document.getElementById('restore-progress-modal');
+    const bar = document.getElementById('restore-progress-fill');
+    const text = document.getElementById('restore-progress-text');
+    const pctTxt = document.getElementById('restore-progress-percent');
+    
+    if (!modal) {
+        // Fallback
+        try {
+            showToast('Restoring backup...', '');
+            const data = await importService.importJsonOrZip(file);
+            _completeRestore(data);
+        } catch(e) { showToast(e.message || 'Restore failed', 'error'); }
+        return;
+    }
+
+    modal.style.display = 'flex';
+    bar.style.width = '2%';
+    text.textContent = 'Uploading backup...';
+    pctTxt.textContent = '2%';
+    
+    let progress = 2;
+    const interval = setInterval(() => {
+        if (progress < 98) {
+            const inc = progress < 50 ? 3 : (progress < 85 ? 1 : 0.2);
+            progress += inc;
+            bar.style.width = `${progress.toFixed(1)}%`;
+            pctTxt.textContent = `${Math.floor(progress)}%`;
+            if (progress > 40) text.textContent = 'Extracting data & images...';
+            if (progress > 80) text.textContent = 'Rebuilding project state...';
+        }
+    }, 250);
+
+    try {
+        const data = await importService.importJsonOrZip(file);
+        clearInterval(interval);
+        bar.style.width = '100%';
+        pctTxt.textContent = '100%';
+        text.textContent = 'Restore Complete! 🏁';
+        
+        _completeRestore(data);
+
+        setTimeout(() => { modal.style.display = 'none'; }, 1000);
+    } catch (err) {
+        clearInterval(interval);
+        modal.style.display = 'none';
+        showToast(err.message || 'Restore failed', 'error');
+    }
+}
+
+function _completeRestore(data) {
     if (data.error) { showToast(data.error, 'error'); return; }
-    state.trades = data.trades;
-    state.columns = data.columns;
+    
+    // Core data restore
+    state.trades = data.trades || [];
+    state.columns = data.columns || [];
     state.allTags = data.allTags || state.allTags || [];
-    state.tagColumns = Array.isArray(data.tagColumns) ? data.tagColumns : state.tagColumns;
-    state.userColumns = Array.isArray(data.userColumns) ? data.userColumns : [];
+    state.tagColumns = data.tagColumns || state.tagColumns || [];
+    state.userColumns = data.userColumns || [];
+    state.dayData = data.dayData || {};
+
+    // Finalize UI Refresh
     ensurePermanentColumns();
     syncTagColumnRegistry();
     syncImageTagColumnValues();
-    state.userColumns = state.userColumns.filter(c => state.columns.includes(c));
+    state.userColumns = (state.userColumns || []).filter(c => state.columns.includes(c));
     normalizeStructuredDateColumns();
     migrateLegacyTagsData();
     initShowHeads(); initTableShowCols();
     render();
-    showToast('Backup restored!', 'success');
-  } catch (e) { showToast('Restore failed', 'error'); }
+    showToast('Backup restored successfully! ✨', 'success');
 }
 
 function backupJson() {
   const name = prompt('Backup name (optional):') || '';
-  exportService.downloadBackup(String(name).trim());
+  handleBackupWithProgress(String(name).trim());
+}
+
+/**
+ * Enhanced backup handler with a % progress slider/bar as requested.
+ * Since backend zipping is a single request, we use a "simulated" progress 
+ * that climbs while waiting for the server response.
+ */
+async function handleBackupWithProgress(name = '') {
+    const modal = document.getElementById('backup-progress-modal');
+    const bar = document.getElementById('backup-progress-fill');
+    const text = document.getElementById('backup-progress-text');
+    const pctTxt = document.getElementById('backup-progress-percent');
+    
+    if (!modal) {
+        // Fallback to old method if UI doesn't exist
+        exportService.downloadBackup(name);
+        return;
+    }
+
+    // Show modal
+    modal.style.display = 'flex';
+    bar.style.width = '2%';
+    text.textContent = 'Preparing files...';
+    pctTxt.textContent = '2%';
+    
+    let progress = 2;
+    const interval = setInterval(() => {
+        if (progress < 98) {
+            // Slow down as we get closer to "finish"
+            const inc = progress < 70 ? 2 : (progress < 90 ? 0.5 : 0.1);
+            progress += inc;
+            bar.style.width = `${progress.toFixed(1)}%`;
+            pctTxt.textContent = `${Math.floor(progress)}%`;
+            
+            if (progress > 30 && progress < 60) text.textContent = 'Compressing images & videos...';
+            if (progress >= 60) text.textContent = 'Finalizing ZIP architecture...';
+        }
+    }, 200);
+
+    try {
+        await exportService.downloadBackup(name);
+        
+        // Finish
+        clearInterval(interval);
+        bar.style.width = '100%';
+        pctTxt.textContent = '100%';
+        text.textContent = 'Backup Ready! Download started.';
+        showToast('Full Backup Downloaded! ✨', 'success');
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 1500);
+        
+    } catch (err) {
+        clearInterval(interval);
+        modal.style.display = 'none';
+        showToast('Backup failed: ' + err.message, 'error');
+    }
 }
 
 async function exportExcel() {
@@ -25390,31 +25541,54 @@ function renderTagPins() {
 // ── Drag-to-move ──────────────────────────────────────────────────────────────
 
 function _bindPinDrag(dot, pin) {
-  let dragging  = false;
-  let hasMoved  = false;
+  let dragging        = false;
+  let hasMoved        = false;
+  let _longPressTimer = null;
 
   const _clientXY = (e) => {
-    if (e.touches     && e.touches.length)        return [e.touches[0].clientX,        e.touches[0].clientY];
+    if (e.touches      && e.touches.length)       return [e.touches[0].clientX,        e.touches[0].clientY];
     if (e.changedTouches && e.changedTouches.length) return [e.changedTouches[0].clientX, e.changedTouches[0].clientY];
     return [e.clientX, e.clientY];
+  };
+
+  const _startDrag = () => {
+    dragging = true;
+    hasMoved = false;
+    dot.classList.add('tag-pin-dragging');
   };
 
   const onStart = (e) => {
     if (e.button !== undefined && e.button !== 0) return; // left-click only
     e.stopPropagation();
     e.preventDefault();
-    dragging = true;
-    hasMoved = false;
-    dot.classList.add('tag-pin-dragging');
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup',   onEnd);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend',  onEnd);
+
+    if (e.type === 'touchstart') {
+      // Long-press (500ms) → open note editor; finger move → drag
+      hasMoved = false;
+      _longPressTimer = setTimeout(() => {
+        _longPressTimer = null;
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend',  onEnd);
+        _openPinNoteEditor(pin, dot);
+      }, 500);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend',  onEnd);
+    } else {
+      _startDrag();
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup',   onEnd);
+    }
   };
 
   const onMove = (e) => {
-    if (!dragging) return;
     if (e.cancelable) e.preventDefault();
+    // Finger moved before long-press fired → cancel long-press and start drag
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+      _startDrag();
+    }
+    if (!dragging) return;
     hasMoved = true;
     const [cx, cy] = _clientXY(e);
     const coords = _screenToLogical(cx, cy);
@@ -25424,15 +25598,20 @@ function _bindPinDrag(dot, pin) {
   };
 
   const onEnd = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    dot.classList.remove('tag-pin-dragging');
+    // Short tap (finger lifted before long-press timer) → cancel timer, no action
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup',   onEnd);
     window.removeEventListener('touchmove', onMove);
     window.removeEventListener('touchend',  onEnd);
 
-    if (!hasMoved) return; // just a click, not a drag
+    if (!dragging) return;
+    dragging = false;
+    dot.classList.remove('tag-pin-dragging');
+    if (!hasMoved) return; // click, not a drag
 
     const [cx, cy] = _clientXY(e);
     const coords = _screenToLogical(cx, cy);
@@ -25762,12 +25941,14 @@ function _openPinNoteEditor(pin, anchorEl) {
   setTimeout(() => {
     const onOut = ev => {
       if (!pop.contains(ev.target)) {
-        // Auto-save on click-out
+        // Auto-save on click-out / touch-out (iPad)
         doSave(editor.innerHTML);
-        document.removeEventListener('mousedown', onOut);
+        document.removeEventListener('mousedown',  onOut);
+        document.removeEventListener('touchstart', onOut);
       }
     };
-    document.addEventListener('mousedown', onOut);
+    document.addEventListener('mousedown',  onOut);
+    document.addEventListener('touchstart', onOut, { passive: true });
     
     // Also clean up listener if manually saved/cancelled/deleted
     const originalDoSave = doSave;

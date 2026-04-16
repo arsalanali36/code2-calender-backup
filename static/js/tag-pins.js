@@ -241,31 +241,54 @@ function renderTagPins() {
 // ── Drag-to-move ──────────────────────────────────────────────────────────────
 
 function _bindPinDrag(dot, pin) {
-  let dragging  = false;
-  let hasMoved  = false;
+  let dragging        = false;
+  let hasMoved        = false;
+  let _longPressTimer = null;
 
   const _clientXY = (e) => {
-    if (e.touches     && e.touches.length)        return [e.touches[0].clientX,        e.touches[0].clientY];
+    if (e.touches      && e.touches.length)       return [e.touches[0].clientX,        e.touches[0].clientY];
     if (e.changedTouches && e.changedTouches.length) return [e.changedTouches[0].clientX, e.changedTouches[0].clientY];
     return [e.clientX, e.clientY];
+  };
+
+  const _startDrag = () => {
+    dragging = true;
+    hasMoved = false;
+    dot.classList.add('tag-pin-dragging');
   };
 
   const onStart = (e) => {
     if (e.button !== undefined && e.button !== 0) return; // left-click only
     e.stopPropagation();
     e.preventDefault();
-    dragging = true;
-    hasMoved = false;
-    dot.classList.add('tag-pin-dragging');
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup',   onEnd);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend',  onEnd);
+
+    if (e.type === 'touchstart') {
+      // Long-press (500ms) → open note editor; finger move → drag
+      hasMoved = false;
+      _longPressTimer = setTimeout(() => {
+        _longPressTimer = null;
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend',  onEnd);
+        _openPinNoteEditor(pin, dot);
+      }, 500);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend',  onEnd);
+    } else {
+      _startDrag();
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup',   onEnd);
+    }
   };
 
   const onMove = (e) => {
-    if (!dragging) return;
     if (e.cancelable) e.preventDefault();
+    // Finger moved before long-press fired → cancel long-press and start drag
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+      _startDrag();
+    }
+    if (!dragging) return;
     hasMoved = true;
     const [cx, cy] = _clientXY(e);
     const coords = _screenToLogical(cx, cy);
@@ -275,15 +298,20 @@ function _bindPinDrag(dot, pin) {
   };
 
   const onEnd = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    dot.classList.remove('tag-pin-dragging');
+    // Short tap (finger lifted before long-press timer) → cancel timer, no action
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup',   onEnd);
     window.removeEventListener('touchmove', onMove);
     window.removeEventListener('touchend',  onEnd);
 
-    if (!hasMoved) return; // just a click, not a drag
+    if (!dragging) return;
+    dragging = false;
+    dot.classList.remove('tag-pin-dragging');
+    if (!hasMoved) return; // click, not a drag
 
     const [cx, cy] = _clientXY(e);
     const coords = _screenToLogical(cx, cy);
@@ -613,12 +641,14 @@ function _openPinNoteEditor(pin, anchorEl) {
   setTimeout(() => {
     const onOut = ev => {
       if (!pop.contains(ev.target)) {
-        // Auto-save on click-out
+        // Auto-save on click-out / touch-out (iPad)
         doSave(editor.innerHTML);
-        document.removeEventListener('mousedown', onOut);
+        document.removeEventListener('mousedown',  onOut);
+        document.removeEventListener('touchstart', onOut);
       }
     };
-    document.addEventListener('mousedown', onOut);
+    document.addEventListener('mousedown',  onOut);
+    document.addEventListener('touchstart', onOut, { passive: true });
     
     // Also clean up listener if manually saved/cancelled/deleted
     const originalDoSave = doSave;
