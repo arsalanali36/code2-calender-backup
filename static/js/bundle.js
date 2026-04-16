@@ -25243,7 +25243,7 @@ function renderTagPins() {
     dot.dataset.pinId    = pin.id;
 
     const tt = document.createElement('span');
-    tt.className      = 'tag-pin-tooltip';
+    tt.className      = 'tag-pin-tooltip' + (state.gallery._tagNotesAlwaysVisible ? ' always-visible' : '');
     tt.style.borderColor = pin.color;
     if (pin.note) {
       const tagLine = document.createElement('div');
@@ -25430,29 +25430,60 @@ function _clearPendingPinTag() {
 
 function initTagPinHeaderButtons() {
   if (!state.gallery) return;
-  if (state.gallery._tagPinsVisible   === undefined) state.gallery._tagPinsVisible   = true;
-  if (state.gallery._tagPinDeleteMode === undefined) state.gallery._tagPinDeleteMode = false;
+  if (state.gallery._tagPinsVisible         === undefined) state.gallery._tagPinsVisible         = true;
+  if (state.gallery._tagPinDeleteMode       === undefined) state.gallery._tagPinDeleteMode       = false;
+  if (state.gallery._tagNotesAlwaysVisible  === undefined) state.gallery._tagNotesAlwaysVisible  = false;
 
-  const visBtn = document.getElementById('tag-pin-vis-btn');
-  const delBtn = document.getElementById('tag-pin-del-btn');
+  const mainBtn = document.getElementById('tag-pin-options-btn');
+  const list    = document.getElementById('tag-pin-options-list');
 
-  if (visBtn && !visBtn._bound) {
-    visBtn._bound = true;
-    visBtn.addEventListener('click', () => {
+  if (mainBtn && !mainBtn._bound) {
+    mainBtn._bound = true;
+    mainBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = list.style.display === 'block';
+        document.querySelectorAll('.dropdown-menu').forEach(d => d.style.display = 'none');
+        list.style.display = isOpen ? 'none' : 'block';
+        _updatePinHeaderBtns();
+    });
+    document.addEventListener('click', () => { if(list) list.style.display = 'none'; });
+    list?.addEventListener('click', e => e.stopPropagation());
+  }
+
+  const visItem   = document.getElementById('tag-pin-vis-toggle');
+  const delItem   = document.getElementById('tag-pin-del-toggle');
+  const notesItem = document.getElementById('tag-pin-notes-toggle');
+
+  if (visItem && !visItem._bound) {
+    visItem._bound = true;
+    visItem.addEventListener('click', () => {
       state.gallery._tagPinsVisible = !state.gallery._tagPinsVisible;
-      if (!state.gallery._tagPinsVisible) state.gallery._tagPinDeleteMode = false;
+      if (!state.gallery._tagPinsVisible) {
+          state.gallery._tagPinDeleteMode = false;
+          state.gallery._tagNotesAlwaysVisible = false;
+      }
       _updatePinHeaderBtns();
       renderTagPins();
     });
   }
 
-  if (delBtn && !delBtn._bound) {
-    delBtn._bound = true;
-    delBtn.addEventListener('click', () => {
+  if (delItem && !delItem._bound) {
+    delItem._bound = true;
+    delItem.addEventListener('click', () => {
       if (!state.gallery._tagPinsVisible) return;
       state.gallery._tagPinDeleteMode = !state.gallery._tagPinDeleteMode;
       _updatePinHeaderBtns();
       renderTagPins();
+    });
+  }
+
+  if (notesItem && !notesItem._bound) {
+    notesItem._bound = true;
+    notesItem.addEventListener('click', () => {
+        if (!state.gallery._tagPinsVisible) return;
+        state.gallery._tagNotesAlwaysVisible = !state.gallery._tagNotesAlwaysVisible;
+        _updatePinHeaderBtns();
+        renderTagPins();
     });
   }
 
@@ -25647,23 +25678,22 @@ function _updatePinHeaderBtns() {
   if (!state.gallery) return;
   const v = state.gallery._tagPinsVisible;
   const d = state.gallery._tagPinDeleteMode;
+  const n = state.gallery._tagNotesAlwaysVisible;
 
-  const visBtn = document.getElementById('tag-pin-vis-btn');
-  const delBtn = document.getElementById('tag-pin-del-btn');
+  const mainBtn = document.getElementById('tag-pin-options-btn');
+  if (mainBtn) {
+    mainBtn.style.color = v ? '#ffd700' : 'rgba(255,255,255,0.4)';
+    mainBtn.style.borderColor = v ? '#ffd700' : 'rgba(255,255,255,0.1)';
+    if (d) { mainBtn.style.color = '#e74c3c'; mainBtn.style.borderColor = '#e74c3c'; }
+  }
 
-  if (visBtn) {
-    visBtn.classList.toggle('tag-pin-btn-active', !!v);
-    visBtn.title         = v ? 'Hide tag pins' : 'Show tag pins';
-    visBtn.style.opacity = v ? '' : '0.45';
-  }
-  if (delBtn) {
-    delBtn.classList.toggle('tag-pin-btn-active', !!d);
-    delBtn.title             = d ? 'Exit delete mode' : 'Delete pins (click/tap to remove)';
-    delBtn.style.color       = d ? '#e74c3c' : '';
-    delBtn.style.borderColor = d ? 'rgba(231,76,60,0.6)' : '';
-    delBtn.style.background  = d ? 'rgba(231,76,60,0.12)' : '';
-    delBtn.style.opacity     = v ? '' : '0.45';
-  }
+  const vInd = document.getElementById('pin-vis-indicator');
+  const dInd = document.getElementById('pin-del-indicator');
+  const nInd = document.getElementById('pin-notes-indicator');
+
+  if (vInd) vInd.style.background = v ? 'var(--blue)' : '#444';
+  if (dInd) dInd.style.background = d ? 'var(--red)'  : '#444';
+  if (nInd) nInd.style.background = n ? 'var(--orange)' : '#444';
 }
 
 
