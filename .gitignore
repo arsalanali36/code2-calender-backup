@@ -9,6 +9,7 @@ Thumbs.db
 static/uploads/
 node_modules/
 data/backups/
+data/local_backups/
 package-lock.json
 !tradefeed/package-lock.json
 _shadow_repo/

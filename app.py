@@ -54,6 +54,7 @@ from routes.strategy_routes import strategy_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
+from services.local_backup_service import start_local_backup_service
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -229,6 +230,7 @@ def _cleanup_trash():
 _bootstrap_persistent_storage()
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
+start_local_backup_service()
 
 # ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
 if os.environ.get('USE_BUNDLE') == '1':
