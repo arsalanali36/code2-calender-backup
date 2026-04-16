@@ -1,7 +1,10 @@
-        function jumpToTrade(t) {
+function jumpToTrade(t) {
+            if (!chartMain || !t) return;
             document.getElementById('trades-modal').style.display = 'none';
-            chartMain.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
-            if (chartOpt) chartOpt.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+            try {
+                chartMain.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+                if (chartOpt) chartOpt.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+            } catch(e) { console.warn("Jump failed - chart not ready", e); }
         }
 
         async function loadInstrument(symbol, date) {
@@ -42,17 +45,17 @@
                 document.getElementById('end-date').value = date;
                 document.getElementById('nav-date-picker').value = date;
                 
-                // Force a resize calculation before loading data
+                // Force load BOTH charts
+                await runStrategy(false, false);
+                await runStrategy(true, false);
+                
+                // Force a resize calculation 
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
                     const optB = document.getElementById('chart-opt');
-                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
-                }, 10);
-
-                await runStrategy(false, true); 
-                await runStrategy(true); 
-                
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                }, 100);
             }
             document.getElementById('history-modal').style.display = 'none';
 
@@ -67,33 +70,34 @@
             }, 300);
         }
 
-        function toggleDualView() {
+        function toggleDualView(forceState = null) {
             const optBox = document.getElementById('container-opt');
             const resizer = document.getElementById('chart-resizer');
             const dualBtn = document.getElementById('dual-view-btn');
-            const isHidden = optBox.style.display === 'none';
             
-            if (isHidden) {
+            const isHidden = optBox.style.display === 'none';
+            const shouldShow = (forceState !== null) ? forceState : isHidden;
+            
+            if (shouldShow) {
                 optBox.style.display = 'block';
                 resizer.style.display = 'block';
                 dualBtn.innerText = 'DUAL VIEW: ON';
-                // Force resize check
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
                     const optB = document.getElementById('chart-opt');
-                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
-                    runStrategy(true); 
-                }, 20);
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                    runStrategy(true, true); 
+                }, 100);
             } else {
                 optBox.style.display = 'none';
                 resizer.style.display = 'none';
-                document.getElementById('container-main').style.flex = '1';
+                if (document.getElementById('container-main')) document.getElementById('container-main').style.flex = '1';
                 dualBtn.innerText = 'DUAL VIEW: OFF';
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
-                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                }, 20);
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                }, 100);
             }
         }
 

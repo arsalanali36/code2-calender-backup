@@ -402,9 +402,16 @@ function renderCloseGlobalTray(curUrl) {
               min-width: 175px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
           `;
 
-          const inst = tr.instrument || tr.Symbol || tr.symbol || 'Nifty 50 (^NSEI)';
+          const inst = tr.Instrument || tr.instrument || tr.Symbol || tr.symbol || 'Nifty 50 (^NSEI)';
           const dayDate = typeof extractDateFromTrade === 'function' ? normalizeDate(extractDateFromTrade(tr)) : (tr.Date || '');
-          const entryT = tr.entry_time || (tr['Entry Time'] ? Math.floor(new Date(tr['Entry Time']).getTime() / 1000) : null);
+          const entryT_str = tr.entry_time || tr['Entry Time'] || tr['Buy Time'] || tr['Sell Time'] || tr.time || '';
+          let entryT = null;
+          if (entryT_str && dayDate) {
+              try {
+                  const fullDt = new Date(`${dayDate} ${entryT_str.includes(':') ? (entryT_str.split(':').length === 2 ? entryT_str + ':00' : entryT_str) : '09:15:00'}`);
+                  entryT = Math.floor(fullDt.getTime() / 1000);
+              } catch(e) { console.warn("Time parse fail", e); }
+          }
 
           const createItem = (text, icon, color, onClick) => {
               const item = document.createElement('div');

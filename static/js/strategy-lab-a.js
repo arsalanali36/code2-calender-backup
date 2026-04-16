@@ -453,13 +453,17 @@
                     const tradeNum = dailyCounts[tradeDate];
                     
                     let entryP, exitP;
-                    if (isOpt) {
-                        entryP = rt.entry_price || 0;
-                        exitP = rt.exit_price || 0;
-                    } else {
-                        // Plot at Candle High/Low on Index Chart
+                    // ALWAYS snap to candles for visual alignment, but keep ledger prices for labels
+                    const entryCandle = chartData.find(d => d.time === entryT);
+                    const exitCandle = chartData.find(d => d.time === exitT);
+                    
+                    if (entryCandle && exitCandle) {
+                        const isCE = rt.instrument.toUpperCase().includes('CE') || rt.instrument.toUpperCase().includes('CALL');
                         entryP = isCE ? entryCandle.high : entryCandle.low;
                         exitP = isCE ? exitCandle.high : exitCandle.low;
+                    } else if (isOpt) {
+                        entryP = rt.entry_price || 0;
+                        exitP = rt.exit_price || 0;
                     }
                     
                     if (entryT && exitT && entryP && exitP) {
@@ -488,22 +492,22 @@
                                 tradeSeriesOpt.push(tSeries);
                                 
                                 rtMarkers.push({
-                                    time: entryT, position: isCE ? 'aboveBar' : 'belowBar',
-                                    color: '#6366f1', shape: 'circle', size: 0,
-                                    text: `t${tradeNum} IN @ ${Math.round(entryP)}`
+                                    time: entryT, position: 'inBar', 
+                                    color: '#6366f1', shape: 'circle', size: 1,
+                                    text: `t${tradeNum} IN @ ${Math.round(rt.entry_price || entryP)}`
                                 });
                                 rtMarkers.push({
-                                    time: exitT, position: isCE ? 'aboveBar' : 'belowBar',
+                                    time: exitT, position: 'inBar', 
                                     color: rt.pl > 0 ? '#10b981' : '#ef4444', shape: 'circle', size: 1,
-                                    text: `t${tradeNum} OUT (₹${Math.round(rt.pl)})`
+                                    text: `t${tradeNum} OUT @ ${Math.round(rt.exit_price || exitP)} (₹${Math.round(rt.pl)})`
                                 });
 
                                 // Add Pills for Option Chart
                                 tradePills.opt.push({
-                                    time: entryT, price: entryP, pl: 0, text: `t${tradeNum}<br>IN`, isCE, position: isCE ? 'above' : 'below'
+                                    time: entryT, price: entryP, pl: 0, text: `t${tradeNum}<br>@${Math.round(rt.entry_price || entryP)}`, isCE, position: isCE ? 'above' : 'below'
                                 });
                                 tradePills.opt.push({
-                                    time: exitT, price: exitP, pl: rt.pl, text: `t${tradeNum}<br>₹${Math.round(rt.pl)}`, isCE, position: isCE ? 'above' : 'below'
+                                    time: exitT, price: exitP, pl: rt.pl, text: `t${tradeNum}<br>@${Math.round(rt.exit_price || exitP)}<br>₹${Math.round(rt.pl)}`, isCE, position: isCE ? 'above' : 'below'
                                 });
                             }
                         } else {

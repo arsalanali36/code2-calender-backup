@@ -123,22 +123,23 @@
         window.addEventListener('DOMContentLoaded', async () => {
             initChart();
             
-            // Check for deep-link parameters from Gallery
             const urlParams = new URLSearchParams(window.location.search);
             const sym = urlParams.get('symbol');
-            const dt = urlParams.get('date');
+            const dt  = urlParams.get('date');
             const jump = urlParams.get('jumpTime');
 
             if (sym && dt) {
-                // If we have instrument details, load it (this handles runStrategy too)
-                await loadInstrument(sym, dt);
-                
-                // If we also have a specific trade time, jump to it
-                if (jump) {
-                    setTimeout(() => {
-                        if (typeof jumpToTrade === 'function') jumpToTrade(parseInt(jump));
-                    }, 800); // Small delay to let charts settle
-                }
+                // Introduce a small delay to ensure initChart and DOM settle
+                setTimeout(async () => {
+                    if (typeof toggleDualView === 'function') toggleDualView(true);
+                    await loadInstrument(sym, dt);
+                    
+                    if (jump) {
+                        setTimeout(() => {
+                            if (typeof jumpToTrade === 'function') jumpToTrade(parseInt(jump));
+                        }, 500);
+                    }
+                }, 200);
             } else {
                 // Normal load
                 runStrategy(false);
