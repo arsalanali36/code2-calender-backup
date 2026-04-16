@@ -13,10 +13,9 @@ sys.path.append(BASE_DIR)
 from services.dhan_service_core import get_config, _dhan_headers, _post_json, DHAN_API_BASE
 from services.dhan_service import _parse_rollingoption_response
 
-config = get_config()
-headers = _dhan_headers(config)
-
 def fetch_and_stitch(sym, target_strike, otype, dates=None):
+    config = get_config()
+    headers = _dhan_headers(config)
     if dates is None:
         dates = ["2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-15"]
     
