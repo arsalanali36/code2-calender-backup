@@ -777,15 +777,16 @@ const DEFAULT_SHORTCUTS = {
   mergeSave: 'Ctrl+Shift+S',
   overlaySave: 'Ctrl+S',
   selectTool: 'V',
-  textTool: 'T',
+  textTool: 'Alt+T',
   marquee: 'M',
   annotToggle: 'A',
-  resetZoom: 'R',
+  resetZoom: 'Alt+R',
   showHeads: 'H',
   layerPanel: 'L',
   leftPanel: 'F',
   fullscreen: 'Shift+F',
-  deleteImage: 'Delete'
+  deleteImage: 'Delete',
+  imageTagManager: 'Alt+Shift+T'
 };
 const DASHBOARD_STATS = [
   { key: 'overall', label: 'Overall P&L' },
@@ -2370,9 +2371,10 @@ function populateShortcutPanel() {
   _scSet('sc-reset-zoom',   state.shortcuts.resetZoom);
   _scSet('sc-show-heads',   state.shortcuts.showHeads);
   _scSet('sc-layer-panel',  state.shortcuts.layerPanel);
-  _scSet('sc-left-panel',   state.shortcuts.leftPanel);
-  _scSet('sc-fullscreen',   state.shortcuts.fullscreen);
-  _scSet('sc-delete-image', state.shortcuts.deleteImage);
+  _scSet('sc-left-panel',      state.shortcuts.leftPanel);
+  _scSet('sc-fullscreen',      state.shortcuts.fullscreen);
+  _scSet('sc-delete-image',    state.shortcuts.deleteImage);
+  _scSet('sc-img-tag-manager', state.shortcuts.imageTagManager);
 }
 
 function readShortcutsFromPanel() {
@@ -25675,7 +25677,7 @@ function _bindKeyboardEvents() {
         if (typeof dp.showPicker === 'function') dp.showPicker();
         return;
       }
-      if (e.altKey && !e.ctrlKey && !e.shiftKey && String(e.key || '').toLowerCase() === 't') {
+      if (shortcutMatches(e, state.shortcuts.imageTagManager)) {
         e.preventDefault();
         openGalleryImageTagManager();
         return;
