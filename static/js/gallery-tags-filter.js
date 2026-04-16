@@ -306,6 +306,22 @@ function renderGalleryTagFilterPanel() {
             list.appendChild(lbl);
         };
 
+        // ── Special Filters (Virtual Tags) ───────────────────────────────────
+        const specialTags = ['📝 HAS NOTES'];
+        const filteredSpec = ql ? specialTags.filter(t => t.toLowerCase().includes(ql)) : specialTags;
+        if (filteredSpec.length) {
+            const gLbl = document.createElement('div');
+            gLbl.className = 'panel-manage-label';
+            gLbl.style.marginTop = '6px';
+            gLbl.style.color = 'var(--blue)';
+            gLbl.textContent = '✧ SPECIAL FILTERS';
+            list.appendChild(gLbl);
+            filteredSpec.forEach(tag => {
+                // Manually inject count if needed, but renderListTag will handle it if count exists
+                renderListTag(tag);
+            });
+        }
+
         const topTags = Array.from(window._tagCountMap.entries())
             .sort((a, b) => b[1] - a[1])
             .map(entry => entry[0])
