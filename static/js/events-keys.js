@@ -156,11 +156,16 @@ function _bindKeyboardEvents() {
         if (tagsBtn) tagsBtn.click();
         return;
       }
-      // 'f' or 'F' to toggle tag filter panel
+      // 'f' or 'F' to toggle tag filter panel (only if Shift is NOT pressed)
       if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
         const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
         if (filterBtn) filterBtn.click();
+        return;
+      }
+      // Explicitly empty Shift + F to prevent any other legacy behavior
+      if (!e.ctrlKey && !e.altKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
         return;
       }
       if (shortcutMatches(e, state.shortcuts.imageImport)) {
