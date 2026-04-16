@@ -11257,7 +11257,6 @@ function renderGalleryPnlPill() {
     activeDrop.style.boxSizing = 'border-box';
     activeDrop.style.overflowX = 'hidden';
     activeDrop.style.padding = '8px 0';
-    const activeIdx = activeTrade ? trades.indexOf(activeTrade) : -1;
 
     let runningTotal = 0;
     trades.forEach((t, i) => {

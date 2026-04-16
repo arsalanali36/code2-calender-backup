@@ -154,11 +154,12 @@ function renderGalleryPnlPill() {
     pill.style.fontSize = 'calc(var(--pill-font-size, 0.82rem) * 1.1)';
     pill.style.fontWeight = '800';
     pill.style.cursor = 'default'; // No menu here as requested
+    pill.style.pointerEvents = 'none'; // DISABLE ALL CLICKS TOTALLY
     
     // Clear any existing dropdown listeners/logic from this pill specifically
     const drop = document.getElementById('gv2-pnl-dropdown');
     if (drop) drop.classList.remove('open');
-    pill.onclick = null; 
+    pill.onclick = (e) => { e.preventDefault(); e.stopPropagation(); return false; }; 
 
     const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
     const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;

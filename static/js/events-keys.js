@@ -398,18 +398,6 @@ function _bindKeyboardEvents() {
         e.preventDefault();
         document.body.classList.toggle('calendar-full');
         document.body.classList.remove('table-full');
-      } else if ((e.key === 'F' || (e.key === 'f' && e.shiftKey)) && !e.ctrlKey) {
-        e.preventDefault();
-        const _enteringFull = !document.body.classList.contains('table-full');
-        document.body.classList.toggle('table-full');
-        document.body.classList.remove('calendar-full');
-        if (_enteringFull) {
-          document.documentElement.style.setProperty('--table-visible-rows', '20');
-        } else {
-          const _saved = JSON.parse(localStorage.getItem('tj_settings') || '{}');
-          const _rows = Math.max(3, Math.min(25, parseInt(_saved.tableRows, 10) || 5));
-          document.documentElement.style.setProperty('--table-visible-rows', String(_rows));
-        }
       } else if (e.key === 'c' && !e.shiftKey) {
         e.preventDefault();
         state.calendarMode = 'consolidated';
