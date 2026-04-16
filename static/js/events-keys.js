@@ -426,6 +426,11 @@ function _bindKeyboardEvents() {
         e.preventDefault();
         const datesWImg = getDatesWithImages();
         if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);
+      } else if (e.key === 'h' && !e.shiftKey) {
+        e.preventDefault();
+        // Toggle gallery hamburger if open, else toggle settings or sidebar if possible
+        const burger = document.getElementById('gv2-hamburger-btn') || document.getElementById('sidebar-toggle');
+        if (burger) burger.click();
       }
     }
 

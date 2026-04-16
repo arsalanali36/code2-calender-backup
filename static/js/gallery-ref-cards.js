@@ -299,8 +299,11 @@ function initOtherDropdown() {
       document.getElementById('gv2-tradesidebar-toggle').classList.toggle('active', !stagedSidebarDisabled);
     }
     const fsSelect = document.getElementById('gv2-pill-font-size');
+    const fsVal    = document.getElementById('gv2-pill-font-size-val');
     if (fsSelect) {
-      fsSelect.value = stagedPillFontSize;
+      const numericVal = stagedPillFontSize.replace('rem', '');
+      fsSelect.value = numericVal;
+      if (fsVal) fsVal.textContent = stagedPillFontSize;
     }
   };
 
@@ -368,8 +371,14 @@ function initOtherDropdown() {
   }
 
   const fsSelect = document.getElementById('gv2-pill-font-size');
+  const fsVal    = document.getElementById('gv2-pill-font-size-val');
   if (fsSelect) {
-    fsSelect.addEventListener('change', (e) => { stagedPillFontSize = e.target.value; });
+    fsSelect.addEventListener('input', (e) => { 
+      stagedPillFontSize = e.target.value + 'rem'; 
+      if (fsVal) fsVal.textContent = stagedPillFontSize;
+      // Optional: Apply live preview?
+      // document.documentElement.style.setProperty('--pill-font-size', stagedPillFontSize);
+    });
   }
 
   // Export Current View PDF
