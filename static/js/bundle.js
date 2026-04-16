@@ -14596,9 +14596,16 @@ function renderGalleryTagsTray() {
     searchInp.focus();
   });
   searchInp.addEventListener('input', e => {
+    const cursorPos = e.target.selectionStart;
     state.gallery._tagTraySearch = e.target.value.toLowerCase();
     searchClear.style.display = e.target.value ? 'flex' : 'none';
     renderGalleryTagsTray();
+    // Re-render destroys this input — restore focus on the new element
+    const newInp = document.getElementById('gv2-tag-tray-search-inp');
+    if (newInp) {
+      newInp.focus();
+      try { newInp.setSelectionRange(cursorPos, cursorPos); } catch (_) {}
+    }
   });
   searchInp.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') {

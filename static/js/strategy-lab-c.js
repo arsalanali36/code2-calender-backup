@@ -133,13 +133,9 @@
                 setTimeout(async () => {
                     if (typeof toggleDualView === 'function') toggleDualView(true);
                     await loadInstrument(sym, dt);
-                    
-                    if (jump) {
-                        // Increase delay to 1.5s to ensure ALL data and markers are rendered
-                        setTimeout(() => {
-                            if (typeof jumpToTrade === 'function') jumpToTrade(parseInt(jump));
-                        }, 1500);
-                    }
+                    // Full-day range (09:15–15:30) is applied inside loadInstrument.
+                    // jumpToTrade is intentionally NOT called here so the chart opens
+                    // in full-day view rather than a narrow zoom around the entry candle.
                 }, 200);
             } else {
                 // Normal load

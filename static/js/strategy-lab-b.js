@@ -63,10 +63,13 @@ function jumpToTrade(t) {
             document.getElementById('history-modal').style.display = 'none';
 
             // Fixed Initial Zoom: Standard Market Hours (09:15 - 15:30)
-            const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
+            // Use UTC midnight ("T00:00:00Z") because Python's calendar.timegm() stores
+            // candle timestamps treating IST wall-clock time as UTC. So chart "09:15" = UTC 09:15.
+            // Local midnight (IST) would be 18:30 UTC the previous day, shifting the window by -5.5h.
+            const tradeTs = Math.floor(new Date(date + "T00:00:00Z").getTime() / 1000);
             setTimeout(() => {
-                const from = tradeTs + (9.15 * 3600); // 09:15 AM
-                const to = tradeTs + (15.55 * 3600);   // 03:30ish PM
+                const from = tradeTs + (9.25 * 3600);  // 09:15 AM  (9 + 15/60 = 9.25)
+                const to   = tradeTs + (15.5  * 3600); // 03:30 PM  (15 + 30/60 = 15.5)
                 const range = { from, to };
                 if (chartMain) chartMain.timeScale().setVisibleRange(range);
                 if (chartOpt) chartOpt.timeScale().setVisibleRange(range);
@@ -291,6 +294,11 @@ function jumpToTrade(t) {
                 e.preventDefault();
                 const btn = document.getElementById('fit-btn');
                 if (btn) btn.click();
+            }
+            if (e.altKey && e.key.toLowerCase() === 'g') {
+                e.preventDefault();
+                const dp = document.getElementById('nav-date-picker');
+                if (dp) { dp.focus(); dp.showPicker && dp.showPicker(); }
             }
         });
         document.getElementById('sidebar-toggle-btn').onclick = (e) => { 
