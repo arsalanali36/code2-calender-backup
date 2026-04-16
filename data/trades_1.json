@@ -28546,7 +28546,9 @@
       "audios": {},
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776355054/trading_journal/82f13bd3-7441-4f44-829e-4728ec95ec43.png": [
-          "BNF"
+          "BNF",
+          "Reversal-Fail",
+          "reversal - perfect"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357569/trading_journal/19a70bc8-8670-4051-a848-cd5275c16c45.png": [
           "NIFTY"
@@ -28560,7 +28562,25 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776355056/trading_journal/c84e2e48-cbd5-447d-b3e7-bc110033a4da.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357569/trading_journal/19a70bc8-8670-4051-a848-cd5275c16c45.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776357571/trading_journal/7416ed4a-c1b9-4af6-93d6-2fd831fcd135.png"
-      ]
+      ],
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776355054/trading_journal/82f13bd3-7441-4f44-829e-4728ec95ec43.png": [
+          {
+            "id": "mo1u8107m0bz",
+            "tag": "Reversal-Fail",
+            "x": 27.9,
+            "y": 35.9,
+            "color": "#ffd700"
+          },
+          {
+            "id": "mo1u86dc2cgs",
+            "tag": "reversal - perfect",
+            "x": 74.1,
+            "y": 62.9,
+            "color": "#e74c3c"
+          }
+        ]
+      }
     },
     "2026-03-17": {
       "audios": {
