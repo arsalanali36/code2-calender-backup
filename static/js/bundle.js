@@ -25834,7 +25834,12 @@ function _bindKeyboardEvents() {
       return;
     }
 
-    if ((e.key === 'z' || e.key === 'Z') && e.ctrlKey && !e.shiftKey && !e.altKey && !typingInField) {
+    // BLOCK ALL shortcuts if typing in any field, unless it's Escape
+    if (typingInField && e.key !== 'Escape') {
+        return;
+    }
+
+    if ((e.key === 'z' || e.key === 'Z') && e.ctrlKey && !e.shiftKey && !e.altKey) {
       if (typeof performGalleryUndo === 'function' && window.galleryUndoStack?.length > 0) {
         e.preventDefault();
         performGalleryUndo();

@@ -282,6 +282,11 @@ function jumpToTrade(t) {
 
         // KEYBOARD SHORTCUT: Alt + R for Smart Fit
         window.addEventListener('keydown', (e) => {
+            // IGNORE if typing in an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+                return;
+            }
+            
             if (e.altKey && e.key.toLowerCase() === 'r') {
                 e.preventDefault();
                 const btn = document.getElementById('fit-btn');
