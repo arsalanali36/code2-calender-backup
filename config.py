@@ -20,6 +20,8 @@ PDF_DIR            = os.path.join(UPLOADS_DIR, 'pdfs')
 PDF_META_FILE      = os.path.join(BASE_DIR, 'data', 'pdfs.json')
 CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
+AI_DEBUG_LOG              = os.path.join(BASE_DIR, 'data', 'ai_debug.log')
+
 
 # ── What-If / Dhan data ───────────────────────────────────────────────────────
 OHLC_CACHE_DIR       = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')

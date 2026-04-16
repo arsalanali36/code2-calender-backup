@@ -258,7 +258,16 @@ def debug_data():
     except Exception as e:
         return {"error": str(e)}
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Log all unhandled exceptions to the AI debug log."""
+    from services.debug_service import log_ai_error
+    log_ai_error(f"Unhandled Exception: {str(e)}", e)
+    # Return original behavior for Flask
+    return str(e), 500
+
 if __name__ == '__main__':
+
     print("=" * 50)
     print("  Trading Journal - Starting Server")
     print(f"  Open: http://localhost:{PORT}")
