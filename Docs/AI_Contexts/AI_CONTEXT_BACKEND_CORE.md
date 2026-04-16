@@ -1,3 +1,9 @@
+# Backend - App, Config, Build
+Consolidated code context for AI assistants.
+
+
+## File: `app.py`
+```py
 """
 app.py
 ------
@@ -260,12 +266,7 @@ def debug_data():
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    """Log all unhandled exceptions (except 404s) to the AI debug log."""
-    # Ignore 404 Not Found errors to keep logs clean
-    from werkzeug.exceptions import NotFound
-    if isinstance(e, NotFound):
-        return str(e), 404
-
+    """Log all unhandled exceptions to the AI debug log."""
     from services.debug_service import log_ai_error
     log_ai_error(f"Unhandled Exception: {str(e)}", e)
     # Return original behavior for Flask
@@ -278,3 +279,271 @@ if __name__ == '__main__':
     print(f"  Open: http://localhost:{PORT}")
     print("=" * 50)
     app.run(debug=DEBUG, host=HOST, port=PORT)
+
+```
+
+## File: `config.py`
+```py
+"""
+config.py
+---------
+Central configuration for the Trading Journal app.
+All environment variable reads and path defaults live here.
+Import this module wherever you need DATA_FILE, UPLOADS_DIR, etc.
+"""
+import hashlib
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ── Data paths ────────────────────────────────────────────────────────────────
+DATA_FILE          = os.getenv('DATA_FILE',   os.path.join(BASE_DIR, 'data', 'trades.json'))
+UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
+TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
+AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
+VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
+PDF_DIR            = os.path.join(UPLOADS_DIR, 'pdfs')
+PDF_META_FILE      = os.path.join(BASE_DIR, 'data', 'pdfs.json')
+CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
+STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
+AI_DEBUG_LOG              = os.path.join(BASE_DIR, 'data', 'ai_debug.log')
+
+
+# ── What-If / Dhan data ───────────────────────────────────────────────────────
+OHLC_CACHE_DIR       = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')
+DHAN_CONFIG_FILE     = os.path.join(BASE_DIR, 'data', 'dhan_config.json')
+DHAN_SYMBOL_MAP_FILE = os.path.join(BASE_DIR, 'data', 'dhan_symbol_map.json')
+DHAN_SCRIP_MASTER    = os.path.join(BASE_DIR, 'data', 'dhan_scrip_master.csv')
+SYMBOL_EXPIRY_MAP_FILE     = os.path.join(BASE_DIR, 'data', 'symbol_expiry_map.json')
+TRADEBOOK_SYNC_QUEUE_FILE  = os.path.join(BASE_DIR, 'data', 'tradebook_sync_queue.json')
+
+# ── App settings ──────────────────────────────────────────────────────────────
+TRASH_EXPIRY_DAYS   = 7
+MAX_CONTENT_LENGTH  = 100 * 1024 * 1024          # 100 MB upload limit
+def _compute_static_hash() -> str:
+    """
+    Return a short hash of all JS and CSS file contents under static/.
+    Changes only when a file is modified — not on every server restart.
+    """
+    h = hashlib.md5()
+    static_dir = os.path.join(BASE_DIR, 'static')
+    for root, _, files in sorted(os.walk(static_dir)):
+        for fname in sorted(files):
+            if fname.endswith(('.js', '.css')):
+                fpath = os.path.join(root, fname)
+                try:
+                    with open(fpath, 'rb') as f:
+                        h.update(f.read())
+                except OSError:
+                    pass
+    return h.hexdigest()[:10]
+
+CACHE_BUST = _compute_static_hash()
+
+# ── Cloudinary ────────────────────────────────────────────────────────────────
+CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
+USE_CLOUDINARY = bool(CLOUDINARY_URL_VALUE)
+
+if USE_CLOUDINARY:
+    try:
+        import cloudinary
+        cloudinary.config(cloudinary_url=CLOUDINARY_URL_VALUE)
+    except ImportError:
+        USE_CLOUDINARY = False  # cloudinary package not installed
+
+# ── Server settings ───────────────────────────────────────────────────────────
+HOST  = os.getenv('HOST', '0.0.0.0')
+PORT  = int(os.getenv('PORT', '5000'))
+DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', 'yes')
+
+_secret_key_default = 'your-secret-key-for-dev-fallback'
+SECRET_KEY = os.getenv('SECRET_KEY', _secret_key_default)
+if SECRET_KEY == _secret_key_default and not os.getenv('FLASK_DEBUG', '').strip().lower() in ('1', 'true', 'yes'):
+    raise RuntimeError(
+        'SECRET_KEY env var is not set. This is required in production. '
+        'Set FLASK_DEBUG=true to allow the insecure default in development.'
+    )
+ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+# Comma-separated list of allowed origins. Example env value:
+#   ALLOWED_ORIGINS=https://code2-calender.onrender.com,http://localhost:5000
+_raw_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000')
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(',') if o.strip()]
+SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'data', 'users.db'))
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+```
+
+## File: `models.py`
+```py
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+
+db = SQLAlchemy()
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+```
+
+## File: `extensions.py`
+```py
+"""
+extensions.py
+-------------
+Flask extension instances (limiter, etc.) created here to avoid circular imports.
+Import these in app.py to init_app(), and in routes to apply decorators.
+"""
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
+
+```
+
+## File: `requirements.txt`
+```txt
+Flask>=3.0.0
+Flask-Cors>=4.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+gunicorn>=21.2.0
+Flask-Login>=0.6.3
+Flask-SQLAlchemy>=3.1.1
+cloudinary>=1.36.0
+python-dotenv>=1.0.0
+flask-limiter>=4.0
+flask-compress>=1.14
+yfinance>=0.2.0
+
+```
+
+## File: `build.py`
+```py
+"""
+build.py
+--------
+Concatenates all local JS modules (in load order from index.html) into
+static/js/bundle.js.
+
+Run manually:   python build.py
+Auto-run:       called from app.py startup when any source file is newer than bundle.
+
+Vendor files (static/js/vendor/*.js) are NOT bundled — they're already local
+and loaded separately so the browser can cache them independently.
+"""
+import os
+import re
+import sys
+
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+INDEX_HTML = os.path.join(BASE_DIR, 'templates', 'index.html')
+BUNDLE_OUT = os.path.join(BASE_DIR, 'static', 'js', 'bundle.js')
+
+
+def get_local_script_paths():
+    """Parse index.html and return ordered list of local (non-vendor) JS file paths."""
+    with open(INDEX_HTML, encoding='utf-8') as f:
+        html = f.read()
+    # Match all local /static/js/ scripts that are NOT vendor and NOT bundle itself
+    matches = re.findall(r'<script[^>]+src="(/static/js/(?!vendor)(?!bundle)[^"?]+)', html)
+    paths = []
+    for src in matches:
+        # Convert URL path to filesystem path
+        fpath = os.path.join(BASE_DIR, src.lstrip('/').replace('/', os.sep))
+        if os.path.isfile(fpath):
+            paths.append((src, fpath))
+        else:
+            print(f'  [build] WARNING: not found: {fpath}', file=sys.stderr)
+    return paths
+
+
+def needs_rebuild(source_paths):
+    """Return True if bundle.js doesn't exist or any source is newer than bundle."""
+    if not os.path.exists(BUNDLE_OUT):
+        return True
+    bundle_mtime = os.path.getmtime(BUNDLE_OUT)
+    # Also check index.html itself (script order could have changed)
+    if os.path.getmtime(INDEX_HTML) > bundle_mtime:
+        return True
+    for _, fpath in source_paths:
+        if os.path.getmtime(fpath) > bundle_mtime:
+            return True
+    return False
+
+
+def build(force=False):
+    """Build bundle.js. Returns True if bundle was (re)built."""
+    paths = get_local_script_paths()
+    if not paths:
+        print('[build] No local scripts found in index.html', file=sys.stderr)
+        return False
+
+    if not force and not needs_rebuild(paths):
+        return False  # already up to date
+
+    parts = [
+        '/* Trading Journal — JS bundle (auto-generated by build.py) */',
+        '/* Do NOT edit this file directly — edit the source modules  */',
+        '',
+    ]
+    total_bytes = 0
+    for src, fpath in paths:
+        with open(fpath, encoding='utf-8') as f:
+            content = f.read()
+        parts.append(f'\n/* ── {src} ── */')
+        parts.append(content)
+        total_bytes += len(content.encode('utf-8'))
+
+    bundle_content = '\n'.join(parts)
+    with open(BUNDLE_OUT, 'w', encoding='utf-8') as f:
+        f.write(bundle_content)
+
+    print(f'[build] bundle.js: {len(paths)} files -> {total_bytes / 1024:.0f} KB '
+          f'({os.path.getsize(BUNDLE_OUT) / 1024:.0f} KB on disk)')
+    return True
+
+
+if __name__ == '__main__':
+    force = '--force' in sys.argv
+    rebuilt = build(force=force)
+    if not rebuilt:
+        print('[build] bundle.js is up to date — use --force to rebuild')
+
+```
+
+## File: `render.yaml`
+```yaml
+services:
+  - type: web
+    name: code2-calender
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --threads 4 --timeout 120
+    disks:
+      - name: code2-calender-data
+        mountPath: /var/data
+        sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DATA_FILE
+        value: /var/data/trades.json
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+      - key: CLOUDINARY_URL
+        sync: false   # Set this secret in the Render dashboard → Environment
+
+
+```

@@ -1,0 +1,536 @@
+# HTML - Classic Gallery Page
+Consolidated code context for AI assistants.
+
+
+## File: `templates/gallery-classic.html`
+```html
+<!-- ── IMAGE GALLERY V2 ──────────────────────────────────── -->
+<div class="modal-overlay gv2-modal" id="gallery-modal">
+
+  <!-- ① Global Button Tray (top, fixed) -->
+  <div class="gv2-tray">
+    <div class="gv2-tray-left">
+      <button class="gv2-date-arrow" id="gallery-date-prev" title="Previous date">&#8249;</button>
+      <span class="gv2-date-label" id="gallery-date"></span>
+      <input type="date" id="gallery-date-picker" class="gv2-date-picker" title="Jump to date (D)" />
+      <button class="gv2-date-arrow" id="gallery-date-next" title="Next date">&#8250;</button>
+    </div>
+    <div class="gv2-tray-btns">
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-annotate-btn" title="Annotation bar (A)">&#9998;
+        Annotate</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-marquee-btn" title="Marquee mode (M)">&#9633;
+        Marquee</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers panel (L)">&#10064; Layers</button>
+      <button class="gv2-tray-btn gv2-toggle-btn" id="gv2-time-btn" title="Show image time">&#128338; Time</button>
+    </div>
+    <div class="gv2-tray-right">
+      <!-- Gallery Tools Dropdown -->
+      <div class="dropdown-wrapper">
+        <button class="btn btn-outline" id="gallery-tools-btn"
+          style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Tools
+          &#9660;</button>
+        <div class="dropdown-menu" id="gallery-tools-panel"
+          style="right: 0px; left: auto; min-width: 150px; overflow-y: auto; z-index: 9999;">
+          <button class="dropdown-item" id="gallery-upload-btn">&#11014; Upload</button>
+          <button class="dropdown-item" id="gv2-tags-btn" title="Tags tray (T)">&#127991; Tags</button>
+          <button class="dropdown-item" id="gallery-tag-btn" title="Manage tags for this image">&#127991; Img Tag</button>
+          <button class="dropdown-item" id="gv2-obs-btn" title="Open observation for this date">&#128211; Obs</button>
+        </div>
+      </div>
+      <!-- Gallery Show Heads Dropdown -->
+      <div class="dropdown-wrapper">
+        <button class="btn btn-outline" id="gallery-show-heads-btn"
+          style="height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">Show
+          Heads &#9660;</button>
+        <div class="dropdown-menu show-heads-panel" id="gallery-show-heads-panel"
+          style="right: 0px; left: auto; min-width: 220px; max-height: 400px; overflow-y: auto;">
+        </div>
+      </div>
+      <!-- Gallery Tag Filter Dropdown -->
+      <div class="dropdown-wrapper">
+        <button class="btn btn-outline" id="gallery-img-tag-filter-btn" title="Filter Tags (F)"
+          style="background:var(--bg2); height: 26px; padding: 0 8px; font-size: 0.8rem; margin-right: 12px; border: 1px solid var(--border);">&#127991;
+          Filter Tags (F) &#9660;</button>
+        <div class="dropdown-menu tag-filter-panel" id="gallery-img-tag-filter-panel"
+          style="right: 0px; left: auto; max-width: 280px; max-height: 400px; overflow-y: auto;">
+          <p class="panel-hint" style="padding:10px 8px">No tags available.</p>
+        </div>
+      </div>
+
+      <span class="gv2-zoom-hint">Scroll:zoom &middot; Drag:pan &middot; R:reset</span>
+      <button class="gv2-close-btn" id="gallery-close">&#10005;</button>
+    </div>
+  </div>
+
+  <!-- ② Body -->
+  <div class="gv2-body">
+
+    <!-- Annotation Bar (floating left, toggled by A / gv2-annotate-btn) -->
+    <div class="gv2-annot-bar" id="gv2-annot-bar" style="display:none">
+      <button class="annot-tool active gv2-ab-btn" id="annot-pen" title="Pen (freehand)">&#9998;</button>
+      <button class="annot-tool gv2-ab-btn" id="annot-highlight" title="Highlighter">&#9670;</button>
+      <button class="annot-tool gv2-ab-btn" id="gv2-text-btn" title="Text tool">T</button>
+      <button class="annot-tool gv2-ab-btn" id="annot-eraser" title="Eraser">&#9003;</button>
+      <!-- Shape tool group (right-click = shape picker) -->
+      <div class="annot-shape-group" id="annot-shape-group">
+        <button class="annot-tool gv2-ab-btn" id="annot-shape" title="Shape (right-click: switch shape)"
+          data-shape="rect">&#9645;</button>
+        <div class="annot-shape-menu" id="annot-shape-menu">
+          <button class="annot-shape-opt" data-tool="arrow">&#8599; Arrow</button>
+          <button class="annot-shape-opt" data-tool="rect">&#9645; Rect</button>
+          <button class="annot-shape-opt" data-tool="circle">&#11096; Circle</button>
+        </div>
+      </div>
+      <button class="annot-tool gv2-ab-btn" id="annot-select" title="Select / Move">&#9654;</button>
+      <div class="gv2-ab-sep"></div>
+      <input type="color" id="annot-color" class="annot-color-input gv2-ab-color" value="#f85149" title="Color" />
+      <input type="range" id="annot-size" min="1" max="30" value="3" class="annot-range gv2-ab-range" title="Size" />
+      <span id="annot-size-label" class="annot-size-label gv2-ab-size-lbl">3</span>
+      <div class="gv2-ab-sep"></div>
+      <button class="annot-tool gv2-ab-btn" id="annot-undo" title="Undo (Ctrl+Z)">&#8617;</button>
+      <button class="annot-tool gv2-ab-btn" id="annot-redo" title="Redo (Ctrl+Y)">&#8618;</button>
+      <button class="annot-tool gv2-ab-btn" id="annot-clear" title="Clear all">&#10005;</button>
+      <div class="gv2-ab-sep"></div>
+      <button class="gv2-ab-btn gv2-ab-save" id="annot-save-overlay" title="Save as overlay">&#128190;</button>
+      <button class="gv2-ab-btn gv2-ab-merge" id="annot-save-merge" title="Merge &amp; Save">&#8681;</button>
+    </div>
+
+    <!-- Layer Panel (Photoshop-style, left side) -->
+    <div class="gv2-layer-panel" id="gv2-layer-panel" style="display:none">
+      <div class="gv2-lp-header">
+        <span>Layers</span>
+        <div style="display:flex;gap:3px;align-items:center;">
+          <button class="gv2-lp-sel-btn" id="gv2-lp-sel-all" title="Select All">&#9745;</button>
+          <button class="gv2-lp-sel-btn" id="gv2-lp-sel-none" title="Deselect All">&#9746;</button>
+          <button class="gv2-lp-sel-btn" id="gv2-lp-sel-inv" title="Invert Selection">&#8645;</button>
+          <button class="gv2-lp-close" id="gv2-lp-close-btn" title="Close">&#10005;</button>
+        </div>
+      </div>
+      <div class="gv2-lp-body" id="gv2-layer-list"></div>
+      <div class="gv2-lp-resize-handle" id="gv2-lp-resize-handle" title="Drag to resize"></div>
+    </div>
+
+    <!-- Center column: image + tag cloud + thumbnails -->
+    <div class="gv2-center">
+
+      <!-- Main image area -->
+      <div class="gv2-img-area" id="gallery-img-wrapper">
+        <button class="gv2-nav-btn" id="gallery-prev">&#10094;</button>
+        <!-- Zoom layer: img + annotation canvas ek saath zoom hote hain -->
+        <div id="gallery-zoom-layer">
+          <img class="gallery-img" id="gallery-img" src="" alt="Trade image" draggable="false" />
+          <canvas id="annot-canvas" class="annot-canvas" style="display:none"></canvas>
+        </div>
+        <button class="gv2-nav-btn gv2-nav-right" id="gallery-next">&#10095;</button>
+        <div class="gv2-img-counter" id="gallery-counter"></div>
+        <div class="gv2-img-tags" id="gallery-image-tags"></div>
+
+        <!-- Heads Display -->
+        <div id="gallery-heads-display" class="gallery-heads-display"
+          style="position: absolute; top: 12px; left: 12px; z-index: 40; background: rgba(30, 35, 48, 0.85); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); font-size: 0.85rem; pointer-events: none; display: none; flex-direction: column; gap: 4px; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+        </div>
+
+        <!-- Text Bar -->
+        <div class="gv2-text-bar" id="gv2-text-bar" style="display:none">
+          <input type="color" id="gv2-tb-color" class="gv2-ab-color" value="#000000" title="Text Color" />
+          <input type="number" id="gv2-tb-size" class="gv2-tb-size" value="24" min="8" max="144" title="Font size" />
+          <select id="gv2-tb-font" class="gv2-ab-btn" title="Font family"
+            style="width: 80px; padding: 0 4px; appearance: auto; background: var(--bg); border: 1px solid var(--border);">
+            <option value="Arial" selected>Arial</option>
+            <option value="Courier New">Courier</option>
+            <option value="Times New Roman">Times</option>
+            <option value="Impact">Impact</option>
+          </select>
+          <button id="gv2-tb-bold" class="gv2-ab-btn" title="Bold"><b>B</b></button>
+          <button id="gv2-tb-italic" class="gv2-ab-btn" title="Italic"><i>I</i></button>
+          <button id="gv2-tb-list" class="gv2-ab-btn" style="font-size:0.75rem"
+            title="Bullets / Numbering">&#9776;</button>
+          <button id="gv2-tb-align" class="gv2-ab-btn" title="Alignment">&#8801;</button>
+        </div>
+        <div class="gv2-marquee-bar" id="gv2-marquee-bar" style="display:none">
+          <input type="text" id="gv2-mq-tag-input" class="gv2-mq-input" list="gv2-mq-tag-suggestions"
+            placeholder="Tag for selected box..." />
+          <datalist id="gv2-mq-tag-suggestions"></datalist>
+          <button id="gv2-mq-add" class="gv2-ab-btn" title="Add tag to selected marquee">+ Tag</button>
+          <button class="gv2-ab-btn annot-tool" id="annot-vselect" title="Group Select (V)">V</button>
+          <button id="gv2-mq-rebind" class="gv2-ab-btn"
+            title="Remove frozen legacy overlay and keep editable marquee">Rebind</button>
+          <button id="gv2-mq-del" class="gv2-ab-btn" title="Close marquee tool">&#10005;</button>
+        </div>
+
+        <!-- Audio Bar -->
+        <div class="gv2-audio-bar" id="gv2-audio-bar" style="display:none"></div>
+
+        <!-- Video Bar -->
+        <div class="gv2-video-bar" id="gv2-video-bar" style="display:none"></div>
+      </div>
+
+      <!-- Tag Cloud (always visible) -->
+      <div class="gv2-tag-cloud" id="gv2-tag-cloud">
+        <span class="gv2-tc-label">Filter:</span>
+        <div class="gv2-tc-chips" id="gv2-tag-cloud-chips"></div>
+        <button class="gv2-tc-mode-btn" id="gv2-tc-mode-btn" title="Toggle AND / OR">OR</button>
+        <button class="gv2-tc-mode-btn active" id="gv2-grp-filter-btn" title="Filter mode: Grp = entire group if any image matches, Img = only matching image" style="margin-left:4px">Grp</button>
+        <button class="gv2-tc-clear-btn" id="gv2-tc-clear-btn" title="Clear filter" style="display:none">&#10005;
+          Clear</button>
+        <!-- Shortcuts reference button -->
+        <button class="gv2-tc-mode-btn" id="gv2-shortcuts-btn" title="Keyboard shortcuts" style="margin-left:4px;font-size:0.8rem;padding:2px 7px;">&#9000;</button>
+        <div id="gv2-shortcuts-popover" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;max-width:520px;margin:0 auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);z-index:9999;padding:10px 14px;font-size:0.78rem;"></div>
+      </div>
+
+      <!-- Thumbnail Tray -->
+      <div class="gv2-thumb-tray">
+        <div class="gv2-tray-resize-handle-horiz" id="gv2-tray-resize-handle-horiz"></div>
+        <div class="gv2-thumbs" id="gallery-thumbs"></div>
+      </div>
+
+    </div><!-- /gv2-center -->
+
+    <!-- Tags Tray (right panel, toggled by T) -->
+    <div class="gv2-tags-tray" id="gv2-tags-tray" style="display:none">
+      <div class="gv2-tray-resize-handle" id="gv2-tray-resize-handle"></div>
+
+      <!-- Video URLs Tray -->
+      <div class="gv2-video-url-tray" id="gv2-video-url-tray"
+        style="padding: 10px; border-bottom: 1px solid var(--border); display:none;">
+        <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--text);">Video URLs</div>
+        <div id="gv2-video-url-list"
+          style="display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; margin-bottom: 12px;"></div>
+      </div>
+
+      <div class="gv2-tt-hdr">
+        <span class="gv2-tt-title">Tags</span>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <button class="gv2-tt-sz-btn" id="gv2-tag-sz-minus" title="Tag size kam karo">A-</button>
+          <button class="gv2-tt-sz-btn" id="gv2-tag-sz-plus" title="Tag size badhao">A+</button>
+          <button class="gv2-tt-add-grp" id="gv2-add-grp-btn">+ Group</button>
+          <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
+        </div>
+      </div>
+      <div class="gv2-tt-body" id="gv2-tags-tray-body"></div>
+    </div>
+
+  </div><!-- /gv2-body -->
+</div><!-- /gallery-modal -->
+
+<!-- ── IMAGE UPLOAD MODAL ───────────────────── -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal-content upload-modal-content">
+    <div class="modal-header">
+      <span id="upload-modal-title">Upload Images</span>
+      <button class="close-btn" id="upload-close">&#10005;</button>
+    </div>
+    <div class="upload-drop-zone" id="upload-drop-zone">
+      <div class="drop-icon">&#128247;</div>
+      <p>Drop images here or <span class="upload-label" id="upload-browse-label">browse</span></p>
+      <p class="upload-paste-hint">&#128203; Ctrl+V to paste an image from clipboard</p>
+      <input type="file" id="image-file-input" multiple accept="image/*" style="display:none" />
+    </div>
+    <div class="upload-preview" id="upload-preview"></div>
+    <div class="upload-actions">
+      <button class="btn btn-outline" id="upload-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="upload-done-btn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAG PICKER MODAL ─────────────── -->
+<div class="modal-overlay" id="tag-modal">
+  <div class="modal-content tag-modal-content">
+    <div class="modal-header">
+      <span id="tag-modal-title">Tags</span>
+      <button class="close-btn" id="tag-picker-close-x">&#10005;</button>
+    </div>
+    <input type="text" id="tag-picker-inp" class="tag-picker-inp" placeholder="Search or create tag..." />
+    <div id="tag-picker-list" class="tag-picker-list"></div>
+    <div class="tag-picker-footer">
+      <button class="btn btn-outline" id="tag-picker-close-btn"
+        style="width:100%;font-size:0.78rem;padding:5px">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Tag Manager Modal -->
+<div class="modal-overlay" id="img-tag-modal">
+  <div class="modal-content tag-modal-content">
+    <div class="modal-header">
+      <span>Image Tags</span>
+      <button class="close-btn" id="img-tag-close-x">&#10005;</button>
+    </div>
+    <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+      <div class="panel-manage-label" style="margin-bottom:6px">Current Image</div>
+      <div id="img-tag-current-list" class="panel-list" style="max-height:180px"></div>
+    </div>
+    <div style="padding:10px 12px; border-bottom:1px solid var(--border)">
+      <div class="panel-manage-label" style="margin-bottom:6px">Create Tag</div>
+      <div style="display:flex; gap:6px">
+        <input type="text" id="img-tag-new-name" class="tag-picker-inp" placeholder="New tag name..."
+          style="border:1px solid var(--border2); border-radius:6px; padding:7px 9px" />
+        <button class="btn btn-primary" id="img-tag-add-btn" style="padding:6px 10px">Add</button>
+      </div>
+    </div>
+    <div style="padding:10px 12px">
+      <div class="panel-manage-label" style="margin-bottom:6px">Manage Tags</div>
+      <div id="img-tag-manage-list" class="panel-list" style="max-height:190px"></div>
+    </div>
+    <div class="tag-picker-footer">
+      <button class="btn btn-outline" id="img-tag-close-btn"
+        style="width:100%;font-size:0.78rem;padding:5px">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FULLSCREEN VIEWER (INSTAGRAM REELS STYLE) ── -->
+<div class="fs-viewer" id="fs-viewer">
+  <!-- Header -->
+  <div class="fs-header">
+    <button class="fs-back-btn" id="fs-close-btn">&#8592;</button>
+    <div class="fs-header-info" style="position:relative;">
+      <div class="fs-header-title">Trade View</div>
+      <div class="fs-header-subtitle" id="fs-header-info" style="cursor:pointer; border-bottom:1px solid transparent; transition:all 0.2s" onmouseover="this.style.borderBottom='1px solid rgba(255,255,255,0.3)'" onmouseout="this.style.borderBottom='1px solid transparent'">Mar 13 Fri • T1 • 1/3</div>
+      <input type="date" id="fs-date-picker" style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; z-index:5;" onchange="FullscreenViewer.jumpToDate(this.value)" />
+    </div>
+    <div class="fs-profiles-top">
+        <img src="/static/img/logo.png" class="fs-profile-small" alt="p1" />
+        <img src="/static/img/logo.png" class="fs-profile-small" alt="p2" />
+        <div class="fs-lock-btn" title="Focus Mode" style="margin-left:15px; cursor:pointer; font-size:1.4rem; padding:4px 8px; border-radius:50%; transition:all 0.2s">🔓</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="fs-content" id="fs-content">
+    <img src="" class="fs-main-img" id="fs-img" alt="Fullscreen content" draggable="false" />
+    <div class="fs-dots" id="fs-dots"></div>
+    <!-- Lock Mode Navigation: sides = images, corners = dates -->
+    <button class="fs-side-btn fs-side-left" id="fs-lock-prev">&#8592;</button>
+    <button class="fs-side-btn fs-side-right" id="fs-lock-next">&#8594;</button>
+    <button class="fs-corner-btn fs-corner-bl" id="fs-lock-up">&#8593;</button>
+    <button class="fs-corner-btn fs-corner-br" id="fs-lock-down">&#8595;</button>
+
+    <!-- Lock Mode Zoom Slider (Left Side) -->
+    <div class="fs-zoom-slider-container" id="fs-zoom-slider-container">
+        <input type="range" min="1" max="5" step="0.01" value="1" class="fs-zoom-slider" id="fs-zoom-slider">
+        <div class="fs-zoom-label" id="fs-zoom-label">1x</div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="fs-sidebar">
+    <button class="fs-action-btn">
+      <span class="fs-action-icon">❤️</span>
+      <span class="fs-action-label" id="fs-likes">155</span>
+    </button>
+    <button class="fs-action-btn">
+      <span class="fs-action-icon">💬</span>
+      <span class="fs-action-label">96</span>
+    </button>
+    <button class="fs-action-btn">
+      <span class="fs-action-icon">✈️</span>
+      <span class="fs-action-label">141</span>
+    </button>
+    <button class="fs-action-btn">
+      <span class="fs-action-icon">📥</span>
+      <span class="fs-action-label">Save</span>
+    </button>
+    <button class="fs-action-btn">
+      <span class="fs-action-icon">⋮</span>
+    </button>
+  </div>
+
+  <!-- Bottom Info -->
+  <div class="fs-bottom">
+    <div class="fs-user-row">
+      <img src="/static/img/logo.png" class="fs-user-avatar" id="fs-bottom-avatar" alt="avatar" />
+      <span class="fs-username" id="fs-bottom-username">trading_journal</span>
+      <button class="fs-follow-btn">Follow</button>
+    </div>
+    <div class="fs-caption" id="fs-caption">
+      Aapko kya lag rha ...
+    </div>
+    <div class="fs-comment-input-row">
+      <span class="fs-emoji-btn">😊</span>
+      <input type="text" class="fs-comment-input" placeholder="Add comment..." />
+    </div>
+  </div>
+</div>
+```
+
+## File: `templates/gallery_classic_page.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gallery Classic — Trading Journal</title>
+  <link rel="stylesheet" href="/static/css/style-base.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-a.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-gallery-classic.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-misc.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-trade.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-fullscreen.css?v={{ cache_bust }}" />
+</head>
+<body>
+
+  {% include 'gallery-classic.html' %}
+
+  <!-- Stubs MUST come before any JS module that references them -->
+  <script>
+    // UI stubs (no calendar/table DOM in this page)
+    function renderTable() {}
+    function renderCalendar() {}
+    function bindSectionOrderDrag() {}
+    function populateSelects() {}
+    function renderDashboardStatsMenu() {}
+    function loadColWidths() {}
+    function applySectionOrder() {}
+    function syncSelects() {}
+    function openObsModal(dateStr) {}
+    function loadTagGroups() {
+      if (window.state) state.tagGroups = JSON.parse(localStorage.getItem('tj_tagGroups') || '{}');
+    }
+    function saveTagGroups() {
+      localStorage.setItem('tj_tagGroups', JSON.stringify((window.state && state.tagGroups) || {}));
+    }
+    // Date utils (normally in calendar.js)
+    function formatDate(d) {
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    function normalizeDate(val) {
+      if (!val) return '';
+      const s = String(val).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) {
+        const dd = parseInt(dmy[1],10), mm = parseInt(dmy[2],10), yy = parseInt(dmy[3],10);
+        if (dd>=1&&dd<=31&&mm>=1&&mm<=12) return yy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+      }
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) return formatDate(d);
+      return String(val);
+    }
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d)) return dateStr;
+      return d.toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+    }
+    // Trade date helpers (normally in calendar.js)
+    function extractDateFromTrade(trade) {
+      if (!trade) return '';
+      if (trade.date) return trade.date;
+      if (trade.Date) return trade.Date;
+      for (const k of Object.keys(trade)) {
+        if (k.toLowerCase().includes('date') && trade[k]) return trade[k];
+      }
+      return '';
+    }
+    function getTradeForDate(dateStr) {
+      return (window.state && state.trades || []).find(t => normalizeDate(extractDateFromTrade(t)) === dateStr) || null;
+    }
+    function getTradesForDate(dateStr) {
+      return (window.state && state.trades || []).filter(t => normalizeDate(extractDateFromTrade(t)) === dateStr);
+    }
+    function getOrCreateTrade(dateStr) {
+      let trade = getTradeForDate(dateStr);
+      if (!trade) {
+        trade = { date: dateStr, images: [] };
+        (window.state && state.columns || []).forEach(col => { trade[col] = ''; });
+        state.trades.push(trade);
+      }
+      return trade;
+    }
+    // Fullscreen viewer stub (fullscreen-viewer.js not loaded in classic page)
+    function openFullscreenFromAppContext(images, currentUrl) {
+      if (currentUrl) window.open(currentUrl, '_blank');
+    }
+    // Dashboard/table stubs (dashboard.js, table-render.js, table-colops.js not loaded)
+    function render() {}
+    function renderDashboard() {}
+    function renderTagFilterPanel() {}
+    // tagColor / hexToRgba (normally in table-cols.js)
+    const _TAG_PALETTE = ['#3fb950','#58a6ff','#d29922','#bc8cff','#f85149','#79b8ff','#56d364','#ffa657'];
+    function tagColor(name) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+      return _TAG_PALETTE[Math.abs(h) % _TAG_PALETTE.length];
+    }
+    function hexToRgba(hex, a) {
+      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+      return `rgba(${r},${g},${b},${a})`;
+    }
+    // syncAllTradeDates (normally in calendar.js)
+    function syncAllTradeDates() {
+      if (!window.state) return;
+      state.trades.forEach(t => { if (t) t.date = normalizeDate(extractDateFromTrade(t)); });
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="/static/js/services/apiClient.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/tradeService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/imageService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/importService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/services/exportService.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/state.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/settings.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-open-classic.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-rubberband-classic.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-render-classic.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-stats.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-core-classic.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-image-ops.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ops-classic.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-ops-group.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-layer.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-nav.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-tags.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-tags-filter.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-data.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-img-tags.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-audio.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/gallery-video.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-zoom.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-marquee.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-tools.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-canvas.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-ctx-menu.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-lifecycle.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/annotate-fabric.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/io.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-keys.js?v={{ cache_bust }}"></script>
+  <script src="/static/js/events-gallery.js?v={{ cache_bust }}"></script>
+
+  <!-- Manual gallery-only init — no events.js / events-ui.js / events-settings.js needed -->
+  <script>
+    (async function galleryClassicInit() {
+      const dbg = (msg) => console.log('[classic-init]', msg);
+      try { loadSettingsFromStorage(); dbg('settings ok'); } catch(e) { dbg('settings err: '+e); }
+      try { loadShortcutsFromStorage(); dbg('shortcuts ok'); } catch(e) { dbg('shortcuts err: '+e); }
+      try { loadTagGroups(); dbg('tagGroups ok'); } catch(e) { dbg('tagGroups err: '+e); }
+
+      dbg('calling loadTrades...');
+      try { await loadTrades(); dbg('loadTrades ok, trades='+state.trades.length); }
+      catch(e) { dbg('loadTrades FAILED: '+e); }
+
+      try { if (typeof _bindGalleryEvents === 'function') { _bindGalleryEvents(); dbg('bindGalleryEvents ok'); } } catch(e) { dbg('bindGalleryEvents err: '+e); }
+      try { if (typeof _bindKeyboardEvents === 'function') { _bindKeyboardEvents(); dbg('bindKeyEvents ok'); } } catch(e) { dbg('bindKeyEvents err: '+e); }
+      try { if (typeof _bindGalleryTagFilterEvents === 'function') _bindGalleryTagFilterEvents(); } catch(e) {}
+      try { if (typeof bindZoomPan === 'function') bindZoomPan(); } catch(e) {}
+      try { if (typeof bindAnnotationCanvas === 'function') bindAnnotationCanvas(); } catch(e) {}
+
+      dbg('calling _openGalleryFromUrlParamsOnce...');
+      try {
+        const q = new URLSearchParams(window.location.search);
+        const dateKey = normalizeDate(q.get('galleryDate') || '');
+        dbg('dateKey='+dateKey+', images='+JSON.stringify(getImagesForDate(dateKey)));
+      } catch(e) { dbg('pre-open check err: '+e); }
+      _openGalleryFromUrlParamsOnce();
+      dbg('done. gallery modal open='+document.getElementById('gallery-modal')?.classList.contains('open'));
+    })();
+  </script>
+</body>
+</html>
+
+```

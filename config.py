@@ -72,10 +72,10 @@ DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', '
 
 _secret_key_default = 'your-secret-key-for-dev-fallback'
 SECRET_KEY = os.getenv('SECRET_KEY', _secret_key_default)
-if SECRET_KEY == _secret_key_default and not os.getenv('FLASK_DEBUG', '').strip().lower() in ('1', 'true', 'yes'):
+if SECRET_KEY == _secret_key_default and not DEBUG:
     raise RuntimeError(
         'SECRET_KEY env var is not set. This is required in production. '
-        'Set FLASK_DEBUG=true to allow the insecure default in development.'
+        'Please set SECRET_KEY in your environment, or set FLASK_DEBUG=true for development.'
     )
 ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
 

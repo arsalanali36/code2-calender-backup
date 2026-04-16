@@ -1,3 +1,9 @@
+# Backend - Data Processors
+Consolidated code context for AI assistants.
+
+
+## File: `processors/data_processors.py`
+```py
 import pandas as pd
 import json
 import os
@@ -188,8 +194,6 @@ def consolidate_raw_fills(raw_df):
     required = ['Trade ID', 'Fill time', 'Type', 'Instrument', 'Product', 'Qty.', 'Avg. Price']
     missing = [c for c in required if c not in raw_df.columns]
     if missing:
-        from services.debug_service import log_ai_event
-        log_ai_event("IMPORT_ERROR", f"Missing columns in Zerodha Today CSV: {missing}", {"found_columns": list(raw_df.columns)})
         raise ValueError(f"Missing required columns: {', '.join(missing)}")
 
     df = raw_df.copy()
@@ -574,3 +578,5 @@ def consolidate_dhan_csv(raw_df):
         out['_sell_time_sort'] = pd.to_datetime(out['Sell Time'], format='%H:%M:%S', errors='coerce')
         out = out.sort_values('_sell_time_sort', ascending=True).drop(columns=['_sell_time_sort'])
     return out
+
+```
