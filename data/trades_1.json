@@ -19049,7 +19049,9 @@
     "frustrating",
     "beecho beech",
     "zone banna cahiye tha, nahi bana",
-    "zone hawa me, Entry miss"
+    "zone hawa me, Entry miss",
+    "hawa me , zone hi nahi , levels nahi banenge",
+    "zone banna cahiye nah bana ,trap"
   ],
   "tagColumns": [
     "Tags"
@@ -27648,7 +27650,9 @@
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/a887ab1c-7233-417b-8a50-610efc774aff.png": [
           "BNF",
-          "Reversal-Fail"
+          "Reversal-Fail",
+          "hawa me , zone hi nahi , levels nahi banenge",
+          "zone banna cahiye nah bana ,trap"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356579/trading_journal/1cb4fa4a-2ad3-4776-be7c-e06e8574d2f6.png": [
           "NIFTY"
@@ -27659,7 +27663,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/df5ac341-a8e2-4912-ac35-20758fce8975.png": [
           "NIFTY",
           "Reversal-Fail",
-          "beecho beech"
+          "beecho beech",
+          "hawa me , zone hi nahi , levels nahi banenge"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/6b1afeb4-fa8f-4c8d-b5f2-486286b6b030.png": [
           "NIFTY"
@@ -27765,6 +27770,20 @@
             "x": 22,
             "y": 27.1,
             "color": "#ffd700"
+          },
+          {
+            "id": "mo1t2i5k8dq2",
+            "tag": "hawa me , zone hi nahi , levels nahi banenge",
+            "x": 53.9,
+            "y": 44.6,
+            "color": "#3498db"
+          },
+          {
+            "id": "mo1t3xd51rb9",
+            "tag": "zone banna cahiye nah bana ,trap",
+            "x": 59.4,
+            "y": 48,
+            "color": "#ff6b9d"
           }
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/df5ac341-a8e2-4912-ac35-20758fce8975.png": [
@@ -27782,6 +27801,13 @@
             "y": 79,
             "color": "#f39c12",
             "note": "yahan entry mili to par le nahi payenge!!"
+          },
+          {
+            "id": "mo1t2yeqolz6",
+            "tag": "hawa me , zone hi nahi , levels nahi banenge",
+            "x": 49.8,
+            "y": 40.2,
+            "color": "#3498db"
           }
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/be414ff5-d5a4-4f20-b465-694b35a00799.png": [
@@ -30137,7 +30163,9 @@
       "frustrating",
       "beecho beech",
       "zone banna cahiye tha, nahi bana",
-      "zone hawa me, Entry miss"
+      "zone hawa me, Entry miss",
+      "hawa me , zone hi nahi , levels nahi banenge",
+      "zone banna cahiye nah bana ,trap"
     ],
     "Exit Type": [
       "Partial Exit",
