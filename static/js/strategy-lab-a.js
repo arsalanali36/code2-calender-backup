@@ -454,8 +454,7 @@
                     
                     let entryP, exitP;
                     // ALWAYS snap to candles for visual alignment, but keep ledger prices for labels
-                    const entryCandle = chartData.find(d => d.time === entryT);
-                    const exitCandle = chartData.find(d => d.time === exitT);
+                    // (entryCandle and exitCandle are already defined from visibleData/chartData above)
                     
                     if (entryCandle && exitCandle) {
                         const isCE = rt.instrument.toUpperCase().includes('CE') || rt.instrument.toUpperCase().includes('CALL');
