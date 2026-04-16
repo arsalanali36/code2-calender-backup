@@ -40,7 +40,7 @@ def index():
         json.loads(initial_data_json)
     except Exception:
         initial_data_json = '{}'
-    use_bundle = os.path.exists(BUNDLE_PATH)
+    use_bundle = os.environ.get('USE_BUNDLE') == '1' and os.path.exists(BUNDLE_PATH)
     return render_template('index.html', cache_bust=int(time.time()),
                            initial_data_json=initial_data_json,
                            use_bundle=use_bundle)

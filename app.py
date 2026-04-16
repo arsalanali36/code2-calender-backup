@@ -230,12 +230,15 @@ _bootstrap_persistent_storage()
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
 
-# ── JS bundle (rebuild if any source file changed) ────────────────────────────
-try:
-    from build import build as _build_js
-    _build_js()
-except Exception as _e:
-    print(f'[build] WARNING: JS bundle build failed: {_e}')
+# ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
+if os.environ.get('USE_BUNDLE') == '1':
+    try:
+        from build import build as _build_js
+        _build_js()
+    except Exception as _e:
+        print(f'[build] WARNING: JS bundle build failed: {_e}')
+else:
+    print('[build] DEV MODE — bundle skipped, serving individual JS files')
 
 with app.app_context():
     db.create_all()

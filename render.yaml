@@ -16,6 +16,8 @@ services:
         value: /var/data/trades.json
       - key: UPLOADS_DIR
         value: /var/data/uploads
+      - key: USE_BUNDLE
+        value: "1"    # Build + serve bundle.js in production (skip in local dev)
       - key: CLOUDINARY_URL
         sync: false   # Set this secret in the Render dashboard → Environment
 
