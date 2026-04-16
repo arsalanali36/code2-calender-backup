@@ -8072,7 +8072,7 @@ function renderCloseGlobalTray(curUrl) {
           if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
       };
 
-      // Right-click: Mini Action Panel
+      // Right-click: Mini Action Panel (including new Strategy Lab option)
       sourceBtn.oncontextmenu = (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -8087,8 +8087,12 @@ function renderCloseGlobalTray(curUrl) {
               background: rgba(22, 22, 28, 0.95); border: 1px solid rgba(255,255,255,0.12);
               border-radius: 10px; padding: 5px; z-index: 10000;
               box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 2px;
-              min-width: 165px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
+              min-width: 175px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
           `;
+
+          const inst = tr.instrument || tr.Symbol || tr.symbol || 'Nifty 50 (^NSEI)';
+          const dayDate = typeof extractDateFromTrade === 'function' ? normalizeDate(extractDateFromTrade(tr)) : (tr.Date || '');
+          const entryT = tr.entry_time || (tr['Entry Time'] ? Math.floor(new Date(tr['Entry Time']).getTime() / 1000) : null);
 
           const createItem = (text, icon, color, onClick) => {
               const item = document.createElement('div');
@@ -8107,6 +8111,22 @@ function renderCloseGlobalTray(curUrl) {
               };
               return item;
           };
+
+          // 1. New Strategy Lab Option
+          menu.appendChild(createItem('Strategy Lab', '🧪', '#8b5cf6', () => {
+              if (!dayDate) { showToast('No date found', 'error'); return; }
+              const params = new URLSearchParams({ symbol: inst, date: dayDate, jumpTime: entryT || '' });
+              window.open(`/strategy_lab?${params.toString()}`, '_blank');
+              showToast('Opening Strategy Lab...', 'success');
+          }));
+          
+          // Separator
+          const hr = document.createElement('div');
+          hr.style.cssText = 'height:1px; background:rgba(255,255,255,0.08); margin:4px 8px;';
+          menu.appendChild(hr);
+
+           // existing items continue...
+
 
           const dDate = state.gallery.date;
           if (!dDate) return;
