@@ -8116,9 +8116,10 @@ function renderCloseGlobalTray(curUrl) {
           menu.appendChild(createItem('Strategy Lab', '🧪', '#8b5cf6', () => {
               if (!dayDate) { showToast('No date found', 'error'); return; }
               const params = new URLSearchParams({ symbol: inst, date: dayDate, jumpTime: entryT || '' });
-              window.open(`/strategy_lab?${params.toString()}`, '_blank');
+              window.open(`/strategy-lab?${params.toString()}`, '_blank');
               showToast('Opening Strategy Lab...', 'success');
           }));
+
           
           // Separator
           const hr = document.createElement('div');

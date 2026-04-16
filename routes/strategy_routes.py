@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_login import current_user
 from services.strategy_data_service import get_nifty_data, get_real_trades
 import pandas as pd
 import pytz
@@ -25,8 +26,8 @@ def nifty_data():
     strategy_params = {'hawa_me_zone': hawa_me_zone}
     
     try:
-        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy, strategy_params=strategy_params)
-        real_trades = get_real_trades(start_date, end_date, symbol)
+        user_id = current_user.id if current_user.is_authenticated else None
+        df, zones, real_trades = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy, strategy_params=strategy_params, user_id=user_id)
 
         if df.empty:
              return jsonify({'error': 'No data found for the selected range.'}), 404
@@ -89,7 +90,8 @@ def nifty_data():
 def archive_dates():
     from services.strategy_data_service import get_archive_dates
     try:
-        dates = get_archive_dates()
+        user_id = current_user.id if current_user.is_authenticated else None
+        dates = get_archive_dates(user_id=user_id)
         return jsonify({'dates': dates})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

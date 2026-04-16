@@ -17,6 +17,8 @@ import requests
 import time
 from datetime import datetime, timedelta
 
+from processors.data_processors import get_user_data_file
+
 from services.strategy_service import (
     DHAN_ACCESS_TOKEN,
     _get_cached_raw_data,
@@ -53,7 +55,7 @@ def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     if not all_data: return pd.DataFrame()
     return pd.DataFrame(all_data).set_index('Datetime')
 
-def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid='', strategy_type='Arsalan Continuation', strategy_params=None):
+def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid='', strategy_type='Arsalan Continuation', strategy_params=None, user_id=None):
     st = time.time()
     pivot_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'daily_pivot_levels.json')
     pivot_mtime = os.path.getmtime(pivot_path) if os.path.exists(pivot_path) else 0
@@ -68,15 +70,19 @@ def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:
             csv_mtime = os.path.getmtime(path)
 
     params_str = json.dumps(strategy_params, sort_keys=True) if strategy_params else "{}"
-    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime, csv_mtime)
+    res = get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime, csv_mtime, user_id)
     print(f"DEBUG: get_nifty_data took {time.time()-st:.4f}s")
     return res
 
 @functools.lru_cache(maxsize=128)
-def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime, csv_mtime):
+def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params_str, pivot_mtime, csv_mtime, user_id):
     params = json.loads(params_str) if params_str else {}
-    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe} ({strategy_type}) - Pivot MTime: {pivot_mtime}, CSV MTime: {csv_mtime}")
-    return _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params)
+    print(f"CACHE MISS: Calculating data for {symbol} @ {timeframe} ({strategy_type}) - Pivot MTime: {pivot_mtime}, CSV MTime: {csv_mtime}, User: {user_id}")
+    df, zones = _get_nifty_data_impl(symbol, start_date, end_date, timeframe, start_time, end_time, source, strategy_type, params)
+    
+    # We don't cache real_trades as they might change without csv/pivot change
+    real_trades = get_real_trades(start_date, end_date, symbol, user_id=user_id)
+    return df, zones, real_trades
 
 def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', strategy_type='Arsalan Continuation', strategy_params=None):
     df = pd.DataFrame()
@@ -151,8 +157,8 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
 
     return df_filtered, zones
 
-def get_real_trades(start_date, end_date, symbol=None):
-    path = os.path.join('data', 'trades_1.json')
+def get_real_trades(start_date, end_date, symbol=None, user_id=None):
+    path = get_user_data_file(user_id)
     if not os.path.exists(path): return []
     try:
         with open(path, 'r') as f: data = json.load(f); raw = data.get('trades', [])
@@ -190,7 +196,7 @@ def get_real_trades(start_date, end_date, symbol=None):
         except: pass
     return processed
 
-def get_archive_dates():
+def get_archive_dates(user_id=None):
     path = "data/Historical_OHLC/nifty_1m_dhan.csv"
     if not os.path.exists(path): return []
     try:
@@ -200,7 +206,7 @@ def get_archive_dates():
 
         trades_map = {}
         total_pl_map = {}
-        t_path = os.path.join('data', 'trades_1.json')
+        t_path = get_user_data_file(user_id)
         if os.path.exists(t_path):
             try:
                 with open(t_path, 'r') as f:
