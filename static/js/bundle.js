@@ -9423,8 +9423,11 @@ function initOtherDropdown() {
       document.getElementById('gv2-tradesidebar-toggle').classList.toggle('active', !stagedSidebarDisabled);
     }
     const fsSelect = document.getElementById('gv2-pill-font-size');
+    const fsVal    = document.getElementById('gv2-pill-font-size-val');
     if (fsSelect) {
-      fsSelect.value = stagedPillFontSize;
+      const numericVal = stagedPillFontSize.replace('rem', '');
+      fsSelect.value = numericVal;
+      if (fsVal) fsVal.textContent = stagedPillFontSize;
     }
   };
 
@@ -9492,8 +9495,14 @@ function initOtherDropdown() {
   }
 
   const fsSelect = document.getElementById('gv2-pill-font-size');
+  const fsVal    = document.getElementById('gv2-pill-font-size-val');
   if (fsSelect) {
-    fsSelect.addEventListener('change', (e) => { stagedPillFontSize = e.target.value; });
+    fsSelect.addEventListener('input', (e) => { 
+      stagedPillFontSize = e.target.value + 'rem'; 
+      if (fsVal) fsVal.textContent = stagedPillFontSize;
+      // Optional: Apply live preview?
+      // document.documentElement.style.setProperty('--pill-font-size', stagedPillFontSize);
+    });
   }
 
   // Export Current View PDF
@@ -26149,6 +26158,11 @@ function _bindKeyboardEvents() {
         e.preventDefault();
         const datesWImg = getDatesWithImages();
         if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);
+      } else if (e.key === 'h' && !e.shiftKey) {
+        e.preventDefault();
+        // Toggle gallery hamburger if open, else toggle settings or sidebar if possible
+        const burger = document.getElementById('gv2-hamburger-btn') || document.getElementById('sidebar-toggle');
+        if (burger) burger.click();
       }
     }
 

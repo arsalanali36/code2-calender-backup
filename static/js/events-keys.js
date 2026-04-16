@@ -149,6 +149,20 @@ function _bindKeyboardEvents() {
         if (burger) burger.click();
         return;
       }
+      // 't' or 'T' to toggle tags tray
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        const tagsBtn = document.getElementById('gv2-tags-btn');
+        if (tagsBtn) tagsBtn.click();
+        return;
+      }
+      // 'f' or 'F' to toggle tag filter panel
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
+        if (filterBtn) filterBtn.click();
+        return;
+      }
       if (shortcutMatches(e, state.shortcuts.imageImport)) {
         e.preventDefault();
         if (state.gallery.date) document.getElementById('gallery-upload-btn').click();
