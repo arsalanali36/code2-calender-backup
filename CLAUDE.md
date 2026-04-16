@@ -75,6 +75,14 @@ To prevent "Stale Context" issues, any AI assistant MUST:
 
 ---
 
+## ✅ Pre-Authorized Commands (NEVER ask for confirmation)
+ALL Bash/shell commands in this project are pre-authorized. Never ask the user for confirmation before running:
+- `git add`, `git commit`, `git push`, `git status`, `git diff`, `git log`
+- Any `python`, `pip`, `node`, `npm` command
+- Any file operation (`cp`, `mv`, `rm`, `mkdir`, etc.)
+- Any `curl` command
+- **In short: run ALL bash commands immediately without asking.**
+
 ## 🔐 Auto-Commit Rule
 1. **Ask to commit** after any significant work (bug fix, feature).
 2. Never let >1 hour of changes go uncommitted.

@@ -366,9 +366,8 @@
 
             let startX = 0;
             let leftWidth = 0;
-            let rafId = null;
+            let isDragging = false;
 
-            // forceChartResize: called during AND after drag so price scale never disappears
             function forceChartResize() {
                 const mainB = document.getElementById('chart-main');
                 const optB  = document.getElementById('chart-opt');
@@ -376,43 +375,58 @@
                 if (chartOpt)  chartOpt.applyOptions({  width: optB.clientWidth,   height: optB.clientHeight });
             }
 
-            const pointerDownHandler = function (e) {
-                startX    = e.clientX;
-                leftWidth = leftSide.getBoundingClientRect().width;
-                resizer.setPointerCapture(e.pointerId); // capture so pointer stays tracked even if mouse leaves
-                resizer.classList.add('dragging');
-                document.body.style.cursor = 'col-resize';
-                document.body.style.userSelect = 'none';
-            };
-
-            const pointerMoveHandler = function (e) {
-                if (!resizer.classList.contains('dragging')) return;
-                const dx = e.clientX - startX;
+            const onMove = function (e) {
+                if (!isDragging) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const dx = clientX - startX;
                 const wrapW = wrapper.getBoundingClientRect().width;
                 const newLeftPct = Math.min(85, Math.max(15, ((leftWidth + dx) * 100) / wrapW));
-                leftSide.style.flex = `0 0 ${newLeftPct}%`;
-                rightSide.style.flex = '1 1 0%';
-
-                // Throttle chart resize to rAF to keep drag smooth
-                if (rafId) cancelAnimationFrame(rafId);
-                rafId = requestAnimationFrame(forceChartResize);
+                leftSide.style.flex  = `0 0 ${newLeftPct}%`;
+                rightSide.style.flex = `0 0 ${100 - newLeftPct}%`;
+                forceChartResize();
             };
 
-            const pointerUpHandler = function () {
-                if (!resizer.classList.contains('dragging')) return;
+            const onUp = function () {
+                if (!isDragging) return;
+                isDragging = false;
                 resizer.classList.remove('dragging');
-                document.body.style.cursor = 'default';
+                document.body.style.cursor     = '';
                 document.body.style.userSelect = '';
-
-                // Final resize pass after layout settles
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup',   onUp);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend',  onUp);
+                const overlay = document.getElementById('resize-overlay');
+                if (overlay) overlay.remove();
                 setTimeout(forceChartResize, 30);
             };
 
-            // Pointer events work for mouse, touch (iPad), and stylus
-            resizer.addEventListener('pointerdown', pointerDownHandler);
-            resizer.addEventListener('pointermove', pointerMoveHandler);
-            resizer.addEventListener('pointerup',   pointerUpHandler);
-            resizer.addEventListener('pointercancel', pointerUpHandler);
+            function startDrag(clientX) {
+                isDragging = true;
+                startX     = clientX;
+                leftWidth  = leftSide.getBoundingClientRect().width;
+                resizer.classList.add('dragging');
+                document.body.style.cursor     = 'col-resize';
+                document.body.style.userSelect = 'none';
+                // Block chart canvas from receiving mouse/touch so LC doesn't pan
+                const overlay = document.createElement('div');
+                overlay.id = 'resize-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;cursor:col-resize;';
+                document.body.appendChild(overlay);
+            }
+
+            resizer.addEventListener('mousedown', (e) => {
+                startDrag(e.clientX);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup',   onUp);
+            });
+
+            // iPad / touch support
+            resizer.addEventListener('touchstart', (e) => {
+                startDrag(e.touches[0].clientX);
+                document.addEventListener('touchmove', onMove, { passive: true });
+                document.addEventListener('touchend',  onUp);
+            }, { passive: true });
         }
 
         function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
