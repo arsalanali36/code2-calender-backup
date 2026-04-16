@@ -11232,11 +11232,12 @@ function renderGalleryPnlPill() {
     pill.style.fontSize = 'calc(var(--pill-font-size, 0.82rem) * 1.1)';
     pill.style.fontWeight = '800';
     pill.style.cursor = 'default'; // No menu here as requested
+    pill.style.pointerEvents = 'none'; // DISABLE ALL CLICKS TOTALLY
     
     // Clear any existing dropdown listeners/logic from this pill specifically
     const drop = document.getElementById('gv2-pnl-dropdown');
     if (drop) drop.classList.remove('open');
-    pill.onclick = null; 
+    pill.onclick = (e) => { e.preventDefault(); e.stopPropagation(); return false; }; 
 
     const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
     const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
@@ -26120,18 +26121,6 @@ function _bindKeyboardEvents() {
         e.preventDefault();
         document.body.classList.toggle('calendar-full');
         document.body.classList.remove('table-full');
-      } else if ((e.key === 'F' || (e.key === 'f' && e.shiftKey)) && !e.ctrlKey) {
-        e.preventDefault();
-        const _enteringFull = !document.body.classList.contains('table-full');
-        document.body.classList.toggle('table-full');
-        document.body.classList.remove('calendar-full');
-        if (_enteringFull) {
-          document.documentElement.style.setProperty('--table-visible-rows', '20');
-        } else {
-          const _saved = JSON.parse(localStorage.getItem('tj_settings') || '{}');
-          const _rows = Math.max(3, Math.min(25, parseInt(_saved.tableRows, 10) || 5));
-          document.documentElement.style.setProperty('--table-visible-rows', String(_rows));
-        }
       } else if (e.key === 'c' && !e.shiftKey) {
         e.preventDefault();
         state.calendarMode = 'consolidated';

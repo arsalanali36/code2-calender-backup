@@ -143,6 +143,12 @@ function _bindKeyboardEvents() {
         setAnnotTool('eraser');
         return;
       }
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'h' || e.key === 'H')) {
+        e.preventDefault();
+        const burger = document.getElementById('gv2-hamburger-btn');
+        if (burger) burger.click();
+        return;
+      }
       if (shortcutMatches(e, state.shortcuts.imageImport)) {
         e.preventDefault();
         if (state.gallery.date) document.getElementById('gallery-upload-btn').click();
