@@ -326,7 +326,7 @@ function renderCloseGlobalTray(curUrl) {
       const isRefReady = !!(refCard && refCard.index);
 
       const sourceBtn = document.createElement('button');
-      sourceBtn.className = 'close-global-nav-btn';
+      sourceBtn.className = 'close-global-nav-btn cg-tray-btn';
       if (isActive) sourceBtn.classList.add('active');
       if (!tr.images || tr.images.length === 0) sourceBtn.classList.add('no-img');
       sourceBtn.textContent = String(idx + 1);

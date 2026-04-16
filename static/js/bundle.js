@@ -8014,7 +8014,7 @@ function renderCloseGlobalTray(curUrl) {
       const isRefReady = !!(refCard && refCard.index);
 
       const sourceBtn = document.createElement('button');
-      sourceBtn.className = 'close-global-nav-btn';
+      sourceBtn.className = 'close-global-nav-btn cg-tray-btn';
       if (isActive) sourceBtn.classList.add('active');
       if (!tr.images || tr.images.length === 0) sourceBtn.classList.add('no-img');
       sourceBtn.textContent = String(idx + 1);
@@ -14548,6 +14548,7 @@ function renderGalleryTagsTray() {
   const searchRow = document.createElement('div');
   searchRow.style.cssText = 'padding:5px 8px 6px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:5px;';
   const searchInp = document.createElement('input');
+  searchInp.id = 'gv2-tag-tray-search-inp';
   searchInp.className = 'panel-search';
   searchInp.placeholder = 'Search tags...';
   searchInp.value = state.gallery._tagTraySearch || '';
@@ -14566,6 +14567,26 @@ function renderGalleryTagsTray() {
     _applyTagFilter('');
     searchInp.focus();
   });
+  searchInp.addEventListener('input', e => {
+    state.gallery._tagTraySearch = e.target.value.toLowerCase();
+    searchClear.style.display = e.target.value ? 'flex' : 'none';
+    renderGalleryTagsTray();
+  });
+  searchInp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const firstChip = document.querySelector('.gv2-tt-tag-chip');
+      if (firstChip) {
+        firstChip.setAttribute('tabindex', '0');
+        firstChip.focus();
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const firstChip = document.querySelector('.gv2-tt-tag-chip');
+      if (firstChip) firstChip.click();
+    }
+  });
+
   searchRow.appendChild(searchInp);
   searchRow.appendChild(searchClear);
   if (fixed) fixed.appendChild(searchRow);
@@ -14668,6 +14689,24 @@ function renderGalleryTagsTray() {
       chip.appendChild(lbl);
       chip.appendChild(cnt);
     }
+
+    chip.setAttribute('tabindex', '0');
+    chip.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = chip.nextElementSibling || chip.parentElement.nextElementSibling?.querySelector('.gv2-tt-tag-chip');
+        if (next) next.focus();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = chip.previousElementSibling || chip.parentElement.previousElementSibling?.querySelector('.gv2-tt-tag-chip:last-child');
+        if (prev) prev.focus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        chip.click();
+      } else if (e.key === 'Escape') {
+        document.getElementById('gv2-tag-tray-search-inp')?.focus();
+      }
+    });
 
     const currentTradeTags = imgInfo.trade ? getTradeTagsForTrade(imgInfo.trade) : [];
     if (state.tagDeleteMode) {
@@ -15381,6 +15420,7 @@ function renderGalleryTagFilterPanel() {
     searchRow.style.cssText = 'padding: 8px; position: relative;';
     
     const searchInp = document.createElement('input');
+    searchInp.id = 'gv2-tag-filter-search-inp';
     searchInp.className = 'panel-search';
     searchInp.placeholder = 'Search tags...';
     searchInp.style.cssText = 'width: 100%; padding-right: 30px;'; // make room for x
@@ -25796,8 +25836,49 @@ function _bindKeyboardEvents() {
     }
 
     if (galleryOpen) {
-      // Arrow nav — must run BEFORE typingInField check because upper-canvas focus
-      // triggers typingInField=true even when not typing. Guard: annotation must be off.
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
+        if (e.key === 't' || e.key === 'T') {
+          e.preventDefault();
+          const tagsBtn = document.getElementById('gv2-tags-btn');
+          if (tagsBtn) tagsBtn.click();
+          return;
+        }
+        if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
+          if (filterBtn) filterBtn.click();
+          return;
+        }
+        if (e.key === 'r' || e.key === 'R') {
+          e.preventDefault();
+          const tray = document.getElementById('close-global-tray');
+          if (tray) {
+            const activeBtn = tray.querySelector('.cg-tray-btn.active') || tray.querySelector('.cg-tray-btn');
+            if (activeBtn) activeBtn.focus();
+          }
+          return;
+        }
+        if (e.key === 'h' || e.key === 'H') {
+          e.preventDefault();
+          const burger = document.getElementById('gv2-hamburger-btn');
+          if (burger) burger.click();
+          return;
+        }
+      }
+
+      // If typing in a true input/textarea, block remaining shortcuts
+      const isTrueInput = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if (isTrueInput && e.key !== 'Escape') return;
+
+      // Special case: upper-canvas (Fabric.js) is "typingInField" but needs arrow keys for gallery nav
+      // when not editing text.
+      if (typingInField && !isTrueInput && e.key !== 'Escape') {
+          // Allow it to proceed to arrow handlers below
+      } else if (typingInField && e.key !== 'Escape') {
+          return;
+      }
+
+      // Arrow nav — must run AFTER true input check to allow text cursor movement
       if (!annotState.active && !e.ctrlKey && !e.altKey) {
         const fsEl = document.getElementById('fullscreen-viewer');
         if (fsEl && fsEl.style.display === 'flex' && typeof FullscreenViewer !== 'undefined') {
@@ -25826,7 +25907,6 @@ function _bindKeyboardEvents() {
         }
       }
 
-      if (typingInField && e.key !== 'Escape') return;
       if (typingInField && e.key === 'Escape') {
         // Agar text edit mode me escape dabaya, toh annotate-fabric apna select/exitEditing handle karega.
         // Hum gallery exit ye tools exit nahi karenge.
@@ -25875,24 +25955,10 @@ function _bindKeyboardEvents() {
         setAnnotTool('eraser');
         return;
       }
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'h' || e.key === 'H')) {
+      // Shortcuts moved to top of block
+      // Explicitly empty Shift + F to prevent any other legacy behavior
+      if (!e.ctrlKey && !e.altKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
-        const burger = document.getElementById('gv2-hamburger-btn');
-        if (burger) burger.click();
-        return;
-      }
-      // 't' or 'T' to toggle tags tray
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 't' || e.key === 'T')) {
-        e.preventDefault();
-        const tagsBtn = document.getElementById('gv2-tags-btn');
-        if (tagsBtn) tagsBtn.click();
-        return;
-      }
-      // 'f' or 'F' to toggle tag filter panel
-      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'f' || e.key === 'F')) {
-        e.preventDefault();
-        const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
-        if (filterBtn) filterBtn.click();
         return;
       }
       if (shortcutMatches(e, state.shortcuts.imageImport)) {
@@ -25929,6 +25995,26 @@ function _bindKeyboardEvents() {
         if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(-1);
         return;
       }
+
+      // --- Arrow Key Navigation for focused Remote Tray ---
+      if (document.activeElement && document.activeElement.classList.contains('cg-tray-btn')) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const tray = document.getElementById('close-global-tray');
+          const btns = Array.from(tray.querySelectorAll('.cg-tray-btn'));
+          const curIdx = btns.indexOf(document.activeElement);
+          let nextIdx = curIdx;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextIdx = (curIdx + 1) % btns.length;
+          else nextIdx = (curIdx - 1 + btns.length) % btns.length;
+          
+          if (btns[nextIdx]) {
+            btns[nextIdx].focus();
+            btns[nextIdx].click();
+          }
+          return;
+        }
+      }
+
 
       if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();

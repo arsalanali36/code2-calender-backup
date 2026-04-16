@@ -28535,9 +28535,168 @@
             "note": "sadsad"
           }
         ]
+      },
+      "fabricData": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/b736821a-e14f-487f-ac2a-d2d54032d05a.png": {
+          "version": "5.3.0",
+          "objects": [
+            {
+              "type": "path",
+              "version": "5.3.0",
+              "originX": "left",
+              "originY": "top",
+              "left": 542.32,
+              "top": 27.27,
+              "width": 0.01,
+              "height": 0,
+              "fill": null,
+              "stroke": "#f85149",
+              "strokeWidth": 3,
+              "strokeDashArray": null,
+              "strokeLineCap": "round",
+              "strokeDashOffset": 0,
+              "strokeLineJoin": "round",
+              "strokeUniform": false,
+              "strokeMiterLimit": 10,
+              "scaleX": 1,
+              "scaleY": 1,
+              "angle": 0,
+              "flipX": false,
+              "flipY": false,
+              "opacity": 1,
+              "shadow": null,
+              "visible": true,
+              "backgroundColor": "",
+              "fillRule": "nonzero",
+              "paintFirst": "fill",
+              "globalCompositeOperation": "source-over",
+              "skewX": 0,
+              "skewY": 0,
+              "selectable": true,
+              "evented": true,
+              "hoverCursor": null,
+              "path": [
+                [
+                  "M",
+                  543.8151762695312,
+                  28.767021640075694
+                ],
+                [
+                  "L",
+                  543.8211762695313,
+                  28.767021640075694
+                ]
+              ]
+            },
+            {
+              "type": "path",
+              "version": "5.3.0",
+              "originX": "left",
+              "originY": "top",
+              "left": 424.95,
+              "top": 131.25,
+              "width": 0.01,
+              "height": 0,
+              "fill": null,
+              "stroke": "#f85149",
+              "strokeWidth": 3,
+              "strokeDashArray": null,
+              "strokeLineCap": "round",
+              "strokeDashOffset": 0,
+              "strokeLineJoin": "round",
+              "strokeUniform": false,
+              "strokeMiterLimit": 10,
+              "scaleX": 1,
+              "scaleY": 1,
+              "angle": 0,
+              "flipX": false,
+              "flipY": false,
+              "opacity": 1,
+              "shadow": null,
+              "visible": true,
+              "backgroundColor": "",
+              "fillRule": "nonzero",
+              "paintFirst": "fill",
+              "globalCompositeOperation": "source-over",
+              "skewX": 0,
+              "skewY": 0,
+              "selectable": true,
+              "evented": true,
+              "hoverCursor": null,
+              "path": [
+                [
+                  "M",
+                  426.4515440673828,
+                  132.7464235018305
+                ],
+                [
+                  "L",
+                  426.4575440673828,
+                  132.7464235018305
+                ]
+              ]
+            },
+            {
+              "type": "path",
+              "version": "5.3.0",
+              "originX": "left",
+              "originY": "top",
+              "left": 410.7,
+              "top": 91.17,
+              "width": 0.01,
+              "height": 0,
+              "fill": null,
+              "stroke": "#f85149",
+              "strokeWidth": 3,
+              "strokeDashArray": null,
+              "strokeLineCap": "round",
+              "strokeDashOffset": 0,
+              "strokeLineJoin": "round",
+              "strokeUniform": false,
+              "strokeMiterLimit": 10,
+              "scaleX": 1,
+              "scaleY": 1,
+              "angle": 0,
+              "flipX": false,
+              "flipY": false,
+              "opacity": 1,
+              "shadow": null,
+              "visible": true,
+              "backgroundColor": "",
+              "fillRule": "nonzero",
+              "paintFirst": "fill",
+              "globalCompositeOperation": "source-over",
+              "skewX": 0,
+              "skewY": 0,
+              "selectable": true,
+              "evented": true,
+              "hoverCursor": null,
+              "path": [
+                [
+                  "M",
+                  412.19914469203025,
+                  92.67383819993671
+                ],
+                [
+                  "L",
+                  412.2051446920302,
+                  92.67383819993671
+                ]
+              ]
+            }
+          ],
+          "hoverCursor": "move"
+        }
+      },
+      "marqueeBoxes": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/b736821a-e14f-487f-ac2a-d2d54032d05a.png": []
+      },
+      "overlays": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776319137/trading_journal/b736821a-e14f-487f-ac2a-d2d54032d05a.png": "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776330553/trading_journal/63167f5e-c293-46ff-b39e-404fae4bf5f9.png"
       }
     }
   },
+  "importedPdfs": [],
   "tagGroups": {
     "BAT": [
       "chotu",
@@ -28610,5 +28769,9 @@
     "TargetType": [
       "Palat Gaya"
     ]
-  }
+  },
+  "tagTemplates": {},
+  "pdfPageTags": {},
+  "imgTypes": {},
+  "uiSettings": {}
 }

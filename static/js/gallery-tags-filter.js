@@ -34,6 +34,7 @@ function renderGalleryTagFilterPanel() {
     searchRow.style.cssText = 'padding: 8px; position: relative;';
     
     const searchInp = document.createElement('input');
+    searchInp.id = 'gv2-tag-filter-search-inp';
     searchInp.className = 'panel-search';
     searchInp.placeholder = 'Search tags...';
     searchInp.style.cssText = 'width: 100%; padding-right: 30px;'; // make room for x
