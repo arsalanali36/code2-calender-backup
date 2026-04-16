@@ -120,12 +120,34 @@
         };
 
         document.getElementById('close-sync-modal-btn').onclick = () => document.getElementById('sync-modal').style.display = 'none';
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             initChart();
-            runStrategy(false);
+            
+            // Check for deep-link parameters from Gallery
+            const urlParams = new URLSearchParams(window.location.search);
+            const sym = urlParams.get('symbol');
+            const dt = urlParams.get('date');
+            const jump = urlParams.get('jumpTime');
+
+            if (sym && dt) {
+                // If we have instrument details, load it (this handles runStrategy too)
+                await loadInstrument(sym, dt);
+                
+                // If we also have a specific trade time, jump to it
+                if (jump) {
+                    setTimeout(() => {
+                        if (typeof jumpToTrade === 'function') jumpToTrade(parseInt(jump));
+                    }, 800); // Small delay to let charts settle
+                }
+            } else {
+                // Normal load
+                runStrategy(false);
+            }
+
             // Auto-sync in background on load
             syncAllData(true);
         });
+
 
         window.openPivotModal = function() {
             document.getElementById('pivot-modal').style.display = 'flex';
