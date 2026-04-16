@@ -11772,6 +11772,11 @@ function getImageTagsForGalleryItem(item) {
       });
       // Also include explicitly set trade-level tags
       getTradeTagsForTrade(trade).forEach(t => tags.add(t));
+      
+      // Virtual Tag: HAS NOTES (Trade Scope)
+      const pins = getTagPinsForUrl ? getTagPinsForUrl(item.url) : [];
+      if (pins.some(p => p.note && p.note.trim().length > 0)) tags.add('📝 HAS NOTES');
+
       return Array.from(tags);
     }
     return [];
@@ -11786,6 +11791,11 @@ function getImageTagsForGalleryItem(item) {
     getDayImageTagsForUrl(item.date, item.url).forEach(t => tags.add(t));
   }
   getMarqueeTagsForImage(item.url, item.date || '', item.sourceRow).forEach(t => tags.add(t));
+
+  // Virtual Tag: HAS NOTES (Image Scope)
+  const pins = typeof getTagPinsForUrl === 'function' ? getTagPinsForUrl(item.url, item.date) : [];
+  if (pins.some(p => p.note && p.note.trim().length > 0)) tags.add('📝 HAS NOTES');
+
   return Array.from(tags);
 }
 
@@ -15610,6 +15620,22 @@ function renderGalleryTagFilterPanel() {
 
             list.appendChild(lbl);
         };
+
+        // ── Special Filters (Virtual Tags) ───────────────────────────────────
+        const specialTags = ['📝 HAS NOTES'];
+        const filteredSpec = ql ? specialTags.filter(t => t.toLowerCase().includes(ql)) : specialTags;
+        if (filteredSpec.length) {
+            const gLbl = document.createElement('div');
+            gLbl.className = 'panel-manage-label';
+            gLbl.style.marginTop = '6px';
+            gLbl.style.color = 'var(--blue)';
+            gLbl.textContent = '✧ SPECIAL FILTERS';
+            list.appendChild(gLbl);
+            filteredSpec.forEach(tag => {
+                // Manually inject count if needed, but renderListTag will handle it if count exists
+                renderListTag(tag);
+            });
+        }
 
         const topTags = Array.from(window._tagCountMap.entries())
             .sort((a, b) => b[1] - a[1])
