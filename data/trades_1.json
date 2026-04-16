@@ -19051,7 +19051,11 @@
     "zone banna cahiye tha, nahi bana",
     "zone hawa me, Entry miss",
     "hawa me , zone hi nahi , levels nahi banenge",
-    "zone banna cahiye nah bana ,trap"
+    "zone banna cahiye nah bana ,trap",
+    "range bound",
+    "levels bahut nazdeek",
+    "hawa me , zone hi nahi , levels nahi banenge,levels bahut door",
+    "Continous move"
   ],
   "tagColumns": [
     "Tags"
@@ -27651,8 +27655,10 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/a887ab1c-7233-417b-8a50-610efc774aff.png": [
           "BNF",
           "Reversal-Fail",
-          "hawa me , zone hi nahi , levels nahi banenge",
-          "zone banna cahiye nah bana ,trap"
+          "hawa me , zone hi nahi , levels nahi banenge,levels bahut door",
+          "zone banna cahiye nah bana ,trap",
+          "range bound",
+          "levels bahut nazdeek"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356579/trading_journal/1cb4fa4a-2ad3-4776-be7c-e06e8574d2f6.png": [
           "NIFTY"
@@ -27664,7 +27670,7 @@
           "NIFTY",
           "Reversal-Fail",
           "beecho beech",
-          "hawa me , zone hi nahi , levels nahi banenge"
+          "hawa me , zone hi nahi , levels nahi banenge,levels bahut door"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/6b1afeb4-fa8f-4c8d-b5f2-486286b6b030.png": [
           "NIFTY"
@@ -28217,13 +28223,16 @@
           "BNF"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354317/trading_journal/ab42b071-b907-4ed6-89b1-310fed833ce6.png": [
-          "BNF"
+          "BNF",
+          "Continous move"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354317/trading_journal/cde336d4-519b-4731-baf9-155e9245114b.png": [
-          "BNF"
+          "BNF",
+          "Reversal-Fail"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356917/trading_journal/599b96a7-dd41-4c27-beb4-1f417970a447.png": [
-          "NIFTY"
+          "NIFTY",
+          "hawa me , zone hi nahi , levels nahi banenge,levels bahut door"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356919/trading_journal/7990c945-6b0a-4279-9b9c-9e5247b9f396.png": [
           "NIFTY"
@@ -28256,7 +28265,27 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354317/trading_journal/cde336d4-519b-4731-baf9-155e9245114b.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356917/trading_journal/599b96a7-dd41-4c27-beb4-1f417970a447.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356919/trading_journal/7990c945-6b0a-4279-9b9c-9e5247b9f396.png"
-      ]
+      ],
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356917/trading_journal/599b96a7-dd41-4c27-beb4-1f417970a447.png": [
+          {
+            "id": "mo1tc6edsoqs",
+            "tag": "hawa me , zone hi nahi , levels nahi banenge,levels bahut door",
+            "x": 43.4,
+            "y": 50.9,
+            "color": "#e74c3c"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354317/trading_journal/cde336d4-519b-4731-baf9-155e9245114b.png": [
+          {
+            "id": "mo1tci95uunk",
+            "tag": "Reversal-Fail",
+            "x": 55,
+            "y": 42.6,
+            "color": "#ffd700"
+          }
+        ]
+      }
     },
     "2026-03-09": {
       "audios": {},
@@ -30165,7 +30194,8 @@
       "zone banna cahiye tha, nahi bana",
       "zone hawa me, Entry miss",
       "hawa me , zone hi nahi , levels nahi banenge",
-      "zone banna cahiye nah bana ,trap"
+      "zone banna cahiye nah bana ,trap",
+      "levels bahut nazdeek"
     ],
     "Exit Type": [
       "Partial Exit",
@@ -30185,7 +30215,8 @@
       "new",
       "news",
       "Realisation",
-      "shandaar"
+      "shandaar",
+      "range bound"
     ],
     "Img Manager": [
       "Day Open",
@@ -30214,6 +30245,9 @@
     "Time": [
       "3 min",
       "5 min"
+    ],
+    "Momentum": [
+      "Continous move"
     ]
   },
   "tagTemplates": {},
