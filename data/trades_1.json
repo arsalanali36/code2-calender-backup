@@ -17496,7 +17496,7 @@
       "Buy Time": "09:59:03",
       "Day P&L": -3360.5,
       "Gross P/L": -3360.5,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323800PE",
       "Net P/L": -3455.5,
       "Note": "",
@@ -17531,7 +17531,7 @@
       "Buy Time": "10:03:48",
       "Day P&L": -1868.75,
       "Gross P/L": 1491.75,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323800PE",
       "Net P/L": 1370.26,
       "Note": "",
@@ -17566,7 +17566,7 @@
       "Buy Time": "10:26:56",
       "Day P&L": -1069.25,
       "Gross P/L": 799.5,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323800CE",
       "Net P/L": 694.56,
       "Note": "",
@@ -17600,7 +17600,7 @@
       "Buy Time": "10:30:05",
       "Day P&L": -2239.25,
       "Gross P/L": -1170,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323800CE",
       "Net P/L": -1273.77,
       "Note": "",
@@ -17633,7 +17633,7 @@
       "Buy Time": "10:36:33",
       "Day P&L": -1452.75,
       "Gross P/L": 786.5,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323750PE",
       "Net P/L": 663.25,
       "Note": "",
@@ -17666,7 +17666,7 @@
       "Buy Time": "10:45:10",
       "Day P&L": -328.25,
       "Gross P/L": 1124.5,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323850CE",
       "Net P/L": 1027.82,
       "Note": "",
@@ -17700,7 +17700,7 @@
       "Buy Time": "10:58:05",
       "Day P&L": 237.25,
       "Gross P/L": 565.5,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323900PE",
       "Net P/L": 460.97,
       "Note": "",
@@ -17733,7 +17733,7 @@
       "Buy Time": "11:03:41",
       "Day P&L": -156,
       "Gross P/L": -393.25,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323900PE",
       "Net P/L": -467.41,
       "Note": "",
@@ -17767,7 +17767,7 @@
       "Buy Time": "11:30:53",
       "Day P&L": -1391,
       "Gross P/L": -1235,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323900CE",
       "Net P/L": -1303.56,
       "Note": "",
@@ -17802,7 +17802,7 @@
       "Buy Time": "12:08:57",
       "Day P&L": -2762.5,
       "Gross P/L": -1371.5,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323900CE",
       "Net P/L": -1464.97,
       "Note": "",
@@ -17839,7 +17839,7 @@
       "Buy Time": "12:24:18",
       "Day P&L": -5209.75,
       "Gross P/L": -2447.25,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323850PE",
       "Net P/L": -2556.97,
       "Note": "",
@@ -17877,7 +17877,7 @@
       "Buy Time": "12:30:22",
       "Day P&L": -6994,
       "Gross P/L": -1784.25,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323750CE",
       "Net P/L": -1932.07,
       "Note": "",
@@ -17911,7 +17911,7 @@
       "Buy Time": "12:34:03",
       "Day P&L": -9675.25,
       "Gross P/L": -2681.25,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323950PE",
       "Net P/L": -2808.68,
       "Note": "",
@@ -17945,7 +17945,7 @@
       "Buy Time": "12:34:06",
       "Day P&L": -9737,
       "Gross P/L": -61.75,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323950PE",
       "Net P/L": -192.33,
       "Note": "",
@@ -17975,7 +17975,7 @@
       "Buy Time": "12:39:51",
       "Day P&L": -8726.25,
       "Gross P/L": 1010.75,
-      "Image Tags": "",
+      "Image Tags": "NO ZONE",
       "Instrument": "NIFTY2641323750CE",
       "Net P/L": 864.98,
       "Note": "",
@@ -19045,7 +19045,11 @@
     "BNF",
     "NIFTY",
     "3 min",
-    "5 min"
+    "5 min",
+    "frustrating",
+    "beecho beech",
+    "zone banna cahiye tha, nahi bana",
+    "zone hawa me, Entry miss"
   ],
   "tagColumns": [
     "Tags"
@@ -27638,10 +27642,13 @@
       },
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/be414ff5-d5a4-4f20-b465-694b35a00799.png": [
-          "BNF"
+          "BNF",
+          "frustrating",
+          "beecho beech"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/a887ab1c-7233-417b-8a50-610efc774aff.png": [
-          "BNF"
+          "BNF",
+          "Reversal-Fail"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356579/trading_journal/1cb4fa4a-2ad3-4776-be7c-e06e8574d2f6.png": [
           "NIFTY"
@@ -27650,7 +27657,9 @@
           "NIFTY"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/df5ac341-a8e2-4912-ac35-20758fce8975.png": [
-          "NIFTY"
+          "NIFTY",
+          "Reversal-Fail",
+          "beecho beech"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/6b1afeb4-fa8f-4c8d-b5f2-486286b6b030.png": [
           "NIFTY"
@@ -27747,7 +27756,44 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/6b1afeb4-fa8f-4c8d-b5f2-486286b6b030.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356579/trading_journal/1cb4fa4a-2ad3-4776-be7c-e06e8574d2f6.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356578/trading_journal/c1915d2f-1bbf-4a11-8c13-c1c140802835.png"
-      ]
+      ],
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/a887ab1c-7233-417b-8a50-610efc774aff.png": [
+          {
+            "id": "mo1skscza1a8",
+            "tag": "Reversal-Fail",
+            "x": 22,
+            "y": 27.1,
+            "color": "#ffd700"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776356038/trading_journal/df5ac341-a8e2-4912-ac35-20758fce8975.png": [
+          {
+            "id": "mo1skz3n0sff",
+            "tag": "Reversal-Fail",
+            "x": 28.9,
+            "y": 20.3,
+            "color": "#ffd700"
+          },
+          {
+            "id": "mo1smu23jjnf",
+            "tag": "beecho beech",
+            "x": 64.6,
+            "y": 79,
+            "color": "#f39c12",
+            "note": "yahan entry mili to par le nahi payenge!!"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776353831/trading_journal/be414ff5-d5a4-4f20-b465-694b35a00799.png": [
+          {
+            "id": "mo1slpd0oomr",
+            "tag": "frustrating",
+            "x": 55.6,
+            "y": 42.6,
+            "color": "#f39c12"
+          }
+        ]
+      }
     },
     "2026-03-03": {
       "audios": {},
@@ -27799,13 +27845,18 @@
       },
       "imageTags": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354140/trading_journal/a2cdb02c-cc68-4df6-af26-8912f7fce4fd.png": [
-          "BNF"
+          "BNF",
+          "Reversal-Fail"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354140/trading_journal/559161bd-6ba7-482f-bf41-f5439c2c1bb7.png": [
-          "BNF"
+          "BNF",
+          "Reversal-Fail"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776360241/trading_journal/f31c0ad5-b7f8-4de2-97d5-3c5c11c0ade4.png": [
-          "NIFTY"
+          "NIFTY",
+          "Reversal-Fail",
+          "zone banna cahiye tha, nahi bana",
+          "zone hawa me, Entry miss"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776360241/trading_journal/5f840e60-fdfb-4f77-b308-ea3cc57e0be1.png": [
           "NIFTY"
@@ -27860,7 +27911,34 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354140/trading_journal/559161bd-6ba7-482f-bf41-f5439c2c1bb7.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776360241/trading_journal/f31c0ad5-b7f8-4de2-97d5-3c5c11c0ade4.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776360241/trading_journal/5f840e60-fdfb-4f77-b308-ea3cc57e0be1.png"
-      ]
+      ],
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776354140/trading_journal/a2cdb02c-cc68-4df6-af26-8912f7fce4fd.png": [
+          {
+            "id": "mo1ss6ct50xf",
+            "tag": "Reversal-Fail",
+            "x": 21.1,
+            "y": 54.8,
+            "color": "#ffd700"
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776360241/trading_journal/f31c0ad5-b7f8-4de2-97d5-3c5c11c0ade4.png": [
+          {
+            "id": "mo1st95dk5xa",
+            "tag": "zone banna cahiye tha, nahi bana",
+            "x": 19,
+            "y": 74,
+            "color": "#e67e22"
+          },
+          {
+            "id": "mo1svdlm9pl9",
+            "tag": "zone hawa me, Entry miss",
+            "x": 39.1,
+            "y": 46.4,
+            "color": "#f39c12"
+          }
+        ]
+      }
     },
     "2026-03-05": {
       "audios": {},
@@ -28834,7 +28912,11 @@
     },
     "2026-04-09": {
       "closeImages": [],
-      "imageTags": {},
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/165a5b1a-88ca-4333-b633-c830d93b96f0.png": [
+          "NO ZONE"
+        ]
+      },
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/165a5b1a-88ca-4333-b633-c830d93b96f0.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/f4bdb5d7-f1e4-4317-adcf-bc4d6d766565.png",
@@ -28847,7 +28929,26 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713014/trading_journal/fb0326e7-7c1d-4914-a1a4-b42b77497b4f.png"
       ],
       "newsImages": [],
-      "tradeRefCards": {}
+      "tradeRefCards": {},
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775713013/trading_journal/165a5b1a-88ca-4333-b633-c830d93b96f0.png": [
+          {
+            "id": "mo1svxwzmc25",
+            "tag": "NO ZONE",
+            "x": 55.7,
+            "y": 62.1,
+            "color": "#ffd700"
+          },
+          {
+            "id": "mo1svz5ge16d",
+            "tag": "NO ZONE",
+            "x": 79.2,
+            "y": 38.4,
+            "color": "#ffd700",
+            "note": "Ipad se"
+          }
+        ]
+      }
     },
     "2026-04-13": {
       "images": [
@@ -30001,6 +30102,7 @@
       ]
     }
   },
+  "importedPdfs": [],
   "tagGroups": {
     "BAT": [
       "chotu",
@@ -30031,7 +30133,11 @@
       "palat gaya",
       "Nahi dekh paaya",
       "Zone Bana",
-      "Gatli se order lag gaya"
+      "Gatli se order lag gaya",
+      "frustrating",
+      "beecho beech",
+      "zone banna cahiye tha, nahi bana",
+      "zone hawa me, Entry miss"
     ],
     "Exit Type": [
       "Partial Exit",
@@ -30081,5 +30187,9 @@
       "3 min",
       "5 min"
     ]
-  }
+  },
+  "tagTemplates": {},
+  "pdfPageTags": {},
+  "imgTypes": {},
+  "uiSettings": {}
 }
