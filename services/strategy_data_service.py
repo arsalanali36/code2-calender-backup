@@ -158,13 +158,17 @@ def get_real_trades(start_date, end_date, symbol=None, user_id=None):
     path = get_user_data_file(user_id)
     if not os.path.exists(path): return []
     
-    # Prefix for broad matching on index charts
+    # Prefix for broad matching ONLY on the main index chart
     index_prefix = ""
     if symbol:
         s_up = symbol.upper()
-        if 'NSEI' in s_up or 'NIFTY' in s_up: index_prefix = 'NIFTY'
-        elif 'BSESN' in s_up or 'SENSEX' in s_up: index_prefix = 'SENSEX'
-        elif 'BANKNIFTY' in s_up: index_prefix = 'BANKNIFTY'
+        # Only use broad "NIFTY" prefix if we're on the Index itself
+        if 'NSEI' in s_up or s_up == 'NIFTY 50' or s_up == 'NIFTY':
+            index_prefix = 'NIFTY'
+        elif 'BSESN' in s_up or s_up == 'SENSEX':
+            index_prefix = 'SENSEX'
+        elif s_up == 'BANKNIFTY' or s_up == 'NIFTY BANK' or 'CNXBAN' in s_up:
+            index_prefix = 'BANKNIFTY'
 
     try:
         with open(path, 'r', encoding='utf-8') as f:
