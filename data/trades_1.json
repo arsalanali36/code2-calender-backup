@@ -3575,6 +3575,7 @@
       "Brokerage": "",
       "Buy Price (Avg)": "",
       "Buy Time": "",
+      "Day P&L": "",
       "Gross P/L": "",
       "Image Tags": "",
       "Instrument": "",
@@ -3586,6 +3587,7 @@
       "Rs": "",
       "Sell Price (Avg)": "",
       "Sell Time": "",
+      "Sequence": "",
       "Tags": "",
       "Total Trades": "",
       "TradeType": "",
@@ -3596,9 +3598,7 @@
       "images": [],
       "observation": "",
       "trade_date": "",
-      "videos": {},
-      "Sequence": "",
-      "Day P&L": ""
+      "videos": {}
     },
     {
       "Broker": "zerodha",
@@ -18761,7 +18761,7 @@
       "Buy Time": "09:39:24",
       "Day P&L": 3556.5,
       "Gross P/L": 465,
-      "Image Tags": "",
+      "Image Tags": "Gatli se order lag gaya",
       "Instrument": "BANKNIFTY26APR56700CE",
       "Net P/L": 372.95,
       "Note": "",
@@ -18778,8 +18778,104 @@
       "TradeType": "buy",
       "Video": "",
       "date": "2026-04-16",
+      "imageTags": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322451/trading_journal/a1507ab3-8347-4a24-9bba-2d91eb1d4f9a.png": [
+          "Gatli se order lag gaya"
+        ]
+      },
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322451/trading_journal/a1507ab3-8347-4a24-9bba-2d91eb1d4f9a.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-16",
+      "tagPins": {
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322451/trading_journal/a1507ab3-8347-4a24-9bba-2d91eb1d4f9a.png": [
+          {
+            "id": "mo14jmwed6ya",
+            "tag": "Gatli se order lag gaya",
+            "x": 45.4,
+            "y": 55.4,
+            "color": "#1abc9c",
+            "note": "galti se maine sell ke liye order lagaya tha wo buy me convert ho gaya accha hua nikal gaye warna gadbad ho jaata&nbsp;"
+          }
+        ]
+      }
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 196.65,
+      "Buy Time": "11:57:40",
+      "Day P&L": 3007.25,
+      "Gross P/L": -549.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2642124200PE",
+      "Net P/L": -619.44,
+      "Note": "",
+      "Other Charges": 30.19,
+      "Pt": -8.45,
+      "Qty": 65,
+      "Rs": -549.25,
+      "Sell Price (Avg)": 188.2,
+      "Sell Time": "11:48:56",
+      "Sequence": "t3",
+      "Tags": [],
+      "Total Fees": 70.19,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-16",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322205/trading_journal/2db13f13-b5b2-4e66-9912-998847fa3ad1.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322210/trading_journal/e49bed5e-455d-486a-b7ea-46b8f6e02619.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322211/trading_journal/c01c7058-8526-40df-a0b1-a76221037b07.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322212/trading_journal/ae7f08a8-cfa1-4f67-9f34-e1a1a7783028.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322213/trading_journal/46e0612c-0af1-4470-9378-486c60ffefe0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322213/trading_journal/38381f04-0c9d-45e0-96fb-7b7480a8a4ed.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322216/trading_journal/3e4c530f-1089-4e22-ab4c-a175c6e0a5d2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322217/trading_journal/9c07384d-ce43-443a-a303-a76b17ece92e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322217/trading_journal/bf4c5a4f-5ff2-46ee-ac70-62e2bb8cea01.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322214/trading_journal/dfb6feed-5f8d-4fcb-b5c9-1bdcef3ddb12.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322215/trading_journal/a688fee2-e634-4cc8-b8af-f542ead9f1cf.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-16"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 188.55,
+      "Buy Time": "12:12:02",
+      "Day P&L": 4021.25,
+      "Gross P/L": 1014,
+      "Image Tags": "",
+      "Instrument": "NIFTY2642124150PE",
+      "Net P/L": 919.8,
+      "Note": "",
+      "Other Charges": 54.2,
+      "Pt": 7.8,
+      "Qty": 130,
+      "Rs": 1014,
+      "Sell Price (Avg)": 196.35,
+      "Sell Time": "12:06:02",
+      "Sequence": "t4",
+      "Tags": [],
+      "Total Fees": 94.2,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-16",
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322218/trading_journal/e63d4a0d-be5f-4336-88a1-2389b66e006e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322216/trading_journal/d5e8f63d-2284-4e97-a20f-ec74eb13994e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322217/trading_journal/804c99ff-d223-40cc-86bc-2636231b145c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322218/trading_journal/50ec2082-ea20-4e5c-a19d-65d4ef8b1302.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776322217/trading_journal/e74a4e9f-90ba-4d47-b420-44a8a3b6bb41.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-16"
@@ -18869,7 +18965,8 @@
     "darr ka nikal gaye",
     "Nahi dekh paaya",
     "SL moved",
-    "Zone Bana"
+    "Zone Bana",
+    "Gatli se order lag gaya"
   ],
   "tagColumns": [
     "Tags"
@@ -28860,7 +28957,8 @@
       "imageTags": {},
       "newsImages": [],
       "closeImages": [],
-      "closeGlobalImages": []
+      "closeGlobalImages": [],
+      "tradeRefCards": {}
     }
   },
   "importedPdfs": [],
@@ -28893,7 +28991,8 @@
       "Momentum Slow ka intezar karna cahiye",
       "palat gaya",
       "Nahi dekh paaya",
-      "Zone Bana"
+      "Zone Bana",
+      "Gatli se order lag gaya"
     ],
     "Exit Type": [
       "Partial Exit",
