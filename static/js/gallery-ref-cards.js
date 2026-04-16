@@ -388,6 +388,20 @@ function initOtherDropdown() {
   // Export Ref Cards PDF Summary
   const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
   if (allPdfBtn) allPdfBtn.addEventListener('click', () => { closeModal(); if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF(); });
+
+  // 📦 Full Backup (Data + Images)
+  const fullBackupBtn = document.getElementById('gv2-full-backup-btn');
+  if (fullBackupBtn) {
+    fullBackupBtn.addEventListener('click', () => {
+      closeModal();
+      if (typeof backupJson === 'function') {
+        backupJson();
+      } else {
+        // Fallback if backupJson is not in scope
+        exportService.downloadBackup();
+      }
+    });
+  }
 }
 
 /**

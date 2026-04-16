@@ -189,23 +189,42 @@ def export_logger_excel(trades: list) -> io.BytesIO:
 
 def build_backup_zip(data_file: str, uploads_dir: str) -> tuple[bytes, str]:
     """
-    Build a full backup ZIP: trades.json + all upload images + Excel + observations HTML.
+    Build a TRULY full backup ZIP: 
+    1. Entire data/ directory (JSONs, logs, schemas)
+    2. Entire static/uploads/ directory (recursively: images, audio, video)
+    3. Excel export
+    4. Observations HTML builder
     Returns (zip_bytes, timestamp_str).
     """
+    data_dir = os.path.dirname(data_file)
     with open(data_file, 'r', encoding='utf-8') as f:
         journal_data = json.load(f)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zf.write(data_file, 'trades.json')
-        if os.path.isdir(uploads_dir):
-            for fname in os.listdir(uploads_dir):
-                fpath = os.path.join(uploads_dir, fname)
+        # 1. Back up EVERYTHING in the data directory
+        if os.path.isdir(data_dir):
+            for fname in os.listdir(data_dir):
+                fpath = os.path.join(data_dir, fname)
                 if os.path.isfile(fpath):
-                    zf.write(fpath, f'uploads/{fname}')
+                    # We store it in a 'data/' folder inside the ZIP
+                    zf.write(fpath, f'data/{fname}')
+        
+        # 2. Back up EVERYTHING in static/uploads recursively (images, audio, video, etc)
+        if os.path.isdir(uploads_dir):
+            for root, dirs, files in os.walk(uploads_dir):
+                for fname in files:
+                    fpath = os.path.join(root, fname)
+                    # Get relative path from uploads_dir to maintain structure
+                    rel_path = os.path.relpath(fpath, uploads_dir)
+                    # We store it in an 'uploads/' folder inside the ZIP
+                    zf.write(fpath, f'uploads/{rel_path}')
+
+        # 3. Add the generated Excel and HTML reports
         zf.writestr('trades_export.xlsx', build_excel_bytes(journal_data))
         zf.writestr('observations.html', build_observations_html(journal_data, timestamp))
+        
     buf.seek(0)
     return buf.read(), timestamp
 
