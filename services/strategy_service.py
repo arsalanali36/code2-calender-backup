@@ -328,6 +328,7 @@ def resample_ohlc(df, timeframe):
     freq = timeframe.replace('m', 'min').replace('M', 'min')
     # Normalize input columns to match rules
     df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume'] else c for c in df.columns]
+
     rules = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last'}
     # origin='start_day' ensures 09:15 aligns perfectly with 3min/5min bins
     resampled = df.resample(freq, label='left', closed='left', origin='start_day').agg(rules)

@@ -203,13 +203,16 @@ def build_backup_zip(data_file: str, uploads_dir: str) -> tuple[bytes, str]:
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
-        # 1. Back up EVERYTHING in the data directory
+        # 1. Back up EVERYTHING in the data directory (recursively — includes Historical_OHLC/)
+        # Skip backups/ and local_backups/ subdirs to avoid recursive bloat
+        _skip_subdirs = {'backups', 'local_backups'}
         if os.path.isdir(data_dir):
-            for fname in os.listdir(data_dir):
-                fpath = os.path.join(data_dir, fname)
-                if os.path.isfile(fpath):
-                    # We store it in a 'data/' folder inside the ZIP
-                    zf.write(fpath, f'data/{fname}')
+            for root, dirs, files in os.walk(data_dir):
+                dirs[:] = [d for d in dirs if d not in _skip_subdirs]
+                for fname in files:
+                    fpath = os.path.join(root, fname)
+                    rel_path = os.path.relpath(fpath, data_dir)
+                    zf.write(fpath, f'data/{rel_path}')
         
         # 2. Back up EVERYTHING in static/uploads recursively (images, audio, video, etc)
         if os.path.isdir(uploads_dir):

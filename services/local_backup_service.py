@@ -132,6 +132,11 @@ def do_git_backup():
         for f in glob.glob(os.path.join(data_dir, 'trades*.json')):
             subprocess.run(['git', '-C', BASE_DIR, 'add', f], timeout=10, check=False)
 
+        # Stage Historical_OHLC data (index + options CSVs downloaded from Dhan)
+        ohlc_dir = os.path.join(data_dir, 'Historical_OHLC')
+        if os.path.isdir(ohlc_dir):
+            subprocess.run(['git', '-C', BASE_DIR, 'add', ohlc_dir], timeout=30, check=False)
+
         ts  = datetime.now().strftime('%Y-%m-%d %H:%M')
         msg = f'auto-backup: {ts}'
 
