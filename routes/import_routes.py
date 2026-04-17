@@ -55,14 +55,28 @@ def admin_push_data():
     key = request.headers.get('X-Api-Key', '')
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    
+
     try:
-        # Admin push uses no user session — saves to default data file
-        result = import_json_or_zip(request.files['file'], UPLOADS_DIR, user_id=None)
-        return jsonify(result)
+        import json, glob as _glob, os
+        from config import DATA_FILE
+
+        file_bytes = request.files['file'].read()
+        data = json.loads(file_bytes)
+
+        # Write to trades_N.json (active user file), not trades.json
+        data_dir = os.path.dirname(DATA_FILE)
+        user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
+                      if '.backup' not in f and os.path.exists(f)]
+        target = max(user_files, key=os.path.getmtime) if user_files else DATA_FILE
+
+        with open(target, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        trade_count = len(data.get('trades', []))
+        return jsonify({'ok': True, 'trades': trade_count, 'file': os.path.basename(target)})
     except Exception as e:
         from services.debug_service import log_ai_error
         log_ai_error(f"Admin Push Data Error: {str(e)}", e)
