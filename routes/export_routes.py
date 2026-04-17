@@ -86,15 +86,14 @@ def export_logger_excel_route():
 
 
 def _find_best_trades_file():
-    """Return the most recently modified trades_*.json or trades.json in data dir."""
+    """Return most recently modified trades_N.json; fall back to trades.json only if none exist."""
     import glob as _glob
     data_dir = os.path.dirname(DATA_FILE)
-    candidates = [DATA_FILE] + _glob.glob(os.path.join(data_dir, 'trades_*.json'))
-    # exclude backup files
-    candidates = [f for f in candidates if '.backup' not in f and os.path.exists(f)]
-    if not candidates:
-        return DATA_FILE
-    return max(candidates, key=os.path.getmtime)
+    user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
+                  if '.backup' not in f and os.path.exists(f)]
+    if user_files:
+        return max(user_files, key=os.path.getmtime)
+    return DATA_FILE  # last resort fallback
 
 
 @export_bp.route('/api/admin/get-data', methods=['GET'])
