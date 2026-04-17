@@ -203,10 +203,14 @@ function _bindUIEvents() {
 
   // Sync buttons — only visible on localhost/127.0.0.1
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    ['live-sync-divider', 'pull-from-live-btn', 'push-to-live-btn', 'auto-sync-toggle-btn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
     const pullLiveBtn = document.getElementById('pull-from-live-btn');
-    if (pullLiveBtn) { pullLiveBtn.style.display = ''; pullLiveBtn.addEventListener('click', pullFromLive); }
+    if (pullLiveBtn) pullLiveBtn.addEventListener('click', pullFromLive);
     const pushLiveBtn = document.getElementById('push-to-live-btn');
-    if (pushLiveBtn) { pushLiveBtn.style.display = ''; pushLiveBtn.addEventListener('click', pushToLive); }
+    if (pushLiveBtn) pushLiveBtn.addEventListener('click', pushToLive);
   }
 
   document.getElementById('save-view-btn').addEventListener('click', () => {
