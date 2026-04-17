@@ -15795,3 +15795,23 @@
 {"timestamp": "2026-04-17 13:27:23", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-13: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
 {"timestamp": "2026-04-17 13:27:23", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-17: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
 {"timestamp": "2026-04-17 13:27:23", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-27: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-02-28: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2001-03-03: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-03: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-04: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-06: 2 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": ["", ""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-12: 2 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": ["Unknown", "Unknown"]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-16: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": ["Unknown"]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-13: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-17: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:42", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-27: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-02-28: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2001-03-03: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-03: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-04: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-06: 2 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": ["", ""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-12: 2 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": ["Unknown", "Unknown"]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-16: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": ["Unknown"]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-13: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-17: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}
+{"timestamp": "2026-04-17 13:37:43", "type": "STRATEGY_DEBUG", "message": "Date 2026-03-27: 1 trades missing execution time. Sequence might be inaccurate.", "data": {"instruments": [""]}}

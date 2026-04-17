@@ -370,7 +370,7 @@
             <div style="text-align: center; margin-top: 40px;">
                 <div class="evolve-badge" style="cursor: pointer;" onclick="toggleEvolution()">
                     <div class="pulse"></div>
-                    <span id="evolve-btn-text">View Full Deployment History</span>
+                    <span id="evolve-btn-text">Explore Full Evolution History</span>
                 </div>
             </div>
         </section>
@@ -474,7 +474,7 @@
             try {
                 const res = await fetch('/api/blog-posts');
                 allPosts = await res.json();
-                renderTimeline(3);
+                renderTimeline(6);
                 document.getElementById('evolution-feed').style.display = 'block';
             } catch (e) { console.error(e); }
         }
@@ -504,7 +504,7 @@
             if (showingFull) return;
             showingFull = true;
             renderTimeline(-1);
-            document.getElementById('evolve-btn-text').innerText = "History Fully Loaded";
+            document.getElementById('evolve-btn-text').innerText = "Full Evolution Explored";
             const items = document.querySelectorAll('.timeline-item');
             if (items[3]) items[3].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
