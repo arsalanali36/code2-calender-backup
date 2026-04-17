@@ -237,10 +237,20 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
           const pos = dayItemIndices.indexOf(dayIdx);
           const label = getDayTradeLabel(pos >= 0 ? pos : 0, dayItemIndices.length, currentDay.isClose);
           const pnlColor = tradePnl !== undefined ? (tradePnl >= 0 ? '#4ade80' : '#f87171') : 'white';
-          const pnlTxt = tradePnl !== undefined ? ` · ${tradePnl >= 0 ? '+' : '-'}${fmt(tradePnl ?? 0)}` : '';
+          const pnlTxt = tradePnl !== undefined ? ` ${tradePnl >= 0 ? '+' : '-'}${fmt(tradePnl ?? 0)}` : '';
+          const [y, m, d] = currentDay.date.split('-').map(Number);
+          const dateLabel = (() => { try { const dt = new Date(y, m-1, d); return `${dt.toLocaleDateString('en-US',{weekday:'short'})} ${d} ${dt.toLocaleDateString('en-US',{month:'short'})}`; } catch { return currentDay.date; } })();
+          const instr = currentDay.instrument ? currentDay.instrument.slice(0, 16) : null;
           return (
             <div className="absolute top-3 left-0 right-0 z-[110] flex items-center justify-center pointer-events-none">
-              <div className="relative pointer-events-auto flex items-center gap-1.5">
+              <div className="relative pointer-events-auto flex flex-col items-center gap-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-white/70">
+                    {dateLabel}
+                  </span>
+                  {instr && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-indigo-300 max-w-[140px] truncate">{instr}</span>}
+                </div>
+                <div className="flex items-center gap-1.5">
                 {dayPnl !== undefined && dayPnl !== 0 && (
                   <span className={`text-xs font-black px-2 py-1 rounded-lg backdrop-blur-md border shadow-md ${dayPnl >= 0 ? 'bg-emerald-500/80 border-emerald-400/30 text-white' : 'bg-rose-500/80 border-rose-400/30 text-white'}`}>
                     {fmt(dayPnl)}
@@ -254,6 +264,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
                   {label}{pnlTxt}
                   <ChevronDown className="w-3 h-3 opacity-60" />
                 </button>
+                </div>
                 <AnimatePresence>
                   {showTradeDropdown && (
                     <motion.div
