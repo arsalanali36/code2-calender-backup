@@ -136,6 +136,11 @@ def sync_status():
 
     local_file = _find_best_trades_file()
     local_ts = os.path.getmtime(local_file) if os.path.exists(local_file) else 0
+    try:
+        with open(local_file, 'r', encoding='utf-8') as f:
+            local_trades = len(json.load(f).get('trades', []))
+    except Exception:
+        local_trades = 0
 
     import urllib.request as _urlreq
     try:
@@ -143,6 +148,7 @@ def sync_status():
         with _urlreq.urlopen(req, timeout=60) as resp:
             live = json.loads(resp.read().decode('utf-8'))
         live_ts = live.get('updated_at') or 0
+        live_trades = live.get('trades', 0)
     except Exception as e:
         return jsonify({'ok': False, 'error': f'Cannot reach live: {str(e)}'}), 502
 
@@ -153,7 +159,16 @@ def sync_status():
     else:
         direction = 'equal'
 
-    return jsonify({'ok': True, 'local_ts': local_ts, 'live_ts': live_ts, 'direction': direction})
+    # Safety: never auto-pull if live has significantly fewer trades (bootstrap/corrupt data guard)
+    if direction == 'pull' and live_trades < local_trades - 5:
+        direction = 'safe_skip'
+
+    return jsonify({
+        'ok': True,
+        'local_ts': local_ts, 'live_ts': live_ts,
+        'local_trades': local_trades, 'live_trades': live_trades,
+        'direction': direction,
+    })
 
 
 def _backup_local(prefix):

@@ -104,6 +104,11 @@
           setStatus('error');
           console.error('[sync-live] pull failed:', result.error);
         }
+      } else if (status.direction === 'safe_skip') {
+        // Live has significantly fewer trades — likely bootstrap/corrupt data, skip auto-pull
+        console.warn(`[sync-live] auto-pull skipped: live=${status.live_trades} trades < local=${status.local_trades} trades`);
+        if (typeof showToast === 'function') showToast(`Sync skipped: live has ${status.live_trades} trades vs local ${status.local_trades} — use manual Push to fix`, 'warning');
+        setStatus('synced');
       } else {
         setStatus('synced');
       }
