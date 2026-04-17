@@ -250,6 +250,28 @@
             animation: pulse 2s infinite;
         }
 
+        .evolve-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 99px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .evolve-badge:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
         @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
