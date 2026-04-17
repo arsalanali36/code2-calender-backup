@@ -142,7 +142,7 @@ def sync_status():
     import urllib.request as _urlreq
     try:
         req = _urlreq.Request(f'{LIVE_URL}/api/admin/data-version', headers={'X-Api-Key': ADMIN_API_KEY})
-        with _urlreq.urlopen(req, timeout=10) as resp:
+        with _urlreq.urlopen(req, timeout=60) as resp:
             live = json.loads(resp.read().decode('utf-8'))
         live_ts = live.get('updated_at') or 0
     except Exception as e:
@@ -182,7 +182,7 @@ def pull_from_live():
     endpoint = f'{LIVE_URL}/api/admin/get-data'
     try:
         req = urllib.request.Request(endpoint, headers={'X-Api-Key': ADMIN_API_KEY})
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             raw = json.loads(resp.read().decode('utf-8'))
     except Exception as e:
         return jsonify({'error': f'Failed to fetch from live: {str(e)}'}), 502
@@ -236,7 +236,7 @@ def push_to_live():
             },
             method='POST',
         )
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             result = json.loads(resp.read().decode('utf-8'))
     except Exception as e:
         return jsonify({'error': f'Failed to push to live: {str(e)}'}), 502
