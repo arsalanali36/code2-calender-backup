@@ -201,6 +201,13 @@ function _bindUIEvents() {
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
   document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
 
+  // "Pull from Live" — only visible on localhost/127.0.0.1
+  const pullLiveBtn = document.getElementById('pull-from-live-btn');
+  if (pullLiveBtn && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    pullLiveBtn.style.display = '';
+    pullLiveBtn.addEventListener('click', pullFromLive);
+  }
+
   document.getElementById('save-view-btn').addEventListener('click', () => {
     const name = prompt('View ka naam likhein:');
     if (name && name.trim()) {

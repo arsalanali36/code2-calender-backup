@@ -7,6 +7,8 @@ logger Excel, and full backup ZIP.
 import io
 import os
 import re
+import json
+import shutil
 from datetime import datetime
 
 from flask import Blueprint, request, jsonify, send_file
@@ -15,7 +17,7 @@ from services.export_service import (
     export_simple_excel, export_structured_csv,
     export_logger_excel, build_backup_zip,
 )
-from config import DATA_FILE, UPLOADS_DIR
+from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG
 
 export_bp = Blueprint('export', __name__)
 
@@ -81,3 +83,73 @@ def export_logger_excel_route():
         download_name=f'trade_logger_export_{timestamp_str}.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
+
+
+@export_bp.route('/api/admin/get-data', methods=['GET'])
+def admin_get_data():
+    """API-key-protected: returns full trades JSON for live→localhost sync."""
+    key = request.headers.get('X-Api-Key', '')
+    if not ADMIN_API_KEY or key != ADMIN_API_KEY:
+        return jsonify({'error': 'Unauthorized'}), 401
+    user_id = request.args.get('user_id', None)
+    if user_id is not None:
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            return jsonify({'error': 'Invalid user_id'}), 400
+    try:
+        from processors.data_processors import get_user_data_file
+        data_file = get_user_data_file(user_id)
+        if not os.path.exists(data_file):
+            return jsonify({'error': 'Data file not found'}), 404
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify({'ok': True, 'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@export_bp.route('/api/pull-from-live', methods=['POST'])
+def pull_from_live():
+    """Localhost-only: pull trades data from the live server and save locally."""
+    if not DEBUG:
+        return jsonify({'error': 'Only available in development mode'}), 403
+    if not ADMIN_API_KEY:
+        return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
+
+    body = request.json or {}
+    live_url = body.get('live_url', 'https://code2-calender.onrender.com')
+    user_id = body.get('user_id', None)
+
+    import urllib.request
+    params = f'?user_id={user_id}' if user_id is not None else ''
+    endpoint = f'{live_url.rstrip("/")}/api/admin/get-data{params}'
+
+    try:
+        req = urllib.request.Request(
+            endpoint,
+            headers={'X-Api-Key': ADMIN_API_KEY}
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            raw = json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        return jsonify({'error': f'Failed to fetch from live: {str(e)}'}), 502
+
+    if not raw.get('ok') or 'data' not in raw:
+        return jsonify({'error': 'Live server returned unexpected response'}), 502
+
+    live_data = raw['data']
+
+    # Backup existing local file before overwriting
+    if os.path.exists(DATA_FILE):
+        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        backup_path = os.path.join(backup_dir, f'pre_pull_{ts}.json')
+        shutil.copy2(DATA_FILE, backup_path)
+
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(live_data, f, ensure_ascii=False, indent=2)
+
+    trade_count = len(live_data.get('trades', []))
+    return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pulled {trade_count} trades from live'})

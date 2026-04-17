@@ -538,6 +538,24 @@ async function exportLoggerExcel() {
   } catch (e) { showToast('Logger export failed', 'error'); }
 }
 
+async function pullFromLive() {
+  if (!confirm('Pull latest data from live server?\n\nThis will OVERWRITE your local trades.json with the live version.\nA backup will be created first.')) return;
+  showToast('Pulling from live server...', '');
+  try {
+    const res = await fetch('/api/pull-from-live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Pull failed');
+    showToast(`${data.message} — reloading...`, 'success');
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) {
+    showToast('Pull failed: ' + e.message, 'error');
+  }
+}
+
 let toastTimer = null;
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`;
