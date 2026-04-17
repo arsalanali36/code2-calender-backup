@@ -388,15 +388,34 @@
             <div class="logo">
                 <span style="font-size: 1.5rem;">⚡</span> Code2-Calendar
             </div>
-            <a href="/" class="btn-back">← Open Dashboard</a>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="/" class="btn-back">Dashboard</a>
+                <a href="/register" class="btn-back" style="background: var(--accent-gradient); -webkit-text-fill-color: #fff; border:none; padding: 10px 20px; font-weight: 700;">Join Now</a>
+            </div>
         </div>
     </nav>
 
     <main class="container">
         <section class="hero">
-            <div class="badge">Feature Showcase</div>
+            <div class="badge">{{ deck.offer.highlight or "Join Free for 1 Month" }}</div>
             <h1>{{ deck.hero_title or "The Power of Code2-Calendar" }}</h1>
             <p>{{ deck.hero_subtitle or "Experience the most advanced trading journal ever built for NIFTY traders." }}</p>
+            <div style="margin-bottom: 24px; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; display: flex; gap: 16px; align-items: center; justify-content: center; opacity: 0.8;">
+                <span style="display: flex; align-items: center; gap: 6px;">💻 Web</span>
+                <span style="display: flex; align-items: center; gap: 6px;">📟 iPad</span>
+                <span style="display: flex; align-items: center; gap: 6px;">📱 Mobile</span>
+                <span style="color: var(--border); margin: 0 4px;">|</span>
+                <span>Custom Layouts for Every Screen</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+                <a href="/register" class="btn-back" style="background: var(--accent-gradient); -webkit-text-fill-color: #fff; border:none; padding: 14px 32px; font-size: 1.1rem; font-weight: 800; border-radius: 12px; transition: transform 0.2s;">
+                    {{ deck.offer.cta or "Start Your 30-Day Free Trial" }}
+                </a>
+                <div style="color: var(--text-secondary); font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                    <div class="pulse" style="background: var(--warning)"></div>
+                    No credit card required. Experience with <strong>Dummy Data</strong> instantly.
+                </div>
+            </div>
         </section>
 
         {% if deck.categories %}
@@ -444,6 +463,17 @@
             <div id="timeline-container" class="timeline">
                 <!-- Dynamically populated -->
             </div>
+        <!-- FINAL CTA SECTION -->
+        <section class="hero" style="padding: 100px 0; border-top: 1px solid var(--border); margin-top: 100px;">
+            <div class="badge">{{ deck.offer.cta }}</div>
+            <h2 style="font-size: 3rem; margin-bottom: 24px;">{{ deck.offer.title }}</h2>
+            <p style="margin-bottom: 40px;">{{ deck.offer.subtitle }}</p>
+            <a href="/register" class="btn-back" style="background: var(--accent-gradient); -webkit-text-fill-color: #fff; border:none; padding: 16px 40px; font-size: 1.25rem; font-weight: 850; border-radius: 99px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
+                Get 30 Days Free Access 🚀
+            </a>
+            <p style="margin-top: 24px; font-size: 0.9rem; color: var(--text-secondary);">
+                 Don't wait for your next big loss. Start evolving now.
+            </p>
         </section>
 
     </main>

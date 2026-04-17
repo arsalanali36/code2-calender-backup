@@ -1,152 +1,130 @@
 {
   "categories": [
     {
-      "id": "core-workflow",
+      "id": "master-workflow",
       "title": "Master Your Workflow",
-      "subtitle": "Efficiency at Every Step",
-      "solved_for": "Manual data entry, fragmented tools, and loss of trade context.",
+      "subtitle": "Efficiency & Integrity",
+      "solved_for": "Manual data entry fatigue and data corruption risks.",
       "features": [
         {
-          "id": "calendar",
-          "name": "Intelligent Calendar View",
-          "details": "A high-level P/L heatmap of your trading month. Instantly toggle between Net and Gross views to see 'Weekly/Daily kaisa chal raha hai'.",
-          "icon": "📅",
-          "solved_for": "Scattered daily/weekly performance tracking."
+          "id": "no-fake-data",
+          "name": "Zero-Manual Entry Integrity",
+          "details": "We don't do 'fake' data. Your journal is built directly from your actual broker history. Total transparency with zero manual bias.",
+          "icon": "🛡️",
+          "solved_for": "Data manipulation and manual logging errors."
         },
         {
-          "id": "table",
-          "name": "1-Click Excel Sync",
-          "details": "Import your Zerodha/Dhan data in one click. Support for historical sync and daily updates ensures 'No chance of manual data corruption'.",
-          "icon": "📊",
-          "solved_for": "Manual data entry fatigue and errors."
+          "id": "pdf-export",
+          "name": "PDF Reports & Printing",
+          "details": "Transform your filtered views into high-fidelity PDF reports. Perfect for printing or deep-study away from the screen.",
+          "icon": "📄",
+          "solved_for": "Being tied to a digital-only review process."
         },
         {
-          "id": "tagging-system",
-          "name": "Pro Tagging & Filtering",
-          "details": "A massive tagging engine. Categorize trades by Instrument, Setup, or Emotions. Filter through thousands of trades in seconds using the global search.",
+          "id": "tagging",
+          "name": "Tag-Based Filtering",
+          "details": "Categorize by Setup, Emotion, or Instrument. Create custom tag-filtered views and export them instantly as PDFs.",
           "icon": "🏷️",
-          "solved_for": "Drowning in unorganized trade data."
+          "solved_for": "Unorganized data chaos."
         }
       ]
     },
     {
-      "id": "visuals",
-      "title": "Visual Analysis Engine",
-      "subtitle": "See the Market Clearly",
-      "solved_for": "Static images that lack depth and disconnected charting context.",
+      "id": "speed-execution",
+      "title": "Professional Execution",
+      "subtitle": "High-Speed Analysis Workflow",
+      "solved_for": "Slow review processes and clunky navigational tools.",
       "features": [
         {
-          "id": "gallery",
-          "name": "Omnichannel Gallery",
-          "details": "Revolutionary 'Long Viewer' experience. Scroll through your trade screenshots seamlessly or jump via the high-speed thumbnail grid.",
-          "icon": "🖼️",
-          "solved_for": "Clunky image browsing in separate folders."
+          "id": "shortcuts",
+          "name": "Customizable Keyboard Shortcuts",
+          "details": "Navigate like a pro. High-speed shortcuts (Alt+R, Alt+T, Fullscreen) designed for rapid trade reviews and context switching.",
+          "icon": "⌨️",
+          "solved_for": "Wasted time on mouse clicks."
         },
         {
-          "id": "annotation-tools",
-          "name": "Built-in Annotation Suite",
-          "details": "Markup your charts directly within the app. Add arrows, boxes, and tactical notes with a high-performance drawing canvas.",
+          "id": "annotation",
+          "name": "Tactical Annotation Suite",
+          "details": "Draw, markup, and note down your strategy directly on the charts with our built-in high-performance canvas.",
           "icon": "🎨",
-          "solved_for": "Needing external tools (Goodnotes/PPT) for markups."
+          "solved_for": "Disconnected note-taking (iPad/Goodnotes)."
         },
         {
-          "id": "data-mapping",
-          "name": "Image-to-Chart Bridge",
-          "details": "The ultimate sync. Click any trade image to instantly jump to the actual Historical OHLC charts for that specific date and instrument.",
+          "id": "ohlc-bridge",
+          "name": "Historical OHLC Mapping",
+          "details": "Bridge images to charts. Click any trade image to instantly jump to the live chart state for that instrument and date.",
           "icon": "🔗",
-          "solved_for": "Manual search for charts during reviews."
+          "solved_for": "Context loss during trade reviews."
         }
       ]
     },
     {
       "id": "analytics",
       "title": "Deep-Dive Analytics",
-      "subtitle": "Quantitative Performance Reviews",
-      "solved_for": "Difficulty in identifying patterns and true performance metrics.",
+      "subtitle": "Quant-Level Performance Tracking",
+      "solved_for": "Lack of clarity in equity curves and target alignment.",
       "features": [
         {
           "id": "dashboard",
           "name": "Drill-Down Dashboard",
-          "details": "Dynamic tiles showing key metrics. Filter by P/L, Volume, and Duration to find exactly where you are making or losing money.",
+          "details": "Interactive tiles showing Volume, Duration, and Profit metrics. Filter to find your true edge.",
           "icon": "🚀",
-          "solved_for": "Surface-level data analysis."
+          "solved_for": "Vague performance goals."
         },
         {
           "id": "graphs",
-          "name": "Visual Equity Curves",
-          "details": "Cumulative P/L, Monthly bar charts, and setup distribution Pie charts. Visualize your 'Equity Curve' over any custom range or month.",
+          "name": "Visual Equity Graphs",
+          "details": "Cumulative P/L and setup distribution charts. Track your progress with high-fidelity visual curves.",
           "icon": "📈",
-          "solved_for": "Time-period based performance analysis."
+          "solved_for": "Poor visualization of growth."
         },
         {
           "id": "target-tracker",
-          "name": "Cricket-Style Target Tracker",
-          "details": "Set your own targets. Measure Daily/Weekly/Monthly performance using a 'Milestone' system inspired by cricket scorecards.",
+          "name": "Cricket-Analogy Tracker",
+          "details": "Reach your milestones. Daily and Weekly targets with a cricket-style progress bar to keep you focused.",
           "icon": "🎯",
-          "solved_for": "Lack of focus on long-term goals."
-        }
-      ]
-    },
-    {
-      "id": "execution-system",
-      "title": "Professional Execution",
-      "subtitle": "The Trader's High-Focus Workstation",
-      "solved_for": "Distractions and lack of structured trade post-mortems.",
-      "features": [
-        {
-          "id": "trade-remote",
-          "name": "Trade Remote Comparison",
-          "details": "Side-by-side 'Split View' to compare today's trade execution against any other past trade or target setup.",
-          "icon": "📺",
-          "solved_for": "Comparing actual trades vs setups."
-        },
-        {
-          "id": "strategy-lab",
-          "name": "Strategy Lab Cockpit",
-          "details": "Build and validate your 'Core, Reversal, & Range Based' setups. Compare your actual execution against the strategy edge.",
-          "icon": "🧪",
-          "solved_for": "Non-systematic trading behavior."
-        },
-        {
-          "id": "context-panel",
-          "name": "Contextual Sidebars",
-          "details": "Hamburger menu access to expanded omnichannel trades, daily news, and notes. Everything you need for a review, in one menu.",
-          "icon": "🍔",
-          "solved_for": "Disconnected trading context."
+          "solved_for": "Goal drift and lack of consistency."
         }
       ]
     },
     {
       "id": "eco-system",
-      "title": "Personal Trading Cloud",
-      "subtitle": "Secure, Mobile, Persistent",
+      "title": "Connected Ecosystem",
+      "subtitle": "Your Data, Everywhere",
       "solved_for": "Being stuck at a desk and data portability issues.",
       "features": [
         {
-          "id": "mobile-app",
+          "id": "multi-device",
+          "name": "Web, iPad & Mobile Ready",
+          "details": "Experience a truly customized layout whether you are on a high-res Desktop, an iPad, or your Phone. Fluid, fast, and adaptive.",
+          "icon": "💻",
+          "solved_for": "App scaling issues on different screens."
+        },
+        {
+          "id": "mobile",
           "name": "Mobile Review Feed",
-          "details": "A standalone, social-media style feed for your trades. Review your charts and annotations while you're on the move.",
+          "details": "A native-feeling social feed for your trades. Review and learn from your setups while on the go.",
           "icon": "📱",
-          "solved_for": "Limited mobility for trade reviews."
+          "solved_for": "Review inactivity outside office hours."
         },
         {
           "id": "backups",
           "name": "Bulletproof Backups",
-          "details": "One-click ZIP backup of all your trades AND images. Export to Excel or JSON anytime to keep your data truly yours.",
+          "details": "Full ZIP backups of your trade data and images. Total control over your persistence.",
           "icon": "💾",
-          "solved_for": "Fear of losing months/years of analysis."
-        },
-        {
-          "id": "icon-panel",
-          "name": "Dual Monitor Workspace",
-          "details": "Optimized UI with Full-screen toggle and specialized layouts for multiple screens to maximize focus.",
-          "icon": "🖥️",
-          "solved_for": "UI clutter and small screen limitations."
+          "solved_for": "Data loss anxiety."
         }
       ]
     }
   ],
   "tagline": "All-in-one Amalgamation of PPT / Sheets / Calendar / Goodnotes — with a clear and focused intent to improve, evolve, and become a consistently profitable trader.",
   "hero_title": "Power of Code2-Calendar",
-  "hero_subtitle": "Specifically designed to transform scattered chart screenshots into a cohesive, logical, and powerful trading edge."
+  "hero_subtitle": "Built for traders who value speed, data integrity, and professional-grade analysis.",
+  "offer": {
+    "title": "Join the Elite Tribe",
+    "subtitle": "Start your journey towards professional trading today.",
+    "cta": "Join for Free (1st Month)",
+    "highlight": "FREE for the first 30 days. Experience full power with pre-loaded dummy data.",
+    "link": "/register"
+  }
 }
