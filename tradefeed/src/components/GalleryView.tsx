@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search } from 'lucide-react';
+import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search } from 'lucide-react';
 import type { Trade } from '../types';
 import type { DayData } from './FullscreenViewerUtils';
 import { PnlCalendarPicker } from './PnlCalendarPicker';
@@ -55,14 +55,12 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [tagSheetFor, setTagSheetFor] = useState<{ url: string; dayIdx: number } | null>(null);
-  const [headerVisible, setHeaderVisible] = useState(true);
+  const [showTopMenu, setShowTopMenu] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
   const [galleryDays, setGalleryDays] = useState<DayData[]>(() => buildGlobalList(trades));
 
   const galleryRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastScrollY = useRef(0);
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const pinchStartDist = useRef(0);
   const pinchStartCols = useRef(3);
   const colsRef = useRef(3);
@@ -73,30 +71,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
 
   useEffect(() => { colsRef.current = cols; }, [cols]);
   useEffect(() => { setGalleryDays(buildGlobalList(trades)); }, [trades]);
-
-  const showHeader = useCallback(() => {
-    setHeaderVisible(true);
-    clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setHeaderVisible(false), 3000);
-  }, []);
-
-  useEffect(() => {
-    showHeader();
-    return () => clearTimeout(hideTimer.current);
-  }, [showHeader]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const y = el.scrollTop;
-      if (y < lastScrollY.current - 10) showHeader();
-      else if (y > lastScrollY.current + 10) { clearTimeout(hideTimer.current); setHeaderVisible(false); }
-      lastScrollY.current = y;
-    };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [showHeader]);
 
   // Pinch-to-zoom: switch touch-action to 'none' on 2-finger start, restore on end
   // This avoids passive:false (which blocks native scroll)
@@ -187,41 +161,74 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
   const activeFilters = selectedTags.length + (selectedDate ? 1 : 0);
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col" ref={galleryRef} style={{ contain: 'layout style' }}>
-      {/* Overlay header — auto-hide */}
-      <motion.div
-        animate={{ y: headerVisible ? 0 : -64, opacity: headerVisible ? 1 : 0 }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 pt-safe pt-3 pb-3"
-        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }}
-        onClick={showHeader}
-      >
-        {/* Filter button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setShowFilterSheet(true); showHeader(); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 text-white text-xs font-bold"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          {activeFilters > 0 ? `Filters (${activeFilters})` : 'Filter'}
-          {activeFilters > 0 && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
-        </button>
+    <div className="fixed inset-0 bg-black flex flex-col" ref={galleryRef}>
+      {/* Top bar — always visible */}
+      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 pt-3 pb-2 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}>
 
-        {/* Col count indicator */}
-        <span className="text-white/30 text-[10px] font-mono">{cols}col</span>
+        {/* Active filter badges */}
+        <div className="flex items-center gap-1 pointer-events-auto">
+          {selectedDate && (
+            <button onClick={() => setSelectedDate(null)} className="flex items-center gap-1 text-[10px] font-bold bg-indigo-600/80 border border-indigo-400/30 text-white px-2 py-0.5 rounded-full">
+              {selectedDate.slice(5).replace('-', '/')} <X className="w-2.5 h-2.5" />
+            </button>
+          )}
+          {selectedTags.map(t => (
+            <button key={t} onClick={() => setSelectedTags(prev => prev.filter(x => x !== t))} className="flex items-center gap-1 text-[10px] font-bold bg-indigo-500/40 border border-indigo-400/30 text-indigo-200 px-2 py-0.5 rounded-full">
+              {t} <X className="w-2.5 h-2.5" />
+            </button>
+          ))}
+        </div>
 
-        {/* Date picker button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setShowDatePicker(true); showHeader(); }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl backdrop-blur-md border text-xs font-bold transition-all ${selectedDate ? 'bg-indigo-600/80 border-indigo-400/40 text-white' : 'bg-black/40 border-white/15 text-white'}`}
-        >
-          <CalendarDays className="w-3.5 h-3.5" />
-          {selectedDate ? selectedDate.slice(5).replace('-', '/') : 'Date'}
-        </button>
-      </motion.div>
+        {/* 3-dot menu */}
+        <div className="relative pointer-events-auto ml-auto">
+          <button
+            onClick={() => setShowTopMenu(m => !m)}
+            className="relative p-2 rounded-full bg-black/50 backdrop-blur-md border border-white/15 active:scale-90 transition-transform"
+          >
+            <MoreVertical className="w-5 h-5 text-white" />
+            {activeFilters > 0 && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-indigo-400 border border-black" />}
+          </button>
+          <AnimatePresence>
+            {showTopMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowTopMenu(false)} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -4 }}
+                  transition={{ duration: 0.12 }}
+                  className="absolute right-0 top-full mt-1 z-50 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-48"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <button onClick={() => { setShowFilterSheet(true); setShowTopMenu(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors">
+                    <SlidersHorizontal className="w-4 h-4 text-indigo-400" />
+                    Filter by Tag
+                    {selectedTags.length > 0 && <span className="ml-auto text-[10px] font-bold text-indigo-400">{selectedTags.length}</span>}
+                  </button>
+                  <button onClick={() => { setShowDatePicker(true); setShowTopMenu(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10">
+                    <CalendarDays className="w-4 h-4 text-sky-400" />
+                    Pick Date
+                    {selectedDate && <span className="ml-auto text-[10px] font-bold text-sky-400">{selectedDate.slice(5)}</span>}
+                  </button>
+                  {activeFilters > 0 && (
+                    <button onClick={() => { setSelectedTags([]); setSelectedDate(null); setShowTopMenu(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-rose-400 hover:bg-white/10 transition-colors border-t border-white/10">
+                      <X className="w-4 h-4" /> Clear All Filters
+                    </button>
+                  )}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
       {/* Multi-select bar */}
       {isSelecting && (
-        <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-zinc-900/95 backdrop-blur-sm border-b border-white/10 pt-safe">
+        <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-zinc-900/95 backdrop-blur-sm border-b border-white/10">
           <button onClick={cancelSelection} className="text-sm text-zinc-400 font-medium">Cancel</button>
           <span className="text-sm font-bold text-white">{selectedUrls.size} selected</span>
           <button onClick={deleteSelected} disabled={!selectedUrls.size} className="text-sm font-bold text-rose-400 disabled:opacity-30 flex items-center gap-1">
@@ -229,9 +236,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
           </button>
         </div>
       )}
-
-      {/* Tap to show header overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-none" onClick={showHeader} style={{ pointerEvents: (!headerVisible && !isSelecting) ? 'auto' : 'none' }} />
 
       {/* Gallery grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto pt-12" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>

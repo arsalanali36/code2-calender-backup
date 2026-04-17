@@ -191,19 +191,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      <main className="relative z-10">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentView}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {renderView()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+      {/* Gallery rendered outside motion wrapper — fixed inset-0 needs no transform parent */}
+      {currentView === 'gallery' && (
+        <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} />
+      )}
+
+      {currentView !== 'gallery' && (
+        <main className="relative z-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentView}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderView()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      )}
 
       <FullscreenViewer
         days={fsDays}
