@@ -73,6 +73,20 @@ def mobile_assets(filename):
     return send_from_directory(os.path.join(MOBILE_DIST, 'assets'), filename)
 
 
+@page_bp.route('/app-deck')
+def app_deck():
+    features_path = os.path.join(BASE_DIR, 'data', 'features.json')
+    try:
+        if os.path.exists(features_path):
+            with open(features_path, 'r', encoding='utf-8') as f:
+                deck_data = json.load(f)
+        else:
+            deck_data = {}
+    except Exception:
+        deck_data = {}
+    return render_template('app_deck.html', deck=deck_data, cache_bust=int(time.time()))
+
+
 @page_bp.route('/api/blog-posts')
 def blog_posts_api():
     return jsonify(get_blog_entries_for_api(BLOG_PATH))
