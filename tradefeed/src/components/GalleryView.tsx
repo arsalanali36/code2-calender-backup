@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search, Maximize2, LayoutGrid, BookOpen, BarChart2, Calendar as CalIcon, Home } from 'lucide-react';
+import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search, Maximize2, Minimize2, LayoutGrid, BookOpen, BarChart2, Calendar as CalIcon, Home } from 'lucide-react';
 import type { Trade } from '../types';
 import type { DayData } from './FullscreenViewerUtils';
 import { PnlCalendarPicker } from './PnlCalendarPicker';
@@ -59,6 +59,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
   const [showTopMenu, setShowTopMenu] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
   const [galleryDays, setGalleryDays] = useState<DayData[]>(() => buildGlobalList(trades));
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const galleryRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -72,6 +73,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
 
   useEffect(() => { colsRef.current = cols; }, [cols]);
   useEffect(() => { setGalleryDays(buildGlobalList(trades)); }, [trades]);
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
 
   // Pinch-to-zoom: switch touch-action to 'none' on 2-finger start, restore on end
   // This avoids passive:false (which blocks native scroll)
@@ -168,7 +174,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}>
 
         {/* Active filter badges */}
-        <div className="flex items-center gap-1 pointer-events-auto">
+        <div className="flex items-center gap-1 pointer-events-auto flex-1 min-w-0">
           {selectedDate && (
             <button onClick={() => setSelectedDate(null)} className="flex items-center gap-1 text-[10px] font-bold bg-indigo-600/80 border border-indigo-400/30 text-white px-2 py-0.5 rounded-full">
               {selectedDate.slice(5).replace('-', '/')} <X className="w-2.5 h-2.5" />
@@ -180,6 +186,21 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
             </button>
           ))}
         </div>
+
+        {/* Trade Pill — total P&L of visible trades */}
+        {(() => {
+          const total = filteredDays.reduce((s, d) => s + (d.pnl ?? 0), 0);
+          const n = filteredDays.length;
+          if (!n) return null;
+          return (
+            <div className="flex items-center gap-1.5 pointer-events-auto mx-2 flex-shrink-0">
+              <span className={`text-[11px] font-black px-2 py-1 rounded-lg backdrop-blur-md border shadow-md ${total >= 0 ? 'bg-emerald-500/80 border-emerald-400/30 text-white' : 'bg-rose-500/80 border-rose-400/30 text-white'}`}>
+                {total >= 0 ? '+' : ''}₹{Math.abs(total).toLocaleString('en-IN')}
+              </span>
+              <span className="text-[10px] font-bold text-white/50">{n}T</span>
+            </div>
+          );
+        })()}
 
         {/* 3-dot menu */}
         <div className="relative pointer-events-auto ml-auto">
@@ -220,9 +241,14 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
                       <X className="w-4 h-4" /> Clear Filters
                     </button>
                   )}
-                  <button onClick={() => { document.documentElement.requestFullscreen?.().catch(()=>{}); setShowTopMenu(false); }}
+                  <button onClick={() => {
+                      if (isFullscreen) document.exitFullscreen?.().catch(()=>{});
+                      else document.documentElement.requestFullscreen?.().catch(()=>{});
+                      setShowTopMenu(false);
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10">
-                    <Maximize2 className="w-4 h-4 text-emerald-400" /> Full Screen
+                    {isFullscreen ? <Minimize2 className="w-4 h-4 text-emerald-400" /> : <Maximize2 className="w-4 h-4 text-emerald-400" />}
+                    {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
                   </button>
                   <div className="border-t border-white/10 px-4 py-2">
                     <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Go to</p>

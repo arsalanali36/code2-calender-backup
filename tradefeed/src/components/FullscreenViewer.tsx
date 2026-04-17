@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, MessageCircle, Send, Lock, Unlock, Calendar, MoreVertical, ChevronDown, Move, Tag } from 'lucide-react';
-import { AudioManager } from './AudioManager';
-import { VideoManager } from './VideoManager';
 import { MoreMenu } from './FullscreenMoreMenu';
 import { TagSheet } from './TagSheet';
 import { fmt, isVideoUrl, downloadViaProxy, copyImageToClipboard } from './FullscreenViewerUtils';
@@ -358,20 +356,6 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
             />
           )}
 
-          {!currentIsVideo && (
-            <div className="absolute bottom-12 left-4 right-4 z-20 flex flex-col gap-2" onTouchStart={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()}>
-              <VideoManager key={`vid-${dayIdx}-${imgIdx}`} videoUrl={currentDay.videos?.[images[imgIdx]]} imageUrl={images[imgIdx]}
-                onVideoChange={(url) => {
-                  const newDays = days.map((d, di) => { if (di !== dayIdx) return d; const newVideos = { ...(d.videos || {}) }; const newImgs = [...d.images]; if (url) { newVideos[images[imgIdx]] = url; if (!newImgs.includes(url)) newImgs.splice(imgIdx + 1, 0, url); } else { const vidUrl = d.videos?.[images[imgIdx]]; const vidIdx = vidUrl ? newImgs.indexOf(vidUrl) : -1; if (vidIdx >= 0) newImgs.splice(vidIdx, 1); delete newVideos[images[imgIdx]]; } return { ...d, videos: newVideos, images: newImgs }; });
-                  onUpdateDays?.(newDays);
-                  if (url) { const newImgs = newDays[dayIdx]?.images || []; const newIdx = newImgs.indexOf(url); if (newIdx >= 0) setImgIdx(newIdx); }
-                }}
-              />
-              <AudioManager key={`aud-${dayIdx}-${imgIdx}`} audioUrl={currentDay.audios?.[images[imgIdx]]} imageUrl={images[imgIdx]}
-                onAudioChange={(url) => { const newDays = days.map((d, di) => { if (di !== dayIdx) return d; const newAudios = { ...(d.audios || {}) }; if (url) newAudios[images[imgIdx]] = url; else delete newAudios[images[imgIdx]]; return { ...d, audios: newAudios }; }); onUpdateDays?.(newDays); }}
-              />
-            </div>
-          )}
 
           <motion.div animate={{ opacity: isLocked ? 0 : 1 }} className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 px-4 pointer-events-none">
             {images.map((url, i) => (
