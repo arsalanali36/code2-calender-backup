@@ -18,25 +18,24 @@
 
   // ── Indicator ──────────────────────────────────────────────────────────────
 
-  function _indicator() { return document.getElementById('live-sync-dot'); }
-
   const STATES = {
-    idle:     { color: '#555',    title: 'Live sync idle' },
-    checking: { color: '#f0c040', title: 'Checking live...' },
-    pulling:  { color: '#58a6ff', title: 'Pulling from live...' },
-    pushing:  { color: '#f0a500', title: 'Pushing to live...' },
-    synced:   { color: '#3fb950', title: 'Synced with live ✓' },
-    error:    { color: '#f85149', title: 'Sync error — check console' },
-    offline:  { color: '#555',    title: 'Live server unreachable' },
+    idle:     { color: '#555',    label: 'Sync',       title: 'Live sync idle' },
+    checking: { color: '#f0c040', label: 'Checking…',  title: 'Checking live server…' },
+    pulling:  { color: '#58a6ff', label: 'Pulling…',   title: 'Pulling from live…' },
+    pushing:  { color: '#f0a500', label: 'Pushing…',   title: 'Pushing to live…' },
+    synced:   { color: '#3fb950', label: 'Synced ✓',   title: 'Synced with live ✓' },
+    error:    { color: '#f85149', label: 'Sync Error',  title: 'Sync error — check console' },
+    offline:  { color: '#555',    label: 'Offline',    title: 'Live server unreachable' },
   };
 
   function setStatus(key) {
-    const dot = _indicator();
-    if (!dot) return;
     const s = STATES[key] || STATES.idle;
-    dot.style.background = s.color;
-    dot.title = s.title;
-    dot.dataset.state = key;
+    const circle = document.getElementById('live-sync-circle');
+    const label  = document.getElementById('live-sync-label');
+    const wrap   = document.getElementById('live-sync-dot');
+    if (circle) circle.style.background = s.color;
+    if (label)  label.textContent = s.label;
+    if (wrap)   wrap.title = s.title;
   }
 
   // ── Auto-sync enabled toggle ───────────────────────────────────────────────

@@ -275,9 +275,8 @@
           </div>
 
           <!-- File dropdown -->
-          <div class="dropdown-wrapper" style="position:relative;">
+          <div class="dropdown-wrapper">
             <button class="btn btn-primary" id="file-dropdown-btn">&#128193; File &#9660;</button>
-            <span id="live-sync-dot" title="Live sync idle" style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#555;display:none;pointer-events:auto;cursor:default;"></span>
             <div class="dropdown-menu" id="file-dropdown-menu">
               <button class="dropdown-item" id="import-btn">&#8679; Import Excel</button>
               <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" />
@@ -299,6 +298,14 @@
               <button class="dropdown-item" id="auto-sync-toggle-btn" style="display:none; color:#aaa; font-size:0.85em;" onclick="toggleAutoSync()">⏸ Auto Sync: ON</button>
             </div>
           </div>
+
+          <!-- Live sync status badge — localhost only, hidden on live -->
+          <span id="live-sync-dot"
+            title="Live sync idle"
+            style="display:none; align-items:center; gap:5px; font-size:0.75em; color:#888; cursor:default; user-select:none; padding:0 6px;">
+            <span id="live-sync-circle" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;"></span>
+            <span id="live-sync-label">Sync</span>
+          </span>
 
         </div>
       </div>
@@ -438,7 +445,7 @@
       var isLocal = location.hostname==='localhost'||location.hostname==='127.0.0.1';
       if(!isLocal) return;
       var dot=document.getElementById('live-sync-dot');
-      if(dot) dot.style.display='block';
+      if(dot) dot.style.display='flex';
       var tog=document.getElementById('auto-sync-toggle-btn');
       if(tog) tog.style.display='';
     })();
