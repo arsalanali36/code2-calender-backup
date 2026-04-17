@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3 } from 'lucide-react';
+import { SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search } from 'lucide-react';
 import type { Trade } from '../types';
 import type { DayData } from './FullscreenViewerUtils';
 import { PnlCalendarPicker } from './PnlCalendarPicker';
@@ -56,6 +56,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [tagSheetFor, setTagSheetFor] = useState<{ url: string; dayIdx: number } | null>(null);
   const [headerVisible, setHeaderVisible] = useState(true);
+  const [filterSearch, setFilterSearch] = useState('');
   const [galleryDays, setGalleryDays] = useState<DayData[]>(() => buildGlobalList(trades));
 
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -320,7 +321,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="relative bg-zinc-900 rounded-t-2xl border-t border-white/10 shadow-2xl max-h-[70vh] flex flex-col"
+              className="relative bg-zinc-900 rounded-t-2xl border-t border-white/10 shadow-2xl max-h-[75vh] flex flex-col"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-center pt-3 pb-1 flex-shrink-0"><div className="w-10 h-1 bg-white/20 rounded-full" /></div>
@@ -328,12 +329,27 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
                 <h2 className="text-sm font-bold text-white">Filter by Tag</h2>
                 <div className="flex items-center gap-2">
                   {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-[11px] text-indigo-400 font-bold">Clear</button>}
-                  <button onClick={() => setShowFilterSheet(false)} className="p-1.5 rounded-full hover:bg-white/10"><X className="w-4 h-4 text-white/60" /></button>
+                  <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="p-1.5 rounded-full hover:bg-white/10"><X className="w-4 h-4 text-white/60" /></button>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 py-4">
-                <div className="flex flex-wrap gap-2">
-                  {allTags.map(tag => {
+              {/* Search */}
+              <div className="px-4 py-2 flex-shrink-0">
+                <div className="flex items-center gap-2 bg-white/8 rounded-xl px-3 py-2 border border-white/10">
+                  <Search className="w-4 h-4 text-white/40 flex-shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search tags…"
+                    value={filterSearch}
+                    onChange={e => setFilterSearch(e.target.value)}
+                    className="flex-1 bg-transparent text-sm text-white placeholder-white/30 outline-none"
+                    autoFocus
+                  />
+                  {filterSearch && <button onClick={() => setFilterSearch('')}><X className="w-3.5 h-3.5 text-white/30" /></button>}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 pb-2">
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {allTags.filter(t => t.toLowerCase().includes(filterSearch.toLowerCase())).map(tag => {
                     const on = selectedTags.includes(tag);
                     return (
                       <button key={tag} onClick={() => setSelectedTags(prev => on ? prev.filter(t => t !== tag) : [...prev, tag])}
@@ -343,10 +359,13 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
                     );
                   })}
                   {allTags.length === 0 && <p className="text-white/30 text-xs py-4 text-center w-full">No tags in your trades yet</p>}
+                  {allTags.length > 0 && allTags.filter(t => t.toLowerCase().includes(filterSearch.toLowerCase())).length === 0 && (
+                    <p className="text-white/30 text-xs py-4 text-center w-full">No tags match "{filterSearch}"</p>
+                  )}
                 </div>
               </div>
               <div className="px-4 pb-6 pt-2 flex-shrink-0">
-                <button onClick={() => setShowFilterSheet(false)} className="w-full py-3 rounded-2xl font-bold text-sm bg-indigo-600 text-white">
+                <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="w-full py-3 rounded-2xl font-bold text-sm bg-indigo-600 text-white">
                   {selectedTags.length > 0 ? `Apply ${selectedTags.length} filter${selectedTags.length > 1 ? 's' : ''}` : 'Done'}
                 </button>
               </div>

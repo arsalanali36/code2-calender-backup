@@ -234,65 +234,69 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
         ref={containerRef}
         onClick={() => { if (showMoreMenu) setShowMoreMenu(false); if (showTradeDropdown) setShowTradeDropdown(false); }}
       >
-        {/* Header */}
+        {/* Trade Pill — always visible, auto-updates as you swipe */}
+        {(() => {
+          const pos = dayItemIndices.indexOf(dayIdx);
+          const label = getDayTradeLabel(pos >= 0 ? pos : 0, dayItemIndices.length, currentDay.isClose);
+          const pnlColor = tradePnl !== undefined ? (tradePnl >= 0 ? '#4ade80' : '#f87171') : 'white';
+          const pnlTxt = tradePnl !== undefined ? ` · ${tradePnl >= 0 ? '+' : '-'}${fmt(tradePnl ?? 0)}` : '';
+          return (
+            <div className="absolute top-3 left-0 right-0 z-[110] flex items-center justify-center pointer-events-none">
+              <div className="relative pointer-events-auto flex items-center gap-1.5">
+                {dayPnl !== undefined && dayPnl !== 0 && (
+                  <span className={`text-xs font-black px-2 py-1 rounded-lg backdrop-blur-md border shadow-md ${dayPnl >= 0 ? 'bg-emerald-500/80 border-emerald-400/30 text-white' : 'bg-rose-500/80 border-rose-400/30 text-white'}`}>
+                    {fmt(dayPnl)}
+                  </span>
+                )}
+                <button
+                  className="text-[11px] font-black px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md border border-white/10 shadow-md active:scale-95 transition-transform flex items-center gap-1"
+                  style={{ color: pnlColor }}
+                  onClick={(e) => { e.stopPropagation(); setShowTradeDropdown(d => !d); }}
+                >
+                  {label}{pnlTxt}
+                  <ChevronDown className="w-3 h-3 opacity-60" />
+                </button>
+                <AnimatePresence>
+                  {showTradeDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                      transition={{ duration: 0.12 }}
+                      className="absolute top-full left-0 mt-1.5 bg-zinc-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[200] overflow-hidden min-w-[140px]"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {dayItemIndices.map((dIdx, pos) => {
+                        const d = days[dIdx];
+                        const lbl = getDayTradeLabel(pos, dayItemIndices.length, d.isClose);
+                        const p = d.pnl;
+                        return (
+                          <button
+                            key={dIdx}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold transition-colors text-left ${dIdx === dayIdx ? 'bg-white/15' : 'hover:bg-white/10'}`}
+                            onClick={() => { setShowTradeDropdown(false); if (dIdx === dayIdx) return; saveCurrentState(); restoreState(dIdx, 0); setDayIdx(dIdx); setImgIdx(0); }}
+                          >
+                            <span className="text-white">{lbl}</span>
+                            {p !== undefined && p !== 0 && <span style={{ color: p >= 0 ? '#4ade80' : '#f87171' }}>{p >= 0 ? '+' : '-'}{fmt(p)}</span>}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Header (date + lock) — tap to show/hide */}
         <motion.div
           animate={{ y: (uiVisible || isLocked) ? 0 : -20, opacity: (uiVisible || isLocked) ? 1 : 0 }}
           transition={{ duration: 0.2, ease: 'linear' }}
-          className="absolute top-0 left-0 right-0 z-[110] flex items-center justify-between px-4 pt-3 pb-4"
+          className="absolute top-0 left-0 right-0 z-[109] flex items-center justify-between px-4 pt-3 pb-4"
         >
           <div className="min-w-[60px]" />
           <div className="flex items-center gap-1.5">
-            {dayPnl !== undefined && dayPnl !== 0 && (
-              <span className={`text-xs font-black px-2 py-1 rounded-lg backdrop-blur-md border shadow-md ${dayPnl >= 0 ? 'bg-emerald-500/80 border-emerald-400/30 text-white' : 'bg-rose-500/80 border-rose-400/30 text-white'}`}>
-                {fmt(dayPnl)}
-              </span>
-            )}
-            {(() => {
-              const pos = dayItemIndices.indexOf(dayIdx);
-              const label = getDayTradeLabel(pos >= 0 ? pos : 0, dayItemIndices.length, currentDay.isClose);
-              const pnlColor = tradePnl !== undefined ? (tradePnl >= 0 ? '#4ade80' : '#f87171') : 'white';
-              const pnlTxt = tradePnl !== undefined ? ` · ${tradePnl >= 0 ? '+' : '-'}${fmt(tradePnl ?? 0)}` : '';
-              return (
-                <div className="relative">
-                  <button
-                    className="text-[11px] font-black px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md border border-white/10 shadow-md active:scale-95 transition-transform flex items-center gap-1"
-                    style={{ color: pnlColor }}
-                    onClick={(e) => { e.stopPropagation(); setShowTradeDropdown(d => !d); }}
-                  >
-                    {label}{pnlTxt}
-                    <ChevronDown className="w-3 h-3 opacity-60" />
-                  </button>
-                  <AnimatePresence>
-                    {showTradeDropdown && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -6, scale: 0.95 }}
-                        transition={{ duration: 0.12 }}
-                        className="absolute top-full left-0 mt-1.5 bg-zinc-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[200] overflow-hidden min-w-[140px]"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        {dayItemIndices.map((dIdx, pos) => {
-                          const d = days[dIdx];
-                          const lbl = getDayTradeLabel(pos, dayItemIndices.length, d.isClose);
-                          const p = d.pnl;
-                          return (
-                            <button
-                              key={dIdx}
-                              className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold transition-colors text-left ${dIdx === dayIdx ? 'bg-white/15' : 'hover:bg-white/10'}`}
-                              onClick={() => { setShowTradeDropdown(false); if (dIdx === dayIdx) return; saveCurrentState(); restoreState(dIdx, 0); setDayIdx(dIdx); setImgIdx(0); }}
-                            >
-                              <span className="text-white">{lbl}</span>
-                              {p !== undefined && p !== 0 && <span style={{ color: p >= 0 ? '#4ade80' : '#f87171' }}>{p >= 0 ? '+' : '-'}{fmt(p)}</span>}
-                            </button>
-                          );
-                        })}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })()}
             <button
               className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all px-2.5 py-1.5 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 shadow-md"
               onClick={(e) => { e.stopPropagation(); dateInputRef.current?.showPicker?.(); }}
