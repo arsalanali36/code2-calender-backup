@@ -51,4 +51,5 @@ export interface FullscreenViewerProps {
   onClose: () => void;
   initialLocked?: boolean;
   onUpdateDays?: (newDays: DayData[]) => void;
+  onFilter?: () => void;
 }

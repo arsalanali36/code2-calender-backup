@@ -71,6 +71,7 @@ export default function App() {
   const [fsImageIndex, setFsImageIndex] = useState(0);
   const [fsDays, setFsDays]             = useState<any[]>([]);
   const [fsInitialLocked, setFsInitialLocked] = useState(false);
+  const [galleryFilterOpen, setGalleryFilterOpen] = useState(false);
 
   const openViewer = (days: any[], dIdx: number, iIdx: number, locked = false) => {
     setFsDays(days);
@@ -193,7 +194,7 @@ export default function App() {
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* Gallery rendered outside motion wrapper — fixed inset-0 needs no transform parent */}
       {currentView === 'gallery' && (
-        <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} onNavigate={v => setCurrentView(v as any)} />
+        <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} onNavigate={v => setCurrentView(v as any)} filterOpen={galleryFilterOpen} onFilterOpened={() => setGalleryFilterOpen(false)} />
       )}
 
       {currentView !== 'gallery' && (
@@ -220,6 +221,7 @@ export default function App() {
         onClose={() => setFsOpen(false)}
         initialLocked={fsInitialLocked}
         onUpdateDays={setFsDays}
+        onFilter={() => { setFsOpen(false); setGalleryFilterOpen(true); }}
       />
 
       {currentView !== 'gallery' && <BottomNav currentView={currentView} onViewChange={setCurrentView} />}

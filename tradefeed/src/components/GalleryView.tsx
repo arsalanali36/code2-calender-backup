@@ -1,18 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search, Maximize2, Minimize2, LayoutGrid, BookOpen, BarChart2, Calendar as CalIcon, Home } from 'lucide-react';
+import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Check, Grid3X3, Search, Maximize2, Minimize2, BookOpen, BarChart2, Calendar as CalIcon, Home } from 'lucide-react';
 import type { Trade } from '../types';
 import type { DayData } from './FullscreenViewerUtils';
 import { PnlCalendarPicker } from './PnlCalendarPicker';
-import { TagSheet } from './TagSheet';
 
 interface GalleryViewProps {
   trades: Trade[];
   openViewer: (days: DayData[], dIdx: number, iIdx: number) => void;
   onNavigate?: (view: string) => void;
+  filterOpen?: boolean;
+  onFilterOpened?: () => void;
 }
-
-interface ContextMenu { x: number; y: number; url: string; dayIdx: number; imgIdx: number; }
 
 function buildGlobalList(trades: Trade[]): DayData[] {
   const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -46,7 +45,7 @@ function computePnlByDate(trades: Trade[]): Record<string, number> {
   return map;
 }
 
-export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, onNavigate }) => {
+export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, onNavigate, filterOpen, onFilterOpened }) => {
   const [cols, setCols] = useState(3);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -54,8 +53,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
-  const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
-  const [tagSheetFor, setTagSheetFor] = useState<{ url: string; dayIdx: number } | null>(null);
   const [showTopMenu, setShowTopMenu] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
   const [galleryDays, setGalleryDays] = useState<DayData[]>(() => buildGlobalList(trades));
@@ -68,7 +65,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
   const pinchStartCols = useRef(3);
   const colsRef = useRef(3);
   const isPinching = useRef(false);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
@@ -95,6 +91,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
     trades.forEach(t => [...t.emotionTags, ...t.strategyTags, ...t.mistakeTags].forEach(tag => { freq[tag] = (freq[tag] ?? 0) + 1; }));
     return freq;
   }, [trades]);
+
+  useEffect(() => {
+    if (filterOpen) { setShowFilterSheet(true); onFilterOpened?.(); }
+  }, [filterOpen]);
 
   // Pinch-to-zoom: switch touch-action to 'none' on 2-finger start, restore on end
   // This avoids passive:false (which blocks native scroll)
@@ -154,15 +154,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
     }
     return true;
   });
-
-  const handleLongPressStart = (url: string, dayIdx: number, imgIdx: number, e: React.TouchEvent | React.MouseEvent) => {
-    const x = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
-    const y = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-    longPressTimer.current = setTimeout(() => {
-      setContextMenu({ x, y, url, dayIdx, imgIdx });
-    }, 550);
-  };
-  const handleLongPressEnd = () => clearTimeout(longPressTimer.current);
 
   const toggleSelectUrl = (url: string) => {
     setSelectedUrls(prev => { const n = new Set(prev); n.has(url) ? n.delete(url) : n.add(url); return n; });
@@ -360,11 +351,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
                 <div
                   key={`${dIdx}-${iIdx}-${idx}`}
                   className={`aspect-square bg-zinc-900 overflow-hidden relative cursor-pointer ${isSel ? 'ring-2 ring-indigo-500 ring-inset' : ''}`}
-                  onTouchStart={(e) => handleLongPressStart(url, dIdx, iIdx, e)}
-                  onTouchMove={handleLongPressEnd}
-                  onTouchEnd={handleLongPressEnd}
-                  onMouseDown={(e) => handleLongPressStart(url, dIdx, iIdx, e)}
-                  onMouseUp={handleLongPressEnd}
                   onClick={() => handleImageClick(dIdx, iIdx)}
                 >
                   {isVid ? (
@@ -388,36 +374,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         )}
         <div className="h-24" />
       </div>
-
-      {/* Long-press context menu */}
-      <AnimatePresence>
-        {contextMenu && (
-          <>
-            <div className="fixed inset-0 z-50" onClick={() => setContextMenu(null)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed z-[60] bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-48"
-              style={{ left: Math.min(contextMenu.x, window.innerWidth - 200), top: Math.min(contextMenu.y, window.innerHeight - 120) }}
-              onClick={e => e.stopPropagation()}
-            >
-              <button
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-white hover:bg-white/10 transition-colors"
-                onClick={() => { setTagSheetFor({ url: contextMenu.url, dayIdx: contextMenu.dayIdx }); setContextMenu(null); }}
-              >
-                <Tag className="w-4 h-4 text-indigo-400" /> Assign Tags
-              </button>
-              <button
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10"
-                onClick={() => { setIsSelecting(true); setSelectedUrls(new Set([contextMenu.url])); setContextMenu(null); }}
-              >
-                <Check className="w-4 h-4 text-sky-400" /> Select
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* Tag Filter — floating panel */}
       <AnimatePresence>
@@ -508,22 +464,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         />
       )}
 
-      {/* Tag Sheet */}
-      {tagSheetFor && (
-        <TagSheet
-          imageUrl={tagSheetFor.url}
-          currentTags={filteredDays[tagSheetFor.dayIdx]?.tags || []}
-          currentNote={filteredDays[tagSheetFor.dayIdx]?.note || ''}
-          onSave={(newTags, newNote) => {
-            setGalleryDays(prev => prev.map((d, i) => {
-              if (i !== tagSheetFor.dayIdx) return d;
-              return { ...d, tags: newTags, note: newNote };
-            }));
-            setTagSheetFor(null);
-          }}
-          onClose={() => setTagSheetFor(null)}
-        />
-      )}
     </div>
   );
 };

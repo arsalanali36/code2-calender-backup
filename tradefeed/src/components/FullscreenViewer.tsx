@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, MessageCircle, Send, Lock, Unlock, Calendar, MoreVertical, ChevronDown, Move, Tag } from 'lucide-react';
+import { MessageCircle, Send, Lock, Unlock, Calendar, MoreVertical, ChevronDown, Move, Tag, SlidersHorizontal } from 'lucide-react';
 import { MoreMenu } from './FullscreenMoreMenu';
 import { TagSheet } from './TagSheet';
 import { fmt, isVideoUrl, downloadViaProxy, copyImageToClipboard } from './FullscreenViewerUtils';
@@ -8,7 +8,7 @@ import { doUploadAndSave } from './FullscreenViewerUpload';
 export type { DayData, FullscreenViewerProps } from './FullscreenViewerUtils';
 import type { DayData, FullscreenViewerProps } from './FullscreenViewerUtils';
 
-export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initialDayIndex, initialImageIndex, isOpen, onClose, initialLocked = false, onUpdateDays }) => {
+export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initialDayIndex, initialImageIndex, isOpen, onClose, initialLocked = false, onUpdateDays, onFilter }) => {
   const [dayIdx, setDayIdx] = useState(initialDayIndex);
   const [imgIdx, setImgIdx] = useState(initialImageIndex);
   const [scale, setScale] = useState(1);
@@ -49,22 +49,6 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
     return `T${pos}`;
   }
 
-  const [isFav, setIsFav] = useState(false);
-  React.useEffect(() => {
-    try {
-      const favs = JSON.parse(localStorage.getItem('tj_favs') || '{}');
-      setIsFav(!!favs[currentDate]);
-    } catch { setIsFav(false); }
-  }, [currentDate]);
-
-  const toggleFav = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const favs = JSON.parse(localStorage.getItem('tj_favs') || '{}');
-      localStorage.setItem('tj_favs', JSON.stringify({ ...favs, [currentDate]: !isFav }));
-    } catch {}
-    setIsFav(f => !f);
-  };
 
   const handleUploadReplace = (file: File) => doUploadAndSave({ file, mode: 'replace', dayIdx, imgIdx, days, isOpen, onUpdateDays, onSetImgIdx: setImgIdx, setStatus: setUploadStatus });
   const handleAddImageAfter = (file: File) => doUploadAndSave({ file, mode: 'addAfter', dayIdx, imgIdx, days, isOpen, onUpdateDays, onSetImgIdx: setImgIdx, setStatus: setAddStatus });
@@ -330,7 +314,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
 
         {/* Main Image */}
         <motion.div
-          className="flex-1 relative flex items-center justify-center pt-[82px] px-2 pb-2 touch-none"
+          className="flex-1 relative flex items-center justify-center p-2 touch-none"
           drag={scale === 1 && !currentIsVideo ? true : false}
           dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
           dragElastic={0.15}
@@ -387,9 +371,6 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
                 >
                   <button onClick={handleLockToggle} className={`p-2 rounded-full transition-colors ${isLocked ? 'bg-indigo-600/80' : 'bg-transparent'}`}>
                     {isLocked ? <Lock className="w-6 h-6 text-white" /> : <Unlock className="w-6 h-6 text-white/50" />}
-                  </button>
-                  <button onClick={toggleFav} className="p-2 rounded-full bg-black/30 transition-transform active:scale-90">
-                    <Heart className={`w-6 h-6 ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/60'}`} />
                   </button>
                   <div className="relative">
                     <button onClick={e => { e.stopPropagation(); setShowMoreMenu(m => !m); }} className="p-2 rounded-full bg-black/30 transition-transform active:scale-90">
@@ -450,17 +431,17 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
           transition={{ duration: 0.2, ease: 'linear' }}
           className="absolute right-2 bottom-32 flex flex-col items-center gap-5 z-20"
         >
-          <button className="flex flex-col items-center" onClick={toggleFav}>
-            <Heart className={`w-7 h-7 mb-0.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
-            <span className="text-[10px] font-bold">Like</span>
+          <button className="flex flex-col items-center" onClick={(e) => { e.stopPropagation(); onFilter?.(); }}>
+            <SlidersHorizontal className="w-7 h-7 mb-0.5 text-sky-400" />
+            <span className="text-[10px] font-bold text-sky-300">Filter</span>
+          </button>
+          <button className="flex flex-col items-center" onClick={(e) => { e.stopPropagation(); setShowTagSheet(true); }}>
+            <Tag className="w-7 h-7 mb-0.5 text-indigo-400" />
+            <span className="text-[10px] font-bold text-indigo-300">Assign Tag</span>
           </button>
           <button className="flex flex-col items-center" onClick={(e) => { e.stopPropagation(); setShowComment(c => !c); }}>
             <MessageCircle className="w-7 h-7 mb-0.5" />
             <span className="text-[10px] font-bold">Note</span>
-          </button>
-          <button className="flex flex-col items-center" onClick={(e) => { e.stopPropagation(); setShowTagSheet(true); }}>
-            <Tag className="w-7 h-7 mb-0.5 text-indigo-400" />
-            <span className="text-[10px] font-bold text-indigo-300">Tags</span>
           </button>
           <button className={`flex flex-col items-center transition-colors ${showNav ? 'text-indigo-400' : ''}`} onClick={(e) => { e.stopPropagation(); setShowNav(n => !n); }}>
             <Move className="w-7 h-7 mb-0.5" />
