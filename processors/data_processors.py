@@ -6,12 +6,6 @@ from urllib.parse import urlparse, unquote
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 
-def get_user_data_file(user_id=None):
-    if user_id is not None:
-        return os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
-    return DATA_FILE
-
-
 def find_best_trades_file():
     """Return most recently modified trades_N.json; fall back to DATA_FILE only if none exist."""
     import glob as _glob
@@ -21,6 +15,12 @@ def find_best_trades_file():
     if user_files:
         return max(user_files, key=os.path.getmtime)
     return DATA_FILE
+
+
+def get_user_data_file(user_id=None):
+    if user_id is not None:
+        return os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
+    return find_best_trades_file()  # never return bare trades.json when a user file exists
 
 STRUCTURED_COLUMNS = [
     'Instrument',
