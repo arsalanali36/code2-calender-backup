@@ -140,7 +140,8 @@ def sync_status():
     if not ADMIN_API_KEY:
         return jsonify({'ok': False, 'error': 'ADMIN_API_KEY not set'}), 500
 
-    local_ts = os.path.getmtime(DATA_FILE) if os.path.exists(DATA_FILE) else 0
+    local_file = _find_best_trades_file()
+    local_ts = os.path.getmtime(local_file) if os.path.exists(local_file) else 0
 
     import urllib.request as _urlreq
     try:
@@ -162,14 +163,15 @@ def sync_status():
 
 
 def _backup_local(prefix):
-    """Backup local DATA_FILE before overwriting. Returns backup path or None."""
-    if not os.path.exists(DATA_FILE):
+    """Backup the active local trades file before overwriting."""
+    active = _find_best_trades_file()
+    if not os.path.exists(active):
         return None
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
+    backup_dir = os.path.join(os.path.dirname(active), 'backups')
     os.makedirs(backup_dir, exist_ok=True)
     backup_path = os.path.join(backup_dir, f'{prefix}_{ts}.json')
-    shutil.copy2(DATA_FILE, backup_path)
+    shutil.copy2(active, backup_path)
     return backup_path
 
 
@@ -194,7 +196,8 @@ def pull_from_live():
         return jsonify({'error': 'Live server returned unexpected response'}), 502
 
     _backup_local('pre_pull')
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+    target = _find_best_trades_file()
+    with open(target, 'w', encoding='utf-8') as f:
         json.dump(raw['data'], f, ensure_ascii=False, indent=2)
 
     trade_count = len(raw['data'].get('trades', []))
@@ -208,18 +211,20 @@ def push_to_live():
         return jsonify({'error': 'Only available in development mode'}), 403
     if not ADMIN_API_KEY:
         return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
-    if not os.path.exists(DATA_FILE):
+
+    source = _find_best_trades_file()
+    if not os.path.exists(source):
         return jsonify({'error': 'Local data file not found'}), 404
 
     import urllib.request
-    with open(DATA_FILE, 'rb') as f:
+    with open(source, 'rb') as f:
         json_bytes = f.read()
 
     # Validate JSON before sending
     try:
         local_data = json.loads(json_bytes)
     except Exception:
-        return jsonify({'error': 'Local trades.json is invalid JSON'}), 400
+        return jsonify({'error': f'Local {os.path.basename(source)} is invalid JSON'}), 400
 
     boundary = 'FormBoundaryKhazana2026'
     body = (
