@@ -335,33 +335,31 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
 
   const mappedTrades: Trade[] = [...tradeMapped, ...dayOnlyEntries, ...closeEntries];
 
-  // Global frequency count: Count unique tags per image across all trades (Desktop Parity)
+  // Global frequency count and data enrichment: 
+  // We need to ensure that the tags we count also exist in t.imageTags[url] 
+  // so that the frontend filter matches the pill count.
   const finalFreq: Record<string, number> = {};
   
   mappedTrades.forEach(t => {
-    // Virtual Tag: has notes
     const tradeHasNote = (t.note || '').trim().length > 0;
+    const baseTradeTags = Array.from(new Set([...t.emotionTags, ...t.mistakeTags, ...t.strategyTags].map(tg => tg.trim()).filter(Boolean)));
     
     t.chartUrls.forEach(url => {
-      const imgTags = new Set<string>();
+      if (!t.imageTags) t.imageTags = {};
+      const imgTagsSet = new Set<string>(t.imageTags[url] || []);
       
-      // 1. Column-based Trade tags (Case-insensitive mapping)
-      [...t.emotionTags, ...t.mistakeTags, ...t.strategyTags].forEach(tg => {
-        if (tg) imgTags.add(tg.trim());
-      });
+      // 1. Inject Trade-level tags into images (Gallery scope logic)
+      baseTradeTags.forEach(tg => imgTagsSet.add(tg));
       
-      // 2. Image-specific tags
-      if (t.imageTags && t.imageTags[url]) {
-        t.imageTags[url].forEach(tg => imgTags.add(tg.trim()));
-      }
-      
-      // 3. Virtual: ! has notes (if image has specific tags or trade has notes)
-      // Check if this specific image has any associated pins/notes in the source data
-      // For simplicity in mobile, we check if there's a trade note OR if there are any specific tags on this image
-      if (tradeHasNote) imgTags.add('📝 has notes');
-      
+      // 2. Inject Virtual: 📝 has notes
+      if (tradeHasNote) imgTagsSet.add('📝 has notes');
+
+      // Update the trade's imageTags so frontend filter finds them
+      const finalImgTags = Array.from(imgTagsSet);
+      t.imageTags[url] = finalImgTags;
+
       // Increment global counts
-      imgTags.forEach(tg => {
+      finalImgTags.forEach(tg => {
         const norm = tg.trim();
         if (!norm) return;
         finalFreq[norm] = (finalFreq[norm] ?? 0) + 1;
