@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search } from 'lucide-react';
+import { MoreVertical, SlidersHorizontal, CalendarDays, X, Trash2, Tag, Check, Grid3X3, Search, Maximize2, LayoutGrid, BookOpen, BarChart2, Calendar as CalIcon, Home } from 'lucide-react';
 import type { Trade } from '../types';
 import type { DayData } from './FullscreenViewerUtils';
 import { PnlCalendarPicker } from './PnlCalendarPicker';
@@ -9,6 +9,7 @@ import { TagSheet } from './TagSheet';
 interface GalleryViewProps {
   trades: Trade[];
   openViewer: (days: DayData[], dIdx: number, iIdx: number) => void;
+  onNavigate?: (view: string) => void;
 }
 
 interface ContextMenu { x: number; y: number; url: string; dayIdx: number; imgIdx: number; }
@@ -45,7 +46,7 @@ function computePnlByDate(trades: Trade[]): Record<string, number> {
   return map;
 }
 
-export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) => {
+export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, onNavigate }) => {
   const [cols, setCols] = useState(3);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -216,9 +217,29 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
                   {activeFilters > 0 && (
                     <button onClick={() => { setSelectedTags([]); setSelectedDate(null); setShowTopMenu(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm text-rose-400 hover:bg-white/10 transition-colors border-t border-white/10">
-                      <X className="w-4 h-4" /> Clear All Filters
+                      <X className="w-4 h-4" /> Clear Filters
                     </button>
                   )}
+                  <button onClick={() => { document.documentElement.requestFullscreen?.().catch(()=>{}); setShowTopMenu(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10">
+                    <Maximize2 className="w-4 h-4 text-emerald-400" /> Full Screen
+                  </button>
+                  <div className="border-t border-white/10 px-4 py-2">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Go to</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {[
+                        { label: 'Feed', icon: <Home className="w-3 h-3" />, view: 'feed' },
+                        { label: 'Cal', icon: <CalIcon className="w-3 h-3" />, view: 'calendar' },
+                        { label: 'Stats', icon: <BarChart2 className="w-3 h-3" />, view: 'dashboard' },
+                        { label: 'Blog', icon: <BookOpen className="w-3 h-3" />, view: 'blog' },
+                      ].map(({ label, icon, view }) => (
+                        <button key={view} onClick={() => { onNavigate?.(view); setShowTopMenu(false); }}
+                          className="flex items-center gap-1 text-[11px] font-semibold text-white/70 bg-white/10 px-2.5 py-1.5 rounded-lg hover:bg-white/20 transition-colors">
+                          {icon} {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
               </>
             )}
@@ -317,42 +338,36 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
         )}
       </AnimatePresence>
 
-      {/* Tag Filter Bottom Sheet */}
+      {/* Tag Filter — floating panel */}
       <AnimatePresence>
         {showFilterSheet && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex flex-col justify-end" onClick={() => setShowFilterSheet(false)}>
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <>
+            <div className="fixed inset-0 z-[150]" onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} />
             <motion.div
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="relative bg-zinc-900 rounded-t-2xl border-t border-white/10 shadow-2xl max-h-[75vh] flex flex-col"
+              initial={{ opacity: 0, scale: 0.95, y: -8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="fixed top-14 left-4 right-4 z-[160] bg-zinc-950 border border-white/15 rounded-2xl shadow-2xl flex flex-col"
+              style={{ maxHeight: 'calc(100vh - 80px)' }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex justify-center pt-3 pb-1 flex-shrink-0"><div className="w-10 h-1 bg-white/20 rounded-full" /></div>
-              <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 flex-shrink-0">
-                <h2 className="text-sm font-bold text-white">Filter by Tag</h2>
-                <div className="flex items-center gap-2">
-                  {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-[11px] text-indigo-400 font-bold">Clear</button>}
-                  <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="p-1.5 rounded-full hover:bg-white/10"><X className="w-4 h-4 text-white/60" /></button>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
+                <div className="flex items-center gap-2 bg-white/8 rounded-xl px-3 py-1.5 border border-white/10 flex-1 mr-2">
+                  <Search className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
+                  <input type="text" placeholder="Search tags…" value={filterSearch} onChange={e => setFilterSearch(e.target.value)}
+                    className="flex-1 bg-transparent text-sm text-white placeholder-white/30 outline-none" autoFocus />
+                  {filterSearch && <button onClick={() => setFilterSearch('')}><X className="w-3 h-3 text-white/30" /></button>}
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-[11px] text-indigo-400 font-bold px-1">Clear</button>}
+                  <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="p-1 rounded-full hover:bg-white/10">
+                    <X className="w-4 h-4 text-white/50" />
+                  </button>
                 </div>
               </div>
-              {/* Search */}
-              <div className="px-4 py-2 flex-shrink-0">
-                <div className="flex items-center gap-2 bg-white/8 rounded-xl px-3 py-2 border border-white/10">
-                  <Search className="w-4 h-4 text-white/40 flex-shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Search tags…"
-                    value={filterSearch}
-                    onChange={e => setFilterSearch(e.target.value)}
-                    className="flex-1 bg-transparent text-sm text-white placeholder-white/30 outline-none"
-                    autoFocus
-                  />
-                  {filterSearch && <button onClick={() => setFilterSearch('')}><X className="w-3.5 h-3.5 text-white/30" /></button>}
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto px-4 pb-2">
-                <div className="flex flex-wrap gap-2 pt-2">
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                <div className="flex flex-wrap gap-2">
                   {allTags.filter(t => t.toLowerCase().includes(filterSearch.toLowerCase())).map(tag => {
                     const on = selectedTags.includes(tag);
                     return (
@@ -362,19 +377,22 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
                       </button>
                     );
                   })}
-                  {allTags.length === 0 && <p className="text-white/30 text-xs py-4 text-center w-full">No tags in your trades yet</p>}
-                  {allTags.length > 0 && allTags.filter(t => t.toLowerCase().includes(filterSearch.toLowerCase())).length === 0 && (
-                    <p className="text-white/30 text-xs py-4 text-center w-full">No tags match "{filterSearch}"</p>
+                  {allTags.length === 0 && <p className="text-white/30 text-xs py-3 text-center w-full">No tags yet</p>}
+                  {allTags.length > 0 && !allTags.some(t => t.toLowerCase().includes(filterSearch.toLowerCase())) && (
+                    <p className="text-white/30 text-xs py-3 text-center w-full">No match for "{filterSearch}"</p>
                   )}
                 </div>
               </div>
-              <div className="px-4 pb-6 pt-2 flex-shrink-0">
-                <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="w-full py-3 rounded-2xl font-bold text-sm bg-indigo-600 text-white">
-                  {selectedTags.length > 0 ? `Apply ${selectedTags.length} filter${selectedTags.length > 1 ? 's' : ''}` : 'Done'}
-                </button>
-              </div>
+              {selectedTags.length > 0 && (
+                <div className="px-4 pb-3 flex-shrink-0">
+                  <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white">
+                    Apply {selectedTags.length} filter{selectedTags.length > 1 ? 's' : ''}
+                  </button>
+                </div>
+              )}
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
 

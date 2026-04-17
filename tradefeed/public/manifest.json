@@ -1,0 +1,13 @@
+{
+  "name": "Trading Journal",
+  "short_name": "TradeJournal",
+  "description": "Mobile trading journal",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "start_url": "/mobile/",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "/mobile/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}

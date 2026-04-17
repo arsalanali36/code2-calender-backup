@@ -193,7 +193,7 @@ export default function App() {
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* Gallery rendered outside motion wrapper — fixed inset-0 needs no transform parent */}
       {currentView === 'gallery' && (
-        <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} />
+        <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} onNavigate={v => setCurrentView(v as any)} />
       )}
 
       {currentView !== 'gallery' && (
@@ -222,7 +222,7 @@ export default function App() {
         onUpdateDays={setFsDays}
       />
 
-      <BottomNav currentView={currentView} onViewChange={setCurrentView} />
+      {currentView !== 'gallery' && <BottomNav currentView={currentView} onViewChange={setCurrentView} />}
 
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
