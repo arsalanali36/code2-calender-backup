@@ -141,105 +141,86 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
     .map((t, i) => {
       const mapped = mapTrade(t, i, emotionSet, mistakeSet);
       
-      // Count initial trade-level tags
-      [...mapped.emotionTags, ...mapped.strategyTags, ...mapped.mistakeTags].forEach(tg => {
-        globalFreq[tg] = (globalFreq[tg] ?? 0) + 1;
+    .map((t, index) => {
+      const instrument = (t['Instrument'] as string) || '';
+      const tradeType  = (t['TradeType'] as string || '').toLowerCase();
+      const rawPnl = t['Net P/L'];
+      const rawGross = t['Gross P/L'];
+      const pnl = typeof rawPnl === 'number' ? rawPnl : (typeof rawGross === 'number' ? rawGross : 0);
+      const date = (t['trade_date'] as string) || (t['date'] as string) || '';
+      const note = (t['Note'] as string) || '';
+      const qty = (t['Qty'] as number) || 0;
+      
+      const dynamicTags = new Set<string>();
+      Object.entries(t).forEach(([key, val]) => {
+        if (['images', 'chartUrls', 'imageTags', 'marqueeBoxes', 'audios', 'videos', 'id', 'Note', 'tagPins'].includes(key)) return;
+        if (Array.isArray(val)) val.forEach(v => { if (typeof v === 'string' && v.trim()) dynamicTags.add(v.trim()); });
+        else if (key.toLowerCase() === 'tags' && typeof val === 'string') val.split(',').forEach(v => { if (v.trim()) dynamicTags.add(v.trim()); });
       });
+      const allTags = Array.from(dynamicTags);
 
-      const dateKey = mapped.date;
+      const dateKey = date;
       const day = dayData[dateKey] || {};
+      const imageTagsMap = ((day as any).imageTags as Record<string, string[]>) || {};
+      const marqueeBoxesMap = ((day as any).marqueeBoxes as Record<string, any[]>) || {};
+      const tagPinsMap = ((day as any).tagPins as Record<string, any[]>) || {};
+      const internalImageTagsMap = (t['imageTags'] as Record<string, string[]>) || {};
+      const internalTagPinsMap = (t['tagPins'] as Record<string, any[]>) || {};
 
-      const imageTagsMap = (day.imageTags as Record<string, string[]>) || {};
-      const marqueeBoxes = (day.marqueeBoxes as Record<string, { tags: string[] }[]>) || {};
-      const internalImageTags = (t.imageTags as Record<string, string[]>) || {};
-      
-      const extraTagsSet = new Set<string>();
+      const chartUrls = (t['images'] as string[] || []).map(resolveUrl);
       const resolvedImageTags: Record<string, string[]> = {};
-      
-      // Auto-tag instrument name as a base tag
-      const inst = (t.Instrument || t.instrument || '').toUpperCase();
-      if (inst.includes('BANKNIFTY') || inst.includes('BNF')) extraTagsSet.add('BNF');
-      else if (inst.includes('NIFTY')) extraTagsSet.add('NIFTY');
+      const allTagsForThisTrade = new Set<string>();
 
-      mapped.chartUrls.forEach(url => {
+      chartUrls.forEach(url => {
         const fname = getFilename(url);
         if (!fname) return;
 
         const imgTagsSet = new Set<string>();
 
-        // 1. Image-level tags from day metadata
-        for (const [key, tags] of Object.entries(imageTagsMap)) {
-          if (getFilename(key) === fname) tags.forEach(tg => { 
-            extraTagsSet.add(tg); 
-            imgTagsSet.add(tg);
-          });
-        }
-        // 2. Image-level tags stored INTERNAL to the trade
-        for (const [key, tags] of Object.entries(internalImageTags)) {
-          if (getFilename(key) === fname) tags.forEach(tg => { 
-            extraTagsSet.add(tg); 
-            imgTagsSet.add(tg);
-          });
-        }
-        // 3. Marquee tags
-        for (const [key, boxes] of Object.entries(marqueeBoxes)) {
-          if (getFilename(key) === fname) boxes.forEach(box => box.tags?.forEach(tg => { 
-            extraTagsSet.add(tg); 
-            imgTagsSet.add(tg);
-          }));
-        }
+        // 1. Day-level imageTags
+        for (const [k, tgs] of Object.entries(imageTagsMap)) if (getFilename(k) === fname) tgs.forEach(t => imgTagsSet.add(t));
+        // 2. Trade-level imageTags (internal)
+        for (const [k, tgs] of Object.entries(internalImageTagsMap)) if (getFilename(k) === fname) tgs.forEach(t => imgTagsSet.add(t));
+        // 3. MarqueeBoxes
+        for (const [k, bxs] of Object.entries(marqueeBoxesMap)) if (getFilename(k) === fname) bxs.forEach(b => b.tags?.forEach(t => imgTagsSet.add(t)));
+        // 4. Case: Pins with notes (📝 has notes)
+        const checkPins = (pts: any[]) => pts.some(p => p.note && p.note.trim().length > 0);
+        for (const [k, pts] of Object.entries(tagPinsMap)) if (getFilename(k) === fname && checkPins(pts)) imgTagsSet.add('📝 has notes');
+        for (const [k, pts] of Object.entries(internalTagPinsMap)) if (getFilename(k) === fname && checkPins(pts)) imgTagsSet.add('📝 has notes');
 
         if (imgTagsSet.size > 0) {
-          resolvedImageTags[url] = Array.from(imgTagsSet);
+          const arr = Array.from(imgTagsSet);
+          resolvedImageTags[url] = arr;
+          arr.forEach(t => allTagsForThisTrade.add(t));
         }
       });
 
-      const emotionExtra  = Array.from(extraTagsSet).filter(tg => emotionSet.has(tg) && !mapped.emotionTags.includes(tg));
-      const mistakeExtra  = Array.from(extraTagsSet).filter(tg => mistakeSet.has(tg) && !mapped.mistakeTags.includes(tg));
-      const strategyExtra = Array.from(extraTagsSet).filter(tg => !emotionSet.has(tg) && !mistakeSet.has(tg) && !mapped.strategyTags.includes(tg));
-
-      const finalMapped: Trade = {
-        ...mapped,
-        emotionTags:  [...mapped.emotionTags, ...emotionExtra],
-        mistakeTags:  [...mapped.mistakeTags, ...mistakeExtra],
-        strategyTags: [...mapped.strategyTags, ...strategyExtra],
-        imageTags: resolvedImageTags
+      const tradeMapped: Trade = {
+        id: (t['id'] as string) || `trade-${date}-${index}`,
+        instrument,
+        type: tradeType === 'buy' ? 'Long' : 'Short',
+        pnl,
+        currency: '₹',
+        date,
+        session: 'Morning',
+        chartUrls,
+        audios: resolveAudios((t['audios'] as Record<string, string>) || {}),
+        videos: resolveVideos((t['videos'] as Record<string, string>) || {}),
+        emotionTags:  allTags.filter(t => emotionSet.has(t) || (allTagsForThisTrade.has(t) && emotionSet.has(t))),
+        mistakeTags:  allTags.filter(t => mistakeSet.has(t) || (allTagsForThisTrade.has(t) && mistakeSet.has(t))),
+        strategyTags: allTags.filter(t => !emotionSet.has(t) && !mistakeSet.has(t)),
+        imageTags: resolvedImageTags,
+        note,
+        stats: { rMultiple: 0, riskReward: '', positionSize: qty },
       };
-
-      // Count ALL tags globally for the filter sheet - COUNT PER IMAGE (Desktop Parity)
-      const allTradeTags = [...finalMapped.emotionTags, ...finalMapped.mistakeTags, ...finalMapped.strategyTags];
       
-      finalMapped.chartUrls.forEach(url => {
-        // Collect tags for this specific image
-        const imgTags = new Set(allTradeTags);
-        (finalMapped.imageTags[url] || []).forEach(tg => imgTags.add(tg));
-        
-        imgTags.forEach(tg => {
-          if (!tg) return;
-          const norm = tg.trim();
-          if (norm) globalFreq[norm] = (globalFreq[norm] ?? 0) + 1;
-        });
-      });
+      const uInst = instrument.toUpperCase();
+      if ((uInst.includes('BANKNIFTY') || uInst.includes('BNF')) && !tradeMapped.strategyTags.includes('BNF')) tradeMapped.strategyTags.push('BNF');
+      else if (uInst.includes('NIFTY') && !tradeMapped.strategyTags.includes('NIFTY')) tradeMapped.strategyTags.push('NIFTY');
 
-      const dayImgs = (day.images as string[]) || [];
-      const extraUrls = dayImgs
-        .map(resolveUrl)
-        .filter(url => !finalMapped.chartUrls.includes(url));
-
-      if (extraUrls.length > 0) {
-        const dayAudios  = resolveAudios((day.audios  as Record<string, string>) || {});
-        const dayVideos  = resolveVideos((day.videos  as Record<string, string>) || {});
-        return {
-          ...finalMapped,
-          chartUrls: [...finalMapped.chartUrls, ...extraUrls],
-          audios: { ...finalMapped.audios, ...dayAudios },
-          videos: { ...finalMapped.videos, ...dayVideos },
-        };
-      }
-      return finalMapped;
+      return tradeMapped;
     });
 
-  // Handle entries from dayData that have no trade
   const tradeDates = new Set(tradeMapped.map(t => t.date));
   const dayOnlyEntries: Trade[] = Object.entries(dayData)
     .filter(([date, day]) => {
@@ -255,24 +236,24 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
       const allDayUrls = Array.from(new Set([...charts, ...news, ...closeG]));
       
       const imageTagsMap = ((day as any).imageTags as Record<string, string[]>) || {};
-      const marqueeBoxes = ((day as any).marqueeBoxes as Record<string, any[]>) || {};
+      const marqueeBoxesMap = ((day as any).marqueeBoxes as Record<string, any[]>) || {};
+      const tagPinsMap = ((day as any).tagPins as Record<string, any[]>) || {};
       const resImgTags: Record<string, string[]> = {};
       const allDayTags = new Set<string>();
 
       allDayUrls.forEach(url => {
-        const f = getFilename(url);
+        const fname = getFilename(url);
         const s = new Set<string>();
-        // Check imageTags
-        for (const [k, tgs] of Object.entries(imageTagsMap)) {
-          if (getFilename(k) === f) tgs.forEach(tg => { s.add(tg); allDayTags.add(tg); });
+        for (const [k, tgs] of Object.entries(imageTagsMap)) if (getFilename(k) === fname) tgs.forEach(tg => { s.add(tg); allDayTags.add(tg); });
+        for (const [k, bxs] of Object.entries(marqueeBoxesMap)) if (getFilename(k) === fname) bxs.forEach(b => b.tags?.forEach(tg => { s.add(tg); allDayTags.add(tg); }));
+        
+        for (const [k, pts] of Object.entries(tagPinsMap)) {
+          if (getFilename(k) === fname && pts.some((p: any) => p.note && p.note.trim().length > 0)) {
+            s.add('📝 has notes'); allDayTags.add('📝 has notes');
+          }
         }
-        // Check marqueeBoxes
-        for (const [k, bxs] of Object.entries(marqueeBoxes)) {
-          if (getFilename(k) === f) bxs.forEach(b => b.tags?.forEach(tg => { s.add(tg); allDayTags.add(tg); }));
-        }
-        // Special: Auto-tag News
-        if (news.includes(url)) { s.add('news'); allDayTags.add('news'); }
 
+        if (news.includes(url)) { s.add('news'); allDayTags.add('news'); }
         if (s.size > 0) resImgTags[url] = Array.from(s);
       });
 
@@ -302,13 +283,13 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
       const urls = ((day as any).closeImages as string[]).map(resolveUrl);
       const resImgTags: Record<string, string[]> = {};
       const imageTagsMap = ((day as any).imageTags as Record<string, string[]>) || {};
+      const tagPinsMap = ((day as any).tagPins as Record<string, any[]>) || {};
       
       urls.forEach(url => {
-        const f = getFilename(url);
+        const fname = getFilename(url);
         const s = new Set<string>();
-        for (const [k, tgs] of Object.entries(imageTagsMap)) {
-          if (getFilename(k) === f) tgs.forEach(tg => { s.add(tg); });
-        }
+        for (const [k, tgs] of Object.entries(imageTagsMap)) if (getFilename(k) === fname) tgs.forEach(tg => s.add(tg));
+        for (const [k, pts] of Object.entries(tagPinsMap)) if (getFilename(k) === fname && pts.some((p: any) => p.note && p.note.trim().length > 0)) s.add('📝 has notes');
         if (s.size > 0) resImgTags[url] = Array.from(s);
       });
 
@@ -335,34 +316,14 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
 
   const mappedTrades: Trade[] = [...tradeMapped, ...dayOnlyEntries, ...closeEntries];
 
-  // Global frequency count and data enrichment: 
-  // We need to ensure that the tags we count also exist in t.imageTags[url] 
-  // so that the frontend filter matches the pill count.
   const finalFreq: Record<string, number> = {};
   
   mappedTrades.forEach(t => {
-    const tradeHasNote = (t.note || '').trim().length > 0;
-    const baseTradeTags = Array.from(new Set([...t.emotionTags, ...t.mistakeTags, ...t.strategyTags].map(tg => tg.trim()).filter(Boolean)));
-    
     t.chartUrls.forEach(url => {
-      if (!t.imageTags) t.imageTags = {};
-      const imgTagsSet = new Set<string>(t.imageTags[url] || []);
-      
-      // 1. Inject Trade-level tags into images (Gallery scope logic)
-      baseTradeTags.forEach(tg => imgTagsSet.add(tg));
-      
-      // 2. Inject Virtual: 📝 has notes
-      if (tradeHasNote) imgTagsSet.add('📝 has notes');
-
-      // Update the trade's imageTags so frontend filter finds them
-      const finalImgTags = Array.from(imgTagsSet);
-      t.imageTags[url] = finalImgTags;
-
-      // Increment global counts
-      finalImgTags.forEach(tg => {
+      const tagsOnThisImg = t.imageTags?.[url] || [];
+      tagsOnThisImg.forEach(tg => {
         const norm = tg.trim();
-        if (!norm) return;
-        finalFreq[norm] = (finalFreq[norm] ?? 0) + 1;
+        if (norm) finalFreq[norm] = (finalFreq[norm] ?? 0) + 1;
       });
     });
   });
