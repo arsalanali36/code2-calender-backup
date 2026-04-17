@@ -11,6 +11,8 @@ interface GalleryViewProps {
   onNavigate?: (view: string) => void;
   filterOpen?: boolean;
   onFilterOpened?: () => void;
+  tagGroups?: Record<string, string[]>;
+  tagFrequency?: Record<string, number>;
 }
 
 function buildGlobalList(trades: Trade[]): DayData[] {
@@ -33,6 +35,7 @@ function buildGlobalList(trades: Trade[]): DayData[] {
       videos: t.videos,
       instrument: t.instrument,
       tags: [...t.emotionTags, ...t.strategyTags, ...t.mistakeTags],
+      imageTags: t.imageTags,
       note: t.note,
     });
   });
@@ -45,7 +48,7 @@ function computePnlByDate(trades: Trade[]): Record<string, number> {
   return map;
 }
 
-export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, onNavigate, filterOpen, onFilterOpened }) => {
+export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, onNavigate, filterOpen, onFilterOpened, tagGroups = {}, tagFrequency = {} }) => {
   const [cols, setCols] = useState(3);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -57,7 +60,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
   const [filterSearch, setFilterSearch] = useState('');
   const [galleryDays, setGalleryDays] = useState<DayData[]>(() => buildGlobalList(trades));
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [apiTags, setApiTags] = useState<string[]>([]);
 
   const galleryRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -77,27 +79,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
   }, []);
 
   useEffect(() => {
-    const BASE = (import.meta as any).env?.VITE_API_URL ?? '';
-    fetch(`${BASE}/api/trades`, { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        const groups: Record<string, string[]> = data.tagGroups || {};
-        setApiTags(Object.values(groups).flat());
-      }).catch(() => {});
-  }, []);
-
-  const tagFrequency = useMemo(() => {
-    const freq: Record<string, number> = {};
-    trades.forEach(t => [...t.emotionTags, ...t.strategyTags, ...t.mistakeTags].forEach(tag => { freq[tag] = (freq[tag] ?? 0) + 1; }));
-    return freq;
-  }, [trades]);
-
-  useEffect(() => {
     if (filterOpen) { setShowFilterSheet(true); onFilterOpened?.(); }
   }, [filterOpen]);
 
-  // Pinch-to-zoom: switch touch-action to 'none' on 2-finger start, restore on end
-  // This avoids passive:false (which blocks native scroll)
+  // Pinch-to-zoom logic
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -122,7 +107,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         isPinching.current = false;
         el.style.touchAction = 'pan-y';
       }
-      // Left-edge swipe → back to web app
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
       if (touchStartX.current < 40 && dx > 80 && dy < 60) window.location.href = '/';
@@ -137,23 +121,43 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
     };
   }, []);
 
-  const allTags = useMemo(() => {
-    const tradeTags = trades.flatMap(t => [...t.emotionTags, ...t.strategyTags, ...t.mistakeTags]);
-    return Array.from(new Set([...tradeTags, ...apiTags]))
-      .sort((a, b) => (tagFrequency[b] ?? 0) - (tagFrequency[a] ?? 0));
-  }, [trades, apiTags, tagFrequency]);
-  const frequentTags = allTags.filter(t => (tagFrequency[t] ?? 0) >= 2).slice(0, 10);
+  const allTagNames = useMemo(() => {
+    return Object.keys(tagFrequency).sort((a, b) => (tagFrequency[b] || 0) - (tagFrequency[a] || 0));
+  }, [tagFrequency]);
+
+  const groupedTagSet = useMemo(() => {
+    const s = new Set<string>();
+    Object.values(tagGroups).forEach(tags => tags.forEach(t => s.add(t)));
+    return s;
+  }, [tagGroups]);
+
+  const miscTags = useMemo(() => {
+    return allTagNames.filter(t => !groupedTagSet.has(t));
+  }, [allTagNames, groupedTagSet]);
+
+  const frequentTags = allTagNames.filter(t => (tagFrequency[t] || 0) > 5).slice(0, 15);
 
   const pnlByDate = computePnlByDate(trades);
 
-  const filteredDays = galleryDays.filter(d => {
-    if (selectedDate && d.date !== selectedDate) return false;
-    if (selectedTags.length > 0) {
-      const dayTags = d.tags || [];
-      if (!selectedTags.some(t => dayTags.includes(t))) return false;
-    }
-    return true;
-  });
+  const filteredDays = useMemo(() => {
+    return galleryDays.filter(d => {
+      if (selectedDate && d.date !== selectedDate) return false;
+      if (selectedTags.length > 0) {
+        const lowerSelected = selectedTags.map(t => t.toLowerCase());
+        
+        // Match if ANY of selectedTags is in trade-tags OR image-tags
+        const matchesTrade = d.tags?.some(tg => lowerSelected.includes(tg.toLowerCase()));
+        
+        const matchesAnyImg = d.images.some(url => {
+          const imgTags = d.imageTags?.[url] || [];
+          return imgTags.some(tg => lowerSelected.includes(tg.toLowerCase()));
+        });
+        
+        if (!matchesTrade && !matchesAnyImg) return false;
+      }
+      return true;
+    });
+  }, [galleryDays, selectedDate, selectedTags]);
 
   const toggleSelectUrl = (url: string) => {
     setSelectedUrls(prev => { const n = new Set(prev); n.has(url) ? n.delete(url) : n.add(url); return n; });
@@ -197,18 +201,48 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         items.push({ type: 'header', date: day.date, dayPnl: dp });
         lastDate = day.date;
       }
-      day.images.forEach((url, iIdx) => items.push({ type: 'img', url, dIdx, iIdx }));
+
+      const allowedImages = (selectedTags.length > 0)
+        ? day.images.filter(url => {
+            const lowerSelected = selectedTags.map(st => st.toLowerCase());
+            const currentImgTags = (day.imageTags?.[url] || []).map(tg => tg.toLowerCase());
+            
+            const matchesThisImg = lowerSelected.some(st => currentImgTags.includes(st));
+            
+            // If THIS image explicitly has the tag, show it.
+            if (matchesThisImg) return true;
+
+            // Strict rule: If ANY other image in this trade matches the tag specifically, 
+            // then we hide this non-matching image.
+            const tradeHasSpecificMatches = day.images.some(img => {
+              const tags = (day.imageTags?.[img] || []).map(tg => tg.toLowerCase());
+              return lowerSelected.some(st => tags.includes(st));
+            });
+            
+            if (tradeHasSpecificMatches) return false;
+
+            // Fallback: If no image specifically has the tag, but the trade does (e.g. instrument tag), show all.
+            const matchesTrade = day.tags?.some(tg => lowerSelected.includes(tg.toLowerCase()));
+            return matchesTrade;
+          })
+        : day.images;
+
+      allowedImages.forEach((url) => {
+        const originalIdx = day.images.indexOf(url);
+        items.push({ type: 'img', url, dIdx, iIdx: originalIdx });
+      });
     });
     return items;
-  }, [filteredDays]);
+  }, [filteredDays, selectedTags]);
+
+  const totalMatchCount = gridItems.filter(i => i.type === 'img').length;
 
   return (
     <div className="fixed inset-0 z-[5] bg-black flex flex-col" ref={galleryRef}>
-      {/* Top bar — always visible */}
+      {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 pt-3 pb-2 pointer-events-none"
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}>
 
-        {/* Active filter badges */}
         <div className="flex items-center gap-1 pointer-events-auto flex-1 min-w-0">
           {selectedDate && (
             <button onClick={() => setSelectedDate(null)} className="flex items-center gap-1 text-[10px] font-bold bg-indigo-600/80 border border-indigo-400/30 text-white px-2 py-0.5 rounded-full">
@@ -222,27 +256,30 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
           ))}
         </div>
 
-        {/* Trade Pill — total P&L of visible trades */}
         {(() => {
           const total = filteredDays.reduce((s, d) => s + (d.pnl ?? 0), 0);
           const n = filteredDays.length;
           if (!n) return null;
           return (
-            <div className="flex items-center gap-1.5 pointer-events-auto mx-2 flex-shrink-0">
-              <span className={`text-[11px] font-black px-2 py-1 rounded-lg backdrop-blur-md border shadow-md ${total >= 0 ? 'bg-emerald-500/80 border-emerald-400/30 text-white' : 'bg-rose-500/80 border-rose-400/30 text-white'}`}>
-                {total >= 0 ? '+' : ''}₹{Math.abs(total).toLocaleString('en-IN')}
-              </span>
-              <span className="text-[10px] font-bold text-white/50">{n}T</span>
+            <div className="flex flex-col items-end gap-1 pointer-events-auto mx-2 flex-shrink-0">
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[11px] font-black px-2 py-1 rounded-lg backdrop-blur-md border shadow-md ${total >= 0 ? 'bg-emerald-500/80 border-emerald-400/30 text-white' : 'bg-rose-500/80 border-rose-400/30 text-white'}`}>
+                  {total >= 0 ? '+' : ''}₹{Math.abs(total).toLocaleString('en-IN')}
+                </span>
+                <span className="text-[10px] font-bold text-white/50">{n}T</span>
+              </div>
+              {selectedTags.length > 0 && (
+                <div className="text-[9px] font-black text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 uppercase tracking-tighter">
+                  {totalMatchCount} matches
+                </div>
+              )}
             </div>
           );
         })()}
 
-        {/* 3-dot menu */}
         <div className="relative pointer-events-auto ml-auto">
-          <button
-            onClick={() => setShowTopMenu(m => !m)}
-            className="relative p-2 rounded-full bg-black/50 backdrop-blur-md border border-white/15 active:scale-90 transition-transform"
-          >
+          <button onClick={() => setShowTopMenu(m => !m)}
+            className="relative p-2 rounded-full bg-black/50 backdrop-blur-md border border-white/15 active:scale-90 transition-transform">
             <MoreVertical className="w-5 h-5 text-white" />
             {activeFilters > 0 && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-indigo-400 border border-black" />}
           </button>
@@ -250,25 +287,17 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
             {showTopMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowTopMenu(false)} />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: -4 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -4 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute right-0 top-full mt-1 z-50 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-48"
-                  onClick={e => e.stopPropagation()}
-                >
+                <motion.div initial={{ opacity: 0, scale: 0.9, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.12 }}
+                  className="absolute right-0 top-full mt-1 z-50 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-48" onClick={e => e.stopPropagation()}>
                   <button onClick={() => { setShowFilterSheet(true); setShowTopMenu(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors">
                     <SlidersHorizontal className="w-4 h-4 text-indigo-400" />
-                    Filter by Tag
-                    {selectedTags.length > 0 && <span className="ml-auto text-[10px] font-bold text-indigo-400">{selectedTags.length}</span>}
+                    Filter by Tag {selectedTags.length > 0 && <span className="ml-auto text-[10px] font-bold text-indigo-400">{selectedTags.length}</span>}
                   </button>
                   <button onClick={() => { setShowDatePicker(true); setShowTopMenu(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10">
                     <CalendarDays className="w-4 h-4 text-sky-400" />
-                    Pick Date
-                    {selectedDate && <span className="ml-auto text-[10px] font-bold text-sky-400">{selectedDate.slice(5)}</span>}
+                    Pick Date {selectedDate && <span className="ml-auto text-[10px] font-bold text-sky-400">{selectedDate.slice(5)}</span>}
                   </button>
                   {activeFilters > 0 && (
                     <button onClick={() => { setSelectedTags([]); setSelectedDate(null); setShowTopMenu(false); }}
@@ -276,15 +305,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
                       <X className="w-4 h-4" /> Clear Filters
                     </button>
                   )}
-                  <button onClick={() => {
-                      if (isFullscreen) document.exitFullscreen?.().catch(()=>{});
-                      else document.documentElement.requestFullscreen?.().catch(()=>{});
-                      setShowTopMenu(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10">
-                    {isFullscreen ? <Minimize2 className="w-4 h-4 text-emerald-400" /> : <Maximize2 className="w-4 h-4 text-emerald-400" />}
-                    {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
-                  </button>
                   <div className="border-t border-white/10 px-4 py-2">
                     <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Go to</p>
                     <div className="flex gap-2 flex-wrap">
@@ -308,26 +328,13 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         </div>
       </div>
 
-      {/* Multi-select bar */}
-      {isSelecting && (
-        <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-zinc-900/95 backdrop-blur-sm border-b border-white/10">
-          <button onClick={cancelSelection} className="text-sm text-zinc-400 font-medium">Cancel</button>
-          <span className="text-sm font-bold text-white">{selectedUrls.size} selected</span>
-          <button onClick={deleteSelected} disabled={!selectedUrls.size} className="text-sm font-bold text-rose-400 disabled:opacity-30 flex items-center gap-1">
-            <Trash2 className="w-4 h-4" /> Delete
-          </button>
-        </div>
-      )}
-
-      {/* Gallery grid */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pt-12" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      {/* Grid */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pt-14" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         {filteredDays.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3 pb-24">
             <Grid3X3 className="w-12 h-12 opacity-20" />
             <p className="text-sm">No images match the filter</p>
-            {activeFilters > 0 && (
-              <button onClick={() => { setSelectedTags([]); setSelectedDate(null); }} className="text-xs text-indigo-400 underline">Clear filters</button>
-            )}
+            {activeFilters > 0 && <button onClick={() => { setSelectedTags([]); setSelectedDate(null); }} className="text-xs text-indigo-400 underline">Clear filters</button>}
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '2px' }}>
@@ -335,12 +342,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
               if (item.type === 'header') {
                 const pos = item.dayPnl >= 0;
                 return (
-                  <div key={`h-${item.date}`} style={{ gridColumn: '1 / -1' }}
-                    className="flex items-center justify-between px-3 py-2 bg-zinc-950/90 border-b border-white/5">
+                  <div key={`h-${item.date}`} style={{ gridColumn: '1 / -1' }} className="flex items-center justify-between px-3 py-2 bg-zinc-950/90 border-b border-white/5 sticky top-0 z-20">
                     <span className="text-xs font-bold text-white/80">{fmtDate(item.date)}</span>
-                    <span className={`text-xs font-black ${pos ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {pos ? '+' : ''}₹{Math.abs(item.dayPnl).toLocaleString('en-IN')}
-                    </span>
+                    <span className={`text-xs font-black ${pos ? 'text-emerald-400' : 'text-rose-400'}`}>{pos ? '+' : ''}₹{Math.abs(item.dayPnl).toLocaleString('en-IN')}</span>
                   </div>
                 );
               }
@@ -348,25 +352,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
               const isVid = /\.(webm|mp4|mov|avi)(\?|$)/i.test(url);
               const isSel = selectedUrls.has(url);
               return (
-                <div
-                  key={`${dIdx}-${iIdx}-${idx}`}
-                  className={`aspect-square bg-zinc-900 overflow-hidden relative cursor-pointer ${isSel ? 'ring-2 ring-indigo-500 ring-inset' : ''}`}
-                  onClick={() => handleImageClick(dIdx, iIdx)}
-                >
-                  {isVid ? (
-                    <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
-                      <span className="text-violet-400 text-2xl">▶</span>
-                    </div>
-                  ) : (
-                    <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
-                  )}
-                  {isSel && (
-                    <div className="absolute inset-0 bg-indigo-500/30 flex items-center justify-center">
-                      <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center shadow">
-                        <Check className="w-3.5 h-3.5 text-white" />
-                      </div>
-                    </div>
-                  )}
+                <div key={`${dIdx}-${iIdx}-${idx}`} className={`aspect-square bg-zinc-900 overflow-hidden relative cursor-pointer ${isSel ? 'ring-2 ring-indigo-500 ring-inset' : ''}`} onClick={() => handleImageClick(dIdx, iIdx)}>
+                  {isVid ? <div className="w-full h-full bg-zinc-800 flex items-center justify-center"><span className="text-violet-400 text-2xl">▶</span></div> : <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" />}
+                  {isSel && <div className="absolute inset-0 bg-indigo-500/30 flex items-center justify-center"><div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center shadow"><Check className="w-3.5 h-3.5 text-white" /></div></div>}
                 </div>
               );
             })}
@@ -375,77 +363,110 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         <div className="h-24" />
       </div>
 
-      {/* Tag Filter — floating panel */}
+      {/* Categorized Tag Filter Sheet */}
       <AnimatePresence>
         {showFilterSheet && (
           <>
-            <div className="fixed inset-0 z-[150]" onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -8 }}
-              transition={{ duration: 0.15 }}
-              className="fixed top-14 left-4 right-4 z-[160] bg-zinc-950 border border-white/15 rounded-2xl shadow-2xl flex flex-col"
-              style={{ maxHeight: 'calc(100vh - 80px)' }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
-                <div className="flex items-center gap-2 bg-white/8 rounded-xl px-3 py-1.5 border border-white/10 flex-1 mr-2">
-                  <Search className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
-                  <input type="text" placeholder="Search tags…" value={filterSearch} onChange={e => setFilterSearch(e.target.value)}
-                    className="flex-1 bg-transparent text-sm text-white placeholder-white/30 outline-none" autoFocus />
-                  {filterSearch && <button onClick={() => setFilterSearch('')}><X className="w-3 h-3 text-white/30" /></button>}
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-[11px] text-indigo-400 font-bold px-1">Clear</button>}
-                  <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="p-1 rounded-full hover:bg-white/10">
-                    <X className="w-4 h-4 text-white/50" />
-                  </button>
+            <div className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm" onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} />
+            <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 z-[160] bg-zinc-900 border-t border-white/15 rounded-t-[32px] flex flex-col overflow-hidden" 
+              style={{ height: '85vh' }} onClick={e => e.stopPropagation()}>
+              
+              <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mt-3 mb-1" />
+              
+              <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
+                <h2 className="text-xl font-black text-white px-1">Filter Tags</h2>
+                <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }} className="p-2 bg-white/5 rounded-full text-white/40"><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="px-6 py-4">
+                <div className="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-3 border border-white/10 group focus-within:border-indigo-500/50 transition-all">
+                  <Search className="w-4 h-4 text-white/30 group-focus-within:text-indigo-400" />
+                  <input type="text" placeholder="Search strategy or emotions…" value={filterSearch} onChange={e => setFilterSearch(e.target.value)}
+                    className="flex-1 bg-transparent text-white placeholder-white/20 outline-none font-medium" />
+                  {filterSearch && <button onClick={() => setFilterSearch('')}><X className="w-4 h-4 text-white/20" /></button>}
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 py-3">
+
+              <div className="flex-1 overflow-y-auto px-6 pb-24">
                 {!filterSearch && frequentTags.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Frequent</p>
+                  <div className="mb-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-3 ml-1">★ Frequent</p>
                     <div className="flex flex-wrap gap-2">
                       {frequentTags.map(tag => {
                         const on = selectedTags.includes(tag);
                         return (
                           <button key={tag} onClick={() => setSelectedTags(prev => on ? prev.filter(t => t !== tag) : [...prev, tag])}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all flex items-center gap-1 ${on ? 'bg-indigo-600 border-transparent text-white' : 'bg-white/12 border-white/20 text-white/80'}`}>
-                            {on && <Check className="w-3 h-3" />}{tag}
-                            <span className="text-[9px] opacity-50">{tagFrequency[tag]}</span>
+                            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${on ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-white/80'}`}>
+                            {tag} <span className="text-[9px] opacity-40 font-black">{tagFrequency[tag]}</span>
                           </button>
                         );
                       })}
                     </div>
-                    <div className="border-t border-white/8 mt-3 mb-3" />
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">All Tags</p>
                   </div>
                 )}
-                <div className="flex flex-wrap gap-2">
-                  {allTags.filter(t => t.toLowerCase().includes(filterSearch.toLowerCase())).map(tag => {
-                    const on = selectedTags.includes(tag);
-                    const freq = tagFrequency[tag];
-                    return (
-                      <button key={tag} onClick={() => setSelectedTags(prev => on ? prev.filter(t => t !== tag) : [...prev, tag])}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${on ? 'bg-indigo-600 border-transparent text-white' : 'bg-white/8 border-white/15 text-white/70'}`}>
-                        {on && <Check className="w-3 h-3" />}{tag}
-                        {freq > 1 && !filterSearch && <span className="text-[9px] opacity-40">{freq}</span>}
-                      </button>
-                    );
-                  })}
-                  {allTags.length === 0 && <p className="text-white/30 text-xs py-3 text-center w-full">No tags yet</p>}
-                  {allTags.length > 0 && !allTags.some(t => t.toLowerCase().includes(filterSearch.toLowerCase())) && (
-                    <p className="text-white/30 text-xs py-3 text-center w-full">No match for "{filterSearch}"</p>
-                  )}
-                </div>
+
+                {/* Categorized Groups */}
+                {!filterSearch && Object.entries(tagGroups).map(([group, tags]) => {
+                  const filtered = tags.filter(t => (tagFrequency[t] ?? 0) > 0);
+                  if (!filtered.length && group !== 'BAT') return null; // Only show non-empty groups except core ones
+                  return (
+                    <div key={group} className="mb-6">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-3 ml-1">{group}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {tags.map(tag => {
+                          const on = selectedTags.includes(tag);
+                          const count = tagFrequency[tag] || 0;
+                          return (
+                            <button key={tag} onClick={() => setSelectedTags(prev => on ? prev.filter(t => t !== tag) : [...prev, tag])}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${on ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-white/60'}`}>
+                              {tag} {count > 0 && <span className="text-[9px] opacity-40 font-black">{count}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Everything Else (General) */}
+                {!filterSearch && miscTags.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-3 ml-1">General / Others</p>
+                    <div className="flex flex-wrap gap-2">
+                      {miscTags.map(tag => {
+                        const on = selectedTags.includes(tag);
+                        return (
+                          <button key={tag} onClick={() => setSelectedTags(prev => on ? prev.filter(t => t !== tag) : [...prev, tag])}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${on ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-white/50'}`}>
+                            {tag} <span className="text-[9px] opacity-30 font-black">{tagFrequency[tag]}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {filterSearch && (
+                  <div className="flex flex-wrap gap-2">
+                    {allTagNames.filter(t => t.toLowerCase().includes(filterSearch.toLowerCase())).map(tag => {
+                      const on = selectedTags.includes(tag);
+                      return (
+                        <button key={tag} onClick={() => setSelectedTags(prev => on ? prev.filter(t => t !== tag) : [...prev, tag])}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${on ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-white/60'}`}>
+                          {tag} <span className="text-[9px] opacity-40 font-black">{tagFrequency[tag]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
+
               {selectedTags.length > 0 && (
-                <div className="px-4 pb-3 flex-shrink-0">
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent">
                   <button onClick={() => { setShowFilterSheet(false); setFilterSearch(''); }}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white">
-                    Apply {selectedTags.length} filter{selectedTags.length > 1 ? 's' : ''}
+                    className="w-full py-4 rounded-2xl font-black text-base bg-indigo-600 text-white shadow-2xl shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                    Show {totalMatchCount} Results
                   </button>
                 </div>
               )}
@@ -454,16 +475,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
         )}
       </AnimatePresence>
 
-      {/* P&L Date Picker */}
       {showDatePicker && (
-        <PnlCalendarPicker
-          pnlByDate={pnlByDate}
-          selectedDate={selectedDate}
-          onSelect={(d) => { setSelectedDate(d); setShowDatePicker(false); }}
-          onClose={() => setShowDatePicker(false)}
-        />
+        <PnlCalendarPicker pnlByDate={pnlByDate} selectedDate={selectedDate} onSelect={(d) => { setSelectedDate(d); setShowDatePicker(false); }} onClose={() => setShowDatePicker(false)} />
       )}
-
     </div>
   );
 };

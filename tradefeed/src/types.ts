@@ -22,6 +22,7 @@ export interface Trade {
     riskReward: string;
     positionSize: number;
   };
+  imageTags?: Record<string, string[]>;
 }
 
 export type ViewType = 'feed' | 'calendar' | 'dashboard' | 'table' | 'gallery' | 'blog' | 'import' | 'tagger' | 'logger';

@@ -40,6 +40,7 @@ export interface DayData {
   videos?: Record<string, string>;
   instrument?: string;
   tags?: string[];
+  imageTags?: Record<string, string[]>;
   note?: string;
 }
 

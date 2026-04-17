@@ -62,6 +62,8 @@ export default function App() {
     return (params.get('view') as ViewType) || 'feed';
   });
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [tagGroups, setTagGroups] = useState<Record<string, string[]>>({});
+  const [tagFrequency, setTagFrequency] = useState<Record<string, number>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -111,7 +113,12 @@ export default function App() {
 
   useEffect(() => {
     fetchTrades()
-      .then(data => { setTrades(data); setLoading(false); })
+      .then(data => { 
+        setTrades(data.trades); 
+        setTagGroups(data.tagGroups);
+        setTagFrequency(data.tagFrequency);
+        setLoading(false); 
+      })
       .catch(err => { setFetchError(String(err)); setLoading(false); });
   }, []);
 
@@ -147,7 +154,14 @@ export default function App() {
       case 'calendar':  return <CalendarView trades={trades} openViewer={openViewer} />;
       case 'dashboard': return <DashboardView trades={trades} openViewer={openViewer} />;
       case 'table':     return <TableView trades={trades} onLogTrade={() => setCurrentView('import')} />;
-      case 'gallery':   return <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} />;
+      case 'gallery':   return (
+        <GalleryView 
+          trades={trades} 
+          openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} 
+          tagGroups={tagGroups}
+          tagFrequency={tagFrequency}
+        />
+      );
       case 'blog':      return <BlogView />;
       case 'import':
         return (
@@ -194,7 +208,15 @@ export default function App() {
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* Gallery rendered outside motion wrapper — fixed inset-0 needs no transform parent */}
       {currentView === 'gallery' && (
-        <GalleryView trades={trades} openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} onNavigate={v => setCurrentView(v as any)} filterOpen={galleryFilterOpen} onFilterOpened={() => setGalleryFilterOpen(false)} />
+        <GalleryView 
+          trades={trades} 
+          openViewer={(days, dIdx, iIdx) => openViewer(days as any[], dIdx, iIdx)} 
+          onNavigate={v => setCurrentView(v as any)} 
+          filterOpen={galleryFilterOpen} 
+          onFilterOpened={() => setGalleryFilterOpen(false)} 
+          tagGroups={tagGroups}
+          tagFrequency={tagFrequency}
+        />
       )}
 
       {currentView !== 'gallery' && (
