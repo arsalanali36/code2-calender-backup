@@ -47,77 +47,6 @@ function buildTagSets(tagGroups: Record<string, string[]>) {
   return { emotionSet, mistakeSet };
 }
 
-// Map Flask trade fields → mobile Trade interface
-function mapTrade(raw: Record<string, unknown>, index: number, emotionSet: Set<string>, mistakeSet: Set<string>): Trade {
-  const instrument = (raw['Instrument'] as string) || '';
-  const tradeType  = (raw['TradeType'] as string || '').toLowerCase();
-  const rawPnl = raw['Net P/L'];
-  const rawGross = raw['Gross P/L'];
-  const pnl = typeof rawPnl === 'number' ? rawPnl : (typeof rawGross === 'number' ? rawGross : 0);
-  const date       = (raw['trade_date'] as string) || (raw['date'] as string) || '';
-  const note       = (raw['Note'] as string) || '';
-  const qty        = (raw['Qty'] as number) || 0;
-
-  // Images: prepend base URL for relative paths; inject old-style videos from trade.videos dict
-  const rawImages = (raw['images'] as string[]) || [];
-  const rawVideosDict = (raw['videos'] as Record<string, string>) || {};
-  const chartUrls = injectOldVideos(rawImages.map(resolveUrl), resolveVideos(rawVideosDict));
-
-  // Audios + Videos: resolve both key (img URL) and value (media URL)
-  const audios  = resolveAudios((raw['audios']  as Record<string, string>) || {});
-  const videos  = resolveVideos((raw['videos']  as Record<string, string>) || {});
-
-  // Desktop parity: Scan ALL fields for arrays and treat them as tags
-  const dynamicTags = new Set<string>();
-  Object.entries(raw).forEach(([key, val]) => {
-    // Skip internal fields and known non-tag fields
-    if (['images', 'chartUrls', 'imageTags', 'marqueeBoxes', 'audios', 'videos', 'id', 'Note'].includes(key)) return;
-    if (Array.isArray(val)) {
-      val.forEach(v => { if (typeof v === 'string' && v.trim()) dynamicTags.add(v.trim()); });
-    } else if (key.toLowerCase() === 'tags' && typeof val === 'string') {
-      val.split(',').forEach(v => { if (v.trim()) dynamicTags.add(v.trim()); });
-    }
-  });
-  const allTags = Array.from(dynamicTags);
-
-  const emotionTags:  string[] = allTags.filter(t => emotionSet.has(t));
-  const mistakeTags:  string[] = allTags.filter(t => mistakeSet.has(t));
-  const strategyTags: string[] = allTags.filter(t => !emotionSet.has(t) && !mistakeSet.has(t));
-
-  // Session from buy time
-  const buyTime = (raw['Buy Time'] as string) || '';
-  let session: TradeSession = 'Morning';
-  if (buyTime) {
-    const hour = parseInt(buyTime.split(':')[0], 10);
-    if (hour >= 12 && hour < 15) session = 'Afternoon';
-    else if (hour >= 15) session = 'Evening';
-  }
-
-  const type: TradeType = tradeType === 'buy' ? 'Long' : 'Short';
-
-  return {
-    id: (raw['id'] as string) || String(index),
-    instrument,
-    type,
-    pnl,
-    currency: '₹',
-    date,
-    session,
-    chartUrls,
-    audios,
-    videos,
-    emotionTags,
-    strategyTags,
-    mistakeTags,
-    note,
-    stats: {
-      rMultiple: 0,
-      riskReward: '',
-      positionSize: qty,
-    },
-  };
-}
-
 function getFilename(url: string): string {
   if (!url) return '';
   const parts = url.split('/');
@@ -129,18 +58,13 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
   const res = await fetch(`${BASE_URL}/api/trades`, { credentials: 'include' });
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
   const data = await res.json();
-  const trades: Record<string, unknown>[] = data.trades || [];
+  const rawTrades: Record<string, unknown>[] = data.trades || [];
   const tagGroups: Record<string, string[]> = data.tagGroups || {};
   const dayData: Record<string, Record<string, unknown>> = data.dayData || {};
   const { emotionSet, mistakeSet } = buildTagSets(tagGroups);
 
-  const globalFreq: Record<string, number> = {};
-
-  const tradeMapped = trades
+  const tradeMapped = rawTrades
     .filter(t => !!(t['trade_date'] || t['date']))
-    .map((t, i) => {
-      const mapped = mapTrade(t, i, emotionSet, mistakeSet);
-      
     .map((t, index) => {
       const instrument = (t['Instrument'] as string) || '';
       const tradeType  = (t['TradeType'] as string || '').toLowerCase();
@@ -159,8 +83,7 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
       });
       const allTags = Array.from(dynamicTags);
 
-      const dateKey = date;
-      const day = dayData[dateKey] || {};
+      const day = dayData[date] || {};
       const imageTagsMap = ((day as any).imageTags as Record<string, string[]>) || {};
       const marqueeBoxesMap = ((day as any).marqueeBoxes as Record<string, any[]>) || {};
       const tagPinsMap = ((day as any).tagPins as Record<string, any[]>) || {};
@@ -174,26 +97,29 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
       chartUrls.forEach(url => {
         const fname = getFilename(url);
         if (!fname) return;
-
         const imgTagsSet = new Set<string>();
-
-        // 1. Day-level imageTags
-        for (const [k, tgs] of Object.entries(imageTagsMap)) if (getFilename(k) === fname) tgs.forEach(t => imgTagsSet.add(t));
-        // 2. Trade-level imageTags (internal)
-        for (const [k, tgs] of Object.entries(internalImageTagsMap)) if (getFilename(k) === fname) tgs.forEach(t => imgTagsSet.add(t));
-        // 3. MarqueeBoxes
-        for (const [k, bxs] of Object.entries(marqueeBoxesMap)) if (getFilename(k) === fname) bxs.forEach(b => b.tags?.forEach(t => imgTagsSet.add(t)));
-        // 4. Case: Pins with notes (📝 has notes)
-        const checkPins = (pts: any[]) => pts.some(p => p.note && p.note.trim().length > 0);
+        for (const [k, tgs] of Object.entries(imageTagsMap)) if (getFilename(k) === fname) tgs.forEach(tg => imgTagsSet.add(tg));
+        for (const [k, tgs] of Object.entries(internalImageTagsMap)) if (getFilename(k) === fname) tgs.forEach(tg => imgTagsSet.add(tg));
+        for (const [k, bxs] of Object.entries(marqueeBoxesMap)) if (getFilename(k) === fname) bxs.forEach(b => b.tags?.forEach(tg => imgTagsSet.add(tg)));
+        
+        const checkPins = (pts: any[]) => Array.isArray(pts) && pts.some(p => p.note && p.note.trim().length > 0);
         for (const [k, pts] of Object.entries(tagPinsMap)) if (getFilename(k) === fname && checkPins(pts)) imgTagsSet.add('📝 has notes');
         for (const [k, pts] of Object.entries(internalTagPinsMap)) if (getFilename(k) === fname && checkPins(pts)) imgTagsSet.add('📝 has notes');
 
         if (imgTagsSet.size > 0) {
           const arr = Array.from(imgTagsSet);
           resolvedImageTags[url] = arr;
-          arr.forEach(t => allTagsForThisTrade.add(t));
+          arr.forEach(tg => allTagsForThisTrade.add(tg));
         }
       });
+
+      const buyTime = (t['Buy Time'] as string) || '';
+      let session: TradeSession = 'Morning';
+      if (buyTime) {
+        const hour = parseInt(buyTime.split(':')[0], 10);
+        if (hour >= 12 && hour < 15) session = 'Afternoon';
+        else if (hour >= 15) session = 'Evening';
+      }
 
       const tradeMapped: Trade = {
         id: (t['id'] as string) || `trade-${date}-${index}`,
@@ -202,13 +128,13 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
         pnl,
         currency: '₹',
         date,
-        session: 'Morning',
+        session,
         chartUrls,
         audios: resolveAudios((t['audios'] as Record<string, string>) || {}),
         videos: resolveVideos((t['videos'] as Record<string, string>) || {}),
-        emotionTags:  allTags.filter(t => emotionSet.has(t) || (allTagsForThisTrade.has(t) && emotionSet.has(t))),
-        mistakeTags:  allTags.filter(t => mistakeSet.has(t) || (allTagsForThisTrade.has(t) && mistakeSet.has(t))),
-        strategyTags: allTags.filter(t => !emotionSet.has(t) && !mistakeSet.has(t)),
+        emotionTags:  allTags.filter(tg => emotionSet.has(tg) || (allTagsForThisTrade.has(tg) && emotionSet.has(tg))),
+        mistakeTags:  allTags.filter(tg => mistakeSet.has(tg) || (allTagsForThisTrade.has(tg) && mistakeSet.has(tg))),
+        strategyTags: allTags.filter(tg => !emotionSet.has(tg) && !mistakeSet.has(tg)),
         imageTags: resolvedImageTags,
         note,
         stats: { rMultiple: 0, riskReward: '', positionSize: qty },
@@ -248,11 +174,10 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
         for (const [k, bxs] of Object.entries(marqueeBoxesMap)) if (getFilename(k) === fname) bxs.forEach(b => b.tags?.forEach(tg => { s.add(tg); allDayTags.add(tg); }));
         
         for (const [k, pts] of Object.entries(tagPinsMap)) {
-          if (getFilename(k) === fname && pts.some((p: any) => p.note && p.note.trim().length > 0)) {
+          if (getFilename(k) === fname && Array.isArray(pts) && pts.some((p: any) => p.note && p.note.trim().length > 0)) {
             s.add('📝 has notes'); allDayTags.add('📝 has notes');
           }
         }
-
         if (news.includes(url)) { s.add('news'); allDayTags.add('news'); }
         if (s.size > 0) resImgTags[url] = Array.from(s);
       });
@@ -289,7 +214,7 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
         const fname = getFilename(url);
         const s = new Set<string>();
         for (const [k, tgs] of Object.entries(imageTagsMap)) if (getFilename(k) === fname) tgs.forEach(tg => s.add(tg));
-        for (const [k, pts] of Object.entries(tagPinsMap)) if (getFilename(k) === fname && pts.some((p: any) => p.note && p.note.trim().length > 0)) s.add('📝 has notes');
+        for (const [k, pts] of Object.entries(tagPinsMap)) if (getFilename(k) === fname && Array.isArray(pts) && pts.some((p: any) => p.note && p.note.trim().length > 0)) s.add('📝 has notes');
         if (s.size > 0) resImgTags[url] = Array.from(s);
       });
 
@@ -315,9 +240,7 @@ export async function fetchTrades(): Promise<{ trades: Trade[], tagGroups: Recor
     });
 
   const mappedTrades: Trade[] = [...tradeMapped, ...dayOnlyEntries, ...closeEntries];
-
   const finalFreq: Record<string, number> = {};
-  
   mappedTrades.forEach(t => {
     t.chartUrls.forEach(url => {
       const tagsOnThisImg = t.imageTags?.[url] || [];
