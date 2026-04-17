@@ -332,7 +332,7 @@ function renderCloseGlobalTray(curUrl) {
       const isRefReady = !!(refCard && refCard.index);
 
       const sourceBtn = document.createElement('button');
-      sourceBtn.className = 'close-global-nav-btn';
+      sourceBtn.className = 'close-global-nav-btn cg-tray-btn';
       if (isActive) sourceBtn.classList.add('active');
       if (!tr.images || tr.images.length === 0) sourceBtn.classList.add('no-img');
       sourceBtn.textContent = String(idx + 1);
@@ -390,7 +390,7 @@ function renderCloseGlobalTray(curUrl) {
           if (typeof openTradeSidebar === 'function') openTradeSidebar(tr);
       };
 
-      // Right-click: Mini Action Panel
+      // Right-click: Mini Action Panel (including new Strategy Lab option)
       sourceBtn.oncontextmenu = (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -405,8 +405,19 @@ function renderCloseGlobalTray(curUrl) {
               background: rgba(22, 22, 28, 0.95); border: 1px solid rgba(255,255,255,0.12);
               border-radius: 10px; padding: 5px; z-index: 10000;
               box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 2px;
-              min-width: 165px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
+              min-width: 175px; backdrop-filter: blur(15px); animation: gv2-scale-in 0.15s ease-out;
           `;
+
+          const inst = tr.Instrument || tr.instrument || tr.Symbol || tr.symbol || 'Nifty 50 (^NSEI)';
+          const dayDate = typeof extractDateFromTrade === 'function' ? normalizeDate(extractDateFromTrade(tr)) : (tr.Date || '');
+          const entryT_str = tr.entry_time || tr['Entry Time'] || tr['Buy Time'] || tr['Sell Time'] || tr.time || '';
+          let entryT = null;
+          if (entryT_str && dayDate) {
+              try {
+                  const fullDt = new Date(`${dayDate} ${entryT_str.includes(':') ? (entryT_str.split(':').length === 2 ? entryT_str + ':00' : entryT_str) : '09:15:00'}`);
+                  entryT = Math.floor(fullDt.getTime() / 1000);
+              } catch(e) { console.warn("Time parse fail", e); }
+          }
 
           const createItem = (text, icon, color, onClick) => {
               const item = document.createElement('div');
@@ -425,6 +436,23 @@ function renderCloseGlobalTray(curUrl) {
               };
               return item;
           };
+
+          // 1. New Strategy Lab Option
+          menu.appendChild(createItem('Strategy Lab', '🧪', '#8b5cf6', () => {
+              if (!dayDate) { showToast('No date found', 'error'); return; }
+              const params = new URLSearchParams({ symbol: inst, date: dayDate, jumpTime: entryT || '' });
+              window.open(`/strategy-lab?${params.toString()}`, '_blank');
+              showToast('Opening Strategy Lab...', 'success');
+          }));
+
+          
+          // Separator
+          const hr = document.createElement('div');
+          hr.style.cssText = 'height:1px; background:rgba(255,255,255,0.08); margin:4px 8px;';
+          menu.appendChild(hr);
+
+           // existing items continue...
+
 
           const dDate = state.gallery.date;
           if (!dDate) return;

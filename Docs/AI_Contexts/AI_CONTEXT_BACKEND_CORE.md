@@ -60,15 +60,45 @@ from routes.strategy_routes import strategy_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
+from services.local_backup_service import start_local_backup_service
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 Compress(app)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# ── CACHE BUSTING ────────────────────────────────────────────────────────────
+@app.after_request
+def add_cache_header(response):
+    if app.debug:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
+
+@app.context_processor
+def override_url_for():
+    """
+    Append a version timestamp (?v=...) to static file URLs automatically.
+    """
+    return dict(url_for=dated_url_for)
+
+def dated_url_for(endpoint, **values):
+    if endpoint == 'static':
+        filename = values.get('filename', None)
+        if filename:
+            file_path = os.path.join(app.static_folder, filename)
+            if os.path.exists(file_path):
+                values['v'] = int(os.stat(file_path).st_mtime)
+    return url_for(endpoint, **values)
+
+# ── App setup ─────────────────────────────────────────────────────────────────
 
 db.init_app(app)
 
@@ -206,13 +236,17 @@ def _cleanup_trash():
 _bootstrap_persistent_storage()
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
+start_local_backup_service()
 
-# ── JS bundle (rebuild if any source file changed) ────────────────────────────
-try:
-    from build import build as _build_js
-    _build_js()
-except Exception as _e:
-    print(f'[build] WARNING: JS bundle build failed: {_e}')
+# ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
+if os.environ.get('USE_BUNDLE') == '1':
+    try:
+        from build import build as _build_js
+        _build_js()
+    except Exception as _e:
+        print(f'[build] WARNING: JS bundle build failed: {_e}')
+else:
+    print('[build] DEV MODE — bundle skipped, serving individual JS files')
 
 with app.app_context():
     db.create_all()
@@ -266,7 +300,12 @@ def debug_data():
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    """Log all unhandled exceptions to the AI debug log."""
+    """Log all unhandled exceptions (except 404s) to the AI debug log."""
+    # Ignore 404 Not Found errors to keep logs clean
+    from werkzeug.exceptions import NotFound
+    if isinstance(e, NotFound):
+        return str(e), 404
+
     from services.debug_service import log_ai_error
     log_ai_error(f"Unhandled Exception: {str(e)}", e)
     # Return original behavior for Flask
@@ -358,10 +397,10 @@ DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', '
 
 _secret_key_default = 'your-secret-key-for-dev-fallback'
 SECRET_KEY = os.getenv('SECRET_KEY', _secret_key_default)
-if SECRET_KEY == _secret_key_default and not os.getenv('FLASK_DEBUG', '').strip().lower() in ('1', 'true', 'yes'):
+if SECRET_KEY == _secret_key_default and not DEBUG:
     raise RuntimeError(
         'SECRET_KEY env var is not set. This is required in production. '
-        'Set FLASK_DEBUG=true to allow the insecure default in development.'
+        'Please set SECRET_KEY in your environment, or set FLASK_DEBUG=true for development.'
     )
 ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
 
@@ -542,6 +581,8 @@ services:
         value: /var/data/trades.json
       - key: UPLOADS_DIR
         value: /var/data/uploads
+      - key: USE_BUNDLE
+        value: "1"    # Build + serve bundle.js in production (skip in local dev)
       - key: CLOUDINARY_URL
         sync: false   # Set this secret in the Render dashboard → Environment
 

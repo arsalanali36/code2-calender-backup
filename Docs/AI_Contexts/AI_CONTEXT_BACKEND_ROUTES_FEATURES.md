@@ -191,6 +191,7 @@ def export_trades():
 ## File: `routes/strategy_routes.py`
 ```py
 from flask import Blueprint, request, jsonify
+from flask_login import current_user
 from services.strategy_data_service import get_nifty_data, get_real_trades
 import pandas as pd
 import pytz
@@ -217,8 +218,8 @@ def nifty_data():
     strategy_params = {'hawa_me_zone': hawa_me_zone}
     
     try:
-        df, zones = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy, strategy_params=strategy_params)
-        real_trades = get_real_trades(start_date, end_date, symbol)
+        user_id = current_user.id if current_user.is_authenticated else None
+        df, zones, real_trades = get_nifty_data(symbol, start_date, end_date, timeframe, start_time, end_time, source=source, dhan_token=dhan_token, dhan_cid=dhan_cid, strategy_type=strategy, strategy_params=strategy_params, user_id=user_id)
 
         if df.empty:
              return jsonify({'error': 'No data found for the selected range.'}), 404
@@ -281,7 +282,8 @@ def nifty_data():
 def archive_dates():
     from services.strategy_data_service import get_archive_dates
     try:
-        dates = get_archive_dates()
+        user_id = current_user.id if current_user.is_authenticated else None
+        dates = get_archive_dates(user_id=user_id)
         return jsonify({'dates': dates})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -366,5 +368,23 @@ def trigger_sync():
     from services.auto_sync_service import trigger_sync_now
     trigger_sync_now()
     return jsonify({'status': 'OK'})
+
+@strategy_bp.route('/api/strategy/bulk-dl-start', methods=['POST'])
+def bulk_dl_start():
+    from services.bulk_download_service import start_bulk_download
+    data   = request.get_json(silent=True) or {}
+    token  = data.get('token', '').strip()
+    cid    = data.get('client_id', '').strip()
+    if not token or not cid:
+        return jsonify({'error': 'token and client_id required'}), 400
+    started = start_bulk_download(token, cid)
+    if not started:
+        return jsonify({'error': 'Already running'}), 409
+    return jsonify({'status': 'started'})
+
+@strategy_bp.route('/api/strategy/bulk-dl-status')
+def bulk_dl_status():
+    from services.bulk_download_service import get_status
+    return jsonify(get_status())
 
 ```

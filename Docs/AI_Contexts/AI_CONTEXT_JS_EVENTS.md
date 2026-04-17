@@ -307,7 +307,12 @@ function _bindKeyboardEvents() {
       return;
     }
 
-    if ((e.key === 'z' || e.key === 'Z') && e.ctrlKey && !e.shiftKey && !e.altKey && !typingInField) {
+    // BLOCK ALL shortcuts if typing in any field, unless it's Escape
+    if (typingInField && e.key !== 'Escape') {
+        return;
+    }
+
+    if ((e.key === 'z' || e.key === 'Z') && e.ctrlKey && !e.shiftKey && !e.altKey) {
       if (typeof performGalleryUndo === 'function' && window.galleryUndoStack?.length > 0) {
         e.preventDefault();
         performGalleryUndo();
@@ -337,8 +342,49 @@ function _bindKeyboardEvents() {
     }
 
     if (galleryOpen) {
-      // Arrow nav — must run BEFORE typingInField check because upper-canvas focus
-      // triggers typingInField=true even when not typing. Guard: annotation must be off.
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && !typingInField) {
+        if (e.key === 't' || e.key === 'T') {
+          e.preventDefault();
+          const tagsBtn = document.getElementById('gv2-tags-btn');
+          if (tagsBtn) tagsBtn.click();
+          return;
+        }
+        if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          const filterBtn = document.getElementById('gallery-img-tag-filter-btn');
+          if (filterBtn) filterBtn.click();
+          return;
+        }
+        if (e.key === 'r' || e.key === 'R') {
+          e.preventDefault();
+          const tray = document.getElementById('close-global-tray');
+          if (tray) {
+            const activeBtn = tray.querySelector('.cg-tray-btn.active') || tray.querySelector('.cg-tray-btn');
+            if (activeBtn) activeBtn.focus();
+          }
+          return;
+        }
+        if (e.key === 'h' || e.key === 'H') {
+          e.preventDefault();
+          const burger = document.getElementById('gv2-hamburger-btn');
+          if (burger) burger.click();
+          return;
+        }
+      }
+
+      // If typing in a true input/textarea, block remaining shortcuts
+      const isTrueInput = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if (isTrueInput && e.key !== 'Escape') return;
+
+      // Special case: upper-canvas (Fabric.js) is "typingInField" but needs arrow keys for gallery nav
+      // when not editing text.
+      if (typingInField && !isTrueInput && e.key !== 'Escape') {
+          // Allow it to proceed to arrow handlers below
+      } else if (typingInField && e.key !== 'Escape') {
+          return;
+      }
+
+      // Arrow nav — must run AFTER true input check to allow text cursor movement
       if (!annotState.active && !e.ctrlKey && !e.altKey) {
         const fsEl = document.getElementById('fullscreen-viewer');
         if (fsEl && fsEl.style.display === 'flex' && typeof FullscreenViewer !== 'undefined') {
@@ -367,7 +413,6 @@ function _bindKeyboardEvents() {
         }
       }
 
-      if (typingInField && e.key !== 'Escape') return;
       if (typingInField && e.key === 'Escape') {
         // Agar text edit mode me escape dabaya, toh annotate-fabric apna select/exitEditing handle karega.
         // Hum gallery exit ye tools exit nahi karenge.
@@ -416,6 +461,12 @@ function _bindKeyboardEvents() {
         setAnnotTool('eraser');
         return;
       }
+      // Shortcuts moved to top of block
+      // Explicitly empty Shift + F to prevent any other legacy behavior
+      if (!e.ctrlKey && !e.altKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        return;
+      }
       if (shortcutMatches(e, state.shortcuts.imageImport)) {
         e.preventDefault();
         if (state.gallery.date) document.getElementById('gallery-upload-btn').click();
@@ -450,6 +501,26 @@ function _bindKeyboardEvents() {
         if (annotState.active && ['pen', 'eraser'].includes(annotState.tool)) adjustAnnotSize(-1);
         return;
       }
+
+      // --- Arrow Key Navigation for focused Remote Tray ---
+      if (document.activeElement && document.activeElement.classList.contains('cg-tray-btn')) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const tray = document.getElementById('close-global-tray');
+          const btns = Array.from(tray.querySelectorAll('.cg-tray-btn'));
+          const curIdx = btns.indexOf(document.activeElement);
+          let nextIdx = curIdx;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextIdx = (curIdx + 1) % btns.length;
+          else nextIdx = (curIdx - 1 + btns.length) % btns.length;
+          
+          if (btns[nextIdx]) {
+            btns[nextIdx].focus();
+            btns[nextIdx].click();
+          }
+          return;
+        }
+      }
+
 
       if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
@@ -592,14 +663,7 @@ function _bindKeyboardEvents() {
         }
         return;
       }
-      if (shortcutMatches(e, state.shortcuts.fullscreen)) {
-        if (annotState.active) return;
-        e.preventDefault();
-        const _fsImages = state.gallery.images || [];
-        const _fsCur = _fsImages[state.gallery.currentIndex];
-        if (_fsCur && typeof openFullscreenFromAppContext === 'function') openFullscreenFromAppContext(_fsImages, _fsCur, true);
-        return;
-      }
+      // Fullscreen (f) mapping removed to keep key free for Tag Filter
 
       if (e.key === 'c' && !e.shiftKey) {
         if (annotState.active) return;
@@ -667,23 +731,7 @@ function _bindKeyboardEvents() {
       .some(id => document.getElementById(id)?.classList.contains('open'));
     const chartsModalOpen = !!document.querySelector('.clc-backdrop');
     if (!typingInField && !galleryOpen && !anyModalOpen && !chartsModalOpen && !e.ctrlKey && !e.altKey) {
-      if (e.key === 'f' && !e.shiftKey) {
-        e.preventDefault();
-        document.body.classList.toggle('calendar-full');
-        document.body.classList.remove('table-full');
-      } else if ((e.key === 'F' || (e.key === 'f' && e.shiftKey)) && !e.ctrlKey) {
-        e.preventDefault();
-        const _enteringFull = !document.body.classList.contains('table-full');
-        document.body.classList.toggle('table-full');
-        document.body.classList.remove('calendar-full');
-        if (_enteringFull) {
-          document.documentElement.style.setProperty('--table-visible-rows', '20');
-        } else {
-          const _saved = JSON.parse(localStorage.getItem('tj_settings') || '{}');
-          const _rows = Math.max(3, Math.min(25, parseInt(_saved.tableRows, 10) || 5));
-          document.documentElement.style.setProperty('--table-visible-rows', String(_rows));
-        }
-      } else if (e.key === 'c' && !e.shiftKey) {
+      if (e.key === 'c' && !e.shiftKey) {
         e.preventDefault();
         state.calendarMode = 'consolidated';
         updateCalendarModeButton(); renderShowHeads(); renderCalendar(); renderTable();
@@ -705,6 +753,11 @@ function _bindKeyboardEvents() {
         e.preventDefault();
         const datesWImg = getDatesWithImages();
         if (datesWImg.length) openGalleryForDate(datesWImg[datesWImg.length - 1]);
+      } else if (e.key === 'h' && !e.shiftKey) {
+        e.preventDefault();
+        // Toggle gallery hamburger if open, else toggle settings or sidebar if possible
+        const burger = document.getElementById('gv2-hamburger-btn') || document.getElementById('sidebar-toggle');
+        if (burger) burger.click();
       }
     }
 
@@ -940,6 +993,14 @@ function _bindUIEvents() {
   document.getElementById('backup-btn').addEventListener('click', backupJson);
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
   document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
+
+  // Sync buttons — only visible on localhost/127.0.0.1
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    const pullLiveBtn = document.getElementById('pull-from-live-btn');
+    if (pullLiveBtn) { pullLiveBtn.style.display = ''; pullLiveBtn.addEventListener('click', pullFromLive); }
+    const pushLiveBtn = document.getElementById('push-to-live-btn');
+    if (pushLiveBtn) { pushLiveBtn.style.display = ''; pushLiveBtn.addEventListener('click', pushToLive); }
+  }
 
   document.getElementById('save-view-btn').addEventListener('click', () => {
     const name = prompt('View ka naam likhein:');

@@ -109,6 +109,7 @@ function renderGalleryTagsTray() {
   const searchRow = document.createElement('div');
   searchRow.style.cssText = 'padding:5px 8px 6px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:5px;';
   const searchInp = document.createElement('input');
+  searchInp.id = 'gv2-tag-tray-search-inp';
   searchInp.className = 'panel-search';
   searchInp.placeholder = 'Search tags...';
   searchInp.value = state.gallery._tagTraySearch || '';
@@ -127,6 +128,33 @@ function renderGalleryTagsTray() {
     _applyTagFilter('');
     searchInp.focus();
   });
+  searchInp.addEventListener('input', e => {
+    const cursorPos = e.target.selectionStart;
+    state.gallery._tagTraySearch = e.target.value.toLowerCase();
+    searchClear.style.display = e.target.value ? 'flex' : 'none';
+    renderGalleryTagsTray();
+    // Re-render destroys this input — restore focus on the new element
+    const newInp = document.getElementById('gv2-tag-tray-search-inp');
+    if (newInp) {
+      newInp.focus();
+      try { newInp.setSelectionRange(cursorPos, cursorPos); } catch (_) {}
+    }
+  });
+  searchInp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const firstChip = document.querySelector('.gv2-tt-tag-chip');
+      if (firstChip) {
+        firstChip.setAttribute('tabindex', '0');
+        firstChip.focus();
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const firstChip = document.querySelector('.gv2-tt-tag-chip');
+      if (firstChip) firstChip.click();
+    }
+  });
+
   searchRow.appendChild(searchInp);
   searchRow.appendChild(searchClear);
   if (fixed) fixed.appendChild(searchRow);
@@ -229,6 +257,24 @@ function renderGalleryTagsTray() {
       chip.appendChild(lbl);
       chip.appendChild(cnt);
     }
+
+    chip.setAttribute('tabindex', '0');
+    chip.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = chip.nextElementSibling || chip.parentElement.nextElementSibling?.querySelector('.gv2-tt-tag-chip');
+        if (next) next.focus();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = chip.previousElementSibling || chip.parentElement.previousElementSibling?.querySelector('.gv2-tt-tag-chip:last-child');
+        if (prev) prev.focus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        chip.click();
+      } else if (e.key === 'Escape') {
+        document.getElementById('gv2-tag-tray-search-inp')?.focus();
+      }
+    });
 
     const currentTradeTags = imgInfo.trade ? getTradeTagsForTrade(imgInfo.trade) : [];
     if (state.tagDeleteMode) {
@@ -947,6 +993,7 @@ function renderGalleryTagFilterPanel() {
     searchRow.style.cssText = 'padding: 8px; position: relative;';
     
     const searchInp = document.createElement('input');
+    searchInp.id = 'gv2-tag-filter-search-inp';
     searchInp.className = 'panel-search';
     searchInp.placeholder = 'Search tags...';
     searchInp.style.cssText = 'width: 100%; padding-right: 30px;'; // make room for x
@@ -1218,6 +1265,22 @@ function renderGalleryTagFilterPanel() {
 
             list.appendChild(lbl);
         };
+
+        // ── Special Filters (Virtual Tags) ───────────────────────────────────
+        const specialTags = ['📝 HAS NOTES'];
+        const filteredSpec = ql ? specialTags.filter(t => t.toLowerCase().includes(ql)) : specialTags;
+        if (filteredSpec.length) {
+            const gLbl = document.createElement('div');
+            gLbl.className = 'panel-manage-label';
+            gLbl.style.marginTop = '6px';
+            gLbl.style.color = 'var(--blue)';
+            gLbl.textContent = '✧ SPECIAL FILTERS';
+            list.appendChild(gLbl);
+            filteredSpec.forEach(tag => {
+                // Manually inject count if needed, but renderListTag will handle it if count exists
+                renderListTag(tag);
+            });
+        }
 
         const topTags = Array.from(window._tagCountMap.entries())
             .sort((a, b) => b[1] - a[1])

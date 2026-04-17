@@ -1554,7 +1554,7 @@ Consolidated code context for AI assistants.
         .nav-btn { padding: 6px 15px; border: 1px solid #d0d7de; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s;}
         .nav-btn:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
         .chart-wrapper { flex: 1; position: relative; display: flex; gap: 0; overflow: hidden; background: #fff; }
-        .chart-container-box { position: relative; height: 100%; min-width: 0; }
+        .chart-container-box { position: relative; height: 100%; min-width: 0; overflow: hidden; }
         #container-main { flex: 1; }
         #container-opt { flex: 1; border-left: 1px solid #d0d7de; }
         .resizer { width: 6px; background: #cbd5e1; cursor: col-resize; z-index: 10001; transition: background 0.2s; position: relative; border-left: 1px solid #94a3b8; border-right: 1px solid #94a3b8; }

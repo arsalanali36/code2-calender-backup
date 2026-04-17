@@ -16,46 +16,66 @@ Consolidated code context for AI assistants.
 
         const lockStates = { main: false, opt: false };
         const lockRatios = { main: null, opt: null };
+        // Stores { mid, halfSpan } for the manual price range per target
+        const manualPriceRanges = { main: null, opt: null };
+
+        // v4.2.0 has no priceScale.priceRange() — use coordinateToPrice on candle series
+        function getVisiblePriceRange(target) {
+            const candle = target === 'main' ? candleMain : candleOpt;
+            const el = document.getElementById(`chart-${target}`);
+            if (!candle || !el || el.clientHeight === 0) return null;
+            const top    = candle.coordinateToPrice(0);
+            const bottom = candle.coordinateToPrice(el.clientHeight);
+            if (top == null || bottom == null) return null;
+            return { from: Math.min(top, bottom), to: Math.max(top, bottom) };
+        }
+
+        // v4.2.0 has no priceScale.applyOptions({ priceRange }) — use autoscaleInfoProvider
+        function applyPriceRange(target, from, to) {
+            const candle = target === 'main' ? candleMain : candleOpt;
+            if (!candle) return;
+            manualPriceRanges[target] = { mid: (from + to) / 2, halfSpan: (to - from) / 2 };
+            candle.applyOptions({
+                autoscaleInfoProvider: () => {
+                    const r = manualPriceRanges[target];
+                    if (!r) return null;
+                    return { priceRange: { minValue: r.mid - r.halfSpan, maxValue: r.mid + r.halfSpan } };
+                }
+            });
+        }
+
+        function clearPriceRange(target) {
+            const candle = target === 'main' ? candleMain : candleOpt;
+            const chart  = target === 'main' ? chartMain  : chartOpt;
+            if (!candle || !chart) return;
+            manualPriceRanges[target] = null;
+            candle.applyOptions({ autoscaleInfoProvider: () => null });
+            chart.priceScale('right').applyOptions({ autoScale: true });
+        }
 
         function toggleLockRatio(target) {
             const chart = target === 'main' ? chartMain : chartOpt;
-            const container = document.getElementById(`chart-${target}`);
-            const btn = document.getElementById(`lock-btn-${target}`);
+            const btn   = document.getElementById(`lock-btn-${target}`);
             lockStates[target] = !lockStates[target];
-            
+
             if (lockStates[target]) {
-                btn.classList.add('active');
-                btn.style.background = '#6366f1';
-                btn.style.color = '#fff';
-                
-                const pScale = chart.priceScale('right');
-                const pRange = pScale.priceRange();
-                const tScale = chart.timeScale();
-                const tRange = tScale.getVisibleRange();
-                
-                if (pRange && tRange) {
-                    const priceSpan = pRange.to - pRange.from;
-                    const timeSpan = tRange.to - tRange.from;
-                    lockRatios[target] = priceSpan / timeSpan;
+                if (btn) { btn.classList.add('active'); btn.style.background = '#6366f1'; btn.style.color = '#fff'; }
+                const pRange = getVisiblePriceRange(target);
+                const tRange = chart.timeScale().getVisibleRange();
+                if (pRange && tRange && tRange.to !== tRange.from) {
+                    lockRatios[target] = (pRange.to - pRange.from) / (tRange.to - tRange.from);
                 }
-                
-                // Allow Scaling via Wheel (X), but disable dragging/axis-panning
                 chart.applyOptions({
                     handleScroll: { mouseWheel: false, pressedMouseMove: false },
-                    handleScale: { mouseWheel: true, axisPressedMouseMove: false }
+                    handleScale:  { mouseWheel: true,  axisPressedMouseMove: false }
                 });
-                pScale.applyOptions({ autoScale: false });
             } else {
-                btn.classList.remove('active');
-                btn.style.background = '';
-                btn.style.color = '#6366f1';
-                
-                // Restore defaults
+                if (btn) { btn.classList.remove('active'); btn.style.background = ''; btn.style.color = '#6366f1'; }
                 chart.applyOptions({
                     handleScroll: { mouseWheel: true, pressedMouseMove: true },
-                    handleScale: { mouseWheel: true, axisPressedMouseMove: true }
+                    handleScale:  { mouseWheel: true, axisPressedMouseMove: true }
                 });
-                chart.priceScale('right').applyOptions({ autoScale: true });
+                clearPriceRange(target);
                 lockRatios[target] = null;
             }
         }
@@ -63,58 +83,31 @@ Consolidated code context for AI assistants.
         function zoomY(target, factor) {
             const chart = target === 'main' ? chartMain : chartOpt;
             if (!chart) return;
-            
-            const pScale = chart.priceScale('right');
-            const pRange = pScale.priceRange();
-            if (!pRange || pRange.from === null || pRange.to === null) return;
-
-            const currentFrom = pRange.from;
-            const currentTo = pRange.to;
-            const mid = (currentFrom + currentTo) / 2;
-            const halfSpan = (currentTo - currentFrom) / 2;
-            const newHalfSpan = halfSpan * factor;
-
-            // Apply new range and disable autoScale
-            pScale.applyOptions({
-                autoScale: false,
-                priceRange: {
-                    from: mid - newHalfSpan,
-                    to: mid + newHalfSpan
-                }
-            });
-            
-            // Recalculate ratio if currently locked or just turned on
+            const pRange = getVisiblePriceRange(target);
+            if (!pRange) return;
+            const mid        = (pRange.from + pRange.to) / 2;
+            const newHalfSpan = ((pRange.to - pRange.from) / 2) * factor;
+            applyPriceRange(target, mid - newHalfSpan, mid + newHalfSpan);
             if (lockStates[target]) {
                 const tRange = chart.timeScale().getVisibleRange();
-                if (tRange) {
+                if (tRange && tRange.to !== tRange.from)
                     lockRatios[target] = (newHalfSpan * 2) / (tRange.to - tRange.from);
-                }
-            } else {
-                // If not locked, the chart will still stay on manual scale until Reset is clicked
-                console.log("Manual vertical zoom applied");
             }
         }
 
+        let _lockChanging = false;
         function handleTimeScaleChange(target) {
-            if (!lockStates[target] || !lockRatios[target]) return;
-            const chart = target === 'main' ? chartMain : chartOpt;
+            if (!lockStates[target] || !lockRatios[target] || _lockChanging) return;
+            const chart  = target === 'main' ? chartMain : chartOpt;
             const tRange = chart.timeScale().getVisibleRange();
-            if (!tRange) return;
-            
-            const timeSpan = tRange.to - tRange.from;
-            const targetPriceSpan = timeSpan * lockRatios[target];
-            const pScale = chart.priceScale('right');
-            const pRange = pScale.priceRange();
+            if (!tRange || tRange.to === tRange.from) return;
+            const pRange = getVisiblePriceRange(target);
             if (!pRange) return;
-            
+            const targetHalfSpan = (tRange.to - tRange.from) * lockRatios[target] / 2;
             const mid = (pRange.from + pRange.to) / 2;
-            pScale.applyOptions({
-                autoScale: false,
-                priceRange: {
-                    from: mid - (targetPriceSpan / 2),
-                    to: mid + (targetPriceSpan / 2)
-                }
-            });
+            _lockChanging = true;
+            applyPriceRange(target, mid - targetHalfSpan, mid + targetHalfSpan);
+            _lockChanging = false;
         }
 
         function syncTradePills(target) {
@@ -131,7 +124,8 @@ Consolidated code context for AI assistants.
                     },
                     grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
                     timeScale: { timeVisible: true, secondsVisible: false },
-                    rightPriceScale: { visible: true, borderColor: '#d0d7de' },
+                    rightPriceScale: { visible: true, borderColor: '#d0d7de',
+                        scaleMargins: { top: 0.15, bottom: 0.15 } },
                     crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
                 });
                 
@@ -141,20 +135,24 @@ Consolidated code context for AI assistants.
                 const marker = c.addLineSeries({ color: 'transparent', lineWidth: 0, priceLineVisible: false, lastValueVisible: false });
                 
                 // Static Levels (Sandbox)
-                const pdh = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.6)', lineWidth: 2, lineStyle: 2, title: 'PDH' });
-                const pdl = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.6)', lineWidth: 2, lineStyle: 2, title: 'PDL' });
-                const pdc = c.addLineSeries({ color: 'rgba(33, 150, 243, 0.6)', lineWidth: 1, lineStyle: 2, title: 'PDC' });
-                const pp = c.addLineSeries({ color: 'rgba(156, 39, 176, 0.5)', lineWidth: 1, lineStyle: 2, title: 'PP' });
-                const r1 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.4)', lineWidth: 1, lineStyle: 2, title: 'R1' });
-                const s1 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.4)', lineWidth: 1, lineStyle: 2, title: 'S1' });
-                const r2 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.3)', lineWidth: 1, lineStyle: 2, title: 'R2' });
-                const s2 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.3)', lineWidth: 1, lineStyle: 2, title: 'S2' });
-                const r3 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.2)', lineWidth: 1, lineStyle: 2, title: 'R3' });
-                const s3 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.2)', lineWidth: 1, lineStyle: 2, title: 'S3' });
-                const r4 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.15)', lineWidth: 1, lineStyle: 2, title: 'R4' });
-                const s4 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.15)', lineWidth: 1, lineStyle: 2, title: 'S4' });
-                const r5 = c.addLineSeries({ color: 'rgba(239, 83, 80, 0.1)', lineWidth: 1, lineStyle: 2, title: 'R5' });
-                const s5 = c.addLineSeries({ color: 'rgba(38, 166, 154, 0.1)', lineWidth: 1, lineStyle: 2, title: 'S5' });
+                // autoscaleInfoProvider: () => null  →  excluded from Y-axis range calc,
+                // so R1-R5 / S1-S5 levels don't squish the candles. Lines still draw at
+                // their correct price positions.
+                const levelOpts = { autoscaleInfoProvider: () => null, lastValueVisible: false, priceLineVisible: false };
+                const pdh = c.addLineSeries({ ...levelOpts, color: 'rgba(239, 83, 80, 0.6)', lineWidth: 2, lineStyle: 2, title: 'PDH' });
+                const pdl = c.addLineSeries({ ...levelOpts, color: 'rgba(38, 166, 154, 0.6)', lineWidth: 2, lineStyle: 2, title: 'PDL' });
+                const pdc = c.addLineSeries({ ...levelOpts, color: 'rgba(33, 150, 243, 0.6)', lineWidth: 1, lineStyle: 2, title: 'PDC' });
+                const pp  = c.addLineSeries({ ...levelOpts, color: 'rgba(156, 39, 176, 0.5)', lineWidth: 1, lineStyle: 2, title: 'PP'  });
+                const r1  = c.addLineSeries({ ...levelOpts, color: 'rgba(239, 83, 80, 0.4)',  lineWidth: 1, lineStyle: 2, title: 'R1'  });
+                const s1  = c.addLineSeries({ ...levelOpts, color: 'rgba(38, 166, 154, 0.4)', lineWidth: 1, lineStyle: 2, title: 'S1'  });
+                const r2  = c.addLineSeries({ ...levelOpts, color: 'rgba(239, 83, 80, 0.3)',  lineWidth: 1, lineStyle: 2, title: 'R2'  });
+                const s2  = c.addLineSeries({ ...levelOpts, color: 'rgba(38, 166, 154, 0.3)', lineWidth: 1, lineStyle: 2, title: 'S2'  });
+                const r3  = c.addLineSeries({ ...levelOpts, color: 'rgba(239, 83, 80, 0.2)',  lineWidth: 1, lineStyle: 2, title: 'R3'  });
+                const s3  = c.addLineSeries({ ...levelOpts, color: 'rgba(38, 166, 154, 0.2)', lineWidth: 1, lineStyle: 2, title: 'S3'  });
+                const r4  = c.addLineSeries({ ...levelOpts, color: 'rgba(239, 83, 80, 0.15)', lineWidth: 1, lineStyle: 2, title: 'R4'  });
+                const s4  = c.addLineSeries({ ...levelOpts, color: 'rgba(38, 166, 154, 0.15)',lineWidth: 1, lineStyle: 2, title: 'S4'  });
+                const r5  = c.addLineSeries({ ...levelOpts, color: 'rgba(239, 83, 80, 0.1)',  lineWidth: 1, lineStyle: 2, title: 'R5'  });
+                const s5  = c.addLineSeries({ ...levelOpts, color: 'rgba(38, 166, 154, 0.1)', lineWidth: 1, lineStyle: 2, title: 'S5'  });
 
                 new ResizeObserver(() => {
                     const box = document.getElementById(id);
@@ -185,6 +183,185 @@ Consolidated code context for AI assistants.
                 syncTradePills('opt');
             });
             initResizer();
+            initAltClickFullscreen();
+            initPriceScaleContextMenu();
+        }
+
+        // Alt + Left-click on either chart panel → toggle fullscreen (TradingView style)
+        function initAltClickFullscreen() {
+            let fsPanel = null; // which panel is expanded: null | 'main' | 'opt'
+
+            ['container-main', 'container-opt'].forEach(id => {
+                document.getElementById(id).addEventListener('click', (e) => {
+                    if (!e.altKey) return;
+                    e.preventDefault();
+
+                    const wrapper  = document.querySelector('.chart-wrapper');
+                    const mainBox  = document.getElementById('container-main');
+                    const optBox   = document.getElementById('container-opt');
+                    const resizer  = document.getElementById('chart-resizer');
+                    const isMain   = (id === 'container-main');
+
+                    if (fsPanel === id) {
+                        // Already fullscreen → restore
+                        fsPanel = null;
+                        mainBox.style.flex = '';
+                        mainBox.style.display = '';
+                        if (optBox.dataset.wasVisible === '1') {
+                            optBox.style.flex    = '';
+                            optBox.style.display = 'block';
+                            resizer.style.display = 'block';
+                        }
+                    } else {
+                        // Enter fullscreen for this panel
+                        fsPanel = id;
+                        // Remember whether opt was visible
+                        optBox.dataset.wasVisible = (optBox.style.display !== 'none') ? '1' : '0';
+
+                        if (isMain) {
+                            mainBox.style.flex = '1';
+                            optBox.style.display = 'none';
+                            resizer.style.display = 'none';
+                        } else {
+                            optBox.style.flex    = '1';
+                            optBox.style.display = 'block';
+                            mainBox.style.display = 'none';
+                            resizer.style.display = 'none';
+                        }
+                    }
+
+                    // Let ResizeObserver handle resize, but also force it manually
+                    setTimeout(() => {
+                        ['chart-main', 'chart-opt'].forEach(cid => {
+                            const el = document.getElementById(cid);
+                            const ch = cid === 'chart-main' ? chartMain : chartOpt;
+                            if (ch && el.clientWidth > 0)
+                                ch.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+                        });
+                    }, 50);
+                });
+            });
+        }
+
+        // Right-click on Y-axis price scale → TradingView-style context menu
+        function initPriceScaleContextMenu() {
+            const PRICE_SCALE_WIDTH = 90; // px — Nifty 5-digit prices need ~90px
+
+            function showPriceCtxMenu(e, target) {
+                e.preventDefault();
+                const existing = document.getElementById('price-scale-ctx-menu');
+                if (existing) existing.remove();
+
+                const chart = target === 'main' ? chartMain : chartOpt;
+                if (!chart) return;
+
+                const pScale = chart.priceScale('right');
+                const pRange = getVisiblePriceRange(target);
+                const tRange = chart.timeScale().getVisibleRange();
+                const currentRatio = (pRange && tRange && tRange.to !== tRange.from)
+                    ? ((pRange.to - pRange.from) / (tRange.to - tRange.from)).toFixed(4)
+                    : null;
+                const isLocked = lockStates[target];
+
+                const menu = document.createElement('div');
+                menu.id = 'price-scale-ctx-menu';
+                menu.style.cssText = `
+                    position:fixed; left:${e.clientX}px; top:${e.clientY}px;
+                    background:#1e1e2e; border:1px solid rgba(255,255,255,0.12);
+                    border-radius:8px; padding:6px 0; z-index:99999;
+                    min-width:220px; box-shadow:0 8px 24px rgba(0,0,0,0.4);
+                    font-size:0.82rem; font-family:'Inter',sans-serif; color:#e2e8f0;
+                `;
+
+                const mkItem = (label, sub, action, checked) => {
+                    const row = document.createElement('div');
+                    row.style.cssText = `display:flex; align-items:center; justify-content:space-between;
+                        padding:7px 14px; cursor:pointer; gap:10px; border-radius:4px; margin:1px 4px;`;
+                    row.onmouseenter = () => row.style.background = 'rgba(255,255,255,0.08)';
+                    row.onmouseleave = () => row.style.background = 'transparent';
+                    const left = document.createElement('span');
+                    left.style.cssText = 'display:flex; align-items:center; gap:8px;';
+                    if (checked !== undefined) {
+                        const tick = document.createElement('span');
+                        tick.textContent = checked ? '✓' : '';
+                        tick.style.cssText = 'width:14px; color:#6366f1; font-weight:700;';
+                        left.appendChild(tick);
+                    } else {
+                        const sp = document.createElement('span'); sp.style.width = '14px'; left.appendChild(sp);
+                    }
+                    const lbl = document.createElement('span'); lbl.textContent = label; left.appendChild(lbl);
+                    row.appendChild(left);
+                    if (sub) {
+                        const hint = document.createElement('span');
+                        hint.textContent = sub;
+                        hint.style.cssText = 'color:#64748b; font-size:0.78rem; white-space:nowrap;';
+                        row.appendChild(hint);
+                    }
+                    if (action) row.onclick = () => { action(); menu.remove(); };
+                    return row;
+                };
+
+                const sep = () => {
+                    const d = document.createElement('div');
+                    d.style.cssText = 'height:1px; background:rgba(255,255,255,0.08); margin:4px 0;';
+                    return d;
+                };
+
+                // Reset price scale
+                menu.appendChild(mkItem('Reset price scale', 'Alt+R', () => {
+                    clearPriceRange(target);
+                    lockStates[target] = false;
+                    lockRatios[target] = null;
+                    const btn = document.getElementById(`lock-btn-${target}`);
+                    if (btn) { btn.classList.remove('active'); btn.style.background=''; btn.style.color='#6366f1'; }
+                }));
+
+                menu.appendChild(sep());
+
+                // Auto (fits data to screen)
+                menu.appendChild(mkItem('Auto (fits data to screen)', '', () => {
+                    clearPriceRange(target);
+                    chart.timeScale().fitContent();
+                }));
+
+                // Lock price to bar ratio
+                menu.appendChild(mkItem(
+                    'Lock price to bar ratio',
+                    currentRatio || '',
+                    () => toggleLockRatio(target),
+                    isLocked
+                ));
+
+                menu.appendChild(sep());
+
+                // Zoom In / Zoom Out Y
+                menu.appendChild(mkItem('Zoom in Y', '', () => zoomY(target, 0.8)));
+                menu.appendChild(mkItem('Zoom out Y', '', () => zoomY(target, 1.25)));
+
+                document.body.appendChild(menu);
+
+                // Close on any click outside
+                const close = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('mousedown', close); } };
+                setTimeout(() => document.addEventListener('mousedown', close), 10);
+            }
+
+            // Document-level capture — fires before ANY element (including LC canvas)
+            // can call stopPropagation. We then check which chart the click landed on.
+            document.addEventListener('contextmenu', (e) => {
+                for (const [id, target] of [['container-main','main'],['container-opt','opt']]) {
+                    const box = document.getElementById(id);
+                    if (!box) continue;
+                    const rect = box.getBoundingClientRect();
+                    const inBox = e.clientX >= rect.left && e.clientX <= rect.right &&
+                                  e.clientY >= rect.top  && e.clientY <= rect.bottom;
+                    if (inBox && e.clientX >= rect.right - PRICE_SCALE_WIDTH) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showPriceCtxMenu(e, target);
+                        return;
+                    }
+                }
+            }, { capture: true });
         }
 
         function initResizer() {
@@ -193,57 +370,78 @@ Consolidated code context for AI assistants.
             const rightSide = document.getElementById('container-opt');
             const wrapper = document.querySelector('.chart-wrapper');
 
-            let x = 0;
+            let startX = 0;
             let leftWidth = 0;
+            let isDragging = false;
 
-            const mouseDownHandler = function (e) {
-                x = e.clientX;
-                leftWidth = leftSide.getBoundingClientRect().width;
+            function forceChartResize() {
+                const mainB = document.getElementById('chart-main');
+                const optB  = document.getElementById('chart-opt');
+                if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth,  height: mainB.clientHeight });
+                if (chartOpt)  chartOpt.applyOptions({  width: optB.clientWidth,   height: optB.clientHeight });
+            }
 
-                document.addEventListener('mousemove', mouseMoveHandler);
-                document.addEventListener('mouseup', mouseUpHandler);
-                resizer.classList.add('dragging');
-                document.body.style.cursor = 'col-resize';
-                // Add a temporary overlay to prevent chart interaction during drag
-                const overlay = document.createElement('div');
-                overlay.id = 'resize-overlay';
-                overlay.style.position = 'fixed';
-                overlay.style.top = '0';
-                overlay.style.left = '0';
-                overlay.style.right = '0';
-                overlay.style.bottom = '0';
-                overlay.style.zIndex = '5000';
-                document.body.appendChild(overlay);
+            const onMove = function (e) {
+                if (!isDragging) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const dx = clientX - startX;
+                const wrapW = wrapper.getBoundingClientRect().width;
+                const newLeftPct = Math.min(85, Math.max(15, ((leftWidth + dx) * 100) / wrapW));
+                leftSide.style.flex  = `0 0 ${newLeftPct}%`;
+                rightSide.style.flex = `0 0 ${100 - newLeftPct}%`;
+                forceChartResize();
             };
 
-            const mouseMoveHandler = function (e) {
-                const dx = e.clientX - x;
-                const newLeftWidth = ((leftWidth + dx) * 100) / wrapper.getBoundingClientRect().width;
-                leftSide.style.flex = `0 0 ${newLeftWidth}%`;
-                rightSide.style.flex = `1 1 0%`;
-            };
-
-            const mouseUpHandler = function () {
-                document.removeEventListener('mousemove', mouseMoveHandler);
-                document.removeEventListener('mouseup', mouseUpHandler);
+            const onUp = function () {
+                if (!isDragging) return;
+                isDragging = false;
                 resizer.classList.remove('dragging');
-                document.body.style.cursor = 'default';
+                document.body.style.cursor     = '';
+                document.body.style.userSelect = '';
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup',   onUp);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend',  onUp);
                 const overlay = document.getElementById('resize-overlay');
                 if (overlay) overlay.remove();
-
-                // Force charts to resize after manual movement
-                setTimeout(() => {
-                    const mainB = document.getElementById('chart-main');
-                    const optB = document.getElementById('chart-opt');
-                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                    if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
-                }, 10);
+                setTimeout(forceChartResize, 30);
             };
 
-            resizer.addEventListener('mousedown', mouseDownHandler);
+            function startDrag(clientX) {
+                isDragging = true;
+                startX     = clientX;
+                leftWidth  = leftSide.getBoundingClientRect().width;
+                resizer.classList.add('dragging');
+                document.body.style.cursor     = 'col-resize';
+                document.body.style.userSelect = 'none';
+                // Block chart canvas from receiving mouse/touch so LC doesn't pan
+                const overlay = document.createElement('div');
+                overlay.id = 'resize-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;cursor:col-resize;';
+                document.body.appendChild(overlay);
+            }
+
+            resizer.addEventListener('mousedown', (e) => {
+                startDrag(e.clientX);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup',   onUp);
+            });
+
+            // iPad / touch support
+            resizer.addEventListener('touchstart', (e) => {
+                startDrag(e.touches[0].clientX);
+                document.addEventListener('touchmove', onMove, { passive: true });
+                document.addEventListener('touchend',  onUp);
+            }, { passive: true });
         }
 
         function clearSeries(list, chart) { list.forEach(s => chart.removeSeries(s)); return []; }
+
+        function handleTimeScaleChange(source) {
+            // Automatic sync disabled to prevent recursion and "2 bar" crashes.
+            // Charts will only align during initial load or explicit "Jump".
+            syncTradePills(source);
+        }
 
         function checkDhanAuth() {
             const source = document.getElementById('source-select').value;
@@ -304,7 +502,7 @@ Consolidated code context for AI assistants.
             await runStrategy(target === 'opt', true);
         }
 
-        async function runStrategy(isOpt = false, silent = false) {
+        async function runStrategy(isOpt = false, silent = false, noFit = false) {
             const loader = document.getElementById('loader');
             if (!silent) {
                 loader.style.display = 'flex';
@@ -355,10 +553,12 @@ Consolidated code context for AI assistants.
                 const chartData = dataRaw.chart_data;
                 const zones = dataRaw.zones;
                 const realTrades = dataRaw.real_trades || [];
+                loadedRealTrades = realTrades; // Fix: Populate global variable for modals
                 const visibleData = chartData.filter(d => !d.is_gap);
                 
                 // CRITICAL: Store the raw chartData so we have access to .datetime strings for fitting
                 lastStrategyData.visibleData = chartData; 
+                lastStrategyData.realTrades = realTrades;
                 if (!visibleData.length) return false;
 
                 targetCandle.setData(visibleData.map(d => ({ 
@@ -457,13 +657,16 @@ Consolidated code context for AI assistants.
                     const tradeNum = dailyCounts[tradeDate];
                     
                     let entryP, exitP;
-                    if (isOpt) {
-                        entryP = rt.entry_price || 0;
-                        exitP = rt.exit_price || 0;
-                    } else {
-                        // Plot at Candle High/Low on Index Chart
+                    // ALWAYS snap to candles for visual alignment, but keep ledger prices for labels
+                    // (entryCandle and exitCandle are already defined from visibleData/chartData above)
+                    
+                    if (entryCandle && exitCandle) {
+                        const isCE = rt.instrument.toUpperCase().includes('CE') || rt.instrument.toUpperCase().includes('CALL');
                         entryP = isCE ? entryCandle.high : entryCandle.low;
                         exitP = isCE ? exitCandle.high : exitCandle.low;
+                    } else if (isOpt) {
+                        entryP = rt.entry_price || 0;
+                        exitP = rt.exit_price || 0;
                     }
                     
                     if (entryT && exitT && entryP && exitP) {
@@ -492,22 +695,22 @@ Consolidated code context for AI assistants.
                                 tradeSeriesOpt.push(tSeries);
                                 
                                 rtMarkers.push({
-                                    time: entryT, position: isCE ? 'aboveBar' : 'belowBar',
-                                    color: '#6366f1', shape: 'circle', size: 0,
-                                    text: `t${tradeNum} IN @ ${Math.round(entryP)}`
+                                    time: entryT, position: 'inBar', 
+                                    color: '#6366f1', shape: 'circle', size: 1,
+                                    text: `t${tradeNum} IN @ ${Math.round(rt.entry_price || entryP)}`
                                 });
                                 rtMarkers.push({
-                                    time: exitT, position: isCE ? 'aboveBar' : 'belowBar',
+                                    time: exitT, position: 'inBar', 
                                     color: rt.pl > 0 ? '#10b981' : '#ef4444', shape: 'circle', size: 1,
-                                    text: `t${tradeNum} OUT (₹${Math.round(rt.pl)})`
+                                    text: `t${tradeNum} OUT @ ${Math.round(rt.exit_price || exitP)} (₹${Math.round(rt.pl)})`
                                 });
 
                                 // Add Pills for Option Chart
                                 tradePills.opt.push({
-                                    time: entryT, price: entryP, pl: 0, text: `t${tradeNum}<br>IN`, isCE, position: isCE ? 'above' : 'below'
+                                    time: entryT, price: entryP, pl: 0, text: `t${tradeNum}<br>@${Math.round(rt.entry_price || entryP)}`, isCE, position: isCE ? 'above' : 'below'
                                 });
                                 tradePills.opt.push({
-                                    time: exitT, price: exitP, pl: rt.pl, text: `t${tradeNum}<br>₹${Math.round(rt.pl)}`, isCE, position: isCE ? 'above' : 'below'
+                                    time: exitT, price: exitP, pl: rt.pl, text: `t${tradeNum}<br>@${Math.round(rt.exit_price || exitP)}<br>₹${Math.round(rt.pl)}`, isCE, position: isCE ? 'above' : 'below'
                                 });
                             }
                         } else {
@@ -538,8 +741,8 @@ Consolidated code context for AI assistants.
                     syncTradePills(isOpt ? 'opt' : 'main');
                 }, 50);
                 
-                // FIXED: Preserve zoom/view if silent (switcher) update
-                if (!silent) {
+                // FIXED: Preserve zoom/view if silent (switcher) update or noFit requested
+                if (!silent && !noFit) {
                     targetChart.timeScale().fitContent();
                 }
                 
@@ -553,10 +756,16 @@ Consolidated code context for AI assistants.
 
 ## File: `static/js/strategy-lab-b.js`
 ```js
-        function jumpToTrade(t) {
+function jumpToTrade(t) {
+            if (!chartMain || !t) return;
             document.getElementById('trades-modal').style.display = 'none';
-            chartMain.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
-            if (chartOpt) chartOpt.timeScale().setVisibleRange({ from: t - 1800, to: t + 1800 });
+            try {
+                // Expanded window: 90 mins before, 90 mins after for better context
+                const from = t - 5400; 
+                const to = t + 5400;
+                chartMain.timeScale().setVisibleRange({ from, to });
+                if (chartOpt) chartOpt.timeScale().setVisibleRange({ from, to });
+            } catch(e) { console.warn("Jump failed - chart not ready", e); }
         }
 
         async function loadInstrument(symbol, date) {
@@ -571,9 +780,9 @@ Consolidated code context for AI assistants.
                 dualBtn.innerText = 'DUAL VIEW: OFF';
                 document.getElementById('container-main').style.flex = '1';
                 
-                // Set 5-day lookback for EMA warmup
+                // Set 2-day lookback for EMA warmup
                 const dt = new Date(date);
-                dt.setDate(dt.getDate() - 5);
+                dt.setDate(dt.getDate() - 2);
                 const lookbackDate = dt.toISOString().split('T')[0];
                 
                 document.getElementById('symbol').value = symbol;
@@ -587,9 +796,9 @@ Consolidated code context for AI assistants.
                 dualBtn.innerText = 'DUAL VIEW: ON';
                 document.getElementById('opt-label').innerText = symbol;
                 
-                // Set 5-day lookback for EMA warmup
+                // Set 2-day lookback for EMA warmup
                 const dt = new Date(date);
-                dt.setDate(dt.getDate() - 5);
+                dt.setDate(dt.getDate() - 2);
                 const lookbackDate = dt.toISOString().split('T')[0];
                 
                 document.getElementById('symbol').value = symbol;
@@ -597,58 +806,63 @@ Consolidated code context for AI assistants.
                 document.getElementById('end-date').value = date;
                 document.getElementById('nav-date-picker').value = date;
                 
-                // Force a resize calculation before loading data
+                // Force load BOTH charts with noFit to prevent zooming out
+                await runStrategy(false, false, true);
+                await runStrategy(true, false, true);
+                
+                // Force a resize calculation 
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
                     const optB = document.getElementById('chart-opt');
-                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
-                }, 10);
-
-                await runStrategy(false, true); 
-                await runStrategy(true); 
-                
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                }, 100);
             }
             document.getElementById('history-modal').style.display = 'none';
 
-            // Common Zoom into market hours for both Index and Option
-            const tradeTs = Math.floor(new Date(date + " 00:00:00").getTime() / 1000);
+            // Fixed Initial Zoom: Standard Market Hours (09:15 - 15:30)
+            // Use UTC midnight ("T00:00:00Z") because Python's calendar.timegm() stores
+            // candle timestamps treating IST wall-clock time as UTC. So chart "09:15" = UTC 09:15.
+            // Local midnight (IST) would be 18:30 UTC the previous day, shifting the window by -5.5h.
+            const tradeTs = Math.floor(new Date(date + "T00:00:00Z").getTime() / 1000);
             setTimeout(() => {
-                const from = tradeTs + (9 * 3600); // 09:00 AM
-                const to = tradeTs + (16 * 3600);   // 04:00 PM
+                const from = tradeTs + (9.25 * 3600);  // 09:15 AM  (9 + 15/60 = 9.25)
+                const to   = tradeTs + (15.5  * 3600); // 03:30 PM  (15 + 30/60 = 15.5)
                 const range = { from, to };
-                chartMain.timeScale().setVisibleRange(range);
+                if (chartMain) chartMain.timeScale().setVisibleRange(range);
                 if (chartOpt) chartOpt.timeScale().setVisibleRange(range);
-            }, 300);
+            }, 1000);
         }
 
-        function toggleDualView() {
+        function toggleDualView(forceState = null) {
             const optBox = document.getElementById('container-opt');
             const resizer = document.getElementById('chart-resizer');
             const dualBtn = document.getElementById('dual-view-btn');
-            const isHidden = optBox.style.display === 'none';
             
-            if (isHidden) {
+            const isHidden = optBox.style.display === 'none';
+            const shouldShow = (forceState !== null) ? forceState : isHidden;
+            
+            if (shouldShow) {
                 optBox.style.display = 'block';
                 resizer.style.display = 'block';
                 dualBtn.innerText = 'DUAL VIEW: ON';
-                // Force resize check
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
                     const optB = document.getElementById('chart-opt');
-                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                    chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
-                    runStrategy(true); 
-                }, 20);
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                    if (chartOpt) chartOpt.applyOptions({ width: optB.clientWidth, height: optB.clientHeight });
+                    // Use noFit=true here to preserve any deep-link zoom
+                    runStrategy(true, true, true); 
+                }, 100);
             } else {
                 optBox.style.display = 'none';
                 resizer.style.display = 'none';
-                document.getElementById('container-main').style.flex = '1';
+                if (document.getElementById('container-main')) document.getElementById('container-main').style.flex = '1';
                 dualBtn.innerText = 'DUAL VIEW: OFF';
                 setTimeout(() => {
                     const mainB = document.getElementById('chart-main');
-                    chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
-                }, 20);
+                    if (chartMain) chartMain.applyOptions({ width: mainB.clientWidth, height: mainB.clientHeight });
+                }, 100);
             }
         }
 
@@ -829,10 +1043,20 @@ Consolidated code context for AI assistants.
 
         // KEYBOARD SHORTCUT: Alt + R for Smart Fit
         window.addEventListener('keydown', (e) => {
+            // IGNORE if typing in an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+                return;
+            }
+            
             if (e.altKey && e.key.toLowerCase() === 'r') {
                 e.preventDefault();
                 const btn = document.getElementById('fit-btn');
                 if (btn) btn.click();
+            }
+            if (e.altKey && e.key.toLowerCase() === 'g') {
+                e.preventDefault();
+                const dp = document.getElementById('nav-date-picker');
+                if (dp) { dp.focus(); dp.showPicker && dp.showPicker(); }
             }
         });
         document.getElementById('sidebar-toggle-btn').onclick = (e) => { 
@@ -1150,12 +1374,32 @@ Consolidated code context for AI assistants.
         };
 
         document.getElementById('close-sync-modal-btn').onclick = () => document.getElementById('sync-modal').style.display = 'none';
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             initChart();
-            runStrategy(false);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const sym = urlParams.get('symbol');
+            const dt  = urlParams.get('date');
+            const jump = urlParams.get('jumpTime');
+
+            if (sym && dt) {
+                // Introduce a small delay to ensure initChart and DOM settle
+                setTimeout(async () => {
+                    if (typeof toggleDualView === 'function') toggleDualView(true);
+                    await loadInstrument(sym, dt);
+                    // Full-day range (09:15–15:30) is applied inside loadInstrument.
+                    // jumpToTrade is intentionally NOT called here so the chart opens
+                    // in full-day view rather than a narrow zoom around the entry candle.
+                }, 200);
+            } else {
+                // Normal load
+                runStrategy(false);
+            }
+
             // Auto-sync in background on load
             syncAllData(true);
         });
+
 
         window.openPivotModal = function() {
             document.getElementById('pivot-modal').style.display = 'flex';

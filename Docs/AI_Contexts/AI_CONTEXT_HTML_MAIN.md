@@ -281,8 +281,9 @@ Consolidated code context for AI assistants.
           </div>
 
           <!-- File dropdown -->
-          <div class="dropdown-wrapper">
+          <div class="dropdown-wrapper" style="position:relative;">
             <button class="btn btn-primary" id="file-dropdown-btn">&#128193; File &#9660;</button>
+            <span id="live-sync-dot" title="Live sync idle" style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#555;display:none;pointer-events:auto;cursor:default;"></span>
             <div class="dropdown-menu" id="file-dropdown-menu">
               <button class="dropdown-item" id="import-btn">&#8679; Import Excel</button>
               <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" />
@@ -298,7 +299,10 @@ Consolidated code context for AI assistants.
               <div class="dropdown-divider"></div>
               <button class="dropdown-item" id="backup-btn">&#128190; Backup (Data + Images)</button>
               <button class="dropdown-item" id="restore-btn">&#8635; Restore from Backup</button>
-              <input type="file" id="json-input" accept=".js">on,.zip" style="display:none" />
+              <input type="file" id="json-input" accept=".json,.zip" style="display:none" />
+              <button class="dropdown-item" id="pull-from-live-btn" style="display:none; color:var(--green);">&#8659; Pull from Live</button>
+              <button class="dropdown-item" id="push-to-live-btn" style="display:none; color:var(--orange, #f0a500);">&#8657; Push to Live</button>
+              <button class="dropdown-item" id="auto-sync-toggle-btn" style="display:none; color:#aaa; font-size:0.85em;" onclick="toggleAutoSync()">⏸ Auto Sync: ON</button>
             </div>
           </div>
 
@@ -434,6 +438,17 @@ Consolidated code context for AI assistants.
   <script defer src="/static/js/events-settings.js?v={{ cache_bust }}"></script>
   <script defer src="/static/js/trade-sidebar.js?v={{ cache_bust }}"></script>
   <script defer src="/static/js/events.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/sync-live.js?v={{ cache_bust }}"></script>
+  <script>
+    (function(){
+      var isLocal = location.hostname==='localhost'||location.hostname==='127.0.0.1';
+      if(!isLocal) return;
+      var dot=document.getElementById('live-sync-dot');
+      if(dot) dot.style.display='block';
+      var tog=document.getElementById('auto-sync-toggle-btn');
+      if(tog) tog.style.display='';
+    })();
+  </script>
   <script defer src="/static/js/gallery-chart.js?v={{ cache_bust }}"></script>
   <script defer src="/static/js/fullscreen-viewer.js?v={{ cache_bust }}"></script>
   <script defer src="/static/js/visual-dashboard-stats.js?v={{ cache_bust }}"></script>

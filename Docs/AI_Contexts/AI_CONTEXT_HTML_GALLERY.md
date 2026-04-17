@@ -69,12 +69,26 @@ Consolidated code context for AI assistants.
       <div class="gv2-target-btn-wrap" id="gv2-pdf-library-btn-wrap" style="position:relative;">
         <button class="gv2-target-pill" id="gv2-pdf-library-btn" title="Open PDF Library" style="background:rgba(192,132,252,0.15); border-color:rgba(192,132,252,0.4); color:#c084fc;">📄</button>
       </div>
-      <!-- Tag Pin Controls -->
+      <!-- Tag Pin Options Dropdown -->
       <div class="gv2-target-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="tag-pin-vis-btn" title="Show tag pins" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); font-size:0.9rem;">&#128205;</button>
-      </div>
-      <div class="gv2-target-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="tag-pin-del-btn" title="Delete pin mode" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); font-size:0.9rem;">&#128465;</button>
+        <button class="gv2-target-pill" id="tag-pin-options-btn" title="Pin Options" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); font-size:0.9rem;">📍</button>
+        <div class="gv2-pnl-dropdown dropdown-menu" id="tag-pin-options-list" style="position:absolute; top:calc(100% + 8px); right:0; width:220px; padding:6px; background:rgba(30,35,48,0.98); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.12);">
+          <div class="gv2-dp-item" id="tag-pin-vis-toggle" style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:6px; cursor:pointer; color:var(--text2);">
+             <span id="pin-vis-indicator" style="width:8px;height:8px;border-radius:50%;background:#444;"></span>
+             <span style="flex:1">Show Pins</span>
+             <span style="font-size:0.8rem; opacity:0.5;">👁️</span>
+          </div>
+          <div class="gv2-dp-item" id="tag-pin-del-toggle" style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:6px; cursor:pointer; color:var(--text2);">
+             <span id="pin-del-indicator" style="width:8px;height:8px;border-radius:50%;background:#444;"></span>
+             <span style="flex:1">Delete Mode</span>
+             <span style="font-size:0.8rem; opacity:0.5;">🗑️</span>
+          </div>
+          <div class="gv2-dp-item" id="tag-pin-notes-toggle" style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:6px; cursor:pointer; color:var(--text2);">
+             <span id="pin-notes-indicator" style="width:8px;height:8px;border-radius:50%;background:#444;"></span>
+             <span style="flex:1">Always Visible Notes</span>
+             <span style="font-size:0.8rem; opacity:0.5;">📝</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -330,6 +344,36 @@ Consolidated code context for AI assistants.
   </div><!-- /gv2-body -->
 </div><!-- /gallery-modal -->
 
+<!-- 📁 Backup Progress Modal (requested by user for % slider) -->
+<div id="backup-progress-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center;">
+    <div style="width:400px; padding:30px; background:#1e2330; border-radius:16px; border:1px solid rgba(255,255,255,0.12); box-shadow:0 30px 100px rgba(0,0,0,0.9); text-align:center;">
+        <div style="font-size:1.5rem; margin-bottom:20px;">📦 System Backup</div>
+        <div id="backup-progress-text" style="color:var(--text2); font-size:0.9rem; margin-bottom:12px;">Initializing secure bundle...</div>
+        
+        <div style="width:100%; height:8px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; margin-bottom:10px;">
+           <div id="backup-progress-fill" style="width:2%; height:100%; background:linear-gradient(90deg, #3b82f6, #4ade80); transition:width 0.3s ease;"></div>
+        </div>
+        
+        <div id="backup-progress-percent" style="font-size:1.4rem; font-weight:800; color:#fff; display:block; margin-bottom:5px;">2%</div>
+        <div style="color:var(--text2); font-size:0.75rem; opacity:0.6;">Aapka sara data mahfooz kiya ja raha hai... ✨</div>
+    </div>
+</div>
+
+<!-- 📥 Restore Progress Modal -->
+<div id="restore-progress-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center;">
+    <div style="width:400px; padding:30px; background:#1e2330; border-radius:16px; border:1px solid rgba(255,255,255,0.12); box-shadow:0 30px 100px rgba(0,0,0,0.9); text-align:center;">
+        <div style="font-size:1.5rem; margin-bottom:20px;">📥 Restoring Backup</div>
+        <div id="restore-progress-text" style="color:var(--text2); font-size:0.9rem; margin-bottom:12px;">Extracting archives...</div>
+        
+        <div style="width:100%; height:8px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; margin-bottom:10px;">
+           <div id="restore-progress-fill" style="width:2%; height:100%; background:linear-gradient(90deg, #fbbf24, #ef4444); transition:width 0.3s ease;"></div>
+        </div>
+        
+        <div id="restore-progress-percent" style="font-size:1.4rem; font-weight:800; color:#fff; display:block; margin-bottom:5px;">2%</div>
+        <div style="color:var(--text2); font-size:0.75rem; opacity:0.6;">Aapka sara data wapas laya ja raha hai... ✨</div>
+    </div>
+</div>
+
 <!-- ── Gallery Settings Modal ──────────────────────────────────────── -->
 <div class="gv2-settings-overlay" id="gv2-settings-overlay">
   <div class="gv2-settings-panel">
@@ -353,6 +397,20 @@ Consolidated code context for AI assistants.
       <span class="gv2-settings-row-badge" id="gv2-tradesidebar-badge">OFF</span>
     </div>
 
+    <!-- Appearance -->
+    <div class="gv2-settings-section-label">Appearance</div>
+    <div class="gv2-settings-row" style="cursor:default; display: flex; flex-direction: column; gap: 8px; padding: 12px 15px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <div style="display: flex; align-items: center;">
+          <span class="gv2-settings-row-icon">Aa</span>
+          <span class="gv2-settings-row-label">Pill Font Size</span>
+        </div>
+        <span id="gv2-pill-font-size-val" style="font-size: 0.8rem; font-weight: 800; color: var(--blue);">0.82rem</span>
+      </div>
+      <input type="range" id="gv2-pill-font-size" min="0.5" max="1.5" step="0.01" value="0.82" 
+             style="width: 100%; cursor: pointer; accent-color: var(--blue);">
+    </div>
+
     <!-- Export -->
     <div class="gv2-settings-section-label">Export</div>
     <div class="gv2-settings-row" id="gv2-export-current-pdf-btn">
@@ -363,6 +421,20 @@ Consolidated code context for AI assistants.
       <span class="gv2-settings-row-icon">📄</span>
       <span class="gv2-settings-row-label">Export PDF Summary</span>
     </div>
+    <div class="gv2-settings-row" id="gv2-full-backup-btn" style="background:rgba(34,197,94,0.15); border-color:rgba(34,197,94,0.4);">
+      <span class="gv2-settings-row-icon">📦</span>
+      <span class="gv2-settings-row-label" style="color:#4ade80; font-weight:700;">Full Backup (.ZIP)</span>
+      <span style="font-size:0.65rem; color:#4ade80; opacity:0.8; margin-left:auto;">Data + Images</span>
+    </div>
+    <div class="gv2-settings-row" id="gv2-restore-backup-btn" style="background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.4); margin-bottom:15px;">
+      <span class="gv2-settings-row-icon">📤</span>
+      <span class="gv2-settings-row-label" style="color:#fbbf24; font-weight:700;">Restore Backup (.ZIP / .JSON)</span>
+    </div>
+
+    <!-- Action Button -->
+    <button class="btn btn-blue" id="gv2-settings-save-btn" style="width:100%; padding:10px; font-weight:700; margin-top:5px; border-radius:8px;">
+      SAVE SETTINGS
+    </button>
   </div>
 </div>
 
@@ -1309,7 +1381,7 @@ Consolidated code context for AI assistants.
         <svg id="gv2-sidebar-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M10 4l-4 4 4 4"/></svg>
       </button>
       <div class="gv2-sb-sep gv2-sidebar-collapsible"></div>
-      <button class="gv2-sb-btn gv2-sidebar-collapsible" id="gv2-fullscreen-btn" title="Fullscreen (F)">
+      <button class="gv2-sb-btn gv2-sidebar-collapsible" id="gv2-fullscreen-btn" title="Fullscreen">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
       </button>
       <button class="gv2-sb-btn" id="gv2-popout-btn" title="Popout (New Window)">

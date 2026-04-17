@@ -165,9 +165,10 @@ const VIDEO_COLUMN = 'Video';
 const TOTAL_FEES_COLUMN = 'Total Fees';
 const TOTAL_TRADES_COLUMN = 'Total Trades';
 const IMAGE_PERMANENT_TAGS = ['thumbnail'];
-const PERMANENT_COLUMNS = [BROKER_COLUMN, IMAGE_TAG_COLUMN, NOTE_COLUMN, VIDEO_COLUMN, TOTAL_TRADES_COLUMN];
+const PERMANENT_COLUMNS = ['Sequence', 'Day P&L', BROKER_COLUMN, IMAGE_TAG_COLUMN, NOTE_COLUMN, VIDEO_COLUMN, TOTAL_TRADES_COLUMN];
 const COMPUTED_COLUMNS = ['Brokerage', 'Other Charges', 'Gross P/L', 'Net P/L', TOTAL_FEES_COLUMN];
 const UNIFIED_STRUCTURED_COLUMNS = [
+  'Sequence',
   'Instrument',
   BROKER_COLUMN,
   'TradeType',
@@ -178,6 +179,7 @@ const UNIFIED_STRUCTURED_COLUMNS = [
   'Buy Price (Avg)',
   'Pt',
   'Rs',
+  'Day P&L',
   'trade_date'
 ];
 const IS_TOUCH_DEVICE = ('ontouchstart' in window) || 
@@ -537,6 +539,7 @@ async function saveTrades() {
       };
       await tradeService.saveTrades(payload);
       state.serverStateHash = hashServerState(payload);
+      window.dispatchEvent(new CustomEvent('tradesaved'));
     } catch (e) { showToast('Save failed', 'error'); }
   })();
   await _saveTradesQueue;
@@ -1099,6 +1102,18 @@ function tradeMatchesDateRange(trade) {
   if (state.dateRange.from && dk < state.dateRange.from) return false;
   if (state.dateRange.to && dk > state.dateRange.to) return false;
   return true;
+}
+
+function cleanInstrumentName(symbol) {
+  if (!symbol) return '';
+  const s = String(symbol).toUpperCase().trim();
+  // Pattern: Look for 3 or more digits followed by CE or PE at the end.
+  // This covers NIFTY24APR24200PE -> 24200 PE, BANKNIFTY2442556700CE -> 56700 CE
+  const match = s.match(/(\d{3,})(CE|PE)$/);
+  if (match) {
+    return `${match[1]} ${match[2]}`;
+  }
+  return s;
 }
 
 ```

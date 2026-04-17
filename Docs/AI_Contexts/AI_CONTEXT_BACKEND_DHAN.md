@@ -523,80 +523,80 @@ def fetch_expired_option_ohlc(symbol, trade_date, entry_time=None, config=None):
     raise ValueError(f"Could not fetch data for {symbol} on {trade_date} even after trying all strikes/expiries.")
 
 def get_sync_tasks(start_date=None, end_date=None):
-    """Extract unique instrument-week tasks from trades_1.json within date range"""
+    """Extract unique instrument-week tasks from trades_1.json within date range.
+    ALWAYS includes Nifty 50 Index as a priority task."""
     import pandas as pd
     trades_path = os.path.join('data', 'trades_1.json')
-    if not os.path.exists(trades_path): return []
-    try:
-        with open(trades_path, 'r') as f:
-            trades = json.load(f).get('trades', [])
-    except: return []
-    
-    unique_tasks = []
+    tasks = []
     seen = set()
     
     # Range check - be very explicit
+    today_str = datetime.now().strftime('%Y-%m-%d')
     s_filter = start_date if (start_date and str(start_date) != 'None' and str(start_date) != '') else "0000-00-00"
-    e_filter = end_date if (end_date and str(end_date) != 'None' and str(end_date) != '') else "9999-99-99"
+    e_filter = end_date if (end_date and str(end_date) != 'None' and str(end_date) != '') else today_str
     
-    for t in trades:
-        sym = t.get('Instrument', '').strip()
-        dt_str = t.get('trade_date', t.get('date', ''))
-        if sym and dt_str and sym.upper() != 'INDEX' and '^' not in sym:
-            # STRICT STRING COMPARISON (YYYY-MM-DD is lexicographical)
-            if dt_str < s_filter or dt_str > e_filter:
-                continue
-            
-            # Group by instrument and trade date (Exact task)
-            key = f"{sym}_{dt_str}"
-            if key not in seen:
-                unique_tasks.append({'symbol': sym, 'start_date': dt_str, 'date': dt_str})
-                seen.add(key)
-    return unique_tasks
+    # PRIORITY 1: Always ensure Nifty Index for the most recent date in range is synced
+    nifty_task_date = min(e_filter, today_str)
+    tasks.append({'symbol': 'Nifty 50 (^NSEI)', 'start_date': nifty_task_date, 'date': nifty_task_date})
+    seen.add(f"Nifty 50 (^NSEI)_{nifty_task_date}")
+
+    if os.path.exists(trades_path):
+        try:
+            with open(trades_path, 'r') as f:
+                tradesData = json.load(f).get('trades', [])
+                for t in tradesData:
+                    sym = t.get('Instrument', '').strip()
+                    dt_str = t.get('trade_date', t.get('date', ''))
+                    if sym and dt_str and sym.upper() != 'INDEX' and '^' not in sym:
+                        if dt_str < s_filter or dt_str > e_filter: continue
+                        key = f"{sym}_{dt_str}"
+                        if key not in seen:
+                            tasks.append({'symbol': sym, 'start_date': dt_str, 'date': dt_str})
+                            seen.add(key)
+        except: pass
+    return tasks
 
 def sync_single_task(symbol, trade_date, config=None):
-    """Sync specific instrument for 10 days lookback to ensure indicator warmup"""
-    if not config:
-        config = get_config()
+    """Sync specific instrument for 10 days lookback. Handles NIFTY index special path."""
+    if not config: config = get_config()
+    if not config: return {'status': 'error', 'error': 'Dhan credentials not found.'}
 
-    if not config:
-        return {'status': 'error', 'error': 'Dhan credentials not found. Please login.'}
+    # Ensure clean credentials
+    if 'access_token' in config: config['access_token'] = str(config['access_token']).strip()
+    if 'client_id' in config: config['client_id'] = str(config['client_id']).strip()
 
-    # Ensure clean credentials for headers
-    if 'access_token' in config:
-        config['access_token'] = str(config['access_token']).strip()
-    if 'client_id' in config:
-        config['client_id'] = str(config['client_id']).strip()
-
-    # Debug: Confirm active session
-    masked = (config['access_token'][:8] + "...") if len(config['access_token']) > 8 else "***"
-    print(f"DEBUG: Syncing {symbol} for {trade_date} | CID: {config.get('client_id')} | Token: {masked}")
-
+    is_nifty = 'NSEI' in symbol.upper() or 'NIFTY 50' in symbol.upper()
     end_dt = datetime.strptime(trade_date, '%Y-%m-%d')
-    start_dt = end_dt - timedelta(days=10) # 10 days lookback for EMA warmup
+    start_dt = end_dt - timedelta(days=5) # Reduced lookback for faster UI sync
     
-    synced = 0
-    errors = 0
-    curr = start_dt
-    day_results = []
+    synced = 0; errors = 0; curr = start_dt; day_results = []
     while curr <= end_dt:
         if curr.weekday() < 5: 
             c_str = curr.strftime('%Y-%m-%d')
             try:
-                res = fetch_expired_option_ohlc(symbol, c_str, config=config)
+                if is_nifty:
+                    # Sync Nifty Index via standard Historical API
+                    from services.dhan_ohlc_service import fetch_and_cache_ohlc
+                    # For Nifty, we force-save to the specific global CSV path
+                    res = fetch_and_cache_ohlc("13", "IDX_I", "INDEX", c_str, config=config)
+                    if not res.empty:
+                        # CRITICAL: Append to the specific Nifty 1m CSV
+                        n_path = "data/Historical_OHLC/nifty_1m_dhan.csv"
+                        if os.path.exists(n_path):
+                            df_old = pd.read_csv(n_path)
+                            res = pd.concat([df_old, res]).drop_duplicates('datetime').sort_values('datetime')
+                        res.to_csv(n_path, index=False)
+                else:
+                    res = fetch_expired_option_ohlc(symbol, c_str, config=config)
                 
-                # Use isinstance checks to avoid DataFrame ambiguity errors
                 if isinstance(res, str) and res == "AUTH_FAILED":
-                    print("CRITICAL: Sync aborted due to Auth Failure.")
-                    return {'status': 'error', 'error': 'Dhan Authentication Failed. Please check your Access Token.', 'synced': synced, 'results': day_results}
+                    return {'status': 'error', 'error': 'Auth Failed', 'synced': synced}
                 
                 synced += 1
                 status = 'OK'
-                if isinstance(res, str) and res == "ALREADY_COMPLETE": 
-                    status = 'SKIP'
+                if isinstance(res, str) and res == "ALREADY_COMPLETE": status = 'SKIP'
                 day_results.append({'date': c_str, 'status': status, 'weekday': curr.weekday()})
             except Exception as e:
-                print(f"Sync error for {symbol} on {c_str}: {e}")
                 errors += 1
                 day_results.append({'date': c_str, 'status': 'ERR', 'weekday': curr.weekday()})
         curr += timedelta(days=1)
@@ -882,6 +882,8 @@ from services.dhan_ohlc_service import (
     _parse_rollingoption_response,
     _parse_dhan_response,
     _cache_path,
+    _read_meta,
+    _write_meta,
 )
 # ── Removed from this file (now in dhan_ohlc_service.py) ─────────────────────
 # _get_lock, _cache_path, _meta_path, _read_meta, _write_meta,

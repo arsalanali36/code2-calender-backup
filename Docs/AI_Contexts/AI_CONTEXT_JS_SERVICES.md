@@ -41,12 +41,15 @@ const apiClient = (() => {
 
   /**
    * POST multipart FormData (for file uploads). Returns parsed JSON.
-   * @param {string} path
-   * @param {FormData} formData
    */
   async function upload(path, formData) {
     const res = await fetch(BASE + path, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error(`UPLOAD ${path} → ${res.status}`);
+    if (!res.ok) {
+        let errJson = null;
+        try { errJson = await res.json(); } catch(e) {}
+        if (errJson && errJson.error) throw new Error(errJson.error);
+        throw new Error(`UPLOAD ${path} → ${res.status}`);
+    }
     return res.json();
   }
 

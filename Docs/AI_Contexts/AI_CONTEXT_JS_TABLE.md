@@ -341,10 +341,23 @@ function renderTableBody(visibleCols, allCols, body, footRow) {
         });
         vwrap.appendChild(vinp);
         td.appendChild(vwrap);
+      } else if (col === 'Sequence') {
+        const inp = document.createElement('input'); inp.className = 'cell-input'; inp.readOnly = true;
+        inp.value = trade[col] || '';
+        inp.style.textAlign = 'center';
+        inp.style.fontWeight = 'bold';
+        inp.style.color = 'var(--blue)';
+        td.appendChild(inp);
+      } else if (col === 'Day P&L') {
+        const inp = document.createElement('input'); inp.className = 'cell-input'; inp.readOnly = true;
+        inp.value = trade[col] || '0.00';
+        applyProfitColor(inp, inp.value);
+        inp.style.fontWeight = '700';
+        td.appendChild(inp);
       } else {
         const inp = document.createElement('input'); inp.className = 'cell-input';
         inp.value = trade[col] !== undefined ? trade[col] : '';
-        if (col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs') {
+        if (col.toLowerCase().includes('profit') || col.toLowerCase() === 'rs' || col === 'Day P&L') {
           applyProfitColor(inp, inp.value);
           inp.addEventListener('input', () => applyProfitColor(inp, inp.value));
         }

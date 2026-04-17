@@ -46,6 +46,11 @@ function getImageTagsForGalleryItem(item) {
       });
       // Also include explicitly set trade-level tags
       getTradeTagsForTrade(trade).forEach(t => tags.add(t));
+      
+      // Virtual Tag: HAS NOTES (Trade Scope)
+      const pins = getTagPinsForUrl ? getTagPinsForUrl(item.url) : [];
+      if (pins.some(p => p.note && p.note.trim().length > 0)) tags.add('📝 HAS NOTES');
+
       return Array.from(tags);
     }
     return [];
@@ -60,6 +65,11 @@ function getImageTagsForGalleryItem(item) {
     getDayImageTagsForUrl(item.date, item.url).forEach(t => tags.add(t));
   }
   getMarqueeTagsForImage(item.url, item.date || '', item.sourceRow).forEach(t => tags.add(t));
+
+  // Virtual Tag: HAS NOTES (Image Scope)
+  const pins = typeof getTagPinsForUrl === 'function' ? getTagPinsForUrl(item.url, item.date) : [];
+  if (pins.some(p => p.note && p.note.trim().length > 0)) tags.add('📝 HAS NOTES');
+
   return Array.from(tags);
 }
 

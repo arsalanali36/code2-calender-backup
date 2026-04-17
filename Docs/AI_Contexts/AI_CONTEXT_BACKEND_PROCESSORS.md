@@ -146,6 +146,9 @@ def _normalize_trade_payload(data):
                 t['_overlayMap'] = _norm_url_keyed_dict(t.get('_overlayMap', {}), 'url')
             if 'subImages' in t:
                 t['subImages'] = _norm_url_keyed_dict(t.get('subImages', {}), 'url_list')
+        
+        # Assign t1, t2 sequences and running P&L
+        data['trades'] = assign_trade_sequences(trades)
 
     day_data = data.get('dayData', {})
     if isinstance(day_data, dict):
@@ -194,6 +197,8 @@ def consolidate_raw_fills(raw_df):
     required = ['Trade ID', 'Fill time', 'Type', 'Instrument', 'Product', 'Qty.', 'Avg. Price']
     missing = [c for c in required if c not in raw_df.columns]
     if missing:
+        from services.debug_service import log_ai_event
+        log_ai_event("IMPORT_ERROR", f"Missing columns in Zerodha Today CSV: {missing}", {"found_columns": list(raw_df.columns)})
         raise ValueError(f"Missing required columns: {', '.join(missing)}")
 
     df = raw_df.copy()
@@ -578,5 +583,63 @@ def consolidate_dhan_csv(raw_df):
         out['_sell_time_sort'] = pd.to_datetime(out['Sell Time'], format='%H:%M:%S', errors='coerce')
         out = out.sort_values('_sell_time_sort', ascending=True).drop(columns=['_sell_time_sort'])
     return out
+
+
+def assign_trade_sequences(trades: list) -> list:
+    """
+    Groups trades by date, sorts by execution time, and assigns:
+    - Sequence: 't1', 't2', etc.
+    - Day P&L: Cumulative Rs for that day up to that trade.
+    """
+    if not trades:
+        return []
+
+    from services.debug_service import log_ai_event
+    
+    # 1. Group trades by date
+    by_date = {}
+    for t in trades:
+        d = str(t.get('trade_date') or t.get('Date') or 'Unknown')
+        if d not in by_date: by_date[d] = []
+        by_date[d].append(t)
+
+    processed_trades = []
+    
+    for date_key, day_trades in by_date.items():
+        if date_key == 'Unknown':
+            processed_trades.extend(day_trades)
+            continue
+            
+        # 2. Sort trades by time (Buy Time priority)
+        def get_best_time(trade):
+            bt = str(trade.get('Buy Time', '')).strip()
+            st = str(trade.get('Sell Time', '')).strip()
+            # use Buy Time if available, fallback to Sell Time
+            t_str = bt if (bt and bt != '00:00:00') else st
+            if not t_str or t_str == '00:00:00':
+                return '23:59:59' 
+            return t_str
+
+        # Log diagnostic for missing time
+        missing = [t.get('Instrument', 'Unknown') for t in day_trades if not str(t.get('Buy Time','') or t.get('Sell Time','')).strip()]
+        if missing:
+            log_ai_event("STRATEGY_DEBUG", f"Date {date_key}: {len(missing)} trades missing execution time. Sequence might be inaccurate.", {"instruments": missing[:5]})
+
+        day_trades.sort(key=get_best_time)
+
+        # 3. Assign sequences and cumulative P&L
+        running_pl = 0.0
+        for i, t in enumerate(day_trades):
+            t['Sequence'] = f"t{i + 1}"
+            try:
+                val = float(t.get('Rs', 0) or 0)
+                running_pl += val
+            except:
+                pass
+            t['Day P&L'] = _format_float(running_pl, 2)
+            
+        processed_trades.extend(day_trades)
+
+    return processed_trades
 
 ```

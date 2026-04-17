@@ -46,7 +46,7 @@ def index():
         json.loads(initial_data_json)
     except Exception:
         initial_data_json = '{}'
-    use_bundle = os.path.exists(BUNDLE_PATH)
+    use_bundle = os.environ.get('USE_BUNDLE') == '1' and os.path.exists(BUNDLE_PATH)
     return render_template('index.html', cache_bust=int(time.time()),
                            initial_data_json=initial_data_json,
                            use_bundle=use_bundle)
@@ -82,6 +82,11 @@ def mobile_assets(filename):
 @page_bp.route('/api/blog-posts')
 def blog_posts_api():
     return jsonify(get_blog_entries_for_api(BLOG_PATH))
+
+
+@page_bp.route('/bulk-download')
+def bulk_download_page():
+    return render_template('bulk_download.html')
 
 ```
 
@@ -489,24 +494,30 @@ def import_excel_route():
     file = request.files['file']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
-    user_id = current_user.id if current_user.is_authenticated else None
+    
     try:
+        user_id = current_user.id if current_user.is_authenticated else None
         result = import_excel(file.read(), user_id=user_id)
-    except ValueError as e:
+        return jsonify(result)
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        log_ai_error(f"Excel Import Error: {str(e)}", e)
         return jsonify({'error': str(e)}), 400
-    return jsonify(result)
 
 
 @import_bp.route('/api/import-json', methods=['POST'])
 def import_json_route():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    user_id = current_user.id if current_user.is_authenticated else None
+    
     try:
+        user_id = current_user.id if current_user.is_authenticated else None
         result = import_json_or_zip(request.files['file'], UPLOADS_DIR, user_id=user_id)
-    except (ValueError, Exception) as e:
+        return jsonify(result)
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        log_ai_error(f"JSON/ZIP Import Error: {str(e)}", e)
         return jsonify({'error': str(e)}), 400
-    return jsonify(result)
 
 
 @import_bp.route('/api/admin/push-data', methods=['POST'])
@@ -515,14 +526,18 @@ def admin_push_data():
     key = request.headers.get('X-Api-Key', '')
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
+    
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    # Admin push uses no user session — saves to default data file
+    
     try:
+        # Admin push uses no user session — saves to default data file
         result = import_json_or_zip(request.files['file'], UPLOADS_DIR, user_id=None)
-    except (ValueError, Exception) as e:
-        return jsonify({'error': str(e)}), 400
-    return jsonify(result)
+        return jsonify(result)
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        log_ai_error(f"Admin Push Data Error: {str(e)}", e)
+        return jsonify({'error': str(e)}), 500
 
 
 @import_bp.route('/api/import-raw-csv', methods=['POST'])
@@ -532,11 +547,14 @@ def import_raw_csv_route():
     file = request.files['file']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
+    
     try:
         result = import_raw_csv(file)
-    except ValueError as e:
+        return jsonify(result)
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        log_ai_error(f"Raw CSV Import Error: {str(e)}", e)
         return jsonify({'error': str(e)}), 400
-    return jsonify(result)
 
 
 @import_bp.route('/api/import-historical-csv', methods=['POST'])
@@ -546,11 +564,14 @@ def import_historical_csv_route():
     file = request.files['file']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
+    
     try:
         result = import_historical_csv(file, STRUCTURED_TRADES_CSV)
-    except ValueError as e:
+        return jsonify(result)
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        log_ai_error(f"Historical CSV Import Error: {str(e)}", e)
         return jsonify({'error': str(e)}), 400
-    return jsonify(result)
 
 
 @import_bp.route('/api/import-dhan-csv', methods=['POST'])
@@ -560,11 +581,14 @@ def import_dhan_csv_route():
     file = request.files['file']
     if not file.filename:
         return jsonify({'error': 'Empty filename'}), 400
+    
     try:
         result = import_dhan_csv(file, STRUCTURED_TRADES_CSV)
-    except ValueError as e:
+        return jsonify(result)
+    except Exception as e:
+        from services.debug_service import log_ai_error
+        log_ai_error(f"Dhan CSV Import Error: {str(e)}", e)
         return jsonify({'error': str(e)}), 400
-    return jsonify(result)
 
 ```
 
@@ -579,6 +603,8 @@ logger Excel, and full backup ZIP.
 import io
 import os
 import re
+import json
+import shutil
 from datetime import datetime
 
 from flask import Blueprint, request, jsonify, send_file
@@ -587,7 +613,7 @@ from services.export_service import (
     export_simple_excel, export_structured_csv,
     export_logger_excel, build_backup_zip,
 )
-from config import DATA_FILE, UPLOADS_DIR
+from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG
 
 export_bp = Blueprint('export', __name__)
 
@@ -653,5 +679,165 @@ def export_logger_excel_route():
         download_name=f'trade_logger_export_{timestamp_str}.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
+
+
+@export_bp.route('/api/admin/get-data', methods=['GET'])
+def admin_get_data():
+    """API-key-protected: returns full trades JSON for live→localhost sync."""
+    key = request.headers.get('X-Api-Key', '')
+    if not ADMIN_API_KEY or key != ADMIN_API_KEY:
+        return jsonify({'error': 'Unauthorized'}), 401
+    user_id = request.args.get('user_id', None)
+    if user_id is not None:
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            return jsonify({'error': 'Invalid user_id'}), 400
+    try:
+        from processors.data_processors import get_user_data_file
+        data_file = get_user_data_file(user_id)
+        if not os.path.exists(data_file):
+            return jsonify({'error': 'Data file not found'}), 404
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify({'ok': True, 'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+LIVE_URL = 'https://code2-calender.onrender.com'
+
+
+@export_bp.route('/api/admin/data-version', methods=['GET'])
+def admin_data_version():
+    """API-key-protected: returns file mtime + trade count for sync comparison."""
+    key = request.headers.get('X-Api-Key', '')
+    if not ADMIN_API_KEY or key != ADMIN_API_KEY:
+        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        if not os.path.exists(DATA_FILE):
+            return jsonify({'ok': True, 'updated_at': None, 'trades': 0})
+        mtime = os.path.getmtime(DATA_FILE)
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify({'ok': True, 'updated_at': mtime, 'trades': len(data.get('trades', []))})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@export_bp.route('/api/sync/status', methods=['GET'])
+def sync_status():
+    """Localhost-only: compare local vs live data version, return sync direction."""
+    if not DEBUG:
+        return jsonify({'error': 'Only available in development mode'}), 403
+    if not ADMIN_API_KEY:
+        return jsonify({'ok': False, 'error': 'ADMIN_API_KEY not set'}), 500
+
+    local_ts = os.path.getmtime(DATA_FILE) if os.path.exists(DATA_FILE) else 0
+
+    import urllib.request as _urlreq
+    try:
+        req = _urlreq.Request(f'{LIVE_URL}/api/admin/data-version', headers={'X-Api-Key': ADMIN_API_KEY})
+        with _urlreq.urlopen(req, timeout=10) as resp:
+            live = json.loads(resp.read().decode('utf-8'))
+        live_ts = live.get('updated_at') or 0
+    except Exception as e:
+        return jsonify({'ok': False, 'error': f'Cannot reach live: {str(e)}'}), 502
+
+    if live_ts > local_ts + 2:
+        direction = 'pull'
+    elif local_ts > live_ts + 2:
+        direction = 'push'
+    else:
+        direction = 'equal'
+
+    return jsonify({'ok': True, 'local_ts': local_ts, 'live_ts': live_ts, 'direction': direction})
+
+
+def _backup_local(prefix):
+    """Backup local DATA_FILE before overwriting. Returns backup path or None."""
+    if not os.path.exists(DATA_FILE):
+        return None
+    ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
+    os.makedirs(backup_dir, exist_ok=True)
+    backup_path = os.path.join(backup_dir, f'{prefix}_{ts}.json')
+    shutil.copy2(DATA_FILE, backup_path)
+    return backup_path
+
+
+@export_bp.route('/api/pull-from-live', methods=['POST'])
+def pull_from_live():
+    """Localhost-only: pull trades data from the live server and save locally."""
+    if not DEBUG:
+        return jsonify({'error': 'Only available in development mode'}), 403
+    if not ADMIN_API_KEY:
+        return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
+
+    import urllib.request
+    endpoint = f'{LIVE_URL}/api/admin/get-data'
+    try:
+        req = urllib.request.Request(endpoint, headers={'X-Api-Key': ADMIN_API_KEY})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            raw = json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        return jsonify({'error': f'Failed to fetch from live: {str(e)}'}), 502
+
+    if not raw.get('ok') or 'data' not in raw:
+        return jsonify({'error': 'Live server returned unexpected response'}), 502
+
+    _backup_local('pre_pull')
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(raw['data'], f, ensure_ascii=False, indent=2)
+
+    trade_count = len(raw['data'].get('trades', []))
+    return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pulled {trade_count} trades from live'})
+
+
+@export_bp.route('/api/push-to-live', methods=['POST'])
+def push_to_live():
+    """Localhost-only: push local trades data to the live server."""
+    if not DEBUG:
+        return jsonify({'error': 'Only available in development mode'}), 403
+    if not ADMIN_API_KEY:
+        return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
+    if not os.path.exists(DATA_FILE):
+        return jsonify({'error': 'Local data file not found'}), 404
+
+    import urllib.request
+    with open(DATA_FILE, 'rb') as f:
+        json_bytes = f.read()
+
+    # Validate JSON before sending
+    try:
+        local_data = json.loads(json_bytes)
+    except Exception:
+        return jsonify({'error': 'Local trades.json is invalid JSON'}), 400
+
+    boundary = 'FormBoundaryKhazana2026'
+    body = (
+        f'--{boundary}\r\n'
+        f'Content-Disposition: form-data; name="file"; filename="trades.json"\r\n'
+        f'Content-Type: application/json\r\n\r\n'
+    ).encode() + json_bytes + f'\r\n--{boundary}--\r\n'.encode()
+
+    endpoint = f'{LIVE_URL}/api/admin/push-data'
+    try:
+        req = urllib.request.Request(
+            endpoint,
+            data=body,
+            headers={
+                'X-Api-Key': ADMIN_API_KEY,
+                'Content-Type': f'multipart/form-data; boundary={boundary}',
+            },
+            method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        return jsonify({'error': f'Failed to push to live: {str(e)}'}), 502
+
+    trade_count = len(local_data.get('trades', []))
+    return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pushed {trade_count} trades to live'})
 
 ```

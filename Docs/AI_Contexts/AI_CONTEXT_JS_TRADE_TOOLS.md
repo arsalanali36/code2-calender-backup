@@ -2021,7 +2021,7 @@ function renderTagPins() {
     dot.dataset.pinId    = pin.id;
 
     const tt = document.createElement('span');
-    tt.className      = 'tag-pin-tooltip';
+    tt.className      = 'tag-pin-tooltip' + (state.gallery._tagNotesAlwaysVisible ? ' always-visible' : '');
     tt.style.borderColor = pin.color;
     if (pin.note) {
       const tagLine = document.createElement('div');
@@ -2061,31 +2061,54 @@ function renderTagPins() {
 // ── Drag-to-move ──────────────────────────────────────────────────────────────
 
 function _bindPinDrag(dot, pin) {
-  let dragging  = false;
-  let hasMoved  = false;
+  let dragging        = false;
+  let hasMoved        = false;
+  let _longPressTimer = null;
 
   const _clientXY = (e) => {
-    if (e.touches     && e.touches.length)        return [e.touches[0].clientX,        e.touches[0].clientY];
+    if (e.touches      && e.touches.length)       return [e.touches[0].clientX,        e.touches[0].clientY];
     if (e.changedTouches && e.changedTouches.length) return [e.changedTouches[0].clientX, e.changedTouches[0].clientY];
     return [e.clientX, e.clientY];
+  };
+
+  const _startDrag = () => {
+    dragging = true;
+    hasMoved = false;
+    dot.classList.add('tag-pin-dragging');
   };
 
   const onStart = (e) => {
     if (e.button !== undefined && e.button !== 0) return; // left-click only
     e.stopPropagation();
     e.preventDefault();
-    dragging = true;
-    hasMoved = false;
-    dot.classList.add('tag-pin-dragging');
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup',   onEnd);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend',  onEnd);
+
+    if (e.type === 'touchstart') {
+      // Long-press (500ms) → open note editor; finger move → drag
+      hasMoved = false;
+      _longPressTimer = setTimeout(() => {
+        _longPressTimer = null;
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend',  onEnd);
+        _openPinNoteEditor(pin, dot);
+      }, 500);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend',  onEnd);
+    } else {
+      _startDrag();
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup',   onEnd);
+    }
   };
 
   const onMove = (e) => {
-    if (!dragging) return;
     if (e.cancelable) e.preventDefault();
+    // Finger moved before long-press fired → cancel long-press and start drag
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+      _startDrag();
+    }
+    if (!dragging) return;
     hasMoved = true;
     const [cx, cy] = _clientXY(e);
     const coords = _screenToLogical(cx, cy);
@@ -2095,15 +2118,20 @@ function _bindPinDrag(dot, pin) {
   };
 
   const onEnd = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    dot.classList.remove('tag-pin-dragging');
+    // Short tap (finger lifted before long-press timer) → cancel timer, no action
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup',   onEnd);
     window.removeEventListener('touchmove', onMove);
     window.removeEventListener('touchend',  onEnd);
 
-    if (!hasMoved) return; // just a click, not a drag
+    if (!dragging) return;
+    dragging = false;
+    dot.classList.remove('tag-pin-dragging');
+    if (!hasMoved) return; // click, not a drag
 
     const [cx, cy] = _clientXY(e);
     const coords = _screenToLogical(cx, cy);
@@ -2208,29 +2236,60 @@ function _clearPendingPinTag() {
 
 function initTagPinHeaderButtons() {
   if (!state.gallery) return;
-  if (state.gallery._tagPinsVisible   === undefined) state.gallery._tagPinsVisible   = true;
-  if (state.gallery._tagPinDeleteMode === undefined) state.gallery._tagPinDeleteMode = false;
+  if (state.gallery._tagPinsVisible         === undefined) state.gallery._tagPinsVisible         = true;
+  if (state.gallery._tagPinDeleteMode       === undefined) state.gallery._tagPinDeleteMode       = false;
+  if (state.gallery._tagNotesAlwaysVisible  === undefined) state.gallery._tagNotesAlwaysVisible  = false;
 
-  const visBtn = document.getElementById('tag-pin-vis-btn');
-  const delBtn = document.getElementById('tag-pin-del-btn');
+  const mainBtn = document.getElementById('tag-pin-options-btn');
+  const list    = document.getElementById('tag-pin-options-list');
 
-  if (visBtn && !visBtn._bound) {
-    visBtn._bound = true;
-    visBtn.addEventListener('click', () => {
+  if (mainBtn && !mainBtn._bound) {
+    mainBtn._bound = true;
+    mainBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = list.style.display === 'block';
+        document.querySelectorAll('.dropdown-menu').forEach(d => d.style.display = 'none');
+        list.style.display = isOpen ? 'none' : 'block';
+        _updatePinHeaderBtns();
+    });
+    document.addEventListener('click', () => { if(list) list.style.display = 'none'; });
+    list?.addEventListener('click', e => e.stopPropagation());
+  }
+
+  const visItem   = document.getElementById('tag-pin-vis-toggle');
+  const delItem   = document.getElementById('tag-pin-del-toggle');
+  const notesItem = document.getElementById('tag-pin-notes-toggle');
+
+  if (visItem && !visItem._bound) {
+    visItem._bound = true;
+    visItem.addEventListener('click', () => {
       state.gallery._tagPinsVisible = !state.gallery._tagPinsVisible;
-      if (!state.gallery._tagPinsVisible) state.gallery._tagPinDeleteMode = false;
+      if (!state.gallery._tagPinsVisible) {
+          state.gallery._tagPinDeleteMode = false;
+          state.gallery._tagNotesAlwaysVisible = false;
+      }
       _updatePinHeaderBtns();
       renderTagPins();
     });
   }
 
-  if (delBtn && !delBtn._bound) {
-    delBtn._bound = true;
-    delBtn.addEventListener('click', () => {
+  if (delItem && !delItem._bound) {
+    delItem._bound = true;
+    delItem.addEventListener('click', () => {
       if (!state.gallery._tagPinsVisible) return;
       state.gallery._tagPinDeleteMode = !state.gallery._tagPinDeleteMode;
       _updatePinHeaderBtns();
       renderTagPins();
+    });
+  }
+
+  if (notesItem && !notesItem._bound) {
+    notesItem._bound = true;
+    notesItem.addEventListener('click', () => {
+        if (!state.gallery._tagPinsVisible) return;
+        state.gallery._tagNotesAlwaysVisible = !state.gallery._tagNotesAlwaysVisible;
+        _updatePinHeaderBtns();
+        renderTagPins();
     });
   }
 
@@ -2400,8 +2459,26 @@ function _openPinNoteEditor(pin, anchorEl) {
   sel.addRange(range);
 
   setTimeout(() => {
-    const onOut = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', onOut); } };
-    document.addEventListener('mousedown', onOut);
+    const onOut = ev => {
+      if (!pop.contains(ev.target)) {
+        // Auto-save on click-out / touch-out (iPad)
+        doSave(editor.innerHTML);
+        document.removeEventListener('mousedown',  onOut);
+        document.removeEventListener('touchstart', onOut);
+      }
+    };
+    document.addEventListener('mousedown',  onOut);
+    document.addEventListener('touchstart', onOut, { passive: true });
+    
+    // Also clean up listener if manually saved/cancelled/deleted
+    const originalDoSave = doSave;
+    doSave = (html) => {
+      document.removeEventListener('mousedown', onOut);
+      originalDoSave(html);
+    };
+    const originalCancel = cancelBtn.onclick; // wait, let's just add it
+    cancelBtn.addEventListener('click', () => document.removeEventListener('mousedown', onOut));
+    deleteBtn.addEventListener('click', () => document.removeEventListener('mousedown', onOut));
   }, 50);
 }
 
@@ -2409,23 +2486,22 @@ function _updatePinHeaderBtns() {
   if (!state.gallery) return;
   const v = state.gallery._tagPinsVisible;
   const d = state.gallery._tagPinDeleteMode;
+  const n = state.gallery._tagNotesAlwaysVisible;
 
-  const visBtn = document.getElementById('tag-pin-vis-btn');
-  const delBtn = document.getElementById('tag-pin-del-btn');
+  const mainBtn = document.getElementById('tag-pin-options-btn');
+  if (mainBtn) {
+    mainBtn.style.color = v ? '#ffd700' : 'rgba(255,255,255,0.4)';
+    mainBtn.style.borderColor = v ? '#ffd700' : 'rgba(255,255,255,0.1)';
+    if (d) { mainBtn.style.color = '#e74c3c'; mainBtn.style.borderColor = '#e74c3c'; }
+  }
 
-  if (visBtn) {
-    visBtn.classList.toggle('tag-pin-btn-active', !!v);
-    visBtn.title         = v ? 'Hide tag pins' : 'Show tag pins';
-    visBtn.style.opacity = v ? '' : '0.45';
-  }
-  if (delBtn) {
-    delBtn.classList.toggle('tag-pin-btn-active', !!d);
-    delBtn.title             = d ? 'Exit delete mode' : 'Delete pins (click/tap to remove)';
-    delBtn.style.color       = d ? '#e74c3c' : '';
-    delBtn.style.borderColor = d ? 'rgba(231,76,60,0.6)' : '';
-    delBtn.style.background  = d ? 'rgba(231,76,60,0.12)' : '';
-    delBtn.style.opacity     = v ? '' : '0.45';
-  }
+  const vInd = document.getElementById('pin-vis-indicator');
+  const dInd = document.getElementById('pin-del-indicator');
+  const nInd = document.getElementById('pin-notes-indicator');
+
+  if (vInd) vInd.style.background = v ? 'var(--blue)' : '#444';
+  if (dInd) dInd.style.background = d ? 'var(--red)'  : '#444';
+  if (nInd) nInd.style.background = n ? 'var(--orange)' : '#444';
 }
 
 ```

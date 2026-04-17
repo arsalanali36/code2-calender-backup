@@ -132,20 +132,19 @@ function renderGalleryStats() {
 function renderGalleryPnlPill() {
     const wrap = document.getElementById('gv2-pnl-wrap');
     const pill = document.getElementById('gv2-pnl-pill');
-    const drop = document.getElementById('gv2-pnl-dropdown');
-    if (!wrap || !pill || !drop) return;
+    // Target both potential dropdowns
+    const drops = [
+        document.getElementById('gv2-pnl-dropdown'),
+        document.getElementById('gv2-trade-dropdown')
+    ].filter(d => !!d);
+
+    if (!wrap || !pill || !drops.length) return;
 
     const date = state.gallery.date;
-    if (!date) {
-        wrap.style.display = 'none';
-        return;
-    }
+    if (!date) { wrap.style.display = 'none'; return; }
 
     const trades = typeof getTradesForDate === 'function' ? getTradesForDate(date) : [];
-    if (!trades.length) {
-        wrap.style.display = 'none';
-        return;
-    }
+    if (!trades.length) { wrap.style.display = 'none'; return; }
 
     wrap.style.display = 'flex';
     let totalPnl = 0;
@@ -156,20 +155,37 @@ function renderGalleryPnlPill() {
     const fmtPnl = v => (v < 0 ? '-' : '') + '₹' + Math.abs(Math.round(v)).toLocaleString('en-IN');
     pill.textContent = fmtPnl(totalPnl);
     pill.style.color = totalPnl > 0 ? '#2ecc71' : totalPnl < 0 ? '#e74c3c' : 'var(--text2)';
-
-    // Dropdown Logic (Relocated from trade pill)
-    drop.innerHTML = '';
-    drop.onclick = e => e.stopPropagation();
-    drop.style.width = '750px'; // Wider for full instrument names
-    drop.style.minWidth = '580px';
-    drop.style.maxWidth = '98vw';
-    drop.style.boxSizing = 'border-box';
-    drop.style.overflowX = 'hidden';
-    drop.style.padding = '8px 0';
+    
+    // Fix font size to match others
+    pill.style.fontSize = 'calc(var(--pill-font-size, 0.82rem) * 1.1)';
+    pill.style.fontWeight = '800';
+    pill.style.cursor = 'default'; // No menu here as requested
+    pill.style.pointerEvents = 'none'; // DISABLE ALL CLICKS TOTALLY
+    
+    // Clear any existing dropdown listeners/logic from this pill specifically
+    const drop = document.getElementById('gv2-pnl-dropdown');
+    if (drop) drop.classList.remove('open');
+    pill.onclick = (e) => { e.preventDefault(); e.stopPropagation(); return false; }; 
 
     const curUrl = (state.gallery.images || [])[state.gallery.currentIndex];
     const activeTrade = typeof getOwnerTradeForImageUrl === 'function' ? getOwnerTradeForImageUrl(curUrl) : null;
     const activeIdx = activeTrade ? trades.indexOf(activeTrade) : -1;
+
+    // Find WHICH dropdown is currently open to populate it (only if open)
+    const activeDrop = [
+        document.getElementById('gv2-pnl-dropdown'),
+        document.getElementById('gv2-trade-dropdown')
+    ].find(d => d && d.classList.contains('open'));
+
+    if (!activeDrop) return;
+    activeDrop.innerHTML = '';
+    activeDrop.onclick = e => e.stopPropagation();
+    activeDrop.style.width = '750px'; 
+    activeDrop.style.minWidth = '580px';
+    activeDrop.style.maxWidth = '98vw';
+    activeDrop.style.boxSizing = 'border-box';
+    activeDrop.style.overflowX = 'hidden';
+    activeDrop.style.padding = '8px 0';
 
     let runningTotal = 0;
     trades.forEach((t, i) => {
@@ -220,13 +236,12 @@ function renderGalleryPnlPill() {
 
         const lbl = document.createElement('span');
         lbl.className = 'gv2-pnl-trade-label';
-        lbl.style.cssText = `font-weight:${isActive ? '900' : '700'}; font-size:0.82rem; color:${isActive ? '#60a5fa' : 'var(--text3)'};`;
+        lbl.style.cssText = `font-weight:${isActive ? '900' : '700'}; font-size:var(--pill-font-size, 0.82rem); color:${isActive ? '#60a5fa' : 'var(--text3)'};`;
         lbl.textContent = `T${i + 1}`;
 
         const rawInst = t.Instrument || t.instrument || t.Symbol || t.symbol || '';
         const instNum = rawInst.toUpperCase();
-        const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-        const instText = m ? `${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]} ${m[6]}` : instNum;
+        const instText = cleanInstrumentName(rawInst);
 
         let instColor = '#ffd700';
         if (instNum.endsWith('CE')) instColor = '#c084fc';
@@ -234,24 +249,24 @@ function renderGalleryPnlPill() {
 
         const inst = document.createElement('span');
         inst.className = 'gv2-pnl-trade-inst';
-        inst.style.cssText = `font-size:0.73rem; color:${instColor}; font-weight:700; white-space:nowrap;`;
+        inst.style.cssText = `font-size:var(--pill-font-size, 0.82rem); color:${instColor}; font-weight:700; white-space:nowrap;`;
         inst.textContent = instText || '—';
 
         const info = document.createElement('span');
-        info.style.cssText = 'font-size:0.73rem; color:var(--text3); white-space:nowrap; overflow:hidden;';
+        info.style.cssText = 'font-size:var(--pill-font-size, 0.82rem); color:var(--text3); white-space:nowrap; overflow:hidden;';
         info.innerHTML = `<span style="color:var(--text2)">${entryTime}</span>${dur ? ` <span style="font-weight:700; color:#fff;">[${dur}]</span>` : ''}${lot ? ` <span style="color:var(--text2);">${lot}</span>` : ''}`;
 
         const ptWrap = document.createElement('span');
         ptWrap.textContent = Math.abs(Math.round(pt)) + ' Pt';
-        ptWrap.style.cssText = `text-align:right; color:${pt >= 0 ? '#2ecc71' : '#e74c3c'}; font-size:0.78rem; font-weight:600; white-space:nowrap;`;
+        ptWrap.style.cssText = `text-align:right; color:${pt >= 0 ? '#2ecc71' : '#e74c3c'}; font-size:var(--pill-font-size, 0.82rem); font-weight:700; white-space:nowrap;`;
 
         const val = document.createElement('span');
         val.textContent = fmtPnl(p);
-        val.style.cssText = `text-align:right; font-weight:700; font-size:0.85rem; color:${p > 0 ? '#2ecc71' : (p < 0 ? '#e74c3c' : 'var(--text2)')}; white-space:nowrap;`;
+        val.style.cssText = `text-align:right; font-weight:700; font-size:calc(var(--pill-font-size, 0.82rem) * 1.05); color:${p > 0 ? '#2ecc71' : (p < 0 ? '#e74c3c' : 'var(--text2)')}; white-space:nowrap;`;
 
         const cumVal = document.createElement('span');
         cumVal.textContent = fmtPnl(runningTotal);
-        cumVal.style.cssText = `text-align:right; font-weight:600; font-size:0.82rem; border-left:1px solid rgba(255,255,255,0.12); padding-left:8px; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; white-space:nowrap;`;
+        cumVal.style.cssText = `text-align:right; font-weight:600; font-size:var(--pill-font-size, 0.82rem); border-left:1px solid rgba(255,255,255,0.12); padding-left:8px; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; white-space:nowrap;`;
 
         row.appendChild(dot); row.appendChild(lbl); row.appendChild(inst); row.appendChild(info); row.appendChild(ptWrap); row.appendChild(val); row.appendChild(cumVal);
         row.addEventListener('click', () => {
@@ -262,20 +277,20 @@ function renderGalleryPnlPill() {
                  if (idx >= 0) {
                      // ENSURE TRADE IS EXPANDED in thumbnail panel
                      if (state.gallery.collapsedSeparators) {
-                         state.gallery.collapsedSeparators.delete('T' + tIdx);
-                     }
+                        state.gallery.collapsedSeparators.delete('T' + (i + 1));
+                    }
                      state.gallery.currentIndex = idx;
                      if (typeof renderGallery === 'function') renderGallery();
                  }
              } else if (state.gallery.tagFilter?.length) {
                  if (typeof showToast === 'function') showToast('No images of this trade match the current filter', 'info');
              }
-             const drop = document.getElementById('gv2-pnl-dropdown');
-             if (drop) drop.classList.remove('open');
+             // Close all dropdowns
+             document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open'));
+             document.querySelectorAll('.gv2-pnl-dropdown').forEach(d => d.classList.remove('open'));
         });
-        drop.appendChild(row);
+        activeDrop.appendChild(row);
     });
-
 }
 
 // ── Trade pill (current image's trade + its P/L) ──────────────────────────
@@ -306,8 +321,7 @@ function renderGalleryTradePill() {
 
     const rawInst = owner.Instrument || owner.instrument || owner.Symbol || owner.symbol || '';
     const instNum = rawInst.toUpperCase();
-    const m = instNum.match(/^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$/);
-    const instText = m ? `${m[5]} ${m[6]}` : instNum;
+    const instText = cleanInstrumentName(rawInst);
 
     const buyTime = (owner['Buy Time'] || owner['buy_time'] || '').slice(0, 5);
     const sellTime = (owner['Sell Time'] || owner['sell_time'] || '').slice(0, 5);
@@ -343,18 +357,48 @@ function renderGalleryTradePill() {
     pill.style.background = 'rgba(255,255,255,0.08)';
     pill.style.transform = 'scale(1.02)';
     pill.innerHTML =
-        `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:${badgeBg};font-weight:900;font-size:0.78rem;color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
-      + `<span class="gv2-tp-inst" style="margin-left:8px; font-weight:700; color:#fff; font-size:0.85rem; letter-spacing:0.2px;">${instText}</span>`
-      + `<span class="gv2-tp-info" style="margin-left:8px; font-size:0.75rem; color:rgba(255,255,255,0.5); border-left:1px solid rgba(255,255,255,0.1); padding-left:8px;">`
+        `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 5px;border-radius:13px;background:${badgeBg};font-weight:900;font-size:calc(var(--pill-font-size, 0.82rem) * 0.9);color:#fff;line-height:1;flex-shrink:0;letter-spacing:-0.3px;">T${tIdx + 1}</span>`
+      + `<span class="gv2-tp-inst" style="margin-left:10px; font-weight:800; color:#fff; font-size:calc(var(--pill-font-size, 0.82rem) * 1.15); letter-spacing:0.2px;">${instText}</span>`
+      + `<span class="gv2-tp-info" style="margin-left:10px; font-size:var(--pill-font-size, 0.82rem); color:rgba(255,255,255,0.7); border-left:1px solid rgba(255,255,255,0.2); padding-left:10px;">`
          + `<span style="color:#fff">${entryTime}</span>`
-         + `${dur ? ` <span style="color:#fff; font-weight:700;">[${dur}]</span>` : ''}`
-         + `${lot ? ` <span style="color:var(--text3);">${lot}L</span>` : ''}`
+         + `${dur ? ` <span style="color:#fff; font-weight:800;">[${dur}]</span>` : ''}`
+         + `${lot ? ` <span style="color:var(--text2);">${lot}L</span>` : ''}`
       + `</span>`
-      + `<span class="gv2-tp-val ${cls}" style="margin-left:12px; font-weight:700;">${fmtPnl(pnl)}</span>`
-      + `<span class="gv2-tp-val ${ptCls}" style="margin-left:6px;">${ptStr}</span>`
-      + `<span class="gv2-tp-total" style="margin-left:12px; font-size:0.78rem; font-weight:600; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; background:rgba(255,255,255,0.05); padding:2px 8px; border-radius:10px;">`
+      + `<span class="gv2-tp-val ${cls}" style="margin-left:14px; font-weight:800; font-size:calc(var(--pill-font-size, 0.82rem) * 1.25);">${fmtPnl(pnl)}</span>`
+      + `<span class="gv2-tp-val ${ptCls}" style="margin-left:8px; font-size:calc(var(--pill-font-size, 0.82rem) * 1.05);">${ptStr}</span>`
+      + `<span class="gv2-tp-total" style="margin-left:14px; font-size:var(--pill-font-size, 0.82rem); font-weight:700; color:${runningTotal >= 0 ? '#2ecc71' : '#e74c3c'}; background:rgba(255,255,255,0.08); padding:3px 10px; border-radius:12px;">`
          + `Total: ${fmtPnl(runningTotal)}`
-      + `</span>`;
+          + `</span>`;
+
+    // ── Dropdown Toggle logic ────────────────────────────────────────────────
+    const drop = document.getElementById('gv2-trade-dropdown');
+    pill.style.cursor = 'pointer';
+    
+    // Arrow cleanup: check if already exists to avoid duplicates
+    let arrow = pill.querySelector('.gv2-pill-arrow');
+    if (!arrow) {
+        arrow = document.createElement('span');
+        arrow.className = 'gv2-pill-arrow';
+        arrow.innerHTML = ' ▾';
+        arrow.style.cssText = 'color:rgba(255,255,255,0.4); margin-left:6px; font-size:0.8rem; pointer-events:none;';
+    }
+
+    pill.onclick = (e) => {
+        e.stopPropagation();
+        if (drop) {
+            const isOpened = drop.classList.contains('open');
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open'));
+            document.querySelectorAll('.gv2-pnl-dropdown').forEach(d => d.classList.remove('open'));
+            
+            if (!isOpened) {
+                drop.classList.add('open');
+                renderGalleryPnlPill(); 
+            }
+        }
+    };
+    
+    if (!pill.contains(arrow)) pill.appendChild(arrow);
 }
 
 // renderGalleryTrayState, renderGalleryTradeInfoDisplay, renderGalleryTrayCounter, renderGalleryMtmPanel
@@ -1424,19 +1468,68 @@ function initOtherDropdown() {
   const btn     = document.getElementById('gv2-other-btn');
   const overlay = document.getElementById('gv2-settings-overlay');
   const closeBtn = document.getElementById('gv2-settings-close');
+  const saveBtn  = document.getElementById('gv2-settings-save-btn');
   if (!btn || !overlay) return;
 
   if (btn.dataset.initialized) return;
   btn.dataset.initialized = 'true';
 
+  // Local staging variables (only save to state/localStorage on "Save Settings" click)
+  let stagedShowRefCards = true;
+  let stagedSidebarDisabled = true;
+  let stagedPillFontSize = '0.82rem';
+
   const openModal = (e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (state.gallery.showRefCards === undefined) state.gallery.showRefCards = true;
-    if (window._tradeSidebarDisabled === undefined) window._tradeSidebarDisabled = true;
-    _syncRefCardsBtn();
-    _syncTradeSidebarBtn();
+    
+    // 1. Initial Load of current state into staging
+    if (state.gallery.showRefCards === undefined) {
+      try {
+        const stored = localStorage.getItem('tj_gv2_showRefCards');
+        state.gallery.showRefCards = (stored !== null) ? (stored === 'true') : true;
+      } catch(e) { state.gallery.showRefCards = true; }
+    }
+    if (window._tradeSidebarDisabled === undefined) {
+      try {
+        const stored = localStorage.getItem('tj_gv2_sidebarDisabled');
+        window._tradeSidebarDisabled = (stored !== null) ? (stored === 'true') : true;
+      } catch(e) { window._tradeSidebarDisabled = true; }
+    }
+
+    if (state.gallery.pillFontSize === undefined) {
+      try {
+        const stored = localStorage.getItem('tj_gv2_pillFontSize');
+        state.gallery.pillFontSize = stored || '0.82rem';
+      } catch(e) { state.gallery.pillFontSize = '0.82rem'; }
+    }
+
+    stagedShowRefCards = state.gallery.showRefCards;
+    stagedSidebarDisabled = window._tradeSidebarDisabled;
+    stagedPillFontSize = state.gallery.pillFontSize;
+
+    _updateStagedUI();
     overlay.classList.add('open');
     btn.classList.add('active');
+  };
+
+  const _updateStagedUI = () => {
+    const rcBadge = document.getElementById('gv2-refcards-badge');
+    if (rcBadge) {
+      rcBadge.textContent = stagedShowRefCards ? 'ON' : 'OFF';
+      document.getElementById('gv2-refcards-toggle').classList.toggle('active', stagedShowRefCards);
+    }
+    const tsBadge = document.getElementById('gv2-tradesidebar-badge');
+    if (tsBadge) {
+      tsBadge.textContent = !stagedSidebarDisabled ? 'ON' : 'OFF';
+      document.getElementById('gv2-tradesidebar-toggle').classList.toggle('active', !stagedSidebarDisabled);
+    }
+    const fsSelect = document.getElementById('gv2-pill-font-size');
+    const fsVal    = document.getElementById('gv2-pill-font-size-val');
+    if (fsSelect) {
+      const numericVal = stagedPillFontSize.replace('rem', '');
+      fsSelect.value = numericVal;
+      if (fsVal) fsVal.textContent = stagedPillFontSize;
+    }
   };
 
   const closeModal = () => {
@@ -1444,70 +1537,113 @@ function initOtherDropdown() {
     btn.classList.remove('active');
   };
 
-  btn.addEventListener('click', openModal);
-  btn.addEventListener('touchstart', openModal, { passive: false });
+  const handleSave = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    console.log("[GallerySettings] Saving staged values...", { stagedShowRefCards, stagedSidebarDisabled });
+    
+    // Persist staging variables
+    state.gallery.showRefCards = stagedShowRefCards;
+    window._tradeSidebarDisabled = stagedSidebarDisabled;
+    state.gallery.pillFontSize = stagedPillFontSize;
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeModal);
-    closeBtn.addEventListener('touchstart', closeModal, { passive: false });
+    try {
+      localStorage.setItem('tj_gv2_showRefCards', state.gallery.showRefCards);
+      localStorage.setItem('tj_gv2_sidebarDisabled', window._tradeSidebarDisabled);
+      localStorage.setItem('tj_gv2_pillFontSize', state.gallery.pillFontSize);
+    } catch(err) { console.error("LocalStorage Save Error:", err); }
+
+    // Apply CSS scale
+    document.documentElement.style.setProperty('--pill-font-size', state.gallery.pillFontSize);
+
+    // Apply UI changes immediately
+    if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
+      toggleTradeSidebar(false);
+    }
+    
+    state.gallery._skipScrollIntoView = true;
+    if (typeof renderGallery === 'function') renderGallery();
+    
+    // Visual Confirmation
+    if (typeof showToast === 'function') {
+        showToast('✅ Gallery Settings Saved & Applied!', 'success');
+    } else {
+        alert('Settings Saved!');
+    }
+    
+    closeModal();
+  };
+
+  btn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  
+  // Re-fetch button to be absolutely sure it's in DOM
+  const finalBtn = document.getElementById('gv2-settings-save-btn');
+  if (finalBtn) {
+      finalBtn.addEventListener('click', handleSave);
+      console.log("[GallerySettings] Save button listener attached successfully.");
   }
 
-  // Close on overlay backdrop click
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeModal();
-  });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 
-  // Ref Cards toggle
+  // Staging Toggles
   const rcToggle = document.getElementById('gv2-refcards-toggle');
   if (rcToggle) {
-    const handleRc = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      state.gallery.showRefCards = !state.gallery.showRefCards;
-      _syncRefCardsBtn();
-      state.gallery._skipScrollIntoView = true;
-      renderGallery();
-    };
-    rcToggle.addEventListener('click', handleRc);
-    rcToggle.addEventListener('touchstart', handleRc, { passive: false });
+    rcToggle.addEventListener('click', () => { stagedShowRefCards = !stagedShowRefCards; _updateStagedUI(); });
   }
-
-  // Trade Sidebar toggle
   const tsToggle = document.getElementById('gv2-tradesidebar-toggle');
   if (tsToggle) {
-    const handleTs = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      window._tradeSidebarDisabled = !window._tradeSidebarDisabled;
-      if (window._tradeSidebarDisabled && typeof toggleTradeSidebar === 'function') {
-        toggleTradeSidebar(false);
-      }
-      _syncTradeSidebarBtn();
-    };
-    tsToggle.addEventListener('click', handleTs);
-    tsToggle.addEventListener('touchstart', handleTs, { passive: false });
+    tsToggle.addEventListener('click', () => { stagedSidebarDisabled = !stagedSidebarDisabled; _updateStagedUI(); });
+  }
+
+  const fsSelect = document.getElementById('gv2-pill-font-size');
+  const fsVal    = document.getElementById('gv2-pill-font-size-val');
+  if (fsSelect) {
+    fsSelect.addEventListener('input', (e) => { 
+      stagedPillFontSize = e.target.value + 'rem'; 
+      if (fsVal) fsVal.textContent = stagedPillFontSize;
+      // Optional: Apply live preview?
+      // document.documentElement.style.setProperty('--pill-font-size', stagedPillFontSize);
+    });
   }
 
   // Export Current View PDF
   const pdfBtn = document.getElementById('gv2-export-current-pdf-btn');
-  if (pdfBtn) {
-    const handlePdf = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      closeModal();
-      if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF();
-    };
-    pdfBtn.addEventListener('click', handlePdf);
-    pdfBtn.addEventListener('touchstart', handlePdf, { passive: false });
-  }
+  if (pdfBtn) pdfBtn.addEventListener('click', () => { closeModal(); if (typeof exportCurrentViewToPDF === 'function') exportCurrentViewToPDF(); });
 
   // Export Ref Cards PDF Summary
   const allPdfBtn = document.getElementById('gv2-export-refpdf-btn');
-  if (allPdfBtn) {
-    const handleAllPdf = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
+  if (allPdfBtn) allPdfBtn.addEventListener('click', () => { closeModal(); if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF(); });
+
+  // 📦 Full Backup (Data + Images)
+  const fullBackupBtn = document.getElementById('gv2-full-backup-btn');
+  if (fullBackupBtn) {
+    fullBackupBtn.addEventListener('click', () => {
       closeModal();
-      if (typeof exportRefCardsToPDF === 'function') exportRefCardsToPDF();
-    };
-    allPdfBtn.addEventListener('click', handleAllPdf);
-    allPdfBtn.addEventListener('touchstart', handleAllPdf, { passive: false });
+      if (typeof backupJson === 'function') {
+        backupJson();
+      } else {
+        // Fallback if backupJson is not in scope
+        exportService.downloadBackup();
+      }
+    });
+  }
+
+  // 📤 Restore Backup (ZIP / JSON)
+  const restoreBtn = document.getElementById('gv2-restore-backup-btn');
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', () => {
+      closeModal();
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.zip,.json';
+      inp.onchange = e => {
+        const file = e.target.files[0];
+        if (file && typeof importJson === 'function') {
+          importJson(file);
+        }
+      };
+      inp.click();
+    });
   }
 }
 
@@ -1752,6 +1888,14 @@ function _syncTradeSidebarBtn() {
   badge.textContent = enabled ? 'ON' : 'OFF';
   row.classList.toggle('active', enabled);
 }
+
+// Initialize Saved Font Size on Load
+(function() {
+  try {
+    const storedFs = localStorage.getItem('tj_gv2_pillFontSize');
+    if (storedFs) document.documentElement.style.setProperty('--pill-font-size', storedFs);
+  } catch(e) {}
+})();
 
 
 ```
