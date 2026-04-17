@@ -85,26 +85,29 @@ def export_logger_excel_route():
     )
 
 
+def _find_best_trades_file():
+    """Return the most recently modified trades_*.json or trades.json in data dir."""
+    import glob as _glob
+    data_dir = os.path.dirname(DATA_FILE)
+    candidates = [DATA_FILE] + _glob.glob(os.path.join(data_dir, 'trades_*.json'))
+    # exclude backup files
+    candidates = [f for f in candidates if '.backup' not in f and os.path.exists(f)]
+    if not candidates:
+        return DATA_FILE
+    return max(candidates, key=os.path.getmtime)
+
+
 @export_bp.route('/api/admin/get-data', methods=['GET'])
 def admin_get_data():
     """API-key-protected: returns full trades JSON for live→localhost sync."""
     key = request.headers.get('X-Api-Key', '')
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
-    user_id = request.args.get('user_id', None)
-    if user_id is not None:
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            return jsonify({'error': 'Invalid user_id'}), 400
     try:
-        from processors.data_processors import get_user_data_file
-        data_file = get_user_data_file(user_id)
-        if not os.path.exists(data_file):
-            return jsonify({'error': 'Data file not found'}), 404
+        data_file = _find_best_trades_file()
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        return jsonify({'ok': True, 'data': data})
+        return jsonify({'ok': True, 'data': data, 'file': os.path.basename(data_file)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -119,10 +122,11 @@ def admin_data_version():
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
     try:
-        if not os.path.exists(DATA_FILE):
+        data_file = _find_best_trades_file()
+        if not os.path.exists(data_file):
             return jsonify({'ok': True, 'updated_at': None, 'trades': 0})
-        mtime = os.path.getmtime(DATA_FILE)
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        mtime = os.path.getmtime(data_file)
+        with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return jsonify({'ok': True, 'updated_at': mtime, 'trades': len(data.get('trades', []))})
     except Exception as e:
