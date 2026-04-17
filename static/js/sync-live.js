@@ -19,13 +19,14 @@
   // ── Indicator ──────────────────────────────────────────────────────────────
 
   const STATES = {
-    idle:     { color: '#555',    label: 'Sync',       title: 'Live sync idle' },
-    checking: { color: '#f0c040', label: 'Checking…',  title: 'Checking live server…' },
-    pulling:  { color: '#58a6ff', label: 'Pulling…',   title: 'Pulling from live…' },
-    pushing:  { color: '#f0a500', label: 'Pushing…',   title: 'Pushing to live…' },
-    synced:   { color: '#3fb950', label: 'Synced ✓',   title: 'Synced with live ✓' },
-    error:    { color: '#f85149', label: 'Sync Error',  title: 'Sync error — check console' },
-    offline:  { color: '#555',    label: 'Offline',    title: 'Live server unreachable' },
+    idle:    { color: '#555',    label: 'Sync',         title: 'Live sync idle' },
+    waking:  { color: '#f0c040', label: 'Waking up…',  title: 'Live server so raha tha, jaag raha hai (30-60s)…' },
+    checking:{ color: '#f0c040', label: 'Checking…',   title: 'Checking live server…' },
+    pulling: { color: '#58a6ff', label: 'Pulling…',    title: 'Pulling from live…' },
+    pushing: { color: '#f0a500', label: 'Pushing…',    title: 'Pushing to live…' },
+    synced:  { color: '#3fb950', label: 'Synced ✓',    title: 'Synced with live ✓' },
+    error:   { color: '#f85149', label: 'Sync Error',  title: 'Sync error — check console' },
+    offline: { color: '#555',    label: 'Offline',     title: 'Live server unreachable' },
   };
 
   function setStatus(key) {
@@ -85,9 +86,10 @@
   async function checkAndAutoPull() {
     if (!isEnabled() || _busy) return;
     _busy = true;
-    setStatus('checking');
+    setStatus('waking');
     try {
       const status = await _fetchStatus();
+      setStatus('checking');
       if (!status.ok) { setStatus('offline'); return; }
 
       if (status.direction === 'pull') {
@@ -136,12 +138,19 @@
     }, PUSH_DEBOUNCE_MS);
   }
 
+  // ── Keep live server awake (ping every 10 min) ────────────────────────────
+
+  function _pingLive() {
+    fetch('/api/sync/status').catch(() => {});
+  }
+  setInterval(_pingLive, 10 * 60 * 1000);
+
   // ── Init ──────────────────────────────────────────────────────────────────
 
   window.addEventListener('tradesaved', scheduleAutoPush);
 
   window.addEventListener('load', () => {
     _updateToggleLabel();
-    setTimeout(checkAndAutoPull, 1800); // wait for page to settle
+    setTimeout(checkAndAutoPull, 1800);
   });
 })();
