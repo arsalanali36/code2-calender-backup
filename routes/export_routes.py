@@ -109,6 +109,21 @@ def admin_get_data():
         return jsonify({'error': str(e)}), 500
 
 
+LIVE_URL = 'https://code2-calender.onrender.com'
+
+
+def _backup_local(prefix):
+    """Backup local DATA_FILE before overwriting. Returns backup path or None."""
+    if not os.path.exists(DATA_FILE):
+        return None
+    ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
+    os.makedirs(backup_dir, exist_ok=True)
+    backup_path = os.path.join(backup_dir, f'{prefix}_{ts}.json')
+    shutil.copy2(DATA_FILE, backup_path)
+    return backup_path
+
+
 @export_bp.route('/api/pull-from-live', methods=['POST'])
 def pull_from_live():
     """Localhost-only: pull trades data from the live server and save locally."""
@@ -117,19 +132,10 @@ def pull_from_live():
     if not ADMIN_API_KEY:
         return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
 
-    body = request.json or {}
-    live_url = body.get('live_url', 'https://code2-calender.onrender.com')
-    user_id = body.get('user_id', None)
-
     import urllib.request
-    params = f'?user_id={user_id}' if user_id is not None else ''
-    endpoint = f'{live_url.rstrip("/")}/api/admin/get-data{params}'
-
+    endpoint = f'{LIVE_URL}/api/admin/get-data'
     try:
-        req = urllib.request.Request(
-            endpoint,
-            headers={'X-Api-Key': ADMIN_API_KEY}
-        )
+        req = urllib.request.Request(endpoint, headers={'X-Api-Key': ADMIN_API_KEY})
         with urllib.request.urlopen(req, timeout=30) as resp:
             raw = json.loads(resp.read().decode('utf-8'))
     except Exception as e:
@@ -138,18 +144,56 @@ def pull_from_live():
     if not raw.get('ok') or 'data' not in raw:
         return jsonify({'error': 'Live server returned unexpected response'}), 502
 
-    live_data = raw['data']
-
-    # Backup existing local file before overwriting
-    if os.path.exists(DATA_FILE):
-        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
-        os.makedirs(backup_dir, exist_ok=True)
-        backup_path = os.path.join(backup_dir, f'pre_pull_{ts}.json')
-        shutil.copy2(DATA_FILE, backup_path)
-
+    _backup_local('pre_pull')
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(live_data, f, ensure_ascii=False, indent=2)
+        json.dump(raw['data'], f, ensure_ascii=False, indent=2)
 
-    trade_count = len(live_data.get('trades', []))
+    trade_count = len(raw['data'].get('trades', []))
     return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pulled {trade_count} trades from live'})
+
+
+@export_bp.route('/api/push-to-live', methods=['POST'])
+def push_to_live():
+    """Localhost-only: push local trades data to the live server."""
+    if not DEBUG:
+        return jsonify({'error': 'Only available in development mode'}), 403
+    if not ADMIN_API_KEY:
+        return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
+    if not os.path.exists(DATA_FILE):
+        return jsonify({'error': 'Local data file not found'}), 404
+
+    import urllib.request
+    with open(DATA_FILE, 'rb') as f:
+        json_bytes = f.read()
+
+    # Validate JSON before sending
+    try:
+        local_data = json.loads(json_bytes)
+    except Exception:
+        return jsonify({'error': 'Local trades.json is invalid JSON'}), 400
+
+    boundary = 'FormBoundaryKhazana2026'
+    body = (
+        f'--{boundary}\r\n'
+        f'Content-Disposition: form-data; name="file"; filename="trades.json"\r\n'
+        f'Content-Type: application/json\r\n\r\n'
+    ).encode() + json_bytes + f'\r\n--{boundary}--\r\n'.encode()
+
+    endpoint = f'{LIVE_URL}/api/admin/push-data'
+    try:
+        req = urllib.request.Request(
+            endpoint,
+            data=body,
+            headers={
+                'X-Api-Key': ADMIN_API_KEY,
+                'Content-Type': f'multipart/form-data; boundary={boundary}',
+            },
+            method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        return jsonify({'error': f'Failed to push to live: {str(e)}'}), 502
+
+    trade_count = len(local_data.get('trades', []))
+    return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pushed {trade_count} trades to live'})

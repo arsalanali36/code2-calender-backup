@@ -201,11 +201,12 @@ function _bindUIEvents() {
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
   document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
 
-  // "Pull from Live" — only visible on localhost/127.0.0.1
-  const pullLiveBtn = document.getElementById('pull-from-live-btn');
-  if (pullLiveBtn && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-    pullLiveBtn.style.display = '';
-    pullLiveBtn.addEventListener('click', pullFromLive);
+  // Sync buttons — only visible on localhost/127.0.0.1
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    const pullLiveBtn = document.getElementById('pull-from-live-btn');
+    if (pullLiveBtn) { pullLiveBtn.style.display = ''; pullLiveBtn.addEventListener('click', pullFromLive); }
+    const pushLiveBtn = document.getElementById('push-to-live-btn');
+    if (pushLiveBtn) { pushLiveBtn.style.display = ''; pushLiveBtn.addEventListener('click', pushToLive); }
   }
 
   document.getElementById('save-view-btn').addEventListener('click', () => {

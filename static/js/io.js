@@ -538,6 +538,19 @@ async function exportLoggerExcel() {
   } catch (e) { showToast('Logger export failed', 'error'); }
 }
 
+async function pushToLive() {
+  if (!confirm('Push local data to LIVE server?\n\nThis will OVERWRITE the live server\'s data with your local version.\nMake sure local data is up-to-date before proceeding.')) return;
+  showToast('Pushing to live server...', '');
+  try {
+    const res = await fetch('/api/push-to-live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Push failed');
+    showToast(data.message, 'success');
+  } catch (e) {
+    showToast('Push failed: ' + e.message, 'error');
+  }
+}
+
 async function pullFromLive() {
   if (!confirm('Pull latest data from live server?\n\nThis will OVERWRITE your local trades.json with the live version.\nA backup will be created first.')) return;
   showToast('Pulling from live server...', '');
