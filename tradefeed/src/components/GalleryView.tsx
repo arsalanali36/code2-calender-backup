@@ -65,6 +65,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
   const pinchStartDist = useRef(0);
   const pinchStartCols = useRef(3);
   const colsRef = useRef(3);
+  const isPinching = useRef(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -96,41 +97,45 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
     return () => el.removeEventListener('scroll', onScroll);
   }, [showHeader]);
 
+  // Pinch-to-zoom: switch touch-action to 'none' on 2-finger start, restore on end
+  // This avoids passive:false (which blocks native scroll)
   useEffect(() => {
-    const el = galleryRef.current;
+    const el = scrollRef.current;
     if (!el) return;
     const onStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
       if (e.touches.length === 2) {
+        isPinching.current = true;
+        el.style.touchAction = 'none';
         pinchStartDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         pinchStartCols.current = colsRef.current;
       }
     };
     const onMove = (e: TouchEvent) => {
-      if (e.touches.length !== 2) return;
-      e.preventDefault();
+      if (!isPinching.current || e.touches.length !== 2) return;
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
       const newCols = Math.min(10, Math.max(1, Math.round(pinchStartCols.current * (pinchStartDist.current / dist))));
-      setCols(newCols); colsRef.current = newCols;
+      if (newCols !== colsRef.current) { setCols(newCols); colsRef.current = newCols; }
     };
-    el.addEventListener('touchstart', onStart, { passive: true });
-    el.addEventListener('touchmove', onMove, { passive: false });
-    return () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('touchmove', onMove); };
-  }, []);
-
-  // Left-edge swipe → back to web app
-  useEffect(() => {
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartX.current = e.touches[0].clientX;
-      touchStartY.current = e.touches[0].clientY;
-    };
-    const onTouchEnd = (e: TouchEvent) => {
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2 && isPinching.current) {
+        isPinching.current = false;
+        el.style.touchAction = 'pan-y';
+      }
+      // Left-edge swipe → back to web app
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
       if (touchStartX.current < 40 && dx > 80 && dy < 60) window.location.href = '/';
     };
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchend', onTouchEnd, { passive: true });
-    return () => { window.removeEventListener('touchstart', onTouchStart); window.removeEventListener('touchend', onTouchEnd); };
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: true });
+    el.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
   }, []);
 
   const allTags = Array.from(new Set([
@@ -181,7 +186,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
   const activeFilters = selectedTags.length + (selectedDate ? 1 : 0);
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col" ref={galleryRef}>
+    <div className="fixed inset-0 bg-black flex flex-col" ref={galleryRef} style={{ contain: 'layout style' }}>
       {/* Overlay header — auto-hide */}
       <motion.div
         animate={{ y: headerVisible ? 0 : -64, opacity: headerVisible ? 1 : 0 }}
@@ -228,7 +233,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
       <div className="absolute inset-0 z-10 pointer-events-none" onClick={showHeader} style={{ pointerEvents: (!headerVisible && !isSelecting) ? 'auto' : 'none' }} />
 
       {/* Gallery grid */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pt-12">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pt-12" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         {filteredDays.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3 pb-24">
             <Grid3X3 className="w-12 h-12 opacity-20" />
@@ -248,6 +253,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer }) 
                     key={`${dIdx}-${iIdx}`}
                     className={`aspect-square bg-zinc-900 overflow-hidden relative cursor-pointer ${isSel ? 'ring-2 ring-indigo-500 ring-inset' : ''}`}
                     onTouchStart={(e) => handleLongPressStart(url, dIdx, iIdx, e)}
+                    onTouchMove={handleLongPressEnd}
                     onTouchEnd={handleLongPressEnd}
                     onMouseDown={(e) => handleLongPressStart(url, dIdx, iIdx, e)}
                     onMouseUp={handleLongPressEnd}
