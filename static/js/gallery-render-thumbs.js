@@ -143,18 +143,29 @@ function renderGalleryThumbs() {
     const isPremium     = type === 'PREMIUM';
     const isNews        = type === 'NEWS';
     const isPdf         = type === 'DOCUMENTS';
-    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isPdf ? 'DOCUMENTS' : (isClose ? 'CLOSE' : 'OPEN'))));
+    const isCustom      = !isNews && !isPdf && !isCloseGlobal && !isPremium && !isClose && type !== false;
+    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isPdf ? 'DOCUMENTS' : (isClose ? 'CLOSE' : (isCustom ? type : 'OPEN')))));
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
-    sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
+    
+    sep.innerHTML = `<div style="display:flex; align-items:center; width:100%; gap:6px;">` + 
+                      `<span class="gv2-sep-label" style="flex:1;">${arrow} ${label}</span>` + 
+                      (isCustom ? 
+                        `<button class="gv2-ulp-ctrl-btn custom-sep-rename" title="Rename" style="padding:0 4px; background:transparent; opacity:0.6;">✏️</button>` +
+                        `<button class="gv2-ulp-ctrl-btn custom-sep-delete" title="Delete Folder" style="padding:0 4px; background:transparent; opacity:0.6;">×</button>`
+                        : ''
+                      ) +
+                    `</div>`;
     sep.title = `${label} images section`;
     
     let color = '#ffd700'; // Default gold
     if (isNews) color = '#ffa500';
     else if (isPdf) color = '#a55eea'; // Purple for PDF
+    else if (isCustom) color = '#4ade80'; // Green for custom folders
     
     sep.style.color = color;
     sep.style.borderColor = color;
+    if (isCustom) sep.style.background = 'rgba(74, 222, 128, 0.05)';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -178,13 +189,25 @@ function renderGalleryThumbs() {
               showToast('CLOSE GLOBAL can only hold 1 image.', 'error'); return;
             }
           }
-          await moveSelectedToDayData(date, isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : isClose));
+          await moveSelectedToDayData(date, isCustom ? type : (isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : isClose)));
         }
       } catch (err) { console.error(err); }
     });
     if (state.gallery.selectedSeparator === sepKey) sep.classList.add('selected-separator');
 
     sep.addEventListener('click', (e) => {
+      // If clicked on rename/delete buttons, don't collapse
+      if (e.target.closest('.custom-sep-rename')) {
+          e.stopPropagation();
+          handleRenameCustomFolder(sepKey);
+          return;
+      }
+      if (e.target.closest('.custom-sep-delete')) {
+          e.stopPropagation();
+          handleDeleteCustomFolder(sepKey);
+          return;
+      }
+
       e.stopPropagation();
       state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
       if (state.gallery.collapsedSeparators.has(sepKey)) state.gallery.collapsedSeparators.delete(sepKey);
@@ -208,6 +231,14 @@ function renderGalleryThumbs() {
     }
     thumbs.appendChild(createSpecialSeparator('OPEN', false));
     _perDateRenderedSeps.add(date + ':OPEN');
+
+    // Custom Folders
+    if (state.dayData[date]?.customImages) {
+        for (const [catName, urls] of Object.entries(state.dayData[date].customImages)) {
+            thumbs.appendChild(createSpecialSeparator(catName, catName));
+            _perDateRenderedSeps.add(date + ':' + catName);
+        }
+    }
   }
 
   let lastTradeIdxRendered = -1;
@@ -239,6 +270,13 @@ function renderGalleryThumbs() {
     const _isClose          = dData.closeImages?.includes(url);
     const _isCloseGlobal    = dData.closeGlobalImages?.includes(url);
     const _isPremium        = dData.premiumImages && Object.values(dData.premiumImages).some(v => Array.isArray(v) ? v.includes(url) : v === url);
+    
+    let _isCustomLabel = null;
+    if (dData.customImages) {
+        for (const [catName, urls] of Object.entries(dData.customImages)) {
+            if (urls.includes(url)) { _isCustomLabel = catName; break; }
+        }
+    }
 
     // Filter Optimization: Matched premium images should be shown in main list when filtering
     if (_isPremium && !_filterActive3) return;
@@ -313,6 +351,13 @@ function renderGalleryThumbs() {
       _perDateRenderedSeps.add(_premiumSepKey);
     }
     if (_isPremium && state.gallery.collapsedSeparators?.has('PREMIUM')) return;
+
+    // 7. CUSTOM Separators
+    if (_isCustomLabel && !_filterActive3 && !_perDateRenderedSeps.has(_effDate + ':' + _isCustomLabel)) {
+        thumbs.appendChild(createSpecialSeparator(_isCustomLabel, _isCustomLabel));
+        _perDateRenderedSeps.add(_effDate + ':' + _isCustomLabel);
+    }
+    if (_isCustomLabel && state.gallery.collapsedSeparators?.has(_isCustomLabel)) return;
 
 
     // ── Build thumbnail element ───────────────────────────────────────────

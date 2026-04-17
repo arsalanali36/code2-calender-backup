@@ -356,6 +356,12 @@ function showGalleryContextMenu(x, y) {
 
     if (state.dayData[dateToUse]) {
         subMenu.appendChild(createSubOpt('News', () => moveSelectedToDayData(dateToUse, 'NEWS')));
+        // Add Custom Folders to menu
+        if (state.dayData[dateToUse].customImages) {
+            for (const catName of Object.keys(state.dayData[dateToUse].customImages)) {
+                subMenu.appendChild(createSubOpt(catName, () => moveSelectedToDayData(dateToUse, catName)));
+            }
+        }
     }
     subMenu.appendChild(createSubOpt('Open', () => moveSelectedToDayData(dateToUse, false)));
     dayTrades.forEach((tr, i) => {

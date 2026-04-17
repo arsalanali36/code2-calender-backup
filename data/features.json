@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "id": "master-workflow",
+      "id": "workflow-integrity",
       "title": "Master Your Workflow",
       "subtitle": "Efficiency & Integrity",
       "solved_for": "Manual data entry fatigue and data corruption risks.",
@@ -9,25 +9,34 @@
         {
           "id": "no-fake-data",
           "name": "Zero-Manual Entry Integrity",
-          "details": "We don't do 'fake' data. Your journal is built directly from your actual broker history. Total transparency with zero manual bias. Recorded today: 17th April.",
+          "details": "We don't do 'fake' data. Your journal is built directly from your actual broker history. Total transparency with zero manual bias.",
           "icon": "🛡️",
           "solved_for": "Data manipulation and manual logging errors.",
           "media_type": "video",
           "media_url": "/uploads/4bcbc8d9e81047b8a23768b729c8fa1c.webm"
         },
         {
-          "id": "pdf-export",
-          "name": "PDF Reports & Printing",
-          "details": "Transform your filtered views into high-fidelity PDF reports. Perfect for printing or deep-study away from the screen.",
-          "icon": "📄",
-          "solved_for": "Being tied to a digital-only review process.",
+          "id": "trade-pill",
+          "name": "Precision Trade Pills",
+          "details": "Every trade is a story. Our Trade Pill UI gives you a 1-second readout of P&L, Points, and Quantity without cluttering your screen.",
+          "icon": "💊",
+          "solved_for": "Cognitive overload from spreadsheet-style data.",
           "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Replace+with+PDF+Demo+Image"
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Precision+Trade+Pills"
+        },
+        {
+          "id": "shortcuts",
+          "name": "Pro Keyboard Shortcuts",
+          "details": "Navigate like a pro. High-speed shortcuts (Alt+R, Alt+T, Fullscreen) designed for rapid trade reviews and instant context switching.",
+          "icon": "⌨️",
+          "solved_for": "Wasted time on mouse clicks.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Keyboard+Shortcut+Map+Image"
         },
         {
           "id": "tagging",
           "name": "Tag-Based Filtering",
-          "details": "Categorize by Setup, Emotion, or Instrument. Create custom tag-filtered views and export them instantly as PDFs.",
+          "details": "Categorize by Setup, Emotion, or Instrument. Create custom tag-filtered views and find your edge across months of data in seconds.",
           "icon": "🏷️",
           "solved_for": "Unorganized data chaos.",
           "media_type": "video",
@@ -36,19 +45,28 @@
       ]
     },
     {
-      "id": "visuals",
+      "id": "visual-engine",
       "title": "Visual Analysis Engine",
       "subtitle": "See the Market Clearly",
       "solved_for": "Static images that lack depth and disconnected charting context.",
       "features": [
         {
+          "id": "mtm-curves",
+          "name": "Per-Trade MTM Curves",
+          "details": "Visualize your P&L evolution inside the trade. Spot early exits and missed opportunities with daily equity curves per trade.",
+          "icon": "📈",
+          "solved_for": "Lack of visibility into mid-trade drawdown and peak profit.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=MTM+Curves+Evolution"
+        },
+        {
           "id": "av-notes",
-          "name": "Multi-Media Audio & Video Notes",
-          "details": "Record your thoughts in real-time. Attach voice memos or screen-recordings of your execution directly to each trade.",
-          "icon": "🎤",
-          "solved_for": "Losing the 'feeling' and 'logic' behind a trade over time.",
+          "name": "Audio & Video Context",
+          "details": "Don't just write—speak. Capture screen recordings and voice notes that link directly to your candles and trade entries.",
+          "icon": "🎙️",
+          "solved_for": "Losing the 'feeling' and context of a trade hours later.",
           "media_type": "video",
-          "media_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          "media_url": "/uploads/4bcbc8d9e81047b8a23768b729c8fa1c.webm"
         },
         {
           "id": "annotation-tools",
@@ -57,56 +75,12 @@
           "icon": "🎨",
           "solved_for": "Needing external tools (Goodnotes/PPT) for markups.",
           "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Replace+with+Annotation+Screenshot"
-        },
-        {
-          "id": "data-mapping",
-          "name": "Image-to-Chart Bridge",
-          "details": "The ultimate sync. Click any trade image to instantly jump to the actual Historical OHLC charts for that specific date and instrument.",
-          "icon": "🔗",
-          "solved_for": "Manual search for charts during reviews.",
-          "media_type": "video",
-          "media_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Annotation+Canvas+Demo"
         }
       ]
     },
     {
-      "id": "speed-execution",
-      "title": "Professional Execution",
-      "subtitle": "High-Speed Analysis Workflow",
-      "solved_for": "Slow review processes and clunky navigational tools.",
-      "features": [
-        {
-          "id": "shortcuts",
-          "name": "Keyboard Shortcuts",
-          "details": "Navigate like a pro. High-speed shortcuts (Alt+R, Alt+T, Fullscreen) designed for rapid trade reviews and context switching.",
-          "icon": "⌨️",
-          "solved_for": "Wasted time on mouse clicks.",
-          "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Keyboard+Shortcut+Map+Image"
-        },
-        {
-          "id": "gallery",
-          "name": "Omnichannel Gallery",
-          "details": "Revolutionary 'Long Viewer' experience. Scroll through your trade screenshots seamlessly or jump via the high-speed thumbnail grid.",
-          "icon": "🖼️",
-          "solved_for": "Clunky image browsing in separate folders.",
-          "media_type": "video",
-          "media_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-        },
-        {
-          "id": "strategy-lab",
-          "name": "Strategy Lab Cockpit",
-          "details": "Build and validate your 'Core, Reversal, & Range Based' setups. Compare your actual execution against the strategy edge.",
-          "icon": "🧪",
-          "solved_for": "Non-systematic trading behavior.",
-          "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Strategy+Lab+Demo"
-        }
-      ]
-    },
-    {
-      "id": "analytics",
+      "id": "analytics-core",
       "title": "Deep-Dive Analytics",
       "subtitle": "Quant-Level Performance Tracking",
       "solved_for": "Lack of clarity in equity curves and target alignment.",
@@ -114,20 +88,11 @@
         {
           "id": "dashboard",
           "name": "Drill-Down Dashboard",
-          "details": "Interactive tiles showing Volume, Duration, and Profit metrics. Filter to find your true edge.",
+          "details": "Interactive tiles showing Volume, Duration, and Profit metrics. Filter by time, instrument, or tag to find your true edge.",
           "icon": "🚀",
-          "solved_for": "Vague performance goals.",
+          "solved_for": "Vague performance goals and hidden leaks.",
           "media_type": "image",
           "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Analytics+Dashboard+Preview"
-        },
-        {
-          "id": "graphs",
-          "name": "Visual Equity Graphs",
-          "details": "Cumulative P/L and setup distribution charts. Track your progress with high-fidelity visual curves.",
-          "icon": "📈",
-          "solved_for": "Poor visualization of growth.",
-          "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Equity+Curve+Preview"
         },
         {
           "id": "target-tracker",
@@ -137,48 +102,66 @@
           "solved_for": "Goal drift and lack of consistency.",
           "media_type": "image",
           "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Target+Tracker+Experience"
+        },
+        {
+          "id": "strategy-lab",
+          "name": "Strategy Lab Cockpit",
+          "details": "Build and validate your 'Core, Reversal, & Range Based' setups. Compare your actual execution against the strategy edge.",
+          "icon": "🧪",
+          "solved_for": "Non-systematic trading behavior.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Strategy+Lab+Demo"
+        },
+        {
+          "id": "data-mapping",
+          "name": "Image-to-Chart Bridge",
+          "details": "The ultimate sync. Click any trade image to instantly jump to the actual Historical OHLC charts for that specific date.",
+          "icon": "🔗",
+          "solved_for": "Manual search for charts during reviews.",
+          "media_type": "video",
+          "media_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         }
       ]
     },
     {
-      "id": "eco-system",
-      "title": "Connected Ecosystem",
+      "id": "pro-ecosystem",
+      "title": "Professional Ecosystem",
       "subtitle": "Your Data, Everywhere",
       "solved_for": "Being tied to a desk and data portability issues.",
       "features": [
         {
-          "id": "multi-device",
-          "name": "Web, iPad & Mobile Ready",
-          "details": "Experience a truly customized layout whether you are on a high-res Desktop, an iPad, or your Phone. Fluid, fast, and adaptive.",
-          "icon": "💻",
-          "solved_for": "App scaling issues on different screens.",
+          "id": "img-manager",
+          "name": "Advanced Image Manager",
+          "details": "Organize your evidence like a pro. Batch move, group, and create Custom Folders with rename/delete capabilities.",
+          "icon": "📊",
+          "solved_for": "Chaotic screenshot management.",
           "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Multi-Device+Layout+Preview"
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Image+Manager+Folders"
         },
         {
-          "id": "mobile",
-          "name": "Mobile Review Feed",
-          "details": "A native-feeling social feed for your trades. Review and learn from your setups while on the go.",
+          "id": "cross-platform",
+          "name": "Web, iPad & Mobile Friendly",
+          "details": "Your journal follows you. Fully responsive layouts customized for touch devices, tablets, and desktop screens.",
           "icon": "📱",
-          "solved_for": "Review inactivity outside office hours.",
+          "solved_for": "Device-locked analytical tools.",
           "media_type": "image",
-          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Mobile+Experience+Preview"
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Responsive+Layouts"
         },
         {
           "id": "backups",
-          "name": "Bulletproof Backups",
-          "details": "Full ZIP backups of your trade data and images. Total control over your persistence.",
+          "name": "Bulletproof Backups & PDF",
+          "details": "Full ZIP backups and professional PDF reporting. Total control over your persistence and data ownership.",
           "icon": "💾",
-          "solved_for": "Data loss anxiety.",
+          "solved_for": "Data loss anxiety and report fragmentation.",
           "media_type": "image",
           "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Backup+and+Export+UI"
         }
       ]
     }
   ],
-  "tagline": "All-in-one Amalgamation of PPT / Sheets / Calendar / Goodnotes — with a clear and focused intent to improve, evolve, and become a consistently profitable trader.",
+  "tagline": "All-in-one Amalgamation of PPT / Sheets / Calendar / Goodnotes — built to help you become a consistently profitable trader.",
   "hero_title": "Power of Code2-Calendar",
-  "hero_subtitle": "Built for traders who value speed, data integrity, and professional-grade analysis.",
+  "hero_subtitle": "Zero-Manual intervention. 1-Click retrieval. Stop being a data-entry operator and start being a pattern-recognition machine.",
   "offer": {
     "title": "Join the Elite Tribe",
     "subtitle": "Start your journey towards professional trading today.",
