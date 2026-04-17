@@ -91,10 +91,11 @@ def do_json_backup():
 def do_zip_backup():
     """Full ZIP: data/ + uploads/ — uses existing build_backup_zip service."""
     try:
-        from config import DATA_FILE, UPLOADS_DIR
+        from config import UPLOADS_DIR
         from services.export_service import build_backup_zip
+        from processors.data_processors import find_best_trades_file
 
-        zip_bytes, ts = build_backup_zip(DATA_FILE, UPLOADS_DIR)
+        zip_bytes, ts = build_backup_zip(find_best_trades_file(), UPLOADS_DIR)
         out_dir = _local_backups_dir()
         fname   = f'full_backup_{ts}.zip'
         fpath   = os.path.join(out_dir, fname)

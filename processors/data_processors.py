@@ -11,6 +11,17 @@ def get_user_data_file(user_id=None):
         return os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
     return DATA_FILE
 
+
+def find_best_trades_file():
+    """Return most recently modified trades_N.json; fall back to DATA_FILE only if none exist."""
+    import glob as _glob
+    data_dir = os.path.dirname(DATA_FILE)
+    user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
+                  if '.backup' not in f and os.path.exists(f)]
+    if user_files:
+        return max(user_files, key=os.path.getmtime)
+    return DATA_FILE
+
 STRUCTURED_COLUMNS = [
     'Instrument',
     'TradeType',

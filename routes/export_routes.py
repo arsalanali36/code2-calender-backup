@@ -18,19 +18,21 @@ from services.export_service import (
     export_logger_excel, build_backup_zip,
 )
 from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG
+from processors.data_processors import find_best_trades_file
 
 export_bp = Blueprint('export', __name__)
 
 
 @export_bp.route('/api/backup', methods=['GET'])
 def backup():
-    if not os.path.exists(DATA_FILE):
+    active_file = find_best_trades_file()
+    if not os.path.exists(active_file):
         return jsonify({'error': 'No data to backup'}), 404
     requested_name = str(request.args.get('name', '')).strip()
     safe_name = re.sub(r'[^A-Za-z0-9_\ -]+', '', requested_name).strip()
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     base_name = safe_name if safe_name else f'trading_journal_{timestamp_str}'
-    zip_bytes, _ = build_backup_zip(DATA_FILE, UPLOADS_DIR)
+    zip_bytes, _ = build_backup_zip(active_file, UPLOADS_DIR)
     return send_file(
         io.BytesIO(zip_bytes),
         as_attachment=True,
@@ -85,15 +87,7 @@ def export_logger_excel_route():
     )
 
 
-def _find_best_trades_file():
-    """Return most recently modified trades_N.json; fall back to trades.json only if none exist."""
-    import glob as _glob
-    data_dir = os.path.dirname(DATA_FILE)
-    user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
-                  if '.backup' not in f and os.path.exists(f)]
-    if user_files:
-        return max(user_files, key=os.path.getmtime)
-    return DATA_FILE  # last resort fallback
+_find_best_trades_file = find_best_trades_file
 
 
 @export_bp.route('/api/admin/get-data', methods=['GET'])
