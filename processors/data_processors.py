@@ -7,13 +7,13 @@ BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 
 def find_best_trades_file():
-    """Return most recently modified trades_N.json; fall back to DATA_FILE only if none exist."""
+    """Return largest trades_N.json (most complete data); fall back to DATA_FILE only if none exist."""
     import glob as _glob
     data_dir = os.path.dirname(DATA_FILE)
     user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
                   if '.backup' not in f and os.path.exists(f)]
     if user_files:
-        return max(user_files, key=os.path.getmtime)
+        return max(user_files, key=os.path.getsize)  # largest file = most complete data
     return DATA_FILE
 
 

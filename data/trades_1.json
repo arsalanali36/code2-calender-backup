@@ -11211,7 +11211,8 @@
           "Palat Gaya"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776343460/trading_journal/913e6672-1a0b-4601-8a4e-ee8f71a65c1c.png": [
-          "BNF"
+          "BNF",
+          "pintu"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776343462/trading_journal/1518de65-e4d4-40aa-9b01-681a53646f81.png": [
           "NIFTY",
@@ -11274,6 +11275,16 @@
             "tag": "Palat Gaya",
             "x": 69.8,
             "y": 44.6
+          }
+        ],
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776343460/trading_journal/913e6672-1a0b-4601-8a4e-ee8f71a65c1c.png": [
+          {
+            "color": "#e74c3c",
+            "id": "mo2ccldh9mxz",
+            "note": "ye jayega local par&nbsp;",
+            "tag": "pintu",
+            "x": 18,
+            "y": 68.5
           }
         ]
       },
@@ -30288,9 +30299,7 @@
       "TradeType": "sell",
       "Video": "",
       "date": "2026-04-16",
-      "imageTags": {
-        "3": []
-      },
+      "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776324883/trading_journal/5d3b9a96-5e5d-4de3-b97e-55cee73d9ef9.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776324883/trading_journal/58ab1b27-37f5-4846-b32f-ccccd24bb09b.png",
@@ -30300,10 +30309,7 @@
       ],
       "observation": "",
       "tags": [],
-      "trade_date": "2026-04-16",
-      "imagePins": {
-        "3": []
-      }
+      "trade_date": "2026-04-16"
     },
     {
       "Broker": "zerodha",
