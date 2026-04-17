@@ -330,7 +330,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
 
         {/* Main Image */}
         <motion.div
-          className="flex-1 relative flex items-center justify-center p-2 touch-none"
+          className="flex-1 relative flex items-center justify-center pt-[82px] px-2 pb-2 touch-none"
           drag={scale === 1 && !currentIsVideo ? true : false}
           dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
           dragElastic={0.15}
@@ -395,7 +395,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
                     <button onClick={e => { e.stopPropagation(); setShowMoreMenu(m => !m); }} className="p-2 rounded-full bg-black/30 transition-transform active:scale-90">
                       <MoreVertical className="w-6 h-6 text-white/60" />
                     </button>
-                    <MoreMenu show={showMoreMenu} uploadStatus={uploadStatus} addStatus={addStatus} className="right-full top-0 mr-2" {...moreMenuActions} />
+                    <MoreMenu show={showMoreMenu} uploadStatus={uploadStatus} addStatus={addStatus} className="right-full bottom-0 mr-2" {...moreMenuActions} />
                   </div>
                 </motion.div>
               )}
@@ -404,13 +404,30 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
                 className="absolute left-3 top-1/2 -translate-y-1/2 z-[140] flex flex-col items-center gap-2"
                 onClick={e => e.stopPropagation()}
               >
-                <span className="text-[10px] font-black text-white/70 bg-black/40 px-1.5 py-0.5 rounded-full">{scale.toFixed(1)}x</span>
-                <div style={{ position: 'relative', width: '28px', height: '150px' }}>
-                  <input type="range" min="1" max="5" step="0.01" value={scale}
-                    onChange={e => { const v = parseFloat(e.target.value); setScale(v); if (v === 1) setPan({ x: 0, y: 0 }); }}
-                    style={{ position: 'absolute', width: '150px', height: '28px', left: '-61px', top: '61px', transform: 'rotate(-90deg)', transformOrigin: 'center center', cursor: 'pointer', accentColor: 'white', background: 'transparent' }}
-                    className="appearance-none"
-                  />
+                <span className="text-[10px] font-black text-white bg-white/20 px-1.5 py-0.5 rounded-full border border-white/30">{scale.toFixed(1)}x</span>
+                <div
+                  style={{ position: 'relative', width: '28px', height: '150px', cursor: 'ns-resize' }}
+                  onTouchStart={e => e.stopPropagation()}
+                  onTouchMove={e => {
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const pct = 1 - (e.touches[0].clientY - rect.top) / rect.height;
+                    const v = Math.min(5, Math.max(1, 1 + pct * 4));
+                    setScale(v); if (v <= 1) setPan({ x: 0, y: 0 });
+                  }}
+                  onClick={e => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const pct = 1 - (e.clientY - rect.top) / rect.height;
+                    const v = Math.min(5, Math.max(1, 1 + pct * 4));
+                    setScale(v); if (v <= 1) setPan({ x: 0, y: 0 });
+                  }}
+                >
+                  {/* Track bg */}
+                  <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '4px', transform: 'translateX(-50%)', borderRadius: '3px', background: 'rgba(255,255,255,0.2)' }} />
+                  {/* Track fill */}
+                  <div style={{ position: 'absolute', left: '50%', bottom: 0, width: '4px', height: `${((scale-1)/4)*100}%`, transform: 'translateX(-50%)', borderRadius: '3px', background: 'rgba(255,255,255,0.75)' }} />
+                  {/* Thumb */}
+                  <div style={{ position: 'absolute', left: '50%', bottom: `calc(${((scale-1)/4)*100}% - 8px)`, width: '18px', height: '18px', transform: 'translateX(-50%)', borderRadius: '50%', background: 'white', boxShadow: '0 0 8px rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.4)' }} />
                 </div>
               </motion.div>
 
@@ -454,7 +471,7 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ days, initia
               <MoreVertical className="w-7 h-7 mb-0.5" />
               <span className="text-[10px] font-bold">More</span>
             </button>
-            <MoreMenu show={showMoreMenu} uploadStatus={uploadStatus} addStatus={addStatus} className="right-full top-0 mr-2" {...moreMenuActions} />
+            <MoreMenu show={showMoreMenu} uploadStatus={uploadStatus} addStatus={addStatus} className="right-full bottom-0 mr-2" {...moreMenuActions} />
           </div>
         </motion.div>
 

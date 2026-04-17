@@ -37,7 +37,8 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          className={`absolute bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl w-44 z-30 max-h-[60vh] overflow-y-auto ${className}`}
+          className={`absolute bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl w-48 z-30 ${className}`}
+          style={{ maxHeight: '70vh', overflowY: 'auto' }}
           onClick={e => e.stopPropagation()}
         >
           {items.map(item => (

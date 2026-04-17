@@ -212,7 +212,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ trades, openViewer, on
   }, [filteredDays]);
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col" ref={galleryRef}>
+    <div className="fixed inset-0 z-[5] bg-black flex flex-col" ref={galleryRef}>
       {/* Top bar — always visible */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 pt-3 pb-2 pointer-events-none"
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}>
