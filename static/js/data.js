@@ -254,6 +254,7 @@ async function saveTrades() {
       };
       await tradeService.saveTrades(payload);
       state.serverStateHash = hashServerState(payload);
+      window.dispatchEvent(new CustomEvent('tradesaved'));
     } catch (e) { showToast('Save failed', 'error'); }
   })();
   await _saveTradesQueue;

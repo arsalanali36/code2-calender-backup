@@ -112,6 +112,52 @@ def admin_get_data():
 LIVE_URL = 'https://code2-calender.onrender.com'
 
 
+@export_bp.route('/api/admin/data-version', methods=['GET'])
+def admin_data_version():
+    """API-key-protected: returns file mtime + trade count for sync comparison."""
+    key = request.headers.get('X-Api-Key', '')
+    if not ADMIN_API_KEY or key != ADMIN_API_KEY:
+        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        if not os.path.exists(DATA_FILE):
+            return jsonify({'ok': True, 'updated_at': None, 'trades': 0})
+        mtime = os.path.getmtime(DATA_FILE)
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify({'ok': True, 'updated_at': mtime, 'trades': len(data.get('trades', []))})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@export_bp.route('/api/sync/status', methods=['GET'])
+def sync_status():
+    """Localhost-only: compare local vs live data version, return sync direction."""
+    if not DEBUG:
+        return jsonify({'error': 'Only available in development mode'}), 403
+    if not ADMIN_API_KEY:
+        return jsonify({'ok': False, 'error': 'ADMIN_API_KEY not set'}), 500
+
+    local_ts = os.path.getmtime(DATA_FILE) if os.path.exists(DATA_FILE) else 0
+
+    import urllib.request as _urlreq
+    try:
+        req = _urlreq.Request(f'{LIVE_URL}/api/admin/data-version', headers={'X-Api-Key': ADMIN_API_KEY})
+        with _urlreq.urlopen(req, timeout=10) as resp:
+            live = json.loads(resp.read().decode('utf-8'))
+        live_ts = live.get('updated_at') or 0
+    except Exception as e:
+        return jsonify({'ok': False, 'error': f'Cannot reach live: {str(e)}'}), 502
+
+    if live_ts > local_ts + 2:
+        direction = 'pull'
+    elif local_ts > live_ts + 2:
+        direction = 'push'
+    else:
+        direction = 'equal'
+
+    return jsonify({'ok': True, 'local_ts': local_ts, 'live_ts': live_ts, 'direction': direction})
+
+
 def _backup_local(prefix):
     """Backup local DATA_FILE before overwriting. Returns backup path or None."""
     if not os.path.exists(DATA_FILE):
