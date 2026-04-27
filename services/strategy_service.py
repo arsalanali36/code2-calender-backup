@@ -281,6 +281,8 @@ def run_reversal_strategy_logic(df, hawa_me_zone=False):
         active_line_type = None
         buffer_val = 5.0 if hawa_me_zone else 0.0
         for k, v in levels.items():
+            if v is None or (isinstance(v, float) and v != v):
+                continue
             if (low - buffer_val) <= v <= (high + buffer_val):
                 touched = True
                 active_line_type = get_line_type(k)
