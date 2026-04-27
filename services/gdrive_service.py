@@ -45,10 +45,10 @@ def _get_service():
             scopes = ['https://www.googleapis.com/auth/drive']
             creds = service_account.Credentials.from_service_account_info(info, scopes=scopes)
             _service_cache = build('drive', 'v3', credentials=creds, cache_discovery=False)
-            log.info('[gdrive] Google Drive service initialised')
+            print('[gdrive] Google Drive service initialised', flush=True)
             return _service_cache
         except Exception as e:
-            log.error('[gdrive] Failed to build Drive service: %s', e)
+            print(f'[gdrive] Failed to build Drive service: {e}', flush=True)
             return None
 
 
@@ -102,6 +102,12 @@ def upload_async(local_path):
     threading.Thread(target=upload, args=(path,), daemon=True).start()
 
 
+def _p(msg):
+    """Print + log — gunicorn overrides basicConfig so prints are more reliable in Render."""
+    print(msg, flush=True)
+    log.info(msg)
+
+
 def download_if_newer(local_path):
     """
     On server startup: if Drive has a newer version of trades_1.json, download it.
@@ -109,16 +115,18 @@ def download_if_newer(local_path):
     when the local (ephemeral) file is stale or missing.
     """
     if not is_configured():
-        log.info('[gdrive] Not configured — skipping Drive sync on startup')
+        _p('[gdrive] Not configured — skipping Drive sync on startup')
         return
+    _p('[gdrive] Configured — checking Drive for newer data...')
     service = _get_service()
     if not service:
+        _p('[gdrive] ERROR: could not build Drive service — check GDRIVE_CREDENTIALS_JSON')
         return
     folder_id = os.getenv('GDRIVE_FOLDER_ID')
     try:
         existing = _find_file_id(service, folder_id)
         if not existing:
-            log.info('[gdrive] No file on Drive yet — nothing to download')
+            _p('[gdrive] No file on Drive yet — nothing to download')
             return
 
         # Parse Drive's RFC3339 mtime to a Unix timestamp
@@ -130,13 +138,13 @@ def download_if_newer(local_path):
 
         local_mtime = os.path.getmtime(local_path) if os.path.exists(local_path) else 0
 
-        log.info('[gdrive] Drive mtime=%.0f  local mtime=%.0f', gdrive_mtime, local_mtime)
+        _p(f'[gdrive] Drive mtime={gdrive_mtime:.0f}  local mtime={local_mtime:.0f}')
 
         if gdrive_mtime <= local_mtime + 5:
-            log.info('[gdrive] Local file is up to date — skipping download')
+            _p('[gdrive] Local file is up to date — skipping download')
             return
 
-        log.info('[gdrive] Drive is newer — downloading %s…', GDRIVE_FILENAME)
+        _p(f'[gdrive] Drive is newer — downloading {GDRIVE_FILENAME}…')
         from googleapiclient.http import MediaIoBaseDownload
         request = service.files().get_media(fileId=existing['id'])
         buf = BytesIO()
@@ -150,7 +158,7 @@ def download_if_newer(local_path):
             f.write(buf.getvalue())
 
         trade_count = len(json.loads(buf.getvalue()).get('trades', []))
-        log.info('[gdrive] Downloaded %s (%d trades) from Drive', GDRIVE_FILENAME, trade_count)
+        _p(f'[gdrive] Downloaded {GDRIVE_FILENAME} ({trade_count} trades) from Drive')
 
     except Exception as e:
-        log.error('[gdrive] download_if_newer error: %s', e)
+        _p(f'[gdrive] download_if_newer ERROR: {e}')
