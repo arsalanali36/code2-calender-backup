@@ -233,14 +233,12 @@ _bootstrap_persistent_storage()
 # On live server (Render), restore data from Drive if it's newer than the local
 # ephemeral file. This runs synchronously so the app always starts with fresh data.
 try:
-    from services import gdrive_service
-    from processors.data_processors import find_best_trades_file
-    import glob as _glob
+    from services import gist_service
     _data_dir = os.path.join(BASE_DIR, 'data')
-    _gdrive_target = os.path.join(_data_dir, 'trades_1.json')
-    gdrive_service.download_if_newer(_gdrive_target)
-except Exception as _gdrive_err:
-    print(f'[gdrive] Startup sync error (non-fatal): {_gdrive_err}')
+    _gist_target = os.path.join(_data_dir, 'trades_1.json')
+    gist_service.download_if_newer(_gist_target)
+except Exception as _gist_err:
+    print(f'[gist] Startup sync error (non-fatal): {_gist_err}')
 
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
