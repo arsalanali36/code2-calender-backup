@@ -135,6 +135,8 @@ def run_sandbox_strategy_logic(df):
                 low, high = row['Low'], row['High']
                 
                 for k, val in m_levels.items():
+                    if val is None or (isinstance(val, float) and val != val):
+                        continue
                     # If already active, keep filling
                     if active_levels[k]:
                         df.iloc[idx, df.columns.get_loc(k)] = val
