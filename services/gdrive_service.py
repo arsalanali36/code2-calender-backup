@@ -82,15 +82,15 @@ def upload(local_path):
             service.files().update(
                 fileId=existing['id'], media_body=media
             ).execute()
-            log.info('[gdrive] Updated %s on Drive', GDRIVE_FILENAME)
+            print(f'[gdrive] Updated {GDRIVE_FILENAME} on Drive', flush=True)
         else:
             meta = {'name': GDRIVE_FILENAME, 'parents': [folder_id]}
             service.files().create(
                 body=meta, media_body=media, fields='id'
             ).execute()
-            log.info('[gdrive] Created %s on Drive', GDRIVE_FILENAME)
+            print(f'[gdrive] Created {GDRIVE_FILENAME} on Drive', flush=True)
     except Exception as e:
-        log.error('[gdrive] Upload failed: %s', e)
+        print(f'[gdrive] Upload FAILED: {e}', flush=True)
 
 
 def upload_async(local_path):
