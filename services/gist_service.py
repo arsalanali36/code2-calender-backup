@@ -83,18 +83,10 @@ def download_if_newer(local_path):
             print(f'[gist] No {GIST_FILENAME} in Gist yet — nothing to download', flush=True)
             return
 
-        from datetime import datetime
-        updated_at = gist_data.get('updated_at', '')
-        gist_mtime = datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp()
-        local_mtime = os.path.getmtime(local_path) if os.path.exists(local_path) else 0
-
-        print(f'[gist] Gist mtime={gist_mtime:.0f}  local mtime={local_mtime:.0f}', flush=True)
-
-        if gist_mtime <= local_mtime + 5:
-            print('[gist] Local file is up to date — skipping download', flush=True)
-            return
-
-        print(f'[gist] Gist is newer — downloading {GIST_FILENAME}…', flush=True)
+        # Always download from Gist on startup — Gist is the source of truth.
+        # We cannot trust local mtime because git deployment resets it to "now",
+        # making the git-bootstrapped file always appear newer than Gist.
+        print(f'[gist] Downloading {GIST_FILENAME} from Gist (source of truth on startup)…', flush=True)
 
         content = file_info.get('content', '')
         if not content or file_info.get('truncated'):
