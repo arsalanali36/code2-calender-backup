@@ -228,6 +228,20 @@ def _cleanup_trash():
 
 
 _bootstrap_persistent_storage()
+
+# ── Google Drive startup sync ─────────────────────────────────────────────────
+# On live server (Render), restore data from Drive if it's newer than the local
+# ephemeral file. This runs synchronously so the app always starts with fresh data.
+try:
+    from services import gdrive_service
+    from processors.data_processors import find_best_trades_file
+    import glob as _glob
+    _data_dir = os.path.join(BASE_DIR, 'data')
+    _gdrive_target = os.path.join(_data_dir, 'trades_1.json')
+    gdrive_service.download_if_newer(_gdrive_target)
+except Exception as _gdrive_err:
+    print(f'[gdrive] Startup sync error (non-fatal): {_gdrive_err}')
+
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
 start_local_backup_service()

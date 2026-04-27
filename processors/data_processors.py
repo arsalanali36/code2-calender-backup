@@ -68,12 +68,14 @@ def load_trades(user_id=None):
 
 def save_trades_to_file(data, user_id=None):
     from services.backup_service import auto_backup
+    from services import gdrive_service
     data = _normalize_trade_payload(data)
     data_file = get_user_data_file(user_id)
     os.makedirs(os.path.dirname(data_file), exist_ok=True)
     with open(data_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     auto_backup(data_file, user_id=user_id)
+    gdrive_service.upload_async(data_file)
 
 
 def _normalize_upload_url(value):

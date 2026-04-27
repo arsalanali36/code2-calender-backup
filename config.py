@@ -79,6 +79,13 @@ if SECRET_KEY == _secret_key_default and not DEBUG:
     )
 ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
 
+# ── Google Drive persistent storage ──────────────────────────────────────────
+# Prevents data loss on Render restarts (ephemeral filesystem).
+# GDRIVE_CREDENTIALS_JSON — full service account JSON key (paste entire file content)
+# GDRIVE_FOLDER_ID        — Google Drive folder ID shared with the service account
+GDRIVE_CREDENTIALS_JSON = os.getenv('GDRIVE_CREDENTIALS_JSON', '')
+GDRIVE_FOLDER_ID        = os.getenv('GDRIVE_FOLDER_ID', '')
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 # Comma-separated list of allowed origins. Example env value:
 #   ALLOWED_ORIGINS=https://code2-calender.onrender.com,http://localhost:5000
