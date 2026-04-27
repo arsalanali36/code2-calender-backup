@@ -109,7 +109,6 @@ def _perform_fetch_and_cache(security_id, exchange_segment, instrument_type, tra
         raise ValueError("Dhan credentials not configured")
 
     headers = _dhan_headers(config)
-    today   = datetime.now().strftime('%Y-%m-%d')
     cp      = _cache_path(security_id, trade_date)
     meta    = _read_meta(security_id, trade_date)
 
@@ -117,41 +116,19 @@ def _perform_fetch_and_cache(security_id, exchange_segment, instrument_type, tra
     if last_candle >= f"{trade_date} 15:29":
         return load_cached_ohlc(security_id, trade_date)
 
-    if trade_date == today:
-        url = f"{DHAN_API_BASE}/v2/charts/intraday"
-        payload = {
-            "securityId":      str(security_id),
-            "exchangeSegment": exchange_segment,
-            "instrument":      instrument_type,
-            "interval":        1,
-            "fromDate":        trade_date,
-            "toDate":          trade_date,
-        }
-    else:
-        if expiry_date:
-            try:
-                from datetime import date as _date_cls
-                days = (_date_cls.fromisoformat(expiry_date) - _date_cls.fromisoformat(trade_date)).days
-                exp_code = 1 if days <= 7 else 2 if days <= 14 else 3
-            except Exception:
-                exp_code = 1
-        else:
-            exp_code = 0
-        to_date = (datetime.strptime(trade_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
-        url = f"{DHAN_API_BASE}/v2/charts/historical"
-        payload = {
-            "securityId":      str(security_id),
-            "exchangeSegment": exchange_segment,
-            "instrument":      instrument_type,
-            "expiryCode":      exp_code,
-            "interval":        1,
-            "fromDate":        trade_date,
-            "toDate":          to_date,
-        }
-        print(f"DEBUG: Historical Payload: {payload}")
+    # v2/charts/intraday works for both today and past dates (returns 1-min candles).
+    # v2/charts/historical returns daily OHLC bars — do NOT use for intraday data.
+    url = f"{DHAN_API_BASE}/v2/charts/intraday"
+    payload = {
+        "securityId":      str(security_id),
+        "exchangeSegment": exchange_segment,
+        "instrument":      instrument_type,
+        "interval":        1,
+        "fromDate":        trade_date,
+        "toDate":          trade_date,
+    }
 
-    resp = _post_json(url, payload, headers)
-    print(f"DEBUG: Response keys: {resp.keys() if isinstance(resp, dict) else 'not-dict'}")
+    resp   = _post_json(url, payload, headers)
     df_new = _parse_dhan_response(resp, trade_date)
 
     if df_new.empty:
@@ -222,30 +199,45 @@ def _parse_rollingoption_response(resp, trade_date, opt_type):
 
 
 def _parse_dhan_response(resp, trade_date):
-    """Convert Dhan array response → DataFrame with datetime/time/open/high/low/close."""
+    """Convert Dhan array response -> DataFrame with datetime/time/open/high/low/close.
+    Handles both responses with timestamps (epoch) and without (intraday, starts 09:15)."""
     import pandas as pd
-    timestamps = resp.get('timestamp', [])
-    if not timestamps:
+    opens  = resp.get('open',   [])
+    highs  = resp.get('high',   [])
+    lows   = resp.get('low',    [])
+    closes = resp.get('close',  [])
+    vols   = resp.get('volume', [])
+    stamps = resp.get('timestamp', [])
+
+    if not opens:
         return pd.DataFrame()
 
     rows = []
-    for ts, o, h, l, c, v in zip(
-        timestamps,
-        resp.get('open',   []),
-        resp.get('high',   []),
-        resp.get('low',    []),
-        resp.get('close',  []),
-        resp.get('volume', [None] * len(timestamps)),
-    ):
-        dt = datetime.fromtimestamp(int(ts))
-        if dt.strftime('%Y-%m-%d') != trade_date:
-            continue
-        rows.append({
-            'datetime': dt.strftime('%Y-%m-%d %H:%M:%S'),
-            'time':     dt.strftime('%H:%M:%S'),
-            'open':  float(o), 'high': float(h),
-            'low':   float(l), 'close': float(c),
-            'volume': int(v) if v is not None else 0,
-        })
+    if stamps:
+        for i, (ts, o, h, l, c) in enumerate(zip(stamps, opens, highs, lows, closes)):
+            dt = datetime.fromtimestamp(int(ts))
+            if dt.strftime('%Y-%m-%d') != trade_date:
+                continue
+            v = vols[i] if i < len(vols) else 0
+            rows.append({
+                'datetime': dt.strftime('%Y-%m-%d %H:%M:%S'),
+                'time':     dt.strftime('%H:%M:%S'),
+                'open': float(o), 'high': float(h),
+                'low':  float(l), 'close': float(c),
+                'volume': int(v) if v is not None else 0,
+            })
+    else:
+        # intraday endpoint: no timestamps, candles start at 09:15
+        start = datetime.strptime(f"{trade_date} 09:15:00", '%Y-%m-%d %H:%M:%S')
+        for i, (o, h, l, c) in enumerate(zip(opens, highs, lows, closes)):
+            dt = start + timedelta(minutes=i)
+            v  = vols[i] if i < len(vols) else 0
+            rows.append({
+                'datetime': dt.strftime('%Y-%m-%d %H:%M:%S'),
+                'time':     dt.strftime('%H:%M:%S'),
+                'open': float(o), 'high': float(h),
+                'low':  float(l), 'close': float(c),
+                'volume': int(v) if v is not None else 0,
+            })
 
     return pd.DataFrame(rows)
