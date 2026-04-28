@@ -175,9 +175,23 @@ function _bindUIEvents() {
   });
 
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
-  setupDropdown('add-dropdown-btn', 'add-dropdown-menu');
-  setupDropdown('col-vis-btn', 'col-vis-panel');
-  setupDropdown('view-preset-btn', 'view-preset-panel');
+  setupDropdown('table-options-btn', 'table-options-panel');
+
+  // Sub-panels open as fixed-position popups near the Options button
+  function openTblSubPopup(panelId, e) {
+    e.stopPropagation();
+    document.getElementById('table-options-panel')?.classList.remove('open');
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const wasOpen = panel.classList.contains('open');
+    document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));
+    if (wasOpen) return;
+    panel.classList.add('open');
+  }
+  document.getElementById('col-vis-btn')?.addEventListener('click', e => openTblSubPopup('col-vis-panel', e));
+  document.getElementById('view-preset-btn')?.addEventListener('click', e => openTblSubPopup('view-preset-panel', e));
+  document.getElementById('tag-filter-btn')?.addEventListener('click', e => openTblSubPopup('tag-filter-panel', e));
+  document.getElementById('add-dropdown-btn')?.addEventListener('click', e => openTblSubPopup('add-dropdown-menu', e));
   const statsBtn = document.getElementById('dashboard-stats-btn');
   if (statsBtn) statsBtn.addEventListener('click', e => { e.stopPropagation(); openStatsConfigModal(); });
 
@@ -188,14 +202,15 @@ function _bindUIEvents() {
     if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
     if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
+    document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
-  document.getElementById('col-vis-panel').addEventListener('click', e => e.stopPropagation());
-  document.getElementById('view-preset-panel').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('col-vis-panel')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('view-preset-panel')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('tag-filter-panel')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('add-dropdown-menu')?.addEventListener('click', e => e.stopPropagation());
   const dashStatsMenu = document.getElementById('dashboard-stats-menu');
   if (dashStatsMenu) dashStatsMenu.addEventListener('click', e => e.stopPropagation());
-
-  setupDropdown('tag-filter-btn', 'tag-filter-panel');
   document.querySelectorAll('.broker-filter-item').forEach(btn => {
     btn.addEventListener('click', () => {
       state.brokerFilter = String(btn.dataset.broker || 'both').toLowerCase();

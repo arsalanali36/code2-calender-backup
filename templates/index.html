@@ -236,59 +236,47 @@
         <h2 class="section-title">Trade Table</h2>
         <div class="table-header-actions">
 
-          <!-- Date Range Filter -->
           <button class="btn btn-outline" id="table-tt-btn" title="Open Target Tracker">🎯 Tracker</button>
 
+          <button class="btn btn-outline" id="csvlog-toolbar-btn" title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
+          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn" title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
+          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
+          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
 
-          <!-- Note column quick toggle -->
-          <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
-          <button class="btn btn-outline" id="csvlog-toolbar-btn"
-            title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
-          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn"
-            title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
-          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202;
-            Review</button>
-          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221;
-            Logger</button>
-
-          <!-- Column Visibility -->
-          <div class="dropdown-wrapper" id="col-vis-wrapper">
-            <button class="btn btn-outline" id="col-vis-btn">Columns &#9660;</button>
-            <div class="dropdown-menu col-vis-panel" id="col-vis-panel">
-              <p class="panel-hint" style="margin:8px">Import Excel first</p>
-            </div>
-          </div>
-
-          <!-- Saved Views -->
-          <div class="dropdown-wrapper" id="view-preset-wrapper">
-            <button class="btn btn-outline" id="view-preset-btn">&#128204; Views &#9660;</button>
-            <div class="dropdown-menu" id="view-preset-panel" style="min-width:200px;">
-              <button class="dropdown-item" id="save-view-btn">&#128190; Save Current View</button>
+          <!-- Options dropdown: Note / Columns / Views / Tags / Filter / +Add -->
+          <div class="dropdown-wrapper" id="table-options-wrapper">
+            <button class="btn btn-outline" id="table-options-btn">&#9881; Options &#9660;</button>
+            <div class="dropdown-menu tbl-opts-panel" id="table-options-panel">
+              <button class="dropdown-item" id="note-col-toggle-btn">&#128203; Note</button>
               <div class="dropdown-divider"></div>
-              <div id="saved-views-list"></div>
+              <button class="dropdown-item" id="col-vis-btn">Columns &#8599;</button>
+              <button class="dropdown-item" id="view-preset-btn">&#128204; Views &#8599;</button>
+              <button class="dropdown-item" id="tag-filter-btn">&#127991; Tags &#8599;</button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" id="filter-toggle-btn">&#9906; Filter</button>
+              <button class="dropdown-item" id="add-dropdown-btn">+ Add &#8599;</button>
             </div>
           </div>
 
-          <!-- Tag Filter -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="tag-filter-btn">&#127991; Tags &#9660;</button>
-            <div class="dropdown-menu tag-filter-panel" id="tag-filter-panel">
-              <p class="panel-hint" style="padding:10px 8px">No tags yet.<br>Add via Tags column.</p>
-            </div>
+          <!-- Sub-panels: fixed-position popups (outside dropdown) -->
+          <div id="col-vis-wrapper" style="display:none"></div>
+          <div class="dropdown-menu tbl-sub-popup col-vis-panel" id="col-vis-panel">
+            <p class="panel-hint" style="margin:8px">Import Excel first</p>
           </div>
-
-          <!-- Filter toggle -->
-          <button class="btn btn-outline" id="filter-toggle-btn">&#9906; Filter</button>
-
-          <!-- Add dropdown -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="add-dropdown-btn">+ Add &#9660;</button>
-            <div class="dropdown-menu" id="add-dropdown-menu">
-              <button class="dropdown-item" id="add-row-btn">+ Add Row</button>
-              <button class="dropdown-item" id="add-tag-col-btn">+ Add Tag Column</button>
-              <button class="dropdown-item" id="add-col-btn">+ Add Column</button>
-              <button class="dropdown-item" id="edit-col-btn">&#9998; Edit Column</button>
-            </div>
+          <div id="view-preset-wrapper" style="display:none"></div>
+          <div class="dropdown-menu tbl-sub-popup" id="view-preset-panel" style="min-width:200px;">
+            <button class="dropdown-item" id="save-view-btn">&#128190; Save Current View</button>
+            <div class="dropdown-divider"></div>
+            <div id="saved-views-list"></div>
+          </div>
+          <div class="dropdown-menu tbl-sub-popup tag-filter-panel" id="tag-filter-panel">
+            <p class="panel-hint" style="padding:10px 8px">No tags yet.<br>Add via Tags column.</p>
+          </div>
+          <div class="dropdown-menu tbl-sub-popup" id="add-dropdown-menu">
+            <button class="dropdown-item" id="add-row-btn">+ Add Row</button>
+            <button class="dropdown-item" id="add-tag-col-btn">+ Add Tag Column</button>
+            <button class="dropdown-item" id="add-col-btn">+ Add Column</button>
+            <button class="dropdown-item" id="edit-col-btn">&#9998; Edit Column</button>
           </div>
 
           <!-- File dropdown -->

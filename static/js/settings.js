@@ -472,9 +472,19 @@ function renderColVisPanel() {
     panel.innerHTML = '<p class="panel-hint" style="margin:8px">Import Excel first</p>'; return;
   }
 
+  // ── Tabs ──
+  const tabsRow = document.createElement('div'); tabsRow.className = 'panel-tabs';
+  const tabVis = document.createElement('button'); tabVis.className = 'panel-tab active'; tabVis.textContent = 'Columns';
+  const tabFreeze = document.createElement('button'); tabFreeze.className = 'panel-tab'; tabFreeze.textContent = 'Freeze';
+  tabsRow.appendChild(tabVis); tabsRow.appendChild(tabFreeze);
+  panel.appendChild(tabsRow);
+
+  // ── Tab 1: Column visibility ──
+  const paneVis = document.createElement('div'); paneVis.className = 'panel-tab-pane';
+
   const searchRow = document.createElement('div'); searchRow.className = 'panel-search-row';
   const searchInp = document.createElement('input'); searchInp.className = 'panel-search'; searchInp.placeholder = 'Search...';
-  searchRow.appendChild(searchInp); panel.appendChild(searchRow);
+  searchRow.appendChild(searchInp); paneVis.appendChild(searchRow);
 
   const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
   const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
@@ -487,9 +497,9 @@ function renderColVisPanel() {
     renderColVisPanel();
     renderTable();
   });
-  actRow.appendChild(btnAll); actRow.appendChild(btnNone); panel.appendChild(actRow);
+  actRow.appendChild(btnAll); actRow.appendChild(btnNone); paneVis.appendChild(actRow);
 
-  const list = document.createElement('div'); list.className = 'panel-list'; panel.appendChild(list);
+  const list = document.createElement('div'); list.className = 'panel-list'; paneVis.appendChild(list);
 
   const renderList = (q) => {
     list.innerHTML = '';
@@ -502,101 +512,69 @@ function renderColVisPanel() {
       row.className = 'head-checkbox' + (draggable ? ' drag-row' : '');
       row.style.padding = '3px 0';
       row.dataset.col = col;
-
       if (draggable) {
         const handle = document.createElement('span');
-        handle.textContent = '⋮⋮';
-        handle.style.opacity = '0.6';
-        handle.style.marginRight = '8px';
+        handle.textContent = '⋮⋮'; handle.style.opacity = '0.6'; handle.style.marginRight = '8px';
         row.appendChild(handle);
         row.setAttribute('draggable', 'true');
       }
-
       const chk = document.createElement('input'); chk.type = 'checkbox';
       chk.checked = isPermanent ? true : (state.tableShowCols[col] !== false);
       chk.disabled = isPermanent;
-      chk.addEventListener('change', () => {
-        if (isPermanent) return;
-        state.tableShowCols[col] = chk.checked;
-        renderTable();
-      });
+      chk.addEventListener('change', () => { if (isPermanent) return; state.tableShowCols[col] = chk.checked; renderTable(); });
       row.appendChild(chk);
       row.appendChild(document.createTextNode(col));
-
       if (draggable) {
-        row.addEventListener('dragstart', e => {
-          e.dataTransfer.setData('text/plain', col);
-          row.style.opacity = '0.5';
-        });
+        row.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', col); row.style.opacity = '0.5'; });
         row.addEventListener('dragend', () => { row.style.opacity = '1'; });
         row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '1px dashed var(--border2)'; });
         row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
         row.addEventListener('drop', e => {
-          e.preventDefault();
-          row.style.borderTop = '';
-          const from = e.dataTransfer.getData('text/plain');
-          const to = col;
+          e.preventDefault(); row.style.borderTop = '';
+          const from = e.dataTransfer.getData('text/plain'); const to = col;
           if (!from || from === to) return;
           const order = state.columns.filter(c => c !== from);
-          const idx = order.indexOf(to);
-          order.splice(idx, 0, from);
-          state.columns = order;
-          saveTrades();
-          renderColVisPanel();
-          renderTable();
+          order.splice(order.indexOf(to), 0, from);
+          state.columns = order; saveTrades(); renderColVisPanel(); renderTable();
         });
       }
-
       list.appendChild(row);
     };
 
     orderedCols.forEach(col => {
-      const lowerCol = String(col).toLowerCase();
-      const isPermanent =
-        lowerCol === String(IMAGE_TAG_COLUMN).toLowerCase() ||
-        lowerCol === String(BROKER_COLUMN).toLowerCase();
-      buildRow(col, true, isPermanent);
+      const lc = String(col).toLowerCase();
+      buildRow(col, true, lc === String(IMAGE_TAG_COLUMN).toLowerCase() || lc === String(BROKER_COLUMN).toLowerCase());
     });
-
-    if (includeImages) {
-      buildRow('Images', false, false);
-    }
+    if (includeImages) buildRow('Images', false, false);
   };
   renderList('');
   searchInp.addEventListener('input', () => renderList(searchInp.value));
+  panel.appendChild(paneVis);
 
-  const freezeWrap = document.createElement('div');
-  freezeWrap.style.padding = '6px 10px 10px';
-  freezeWrap.style.borderTop = '1px solid var(--border)';
-  const freezeLabel = document.createElement('div');
-  freezeLabel.className = 'panel-manage-label';
-  freezeLabel.textContent = 'Freeze Columns';
-  freezeLabel.style.marginBottom = '6px';
-  freezeWrap.appendChild(freezeLabel);
-
-  const freezeList = document.createElement('div');
-  freezeList.className = 'panel-list';
-  freezeList.style.maxHeight = '180px';
+  // ── Tab 2: Freeze ──
+  const paneFreeze = document.createElement('div'); paneFreeze.className = 'panel-tab-pane panel-two-col'; paneFreeze.style.display = 'none';
   const frozen = getFrozenCols();
   state.columns.forEach(col => {
-    const row = document.createElement('label');
-    row.className = 'head-checkbox';
-    row.style.padding = '3px 0';
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.checked = frozen.includes(col);
+    const row = document.createElement('label'); row.className = 'head-checkbox'; row.style.padding = '3px 0';
+    const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = frozen.includes(col);
     chk.addEventListener('change', () => {
       const next = new Set(getFrozenCols());
-      if (chk.checked) next.add(col);
-      else next.delete(col);
-      saveFrozenCols(Array.from(next));
-      renderTable();
+      if (chk.checked) next.add(col); else next.delete(col);
+      saveFrozenCols(Array.from(next)); renderTable();
     });
-    row.appendChild(chk);
-    row.appendChild(document.createTextNode(col));
-    freezeList.appendChild(row);
+    row.appendChild(chk); row.appendChild(document.createTextNode(col));
+    paneFreeze.appendChild(row);
   });
-  freezeWrap.appendChild(freezeList);
-  panel.appendChild(freezeWrap);
+  panel.appendChild(paneFreeze);
+
+  // ── Tab switching ──
+  tabVis.addEventListener('click', () => {
+    tabVis.classList.add('active'); tabFreeze.classList.remove('active');
+    paneVis.style.display = ''; paneFreeze.style.display = 'none';
+  });
+  tabFreeze.addEventListener('click', () => {
+    tabFreeze.classList.add('active'); tabVis.classList.remove('active');
+    paneFreeze.style.display = ''; paneVis.style.display = 'none';
+  });
 }
 

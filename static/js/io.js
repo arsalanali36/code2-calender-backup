@@ -603,8 +603,12 @@ function setupDropdown(btnId, menuId) {
 }
 
 function closeAllDropdowns(except) {
-  document.querySelectorAll('.dropdown-menu.open').forEach(m => { 
-    if (m.id !== except && !m.classList.contains('mtm-panel')) m.classList.remove('open'); 
+  document.querySelectorAll('.dropdown-menu.open').forEach(m => {
+    if (m.id === except) return;
+    if (m.classList.contains('mtm-panel')) return;
+    // Keep parent Options panel open when a sub-menu inside it opens
+    if (m.classList.contains('tbl-opts-panel') && except !== '__none__') return;
+    m.classList.remove('open');
   });
   const bd = document.getElementById('_mob-dd-backdrop');
   if (bd) bd.style.display = 'none';

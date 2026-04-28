@@ -247,6 +247,22 @@ body.modal-open {
   margin: 3px 0;
 }
 
+/* ── Table Options panel ───────────────────────── */
+.tbl-opts-panel {
+  min-width: 160px;
+}
+
+/* ── Table sub-panel fixed popups ─────────────── */
+.tbl-sub-popup {
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  z-index: 9800;
+  max-height: 70vh;
+  overflow-y: auto;
+  min-width: 200px;
+}
+
 /* ── MAIN LAYOUT ──────────────────────────────── */
 .app-main {
   flex: 1;
