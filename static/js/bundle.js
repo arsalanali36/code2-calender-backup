@@ -1586,7 +1586,6 @@ function _openGalleryFromUrlParamsOnce() {
 
 function populateSelects() {
   const ms = document.getElementById('glob-month');
-  const ys = document.getElementById('glob-year');
   const vs = document.getElementById('glob-view');
 
   if (ms) {
@@ -1596,16 +1595,26 @@ function populateSelects() {
       ms.appendChild(o);
     });
   }
-
-  if (ys) {
-    const cy = new Date().getFullYear();
-    for (let y = cy - 5; y <= cy + 2; y++) {
-      const o = document.createElement('option');
-      o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
-      ys.appendChild(o);
-    }
-  }
   if (vs) vs.value = state.calendarView;
+}
+
+function repopulateYearSelect() {
+  const ys = document.getElementById('glob-year');
+  if (!ys) return;
+  const years = new Set();
+  const MIN_YEAR = 2010;
+  state.trades.forEach(t => {
+    const d = t.date;
+    if (d) { const y = new Date(d).getFullYear(); if (!isNaN(y) && y >= MIN_YEAR) years.add(y); }
+  });
+  years.add(new Date().getFullYear());
+  const sorted = [...years].sort((a, b) => a - b);
+  ys.innerHTML = '';
+  sorted.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
+    ys.appendChild(o);
+  });
 }
 
 async function loadTrades() {
@@ -1644,6 +1653,7 @@ async function loadTrades() {
     initShowHeads();
     initTableShowCols();
     if (typeof applyVdChartModes === 'function') applyVdChartModes();
+    repopulateYearSelect();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
     _dismissLoadingOverlay();
@@ -1693,6 +1703,7 @@ async function saveTrades() {
       };
       await tradeService.saveTrades(payload);
       state.serverStateHash = hashServerState(payload);
+      window.dispatchEvent(new CustomEvent('tradesaved'));
     } catch (e) { showToast('Save failed', 'error'); }
   })();
   await _saveTradesQueue;
@@ -8497,18 +8508,29 @@ function renderGalleryThumbs() {
     const isPremium     = type === 'PREMIUM';
     const isNews        = type === 'NEWS';
     const isPdf         = type === 'DOCUMENTS';
-    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isPdf ? 'DOCUMENTS' : (isClose ? 'CLOSE' : 'OPEN'))));
+    const isCustom      = !isNews && !isPdf && !isCloseGlobal && !isPremium && !isClose && type !== false;
+    const sepKey = isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : (isPremium ? 'PREMIUM' : (isPdf ? 'DOCUMENTS' : (isClose ? 'CLOSE' : (isCustom ? type : 'OPEN')))));
     const isCollapsed = state.gallery.collapsedSeparators?.has(sepKey);
     const arrow = isCollapsed ? '▸' : '▾';
-    sep.innerHTML = `<span class="gv2-sep-label">${arrow} ${label}</span>`;
+    
+    sep.innerHTML = `<div style="display:flex; align-items:center; width:100%; gap:6px;">` + 
+                      `<span class="gv2-sep-label" style="flex:1;">${arrow} ${label}</span>` + 
+                      (isCustom ? 
+                        `<button class="gv2-ulp-ctrl-btn custom-sep-rename" title="Rename" style="padding:0 4px; background:transparent; opacity:0.6;">✏️</button>` +
+                        `<button class="gv2-ulp-ctrl-btn custom-sep-delete" title="Delete Folder" style="padding:0 4px; background:transparent; opacity:0.6;">×</button>`
+                        : ''
+                      ) +
+                    `</div>`;
     sep.title = `${label} images section`;
     
     let color = '#ffd700'; // Default gold
     if (isNews) color = '#ffa500';
     else if (isPdf) color = '#a55eea'; // Purple for PDF
+    else if (isCustom) color = '#4ade80'; // Green for custom folders
     
     sep.style.color = color;
     sep.style.borderColor = color;
+    if (isCustom) sep.style.background = 'rgba(74, 222, 128, 0.05)';
 
     sep.addEventListener('dragover', e => { e.preventDefault(); sep.classList.add('drag-active'); });
     sep.addEventListener('dragleave', () => sep.classList.remove('drag-active'));
@@ -8532,13 +8554,25 @@ function renderGalleryThumbs() {
               showToast('CLOSE GLOBAL can only hold 1 image.', 'error'); return;
             }
           }
-          await moveSelectedToDayData(date, isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : isClose));
+          await moveSelectedToDayData(date, isCustom ? type : (isNews ? 'NEWS' : (isCloseGlobal ? 'CLOSE_GLOBAL' : isClose)));
         }
       } catch (err) { console.error(err); }
     });
     if (state.gallery.selectedSeparator === sepKey) sep.classList.add('selected-separator');
 
     sep.addEventListener('click', (e) => {
+      // If clicked on rename/delete buttons, don't collapse
+      if (e.target.closest('.custom-sep-rename')) {
+          e.stopPropagation();
+          handleRenameCustomFolder(sepKey);
+          return;
+      }
+      if (e.target.closest('.custom-sep-delete')) {
+          e.stopPropagation();
+          handleDeleteCustomFolder(sepKey);
+          return;
+      }
+
       e.stopPropagation();
       state.gallery.collapsedSeparators = state.gallery.collapsedSeparators || new Set();
       if (state.gallery.collapsedSeparators.has(sepKey)) state.gallery.collapsedSeparators.delete(sepKey);
@@ -8562,6 +8596,14 @@ function renderGalleryThumbs() {
     }
     thumbs.appendChild(createSpecialSeparator('OPEN', false));
     _perDateRenderedSeps.add(date + ':OPEN');
+
+    // Custom Folders
+    if (state.dayData[date]?.customImages) {
+        for (const [catName, urls] of Object.entries(state.dayData[date].customImages)) {
+            thumbs.appendChild(createSpecialSeparator(catName, catName));
+            _perDateRenderedSeps.add(date + ':' + catName);
+        }
+    }
   }
 
   let lastTradeIdxRendered = -1;
@@ -8593,6 +8635,13 @@ function renderGalleryThumbs() {
     const _isClose          = dData.closeImages?.includes(url);
     const _isCloseGlobal    = dData.closeGlobalImages?.includes(url);
     const _isPremium        = dData.premiumImages && Object.values(dData.premiumImages).some(v => Array.isArray(v) ? v.includes(url) : v === url);
+    
+    let _isCustomLabel = null;
+    if (dData.customImages) {
+        for (const [catName, urls] of Object.entries(dData.customImages)) {
+            if (urls.includes(url)) { _isCustomLabel = catName; break; }
+        }
+    }
 
     // Filter Optimization: Matched premium images should be shown in main list when filtering
     if (_isPremium && !_filterActive3) return;
@@ -8667,6 +8716,13 @@ function renderGalleryThumbs() {
       _perDateRenderedSeps.add(_premiumSepKey);
     }
     if (_isPremium && state.gallery.collapsedSeparators?.has('PREMIUM')) return;
+
+    // 7. CUSTOM Separators
+    if (_isCustomLabel && !_filterActive3 && !_perDateRenderedSeps.has(_effDate + ':' + _isCustomLabel)) {
+        thumbs.appendChild(createSpecialSeparator(_isCustomLabel, _isCustomLabel));
+        _perDateRenderedSeps.add(_effDate + ':' + _isCustomLabel);
+    }
+    if (_isCustomLabel && state.gallery.collapsedSeparators?.has(_isCustomLabel)) return;
 
 
     // ── Build thumbnail element ───────────────────────────────────────────
@@ -13249,6 +13305,12 @@ function showGalleryContextMenu(x, y) {
 
     if (state.dayData[dateToUse]) {
         subMenu.appendChild(createSubOpt('News', () => moveSelectedToDayData(dateToUse, 'NEWS')));
+        // Add Custom Folders to menu
+        if (state.dayData[dateToUse].customImages) {
+            for (const catName of Object.keys(state.dayData[dateToUse].customImages)) {
+                subMenu.appendChild(createSubOpt(catName, () => moveSelectedToDayData(dateToUse, catName)));
+            }
+        }
     }
     subMenu.appendChild(createSubOpt('Open', () => moveSelectedToDayData(dateToUse, false)));
     dayTrades.forEach((tr, i) => {
@@ -13658,8 +13720,11 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
             if (!state.dayData[dateToUse].newsImages) state.dayData[dateToUse].newsImages = [];
         } else if (isClose === 'CLOSE_GLOBAL') {
             if (!state.dayData[dateToUse].closeGlobalImages) state.dayData[dateToUse].closeGlobalImages = [];
-        } else if (isClose) {
+        } else if (isClose === true) { // Explicit check for true (CLOSE)
             if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
+        } else if (typeof isClose === 'string') { // Custom Category Name
+            if (!state.dayData[dateToUse].customImages) state.dayData[dateToUse].customImages = {};
+            if (!state.dayData[dateToUse].customImages[isClose]) state.dayData[dateToUse].customImages[isClose] = [];
         } else {
             if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
         }
@@ -13719,8 +13784,10 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
                 if (state.dayData[dateToUse].closeGlobalImages.length > 1) {
                     showToast('CLOSE GLOBAL allowed 1 image max.', 'error');
                 }
-            } else if (isClose) {
+            } else if (isClose === true) {
                 state.dayData[dateToUse].closeImages.push(imageUrl);
+            } else if (typeof isClose === 'string') {
+                state.dayData[dateToUse].customImages[isClose].push(imageUrl);
             } else {
                 state.dayData[dateToUse].images.push(imageUrl);
             }
@@ -13760,6 +13827,77 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
 
 async function moveSelectedToDayData(dateToUse, isClose = false) {
     return moveSelectedToTrade(dateToUse, null, isClose);
+}
+
+function addCustomSeparator() {
+    const name = prompt('Enter a name for the new folder/separator (e.g. Charts, Analysis, News):');
+    if (!name || name.trim() === '') return;
+    const date = state.gallery.date;
+    if (!date) { showToast('Please select a date first', 'error'); return; }
+
+    state.dayData[date] = state.dayData[date] || {};
+    state.dayData[date].customImages = state.dayData[date].customImages || {};
+    
+    const catName = name.trim().toUpperCase();
+    if (state.dayData[date].customImages[catName]) {
+        showToast('Folder already exists', 'info');
+        return;
+    }
+
+    state.dayData[date].customImages[catName] = [];
+    saveTrades();
+    renderGallery();
+    showToast(`Folder "${catName}" created! Drop images to move.`, 'success');
+}
+
+function handleRenameCustomFolder(oldName) {
+    const newName = prompt('Enter new name for "' + oldName + '":', oldName);
+    if (!newName || newName.trim() === '' || newName.trim().toUpperCase() === oldName) return;
+    
+    const date = state.gallery.date;
+    if (!date || !state.dayData[date]?.customImages?.[oldName]) return;
+
+    const formattedNewName = newName.trim().toUpperCase();
+    if (state.dayData[date].customImages[formattedNewName]) {
+        showToast('A folder with this name already exists', 'error');
+        return;
+    }
+
+    // Transfer images to new key
+    state.dayData[date].customImages[formattedNewName] = state.dayData[date].customImages[oldName];
+    delete state.dayData[date].customImages[oldName];
+
+    // Update collapsed state if necessary
+    if (state.gallery.collapsedSeparators?.has(oldName)) {
+        state.gallery.collapsedSeparators.delete(oldName);
+        state.gallery.collapsedSeparators.add(formattedNewName);
+    }
+    if (state.gallery.selectedSeparator === oldName) state.gallery.selectedSeparator = formattedNewName;
+
+    saveTrades();
+    renderGallery();
+    showToast('Folder renamed to ' + formattedNewName, 'success');
+}
+
+async function handleDeleteCustomFolder(name) {
+    if (!confirm('Delete folder "' + name + '"? Images will be moved back to the OPEN section.')) return;
+    
+    const date = state.gallery.date;
+    if (!date || !state.dayData[date]?.customImages?.[name]) return;
+
+    const urls = state.dayData[date].customImages[name];
+    delete state.dayData[date].customImages[name];
+    if (Object.keys(state.dayData[date].customImages).length === 0) delete state.dayData[date].customImages;
+
+    // Move images back to OPEN
+    state.dayData[date].images = (state.dayData[date].images || []).concat(urls);
+
+    if (state.gallery.collapsedSeparators?.has(name)) state.gallery.collapsedSeparators.delete(name);
+    if (state.gallery.selectedSeparator === name) state.gallery.selectedSeparator = null;
+
+    await saveTrades();
+    renderGallery();
+    showToast('Folder deleted. Images moved back to OPEN.', 'success');
 }
 
 
@@ -21303,6 +21441,37 @@ async function exportLoggerExcel() {
   } catch (e) { showToast('Logger export failed', 'error'); }
 }
 
+async function pushToLive() {
+  if (!confirm('Push local data to LIVE server?\n\nThis will OVERWRITE the live server\'s data with your local version.\nMake sure local data is up-to-date before proceeding.')) return;
+  showToast('Pushing to live server...', '');
+  try {
+    const res = await fetch('/api/push-to-live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Push failed');
+    showToast(data.message, 'success');
+  } catch (e) {
+    showToast('Push failed: ' + e.message, 'error');
+  }
+}
+
+async function pullFromLive() {
+  if (!confirm('Pull latest data from live server?\n\nThis will OVERWRITE your local trades.json with the live version.\nA backup will be created first.')) return;
+  showToast('Pulling from live server...', '');
+  try {
+    const res = await fetch('/api/pull-from-live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Pull failed');
+    showToast(`${data.message} — reloading...`, 'success');
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) {
+    showToast('Pull failed: ' + e.message, 'error');
+  }
+}
+
 let toastTimer = null;
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`;
@@ -26570,6 +26739,49 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
+  // Compact period picker toggle
+  const navPeriodBtn = document.getElementById('nav-period-btn');
+  const navPeriodPanel = document.getElementById('nav-period-panel');
+  if (navPeriodBtn && navPeriodPanel) {
+    navPeriodBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navPeriodPanel.classList.toggle('open');
+    });
+    navPeriodPanel.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Month / Year view toggle button
+  const navViewToggle = document.getElementById('nav-view-toggle');
+  if (navViewToggle) {
+    navViewToggle.addEventListener('click', () => {
+      state.calendarView = state.calendarView === 'year' ? 'month' : 'year';
+      syncSelects();
+      render();
+    });
+  }
+
+  // Date range toggle
+  const navRangeToggle = document.getElementById('nav-range-toggle');
+  const navRangeRow = document.getElementById('nav-range-row');
+  if (navRangeToggle && navRangeRow) {
+    navRangeToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      navRangeRow.classList.toggle('open');
+    });
+    navRangeRow.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Navbar More menu
+  const navbarMoreBtn = document.getElementById('navbar-more-btn');
+  const navbarMoreMenu = document.getElementById('navbar-more-menu');
+  if (navbarMoreBtn && navbarMoreMenu) {
+    navbarMoreBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navbarMoreMenu.classList.toggle('open');
+    });
+    navbarMoreMenu.addEventListener('click', e => e.stopPropagation());
+  }
+
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
@@ -26648,6 +26860,8 @@ function _bindUIEvents() {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
     if (profileDropdown) profileDropdown.classList.remove('open');
+    if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
+    if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
@@ -26706,6 +26920,18 @@ function _bindUIEvents() {
   document.getElementById('backup-btn').addEventListener('click', backupJson);
   document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('json-input').click());
   document.getElementById('json-input').addEventListener('change', e => { if (e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
+
+  // Sync buttons — only visible on localhost/127.0.0.1
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    ['live-sync-divider', 'pull-from-live-btn', 'push-to-live-btn', 'auto-sync-toggle-btn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
+    const pullLiveBtn = document.getElementById('pull-from-live-btn');
+    if (pullLiveBtn) pullLiveBtn.addEventListener('click', pullFromLive);
+    const pushLiveBtn = document.getElementById('push-to-live-btn');
+    if (pushLiveBtn) pushLiveBtn.addEventListener('click', pushToLive);
+  }
 
   document.getElementById('save-view-btn').addEventListener('click', () => {
     const name = prompt('View ka naam likhein:');
@@ -26848,6 +27074,10 @@ function _bindUIEvents() {
     if (_drFrom) _drFrom.style.borderColor = active ? 'var(--blue)' : '';
     if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
     if (_drClear) _drClear.style.display = active ? 'inline-flex' : 'none';
+    const _rangeToggle = document.getElementById('nav-range-toggle');
+    const _rangeRow = document.getElementById('nav-range-row');
+    if (_rangeToggle) _rangeToggle.classList.toggle('active', active);
+    if (_rangeRow && active) _rangeRow.classList.add('open');
   };
   const _applyDateFromInput = () => {
     state.dateRange.from = _drFrom ? _drFrom.value : '';
@@ -29065,6 +29295,20 @@ function syncSelects() {
   const v = document.getElementById('glob-view');
   if (v) v.value = state.calendarView;
   if (m && v) m.disabled = state.calendarView === 'year';
+  // Update compact period button label
+  const periodBtn = document.getElementById('nav-period-btn');
+  if (periodBtn) {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    periodBtn.textContent = state.calendarView === 'year'
+      ? state.year + ' ▾'
+      : MONTHS[state.month] + ' ' + state.year + ' ▾';
+  }
+  // Update view toggle button label
+  const viewToggle = document.getElementById('nav-view-toggle');
+  if (viewToggle) {
+    viewToggle.textContent = state.calendarView === 'year' ? 'Year' : 'Month';
+    viewToggle.classList.toggle('active', state.calendarView === 'year');
+  }
 }
 
 init();
@@ -29154,6 +29398,170 @@ function showGalleryExitConfirm() {
   document.addEventListener('keydown', keyHandler, true);
   setTimeout(updateFocus, 10);
 }
+
+
+/* ── /static/js/sync-live.js ── */
+/**
+ * sync-live.js
+ * Auto 2-way sync between localhost and live server.
+ * Only active when running on localhost / 127.0.0.1.
+ *
+ * On page load  → if live is newer, auto-pull + reload
+ * After save    → auto-push to live (15s debounce)
+ * Manual        → Pull/Push buttons still work independently
+ * Toggle        → localStorage key "liveAutoSync" (default: true)
+ */
+(function () {
+  const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!IS_LOCAL) return;
+
+  const PUSH_DEBOUNCE_MS = 15000;
+  let _pushTimer = null;
+  let _busy = false;
+
+  // ── Indicator ──────────────────────────────────────────────────────────────
+
+  const STATES = {
+    idle:    { color: '#555',    label: 'Sync',         title: 'Live sync idle' },
+    waking:  { color: '#f0c040', label: 'Waking up…',  title: 'Live server so raha tha, jaag raha hai (30-60s)…' },
+    checking:{ color: '#f0c040', label: 'Checking…',   title: 'Checking live server…' },
+    pulling: { color: '#58a6ff', label: 'Pulling…',    title: 'Pulling from live…' },
+    pushing: { color: '#f0a500', label: 'Pushing…',    title: 'Pushing to live…' },
+    synced:  { color: '#3fb950', label: 'Synced ✓',    title: 'Synced with live ✓' },
+    error:   { color: '#f85149', label: 'Sync Error',  title: 'Sync error — check console' },
+    offline: { color: '#555',    label: 'Offline',     title: 'Live server unreachable' },
+  };
+
+  function setStatus(key) {
+    const s = STATES[key] || STATES.idle;
+    const circle = document.getElementById('live-sync-circle');
+    const label  = document.getElementById('live-sync-label');
+    const wrap   = document.getElementById('live-sync-dot');
+    if (circle) circle.style.background = s.color;
+    if (label)  label.textContent = s.label;
+    if (wrap)   wrap.title = s.title;
+  }
+
+  // ── Auto-sync enabled toggle ───────────────────────────────────────────────
+
+  function isEnabled() { return localStorage.getItem('liveAutoSync') !== 'false'; }
+
+  function _updateToggleLabel() {
+    const btn = document.getElementById('auto-sync-toggle-btn');
+    if (btn) btn.textContent = isEnabled() ? '⏸ Auto Sync: ON' : '▶ Auto Sync: OFF';
+  }
+
+  window.toggleAutoSync = function () {
+    localStorage.setItem('liveAutoSync', isEnabled() ? 'false' : 'true');
+    _updateToggleLabel();
+    setStatus(isEnabled() ? 'idle' : 'idle');
+    if (isEnabled()) checkAndAutoPull();
+  };
+
+  // ── Core helpers ───────────────────────────────────────────────────────────
+
+  async function _fetchStatus() {
+    const res = await fetch('/api/sync/status');
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    return res.json();
+  }
+
+  async function _doPull() {
+    const res = await fetch('/api/pull-from-live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    return res.json();
+  }
+
+  async function _doPush() {
+    const res = await fetch('/api/push-to-live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    return res.json();
+  }
+
+  // ── On page load: auto-pull if live is newer ───────────────────────────────
+
+  async function checkAndAutoPull() {
+    if (!isEnabled() || _busy) return;
+    _busy = true;
+    setStatus('waking');
+    try {
+      const status = await _fetchStatus();
+      setStatus('checking');
+      if (!status.ok) { setStatus('offline'); return; }
+
+      if (status.direction === 'pull') {
+        setStatus('pulling');
+        if (typeof showToast === 'function') showToast('Live data is newer — auto-pulling…', '');
+        const result = await _doPull();
+        if (result.ok) {
+          setStatus('synced');
+          if (typeof showToast === 'function') showToast(`Auto-pulled from live (${result.trades} trades) — reloading…`, 'success');
+          setTimeout(() => location.reload(), 1400);
+        } else {
+          setStatus('error');
+          console.error('[sync-live] pull failed:', result.error);
+        }
+      } else if (status.direction === 'safe_skip') {
+        // Live has significantly fewer trades — likely bootstrap/corrupt data, skip auto-pull
+        console.warn(`[sync-live] auto-pull skipped: live=${status.live_trades} trades < local=${status.local_trades} trades`);
+        if (typeof showToast === 'function') showToast(`Sync skipped: live has ${status.live_trades} trades vs local ${status.local_trades} — use manual Push to fix`, 'warning');
+        setStatus('synced');
+      } else {
+        setStatus('synced');
+      }
+    } catch (e) {
+      setStatus('offline');
+      console.warn('[sync-live] could not reach live server:', e.message);
+    } finally {
+      _busy = false;
+    }
+  }
+
+  // ── After save: debounced auto-push ───────────────────────────────────────
+
+  function scheduleAutoPush() {
+    if (!isEnabled()) return;
+    clearTimeout(_pushTimer);
+    setStatus('checking');
+    _pushTimer = setTimeout(async () => {
+      if (_busy) return;
+      _busy = true;
+      setStatus('pushing');
+      try {
+        const result = await _doPush();
+        setStatus(result.ok ? 'synced' : 'error');
+        if (!result.ok) console.error('[sync-live] push failed:', result.error);
+      } catch (e) {
+        setStatus('error');
+        console.error('[sync-live] push error:', e.message);
+      } finally {
+        _busy = false;
+      }
+    }, PUSH_DEBOUNCE_MS);
+  }
+
+  // ── Keep live server awake (ping every 10 min) ────────────────────────────
+
+  function _pingLive() {
+    fetch('/api/sync/status').catch(() => {});
+  }
+  setInterval(_pingLive, 10 * 60 * 1000);
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  window.addEventListener('tradesaved', scheduleAutoPush);
+
+  window.addEventListener('load', () => {
+    _updateToggleLabel();
+    setTimeout(checkAndAutoPull, 1800);
+  });
+})();
 
 
 /* ── /static/js/gallery-chart.js ── */

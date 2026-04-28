@@ -147,7 +147,6 @@ function _openGalleryFromUrlParamsOnce() {
 
 function populateSelects() {
   const ms = document.getElementById('glob-month');
-  const ys = document.getElementById('glob-year');
   const vs = document.getElementById('glob-view');
 
   if (ms) {
@@ -157,16 +156,26 @@ function populateSelects() {
       ms.appendChild(o);
     });
   }
-
-  if (ys) {
-    const cy = new Date().getFullYear();
-    for (let y = cy - 5; y <= cy + 2; y++) {
-      const o = document.createElement('option');
-      o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
-      ys.appendChild(o);
-    }
-  }
   if (vs) vs.value = state.calendarView;
+}
+
+function repopulateYearSelect() {
+  const ys = document.getElementById('glob-year');
+  if (!ys) return;
+  const years = new Set();
+  const MIN_YEAR = 2010;
+  state.trades.forEach(t => {
+    const d = t.date;
+    if (d) { const y = new Date(d).getFullYear(); if (!isNaN(y) && y >= MIN_YEAR) years.add(y); }
+  });
+  years.add(new Date().getFullYear());
+  const sorted = [...years].sort((a, b) => a - b);
+  ys.innerHTML = '';
+  sorted.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
+    ys.appendChild(o);
+  });
 }
 
 async function loadTrades() {
@@ -205,6 +214,7 @@ async function loadTrades() {
     initShowHeads();
     initTableShowCols();
     if (typeof applyVdChartModes === 'function') applyVdChartModes();
+    repopulateYearSelect();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
     _dismissLoadingOverlay();

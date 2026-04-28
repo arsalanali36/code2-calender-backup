@@ -64,6 +64,49 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
+  // Compact period picker toggle
+  const navPeriodBtn = document.getElementById('nav-period-btn');
+  const navPeriodPanel = document.getElementById('nav-period-panel');
+  if (navPeriodBtn && navPeriodPanel) {
+    navPeriodBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navPeriodPanel.classList.toggle('open');
+    });
+    navPeriodPanel.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Month / Year view toggle button
+  const navViewToggle = document.getElementById('nav-view-toggle');
+  if (navViewToggle) {
+    navViewToggle.addEventListener('click', () => {
+      state.calendarView = state.calendarView === 'year' ? 'month' : 'year';
+      syncSelects();
+      render();
+    });
+  }
+
+  // Date range toggle
+  const navRangeToggle = document.getElementById('nav-range-toggle');
+  const navRangeRow = document.getElementById('nav-range-row');
+  if (navRangeToggle && navRangeRow) {
+    navRangeToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      navRangeRow.classList.toggle('open');
+    });
+    navRangeRow.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Navbar More menu
+  const navbarMoreBtn = document.getElementById('navbar-more-btn');
+  const navbarMoreMenu = document.getElementById('navbar-more-menu');
+  if (navbarMoreBtn && navbarMoreMenu) {
+    navbarMoreBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navbarMoreMenu.classList.toggle('open');
+    });
+    navbarMoreMenu.addEventListener('click', e => e.stopPropagation());
+  }
+
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
@@ -142,6 +185,8 @@ function _bindUIEvents() {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
     if (profileDropdown) profileDropdown.classList.remove('open');
+    if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
+    if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
@@ -354,6 +399,10 @@ function _bindUIEvents() {
     if (_drFrom) _drFrom.style.borderColor = active ? 'var(--blue)' : '';
     if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
     if (_drClear) _drClear.style.display = active ? 'inline-flex' : 'none';
+    const _rangeToggle = document.getElementById('nav-range-toggle');
+    const _rangeRow = document.getElementById('nav-range-row');
+    if (_rangeToggle) _rangeToggle.classList.toggle('active', active);
+    if (_rangeRow && active) _rangeRow.classList.add('open');
   };
   const _applyDateFromInput = () => {
     state.dateRange.from = _drFrom ? _drFrom.value : '';

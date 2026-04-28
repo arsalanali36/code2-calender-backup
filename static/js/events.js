@@ -171,6 +171,20 @@ function syncSelects() {
   const v = document.getElementById('glob-view');
   if (v) v.value = state.calendarView;
   if (m && v) m.disabled = state.calendarView === 'year';
+  // Update compact period button label
+  const periodBtn = document.getElementById('nav-period-btn');
+  if (periodBtn) {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    periodBtn.textContent = state.calendarView === 'year'
+      ? state.year + ' ▾'
+      : MONTHS[state.month] + ' ' + state.year + ' ▾';
+  }
+  // Update view toggle button label
+  const viewToggle = document.getElementById('nav-view-toggle');
+  if (viewToggle) {
+    viewToggle.textContent = state.calendarView === 'year' ? 'Year' : 'Month';
+    viewToggle.classList.toggle('active', state.calendarView === 'year');
+  }
 }
 
 init();

@@ -57,23 +57,31 @@
     </div>
 
     <div class="calendar-nav global-date-nav">
-      <button class="nav-arrow" id="glob-prev">&#8249;</button>
-      <select id="glob-month" class="select-box"></select>
-      <select id="glob-view" class="select-box">
-        <option value="month" selected>Month</option>
-        <option value="year">Year</option>
-      </select>
-      <select id="glob-year" class="select-box"></select>
-      <button class="nav-arrow" id="glob-next">&#8250;</button>
-      <button class="btn btn-outline" id="glob-today">Today</button>
+      <!-- Compact period picker: click to expand month/year selects -->
+      <div class="nav-period-wrap" id="nav-period-wrap">
+        <button class="nav-period-btn" id="nav-period-btn" title="Select month / year">Apr 2026 ▾</button>
+        <div class="nav-period-panel" id="nav-period-panel">
+          <select id="glob-month" class="select-box"></select>
+          <select id="glob-year" class="select-box"></select>
+          <!-- hidden view select kept for JS compatibility -->
+          <select id="glob-view" style="display:none">
+            <option value="month" selected>Month</option>
+            <option value="year">Year</option>
+          </select>
+        </div>
+      </div>
 
-      <span class="global-date-divider">|</span>
+      <!-- Month / Year view toggle -->
+      <button class="nav-view-toggle" id="nav-view-toggle" title="Toggle Month / Year view">Month</button>
 
-      <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
-      <span class="date-range-sep">&#8212;</span>
-      <input type="date" id="glob-date-to" class="select-box date-range-input" title="To date" />
-      <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter"
-        style="display:none;">&#10005;</button>
+      <!-- Date range toggle -->
+      <button class="nav-range-toggle" id="nav-range-toggle" title="Date range filter">📅</button>
+      <div class="nav-range-row" id="nav-range-row">
+        <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
+        <span class="date-range-sep">&#8212;</span>
+        <input type="date" id="glob-date-to" class="select-box date-range-input" title="To date" />
+        <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter" style="display:none;">&#10005;</button>
+      </div>
     </div>
 
     <div class="header-actions">
@@ -93,31 +101,37 @@
       <button class="btn btn-outline" id="mobile-gallery-btn" title="Open Mobile Gallery" onclick="window.open('/mobile/?view=gallery', '_blank')" style="margin-left:4px;">📷</button>
       <button class="btn btn-outline" id="fullscreen-btn" title="Fullscreen" style="margin-left:4px; font-size:1rem; padding:4px 8px;">⛶</button>
 
-      <a href="/app-deck" class="btn btn-primary" style="margin-left:8px; display:flex; align-items:center; gap:4px; text-decoration:none; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">✨ Features</a>
-
-      <button class="btn btn-outline" id="tt-manual-btn" title="Target Tracker Dashboard" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🎯 Tracker</button>
-
-      <button class="btn btn-outline" id="strategy-lab-btn" title="Backtest & Strategy Lab" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🧪 Strategy Lab</button>
-
-      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
-      <button class="btn btn-outline" id="pdf-list-btn" title="View Imported PDF List" style="margin-left:4px; display:flex; align-items:center; gap:4px;">🗂️ PDF List</button>
-      <button class="btn btn-outline" id="quick-stats-btn" title="Quick Stats" style="margin-left:4px; display:flex; align-items:center; gap:4px;">⚡ Quick Stats</button>
-      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
-
-      <div class="quote-random-wrap" id="quote-random-wrap" style="margin-left:8px;">
-        <button class="btn btn-outline quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup">Quote Pop</button>
-        <div class="quote-random-panel" id="quote-random-panel">
-          <label class="quote-random-toggle">
-            <input type="checkbox" id="quote-random-enabled" />
-            Auto popup
-          </label>
-          <div class="quote-random-min-row">
-            <span>Min</span>
-            <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
-            <span>min</span>
+      <!-- Navbar More Menu -->
+      <div class="dropdown-wrapper navbar-more-wrap" id="navbar-more-wrap" style="margin-left:8px;">
+        <button class="btn btn-outline" id="navbar-more-btn" title="More options">☰ Menu ▾</button>
+        <div class="dropdown-menu navbar-more-menu" id="navbar-more-menu">
+          <a href="/app-deck" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
+          <button class="dropdown-item" id="tt-manual-btn">🎯 Tracker</button>
+          <button class="dropdown-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="pdf-list-btn">🗂️ PDF List</button>
+          <button class="dropdown-item" id="quick-stats-btn">⚡ Quick Stats</button>
+          <div class="dropdown-divider"></div>
+          <div class="quote-random-wrap" id="quote-random-wrap">
+            <button class="dropdown-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
+            <div class="quote-random-panel" id="quote-random-panel">
+              <label class="quote-random-toggle">
+                <input type="checkbox" id="quote-random-enabled" />
+                Auto popup
+              </label>
+              <div class="quote-random-min-row">
+                <span>Min</span>
+                <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
+                <span>min</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Hidden inputs kept for JS -->
+      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
+      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
 
       {% if current_user.is_authenticated %}
       <div class="profile-menu-wrapper" id="profile-menu-wrapper">

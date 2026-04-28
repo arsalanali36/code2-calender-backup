@@ -120,6 +120,21 @@
   gap: 10px;
 }
 
+/* Inside navbar dropdown: panel flows inline, no absolute pop-out */
+.navbar-more-menu .quote-random-panel {
+  position: static;
+  width: auto;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  padding: 10px 14px;
+}
+.navbar-more-menu .quote-random-wrap {
+  position: static;
+}
+
 .quote-random-toggle {
   display: flex;
   align-items: center;
