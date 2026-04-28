@@ -196,6 +196,36 @@ def get_log_data(start_date=None, end_date=None):
 
 # ── Export ────────────────────────────────────────────────────────────────────
 
+def get_images_for_date(date):
+    """Return all image URLs for a given date (from trades + dayData)."""
+    trades_file = find_best_trades_file()
+    with open(trades_file, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
+
+    seen, images = set(), []
+
+    def add(src):
+        if src and isinstance(src, str) and src not in seen:
+            seen.add(src); images.append(src)
+
+    # dayData level images
+    if isinstance(raw, dict):
+        day = raw.get('dayData', {}).get(date, {})
+        for src in (day.get('images') or []):       add(src)
+        for src in (day.get('closeImages') or []):  add(src)
+
+    # Per-trade images
+    trades = raw.get('trades', []) if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
+    for t in trades:
+        d = t.get('trade_date') or t.get('date', '')
+        if d != date:
+            continue
+        for src in (t.get('images') or []):
+            add(src)
+
+    return images
+
+
 def export_annotations_csv(start_date=None, end_date=None):
     rows   = get_log_data(start_date, end_date)
     schema = get_schema()

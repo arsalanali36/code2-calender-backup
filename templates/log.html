@@ -9,10 +9,10 @@
 </head>
 <body class="log-page">
 
-<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<!-- ── Header ── -->
 <header class="log-header">
   <div class="log-header-left">
-    <a href="/" class="log-back-btn" title="Back to Journal">← Journal</a>
+    <a href="/" class="log-back-btn">← Journal</a>
     <span class="log-title">Trade Log<span class="log-title-plus">+</span></span>
   </div>
 
@@ -25,20 +25,45 @@
   </div>
 
   <div class="log-header-right">
-    <button id="log-cols-btn" class="log-btn" title="Show / hide columns">Columns</button>
-    <button id="log-filter-btn" class="log-btn" title="Toggle filter row">Filter</button>
+    <button id="log-cols-btn" class="log-btn">Columns</button>
+    <button id="log-filter-btn" class="log-btn">Filter</button>
 
-    <div class="log-dropdown" id="log-schema-dropdown">
+    <!-- Settings -->
+    <div class="log-dropdown">
+      <button class="log-btn" id="log-settings-btn">⚙ Settings</button>
+      <div class="log-dropdown-menu" id="log-settings-menu" style="min-width:220px">
+        <div class="log-set-section">Gallery Mode</div>
+        <div class="log-set-row">
+          <span class="log-set-label">Open images</span>
+          <div class="log-set-btns">
+            <button class="log-set-btn" data-gmode="panel">Side Panel</button>
+            <button class="log-set-btn" data-gmode="newtab">New Tab</button>
+          </div>
+        </div>
+        <div class="log-dd-divider"></div>
+        <div class="log-set-section">Display</div>
+        <div class="log-set-row">
+          <label class="log-set-label" for="log-set-daytotal">Day Total row</label>
+          <input type="checkbox" id="log-set-daytotal" class="log-set-cb" checked>
+        </div>
+        <div class="log-set-row">
+          <label class="log-set-label" for="log-set-decimals">Show Decimals</label>
+          <input type="checkbox" id="log-set-decimals" class="log-set-cb">
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema -->
+    <div class="log-dropdown">
       <button class="log-btn" id="log-schema-btn">Schema ▾</button>
       <div class="log-dropdown-menu" id="log-schema-menu">
         <button id="log-schema-edit-btn">✏ Edit Schema</button>
-        <button id="log-schema-download-btn">↓ Download Schema CSV</button>
-        <label class="log-upload-label" title="Upload CSV to replace schema">
-          ↑ Upload Schema CSV
+        <button id="log-schema-download-btn">↓ Download CSV</button>
+        <label class="log-upload-label">↑ Upload CSV
           <input type="file" id="log-schema-upload" accept=".csv">
         </label>
-        <div class="log-dropdown-divider"></div>
-        <button id="log-export-btn">⬇ Export All (CSV)</button>
+        <div class="log-dd-divider"></div>
+        <button id="log-export-btn">⬇ Export Annotations</button>
       </div>
     </div>
 
@@ -46,9 +71,9 @@
   </div>
 </header>
 
-<!-- ── Sheet ──────────────────────────────────────────────────────────────── -->
+<!-- ── Sheet ── -->
 <div class="log-sheet-wrap" id="log-sheet-wrap">
-  <div id="log-empty" class="log-empty">Select a date range and click <strong>Load</strong></div>
+  <div id="log-empty" class="log-empty">Select a date range and click <strong>&nbsp;Load</strong></div>
   <table id="log-table" class="log-table" style="display:none">
     <thead>
       <tr id="log-thead-row"></tr>
@@ -58,7 +83,16 @@
   </table>
 </div>
 
-<!-- ── Column Picker Modal ────────────────────────────────────────────────── -->
+<!-- ── Gallery side panel ── -->
+<div id="log-gal-panel" class="log-gal-panel">
+  <div class="log-gal-hd">
+    <span id="log-gal-title" class="log-gal-title">Images</span>
+    <button id="log-gal-close" class="log-gal-x">✕</button>
+  </div>
+  <div id="log-gal-imgs" class="log-gal-imgs"></div>
+</div>
+
+<!-- ── Column Picker Modal ── -->
 <div id="log-cols-modal" class="log-modal" style="display:none">
   <div class="log-modal-box">
     <div class="log-modal-hd">
@@ -83,7 +117,7 @@
   </div>
 </div>
 
-<!-- ── Schema Editor Modal ────────────────────────────────────────────────── -->
+<!-- ── Schema Editor Modal ── -->
 <div id="log-schema-modal" class="log-modal" style="display:none">
   <div class="log-modal-box log-modal-wide">
     <div class="log-modal-hd">
@@ -91,13 +125,10 @@
       <button class="log-modal-x" data-modal="log-schema-modal">✕</button>
     </div>
     <div class="log-modal-body">
-      <p class="log-schema-hint">Columns define the manual fields shown in the sheet. Options (for dropdowns) are pipe-separated: <code>@Level|@Hawa Me|NoZone</code></p>
+      <p class="log-schema-hint">Options for dropdowns are pipe-separated: <code>@Level|@Hawa Me|NoZone</code></p>
       <table class="log-se-table">
         <thead>
-          <tr>
-            <th>Key</th><th>Label</th><th>Type</th>
-            <th>Options (pipe-sep)</th><th>Group</th><th></th>
-          </tr>
+          <tr><th>Key</th><th>Label</th><th>Type</th><th>Options (pipe-sep)</th><th>Group</th><th></th></tr>
         </thead>
         <tbody id="log-se-tbody"></tbody>
       </table>
@@ -110,7 +141,7 @@
 </div>
 
 <script>
-  var LOG_SCHEMA   = {{ schema | tojson }};
+  var LOG_SCHEMA    = {{ schema | tojson }};
   var LOG_AUTO_COLS = {{ auto_cols | tojson }};
 </script>
 <script src="/static/js/log-app.js"></script>

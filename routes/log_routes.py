@@ -87,6 +87,17 @@ def api_schema_upload():
     return jsonify({'ok': True, 'schema': schema})
 
 
+# ── Gallery ───────────────────────────────────────────────────────────────────
+
+@log_bp.route('/api/log/gallery')
+def api_gallery():
+    date = request.args.get('date', '').strip()
+    if not date:
+        return jsonify({'images': []})
+    images = log_service.get_images_for_date(date)
+    return jsonify({'images': images})
+
+
 # ── Export ────────────────────────────────────────────────────────────────────
 
 @log_bp.route('/api/log/export')
