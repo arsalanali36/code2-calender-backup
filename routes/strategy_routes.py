@@ -23,7 +23,8 @@ def nifty_data():
     symbol = request.args.get('symbol', 'Nifty 50 (^NSEI)')
     strategy = request.args.get('strategy', 'Arsalan Continuation')
     hawa_me_zone = request.args.get('hawa_me_zone', 'false').lower() == 'true'
-    strategy_params = {'hawa_me_zone': hawa_me_zone}
+    fresh_zone = request.args.get('fresh_zone', 'true').lower() == 'true'
+    strategy_params = {'hawa_me_zone': hawa_me_zone, 'fresh_zone': fresh_zone}
     
     try:
         user_id = current_user.id if current_user.is_authenticated else None

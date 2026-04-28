@@ -27,6 +27,7 @@ from services.strategy_service import (
     run_pinned_strategy_logic,
     run_sandbox_strategy_logic,
     run_reversal_strategy_logic,
+    run_x2_common_strategy_logic,
 )
 
 try:
@@ -137,10 +138,15 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
         hawa = strategy_params.get('hawa_me_zone', False) if strategy_params else False
         df_filtered, strategy_zones = run_reversal_strategy_logic(df_filtered, hawa_me_zone=hawa)
         zones = strategy_zones
+    elif strategy_type == 'Arsalan X2':
+        hawa = strategy_params.get('hawa_me_zone', False) if strategy_params else False
+        fresh = strategy_params.get('fresh_zone', True) if strategy_params else True
+        df_filtered, strategy_zones = run_x2_common_strategy_logic(df_filtered, hawa_me_zone=hawa, use_fresh_zone=fresh)
+        zones = strategy_zones
     else:
         df_filtered = run_pinned_strategy_logic(df_filtered)
 
-    if strategy_type != 'Arsalan Sandbox':
+    if strategy_type not in ('Arsalan Sandbox', 'Arsalan X2'):
         if not df_filtered.empty:
             for i in range(len(df_filtered)):
                 if df_filtered['bull_trigger'].iloc[i] or df_filtered['bear_trigger'].iloc[i]:
