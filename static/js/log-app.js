@@ -108,6 +108,12 @@ function bindAll() {
   // Gallery panel
   $('log-gal-close').addEventListener('click', closeGallery);
 
+  // Import
+  $('log-import-input').addEventListener('change', importAnnotations);
+
+  // Keyboard navigation
+  bindKeyboard();
+
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     closeMenus();
@@ -331,18 +337,32 @@ function openGallery(date) {
   $('log-gal-title').textContent = fmtDate(date);
   $('log-gal-imgs').innerHTML = '<div class="log-gal-msg">Loading…</div>';
   $('log-gal-panel').classList.add('log-gal-open');
+  $('log-sheet-wrap').style.marginRight = '322px';
   fetch(`/api/log/gallery?date=${date}`)
     .then(r => r.json())
     .then(data => {
       const imgs = data.images || [];
       if (!imgs.length) { $('log-gal-imgs').innerHTML = '<div class="log-gal-msg">No images</div>'; return; }
-      $('log-gal-imgs').innerHTML = imgs.map(src =>
-        `<div class="log-gal-thumb"><img src="${esc(src)}" loading="lazy" onclick="window.open('${esc(src)}','_blank')"></div>`
-      ).join('');
+      const div = $('log-gal-imgs');
+      div.innerHTML = '';
+      imgs.forEach(src => {
+        const wrap = document.createElement('div');
+        wrap.className = 'log-gal-thumb';
+        const img = document.createElement('img');
+        img.src = src;
+        img.title = 'Click to open';
+        img.addEventListener('click', () => window.open(src, '_blank'));
+        img.addEventListener('error', () => { wrap.style.display = 'none'; });
+        wrap.appendChild(img);
+        div.appendChild(wrap);
+      });
     })
-    .catch(() => { $('log-gal-imgs').innerHTML = '<div class="log-gal-msg">Error</div>'; });
+    .catch(() => { $('log-gal-imgs').innerHTML = '<div class="log-gal-msg">Error loading</div>'; });
 }
-function closeGallery() { $('log-gal-panel').classList.remove('log-gal-open'); }
+function closeGallery() {
+  $('log-gal-panel').classList.remove('log-gal-open');
+  $('log-sheet-wrap').style.marginRight = '';
+}
 
 // ── Column resize ─────────────────────────────────────────────────────────────
 function bindResizeHandles() {
@@ -462,6 +482,89 @@ async function uploadSchema() {
 function exportCsv() {
   const s=$('log-start-date').value, e=$('log-end-date').value;
   window.location.href=`/api/log/export?start=${s}&end=${e}`;
+}
+
+// ── Keyboard navigation ───────────────────────────────────────────────────────
+function bindKeyboard() {
+  $('log-tbody').addEventListener('keydown', e => {
+    const el = e.target;
+    if (!el.closest('tr.log-row')) return;
+    const isSelect = el.tagName === 'SELECT';
+    const isText   = el.tagName === 'INPUT' && el.type === 'text';
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // For select: close and move down; for text: move down
+      navCell(el, 1, 0);
+    } else if (e.key === 'ArrowDown' && !isSelect) {
+      e.preventDefault(); navCell(el, 1, 0);
+    } else if (e.key === 'ArrowUp' && !isSelect) {
+      e.preventDefault(); navCell(el, -1, 0);
+    } else if (e.key === 'ArrowRight' && isText) {
+      if (el.selectionStart === el.value.length) { e.preventDefault(); navCell(el, 0, 1); }
+    } else if (e.key === 'ArrowLeft' && isText) {
+      if (el.selectionStart === 0) { e.preventDefault(); navCell(el, 0, -1); }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      navCell(el, 0, e.shiftKey ? -1 : 1);
+    }
+  });
+}
+
+function navCell(el, rowDelta, colDelta) {
+  const td  = el.closest('td');
+  const tr  = el.closest('tr');
+  if (!td || !tr) return;
+
+  const allRows = [...$('log-tbody').querySelectorAll('tr.log-row')];
+  const trIdx   = allRows.indexOf(tr);
+  const allTds  = [...tr.children];
+  const tdIdx   = allTds.indexOf(td);
+
+  let newTrIdx = trIdx + rowDelta;
+  let newTdIdx = tdIdx + colDelta;
+
+  // Wrap cols to next/prev row
+  if (newTdIdx < 0) { newTrIdx--; newTdIdx = 99; }
+  if (newTdIdx > allTds.length - 1) { newTrIdx++; newTdIdx = 0; }
+
+  const newTr = allRows[newTrIdx];
+  if (!newTr) return;
+
+  const newTds  = [...newTr.children];
+  const newTd   = newTds[Math.min(newTdIdx, newTds.length - 1)];
+  if (!newTd) return;
+
+  const focusEl = newTd.querySelector('input,select');
+  if (focusEl) {
+    focusEl.focus();
+    if (focusEl.tagName === 'INPUT' && focusEl.type === 'text') focusEl.select();
+  }
+}
+
+// ── Import annotations ────────────────────────────────────────────────────────
+async function importAnnotations() {
+  const file = this.files[0];
+  if (!file) return;
+  const text = await file.text();
+  try {
+    const res  = await fetch('/api/log/import', {
+      method: 'POST',
+      headers: {'Content-Type': 'text/csv'},
+      body: text,
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showStatus(`Imported ${data.merged} rows ✓`, 'ok');
+      setTimeout(() => showStatus('', ''), 3000);
+      loadData();   // refresh table
+    } else {
+      showStatus('Import failed', 'error');
+    }
+  } catch(e) {
+    showStatus('Import error', 'error');
+  }
+  this.value = '';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

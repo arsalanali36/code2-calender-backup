@@ -226,6 +226,27 @@ def get_images_for_date(date):
     return images
 
 
+def import_annotations_csv(csv_text):
+    """Merge annotations from CSV (export format) into trade_log.json."""
+    auto_keys = {'date', 'seq', 'type', 'instrument', 'tradetype', 'time', 'qty', 'pt', 'rs'}
+    data    = get_annotations()
+    merged  = 0
+
+    reader = csv.DictReader(io.StringIO(csv_text))
+    for row in reader:
+        date = row.get('date', '').strip()
+        seq  = row.get('seq',  '').strip().upper()
+        if not date or not seq:
+            continue
+        ann = {k: v for k, v in row.items() if k not in auto_keys and v not in (None, '')}
+        if ann:
+            data.setdefault(date, {}).setdefault(seq, {}).update(ann)
+            merged += 1
+
+    _save_json(LOG_DATA_FILE, data)
+    return merged
+
+
 def export_annotations_csv(start_date=None, end_date=None):
     rows   = get_log_data(start_date, end_date)
     schema = get_schema()

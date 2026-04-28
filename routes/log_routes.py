@@ -98,6 +98,17 @@ def api_gallery():
     return jsonify({'images': images})
 
 
+# ── Import ────────────────────────────────────────────────────────────────────
+
+@log_bp.route('/api/log/import', methods=['POST'])
+def api_import():
+    raw = (request.get_data() or b'').decode('utf-8-sig')
+    if not raw.strip():
+        return jsonify({'error': 'empty body'}), 400
+    merged = log_service.import_annotations_csv(raw)
+    return jsonify({'ok': True, 'merged': merged})
+
+
 # ── Export ────────────────────────────────────────────────────────────────────
 
 @log_bp.route('/api/log/export')
