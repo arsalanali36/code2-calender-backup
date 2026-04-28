@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Log+</title>
+<link rel="icon" href="/static/favicon.ico">
+<link rel="stylesheet" href="/static/css/log.css">
+</head>
+<body class="log-page">
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header class="log-header">
+  <div class="log-header-left">
+    <a href="/" class="log-back-btn" title="Back to Journal">← Journal</a>
+    <span class="log-title">Trade Log<span class="log-title-plus">+</span></span>
+  </div>
+
+  <div class="log-header-center">
+    <input type="date" id="log-start-date" class="log-date-input">
+    <span class="log-date-sep">—</span>
+    <input type="date" id="log-end-date" class="log-date-input">
+    <button id="log-load-btn" class="log-btn log-btn-primary">Load</button>
+    <span id="log-row-count" class="log-row-count"></span>
+  </div>
+
+  <div class="log-header-right">
+    <button id="log-cols-btn" class="log-btn" title="Show / hide columns">Columns</button>
+    <button id="log-filter-btn" class="log-btn" title="Toggle filter row">Filter</button>
+
+    <div class="log-dropdown" id="log-schema-dropdown">
+      <button class="log-btn" id="log-schema-btn">Schema ▾</button>
+      <div class="log-dropdown-menu" id="log-schema-menu">
+        <button id="log-schema-edit-btn">✏ Edit Schema</button>
+        <button id="log-schema-download-btn">↓ Download Schema CSV</button>
+        <label class="log-upload-label" title="Upload CSV to replace schema">
+          ↑ Upload Schema CSV
+          <input type="file" id="log-schema-upload" accept=".csv">
+        </label>
+        <div class="log-dropdown-divider"></div>
+        <button id="log-export-btn">⬇ Export All (CSV)</button>
+      </div>
+    </div>
+
+    <span id="log-save-status" class="log-save-status"></span>
+  </div>
+</header>
+
+<!-- ── Sheet ──────────────────────────────────────────────────────────────── -->
+<div class="log-sheet-wrap" id="log-sheet-wrap">
+  <div id="log-empty" class="log-empty">Select a date range and click <strong>Load</strong></div>
+  <table id="log-table" class="log-table" style="display:none">
+    <thead>
+      <tr id="log-thead-row"></tr>
+      <tr id="log-filter-row" class="log-filter-row" style="display:none"></tr>
+    </thead>
+    <tbody id="log-tbody"></tbody>
+  </table>
+</div>
+
+<!-- ── Column Picker Modal ────────────────────────────────────────────────── -->
+<div id="log-cols-modal" class="log-modal" style="display:none">
+  <div class="log-modal-box">
+    <div class="log-modal-hd">
+      <span>Column Visibility</span>
+      <button class="log-modal-x" data-modal="log-cols-modal">✕</button>
+    </div>
+    <div class="log-modal-body">
+      <div class="log-col-group">
+        <div class="log-col-group-title">Auto Columns</div>
+        <div id="log-auto-checks" class="log-check-grid"></div>
+      </div>
+      <div class="log-col-group">
+        <div class="log-col-group-title">Manual Columns</div>
+        <div id="log-manual-checks" class="log-check-grid"></div>
+      </div>
+    </div>
+    <div class="log-modal-ft">
+      <button id="log-cols-all" class="log-btn">All</button>
+      <button id="log-cols-none" class="log-btn">None</button>
+      <button id="log-cols-apply" class="log-btn log-btn-primary">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Schema Editor Modal ────────────────────────────────────────────────── -->
+<div id="log-schema-modal" class="log-modal" style="display:none">
+  <div class="log-modal-box log-modal-wide">
+    <div class="log-modal-hd">
+      <span>Schema Editor</span>
+      <button class="log-modal-x" data-modal="log-schema-modal">✕</button>
+    </div>
+    <div class="log-modal-body">
+      <p class="log-schema-hint">Columns define the manual fields shown in the sheet. Options (for dropdowns) are pipe-separated: <code>@Level|@Hawa Me|NoZone</code></p>
+      <table class="log-se-table">
+        <thead>
+          <tr>
+            <th>Key</th><th>Label</th><th>Type</th>
+            <th>Options (pipe-sep)</th><th>Group</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="log-se-tbody"></tbody>
+      </table>
+      <button id="log-se-add" class="log-btn" style="margin-top:10px">+ Add Column</button>
+    </div>
+    <div class="log-modal-ft">
+      <button id="log-se-save" class="log-btn log-btn-primary">Save Schema</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var LOG_SCHEMA   = {{ schema | tojson }};
+  var LOG_AUTO_COLS = {{ auto_cols | tojson }};
+</script>
+<script src="/static/js/log-app.js"></script>
+</body>
+</html>

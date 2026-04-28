@@ -21,6 +21,8 @@ PDF_META_FILE      = os.path.join(BASE_DIR, 'data', 'pdfs.json')
 CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
 AI_DEBUG_LOG              = os.path.join(BASE_DIR, 'data', 'ai_debug.log')
+LOG_DATA_FILE             = os.path.join(BASE_DIR, 'data', 'trade_log.json')
+LOG_SCHEMA_FILE           = os.path.join(BASE_DIR, 'data', 'log_schema.json')
 
 
 # ── What-If / Dhan data ───────────────────────────────────────────────────────
