@@ -183,6 +183,7 @@ def get_log_data(start_date=None, end_date=None):
             'qty':         trade.get('Qty', 0),
             'pt':          trade.get('Pt', 0),
             'rs':          trade.get('Rs', 0),
+            'img_count':   len(trade.get('images') or []),
             'annotations': ann,
         })
 

@@ -267,7 +267,12 @@ function renderBody() {
       html += `<td class="log-td-auto">${cell}</td>`;
     });
 
-    html += `<td class="log-td-img"><span class="log-gal-btn" data-date="${esc(row.date)}" title="Images: ${esc(fmtDate(row.date))}">📷</span></td>`;
+    const imgN = row.img_count || 0;
+    if (imgN > 0) {
+      html += `<td class="log-td-img"><span class="log-gal-btn log-gal-has" data-date="${esc(row.date)}" title="${imgN} image${imgN>1?'s':''} — ${esc(fmtDate(row.date))}">${imgN}</span></td>`;
+    } else {
+      html += `<td class="log-td-img"><span class="log-gal-none">—</span></td>`;
+    }
 
     manual.forEach(col => {
       const val = row.annotations[col.key] !== undefined ? row.annotations[col.key] : '';
@@ -345,14 +350,18 @@ function openGallery(date) {
       if (!imgs.length) { $('log-gal-imgs').innerHTML = '<div class="log-gal-msg">No images</div>'; return; }
       const div = $('log-gal-imgs');
       div.innerHTML = '';
-      imgs.forEach(src => {
+      console.log('[Log+] Gallery', date, imgs.length, 'images. First:', imgs[0]);
+      imgs.forEach((src, i) => {
         const wrap = document.createElement('div');
         wrap.className = 'log-gal-thumb';
         const img = document.createElement('img');
         img.src = src;
-        img.title = 'Click to open';
+        img.alt = '';
+        img.title = `Image ${i+1} — click to open`;
         img.addEventListener('click', () => window.open(src, '_blank'));
-        img.addEventListener('error', () => { wrap.style.display = 'none'; });
+        img.addEventListener('error', () => {
+          wrap.innerHTML = `<div class="log-img-err" onclick="window.open('${src.replace(/'/g,"\\'")}','_blank')" title="Open image">📷 ${i+1}</div>`;
+        });
         wrap.appendChild(img);
         div.appendChild(wrap);
       });
@@ -493,12 +502,10 @@ function bindKeyboard() {
     const isText   = el.tagName === 'INPUT' && el.type === 'text';
 
     if (e.key === 'Enter') {
-      e.preventDefault();
-      // For select: close and move down; for text: move down
-      navCell(el, 1, 0);
-    } else if (e.key === 'ArrowDown' && !isSelect) {
       e.preventDefault(); navCell(el, 1, 0);
-    } else if (e.key === 'ArrowUp' && !isSelect) {
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault(); navCell(el, 1, 0);   // always navigate rows, even in select
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault(); navCell(el, -1, 0);
     } else if (e.key === 'ArrowRight' && isText) {
       if (el.selectionStart === el.value.length) { e.preventDefault(); navCell(el, 0, 1); }
