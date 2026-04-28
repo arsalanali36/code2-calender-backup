@@ -9603,6 +9603,7 @@
           "NIFTY"
         ]
       },
+      "images": [],
       "tagPins": {
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776355054/trading_journal/82f13bd3-7441-4f44-829e-4728ec95ec43.png": [
           {
@@ -11337,7 +11338,71 @@
       },
       "tradeRefCards": {}
     },
-    "2026-04-27": {}
+    "2026-04-21": {
+      "closeGlobalImages": [],
+      "closeImages": [],
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354478/trading_journal/d2a1c354-5c58-4f98-afaf-c4b6e824f38b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354479/trading_journal/74c654b2-994e-4ee7-8c57-2a378a15861e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354481/trading_journal/cbfc3f59-db8c-4c72-8161-0cd15a5ac5cd.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354481/trading_journal/62039900-623d-4a5c-87c6-5dc991385ca5.png"
+      ],
+      "newsImages": [],
+      "tradeRefCards": {}
+    },
+    "2026-04-22": {
+      "closeGlobalImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354520/trading_journal/5fb5ec34-8009-4fe9-aa84-37a3678ffc74.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/9fa97586-961f-4d76-9b0e-2449a86def8e.png"
+      ],
+      "closeImages": [],
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354511/trading_journal/8a17dc4a-ada5-49d7-ab01-99bd8943bb65.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354514/trading_journal/04499746-254b-4bce-8426-2a622b1c09a6.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354512/trading_journal/7b56c124-424f-46f2-bb01-f3dabb731525.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354511/trading_journal/e027cb19-aa00-4faa-8b46-43346e3b634c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354514/trading_journal/509e0cb5-ffbd-4698-a707-07ab41c0da75.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354513/trading_journal/c6503ad3-8d0b-4096-8f97-fabf1ba37da2.png"
+      ],
+      "newsImages": []
+    },
+    "2026-04-23": {
+      "images": []
+    },
+    "2026-04-24": {
+      "closeGlobalImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356125/trading_journal/ce84e22e-e608-47bc-afa1-89e4be6417f8.jpg",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356124/trading_journal/570d6203-1e8d-4be7-b8b9-2a6d52dd62f6.jpg",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356124/trading_journal/69bcfcba-4194-4279-96d5-f8ac3ad4d39c.jpg",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356123/trading_journal/fc89ded2-feab-4984-bcfd-6e494aabc050.jpg",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356177/trading_journal/057dda92-46bc-4a2b-94ea-1412938dd71f.jpg"
+      ],
+      "imageTags": {},
+      "images": []
+    },
+    "2026-04-27": {
+      "closeGlobalImages": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354646/trading_journal/b439a6e8-5df0-4619-803b-b47f4b59124a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354645/trading_journal/5c7a02a5-c4ad-422c-bba8-bbbf4293b7a4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354646/trading_journal/9ef100e2-b59c-454b-a89f-604d45d6371f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354644/trading_journal/733f51b2-4183-4d61-abc5-a34885f62b40.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354646/trading_journal/68a88f53-328d-4ae6-8676-af51530cd11a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354645/trading_journal/e95df0f4-9b3d-4660-85bb-b3d69c4b20c5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354646/trading_journal/1acb59d6-fc2f-431c-80e2-f81e228a1464.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354646/trading_journal/ae18601b-ff18-4f53-865d-bd971aef4835.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354645/trading_journal/1d70c8ab-e5ff-448c-9682-fd36fd073325.png"
+      ],
+      "closeImages": [],
+      "imageTags": {},
+      "images": [],
+      "newsImages": []
+    },
+    "2026-04-28": {
+      "imageTags": {},
+      "images": []
+    }
   },
   "imgTypes": {},
   "importedPdfs": [],
@@ -15047,6 +15112,77 @@
       "observation": "",
       "trade_date": "",
       "videos": {}
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 51.15,
+      "Buy Time": "09:59:22",
+      "Day P&L": 5460,
+      "Gross P/L": 5460,
+      "Image Tags": "",
+      "Instrument": "NIFTY26APR24150PE",
+      "Net P/L": 5386.53,
+      "Note": "",
+      "Other Charges": 33.47,
+      "Pt": 28,
+      "Qty": 195,
+      "Rs": 5460,
+      "Sell Price (Avg)": 79.15,
+      "Sell Time": "09:40:24",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 73.47,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-28",
+      "imageTags": {},
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354670/trading_journal/0857d7a2-b8ee-4fb7-b28e-f9603ff282ac.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/a7e4270c-def6-46ce-8679-e27abe8f9bc9.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/476dc23d-3eef-4a5f-9d11-b53277b40cb5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/7489326f-5dd7-4856-8c6c-ad9a2f1a7009.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354671/trading_journal/2edce05b-bb39-4963-b35c-a28a035a92f0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354671/trading_journal/6f7b54ca-a702-49a6-b5d5-87fccc9b0ebb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354671/trading_journal/bb10cac8-c77d-4be4-b152-40c2079a0516.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/b4450021-2d76-42ec-969e-a9de185656cf.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/3f8a370c-c877-4f81-90ab-54dd36054ee3.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/7ed5267b-b8b3-4737-addb-bb4db2bc082b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354672/trading_journal/62e37ce2-4054-48ad-bcfe-9a90c3dd2026.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-28"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": "",
+      "Buy Price (Avg)": "",
+      "Buy Time": "",
+      "Day P&L": 5460,
+      "Gross P/L": "",
+      "Image Tags": "",
+      "Instrument": "",
+      "Net P/L": "",
+      "Note": "",
+      "Other Charges": "",
+      "Pt": "",
+      "Qty": "",
+      "Rs": "",
+      "Sell Price (Avg)": "",
+      "Sell Time": "",
+      "Sequence": "t2",
+      "Tags": "",
+      "Total Fees": "",
+      "Total Trades": "",
+      "TradeType": "",
+      "Video": "",
+      "date": "2026-04-28",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "trade_date": "2026-04-28"
     },
     {
       "Broker": "zerodha",
@@ -30567,7 +30703,15 @@
       "Video": "",
       "date": "2026-04-27",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355906/trading_journal/30e7540a-5a3d-4f8b-88f3-76b86701fba5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355906/trading_journal/11f888f6-d510-4636-a135-e167e063f5d5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355906/trading_journal/c877afec-4782-4098-a012-454424d07da7.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355906/trading_journal/a396d106-c864-482b-bb2b-5bb1f9152867.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355906/trading_journal/f426e52c-8953-43b3-8eee-2aea9ef42234.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355907/trading_journal/3743310a-6df4-4feb-acfd-eaa8ee07b74d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355906/trading_journal/82671681-9c17-4aa2-9bae-86b7810855c6.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-27"
@@ -30597,7 +30741,28 @@
       "Video": "",
       "date": "2026-04-27",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355955/trading_journal/7715d9a0-86c2-49d2-9dc6-61109388b072.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355955/trading_journal/83fca3ce-e0f2-47dc-8c86-f25e1e593ee8.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355957/trading_journal/cd48700f-43d7-4c8f-b4c5-a0c5718824db.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355954/trading_journal/8a3e5a6d-86ba-4c80-abf5-b04db6b8ee2e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/ee0e6449-7b28-4732-91bb-a4827da42813.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/63f7d855-a91b-48d7-a125-ac0f56b0459a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355953/trading_journal/8ddee2ba-662b-470f-8b66-68b7946d9b61.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355954/trading_journal/504ba396-9ed1-4eb6-8d0b-d8044ff9f945.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/e54c497a-4e5f-4ce1-83e2-a4bb7f7466ba.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/90745ac7-6b5b-4a49-88e4-eca06e84151e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355955/trading_journal/06d81f05-55e9-4e8f-b23d-f4f2cd8527ff.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355953/trading_journal/bf7a9193-1b30-43f0-9563-2e537f5f990b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355954/trading_journal/a216812d-ef81-4909-bf32-527c2cebd396.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/4d4cd86a-9db3-4a3e-a7fd-bca0bab0fd53.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/0b06364c-8c75-4bac-ba2c-09e7b7dba0fb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355954/trading_journal/55b03c9a-f205-41b1-9831-256e4aa56253.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355955/trading_journal/edaff668-4bce-4b97-ba30-5600b8d1d478.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/c9835b96-917c-4631-8124-4fc479128e2e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355956/trading_journal/2924b168-0d02-49e5-a338-9335b3bd8e90.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777355955/trading_journal/3b623f5f-0ad7-4fcb-821f-6a2855b2085a.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-27"
@@ -30628,7 +30793,29 @@
       "date": "2026-04-21",
       "fill_count": 5,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/f4b87f95-44ea-428e-9a82-3cfe0d07df02.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354482/trading_journal/349425c2-faea-4a51-9c57-49d4eb9b26c4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354482/trading_journal/19c05ed8-ed6b-4aab-aa71-ff8f69c69004.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354482/trading_journal/dc3fb7d0-bc63-48ae-b906-fd1f9b49ff19.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354481/trading_journal/d8ef5cb2-d770-4ff0-9562-2ded184e37a0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354483/trading_journal/e9c225ef-254b-4736-8973-e48d04bbe95c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/9a0c7817-7116-438d-9fe2-25955710cb3e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354481/trading_journal/d6d1282e-1510-4ace-932b-a9b98914de42.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354481/trading_journal/1bbeffd3-f84b-46de-a3fc-cbeb9859eb22.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354482/trading_journal/1c1479f1-8262-46f5-bc98-b4619b528035.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/f184624d-8d92-4090-861d-cc29628e89c4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354483/trading_journal/bbaccd3e-3d7d-4710-b85a-27c3429985b5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/f6787331-1266-4b28-9f24-efc18d925afc.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/0c73907d-c843-497a-99d8-2025438181cb.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354483/trading_journal/0f715479-dc8a-4a2c-b487-ca161f298143.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/d26a150f-6b1c-4947-80be-70c761a530b3.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354482/trading_journal/5585d00c-857c-45ad-ab32-ae34abe3e5f2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/269ff199-9822-45f3-8c28-a926a8a55732.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/49cdbb12-a718-411e-9d5d-a0d2ea098c28.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354483/trading_journal/6ce66bb6-e241-483b-ac47-37e5d4cf0e73.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/c8b5bdc8-a3a6-4089-b299-e52da2df159b.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30659,7 +30846,20 @@
       "date": "2026-04-21",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/6ea785a1-337d-45e0-a248-26982e328278.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354489/trading_journal/1a814e4f-75a2-4825-9785-e6cecb96ab55.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354482/trading_journal/16f7b63e-f1aa-492f-a82c-0e96bd4e4a90.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354489/trading_journal/91333318-c526-4df2-91c9-188a0557dac9.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/6e56019a-6ddd-40c2-93dd-cc8fdf5bd790.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/0faf65b9-a8dd-41fc-945a-84f52324bdce.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/079eacd8-29be-4527-8b7e-c53e3bd2d2ef.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354488/trading_journal/cf2c2c30-a52b-4160-93cc-0090b3469a11.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/85c68e04-3a7b-4161-9ca4-9401e5652bf6.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/3fa95d47-424f-4637-876e-fbb2ac4f2992.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354492/trading_journal/36501ddf-b514-4491-94c3-51e043f02fb5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/8352356e-b2af-46a4-8a25-e7ab5bd09ffa.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30690,7 +30890,33 @@
       "date": "2026-04-21",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354488/trading_journal/121b7855-218d-43cf-8ec5-8dd068b06f04.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354489/trading_journal/9823491c-9bb3-41ef-96ba-bc04fa05c0a1.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354483/trading_journal/ea40c7a3-f07c-416d-83b0-a6f3285daadf.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/278e1c36-1ce3-426d-8e93-3e148efb26aa.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354487/trading_journal/6e52ec3a-0c0c-422f-8f44-b640bc742993.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/5ad73431-ad38-4468-a76b-bf523164e20d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/551f69a9-7361-4ccf-b931-93338a9b343f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354487/trading_journal/324a44f9-093a-4faf-8285-19e6bff82eda.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/4b4b0a53-a521-4b5c-9d79-03b1c35f7e6b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/130d1351-0787-47bd-aebc-7c251a6b6680.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354491/trading_journal/f527f5fc-dd11-4ce0-bd65-54d6d0347347.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354489/trading_journal/672e9450-d690-4143-a19a-c6ebca34a01b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/1ba0450e-3d1c-4add-9ab1-5024b2882028.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354491/trading_journal/676432dc-4e3a-4164-8414-ad55f12a1e7d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/2e84fab6-d585-4f6d-96de-99620a2321b2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354488/trading_journal/6e65acef-b18f-4ab6-bf3a-4658a6c6cd2a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354489/trading_journal/b36c6973-9442-4b1f-9f58-27f183c40cf0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354487/trading_journal/eb6eb8af-00a1-487c-bc4c-b8f37174f76b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/3752f5be-2356-4ae4-a5ac-c2541a836382.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/42c374b5-c13f-4715-80af-2bdd227c40b0.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/d9b0b4f1-dc33-4861-b988-a1019468cf78.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354489/trading_journal/77f96e4c-2907-482b-a33b-63c0a0d53d99.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354483/trading_journal/51b2ef6e-de98-4c2f-909e-63faf8c7d8b1.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/c7c97e27-04c4-44ff-85ed-6e0d2f82e401.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/ec5e75ef-5516-4626-aaaf-f344005768a2.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30721,7 +30947,11 @@
       "date": "2026-04-21",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/b7f734e3-24ad-4594-af73-0bb9617d3a3d.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354492/trading_journal/e0b19c7f-d033-4581-91f6-8b9b5d4ac702.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354487/trading_journal/296d30c4-1715-488a-84a2-e314b6e748d8.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30752,7 +30982,18 @@
       "date": "2026-04-21",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/9281cfc3-f6a7-400f-803e-809a8f7dbafa.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354490/trading_journal/07aeb40a-7f26-4370-a945-ce9ba027708f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/b185c7b5-c014-4431-bd97-7d293d7950e9.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354488/trading_journal/ced81779-c0ce-43ea-81b6-508ecc178136.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354484/trading_journal/9fd7db47-018b-40c2-be50-b77560063291.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354490/trading_journal/68315d40-2bb3-4204-8007-31e92160e403.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/837d1483-6e99-47cd-bbcf-761c3ae2011e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354486/trading_journal/3fafca0f-3130-4de7-9b81-4defdca2dae8.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/3224e84c-6804-4b07-8745-b7fde2bdaacd.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354490/trading_journal/cf9c7477-8c0c-46f6-ac59-75c466225a4a.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30783,7 +31024,14 @@
       "date": "2026-04-21",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354487/trading_journal/2a3ff316-c769-4ecf-80e2-ae134e86c0e6.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354491/trading_journal/d4789404-0752-4158-804a-41d67a3c595c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354491/trading_journal/fa5bd8fb-3dd5-436f-81bc-7a7cabc59967.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354490/trading_journal/56918af8-a1b8-4713-ba9c-89d051f3c855.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354485/trading_journal/47fbb58e-4cf1-48eb-afff-85ac242be4a7.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354488/trading_journal/187fe417-9c9b-41d6-a33e-12341e4bf9b1.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30814,7 +31062,11 @@
       "date": "2026-04-21",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354490/trading_journal/d0e615ff-f4fb-4713-beed-da449f357e06.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354491/trading_journal/17730dde-b382-4991-8ebb-d60c56324867.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354490/trading_journal/1881bb73-e223-4005-9479-390d7216807a.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-21"
@@ -30845,7 +31097,20 @@
       "date": "2026-04-22",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354514/trading_journal/f0131be9-c634-4cbe-812a-a9de2f2479dd.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354516/trading_journal/d2ecc5e4-e645-4f00-acb0-423fb698604a.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354515/trading_journal/6e84ef4c-d3a7-44a2-b95c-7eae46dccc9b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354513/trading_journal/bf9eb337-ae6a-4829-ab27-54c3cf4932e2.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354515/trading_journal/055374d8-1ecb-428a-bc7e-13dd245cc6de.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354513/trading_journal/733f8458-0ca8-4c26-9cab-e06261b036d6.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354516/trading_journal/d3d881f2-6b35-45db-9167-9f2547568059.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354515/trading_journal/83839d9d-8716-4801-a02b-1b66b5c01b65.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354517/trading_journal/741ca9d2-a656-4f20-ad59-d866972db538.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354516/trading_journal/ea003750-9337-447e-bd13-c64e3a340bc1.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354514/trading_journal/b4e42b61-b9ad-469f-867e-d3395c268680.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/7bfe8e9d-52d1-4b02-8473-89cb3bbe7254.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-22"
@@ -30876,7 +31141,17 @@
       "date": "2026-04-22",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/44156d84-fd71-4408-84a5-2d330041732f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354516/trading_journal/a2cf5867-5cb6-4946-a33e-870796252e68.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354520/trading_journal/7b3d19f3-a261-4dc7-afdc-fda203655926.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/e20615ba-73f7-4508-b153-67554d635d52.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/a62c42d8-0287-4146-afcc-e10a96de123b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354517/trading_journal/6dad2de3-ff42-48fb-81a9-aa907e886fa4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354518/trading_journal/32d56714-ef57-49f4-bb50-bc6b6272b44e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354517/trading_journal/a385ebd2-9d8a-4dab-b1ea-755efa6a526f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/c9ea9afe-0954-4bda-b1b9-554f75800eec.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-22"
@@ -30969,7 +31244,9 @@
       "date": "2026-04-22",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354520/trading_journal/a9a9210d-e43c-43a5-9d9d-4dc304f009df.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-22"
@@ -31000,7 +31277,16 @@
       "date": "2026-04-22",
       "fill_count": 3,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354518/trading_journal/e64a8a14-4a68-498e-96af-dd3fa031392f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/23e88074-3750-4346-b122-1c9b0eac8b50.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354518/trading_journal/3996d8d4-5517-4af8-8ca9-2d2e10aff387.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/034dfa7f-d661-4226-841b-c3888d3e9fea.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354518/trading_journal/832e1365-d2e2-48b7-974a-78a710904d3f.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354516/trading_journal/73cd7271-5fb9-435e-a77c-4d6ed59acf8e.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354517/trading_journal/35b7d7e3-6aba-4deb-ab6d-d1fe010f1ac4.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354518/trading_journal/20f3adb2-16a2-4c19-82fb-5ee0040cf411.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-22"
@@ -31031,7 +31317,13 @@
       "date": "2026-04-22",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/a941ec14-a0a9-4e0a-a1f2-314e67bb60be.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/93542436-c5fb-404b-a83f-4a0e53bf926b.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354519/trading_journal/f626ccef-13ca-419c-911d-e5cc62e384b5.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354520/trading_journal/3abd5fbc-35ad-416f-be56-6d6c8772d103.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354515/trading_journal/fa50110d-e709-4337-ac93-3a26961b6e38.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-22"
@@ -31062,7 +31354,10 @@
       "date": "2026-04-22",
       "fill_count": 4,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354520/trading_journal/3c44905d-0e1f-459e-a8fa-dfa0c27a612c.png",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777354520/trading_journal/7d7d776b-1cb7-4255-9338-282679e530c7.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-22"
@@ -31124,7 +31419,10 @@
       "date": "2026-04-24",
       "fill_count": 2,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356124/trading_journal/2d7b88e1-4d5e-4e34-b82b-f76e0da9b7ea.jpg",
+        "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356124/trading_journal/e3d9e959-bb75-4f22-9cd9-86743392ed08.jpg"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-24"
