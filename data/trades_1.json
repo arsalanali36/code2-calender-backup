@@ -9923,6 +9923,7 @@
       "tradeRefCards": {}
     },
     "2026-04-01": {
+      "closeGlobalImages": [],
       "closeImages": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037085/trading_journal/4eac5a6a-222c-45db-9701-b16ada2a9e7a.png",
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1775037085/trading_journal/25fa145f-da31-42a5-b255-54c7da82a1b5.png",
