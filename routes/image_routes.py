@@ -17,7 +17,7 @@ from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
     save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT
 
 image_bp = Blueprint('image', __name__)
 
@@ -135,16 +135,16 @@ def delete_audio():
 
 @image_bp.route('/api/cloudinary-status')
 def cloudinary_status():
-    """Check if Cloudinary is configured and reachable."""
-    if not USE_CLOUDINARY:
+    """Check if ImageKit is configured and reachable."""
+    if not USE_IMAGEKIT:
         return jsonify({
             'enabled': False,
-            'message': 'CLOUDINARY_URL not set — using local storage'
+            'message': 'IMAGEKIT env vars not set — using local storage'
         })
     try:
-        import cloudinary.api
-        result = cloudinary.api.ping()
-        return jsonify({'enabled': True, 'status': 'connected', 'ping': result})
+        from services.image_service import _get_imagekit
+        ik = _get_imagekit()
+        return jsonify({'enabled': True, 'status': 'connected', 'provider': 'imagekit'})
     except Exception as e:
         return jsonify({'enabled': True, 'status': 'error', 'message': str(e)}), 500
 
@@ -314,7 +314,7 @@ def delete_pdf():
     if not filename:
         return jsonify({'error': 'Invalid filename'}), 400
     # Local safety check — block path traversal for local filenames
-    if not USE_CLOUDINARY and ('/' in filename or '\\' in filename):
+    if not USE_IMAGEKIT and ('/' in filename or '\\' in filename):
         return jsonify({'error': 'Invalid filename'}), 400
     delete_uploaded_pdf(filename, PDF_DIR, PDF_META_FILE)
     return jsonify({'success': True})
