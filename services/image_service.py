@@ -49,35 +49,33 @@ def _validate_extension(filename: str):
 # ── ImageKit upload ───────────────────────────────────────────────────────────
 
 def _get_imagekit():
-    """Return an initialized ImageKit client."""
+    """Return an initialized ImageKit v5 client."""
     from imagekitio import ImageKit
-    from config import IMAGEKIT_PRIVATE_KEY, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_URL_ENDPOINT
-    return ImageKit(
-        private_key=IMAGEKIT_PRIVATE_KEY,
-        public_key=IMAGEKIT_PUBLIC_KEY,
-        url_endpoint=IMAGEKIT_URL_ENDPOINT,
-    )
+    from config import IMAGEKIT_PRIVATE_KEY
+    return ImageKit(private_key=IMAGEKIT_PRIVATE_KEY)
 
 
 def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
     """
-    Upload a FileStorage object to ImageKit.
+    Upload a FileStorage object to ImageKit (v5 SDK).
     Returns {'url': '<cdn_url>', 'filename': '<file_id>', 'imagekit': True}
     Raises Exception on failure.
     """
     import io
+    from config import IMAGEKIT_URL_ENDPOINT
     file_bytes = file_storage.read()
     fname = original_filename or file_storage.filename or f'{uuid.uuid4()}.jpg'
     safe_name = re.sub(r'[^\w.\-]', '_', os.path.basename(fname))
 
     ik = _get_imagekit()
-    result = ik.upload_file(
+    result = ik.files.upload(
         file=io.BytesIO(file_bytes),
         file_name=safe_name,
-        options={"folder": "/trading_journal/"},
+        folder='/trading_journal/',
+        use_unique_file_name=True,
     )
-    url = result.response_metadata.raw['url']
-    file_id = result.response_metadata.raw['fileId']
+    file_id = result.file_id
+    url = f"{IMAGEKIT_URL_ENDPOINT}/trading_journal/{result.name}"
     return {
         'url': url,
         'filename': file_id,   # fileId used for delete later
@@ -143,7 +141,7 @@ def move_to_trash(filename: str, uploads_dir: str, trash_dir: str) -> bool:
             from config import USE_IMAGEKIT
             if USE_IMAGEKIT and filename and '.' not in filename:
                 ik = _get_imagekit()
-                ik.delete_file(file_id=filename)
+                ik.files.delete(filename)
                 return True
         except Exception:
             pass
@@ -226,14 +224,16 @@ def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 220,
             jpg_bytes = pix.tobytes('jpeg', jpg_quality=85)
 
             if USE_IMAGEKIT:
+                from config import IMAGEKIT_URL_ENDPOINT
                 ik = _get_imagekit()
                 fname = f'{safe}_p{i+1}_{uuid.uuid4().hex[:6]}.jpg'
-                res = ik.upload_file(
+                res = ik.files.upload(
                     file=io.BytesIO(jpg_bytes),
                     file_name=fname,
-                    options={"folder": "/trading_journal/pdf_pages/"},
+                    folder='/trading_journal/pdf_pages/',
+                    use_unique_file_name=True,
                 )
-                page_urls.append(res.response_metadata.raw['url'])
+                page_urls.append(f"{IMAGEKIT_URL_ENDPOINT}/trading_journal/pdf_pages/{res.name}")
             else:
                 fname = f'pdf_{safe}_p{i+1}_{uuid.uuid4().hex[:6]}.jpg'
                 fpath = os.path.join(UPLOADS_DIR, fname)

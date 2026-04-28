@@ -56,16 +56,15 @@ def _compute_static_hash() -> str:
 
 CACHE_BUST = _compute_static_hash()
 
-# ── Cloudinary ────────────────────────────────────────────────────────────────
-CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
-USE_CLOUDINARY = bool(CLOUDINARY_URL_VALUE)
+# ── ImageKit ──────────────────────────────────────────────────────────────────
+IMAGEKIT_PRIVATE_KEY  = os.getenv('IMAGEKIT_PRIVATE_KEY', '')
+IMAGEKIT_PUBLIC_KEY   = os.getenv('IMAGEKIT_PUBLIC_KEY', '')
+IMAGEKIT_URL_ENDPOINT = os.getenv('IMAGEKIT_URL_ENDPOINT', '')
+USE_IMAGEKIT = bool(IMAGEKIT_PRIVATE_KEY and IMAGEKIT_PUBLIC_KEY and IMAGEKIT_URL_ENDPOINT)
 
-if USE_CLOUDINARY:
-    try:
-        import cloudinary
-        cloudinary.config(cloudinary_url=CLOUDINARY_URL_VALUE)
-    except ImportError:
-        USE_CLOUDINARY = False  # cloudinary package not installed
+# Legacy Cloudinary (kept for backward compat — existing URLs still work via CDN)
+CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
+USE_CLOUDINARY = False  # Migrated to ImageKit
 
 # ── Server settings ───────────────────────────────────────────────────────────
 HOST  = os.getenv('HOST', '0.0.0.0')
