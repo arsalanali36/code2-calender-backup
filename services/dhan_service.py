@@ -340,6 +340,16 @@ def sync_single_task(symbol, trade_date, config=None):
                 status = 'OK'
                 if isinstance(res, str) and res == "ALREADY_COMPLETE": status = 'SKIP'
                 day_results.append({'date': c_str, 'status': status, 'weekday': curr.weekday()})
+                # Remove from pending_syncs.json so UI counter goes down
+                try:
+                    from services.auto_sync_service import load_pending, save_pending
+                    p = load_pending()
+                    if symbol in p and c_str in p[symbol]:
+                        p[symbol].remove(c_str)
+                        if not p[symbol]: del p[symbol]
+                        save_pending(p)
+                except Exception:
+                    pass
             except Exception as e:
                 errors += 1
                 day_results.append({'date': c_str, 'status': 'ERR', 'weekday': curr.weekday()})
