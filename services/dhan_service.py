@@ -350,6 +350,13 @@ def sync_single_task(symbol, trade_date, config=None):
                         save_pending(p)
                 except Exception:
                     pass
+                # Invalidate dot-status cache so next modal open shows updated dots
+                try:
+                    import json as _json
+                    with open('data/inventory_meta.json', 'w') as _f:
+                        _json.dump({'updated_at': 0}, _f)
+                except Exception:
+                    pass
             except Exception as e:
                 errors += 1
                 day_results.append({'date': c_str, 'status': 'ERR', 'weekday': curr.weekday()})
