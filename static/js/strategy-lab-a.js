@@ -1,3 +1,24 @@
+        function showToast(msg, type = 'success') {
+            let t = document.getElementById('sl-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'sl-toast';
+                Object.assign(t.style, {
+                    position:'fixed', bottom:'24px', right:'24px', zIndex:99999,
+                    padding:'10px 18px', borderRadius:'8px', fontFamily:'Segoe UI,sans-serif',
+                    fontSize:'14px', boxShadow:'0 4px 16px rgba(0,0,0,.4)',
+                    transition:'opacity .3s', opacity:'0', pointerEvents:'none'
+                });
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.style.background = type === 'success' ? '#a6e3a1' : '#f38ba8';
+            t.style.color = '#1e1e2e';
+            t.style.opacity = '1';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3500);
+        }
+
         let chartMain, candleMain, ema10Main, ema20Main, markerMain;
         let pdhMain, pdlMain, pdcMain, ppMain, r1Main, s1Main, r2Main, s2Main, r3Main, s3Main, r4Main, s4Main, r5Main, s5Main;
         let chartOpt, candleOpt, ema10Opt, ema20Opt, markerOpt;
