@@ -448,24 +448,40 @@
         document.getElementById('source-select').onchange = checkDhanAuth;
         document.getElementById('close-dhan-modal').onclick = () => document.getElementById('dhan-auth-modal').style.display = 'none';
         document.getElementById('save-dhan-btn').onclick = async () => {
-            const cid = document.getElementById('dhan-client-id').value;
-            const token = document.getElementById('dhan-access-token').value;
-            if (cid && token) {
-                sessionStorage.setItem('dhan_client_id', cid);
-                sessionStorage.setItem('dhan_access_token', token);
-                document.getElementById('dhan-auth-modal').style.display = 'none';
-                
-                // Trigger background sync immediately
-                try {
-                    await fetch('/api/strategy/trigger-sync', { method: 'POST' });
-                    // Give it a second and then check status
-                    setTimeout(() => checkSyncStatus(), 1500);
-                } catch(e) { console.error("Trigger fail", e); }
+            const cid = document.getElementById('dhan-client-id').value.trim();
+            const token = document.getElementById('dhan-access-token').value.trim();
+            if (!cid || !token) { alert('Please provide both Client ID and Token'); return; }
 
-                runStrategy();
-            } else {
-                alert('Please provide both Client ID and Token');
+            const btn = document.getElementById('save-dhan-btn');
+            btn.textContent = 'Testing connection...';
+            btn.disabled = true;
+
+            // Test token validity before saving
+            try {
+                const res = await fetch('/api/strategy/test-dhan-token', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({dhan_cid: cid, dhan_token: token})
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    sessionStorage.setItem('dhan_client_id', cid);
+                    sessionStorage.setItem('dhan_access_token', token);
+                    document.getElementById('dhan-auth-modal').style.display = 'none';
+                    showToast('Token valid! Credentials saved.', 'success');
+                    try {
+                        await fetch('/api/strategy/trigger-sync', { method: 'POST' });
+                        setTimeout(() => checkSyncStatus(), 1500);
+                    } catch(e) {}
+                    runStrategy();
+                } else {
+                    showToast('Token rejected by Dhan: ' + (data.error || 'DH-906 Invalid Token'), 'error');
+                }
+            } catch(e) {
+                showToast('Connection test failed: ' + e.message, 'error');
             }
+            btn.textContent = 'Save & Continue';
+            btn.disabled = false;
         };
 
         // Load existing session creds into fields
