@@ -204,7 +204,9 @@ function jumpToTrade(t) {
                     const timeStr = (t.entry_time && t.exit_time) ? `<span style="color:#94a3b8; font-weight:400;"> [${t.entry_time.substring(0,5)}-${t.exit_time.substring(0,5)}]</span>` : '';
                     const bgGroup = getInstColor(t.symbol);
                     const isGrouped = instCounts[t.symbol] > 1;
-                    const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
+                    const LOT_SIZES = {BANKNIFTY:15,FINNIFTY:40,MIDCPNIFTY:75,SENSEX:10,BANKEX:15,NIFTY:75};
+                    const under = Object.keys(LOT_SIZES).find(k => t.symbol.toUpperCase().startsWith(k)) || 'NIFTY';
+                    const lots = t.qty > 0 ? Math.round(t.qty / LOT_SIZES[under]) : 0;
                     const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
                     const weekDots = t.weekly_history ? t.weekly_history.map((hasData, i) => {
                         const dStr = t.weekly_dates[i];
