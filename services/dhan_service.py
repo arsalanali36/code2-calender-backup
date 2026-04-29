@@ -120,27 +120,24 @@ def _fetch_underlying_spot(underlying, trade_date, headers, entry_time=None):
     except Exception:
         to_str = f"{trade_date} {t}:05"
 
-    url = f"{DHAN_API_BASE}/v2/charts/historical"
-    # Try all known segment/instrument combos for index data
-    combos = [
-        ("IDX_I",   "INDEX"),
-        ("NSE_EQ",  "INDEX"),
-        ("IDX_I",   "EQUITY"),
-        ("NSE_FNO", "INDEX"),
-    ]
+    url = f"{DHAN_API_BASE}/v2/charts/intraday"
+    combos = [("IDX_I", "INDEX"), ("NSE_EQ", "INDEX"), ("IDX_I", "EQUITY")]
     for seg, inst in combos:
         try:
-            resp   = _post_json(url, {
+            resp = _post_json(url, {
                 "securityId":      sec_id,
                 "exchangeSegment": seg,
                 "instrument":      inst,
                 "interval":        1,
-                "fromDate":        from_str,
-                "toDate":          to_str,
+                "fromDate":        trade_date,
+                "toDate":          trade_date,
             }, headers)
             closes = resp.get('close', [])
             if closes:
-                return float(closes[0])
+                t = entry_time[:5] if entry_time else '09:30'
+                target_min = int(t.split(':')[0]) * 60 + int(t.split(':')[1]) - 555  # mins since 09:15
+                idx = max(0, min(target_min, len(closes) - 1))
+                return float(closes[idx])
         except Exception:
             continue
     return None
