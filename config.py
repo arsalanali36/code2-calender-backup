@@ -33,6 +33,12 @@ DHAN_SCRIP_MASTER    = os.path.join(BASE_DIR, 'data', 'dhan_scrip_master.csv')
 SYMBOL_EXPIRY_MAP_FILE     = os.path.join(BASE_DIR, 'data', 'symbol_expiry_map.json')
 TRADEBOOK_SYNC_QUEUE_FILE  = os.path.join(BASE_DIR, 'data', 'tradebook_sync_queue.json')
 
+# ── Algo Lab ──────────────────────────────────────────────────────────────────
+ALGO_CONFIG_FILE    = os.path.join(BASE_DIR, 'data', 'algo_config.json')
+ALGO_WATCHLIST_FILE = os.path.join(BASE_DIR, 'data', 'algo_watchlist.json')
+ALGO_ORDERS_FILE    = os.path.join(BASE_DIR, 'data', 'algo_orders.json')
+ALGO_STATE_FILE     = os.path.join(BASE_DIR, 'data', 'algo_state.json')
+
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7
 MAX_CONTENT_LENGTH  = 100 * 1024 * 1024          # 100 MB upload limit

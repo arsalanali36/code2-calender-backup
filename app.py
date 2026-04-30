@@ -52,6 +52,7 @@ from routes.auth_routes    import auth_bp
 from routes.whatif_routes  import whatif_bp
 from routes.strategy_routes import strategy_bp
 from routes.log_routes import log_bp
+from routes.algo_routes import algo_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
@@ -269,6 +270,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(whatif_bp)
 app.register_blueprint(strategy_bp)
 app.register_blueprint(log_bp)
+app.register_blueprint(algo_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────

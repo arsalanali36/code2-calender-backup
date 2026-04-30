@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algo Lab | Trading Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style-algo-lab.css">
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="algo-topbar">
+  <h1>⚡ Algo Lab</h1>
+  <span class="badge paper">PAPER TRADING</span>
+  <div class="tick-info">
+    <span class="last-tick" id="last-tick-time">Last tick: --</span>
+    <span>|</span>
+    <span>Next in: <span class="countdown" id="countdown">--</span></span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost btn-sm" onclick="manualTick()" id="manual-tick-btn">Run Tick Now</button>
+    <button class="bot-toggle stopped" id="bot-toggle-btn" onclick="toggleBot()">
+      <span class="status-dot off" id="status-dot"></span>
+      <span id="bot-toggle-label">BOT: OFF</span>
+    </button>
+    <a href="/" class="btn btn-ghost btn-sm">← Home</a>
+  </div>
+</div>
+
+<!-- Alert -->
+<div class="algo-alert" id="algo-alert"></div>
+
+<!-- Body -->
+<div class="algo-body">
+
+  <!-- Sidebar -->
+  <div class="algo-sidebar">
+
+    <!-- Strategy Config -->
+    <div class="card">
+      <div class="card-header">
+        Strategy Config
+        <button class="btn btn-primary btn-sm" onclick="saveConfig()">Save</button>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <label>EMA Fast</label>
+          <input type="number" id="cfg-ema-fast" value="9" min="1" max="200">
+        </div>
+        <div class="form-row">
+          <label>EMA Slow</label>
+          <input type="number" id="cfg-ema-slow" value="20" min="1" max="200">
+        </div>
+        <div class="form-row">
+          <label>Timeframe (min)</label>
+          <input type="number" id="cfg-tf" value="1" min="1" max="60">
+        </div>
+        <div class="form-row">
+          <label>Entry Mode</label>
+          <select id="cfg-entry">
+            <option value="candle_close">Candle Close</option>
+            <option value="live">Live (beta)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>SL Type</label>
+          <select id="cfg-sl">
+            <option value="crossover">Crossover Exit</option>
+            <option value="fixed" disabled>Fixed Points</option>
+            <option value="atr" disabled>ATR (soon)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Daily Loss Limit ₹</label>
+          <input type="number" id="cfg-loss-limit" value="100" min="0">
+        </div>
+        <div class="form-row">
+          <label>Qty</label>
+          <input type="number" id="cfg-qty" value="1" min="1">
+        </div>
+      </div>
+    </div>
+
+    <!-- Watchlist -->
+    <div class="card">
+      <div class="card-header">
+        Watchlist
+        <button class="btn btn-primary btn-sm" onclick="saveWatchlist()">Resolve &amp; Save</button>
+      </div>
+      <div class="card-body">
+        <textarea id="wl-textarea" placeholder="RELIANCE&#10;TCS&#10;INFY"></textarea>
+        <div class="wl-tags" id="wl-tags"></div>
+      </div>
+    </div>
+
+    <!-- Daily Controls -->
+    <div class="card">
+      <div class="card-header">Daily Controls</div>
+      <div class="card-body" style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-danger btn-full btn-sm" onclick="clearOrders()">Clear Orders &amp; Reset P&amp;L</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Panel -->
+  <div class="algo-main">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="label">Realized P&amp;L</div>
+        <div class="value" id="stat-realized">₹0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Unrealized P&amp;L</div>
+        <div class="value" id="stat-unrealized">₹0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total P&amp;L</div>
+        <div class="value" id="stat-total">₹0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Open Positions</div>
+        <div class="value" id="stat-open">0</div>
+      </div>
+    </div>
+
+    <!-- Signals -->
+    <div class="card">
+      <div class="card-header">Latest Signals</div>
+      <div class="card-body">
+        <div class="signal-row" id="signal-row">
+          <span style="color:#475569; font-size:12px;">No signals yet. Start the bot and run a tick.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Book -->
+    <div class="card">
+      <div class="card-header">Paper Order Book</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Symbol</th>
+              <th>Side</th>
+              <th>Entry Price</th>
+              <th>Entry Time</th>
+              <th>CMP</th>
+              <th>Exit Price</th>
+              <th>Exit Time</th>
+              <th>P&amp;L</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="order-tbody">
+            <tr><td colspan="10" class="empty-msg">No orders yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/static/js/algo-lab.js"></script>
+</body>
+</html>
