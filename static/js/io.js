@@ -106,6 +106,7 @@ async function handleImageFiles(files) {
       }
     } catch (e) {
       failed++;
+      console.error('[Upload] Failed:', e.message || e);
       const idx = state.pendingFiles.indexOf(localUrls[i]);
       if (idx >= 0) state.pendingFiles.splice(idx, 1);
       URL.revokeObjectURL(localUrls[i]);
