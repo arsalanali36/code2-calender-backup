@@ -1,0 +1,10 @@
+{
+  "ema_fast": 9,
+  "ema_slow": 20,
+  "timeframe": 1,
+  "entry_mode": "candle_close",
+  "sl_type": "crossover",
+  "daily_loss_limit": 100.0,
+  "qty": 1,
+  "running": true
+}
