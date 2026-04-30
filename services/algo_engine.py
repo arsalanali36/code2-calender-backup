@@ -18,6 +18,24 @@ from config import (
 )
 from services.dhan_service_core import DHAN_API_BASE, _post_json, _dhan_headers, get_config
 
+# ── In-memory candle cache (populated during tick, served to chart endpoint) ──
+_candle_cache = {}   # { security_id: {candles, ema_fast, ema_slow, fetched_at} }
+_CACHE_TTL = 300     # seconds — 5 minutes
+
+def get_cached_candles(security_id):
+    e = _candle_cache.get(str(security_id))
+    if not e: return None
+    if (datetime.now() - e['fetched_at']).total_seconds() > _CACHE_TTL: return None
+    return e
+
+def _store_cache(security_id, candles, ema_fast, ema_slow):
+    _candle_cache[str(security_id)] = {
+        'candles':  candles,
+        'ema_fast': ema_fast,
+        'ema_slow': ema_slow,
+        'fetched_at': datetime.now(),
+    }
+
 DEFAULT_CONFIG = {
     "ema_fast":         9,
     "ema_slow":         20,
@@ -282,6 +300,11 @@ def run_tick():
             if not candles:
                 signals.append({"symbol": symbol, "signal": "NO_DATA", "candles": 0})
                 continue
+
+            closes   = [c['close'] for c in candles]
+            ef       = _calc_ema(closes, fast)
+            es       = _calc_ema(closes, slow)
+            _store_cache(sid, candles, ef, es)   # cache for chart endpoint
 
             signal, price, sig_time = _detect_signal(candles, fast, slow)
 
