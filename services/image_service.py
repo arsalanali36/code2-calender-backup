@@ -66,6 +66,7 @@ def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
     fname = original_filename or file_storage.filename or f'{uuid.uuid4()}.jpg'
     safe_name = re.sub(r'[^\w.\-]', '_', os.path.basename(fname))
 
+    from config import IMAGEKIT_URL_ENDPOINT
     ik = _get_imagekit()
     result = ik.files.upload(
         file=io.BytesIO(file_bytes),
@@ -73,9 +74,11 @@ def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
         folder='/trading_journal/',
         use_unique_file_name=True,
     )
+    # result.url is Optional in v5 SDK — fall back to constructing from file_path
+    url = result.url or f"{IMAGEKIT_URL_ENDPOINT}{result.file_path}"
     return {
-        'url': result.url,           # SDK returns full CDN URL directly
-        'filename': result.file_id,  # fileId used for delete later
+        'url': url,
+        'filename': result.file_id,
         'imagekit': True,
     }
 
