@@ -4,6 +4,27 @@ Consolidated code context for AI assistants.
 
 ## File: `static/js/strategy-lab-a.js`
 ```js
+        function showToast(msg, type = 'success') {
+            let t = document.getElementById('sl-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'sl-toast';
+                Object.assign(t.style, {
+                    position:'fixed', bottom:'24px', right:'24px', zIndex:99999,
+                    padding:'10px 18px', borderRadius:'8px', fontFamily:'Segoe UI,sans-serif',
+                    fontSize:'14px', boxShadow:'0 4px 16px rgba(0,0,0,.4)',
+                    transition:'opacity .3s', opacity:'0', pointerEvents:'none'
+                });
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.style.background = type === 'success' ? '#a6e3a1' : '#f38ba8';
+            t.style.color = '#1e1e2e';
+            t.style.opacity = '1';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3500);
+        }
+
         let chartMain, candleMain, ema10Main, ema20Main, markerMain;
         let pdhMain, pdlMain, pdcMain, ppMain, r1Main, s1Main, r2Main, s2Main, r3Main, s3Main, r4Main, s4Main, r5Main, s5Main;
         let chartOpt, candleOpt, ema10Opt, ema20Opt, markerOpt;
@@ -454,24 +475,40 @@ Consolidated code context for AI assistants.
         document.getElementById('source-select').onchange = checkDhanAuth;
         document.getElementById('close-dhan-modal').onclick = () => document.getElementById('dhan-auth-modal').style.display = 'none';
         document.getElementById('save-dhan-btn').onclick = async () => {
-            const cid = document.getElementById('dhan-client-id').value;
-            const token = document.getElementById('dhan-access-token').value;
-            if (cid && token) {
-                sessionStorage.setItem('dhan_client_id', cid);
-                sessionStorage.setItem('dhan_access_token', token);
-                document.getElementById('dhan-auth-modal').style.display = 'none';
-                
-                // Trigger background sync immediately
-                try {
-                    await fetch('/api/strategy/trigger-sync', { method: 'POST' });
-                    // Give it a second and then check status
-                    setTimeout(() => checkSyncStatus(), 1500);
-                } catch(e) { console.error("Trigger fail", e); }
+            const cid = document.getElementById('dhan-client-id').value.trim();
+            const token = document.getElementById('dhan-access-token').value.trim();
+            if (!cid || !token) { alert('Please provide both Client ID and Token'); return; }
 
-                runStrategy();
-            } else {
-                alert('Please provide both Client ID and Token');
+            const btn = document.getElementById('save-dhan-btn');
+            btn.textContent = 'Testing connection...';
+            btn.disabled = true;
+
+            // Test token validity before saving
+            try {
+                const res = await fetch('/api/strategy/test-dhan-token', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({dhan_cid: cid, dhan_token: token})
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    sessionStorage.setItem('dhan_client_id', cid);
+                    sessionStorage.setItem('dhan_access_token', token);
+                    document.getElementById('dhan-auth-modal').style.display = 'none';
+                    showToast('Token valid! Credentials saved.', 'success');
+                    try {
+                        await fetch('/api/strategy/trigger-sync', { method: 'POST' });
+                        setTimeout(() => checkSyncStatus(), 1500);
+                    } catch(e) {}
+                    runStrategy();
+                } else {
+                    showToast('Token rejected by Dhan: ' + (data.error || 'DH-906 Invalid Token'), 'error');
+                }
+            } catch(e) {
+                showToast('Connection test failed: ' + e.message, 'error');
             }
+            btn.textContent = 'Save & Continue';
+            btn.disabled = false;
         };
 
         // Load existing session creds into fields
@@ -578,7 +615,7 @@ Consolidated code context for AI assistants.
                 // Update Static Levels
                 const strategy = document.getElementById('strategy-select').value;
                 // ONLY show levels and strategy markers on MAIN chart, not OPTION chart
-                const showLevels = (!isOpt) && (strategy === 'Arsalan Sandbox' || strategy === 'Arsalan Reversal');
+                const showLevels = (!isOpt) && (strategy === 'Arsalan Sandbox' || strategy === 'Arsalan Reversal' || strategy === 'Arsalan X2');
                 
                 const targetLvl = isOpt ? { pdh: pdhOpt, pdl: pdlOpt, pdc: pdcOpt, pp: ppOpt, r1: r1Opt, s1: s1Opt, r2: r2Opt, s2: s2Opt, r3: r3Opt, s3: s3Opt, r4: r4Opt, s4: s4Opt, r5: r5Opt, s5: s5Opt } 
                                        : { pdh: pdhMain, pdl: pdlMain, pdc: pdcMain, pp: ppMain, r1: r1Main, s1: s1Main, r2: r2Main, s2: s2Main, r3: r3Main, s3: s3Main, r4: r4Main, s4: s4Main, r5: r5Main, s5: s5Main };
@@ -962,7 +999,9 @@ function jumpToTrade(t) {
                     const timeStr = (t.entry_time && t.exit_time) ? `<span style="color:#94a3b8; font-weight:400;"> [${t.entry_time.substring(0,5)}-${t.exit_time.substring(0,5)}]</span>` : '';
                     const bgGroup = getInstColor(t.symbol);
                     const isGrouped = instCounts[t.symbol] > 1;
-                    const lots = t.qty > 0 ? Math.round(t.qty / 65) : 0;
+                    const LOT_SIZES = {BANKNIFTY:15,FINNIFTY:40,MIDCPNIFTY:75,SENSEX:10,BANKEX:15,NIFTY:75};
+                    const under = Object.keys(LOT_SIZES).find(k => t.symbol.toUpperCase().startsWith(k)) || 'NIFTY';
+                    const lots = t.qty > 0 ? Math.round(t.qty / LOT_SIZES[under]) : 0;
                     const statusIcon = t.has_data ? '<span style="color:#10b981; font-size:0.8rem; margin-right:4px;">✅</span>' : '<span style="color:#ef4444; font-size:0.8rem; margin-right:4px;">❌</span>';
                     const weekDots = t.weekly_history ? t.weekly_history.map((hasData, i) => {
                         const dStr = t.weekly_dates[i];

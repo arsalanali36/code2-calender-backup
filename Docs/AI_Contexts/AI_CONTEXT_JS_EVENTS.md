@@ -177,6 +177,20 @@ function syncSelects() {
   const v = document.getElementById('glob-view');
   if (v) v.value = state.calendarView;
   if (m && v) m.disabled = state.calendarView === 'year';
+  // Update compact period button label
+  const periodBtn = document.getElementById('nav-period-btn');
+  if (periodBtn) {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    periodBtn.textContent = state.calendarView === 'year'
+      ? state.year + ' ▾'
+      : MONTHS[state.month] + ' ' + state.year + ' ▾';
+  }
+  // Update view toggle button label
+  const viewToggle = document.getElementById('nav-view-toggle');
+  if (viewToggle) {
+    viewToggle.textContent = state.calendarView === 'year' ? 'Year' : 'Month';
+    viewToggle.classList.toggle('active', state.calendarView === 'year');
+  }
 }
 
 init();
@@ -857,6 +871,49 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
+  // Compact period picker toggle
+  const navPeriodBtn = document.getElementById('nav-period-btn');
+  const navPeriodPanel = document.getElementById('nav-period-panel');
+  if (navPeriodBtn && navPeriodPanel) {
+    navPeriodBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navPeriodPanel.classList.toggle('open');
+    });
+    navPeriodPanel.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Month / Year view toggle button
+  const navViewToggle = document.getElementById('nav-view-toggle');
+  if (navViewToggle) {
+    navViewToggle.addEventListener('click', () => {
+      state.calendarView = state.calendarView === 'year' ? 'month' : 'year';
+      syncSelects();
+      render();
+    });
+  }
+
+  // Date range toggle
+  const navRangeToggle = document.getElementById('nav-range-toggle');
+  const navRangeRow = document.getElementById('nav-range-row');
+  if (navRangeToggle && navRangeRow) {
+    navRangeToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      navRangeRow.classList.toggle('open');
+    });
+    navRangeRow.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // Navbar More menu
+  const navbarMoreBtn = document.getElementById('navbar-more-btn');
+  const navbarMoreMenu = document.getElementById('navbar-more-menu');
+  if (navbarMoreBtn && navbarMoreMenu) {
+    navbarMoreBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navbarMoreMenu.classList.toggle('open');
+    });
+    navbarMoreMenu.addEventListener('click', e => e.stopPropagation());
+  }
+
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
@@ -925,9 +982,23 @@ function _bindUIEvents() {
   });
 
   setupDropdown('file-dropdown-btn', 'file-dropdown-menu');
-  setupDropdown('add-dropdown-btn', 'add-dropdown-menu');
-  setupDropdown('col-vis-btn', 'col-vis-panel');
-  setupDropdown('view-preset-btn', 'view-preset-panel');
+  setupDropdown('table-options-btn', 'table-options-panel');
+
+  // Sub-panels open as fixed-position popups near the Options button
+  function openTblSubPopup(panelId, e) {
+    e.stopPropagation();
+    document.getElementById('table-options-panel')?.classList.remove('open');
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const wasOpen = panel.classList.contains('open');
+    document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));
+    if (wasOpen) return;
+    panel.classList.add('open');
+  }
+  document.getElementById('col-vis-btn')?.addEventListener('click', e => openTblSubPopup('col-vis-panel', e));
+  document.getElementById('view-preset-btn')?.addEventListener('click', e => openTblSubPopup('view-preset-panel', e));
+  document.getElementById('tag-filter-btn')?.addEventListener('click', e => openTblSubPopup('tag-filter-panel', e));
+  document.getElementById('add-dropdown-btn')?.addEventListener('click', e => openTblSubPopup('add-dropdown-menu', e));
   const statsBtn = document.getElementById('dashboard-stats-btn');
   if (statsBtn) statsBtn.addEventListener('click', e => { e.stopPropagation(); openStatsConfigModal(); });
 
@@ -935,15 +1006,18 @@ function _bindUIEvents() {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
     if (profileDropdown) profileDropdown.classList.remove('open');
+    if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
+    if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
+    document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));
   });
   document.getElementById('show-heads-panel').addEventListener('click', e => e.stopPropagation());
-  document.getElementById('col-vis-panel').addEventListener('click', e => e.stopPropagation());
-  document.getElementById('view-preset-panel').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('col-vis-panel')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('view-preset-panel')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('tag-filter-panel')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('add-dropdown-menu')?.addEventListener('click', e => e.stopPropagation());
   const dashStatsMenu = document.getElementById('dashboard-stats-menu');
   if (dashStatsMenu) dashStatsMenu.addEventListener('click', e => e.stopPropagation());
-
-  setupDropdown('tag-filter-btn', 'tag-filter-panel');
   document.querySelectorAll('.broker-filter-item').forEach(btn => {
     btn.addEventListener('click', () => {
       state.brokerFilter = String(btn.dataset.broker || 'both').toLowerCase();
@@ -996,10 +1070,14 @@ function _bindUIEvents() {
 
   // Sync buttons — only visible on localhost/127.0.0.1
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    ['live-sync-divider', 'pull-from-live-btn', 'push-to-live-btn', 'auto-sync-toggle-btn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
     const pullLiveBtn = document.getElementById('pull-from-live-btn');
-    if (pullLiveBtn) { pullLiveBtn.style.display = ''; pullLiveBtn.addEventListener('click', pullFromLive); }
+    if (pullLiveBtn) pullLiveBtn.addEventListener('click', pullFromLive);
     const pushLiveBtn = document.getElementById('push-to-live-btn');
-    if (pushLiveBtn) { pushLiveBtn.style.display = ''; pushLiveBtn.addEventListener('click', pushToLive); }
+    if (pushLiveBtn) pushLiveBtn.addEventListener('click', pushToLive);
   }
 
   document.getElementById('save-view-btn').addEventListener('click', () => {
@@ -1143,6 +1221,10 @@ function _bindUIEvents() {
     if (_drFrom) _drFrom.style.borderColor = active ? 'var(--blue)' : '';
     if (_drTo) _drTo.style.borderColor = active ? 'var(--blue)' : '';
     if (_drClear) _drClear.style.display = active ? 'inline-flex' : 'none';
+    const _rangeToggle = document.getElementById('nav-range-toggle');
+    const _rangeRow = document.getElementById('nav-range-row');
+    if (_rangeToggle) _rangeToggle.classList.toggle('active', active);
+    if (_rangeRow && active) _rangeRow.classList.add('open');
   };
   const _applyDateFromInput = () => {
     state.dateRange.from = _drFrom ? _drFrom.value : '';

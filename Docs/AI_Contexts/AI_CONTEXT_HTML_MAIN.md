@@ -63,23 +63,31 @@ Consolidated code context for AI assistants.
     </div>
 
     <div class="calendar-nav global-date-nav">
-      <button class="nav-arrow" id="glob-prev">&#8249;</button>
-      <select id="glob-month" class="select-box"></select>
-      <select id="glob-view" class="select-box">
-        <option value="month" selected>Month</option>
-        <option value="year">Year</option>
-      </select>
-      <select id="glob-year" class="select-box"></select>
-      <button class="nav-arrow" id="glob-next">&#8250;</button>
-      <button class="btn btn-outline" id="glob-today">Today</button>
+      <!-- Compact period picker: click to expand month/year selects -->
+      <div class="nav-period-wrap" id="nav-period-wrap">
+        <button class="nav-period-btn" id="nav-period-btn" title="Select month / year">Apr 2026 ▾</button>
+        <div class="nav-period-panel" id="nav-period-panel">
+          <select id="glob-month" class="select-box"></select>
+          <select id="glob-year" class="select-box"></select>
+          <!-- hidden view select kept for JS compatibility -->
+          <select id="glob-view" style="display:none">
+            <option value="month" selected>Month</option>
+            <option value="year">Year</option>
+          </select>
+        </div>
+      </div>
 
-      <span class="global-date-divider">|</span>
+      <!-- Month / Year view toggle -->
+      <button class="nav-view-toggle" id="nav-view-toggle" title="Toggle Month / Year view">Month</button>
 
-      <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
-      <span class="date-range-sep">&#8212;</span>
-      <input type="date" id="glob-date-to" class="select-box date-range-input" title="To date" />
-      <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter"
-        style="display:none;">&#10005;</button>
+      <!-- Date range toggle -->
+      <button class="nav-range-toggle" id="nav-range-toggle" title="Date range filter">📅</button>
+      <div class="nav-range-row" id="nav-range-row">
+        <input type="date" id="glob-date-from" class="select-box date-range-input" title="From date" />
+        <span class="date-range-sep">&#8212;</span>
+        <input type="date" id="glob-date-to" class="select-box date-range-input" title="To date" />
+        <button class="btn btn-outline date-range-clear" id="glob-date-clear" title="Clear date filter" style="display:none;">&#10005;</button>
+      </div>
     </div>
 
     <div class="header-actions">
@@ -96,32 +104,41 @@ Consolidated code context for AI assistants.
       <button id="settings-btn" style="display:none"></button>
 
       <button class="btn btn-outline mobile-view-toggle-btn" id="mobile-view-toggle-btn" title="Switch to Mobile View">📱</button>
+      <button class="btn btn-outline" id="mobile-gallery-btn" title="Open Mobile Gallery" onclick="window.open('/mobile/?view=gallery', '_blank')" style="margin-left:4px;">📷</button>
       <button class="btn btn-outline" id="fullscreen-btn" title="Fullscreen" style="margin-left:4px; font-size:1rem; padding:4px 8px;">⛶</button>
 
-      <!-- Target Tracker Manual Button -->
-      <button class="btn btn-outline" id="tt-manual-btn" title="Target Tracker Dashboard" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🎯 Tracker</button>
-
-      <button class="btn btn-outline" id="strategy-lab-btn" title="Backtest & Strategy Lab" style="margin-left:8px; display:flex; align-items:center; gap:4px;">🧪 Strategy Lab</button>
-
-      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
-      <button class="btn btn-outline" id="pdf-list-btn" title="View Imported PDF List" style="margin-left:4px; display:flex; align-items:center; gap:4px;">🗂️ PDF List</button>
-      <button class="btn btn-outline" id="quick-stats-btn" title="Quick Stats" style="margin-left:4px; display:flex; align-items:center; gap:4px;">⚡ Quick Stats</button>
-      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
-
-      <div class="quote-random-wrap" id="quote-random-wrap" style="margin-left:8px;">
-        <button class="btn btn-outline quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup">Quote Pop</button>
-        <div class="quote-random-panel" id="quote-random-panel">
-          <label class="quote-random-toggle">
-            <input type="checkbox" id="quote-random-enabled" />
-            Auto popup
-          </label>
-          <div class="quote-random-min-row">
-            <span>Min</span>
-            <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
-            <span>min</span>
+      <!-- Navbar More Menu -->
+      <div class="dropdown-wrapper navbar-more-wrap" id="navbar-more-wrap" style="margin-left:8px;">
+        <button class="btn btn-outline" id="navbar-more-btn" title="More options">☰ Menu ▾</button>
+        <div class="dropdown-menu navbar-more-menu" id="navbar-more-menu">
+          <a href="/app-deck" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
+          <button class="dropdown-item" id="tt-manual-btn">🎯 Tracker</button>
+          <button class="dropdown-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
+          <a href="/algo-lab" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="pdf-list-btn">🗂️ PDF List</button>
+          <button class="dropdown-item" id="quick-stats-btn">⚡ Quick Stats</button>
+          <div class="dropdown-divider"></div>
+          <div class="quote-random-wrap" id="quote-random-wrap">
+            <button class="dropdown-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
+            <div class="quote-random-panel" id="quote-random-panel">
+              <label class="quote-random-toggle">
+                <input type="checkbox" id="quote-random-enabled" />
+                Auto popup
+              </label>
+              <div class="quote-random-min-row">
+                <span>Min</span>
+                <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
+                <span>min</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Hidden inputs kept for JS -->
+      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
+      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
 
       {% if current_user.is_authenticated %}
       <div class="profile-menu-wrapper" id="profile-menu-wrapper">
@@ -143,6 +160,7 @@ Consolidated code context for AI assistants.
             <span class="pmi-icon">&#10077;</span> Quote
           </button>
 
+          <a href="/app-deck" class="profile-menu-item" target="_blank" style="color:var(--blue); font-weight:700;">🚀 App Map</a>
           <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
           <a href="/whatif" class="profile-menu-item" target="_blank">&#128200; What If</a>
           <button class="profile-menu-item" id="profile-ohlc-btn">
@@ -225,65 +243,54 @@ Consolidated code context for AI assistants.
         <h2 class="section-title">Trade Table</h2>
         <div class="table-header-actions">
 
-          <!-- Date Range Filter -->
           <button class="btn btn-outline" id="table-tt-btn" title="Open Target Tracker">🎯 Tracker</button>
 
+          <a href="/log" target="_blank" class="btn btn-outline" id="log-plus-btn" title="Trade Log+ — spreadsheet view with manual annotations" style="text-decoration:none">📋 Log+</a>
 
-          <!-- Note column quick toggle -->
-          <button class="btn btn-outline" id="note-col-toggle-btn" title="Show/hide Note column">&#128203; Note</button>
-          <button class="btn btn-outline" id="csvlog-toolbar-btn"
-            title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
-          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn"
-            title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
-          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202;
-            Review</button>
-          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221;
-            Logger</button>
+          <button class="btn btn-outline" id="csvlog-toolbar-btn" title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
+          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn" title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
+          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
+          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
 
-          <!-- Column Visibility -->
-          <div class="dropdown-wrapper" id="col-vis-wrapper">
-            <button class="btn btn-outline" id="col-vis-btn">Columns &#9660;</button>
-            <div class="dropdown-menu col-vis-panel" id="col-vis-panel">
-              <p class="panel-hint" style="margin:8px">Import Excel first</p>
-            </div>
-          </div>
-
-          <!-- Saved Views -->
-          <div class="dropdown-wrapper" id="view-preset-wrapper">
-            <button class="btn btn-outline" id="view-preset-btn">&#128204; Views &#9660;</button>
-            <div class="dropdown-menu" id="view-preset-panel" style="min-width:200px;">
-              <button class="dropdown-item" id="save-view-btn">&#128190; Save Current View</button>
+          <!-- Options dropdown: Note / Columns / Views / Tags / Filter / +Add -->
+          <div class="dropdown-wrapper" id="table-options-wrapper">
+            <button class="btn btn-outline" id="table-options-btn">&#9881; Options &#9660;</button>
+            <div class="dropdown-menu tbl-opts-panel" id="table-options-panel">
+              <button class="dropdown-item" id="note-col-toggle-btn">&#128203; Note</button>
               <div class="dropdown-divider"></div>
-              <div id="saved-views-list"></div>
+              <button class="dropdown-item" id="col-vis-btn">Columns &#8599;</button>
+              <button class="dropdown-item" id="view-preset-btn">&#128204; Views &#8599;</button>
+              <button class="dropdown-item" id="tag-filter-btn">&#127991; Tags &#8599;</button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" id="filter-toggle-btn">&#9906; Filter</button>
+              <button class="dropdown-item" id="add-dropdown-btn">+ Add &#8599;</button>
             </div>
           </div>
 
-          <!-- Tag Filter -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="tag-filter-btn">&#127991; Tags &#9660;</button>
-            <div class="dropdown-menu tag-filter-panel" id="tag-filter-panel">
-              <p class="panel-hint" style="padding:10px 8px">No tags yet.<br>Add via Tags column.</p>
-            </div>
+          <!-- Sub-panels: fixed-position popups (outside dropdown) -->
+          <div id="col-vis-wrapper" style="display:none"></div>
+          <div class="dropdown-menu tbl-sub-popup col-vis-panel" id="col-vis-panel">
+            <p class="panel-hint" style="margin:8px">Import Excel first</p>
           </div>
-
-          <!-- Filter toggle -->
-          <button class="btn btn-outline" id="filter-toggle-btn">&#9906; Filter</button>
-
-          <!-- Add dropdown -->
-          <div class="dropdown-wrapper">
-            <button class="btn btn-outline" id="add-dropdown-btn">+ Add &#9660;</button>
-            <div class="dropdown-menu" id="add-dropdown-menu">
-              <button class="dropdown-item" id="add-row-btn">+ Add Row</button>
-              <button class="dropdown-item" id="add-tag-col-btn">+ Add Tag Column</button>
-              <button class="dropdown-item" id="add-col-btn">+ Add Column</button>
-              <button class="dropdown-item" id="edit-col-btn">&#9998; Edit Column</button>
-            </div>
+          <div id="view-preset-wrapper" style="display:none"></div>
+          <div class="dropdown-menu tbl-sub-popup" id="view-preset-panel" style="min-width:200px;">
+            <button class="dropdown-item" id="save-view-btn">&#128190; Save Current View</button>
+            <div class="dropdown-divider"></div>
+            <div id="saved-views-list"></div>
+          </div>
+          <div class="dropdown-menu tbl-sub-popup tag-filter-panel" id="tag-filter-panel">
+            <p class="panel-hint" style="padding:10px 8px">No tags yet.<br>Add via Tags column.</p>
+          </div>
+          <div class="dropdown-menu tbl-sub-popup" id="add-dropdown-menu">
+            <button class="dropdown-item" id="add-row-btn">+ Add Row</button>
+            <button class="dropdown-item" id="add-tag-col-btn">+ Add Tag Column</button>
+            <button class="dropdown-item" id="add-col-btn">+ Add Column</button>
+            <button class="dropdown-item" id="edit-col-btn">&#9998; Edit Column</button>
           </div>
 
           <!-- File dropdown -->
-          <div class="dropdown-wrapper" style="position:relative;">
+          <div class="dropdown-wrapper">
             <button class="btn btn-primary" id="file-dropdown-btn">&#128193; File &#9660;</button>
-            <span id="live-sync-dot" title="Live sync idle" style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#555;display:none;pointer-events:auto;cursor:default;"></span>
             <div class="dropdown-menu" id="file-dropdown-menu">
               <button class="dropdown-item" id="import-btn">&#8679; Import Excel</button>
               <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" />
@@ -300,11 +307,20 @@ Consolidated code context for AI assistants.
               <button class="dropdown-item" id="backup-btn">&#128190; Backup (Data + Images)</button>
               <button class="dropdown-item" id="restore-btn">&#8635; Restore from Backup</button>
               <input type="file" id="json-input" accept=".json,.zip" style="display:none" />
-              <button class="dropdown-item" id="pull-from-live-btn" style="display:none; color:var(--green);">&#8659; Pull from Live</button>
-              <button class="dropdown-item" id="push-to-live-btn" style="display:none; color:var(--orange, #f0a500);">&#8657; Push to Live</button>
+              <div class="dropdown-divider" id="live-sync-divider" style="display:none;"></div>
+              <button class="dropdown-item" id="pull-from-live-btn" style="display:none; color:var(--green);" title="Live ka data yahan (localhost) pe le aao">&#8659; Live → Localhost (Pull)</button>
+              <button class="dropdown-item" id="push-to-live-btn" style="display:none; color:var(--orange, #f0a500);" title="Yahan (localhost) ka data live pe bhejo">&#8657; Localhost → Live (Push)</button>
               <button class="dropdown-item" id="auto-sync-toggle-btn" style="display:none; color:#aaa; font-size:0.85em;" onclick="toggleAutoSync()">⏸ Auto Sync: ON</button>
             </div>
           </div>
+
+          <!-- Live sync status badge — localhost only, hidden on live -->
+          <span id="live-sync-dot"
+            title="Live sync idle"
+            style="display:none; align-items:center; gap:5px; font-size:0.75em; color:#888; cursor:default; user-select:none; padding:0 6px;">
+            <span id="live-sync-circle" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;"></span>
+            <span id="live-sync-label">Sync</span>
+          </span>
 
         </div>
       </div>
@@ -444,7 +460,7 @@ Consolidated code context for AI assistants.
       var isLocal = location.hostname==='localhost'||location.hostname==='127.0.0.1';
       if(!isLocal) return;
       var dot=document.getElementById('live-sync-dot');
-      if(dot) dot.style.display='block';
+      if(dot) dot.style.display='flex';
       var tog=document.getElementById('auto-sync-toggle-btn');
       if(tog) tog.style.display='';
     })();

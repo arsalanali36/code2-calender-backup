@@ -1,0 +1,274 @@
+{
+  "2026-04-02": {
+    "T8": {
+      "Zone": "_NoZone",
+      "ZoneCLr": "Red",
+      "Level Name": "-",
+      "Location": "-",
+      "Breakout": "Not FreshGreen"
+    },
+    "T1": {
+      "Zone": "atLevel",
+      "Level Name": "S3",
+      "Location": "LL",
+      "ZoneCLr": "Red",
+      "Breakout": "x",
+      "Dhoka": "DL1- Next Candle Zone ke upar hi nahi gayi"
+    },
+    "T2": {
+      "Zone": "Hawa Me",
+      "Level Name": "-",
+      "Location": "LL",
+      "ZoneCLr": "Green",
+      "Breakout": "x",
+      "Dhoka": "DL1- Next Candle Zone ke upar hi nahi gayi"
+    },
+    "T3": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T4": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T5": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "Red"
+    },
+    "T6": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T7": {
+      "Zone": "atLevel",
+      "Level Name": "S3",
+      "Location": "LL",
+      "ZoneCLr": "Green",
+      "Dhoka": "DL1- Next Candle Zone ke upar hi nahi gayi"
+    },
+    "T9": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": ""
+    },
+    "T10": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T11": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": ""
+    },
+    "T12": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T13": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "Dhoka": "DL1- Next Candle Zone ke upar hi nahi gayi"
+    },
+    "T14": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T15": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T16": {
+      "Zone": "atLevel",
+      "Level Name": "S1",
+      "Location": "HH",
+      "ZoneCLr": "Green",
+      "Dhoka": "DL1- Next Candle Zone ke upar hi nahi gayi"
+    },
+    "T17": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-"
+    },
+    "T18": {
+      "Zone": "Hawa Me",
+      "Level Name": "PDC",
+      "Location": "HH",
+      "ZoneCLr": "Red",
+      "Dhoka": "DL3 - ProperBreakout But Failed"
+    }
+  },
+  "2026-04-27": {
+    "T1": {
+      "chotu": "Chintu",
+      "ZoneCLr": "",
+      "LevelName": "R2",
+      "Level Name": "R2"
+    },
+    "T2": {
+      "chotu": "Pappu",
+      "ZoneCLr": "Green",
+      "Location": "Green"
+    }
+  },
+  "2026-04-28": {
+    "T1": {
+      "chotu": "golu",
+      "ZoneCLr": "Green",
+      "Location": "Green"
+    }
+  },
+  "2026-04-16": {
+    "T5": {
+      "ZoneCLr": "Green",
+      "Location": "Green"
+    }
+  },
+  "2026-04-22": {
+    "T8": {
+      "Zone": "@Hawa Me",
+      "LevelName": "R2",
+      "ZoneCLr": "",
+      "Level Name": "R2"
+    },
+    "T4": {
+      "ZoneCLr": "",
+      "LevelName": ""
+    }
+  },
+  "2026-04-01": {
+    "T1": {
+      "Zone": "_NoZone",
+      "LevelName": "S3",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "-"
+    },
+    "T2": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "-"
+    },
+    "T3": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "-"
+    },
+    "T4": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "-"
+    },
+    "T5": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "-"
+    },
+    "T6": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "-"
+    },
+    "T7": {
+      "Zone": "_NoZone",
+      "Level Name": "-",
+      "Location": "-",
+      "ZoneCLr": "Red"
+    }
+  },
+  "2026-04-24": {
+    "T1": {
+      "ZoneCLr": "Red",
+      "Location": "Red"
+    }
+  },
+  "2026-04-23": {
+    "T1": {
+      "LevelName": "R4",
+      "Level Name": "R4"
+    }
+  },
+  "2026-04-06": {
+    "T1": {
+      "Zone": "Hawa Me",
+      "Breakout": "yes"
+    },
+    "T2": {
+      "Zone": "atLevel",
+      "Level Name": "PDC",
+      "ZoneCLr": "Red",
+      "Breakout": "yes",
+      "Dhoka": "T2 - Jaldi Nikal Gaye"
+    },
+    "T3": {
+      "Zone": "_NoZone"
+    },
+    "T4": {
+      "Zone": "Hawa Me",
+      "ZoneCLr": "Green",
+      "Breakout": "yes",
+      "Dhoka": "DL3 - ProperBreakout But Failed"
+    },
+    "T5": {
+      "Zone": "_NoZone"
+    },
+    "T6": {
+      "Zone": "Hawa Me",
+      "ZoneCLr": "Green",
+      "Dhoka": "DL1- Next Candle Zone ke upar hi nahi gayi"
+    },
+    "T7": {
+      "Zone": "_NoZone"
+    },
+    "T8": {
+      "Zone": "_NoZone"
+    },
+    "T9": {
+      "Zone": "_NoZone"
+    },
+    "T10": {
+      "Zone": "_NoZone"
+    },
+    "T11": {
+      "Zone": "_NoZone"
+    },
+    "T12": {
+      "Zone": "atLevel",
+      "Level Name": "PDC",
+      "ZoneCLr": "Green",
+      "Dhoka": "DL2 - Wick bana kar laut aayi"
+    },
+    "T13": {
+      "Zone": "Hawa Me",
+      "Location": "HH",
+      "ZoneCLr": "Red",
+      "Dhoka": "DL3 - ProperBreakout But Failed"
+    },
+    "T14": {
+      "Zone": "_NoZone"
+    }
+  },
+  "2026-04-07": {
+    "T1": {
+      "Zone": "Hawa Me",
+      "ZoneCLr": "Red",
+      "Dhoka": "T1 - Full Target"
+    }
+  }
+}

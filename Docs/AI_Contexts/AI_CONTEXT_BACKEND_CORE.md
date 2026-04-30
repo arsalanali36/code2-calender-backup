@@ -57,10 +57,13 @@ from routes.csvlog_routes  import csvlog_bp
 from routes.auth_routes    import auth_bp
 from routes.whatif_routes  import whatif_bp
 from routes.strategy_routes import strategy_bp
+from routes.log_routes import log_bp
+from routes.algo_routes import algo_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
 from services.local_backup_service import start_local_backup_service
+from services.algo_ohlc_fetcher import start_ohlc_fetcher
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -128,7 +131,7 @@ def add_cors(response):
 @app.before_request
 def require_login():
     from flask_login import current_user
-    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler', 'import.admin_push_data']
+    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler', 'import.admin_push_data', 'export.admin_get_data', 'export.admin_data_version']
     if request.endpoint and request.endpoint not in allowed_endpoints:
         if not current_user.is_authenticated:
             if request.path.startswith('/api/'):
@@ -234,9 +237,22 @@ def _cleanup_trash():
 
 
 _bootstrap_persistent_storage()
+
+# ── Google Drive startup sync ─────────────────────────────────────────────────
+# On live server (Render), restore data from Drive if it's newer than the local
+# ephemeral file. This runs synchronously so the app always starts with fresh data.
+try:
+    from services import gist_service
+    _data_dir = os.path.join(BASE_DIR, 'data')
+    _gist_target = os.path.join(_data_dir, 'trades_1.json')
+    gist_service.download_if_newer(_gist_target)
+except Exception as _gist_err:
+    print(f'[gist] Startup sync error (non-fatal): {_gist_err}')
+
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
 start_local_backup_service()
+start_ohlc_fetcher()
 
 # ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
 if os.environ.get('USE_BUNDLE') == '1':
@@ -261,6 +277,8 @@ app.register_blueprint(csvlog_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(whatif_bp)
 app.register_blueprint(strategy_bp)
+app.register_blueprint(log_bp)
+app.register_blueprint(algo_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -346,6 +364,8 @@ PDF_META_FILE      = os.path.join(BASE_DIR, 'data', 'pdfs.json')
 CSVLOG_SCHEMA_FILE        = os.path.join(BASE_DIR, 'data', 'csvlog_schema.xlsx')
 STRUCTURED_TRADES_CSV     = os.path.join(BASE_DIR, 'structured_trades.csv')
 AI_DEBUG_LOG              = os.path.join(BASE_DIR, 'data', 'ai_debug.log')
+LOG_DATA_FILE             = os.path.join(BASE_DIR, 'data', 'trade_log.json')
+LOG_SCHEMA_FILE           = os.path.join(BASE_DIR, 'data', 'log_schema.json')
 
 
 # ── What-If / Dhan data ───────────────────────────────────────────────────────
@@ -355,6 +375,13 @@ DHAN_SYMBOL_MAP_FILE = os.path.join(BASE_DIR, 'data', 'dhan_symbol_map.json')
 DHAN_SCRIP_MASTER    = os.path.join(BASE_DIR, 'data', 'dhan_scrip_master.csv')
 SYMBOL_EXPIRY_MAP_FILE     = os.path.join(BASE_DIR, 'data', 'symbol_expiry_map.json')
 TRADEBOOK_SYNC_QUEUE_FILE  = os.path.join(BASE_DIR, 'data', 'tradebook_sync_queue.json')
+
+# ── Algo Lab ──────────────────────────────────────────────────────────────────
+ALGO_CONFIG_FILE    = os.path.join(BASE_DIR, 'data', 'algo_config.json')
+ALGO_WATCHLIST_FILE = os.path.join(BASE_DIR, 'data', 'algo_watchlist.json')
+ALGO_ORDERS_FILE    = os.path.join(BASE_DIR, 'data', 'algo_orders.json')
+ALGO_STATE_FILE     = os.path.join(BASE_DIR, 'data', 'algo_state.json')
+ALGO_OHLC_DIR       = os.path.join(BASE_DIR, 'data', 'algo_ohlc')
 
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7
@@ -379,16 +406,15 @@ def _compute_static_hash() -> str:
 
 CACHE_BUST = _compute_static_hash()
 
-# ── Cloudinary ────────────────────────────────────────────────────────────────
-CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
-USE_CLOUDINARY = bool(CLOUDINARY_URL_VALUE)
+# ── ImageKit ──────────────────────────────────────────────────────────────────
+IMAGEKIT_PRIVATE_KEY  = os.getenv('IMAGEKIT_PRIVATE_KEY', '').strip()
+IMAGEKIT_PUBLIC_KEY   = os.getenv('IMAGEKIT_PUBLIC_KEY', '').strip()
+IMAGEKIT_URL_ENDPOINT = os.getenv('IMAGEKIT_URL_ENDPOINT', '').strip().rstrip('/')
+USE_IMAGEKIT = bool(IMAGEKIT_PRIVATE_KEY and IMAGEKIT_PUBLIC_KEY and IMAGEKIT_URL_ENDPOINT)
 
-if USE_CLOUDINARY:
-    try:
-        import cloudinary
-        cloudinary.config(cloudinary_url=CLOUDINARY_URL_VALUE)
-    except ImportError:
-        USE_CLOUDINARY = False  # cloudinary package not installed
+# Legacy Cloudinary (kept for backward compat — existing URLs still work via CDN)
+CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
+USE_CLOUDINARY = False  # Migrated to ImageKit
 
 # ── Server settings ───────────────────────────────────────────────────────────
 HOST  = os.getenv('HOST', '0.0.0.0')
@@ -403,6 +429,13 @@ if SECRET_KEY == _secret_key_default and not DEBUG:
         'Please set SECRET_KEY in your environment, or set FLASK_DEBUG=true for development.'
     )
 ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', '')   # Set this in Render dashboard env vars
+
+# ── Google Drive persistent storage ──────────────────────────────────────────
+# Prevents data loss on Render restarts (ephemeral filesystem).
+# GDRIVE_CREDENTIALS_JSON — full service account JSON key (paste entire file content)
+# GDRIVE_FOLDER_ID        — Google Drive folder ID shared with the service account
+GDRIVE_CREDENTIALS_JSON = os.getenv('GDRIVE_CREDENTIALS_JSON', '')
+GDRIVE_FOLDER_ID        = os.getenv('GDRIVE_FOLDER_ID', '')
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 # Comma-separated list of allowed origins. Example env value:
@@ -459,11 +492,13 @@ openpyxl>=3.1.0
 gunicorn>=21.2.0
 Flask-Login>=0.6.3
 Flask-SQLAlchemy>=3.1.1
-cloudinary>=1.36.0
+imagekitio>=5.4.0
 python-dotenv>=1.0.0
 flask-limiter>=4.0
 flask-compress>=1.14
 yfinance>=0.2.0
+google-api-python-client>=2.100.0
+google-auth>=2.23.0
 
 ```
 

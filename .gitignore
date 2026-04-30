@@ -41,3 +41,16 @@ typing_inspection/
 =3.2.0
 scratch/
 Scripts/SCRIPTS/
+
+# ── Temp & stale files (auto-generated, not needed in git) ──
+.tmp_api_trades.json
+*.tmp
+nifty_sandbox_verification*.csv
+trades_for_header_edit_*.csv
+data/ai_debug.log
+data/*.bak
+data/*.bak_*
+data/*_backup
+data/*_backup_*
+data/*_pre_*
+static/js/bundle.js.bak

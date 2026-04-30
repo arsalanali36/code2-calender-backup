@@ -12,10 +12,21 @@ from urllib.parse import urlparse, unquote
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FILE = os.getenv('DATA_FILE', os.path.join(BASE_DIR, 'data', 'trades.json'))
 
+def find_best_trades_file():
+    """Return largest trades_N.json (most complete data); fall back to DATA_FILE only if none exist."""
+    import glob as _glob
+    data_dir = os.path.dirname(DATA_FILE)
+    user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
+                  if '.backup' not in f and os.path.exists(f)]
+    if user_files:
+        return max(user_files, key=os.path.getsize)  # largest file = most complete data
+    return DATA_FILE
+
+
 def get_user_data_file(user_id=None):
     if user_id is not None:
         return os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
-    return DATA_FILE
+    return find_best_trades_file()  # never return bare trades.json when a user file exists
 
 STRUCTURED_COLUMNS = [
     'Instrument',
@@ -63,12 +74,14 @@ def load_trades(user_id=None):
 
 def save_trades_to_file(data, user_id=None):
     from services.backup_service import auto_backup
+    from services import gist_service
     data = _normalize_trade_payload(data)
     data_file = get_user_data_file(user_id)
     os.makedirs(os.path.dirname(data_file), exist_ok=True)
     with open(data_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     auto_backup(data_file, user_id=user_id)
+    gist_service.upload_async(data_file)
 
 
 def _normalize_upload_url(value):

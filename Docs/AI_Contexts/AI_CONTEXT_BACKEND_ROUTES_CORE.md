@@ -79,6 +79,20 @@ def mobile_assets(filename):
     return send_from_directory(os.path.join(MOBILE_DIST, 'assets'), filename)
 
 
+@page_bp.route('/app-deck')
+def app_deck():
+    features_path = os.path.join(BASE_DIR, 'data', 'features.json')
+    try:
+        if os.path.exists(features_path):
+            with open(features_path, 'r', encoding='utf-8') as f:
+                deck_data = json.load(f)
+        else:
+            deck_data = {}
+    except Exception:
+        deck_data = {}
+    return render_template('app_deck.html', deck=deck_data, cache_bust=int(time.time()))
+
+
 @page_bp.route('/api/blog-posts')
 def blog_posts_api():
     return jsonify(get_blog_entries_for_api(BLOG_PATH))
@@ -149,7 +163,7 @@ from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
     save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_CLOUDINARY
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT
 
 image_bp = Blueprint('image', __name__)
 
@@ -267,16 +281,16 @@ def delete_audio():
 
 @image_bp.route('/api/cloudinary-status')
 def cloudinary_status():
-    """Check if Cloudinary is configured and reachable."""
-    if not USE_CLOUDINARY:
+    """Check if ImageKit is configured and reachable."""
+    if not USE_IMAGEKIT:
         return jsonify({
             'enabled': False,
-            'message': 'CLOUDINARY_URL not set — using local storage'
+            'message': 'IMAGEKIT env vars not set — using local storage'
         })
     try:
-        import cloudinary.api
-        result = cloudinary.api.ping()
-        return jsonify({'enabled': True, 'status': 'connected', 'ping': result})
+        from services.image_service import _get_imagekit
+        ik = _get_imagekit()
+        return jsonify({'enabled': True, 'status': 'connected', 'provider': 'imagekit'})
     except Exception as e:
         return jsonify({'enabled': True, 'status': 'error', 'message': str(e)}), 500
 
@@ -446,7 +460,7 @@ def delete_pdf():
     if not filename:
         return jsonify({'error': 'Invalid filename'}), 400
     # Local safety check — block path traversal for local filenames
-    if not USE_CLOUDINARY and ('/' in filename or '\\' in filename):
+    if not USE_IMAGEKIT and ('/' in filename or '\\' in filename):
         return jsonify({'error': 'Invalid filename'}), 400
     delete_uploaded_pdf(filename, PDF_DIR, PDF_META_FILE)
     return jsonify({'success': True})
@@ -526,14 +540,28 @@ def admin_push_data():
     key = request.headers.get('X-Api-Key', '')
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    
+
     try:
-        # Admin push uses no user session — saves to default data file
-        result = import_json_or_zip(request.files['file'], UPLOADS_DIR, user_id=None)
-        return jsonify(result)
+        import json, glob as _glob, os
+        from config import DATA_FILE
+
+        file_bytes = request.files['file'].read()
+        data = json.loads(file_bytes)
+
+        # Write to trades_N.json (active user file), not trades.json
+        data_dir = os.path.dirname(DATA_FILE)
+        user_files = [f for f in _glob.glob(os.path.join(data_dir, 'trades_*.json'))
+                      if '.backup' not in f and os.path.exists(f)]
+        target = max(user_files, key=os.path.getmtime) if user_files else DATA_FILE
+
+        with open(target, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        trade_count = len(data.get('trades', []))
+        return jsonify({'ok': True, 'trades': trade_count, 'file': os.path.basename(target)})
     except Exception as e:
         from services.debug_service import log_ai_error
         log_ai_error(f"Admin Push Data Error: {str(e)}", e)
@@ -614,19 +642,21 @@ from services.export_service import (
     export_logger_excel, build_backup_zip,
 )
 from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG
+from processors.data_processors import find_best_trades_file
 
 export_bp = Blueprint('export', __name__)
 
 
 @export_bp.route('/api/backup', methods=['GET'])
 def backup():
-    if not os.path.exists(DATA_FILE):
+    active_file = find_best_trades_file()
+    if not os.path.exists(active_file):
         return jsonify({'error': 'No data to backup'}), 404
     requested_name = str(request.args.get('name', '')).strip()
     safe_name = re.sub(r'[^A-Za-z0-9_\ -]+', '', requested_name).strip()
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     base_name = safe_name if safe_name else f'trading_journal_{timestamp_str}'
-    zip_bytes, _ = build_backup_zip(DATA_FILE, UPLOADS_DIR)
+    zip_bytes, _ = build_backup_zip(active_file, UPLOADS_DIR)
     return send_file(
         io.BytesIO(zip_bytes),
         as_attachment=True,
@@ -681,26 +711,20 @@ def export_logger_excel_route():
     )
 
 
+_find_best_trades_file = find_best_trades_file
+
+
 @export_bp.route('/api/admin/get-data', methods=['GET'])
 def admin_get_data():
     """API-key-protected: returns full trades JSON for live→localhost sync."""
     key = request.headers.get('X-Api-Key', '')
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
-    user_id = request.args.get('user_id', None)
-    if user_id is not None:
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            return jsonify({'error': 'Invalid user_id'}), 400
     try:
-        from processors.data_processors import get_user_data_file
-        data_file = get_user_data_file(user_id)
-        if not os.path.exists(data_file):
-            return jsonify({'error': 'Data file not found'}), 404
+        data_file = _find_best_trades_file()
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        return jsonify({'ok': True, 'data': data})
+        return jsonify({'ok': True, 'data': data, 'file': os.path.basename(data_file)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -715,10 +739,11 @@ def admin_data_version():
     if not ADMIN_API_KEY or key != ADMIN_API_KEY:
         return jsonify({'error': 'Unauthorized'}), 401
     try:
-        if not os.path.exists(DATA_FILE):
+        data_file = _find_best_trades_file()
+        if not os.path.exists(data_file):
             return jsonify({'ok': True, 'updated_at': None, 'trades': 0})
-        mtime = os.path.getmtime(DATA_FILE)
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        mtime = os.path.getmtime(data_file)
+        with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return jsonify({'ok': True, 'updated_at': mtime, 'trades': len(data.get('trades', []))})
     except Exception as e:
@@ -733,14 +758,21 @@ def sync_status():
     if not ADMIN_API_KEY:
         return jsonify({'ok': False, 'error': 'ADMIN_API_KEY not set'}), 500
 
-    local_ts = os.path.getmtime(DATA_FILE) if os.path.exists(DATA_FILE) else 0
+    local_file = _find_best_trades_file()
+    local_ts = os.path.getmtime(local_file) if os.path.exists(local_file) else 0
+    try:
+        with open(local_file, 'r', encoding='utf-8') as f:
+            local_trades = len(json.load(f).get('trades', []))
+    except Exception:
+        local_trades = 0
 
     import urllib.request as _urlreq
     try:
         req = _urlreq.Request(f'{LIVE_URL}/api/admin/data-version', headers={'X-Api-Key': ADMIN_API_KEY})
-        with _urlreq.urlopen(req, timeout=10) as resp:
+        with _urlreq.urlopen(req, timeout=60) as resp:
             live = json.loads(resp.read().decode('utf-8'))
         live_ts = live.get('updated_at') or 0
+        live_trades = live.get('trades', 0)
     except Exception as e:
         return jsonify({'ok': False, 'error': f'Cannot reach live: {str(e)}'}), 502
 
@@ -751,18 +783,28 @@ def sync_status():
     else:
         direction = 'equal'
 
-    return jsonify({'ok': True, 'local_ts': local_ts, 'live_ts': live_ts, 'direction': direction})
+    # Safety: never auto-pull if live has significantly fewer trades (bootstrap/corrupt data guard)
+    if direction == 'pull' and live_trades < local_trades - 5:
+        direction = 'safe_skip'
+
+    return jsonify({
+        'ok': True,
+        'local_ts': local_ts, 'live_ts': live_ts,
+        'local_trades': local_trades, 'live_trades': live_trades,
+        'direction': direction,
+    })
 
 
 def _backup_local(prefix):
-    """Backup local DATA_FILE before overwriting. Returns backup path or None."""
-    if not os.path.exists(DATA_FILE):
+    """Backup the active local trades file before overwriting."""
+    active = _find_best_trades_file()
+    if not os.path.exists(active):
         return None
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_dir = os.path.join(os.path.dirname(DATA_FILE), 'backups')
+    backup_dir = os.path.join(os.path.dirname(active), 'backups')
     os.makedirs(backup_dir, exist_ok=True)
     backup_path = os.path.join(backup_dir, f'{prefix}_{ts}.json')
-    shutil.copy2(DATA_FILE, backup_path)
+    shutil.copy2(active, backup_path)
     return backup_path
 
 
@@ -778,7 +820,7 @@ def pull_from_live():
     endpoint = f'{LIVE_URL}/api/admin/get-data'
     try:
         req = urllib.request.Request(endpoint, headers={'X-Api-Key': ADMIN_API_KEY})
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             raw = json.loads(resp.read().decode('utf-8'))
     except Exception as e:
         return jsonify({'error': f'Failed to fetch from live: {str(e)}'}), 502
@@ -787,7 +829,8 @@ def pull_from_live():
         return jsonify({'error': 'Live server returned unexpected response'}), 502
 
     _backup_local('pre_pull')
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+    target = _find_best_trades_file()
+    with open(target, 'w', encoding='utf-8') as f:
         json.dump(raw['data'], f, ensure_ascii=False, indent=2)
 
     trade_count = len(raw['data'].get('trades', []))
@@ -801,18 +844,20 @@ def push_to_live():
         return jsonify({'error': 'Only available in development mode'}), 403
     if not ADMIN_API_KEY:
         return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
-    if not os.path.exists(DATA_FILE):
+
+    source = _find_best_trades_file()
+    if not os.path.exists(source):
         return jsonify({'error': 'Local data file not found'}), 404
 
     import urllib.request
-    with open(DATA_FILE, 'rb') as f:
+    with open(source, 'rb') as f:
         json_bytes = f.read()
 
     # Validate JSON before sending
     try:
         local_data = json.loads(json_bytes)
     except Exception:
-        return jsonify({'error': 'Local trades.json is invalid JSON'}), 400
+        return jsonify({'error': f'Local {os.path.basename(source)} is invalid JSON'}), 400
 
     boundary = 'FormBoundaryKhazana2026'
     body = (
@@ -832,7 +877,7 @@ def push_to_live():
             },
             method='POST',
         )
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             result = json.loads(resp.read().decode('utf-8'))
     except Exception as e:
         return jsonify({'error': f'Failed to push to live: {str(e)}'}), 502

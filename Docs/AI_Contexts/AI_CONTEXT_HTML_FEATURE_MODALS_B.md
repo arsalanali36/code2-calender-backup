@@ -428,7 +428,8 @@ Consolidated code context for AI assistants.
                 <select id="strategy-select" class="nav-btn" style="width:100%;">
                     <option value="Arsalan Continuation">Arsalan Continuation</option>
                     <option value="Arsalan Sandbox">Arsalan Sandbox</option>
-                    <option value="Arsalan Reversal" selected>Arsalan Reversal</option>
+                    <option value="Arsalan X2" selected>Arsalan X2</option>
+                    <option value="Arsalan Reversal">Arsalan Reversal</option>
                 </select>
                 <div class="toggle-group" style="margin-top:10px;">
                     <div style="font-size:0.7rem; color:#64748b; font-weight:700; margin-bottom:8px; text-transform:uppercase;">Strategy Logic (Pine)</div>

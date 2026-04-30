@@ -215,7 +215,8 @@ def nifty_data():
     symbol = request.args.get('symbol', 'Nifty 50 (^NSEI)')
     strategy = request.args.get('strategy', 'Arsalan Continuation')
     hawa_me_zone = request.args.get('hawa_me_zone', 'false').lower() == 'true'
-    strategy_params = {'hawa_me_zone': hawa_me_zone}
+    fresh_zone = request.args.get('fresh_zone', 'true').lower() == 'true'
+    strategy_params = {'hawa_me_zone': hawa_me_zone, 'fresh_zone': fresh_zone}
     
     try:
         user_id = current_user.id if current_user.is_authenticated else None
@@ -277,6 +278,37 @@ def nifty_data():
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+@strategy_bp.route('/api/strategy/test-dhan-token', methods=['POST'])
+def test_dhan_token():
+    """Quick token validity check — calls fundlimit, a lightweight read-only endpoint."""
+    import urllib.request, urllib.error, json as _json
+    data = request.json or {}
+    cid   = str(data.get('dhan_cid', '')).strip()
+    token = str(data.get('dhan_token', '')).strip()
+    if not cid or not token:
+        return jsonify({'ok': False, 'error': 'Missing client_id or token'})
+    try:
+        req = urllib.request.Request(
+            'https://api.dhan.co/v2/fundlimit',
+            headers={'access-token': token, 'client-id': cid,
+                     'Content-Type': 'application/json', 'Accept': 'application/json'},
+            method='GET'
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = _json.loads(resp.read().decode())
+            from services.dhan_service_core import save_config
+            save_config(cid, token)
+            return jsonify({'ok': True, 'balance': body.get('availabelBalance', body.get('availableBalance'))})
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode(errors='replace')
+        try:
+            err = _json.loads(err_body)
+            return jsonify({'ok': False, 'error': f"{err.get('errorCode')}: {err.get('errorMessage')}"})
+        except Exception:
+            return jsonify({'ok': False, 'error': f'HTTP {e.code}: {err_body[:100]}'})
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)})
 
 @strategy_bp.route('/api/strategy/archive-dates')
 def archive_dates():

@@ -362,6 +362,12 @@ function showGalleryContextMenu(x, y) {
 
     if (state.dayData[dateToUse]) {
         subMenu.appendChild(createSubOpt('News', () => moveSelectedToDayData(dateToUse, 'NEWS')));
+        // Add Custom Folders to menu
+        if (state.dayData[dateToUse].customImages) {
+            for (const catName of Object.keys(state.dayData[dateToUse].customImages)) {
+                subMenu.appendChild(createSubOpt(catName, () => moveSelectedToDayData(dateToUse, catName)));
+            }
+        }
     }
     subMenu.appendChild(createSubOpt('Open', () => moveSelectedToDayData(dateToUse, false)));
     dayTrades.forEach((tr, i) => {
@@ -773,8 +779,11 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
             if (!state.dayData[dateToUse].newsImages) state.dayData[dateToUse].newsImages = [];
         } else if (isClose === 'CLOSE_GLOBAL') {
             if (!state.dayData[dateToUse].closeGlobalImages) state.dayData[dateToUse].closeGlobalImages = [];
-        } else if (isClose) {
+        } else if (isClose === true) { // Explicit check for true (CLOSE)
             if (!state.dayData[dateToUse].closeImages) state.dayData[dateToUse].closeImages = [];
+        } else if (typeof isClose === 'string') { // Custom Category Name
+            if (!state.dayData[dateToUse].customImages) state.dayData[dateToUse].customImages = {};
+            if (!state.dayData[dateToUse].customImages[isClose]) state.dayData[dateToUse].customImages[isClose] = [];
         } else {
             if (!state.dayData[dateToUse].images) state.dayData[dateToUse].images = [];
         }
@@ -834,8 +843,10 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
                 if (state.dayData[dateToUse].closeGlobalImages.length > 1) {
                     showToast('CLOSE GLOBAL allowed 1 image max.', 'error');
                 }
-            } else if (isClose) {
+            } else if (isClose === true) {
                 state.dayData[dateToUse].closeImages.push(imageUrl);
+            } else if (typeof isClose === 'string') {
+                state.dayData[dateToUse].customImages[isClose].push(imageUrl);
             } else {
                 state.dayData[dateToUse].images.push(imageUrl);
             }
@@ -875,6 +886,77 @@ async function moveSelectedToTrade(dateToUse, targetTrade, isClose = false) {
 
 async function moveSelectedToDayData(dateToUse, isClose = false) {
     return moveSelectedToTrade(dateToUse, null, isClose);
+}
+
+function addCustomSeparator() {
+    const name = prompt('Enter a name for the new folder/separator (e.g. Charts, Analysis, News):');
+    if (!name || name.trim() === '') return;
+    const date = state.gallery.date;
+    if (!date) { showToast('Please select a date first', 'error'); return; }
+
+    state.dayData[date] = state.dayData[date] || {};
+    state.dayData[date].customImages = state.dayData[date].customImages || {};
+    
+    const catName = name.trim().toUpperCase();
+    if (state.dayData[date].customImages[catName]) {
+        showToast('Folder already exists', 'info');
+        return;
+    }
+
+    state.dayData[date].customImages[catName] = [];
+    saveTrades();
+    renderGallery();
+    showToast(`Folder "${catName}" created! Drop images to move.`, 'success');
+}
+
+function handleRenameCustomFolder(oldName) {
+    const newName = prompt('Enter new name for "' + oldName + '":', oldName);
+    if (!newName || newName.trim() === '' || newName.trim().toUpperCase() === oldName) return;
+    
+    const date = state.gallery.date;
+    if (!date || !state.dayData[date]?.customImages?.[oldName]) return;
+
+    const formattedNewName = newName.trim().toUpperCase();
+    if (state.dayData[date].customImages[formattedNewName]) {
+        showToast('A folder with this name already exists', 'error');
+        return;
+    }
+
+    // Transfer images to new key
+    state.dayData[date].customImages[formattedNewName] = state.dayData[date].customImages[oldName];
+    delete state.dayData[date].customImages[oldName];
+
+    // Update collapsed state if necessary
+    if (state.gallery.collapsedSeparators?.has(oldName)) {
+        state.gallery.collapsedSeparators.delete(oldName);
+        state.gallery.collapsedSeparators.add(formattedNewName);
+    }
+    if (state.gallery.selectedSeparator === oldName) state.gallery.selectedSeparator = formattedNewName;
+
+    saveTrades();
+    renderGallery();
+    showToast('Folder renamed to ' + formattedNewName, 'success');
+}
+
+async function handleDeleteCustomFolder(name) {
+    if (!confirm('Delete folder "' + name + '"? Images will be moved back to the OPEN section.')) return;
+    
+    const date = state.gallery.date;
+    if (!date || !state.dayData[date]?.customImages?.[name]) return;
+
+    const urls = state.dayData[date].customImages[name];
+    delete state.dayData[date].customImages[name];
+    if (Object.keys(state.dayData[date].customImages).length === 0) delete state.dayData[date].customImages;
+
+    // Move images back to OPEN
+    state.dayData[date].images = (state.dayData[date].images || []).concat(urls);
+
+    if (state.gallery.collapsedSeparators?.has(name)) state.gallery.collapsedSeparators.delete(name);
+    if (state.gallery.selectedSeparator === name) state.gallery.selectedSeparator = null;
+
+    await saveTrades();
+    renderGallery();
+    showToast('Folder deleted. Images moved back to OPEN.', 'success');
 }
 
 

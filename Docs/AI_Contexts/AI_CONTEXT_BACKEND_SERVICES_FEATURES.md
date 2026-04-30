@@ -401,11 +401,10 @@ DHAN_ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicG
 def calculate_ema(df, length):
     return df['Close'].ewm(span=length, adjust=False).mean()
 
-def detect_candle_patterns(df):
-    # Parameters from Arsalan_Reversal_NIFTY.txt (Tightened to reduce noise)
-    min_body_size = 2.0
+def detect_candle_patterns(df, min_body_size=2.0, prev_body_min_pts=2.0):
+    # Default parameters are kept tighter for the older Strategy Lab variants.
+    # X2 passes Pine-exact values from the source script.
     wick_ratio = 2.5
-    prev_body_min_pts = 2.0
 
     body = (df['Close'] - df['Open']).abs()
     is_green = df['Close'] > df['Open']
@@ -499,6 +498,8 @@ def run_sandbox_strategy_logic(df):
                 low, high = row['Low'], row['High']
                 
                 for k, val in m_levels.items():
+                    if val is None or (isinstance(val, float) and val != val):
+                        continue
                     # If already active, keep filling
                     if active_levels[k]:
                         df.iloc[idx, df.columns.get_loc(k)] = val
@@ -575,6 +576,215 @@ def run_sandbox_strategy_logic(df):
 
     return df, final_zones
 
+def _load_daily_levels_map():
+    json_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'daily_pivot_levels.json')
+    if not os.path.exists(json_path):
+        return {}
+    try:
+        with open(json_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading pivot JSON: {e}")
+        return {}
+
+def _clean_level(value):
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        if value != value or value > 30000:
+            return None
+        return float(value)
+    return None
+
+def _line_type_for_level(name):
+    n = name.lower()
+    if n.startswith('r'):
+        return "RESISTANCE"
+    if n.startswith('s'):
+        return "SUPPORT"
+    if n in ('pp', 'cp'):
+        return "CP"
+    if n == 'pdh':
+        return "PD_H"
+    if n == 'pdl':
+        return "PD_L"
+    if n == 'pdc':
+        return "PD_C"
+    return "UNKNOWN"
+
+def run_x2_common_strategy_logic(df, hawa_me_zone=False, use_fresh_zone=True):
+    if df.empty: return df, []
+
+    daily_levels_map = _load_daily_levels_map()
+    df = df.copy()
+    df['ema10'] = calculate_ema(df, 10)
+    df['ema20'] = calculate_ema(df, 20)
+    df = detect_candle_patterns(df, min_body_size=0.5, prev_body_min_pts=0.5)
+
+    level_order = ['r5', 'r4', 'r3', 'r2', 'r1', 'pp', 's1', 's2', 's3', 's4', 's5', 'pdh', 'pdc', 'pdl']
+    for col in ['pdh', 'pdl', 'pdc', 'pp', 'r1', 's1', 'r2', 's2', 'r3', 's3', 'r4', 's4', 'r5', 's5']:
+        if col not in df.columns:
+            df[col] = np.nan
+
+    touch_active = False
+    line_type = None
+    tracked_high = None
+    tracked_low = None
+    latest_hh = None
+    latest_ll = None
+    touched_hh_prev = False
+    touched_ll_prev = False
+
+    green_zone = None
+    red_zone = None
+    green_zone_touch = False
+    red_zone_touch = False
+    last_green_zone_bar = None
+    last_red_zone_bar = None
+    max_zone_age = 2
+
+    skip_big_long = False
+    skip_big_short = False
+    max_candle_size = 25
+
+    df['bull_trigger'] = False
+    df['bear_trigger'] = False
+    final_zones = []
+
+    def x2_zone_end_time(start_index):
+        end_index = min(start_index + 10, len(df) - 1)
+        return int(df.index[end_index].timestamp())
+
+    for i in range(len(df)):
+        curr_time = df.index[i]
+        curr_date_str = curr_time.strftime('%Y-%m-%d')
+        levels = daily_levels_map.get(curr_date_str, {})
+
+        if i > 0 and df.index[i].date() != df.index[i-1].date():
+            touch_active = False
+            line_type = None
+            tracked_high = None
+            tracked_low = None
+            latest_hh = None
+            latest_ll = None
+            touched_hh_prev = False
+            touched_ll_prev = False
+            green_zone = None
+            red_zone = None
+            green_zone_touch = False
+            red_zone_touch = False
+            last_green_zone_bar = None
+            last_red_zone_bar = None
+            skip_big_long = False
+            skip_big_short = False
+
+        for k in level_order:
+            api_key = 'pp' if k == 'pp' else k
+            v = _clean_level(levels.get(api_key, levels.get('cp') if api_key == 'pp' else None))
+            if k in df.columns:
+                df.iloc[i, df.columns.get_loc(k)] = v if v is not None else np.nan
+
+        row = df.iloc[i]
+        low, high, close, open_p = row['Low'], row['High'], row['Close'], row['Open']
+
+        touched = False
+        current_line_type = None
+        for k in level_order:
+            val = row[k] if k in row else np.nan
+            if pd.notnull(val) and low <= val <= high:
+                touched = True
+                current_line_type = _line_type_for_level(k)
+                break
+
+        if touched:
+            line_type = current_line_type
+            if not touch_active:
+                touch_active = True
+                tracked_high = high
+                tracked_low = low
+            else:
+                tracked_high = max(tracked_high, high) if tracked_high is not None else high
+                tracked_low = min(tracked_low, low) if tracked_low is not None else low
+            latest_hh = tracked_high
+            latest_ll = tracked_low
+
+        touch_hh = latest_hh is not None and high >= latest_hh
+        touch_ll = latest_ll is not None and low <= latest_ll
+        if touch_hh:
+            touched_hh_prev = True
+        if touch_ll:
+            touched_ll_prev = True
+
+        effective_touched_hh = touched_hh_prev if hawa_me_zone else False
+        effective_touched_ll = touched_ll_prev if hawa_me_zone else False
+
+        bullish_pattern = bool(row['bull_engulf'] or row['bull_harami'] or row['green_hammer'])
+        bearish_pattern = bool(row['bear_engulf'] or row['bear_harami'] or row['inv_red_hammer'] or row['red_hammer'])
+        is_green = close > open_p
+        is_red = close < open_p
+
+        bearish_zone_candle = (touched or effective_touched_hh) and bearish_pattern and line_type not in ["SUPPORT", "PD_L"]
+        bullish_zone_candle = (touched or effective_touched_ll) and bullish_pattern and line_type not in ["RESISTANCE", "PD_H"]
+
+        if bullish_zone_candle:
+            last_green_zone_bar = i
+        if bearish_zone_candle:
+            last_red_zone_bar = i
+
+        green_zone_fresh = last_green_zone_bar is not None and (i - last_green_zone_bar <= max_zone_age)
+        red_zone_fresh = last_red_zone_bar is not None and (i - last_red_zone_bar <= max_zone_age)
+
+        if bullish_zone_candle or bearish_zone_candle:
+            zone_type = 'bear' if bearish_zone_candle else 'bull'
+            zone = {'upper': float(high), 'lower': float(low), 'bar': i}
+            if bullish_zone_candle:
+                green_zone = zone
+                green_zone_touch = True
+                red_zone = None
+            if bearish_zone_candle:
+                red_zone = zone
+                red_zone_touch = True
+                green_zone = None
+
+            final_zones.append({
+                'start_time': int(curr_time.timestamp()),
+                'end_time': x2_zone_end_time(i),
+                'high': float(high),
+                'low': float(low),
+                'type': zone_type,
+                'size': float(high - low)
+            })
+            touched_hh_prev = False
+            touched_ll_prev = False
+
+        close_above_green = green_zone is not None and close > green_zone['upper']
+        close_below_red = red_zone is not None and close < red_zone['lower']
+        candle_size = high - low
+        if close_below_red:
+            skip_big_short = candle_size > max_candle_size
+        if close_above_green:
+            skip_big_long = candle_size > max_candle_size
+
+        prev_green = i > 0 and green_zone is not None and df.iloc[i-1]['Close'] > df.iloc[i-1]['Open']
+        prev_red = i > 0 and red_zone is not None and df.iloc[i-1]['Close'] < df.iloc[i-1]['Open']
+        long_below_tracked_high = tracked_high is None or close <= tracked_high
+        short_above_tracked_low = tracked_low is None or close >= tracked_low
+
+        long_ready = green_zone_fresh if use_fresh_zone else green_zone_touch
+        short_ready = red_zone_fresh if use_fresh_zone else red_zone_touch
+
+        if long_ready and green_zone is not None and close_above_green and prev_green and not skip_big_long and is_green and long_below_tracked_high:
+            df.iloc[i, df.columns.get_loc('bull_trigger')] = True
+            green_zone = None
+            green_zone_touch = False
+
+        if short_ready and red_zone is not None and close_below_red and prev_red and not skip_big_short and is_red and short_above_tracked_low:
+            df.iloc[i, df.columns.get_loc('bear_trigger')] = True
+            red_zone = None
+            red_zone_touch = False
+
+    return df, final_zones
+
 def run_reversal_strategy_logic(df, hawa_me_zone=False):
     if df.empty: return df, []
     
@@ -643,6 +853,8 @@ def run_reversal_strategy_logic(df, hawa_me_zone=False):
         active_line_type = None
         buffer_val = 5.0 if hawa_me_zone else 0.0
         for k, v in levels.items():
+            if v is None or (isinstance(v, float) and v != v):
+                continue
             if (low - buffer_val) <= v <= (high + buffer_val):
                 touched = True
                 active_line_type = get_line_type(k)
@@ -732,6 +944,7 @@ from services.strategy_service import (
     run_pinned_strategy_logic,
     run_sandbox_strategy_logic,
     run_reversal_strategy_logic,
+    run_x2_common_strategy_logic,
 )
 
 try:
@@ -842,10 +1055,15 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
         hawa = strategy_params.get('hawa_me_zone', False) if strategy_params else False
         df_filtered, strategy_zones = run_reversal_strategy_logic(df_filtered, hawa_me_zone=hawa)
         zones = strategy_zones
+    elif strategy_type == 'Arsalan X2':
+        hawa = strategy_params.get('hawa_me_zone', False) if strategy_params else False
+        fresh = strategy_params.get('fresh_zone', True) if strategy_params else True
+        df_filtered, strategy_zones = run_x2_common_strategy_logic(df_filtered, hawa_me_zone=hawa, use_fresh_zone=fresh)
+        zones = strategy_zones
     else:
         df_filtered = run_pinned_strategy_logic(df_filtered)
 
-    if strategy_type != 'Arsalan Sandbox':
+    if strategy_type not in ('Arsalan Sandbox', 'Arsalan X2'):
         if not df_filtered.empty:
             for i in range(len(df_filtered)):
                 if df_filtered['bull_trigger'].iloc[i] or df_filtered['bear_trigger'].iloc[i]:

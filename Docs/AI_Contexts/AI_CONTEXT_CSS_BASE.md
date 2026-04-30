@@ -253,6 +253,22 @@ body.modal-open {
   margin: 3px 0;
 }
 
+/* ── Table Options panel ───────────────────────── */
+.tbl-opts-panel {
+  min-width: 160px;
+}
+
+/* ── Table sub-panel fixed popups ─────────────── */
+.tbl-sub-popup {
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  z-index: 9800;
+  max-height: 70vh;
+  overflow-y: auto;
+  min-width: 200px;
+}
+
 /* ── MAIN LAYOUT ──────────────────────────────── */
 .app-main {
   flex: 1;
@@ -421,10 +437,7 @@ body.modal-open {
 .global-date-nav {
   flex: 1 1 auto;
   min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 #dev-log-btn {
@@ -466,6 +479,109 @@ body.modal-open {
   background: var(--surface2);
   color: var(--blue);
   border-color: var(--blue);
+}
+
+/* ── Compact Period Picker ─────────────────────── */
+.nav-period-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nav-period-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.15s;
+  height: 30px;
+}
+
+.nav-period-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.nav-period-panel {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 510;
+  padding: 8px;
+  gap: 6px;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.nav-period-panel.open {
+  display: flex;
+}
+
+/* ── Month/Year View Toggle ────────────────────── */
+.nav-view-toggle {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 4px 10px;
+  height: 30px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.nav-view-toggle:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.nav-view-toggle.active {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: rgba(59,130,246,.1);
+}
+
+/* ── Date Range Toggle ─────────────────────────── */
+.nav-range-toggle {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 4px 8px;
+  height: 30px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.nav-range-toggle:hover,
+.nav-range-toggle.active {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.nav-range-row {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.nav-range-row.open {
+  display: flex;
 }
 
 .select-box {

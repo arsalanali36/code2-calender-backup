@@ -8,6 +8,7 @@
       "Bash(pip show *)",
       "Bash(pip list)",
       "Bash(curl -s -o /dev/null *)",
+      "Bash(curl -s http://localhost*)",
       "Bash(netstat *)",
       "Bash(tasklist *)",
       "Bash(where *)"

@@ -770,9 +770,9 @@ image_service.py
 Handles all image file operations: upload, delete (to trash), clipboard copy,
 and fetching upload timestamps.
 
-Cloudinary mode:  when CLOUDINARY_URL env-var is set, images are uploaded
-                  to Cloudinary and the public secure URL is returned.
-Local mode:       images are stored in UPLOADS_DIR on disk (default / fallback).
+ImageKit mode:  when IMAGEKIT_* env-vars are set, images are uploaded to
+                ImageKit CDN and the public URL is returned.
+Local mode:     images are stored in UPLOADS_DIR on disk (default / fallback).
 """
 
 import os
@@ -812,36 +812,40 @@ def _validate_extension(filename: str):
     return ext
 
 
-# ── Cloudinary upload ─────────────────────────────────────────────────────────
+# ── ImageKit upload ───────────────────────────────────────────────────────────
 
-def _upload_to_cloudinary(file_storage, original_filename: str = '') -> dict:
+def _get_imagekit():
+    """Return an initialized ImageKit v5 client."""
+    from imagekitio import ImageKit
+    from config import IMAGEKIT_PRIVATE_KEY
+    return ImageKit(private_key=IMAGEKIT_PRIVATE_KEY)
+
+
+def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
     """
-    Upload a FileStorage object to Cloudinary.
-    Returns {'url': '<secure_url>', 'filename': '<public_id>', 'cloudinary': True}
+    Upload a FileStorage object to ImageKit (v5 SDK).
+    Returns {'url': '<cdn_url>', 'filename': '<file_id>', 'imagekit': True}
     Raises Exception on failure.
     """
-    import cloudinary
-    import cloudinary.uploader
+    import io
+    file_bytes = file_storage.read()
+    fname = original_filename or file_storage.filename or f'{uuid.uuid4()}.jpg'
+    safe_name = re.sub(r'[^\w.\-]', '_', os.path.basename(fname))
 
-    # cloudinary library auto-reads CLOUDINARY_URL env-var — no extra config needed.
-    public_id = f'trading_journal/{uuid.uuid4()}'
-
-    result = cloudinary.uploader.upload(
-        file_storage,
-        public_id=public_id,
-        resource_type='image',
-        overwrite=False,
-        # Preserve original format so we don't re-encode unnecessarily
-        format=None,
+    from config import IMAGEKIT_URL_ENDPOINT
+    ik = _get_imagekit()
+    result = ik.files.upload(
+        file=io.BytesIO(file_bytes),
+        file_name=safe_name,
+        folder='/trading_journal/',
+        use_unique_file_name=True,
     )
-
-    secure_url = result.get('secure_url', '')
-    stored_public_id = result.get('public_id', public_id)
-
+    # result.url is Optional in v5 SDK — fall back to constructing from file_path
+    url = result.url or f"{IMAGEKIT_URL_ENDPOINT}{result.file_path}"
     return {
-        'url': secure_url,
-        'filename': stored_public_id,   # used for delete later
-        'cloudinary': True,
+        'url': url,
+        'filename': result.file_id,
+        'imagekit': True,
     }
 
 
@@ -858,17 +862,17 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
     Returns dict with at least: {'url': '...', 'filename': '...'}
     Raises ValueError on invalid file type or upload failure.
     """
-    from config import USE_CLOUDINARY
+    from config import USE_IMAGEKIT
 
     orig_name = original_filename or file_storage.filename or ''
     ext = _validate_extension(orig_name or file_storage.filename)
 
-    # ── Cloudinary path ────────────────────────────────────────────────────────
-    if USE_CLOUDINARY:
+    # ── ImageKit path ──────────────────────────────────────────────────────────
+    if USE_IMAGEKIT:
         try:
-            return _upload_to_cloudinary(file_storage, orig_name)
+            return _upload_to_imagekit(file_storage, orig_name)
         except Exception as e:
-            raise ValueError(f'Cloudinary upload failed: {e}')
+            raise ValueError(f'ImageKit upload failed: {e}')
 
     # ── Local disk path ────────────────────────────────────────────────────────
     filename = f'{uuid.uuid4()}{ext}'
@@ -896,13 +900,14 @@ def move_to_trash(filename: str, uploads_dir: str, trash_dir: str) -> bool:
     NOTE: Cloudinary files have a public_id like 'trading_journal/abc-123'.
           For those, we attempt Cloudinary deletion; for local files we move to trash.
     """
-    # Detect Cloudinary public_id (contains '/' and no local extension pattern that matches)
-    if '/' in filename and not os.path.exists(os.path.join(uploads_dir, os.path.basename(filename))):
+    # ImageKit fileId is a long hex string (no '/' and no local file)
+    if not os.path.exists(os.path.join(uploads_dir, os.path.basename(filename))):
+        # Try ImageKit delete by fileId
         try:
-            from config import USE_CLOUDINARY
-            if USE_CLOUDINARY:
-                import cloudinary.uploader
-                cloudinary.uploader.destroy(filename, resource_type='image')
+            from config import USE_IMAGEKIT
+            if USE_IMAGEKIT and filename and '.' not in filename:
+                ik = _get_imagekit()
+                ik.files.delete(filename)
                 return True
         except Exception:
             pass
@@ -971,8 +976,7 @@ def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 220,
     """
     import io
     import fitz  # PyMuPDF
-    import cloudinary.uploader
-    from config import USE_CLOUDINARY, UPLOADS_DIR
+    from config import USE_IMAGEKIT, UPLOADS_DIR
 
     safe = re.sub(r'[^\w\-]', '_', os.path.splitext(os.path.basename(pdf_name))[0])[:35]
     mat  = fitz.Matrix(dpi / 72, dpi / 72)
@@ -985,15 +989,17 @@ def split_pdf_to_images(pdf_bytes: bytes, pdf_name: str, dpi: int = 220,
             pix       = doc[i].get_pixmap(matrix=mat, alpha=False)
             jpg_bytes = pix.tobytes('jpeg', jpg_quality=85)
 
-            if USE_CLOUDINARY:
-                pub_id = f'trading_journal/pdf_pages/{safe}_p{i+1}_{uuid.uuid4().hex[:6]}'
-                res    = cloudinary.uploader.upload(
-                    io.BytesIO(jpg_bytes),
-                    public_id=pub_id,
-                    resource_type='image',
-                    overwrite=False,
+            if USE_IMAGEKIT:
+                from config import IMAGEKIT_URL_ENDPOINT
+                ik = _get_imagekit()
+                fname = f'{safe}_p{i+1}_{uuid.uuid4().hex[:6]}.jpg'
+                res = ik.files.upload(
+                    file=io.BytesIO(jpg_bytes),
+                    file_name=fname,
+                    folder='/trading_journal/pdf_pages/',
+                    use_unique_file_name=True,
                 )
-                page_urls.append(res['secure_url'])
+                page_urls.append(f"{IMAGEKIT_URL_ENDPOINT}/trading_journal/pdf_pages/{res.name}")
             else:
                 fname = f'pdf_{safe}_p{i+1}_{uuid.uuid4().hex[:6]}.jpg'
                 fpath = os.path.join(UPLOADS_DIR, fname)
@@ -1036,21 +1042,21 @@ def save_pdf_bytes(pdf_bytes: bytes, orig_name: str, pdf_dir: str,
     Only the split JPEG pages are uploaded to Cloudinary.
     """
     import time as _time
-    from config import USE_CLOUDINARY
+    from config import USE_IMAGEKIT
 
     ext = os.path.splitext(orig_name)[1].lower()
     if ext != '.pdf':
         raise ValueError(f'Invalid file type: {ext}')
     ts = int(_time.time() * 1000)
 
-    if USE_CLOUDINARY:
-        # Skip raw PDF upload — only pages (JPEGs) go to Cloudinary
+    if USE_IMAGEKIT:
+        # Only split JPEG pages go to ImageKit (raw PDF stays local)
         uid = uuid.uuid4().hex
         pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
         record = {
-            'filename':  f'trading_journal/pdfs/{uid}',
+            'filename':  f'imagekit/pdfs/{uid}',
             'name':      orig_name,
-            'url':       '',          # no raw PDF on Cloudinary
+            'url':       '',
             'size':      len(pdf_bytes),
             'timestamp': ts,
             'pages':     pages,
@@ -1089,7 +1095,7 @@ def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
     Returns dict: {'url', 'name', 'filename', 'size', 'timestamp'}
     """
     import time as _time
-    from config import USE_CLOUDINARY
+    from config import USE_IMAGEKIT
 
     orig_name = original_filename or file_storage.filename or 'upload.pdf'
     ext = os.path.splitext(orig_name)[1].lower()
@@ -1098,34 +1104,15 @@ def save_uploaded_pdf(file_storage, pdf_dir: str, pdf_meta_file: str,
 
     ts = int(_time.time() * 1000)
 
-    if USE_CLOUDINARY:
-        import cloudinary
-        import cloudinary.uploader
-        import io as _io
-
-        # Read bytes first (stream consumed after first upload)
+    if USE_IMAGEKIT:
         pdf_bytes = file_storage.read()
-
-        # 1. Upload raw PDF for download reference
-        public_id = f'trading_journal/pdfs/{uuid.uuid4()}'
-        result = cloudinary.uploader.upload(
-            _io.BytesIO(pdf_bytes),
-            public_id=public_id,
-            resource_type='raw',
-            overwrite=False,
-        )
-        secure_url = result.get('secure_url', '')
-        stored_id  = result.get('public_id', public_id)
-        size       = result.get('bytes', len(pdf_bytes))
-
-        # 2. Split pages → individual JPG images on Cloudinary
         pages = split_pdf_to_images(pdf_bytes, orig_name, progress_cb=progress_cb)
-
+        uid = uuid.uuid4().hex
         record = {
-            'filename':  stored_id,
+            'filename':  f'imagekit/pdfs/{uid}',
             'name':      orig_name,
-            'url':       secure_url,
-            'size':      size,
+            'url':       '',
+            'size':      len(pdf_bytes),
             'timestamp': ts,
             'pages':     pages,
         }
@@ -1168,9 +1155,9 @@ def list_uploaded_pdfs(pdf_dir: str, pdf_meta_file: str) -> list:
     Cloudinary mode: read from pdfs.json.
     Local mode:      scan pdf_dir filesystem.
     """
-    from config import USE_CLOUDINARY
+    from config import USE_IMAGEKIT
 
-    if USE_CLOUDINARY:
+    if USE_IMAGEKIT:
         return _load_pdf_meta(pdf_meta_file)
 
     # Local
@@ -1211,14 +1198,10 @@ def delete_uploaded_pdf(filename: str, pdf_dir: str, pdf_meta_file: str) -> bool
     Delete a PDF by filename / Cloudinary public_id.
     Returns True if deleted, False if not found.
     """
-    from config import USE_CLOUDINARY
+    from config import USE_IMAGEKIT
 
-    if USE_CLOUDINARY:
-        import cloudinary.uploader
-        try:
-            cloudinary.uploader.destroy(filename, resource_type='raw')
-        except Exception:
-            pass
+    if USE_IMAGEKIT or filename.startswith('imagekit/') or filename.startswith('trading_journal/'):
+        # Just remove from metadata — raw PDF was never uploaded to ImageKit
         records = _load_pdf_meta(pdf_meta_file)
         before  = len(records)
         records = [r for r in records if r.get('filename') != filename]

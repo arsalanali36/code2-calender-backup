@@ -1726,6 +1726,46 @@ input:checked+.tl-slider:after {
 
 ## File: `static/css/style-misc.css`
 ```css
+/* ── Panel Tabs (Columns / Tags popups) ──────── */
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.panel-tab {
+  flex: 1;
+  padding: 7px 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.panel-tab:hover { color: var(--text); }
+
+.panel-tab.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+.panel-tab-pane {
+  overflow-y: auto;
+  max-height: 55vh;
+}
+
+.panel-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 12px;
+  padding: 6px 10px;
+}
+
 /* ── PROFILE AVATAR DROPDOWN ─────────────────── */
 .profile-menu-wrapper { position: relative; }
 
@@ -1846,6 +1886,21 @@ input:checked+.tl-slider:after {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Inside navbar dropdown: panel flows inline, no absolute pop-out */
+.navbar-more-menu .quote-random-panel {
+  position: static;
+  width: auto;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  padding: 10px 14px;
+}
+.navbar-more-menu .quote-random-wrap {
+  position: static;
 }
 
 .quote-random-toggle {

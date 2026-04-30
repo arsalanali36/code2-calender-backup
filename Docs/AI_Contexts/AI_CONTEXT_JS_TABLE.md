@@ -1235,25 +1235,30 @@ function renderTagFilterPanel() {
     return;
   }
 
+  // ── Tabs ──
+  const tabsRow = document.createElement('div'); tabsRow.className = 'panel-tabs';
+  const tabFilter = document.createElement('button'); tabFilter.className = 'panel-tab active'; tabFilter.textContent = 'Filter';
+  const tabManage = document.createElement('button'); tabManage.className = 'panel-tab'; tabManage.textContent = 'Manage';
+  tabsRow.appendChild(tabFilter); tabsRow.appendChild(tabManage);
+  panel.appendChild(tabsRow);
+
+  // ── Tab 1: Filter ──
+  const paneFilter = document.createElement('div'); paneFilter.className = 'panel-tab-pane';
+
   const actRow = document.createElement('div'); actRow.className = 'panel-act-row';
   const btnAll = document.createElement('button'); btnAll.className = 'panel-act-btn'; btnAll.textContent = 'All';
   const btnNone = document.createElement('button'); btnNone.className = 'panel-act-btn'; btnNone.textContent = 'None';
   btnAll.addEventListener('click', () => { state.tagFilter = [...keys]; renderTagFilterPanel(); applyTagFilter(); });
   btnNone.addEventListener('click', () => { state.tagFilter = []; renderTagFilterPanel(); applyTagFilter(); });
-  actRow.appendChild(btnAll); actRow.appendChild(btnNone); panel.appendChild(actRow);
+  actRow.appendChild(btnAll); actRow.appendChild(btnNone); paneFilter.appendChild(actRow);
 
   getTagColumns().forEach(col => {
     const tags = getUniqueTagsForColumn(col);
     if (!tags.length) return;
-
     const colLabel = document.createElement('div');
-    colLabel.className = 'panel-manage-label';
-    colLabel.style.marginTop = '6px';
-    colLabel.textContent = col;
-    panel.appendChild(colLabel);
-
-    const list = document.createElement('div');
-    list.className = 'panel-list';
+    colLabel.className = 'panel-manage-label'; colLabel.style.marginTop = '6px'; colLabel.textContent = col;
+    paneFilter.appendChild(colLabel);
+    const list = document.createElement('div'); list.className = 'panel-list';
     tags.forEach(tag => {
       const key = makeTagFilterKey(col, tag);
       const lbl = document.createElement('label'); lbl.className = 'head-checkbox';
@@ -1267,13 +1272,12 @@ function renderTagFilterPanel() {
       lbl.appendChild(chk); lbl.appendChild(dot); lbl.appendChild(document.createTextNode(tag));
       list.appendChild(lbl);
     });
-    panel.appendChild(list);
+    paneFilter.appendChild(list);
   });
+  panel.appendChild(paneFilter);
 
-  const sep = document.createElement('div'); sep.style.cssText = 'height:1px;background:var(--border);margin:8px 0';
-  panel.appendChild(sep);
-  const mLabel = document.createElement('div'); mLabel.className = 'panel-manage-label'; mLabel.textContent = 'Delete Tags (Column-wise)';
-  panel.appendChild(mLabel);
+  // ── Tab 2: Manage (delete tags) ──
+  const paneManage = document.createElement('div'); paneManage.className = 'panel-tab-pane'; paneManage.style.display = 'none';
   getTagColumns().forEach(col => {
     const tags = getUniqueTagsForColumn(col);
     tags.forEach(tag => {
@@ -1291,8 +1295,19 @@ function renderTagFilterPanel() {
         saveTrades(); renderTable(); renderTagFilterPanel(); applyTagFilter();
       });
       row.appendChild(dot); row.appendChild(name); row.appendChild(del);
-      panel.appendChild(row);
+      paneManage.appendChild(row);
     });
+  });
+  panel.appendChild(paneManage);
+
+  // ── Tab switching ──
+  tabFilter.addEventListener('click', () => {
+    tabFilter.classList.add('active'); tabManage.classList.remove('active');
+    paneFilter.style.display = ''; paneManage.style.display = 'none';
+  });
+  tabManage.addEventListener('click', () => {
+    tabManage.classList.add('active'); tabFilter.classList.remove('active');
+    paneManage.style.display = ''; paneFilter.style.display = 'none';
   });
 }
 
