@@ -62,7 +62,6 @@ def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
     Raises Exception on failure.
     """
     import io
-    from config import IMAGEKIT_URL_ENDPOINT
     file_bytes = file_storage.read()
     fname = original_filename or file_storage.filename or f'{uuid.uuid4()}.jpg'
     safe_name = re.sub(r'[^\w.\-]', '_', os.path.basename(fname))
@@ -74,11 +73,9 @@ def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
         folder='/trading_journal/',
         use_unique_file_name=True,
     )
-    file_id = result.file_id
-    url = f"{IMAGEKIT_URL_ENDPOINT}/trading_journal/{result.name}"
     return {
-        'url': url,
-        'filename': file_id,   # fileId used for delete later
+        'url': result.url,           # SDK returns full CDN URL directly
+        'filename': result.file_id,  # fileId used for delete later
         'imagekit': True,
     }
 

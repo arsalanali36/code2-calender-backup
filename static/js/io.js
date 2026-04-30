@@ -87,9 +87,9 @@ async function handleImageFiles(files) {
   updateProgress();
 
   // Upload all in parallel, replace blob URL with server URL as each finishes
-  let totalOrig = 0, totalComp = 0;
+  let totalOrig = 0, totalComp = 0, lastError = '';
   const isNewsUpload = (state.gallery?.selectedSeparator === 'NEWS');
-  
+
   await Promise.all(sorted.map(async (file, i) => {
     try {
       const q = isNewsUpload ? 0.25 : null;
@@ -106,7 +106,8 @@ async function handleImageFiles(files) {
       }
     } catch (e) {
       failed++;
-      console.error('[Upload] Failed:', e.message || e);
+      lastError = e.message || String(e);
+      console.error('[Upload] Failed:', lastError);
       const idx = state.pendingFiles.indexOf(localUrls[i]);
       if (idx >= 0) state.pendingFiles.splice(idx, 1);
       URL.revokeObjectURL(localUrls[i]);
@@ -126,7 +127,7 @@ async function handleImageFiles(files) {
      }
   }
 
-  if (failed) showToast(`${failed} image(s) failed to upload`, 'error');
+  if (failed) showToast(`${failed} image(s) failed to upload${lastError ? ': ' + lastError : ''}`, 'error');
 }
 
 async function uploadImagesToRow(rowIdx, files) {
