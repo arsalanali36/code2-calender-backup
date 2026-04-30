@@ -9,6 +9,7 @@ No real orders are ever sent to Dhan.
 import os
 import json
 import uuid
+import time
 from datetime import datetime, date, timedelta
 
 from config import (
@@ -276,6 +277,7 @@ def run_tick():
         instr  = item.get('instrument', 'EQUITY')
 
         try:
+            time.sleep(0.4)  # avoid Dhan rate limit DH-904
             candles = _fetch_candles(sid, seg, instr, today, dhan_cfg)
             if not candles:
                 signals.append({"symbol": symbol, "signal": "NO_DATA", "candles": 0})
@@ -324,7 +326,11 @@ def run_tick():
                 signals.append({"symbol": symbol, "signal": "HOLD", "price": price, "candles": len(candles)})
 
         except Exception as e:
-            signals.append({"symbol": symbol, "signal": "ERROR", "message": str(e)})
+            msg = str(e)
+            if 'Rate_Limit' in msg or '429' in msg:
+                signals.append({"symbol": symbol, "signal": "RATE_LIMIT"})
+            else:
+                signals.append({"symbol": symbol, "signal": "ERROR", "message": msg[:80]})
 
     # Unrealized P&L on open positions
     unrealized = sum(

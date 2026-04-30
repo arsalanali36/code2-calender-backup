@@ -192,8 +192,9 @@ function renderSignals(signals) {
     if (s.signal === 'BUY')     { cls = 'buy';  label = `<span class="buy-label">▲ BUY ${s.price ? '@ ₹' + s.price : ''}</span>`; }
     else if (s.signal === 'SELL')  { cls = 'sell'; label = `<span class="sell-label">▼ SELL ${s.price ? '@ ₹' + s.price : ''} P&L: ₹${s.pnl??0}</span>`; }
     else if (s.signal === 'HOLD')  { label = `<span class="hold-label">— HOLD</span>`; }
-    else if (s.signal === 'ERROR') { label = `<span class="err-label">⚠ ${s.message||'Error'}</span>`; }
-    else                           { label = `<span class="hold-label">${s.signal}</span>`; }
+    else if (s.signal === 'ERROR')      { label = `<span class="err-label">⚠ ${s.message||'Error'}</span>`; }
+    else if (s.signal === 'RATE_LIMIT') { label = `<span class="err-label">⏳ Rate limit</span>`; }
+    else                                { label = `<span class="hold-label">${s.signal}</span>`; }
     return `<div class="signal-pill ${cls}"><span class="sym">${s.symbol}</span>${label}</div>`;
   }).join('');
 }
