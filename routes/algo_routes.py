@@ -14,6 +14,7 @@ from services.algo_engine import (
     get_orders, clear_orders, save_orders,
     resolve_equity_symbol, run_tick, reset_daily_state,
     _fetch_candles, _calc_ema, get_cached_candles,
+    list_saved_ohlc, load_ohlc_file,
 )
 
 algo_bp = Blueprint('algo', __name__)
@@ -152,6 +153,23 @@ def tick():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ── OHLC Saved Files ─────────────────────────────────────────────────────────
+
+@algo_bp.route('/api/algo/ohlc-saved', methods=['GET'])
+@login_required
+def ohlc_saved_list():
+    return jsonify(list_saved_ohlc())
+
+
+@algo_bp.route('/api/algo/ohlc-saved/<symbol>/<date_str>', methods=['GET'])
+@login_required
+def ohlc_saved_load(symbol, date_str):
+    data = load_ohlc_file(symbol.upper(), date_str)
+    if not data:
+        return jsonify({"error": f"No saved OHLC for {symbol} on {date_str}"}), 404
+    return jsonify(data)
 
 
 # ── Chart Data ───────────────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ const TICK_SECS   = 60;
 
 async function algoInit() {
   await loadStatus();
+  await loadOhlcStatus();
 }
 
 // ── Status / Config ──────────────────────────────────────────────────────────
@@ -146,6 +147,7 @@ async function runTick() {
     renderSignals(d.signals || []);
     renderOrders(d.orders || []);
     updateStatsFromTick(d);
+    loadOhlcStatus();  // refresh saved files after each tick
     if (d.stopped) {
       showAlert('Daily loss limit reached. Bot has been paused for today.', 'danger');
       updateBotUI(false);
@@ -376,6 +378,48 @@ function closeChartModal(e) {
   if (e && e.target !== document.getElementById('chart-modal-overlay')) return;
   document.getElementById('chart-modal-overlay').classList.remove('open');
   if (_lwChart) { try { _lwChart.remove(); } catch(_) {} _lwChart = null; }
+}
+
+// ── OHLC Saved Status ────────────────────────────────────────────────────────
+
+async function loadOhlcStatus() {
+  const el = document.getElementById('ohlc-status-body');
+  el.innerHTML = '<span style="color:#64748b">Loading…</span>';
+  try {
+    const r = await fetch('/api/algo/ohlc-saved');
+    const files = await r.json();
+    if (!files.length) {
+      el.innerHTML = '<span style="color:#64748b">No saved files yet. Run a tick first.</span>';
+      return;
+    }
+    // group by date
+    const today = new Date().toISOString().split('T')[0];
+    const todayFiles = files.filter(f => f.date === today);
+    const otherFiles = files.filter(f => f.date !== today);
+
+    let html = '';
+    if (todayFiles.length) {
+      html += `<div style="color:#10b981;font-weight:700;margin-bottom:6px;">Today (${today}) — ${todayFiles.length} symbols</div>`;
+      html += todayFiles.map(f =>
+        `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e293b;">
+          <span style="color:#f1f5f9;font-weight:600">${f.symbol}</span>
+          <span style="color:#64748b">${f.candle_count} candles · ${f.size_kb}KB · ${f.saved_at.slice(11,16)}</span>
+        </div>`
+      ).join('');
+    }
+    if (otherFiles.length) {
+      html += `<div style="color:#94a3b8;margin-top:10px;margin-bottom:4px;">Older dates — ${otherFiles.length} files</div>`;
+      // group by date
+      const byDate = {};
+      otherFiles.forEach(f => { (byDate[f.date] = byDate[f.date]||[]).push(f.symbol); });
+      html += Object.entries(byDate).map(([d, syms]) =>
+        `<div style="color:#64748b;padding:2px 0">${d}: ${syms.join(', ')}</div>`
+      ).join('');
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
+  }
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────

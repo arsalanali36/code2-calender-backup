@@ -38,6 +38,7 @@ ALGO_CONFIG_FILE    = os.path.join(BASE_DIR, 'data', 'algo_config.json')
 ALGO_WATCHLIST_FILE = os.path.join(BASE_DIR, 'data', 'algo_watchlist.json')
 ALGO_ORDERS_FILE    = os.path.join(BASE_DIR, 'data', 'algo_orders.json')
 ALGO_STATE_FILE     = os.path.join(BASE_DIR, 'data', 'algo_state.json')
+ALGO_OHLC_DIR       = os.path.join(BASE_DIR, 'data', 'algo_ohlc')
 
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7

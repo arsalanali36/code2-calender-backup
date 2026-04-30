@@ -14,8 +14,9 @@ from datetime import datetime, date, timedelta
 
 from config import (
     ALGO_CONFIG_FILE, ALGO_WATCHLIST_FILE,
-    ALGO_ORDERS_FILE, ALGO_STATE_FILE,
+    ALGO_ORDERS_FILE, ALGO_STATE_FILE, ALGO_OHLC_DIR,
 )
+os.makedirs(ALGO_OHLC_DIR, exist_ok=True)
 from services.dhan_service_core import DHAN_API_BASE, _post_json, _dhan_headers, get_config
 
 # ── In-memory candle cache (populated during tick, served to chart endpoint) ──
@@ -28,13 +29,67 @@ def get_cached_candles(security_id):
     if (datetime.now() - e['fetched_at']).total_seconds() > _CACHE_TTL: return None
     return e
 
-def _store_cache(security_id, candles, ema_fast, ema_slow):
+def _store_cache(security_id, symbol, candles, ema_fast, ema_slow):
     _candle_cache[str(security_id)] = {
-        'candles':  candles,
-        'ema_fast': ema_fast,
-        'ema_slow': ema_slow,
+        'symbol':     symbol,
+        'candles':    candles,
+        'ema_fast':   ema_fast,
+        'ema_slow':   ema_slow,
         'fetched_at': datetime.now(),
     }
+    # auto-save to disk — overwrites with latest data each tick
+    _save_ohlc_disk(security_id, symbol, candles, ema_fast, ema_slow)
+
+
+def _save_ohlc_disk(security_id, symbol, candles, ema_fast, ema_slow):
+    today = date.today().isoformat()
+    cfg   = get_algo_config()
+    path  = os.path.join(ALGO_OHLC_DIR, f"{symbol}_{today}.json")
+    with open(path, 'w') as f:
+        json.dump({
+            'symbol':          symbol,
+            'security_id':     str(security_id),
+            'date':            today,
+            'ema_fast_period': cfg['ema_fast'],
+            'ema_slow_period': cfg['ema_slow'],
+            'candles':         candles,
+            'ema_fast':        ema_fast,
+            'ema_slow':        ema_slow,
+            'saved_at':        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'candle_count':    len(candles),
+        }, f)
+
+
+def list_saved_ohlc():
+    """Return list of saved OHLC files with metadata."""
+    files = []
+    for fname in sorted(os.listdir(ALGO_OHLC_DIR)):
+        if not fname.endswith('.json'):
+            continue
+        fpath = os.path.join(ALGO_OHLC_DIR, fname)
+        try:
+            with open(fpath) as f:
+                d = json.load(f)
+            files.append({
+                'file':         fname,
+                'symbol':       d.get('symbol', ''),
+                'date':         d.get('date', ''),
+                'candle_count': d.get('candle_count', 0),
+                'saved_at':     d.get('saved_at', ''),
+                'size_kb':      round(os.path.getsize(fpath) / 1024, 1),
+            })
+        except Exception:
+            pass
+    return files
+
+
+def load_ohlc_file(symbol, date_str):
+    """Load a saved OHLC file for backtesting."""
+    path = os.path.join(ALGO_OHLC_DIR, f"{symbol}_{date_str}.json")
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        return json.load(f)
 
 DEFAULT_CONFIG = {
     "ema_fast":         9,
@@ -304,7 +359,7 @@ def run_tick():
             closes   = [c['close'] for c in candles]
             ef       = _calc_ema(closes, fast)
             es       = _calc_ema(closes, slow)
-            _store_cache(sid, candles, ef, es)   # cache for chart endpoint
+            _store_cache(sid, symbol, candles, ef, es)   # cache + disk save
 
             signal, price, sig_time = _detect_signal(candles, fast, slow)
 
