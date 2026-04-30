@@ -11406,8 +11406,11 @@
     },
     "2026-04-29": {},
     "2026-04-30": {
+      "imageTags": {},
       "images": [
-        "/uploads/18e23106-3703-4ac5-b288-5df78ab8b7c4.png"
+        "/uploads/18e23106-3703-4ac5-b288-5df78ab8b7c4.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-04-28_13-34-32_5KFJq0UK_.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-04-28_13-42-07_Dn7rcMHq4.png"
       ]
     }
   },
