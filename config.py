@@ -57,9 +57,9 @@ def _compute_static_hash() -> str:
 CACHE_BUST = _compute_static_hash()
 
 # ── ImageKit ──────────────────────────────────────────────────────────────────
-IMAGEKIT_PRIVATE_KEY  = os.getenv('IMAGEKIT_PRIVATE_KEY', '')
-IMAGEKIT_PUBLIC_KEY   = os.getenv('IMAGEKIT_PUBLIC_KEY', '')
-IMAGEKIT_URL_ENDPOINT = os.getenv('IMAGEKIT_URL_ENDPOINT', '')
+IMAGEKIT_PRIVATE_KEY  = os.getenv('IMAGEKIT_PRIVATE_KEY', '').strip()
+IMAGEKIT_PUBLIC_KEY   = os.getenv('IMAGEKIT_PUBLIC_KEY', '').strip()
+IMAGEKIT_URL_ENDPOINT = os.getenv('IMAGEKIT_URL_ENDPOINT', '').strip().rstrip('/')
 USE_IMAGEKIT = bool(IMAGEKIT_PRIVATE_KEY and IMAGEKIT_PUBLIC_KEY and IMAGEKIT_URL_ENDPOINT)
 
 # Legacy Cloudinary (kept for backward compat — existing URLs still work via CDN)
