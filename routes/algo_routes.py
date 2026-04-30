@@ -7,11 +7,13 @@ All business logic lives in services/algo_engine.py.
 from flask import Blueprint, request, jsonify, render_template
 from flask_login import login_required
 
+from datetime import date as _date
 from services.algo_engine import (
     get_algo_config, save_algo_config,
     get_watchlist, save_watchlist,
     get_orders, clear_orders, save_orders,
     resolve_equity_symbol, run_tick, reset_daily_state,
+    _fetch_candles, _calc_ema,
 )
 
 algo_bp = Blueprint('algo', __name__)
@@ -148,6 +150,52 @@ def tick():
     try:
         result = run_tick()
         return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Chart Data ───────────────────────────────────────────────────────────────
+
+@algo_bp.route('/api/algo/chart/<security_id>')
+@login_required
+def chart_data(security_id):
+    """Return candles + EMA arrays for a given security_id (today's date)."""
+    try:
+        from services.dhan_service_core import get_config as dhan_get_config
+        dhan_cfg = dhan_get_config()
+        if not dhan_cfg:
+            return jsonify({"error": "Dhan credentials not configured"}), 400
+
+        # Find symbol info from watchlist
+        wl = get_watchlist()
+        item = next((w for w in wl if str(w['security_id']) == str(security_id)), None)
+        if not item:
+            return jsonify({"error": "Symbol not in watchlist"}), 404
+
+        today = _date.today().isoformat()
+        candles = _fetch_candles(
+            item['security_id'],
+            item.get('exchange_segment', 'NSE_EQ'),
+            item.get('instrument', 'EQUITY'),
+            today, dhan_cfg,
+        )
+        if not candles:
+            return jsonify({"error": "No candle data returned from Dhan"}), 404
+
+        cfg = get_algo_config()
+        closes = [c['close'] for c in candles]
+        ema_fast = _calc_ema(closes, cfg['ema_fast'])
+        ema_slow = _calc_ema(closes, cfg['ema_slow'])
+
+        return jsonify({
+            "symbol":   item['symbol'],
+            "date":     today,
+            "candles":  candles,
+            "ema_fast": ema_fast,
+            "ema_slow": ema_slow,
+            "ema_fast_period": cfg['ema_fast'],
+            "ema_slow_period": cfg['ema_slow'],
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

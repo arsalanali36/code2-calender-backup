@@ -168,6 +168,24 @@
   </div>
 </div>
 
+<!-- Chart Modal -->
+<div class="chart-modal-overlay" id="chart-modal-overlay" onclick="closeChartModal(event)">
+  <div class="chart-modal">
+    <div class="chart-modal-header">
+      <h2 id="chart-modal-title">Chart</h2>
+      <span id="chart-modal-meta" style="font-size:11px; color:#64748b;"></span>
+      <button class="close-btn" onclick="closeChartModal()">✕</button>
+    </div>
+    <canvas id="algo-chart-canvas"></canvas>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> EMA Fast</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> EMA Slow</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#6366f1; height:1px; width:16px; border-top:2px dashed #6366f1;"></div> Entry</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ef4444; height:1px; width:16px; border-top:2px dashed #ef4444;"></div> Exit</div>
+    </div>
+  </div>
+</div>
+
 <script src="/static/js/algo-lab.js"></script>
 </body>
 </html>

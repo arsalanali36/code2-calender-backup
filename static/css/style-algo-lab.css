@@ -81,6 +81,7 @@ body {
   grid-template-columns: 300px 1fr;
   gap: 0;
   height: calc(100vh - 53px);
+  overflow: hidden;
 }
 
 /* ── Sidebar ── */
@@ -88,6 +89,7 @@ body {
   background: #1e293b;
   border-right: 1px solid #334155;
   overflow-y: auto;
+  min-height: 0;        /* fixes grid overflow-y */
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -188,6 +190,7 @@ body {
 /* ── Main Area ── */
 .algo-main {
   overflow-y: auto;
+  min-height: 0;        /* fixes grid overflow-y */
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -286,6 +289,63 @@ tbody td { padding: 9px 12px; color: #cbd5e1; }
 .td-neg    { color: #ef4444; font-weight: 700; }
 .td-open   { color: #6366f1; font-size: 10px; font-weight: 700; }
 .td-closed { color: #94a3b8; font-size: 10px; }
+
+/* ── Clickable row ── */
+tbody tr.clickable { cursor: pointer; }
+tbody tr.clickable:hover td { background: rgba(99,102,241,0.12); }
+
+/* ── Chart Modal ── */
+.chart-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.chart-modal-overlay.open { display: flex; }
+.chart-modal {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  width: 900px;
+  max-width: 96vw;
+  padding: 20px;
+  position: relative;
+}
+.chart-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.chart-modal-header h2 { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+.chart-modal-header .close-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.chart-modal-header .close-btn:hover { color: #f1f5f9; }
+#algo-chart-canvas {
+  width: 100%;
+  height: 400px;
+  display: block;
+  border-radius: 8px;
+  background: #0f172a;
+}
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 11px;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; color: #94a3b8; }
+.legend-dot { width: 10px; height: 3px; border-radius: 2px; }
 
 /* ── Empty state ── */
 .empty-msg {
