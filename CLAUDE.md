@@ -3,9 +3,8 @@
 ## Stack
 - **Backend**: Python / Flask (`app.py` — thin orchestrator only)
 - **Frontend**: Vanilla JS (split modules, global scope) + Jinja2 (`templates/index.html`)
-- **Storage**: `trades.json` (flat file, no DB). See [SCHEMA.md](file:///d:/KHAZANA/KHAZANA/PYTHON/CODE2-%20CALENDER/SCHEMA.md) for data structure.
+- **Storage**: `data/trades_1.json` (flat file, no DB). `trades.json` is legacy fallback only.
 - **Images**: `static/uploads/`
-
 - **CSS**: `style-base.css` / `style-gallery-a.css` / `style-gallery-b.css` / `style-misc.css`
 
 ## Running the app
@@ -17,17 +16,45 @@ Opens at `http://localhost:5000`
 
 ---
 
+## Backend Architecture (layered — ALWAYS follow this)
+```
+app.py          → thin entry point (setup + blueprint registration only)
+config.py       → ALL paths & env vars (DATA_FILE, UPLOADS_DIR, ALGO_*, DHAN_*, etc.)
+routes/         → HTTP only: parse request → call service → return jsonify()
+services/       → business logic (no Flask, no request/response objects)
+  brokers/      → broker abstraction layer (see Algo Lab section)
+  strategies/   → strategy plugin layer (see Algo Lab section)
+processors/     → pure data transforms
+```
+
+## Route Files
+| File | Routes |
+|------|--------|
+| `routes/page_routes.py` | `GET /`, `GET /updates` |
+| `routes/trade_routes.py` | `GET/POST /api/trades` |
+| `routes/image_routes.py` | upload-image, delete-image, `/uploads/<file>` |
+| `routes/import_routes.py` | import-excel, import-json, import-dhan-csv, etc. |
+| `routes/export_routes.py` | backup, export-excel, export-csv |
+| `routes/algo_routes.py` | `/algo-lab`, `/api/algo/*` |
+| `routes/strategy_routes.py` | `/strategy-lab`, `/api/strategy/*` |
+
+---
+
 ## Template Structure (`templates/`)
-| File | Lines | Responsibility |
-|------|-------|---------------|
-| `index.html` | ~263 | Main layout, calendar, dashboard, trade table |
-| `modals.html` | ~380 | All modal dialogs (settings, obs, upload, etc.) |
-| `gallery.html` | ~213 | Gallery overlay, canvas, annotation toolbar |
+| File | Responsibility |
+|------|---------------|
+| `index.html` | Main layout, calendar, dashboard, trade table |
+| `modals.html` | All modal dialogs (settings, obs, upload, etc.) |
+| `gallery.html` | Gallery overlay, canvas, annotation toolbar |
+| `algo_lab.html` | Algo Lab page |
+| `strategy_lab.html` | Strategy Lab page (+ sidebar + modals includes) |
 
 ---
 
 ## JS Module Structure (`static/js/`)
-The original `app.js` has been split into modules:
+All modules are **flat** in `static/js/` — NO subdirectories (intentional).
+Load order in `index.html` is critical — global scope, no ES modules.
+`bundle.js` is AUTO-GENERATED on Flask startup — never edit directly.
 
 | File | Responsibility |
 |------|---------------|
@@ -39,6 +66,94 @@ The original `app.js` has been split into modules:
 | `gallery-core.js` | Open/render gallery |
 | `io.js` | Upload, import/export, backup |
 | `events.js` | `bindEvents()` + `init()` |
+| `algo-lab.js` | Algo Lab frontend (config, tick, orders, chart) |
+| `strategy-lab-a.js` | Strategy Lab chart rendering |
+| `strategy-lab-b/c.js` | Strategy Lab additional features |
+
+JS service files live in `static/js/services/` (apiClient, tradeService, imageService, etc.)
+
+---
+
+## 🤖 Algo Lab — Complete Architecture
+
+### Files at a glance
+| File | Role |
+|------|------|
+| `routes/algo_routes.py` | HTTP layer — all `/api/algo/*` endpoints |
+| `services/algo_engine.py` | Core tick engine — broker + strategy agnostic |
+| `services/brokers/base_broker.py` | Abstract interface: `fetch_candles`, `place_order`, `cancel_order`, `get_positions` |
+| `services/brokers/dhan_broker.py` | **Active** — Dhan implementation (data + live orders) |
+| `services/brokers/zerodha_broker.py` | Stub (NotImplementedError) |
+| `services/brokers/angel_broker.py` | Stub (NotImplementedError) |
+| `services/brokers/broker_registry.py` | `get_broker('dhan')` → `DhanBroker()` |
+| `services/strategies/base_strategy.py` | Abstract: `generate_signal(candles, params) → (signal, price, sl)` |
+| `services/strategies/ema_crossover_strategy.py` | EMA fast/slow crossover |
+| `services/strategies/x2_strategy.py` | Arsalan X2 — wraps `run_x2_common_strategy_logic()` |
+| `services/strategies/strategy_registry.py` | `get_strategy('Arsalan X2')` → `X2Strategy()` |
+| `templates/algo_lab.html` | UI — dropdowns: broker, strategy, mode, order type, product type |
+| `static/js/algo-lab.js` | Frontend — config read/write, tick, order book, chart modal |
+| `static/css/style-algo-lab.css` | Algo Lab styles |
+
+### Data files
+| File | Purpose |
+|------|---------|
+| `data/algo_config.json` | Broker, strategy, mode, EMA params, qty, loss limit |
+| `data/algo_orders.json` | Paper + live order book (JSON log) |
+| `data/algo_state.json` | Daily PnL + stopped flag (resets each day) |
+| `data/algo_watchlist.json` | Resolved symbols with security_id |
+| `data/algo_ohlc/SYMBOL_DATE.json` | Auto-saved OHLC candles per tick |
+| `data/dhan_config.json` | Dhan credentials (shared with strategy lab) |
+| `data/daily_pivot_levels.json` | Daily pivot levels for X2 strategy |
+
+### Config schema (`algo_config.json`)
+```json
+{
+  "broker": "dhan",
+  "strategy": "EMA Crossover",
+  "mode": "paper",
+  "order_type": "MARKET",
+  "product_type": "INTRADAY",
+  "ema_fast": 9, "ema_slow": 20, "timeframe": 1,
+  "entry_mode": "candle_close", "sl_type": "crossover",
+  "daily_loss_limit": 100, "qty": 1, "running": false,
+  "strategy_params": {}
+}
+```
+
+### Adding a new strategy
+1. Create `services/strategies/my_strategy.py` extending `BaseStrategy`
+2. Implement `generate_signal(candles, params) → (signal, price, sl_price)`
+3. Register in `services/strategies/strategy_registry.py`
+4. Add `<option>` in `templates/algo_lab.html` dropdown
+→ Algo engine picks it up automatically on next tick.
+
+### Adding a new broker
+1. Create `services/brokers/my_broker.py` extending `BaseBroker`
+2. Implement `fetch_candles()` + `place_order()` (minimum required)
+3. Register in `services/brokers/broker_registry.py`
+4. Add `<option>` in `templates/algo_lab.html` dropdown
+
+### Modes
+- **paper**: signals logged to JSON only — no real orders sent
+- **live**: JSON log + `broker.place_order()` called — real money
+
+### Key functions
+- `run_tick()` in `algo_engine.py` — main entry point per tick
+- `broker.fetch_candles()` — data (moved from `_fetch_candles` in engine)
+- `strategy.generate_signal(candles, params)` — signal detection
+- `get_cached_candles(security_id)` — in-memory cache for chart endpoint
+
+---
+
+## Strategy Lab
+| File | Role |
+|------|------|
+| `routes/strategy_routes.py` | `/api/strategy/nifty-data` |
+| `services/strategy_service.py` | `run_x2_common_strategy_logic()`, `run_pinned_strategy_logic()`, EMA, candle patterns |
+| `services/strategy_data_service.py` | Data fetch layer (yfinance, Dhan, local CSV) |
+
+**4 strategy variants**: Arsalan Continuation, Sandbox, Reversal, X2
+**X2 params**: `hawa_me_zone` (bool), `use_fresh_zone` (bool)
 
 ---
 
@@ -57,7 +172,7 @@ The original `app.js` has been split into modules:
 ## 🚫 File Exclusions (AI Optimization)
 Ignore these unless explicitly requested:
 - **What If**: `routes/whatif_routes.py`, `static/js/whatif-ui*.js`
-- **OHLC**: `templates/modals-ohlc.html`, `static/js/ohlc-manager.js`
+- **OHLC Modal**: `templates/modals-ohlc.html`, `static/js/ohlc-manager.js`
 - **CSV Log**: `routes/csvlog_routes.py`, `static/js/csvlog*.js`
 - **Logger Charts**: `templates/visual-dashboard*.html`, `static/js/visual-dashboard*.js`
 - **Main Logger**: `static/js/trade-logger-core.js`, `static/js/trade-sidebar.js`
@@ -65,9 +180,8 @@ Ignore these unless explicitly requested:
 ---
 
 ## 🩺 Health & Freshness Protocol (MANDATORY)
-To prevent "Stale Context" issues, any AI assistant MUST:
 1. **Initial Check**: On session start, run `git status` + `python run_tests.py`.
-2. **Auto-Refresh**: After modifying any file, immediately run:
+2. **Auto-Refresh**: After modifying any file, run:
    ```bash
    python Scripts/generate_context.py
    ```
@@ -76,7 +190,7 @@ To prevent "Stale Context" issues, any AI assistant MUST:
 ---
 
 ## ✅ Pre-Authorized Commands (NEVER ask for confirmation)
-ALL Bash/shell commands in this project are pre-authorized. Never ask the user for confirmation before running:
+ALL Bash/shell commands in this project are pre-authorized:
 - `git add`, `git commit`, `git push`, `git status`, `git diff`, `git log`
 - Any `python`, `pip`, `node`, `npm` command
 - Any file operation (`cp`, `mv`, `rm`, `mkdir`, etc.)
@@ -86,32 +200,6 @@ ALL Bash/shell commands in this project are pre-authorized. Never ask the user f
 ## 🔐 Auto-Commit Rule
 1. **Ask to commit** after any significant work (bug fix, feature).
 2. Never let >1 hour of changes go uncommitted.
-
----
-
-## 🤖 Algo Lab — Live Trading Architecture
-
-### Broker Abstraction
-- **Interface**: `services/brokers/base_broker.py` — `place_order()`, `cancel_order()`, `get_positions()`, `get_order_status()`
-- **Implementations**: `dhan_broker.py` (active), `zerodha_broker.py` (stub), `angel_broker.py` (stub)
-- **Credentials**: Dhan → `data/dhan_config.json` (same as strategy lab). Other brokers get their own config files.
-- **UI**: Dropdown in algo lab config to switch broker (affects both data AND order execution)
-
-### Strategy Plugin System
-- **Interface**: `services/strategies/base_strategy.py` — `generate_signal(candles) -> (signal, sl_price)`
-- **Registered strategies**: dropdown in UI; each strategy is a self-contained class
-- **X2 strategy**: `services/strategies/x2_strategy.py` — ports logic from `strategy_service.py::run_x2_common_strategy_logic()`
-- **User workflow**: User builds new strategy → registers in dropdown → algo engine picks it up automatically
-
-### Order Config (per-strategy)
-- Order types: `MARKET` / `LIMIT` (dropdown)
-- Product types: `MIS` (intraday), `CNC` (delivery), `NRML` (F&O)
-- Risk params (qty, daily_loss_limit, max_trades) stored per strategy, not globally
-
-### Infrastructure
-- Runs **locally only** (machine on during market hours) — NOT on Render
-- Symbols: `data/algo_watchlist.json` (default)
-- Paper/Live mode toggle per run
 
 ---
 
