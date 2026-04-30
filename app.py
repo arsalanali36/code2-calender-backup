@@ -57,6 +57,7 @@ from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
 from services.local_backup_service import start_local_backup_service
+from services.algo_ohlc_fetcher import start_ohlc_fetcher
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -245,6 +246,7 @@ except Exception as _gist_err:
 threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
 start_local_backup_service()
+start_ohlc_fetcher()
 
 # ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
 if os.environ.get('USE_BUNDLE') == '1':
