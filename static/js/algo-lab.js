@@ -215,7 +215,7 @@ function renderOrders(orders) {
       : null;
     const cmpStr  = o.cmp ? `₹${o.cmp}` : '—';
     const statusCls = o.status === 'OPEN' ? 'td-open' : 'td-closed';
-    return `<tr>
+    return `<tr class="clickable" onclick='openChart(${JSON.stringify(o)})'>
       <td style="color:#64748b">${orders.length - i}</td>
       <td class="td-sym">${o.symbol}</td>
       <td class="${o.side === 'BUY' ? 'td-buy' : 'td-sell'}">${o.side}</td>
@@ -279,6 +279,145 @@ function showAlert(msg, type) {
   el.className = `algo-alert ${type}`;
   if (_alertTimer) clearTimeout(_alertTimer);
   _alertTimer = setTimeout(() => { el.className = 'algo-alert'; }, 5000);
+}
+
+// ── Chart Modal ───────────────────────────────────────────────────────────────
+
+let _chartOrder = null;
+
+async function openChart(order) {
+  _chartOrder = order;
+  document.getElementById('chart-modal-title').textContent = `${order.symbol} — 1-min Chart`;
+  document.getElementById('chart-modal-meta').textContent =
+    `Entry: ₹${order.entry_price}  ${order.exit_price ? '| Exit: ₹'+order.exit_price : '| OPEN'}`;
+  document.getElementById('chart-modal-overlay').classList.add('open');
+
+  const canvas = document.getElementById('algo-chart-canvas');
+  const ctx = canvas.getContext('2d');
+  // show loading
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = 400;
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#64748b';
+  ctx.font = '14px Inter';
+  ctx.textAlign = 'center';
+  ctx.fillText('Loading chart…', canvas.width / 2, 200);
+
+  try {
+    const r   = await fetch(`/api/algo/chart/${order.security_id}`);
+    const d   = await r.json();
+    if (d.error) { ctx.fillStyle='#ef4444'; ctx.fillText(d.error, canvas.width/2, 200); return; }
+    drawChart(canvas, ctx, d, order);
+  } catch(e) {
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('Failed to load: ' + e.message, canvas.width/2, 200);
+  }
+}
+
+function closeChartModal(e) {
+  if (e && e.target !== document.getElementById('chart-modal-overlay')) return;
+  document.getElementById('chart-modal-overlay').classList.remove('open');
+}
+
+function drawChart(canvas, ctx, data, order) {
+  const candles  = data.candles;
+  const emaFast  = data.ema_fast;
+  const emaSlow  = data.ema_slow;
+  const W = canvas.width, H = canvas.height;
+  const PAD = { top: 20, right: 60, bottom: 36, left: 10 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
+  const n  = candles.length;
+  if (!n) return;
+
+  // Price range
+  const allPrices = candles.flatMap(c => [c.high, c.low]);
+  const validEma  = [...emaFast, ...emaSlow].filter(v => v != null);
+  if (validEma.length) allPrices.push(...validEma);
+  if (order.entry_price) allPrices.push(order.entry_price);
+  if (order.exit_price)  allPrices.push(order.exit_price);
+  const minP = Math.min(...allPrices) * 0.9995;
+  const maxP = Math.max(...allPrices) * 1.0005;
+  const pRange = maxP - minP;
+
+  const toX = i => PAD.left + (i / (n - 1)) * cW;
+  const toY = p => PAD.top + (1 - (p - minP) / pRange) * cH;
+
+  // Background
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = PAD.top + (i / 5) * cH;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+    const price = maxP - (i / 5) * pRange;
+    ctx.fillStyle = '#475569'; ctx.font = '9px Inter'; ctx.textAlign = 'right';
+    ctx.fillText(price.toFixed(1), W - 2, y + 3);
+  }
+
+  // Candlesticks
+  const barW = Math.max(1, (cW / n) * 0.6);
+  candles.forEach((c, i) => {
+    const x   = toX(i);
+    const isBull = c.close >= c.open;
+    ctx.fillStyle   = isBull ? '#10b981' : '#ef4444';
+    ctx.strokeStyle = isBull ? '#10b981' : '#ef4444';
+    ctx.lineWidth = 1;
+    // Wick
+    ctx.beginPath();
+    ctx.moveTo(x, toY(c.high));
+    ctx.lineTo(x, toY(c.low));
+    ctx.stroke();
+    // Body
+    const y1 = toY(Math.max(c.open, c.close));
+    const y2 = toY(Math.min(c.open, c.close));
+    ctx.fillRect(x - barW / 2, y1, barW, Math.max(1, y2 - y1));
+  });
+
+  // EMA lines
+  const drawEma = (arr, color) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.beginPath();
+    let started = false;
+    arr.forEach((v, i) => {
+      if (v == null) return;
+      const x = toX(i), y = toY(v);
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  };
+  drawEma(emaFast, '#10b981');
+  drawEma(emaSlow, '#f59e0b');
+
+  // Entry line
+  if (order.entry_price) {
+    const y = toY(order.entry_price);
+    ctx.setLineDash([4, 3]); ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#6366f1'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'right';
+    ctx.fillText('ENTRY ₹' + order.entry_price, W - 2, y - 2);
+  }
+
+  // Exit line
+  if (order.exit_price) {
+    const y = toY(order.exit_price);
+    ctx.setLineDash([4, 3]); ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'right';
+    ctx.fillText('EXIT ₹' + order.exit_price, W - 2, y - 2);
+  }
+
+  // X-axis time labels (every ~30 candles)
+  ctx.fillStyle = '#475569'; ctx.font = '9px Inter'; ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(n / 8));
+  for (let i = 0; i < n; i += step) {
+    ctx.fillText(candles[i].time, toX(i), H - 6);
+  }
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
