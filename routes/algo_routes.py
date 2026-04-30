@@ -13,7 +13,7 @@ from services.algo_engine import (
     get_watchlist, save_watchlist,
     get_orders, clear_orders, save_orders,
     resolve_equity_symbol, run_tick, reset_daily_state,
-    _fetch_candles, _calc_ema, get_cached_candles,
+    _calc_ema, get_cached_candles,
     list_saved_ohlc, load_ohlc_file,
 )
 
@@ -41,13 +41,16 @@ def get_config():
 def set_config():
     data = request.get_json() or {}
     cfg  = get_algo_config()
-    for key in ('ema_fast', 'ema_slow', 'timeframe', 'entry_mode',
-                'sl_type', 'daily_loss_limit', 'qty', 'running'):
+    str_keys   = ('broker', 'strategy', 'mode', 'order_type', 'product_type',
+                   'entry_mode', 'sl_type')
+    int_keys   = ('ema_fast', 'ema_slow', 'timeframe', 'qty')
+    float_keys = ('daily_loss_limit',)
+    for key in str_keys + int_keys + float_keys + ('running', 'strategy_params'):
         if key in data:
             val = data[key]
-            if key in ('ema_fast', 'ema_slow', 'qty'):
+            if key in int_keys:
                 val = int(val)
-            elif key in ('daily_loss_limit',):
+            elif key in float_keys:
                 val = float(val)
             cfg[key] = val
     save_algo_config(cfg)
@@ -203,16 +206,13 @@ def chart_data(security_id):
                 "source":          "cache",
             })
 
-        # Cache cold — fetch fresh from Dhan
-        from services.dhan_service_core import get_config as dhan_get_config
-        dhan_cfg = dhan_get_config()
-        if not dhan_cfg:
-            return jsonify({"error": "Dhan credentials not configured"}), 400
-
+        # Cache cold — fetch fresh via broker
+        from services.brokers.broker_registry import get_broker
+        broker  = get_broker(cfg.get('broker', 'dhan'))
         today   = _date.today().isoformat()
-        candles = _fetch_candles(
+        candles = broker.fetch_candles(
             item['security_id'], item.get('exchange_segment', 'NSE_EQ'),
-            item.get('instrument', 'EQUITY'), today, dhan_cfg,
+            item.get('instrument', 'EQUITY'), today,
         )
         if not candles:
             return jsonify({"error": "No candle data from Dhan"}), 404
