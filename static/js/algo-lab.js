@@ -40,19 +40,74 @@ async function loadStatus() {
 
 function applyConfig(cfg) {
   if (!cfg) return;
-  document.getElementById('cfg-ema-fast').value   = cfg.ema_fast   ?? 9;
-  document.getElementById('cfg-ema-slow').value   = cfg.ema_slow   ?? 20;
-  document.getElementById('cfg-tf').value         = cfg.timeframe  ?? 1;
-  document.getElementById('cfg-entry').value      = cfg.entry_mode ?? 'candle_close';
-  document.getElementById('cfg-sl').value         = cfg.sl_type    ?? 'crossover';
-  document.getElementById('cfg-loss-limit').value = cfg.daily_loss_limit ?? 100;
-  document.getElementById('cfg-qty').value        = cfg.qty        ?? 1;
+  document.getElementById('cfg-broker').value       = cfg.broker       ?? 'dhan';
+  document.getElementById('cfg-strategy').value     = cfg.strategy     ?? 'EMA Crossover';
+  document.getElementById('cfg-mode').value         = cfg.mode         ?? 'paper';
+  document.getElementById('cfg-order-type').value   = cfg.order_type   ?? 'MARKET';
+  document.getElementById('cfg-product-type').value = cfg.product_type ?? 'INTRADAY';
+  document.getElementById('cfg-ema-fast').value     = cfg.ema_fast     ?? 9;
+  document.getElementById('cfg-ema-slow').value     = cfg.ema_slow     ?? 20;
+  document.getElementById('cfg-tf').value           = cfg.timeframe    ?? 1;
+  document.getElementById('cfg-entry').value        = cfg.entry_mode   ?? 'candle_close';
+  document.getElementById('cfg-sl').value           = cfg.sl_type      ?? 'crossover';
+  document.getElementById('cfg-loss-limit').value   = cfg.daily_loss_limit ?? 100;
+  document.getElementById('cfg-qty').value          = cfg.qty          ?? 1;
+
+  // X2 params
+  const sp = cfg.strategy_params || {};
+  document.getElementById('cfg-x2-hawa').value  = sp.hawa_me_zone   === true ? 'true' : 'false';
+  document.getElementById('cfg-x2-fresh').value = sp.use_fresh_zone === false ? 'false' : 'true';
+
+  _applyStrategyVisibility(cfg.strategy ?? 'EMA Crossover');
+  _applyModeUI(cfg.mode ?? 'paper');
+}
+
+function onStrategyChange() {
+  _applyStrategyVisibility(document.getElementById('cfg-strategy').value);
+}
+
+function onModeChange() {
+  const mode = document.getElementById('cfg-mode').value;
+  if (mode === 'live') {
+    if (!confirm('⚠️ LIVE mode will send real orders to your broker.\n\nAre you sure?')) {
+      document.getElementById('cfg-mode').value = 'paper';
+      return;
+    }
+  }
+  _applyModeUI(mode);
+}
+
+function _applyStrategyVisibility(strategy) {
+  const isX2 = strategy === 'Arsalan X2';
+  document.getElementById('ema-params-section').style.display = isX2 ? 'none'  : '';
+  document.getElementById('x2-params-section').style.display  = isX2 ? ''     : 'none';
+}
+
+function _applyModeUI(mode) {
+  const badge      = document.getElementById('mode-badge');
+  const bookHeader = document.getElementById('order-book-header');
+  if (mode === 'live') {
+    badge.textContent  = '🔴 LIVE TRADING';
+    badge.className    = 'badge live';
+    bookHeader.textContent = '🔴 Live Order Book';
+  } else {
+    badge.textContent  = 'PAPER TRADING';
+    badge.className    = 'badge paper';
+    bookHeader.textContent = 'Paper Order Book';
+  }
 }
 
 // ── Config Save ───────────────────────────────────────────────────────────────
 
 async function saveConfig() {
+  const strategy = document.getElementById('cfg-strategy').value;
+  const isX2     = strategy === 'Arsalan X2';
   const cfg = {
+    broker:       document.getElementById('cfg-broker').value,
+    strategy,
+    mode:         document.getElementById('cfg-mode').value,
+    order_type:   document.getElementById('cfg-order-type').value,
+    product_type: document.getElementById('cfg-product-type').value,
     ema_fast:         parseInt(document.getElementById('cfg-ema-fast').value) || 9,
     ema_slow:         parseInt(document.getElementById('cfg-ema-slow').value) || 20,
     timeframe:        parseInt(document.getElementById('cfg-tf').value)       || 1,
@@ -60,6 +115,10 @@ async function saveConfig() {
     sl_type:          document.getElementById('cfg-sl').value,
     daily_loss_limit: parseFloat(document.getElementById('cfg-loss-limit').value) || 100,
     qty:              parseInt(document.getElementById('cfg-qty').value) || 1,
+    strategy_params: isX2 ? {
+      hawa_me_zone:   document.getElementById('cfg-x2-hawa').value  === 'true',
+      use_fresh_zone: document.getElementById('cfg-x2-fresh').value !== 'false',
+    } : {},
   };
   const r = await fetch('/api/algo/config', {
     method: 'POST',

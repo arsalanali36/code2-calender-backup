@@ -89,6 +89,32 @@ ALL Bash/shell commands in this project are pre-authorized. Never ask the user f
 
 ---
 
+## 🤖 Algo Lab — Live Trading Architecture
+
+### Broker Abstraction
+- **Interface**: `services/brokers/base_broker.py` — `place_order()`, `cancel_order()`, `get_positions()`, `get_order_status()`
+- **Implementations**: `dhan_broker.py` (active), `zerodha_broker.py` (stub), `angel_broker.py` (stub)
+- **Credentials**: Dhan → `data/dhan_config.json` (same as strategy lab). Other brokers get their own config files.
+- **UI**: Dropdown in algo lab config to switch broker (affects both data AND order execution)
+
+### Strategy Plugin System
+- **Interface**: `services/strategies/base_strategy.py` — `generate_signal(candles) -> (signal, sl_price)`
+- **Registered strategies**: dropdown in UI; each strategy is a self-contained class
+- **X2 strategy**: `services/strategies/x2_strategy.py` — ports logic from `strategy_service.py::run_x2_common_strategy_logic()`
+- **User workflow**: User builds new strategy → registers in dropdown → algo engine picks it up automatically
+
+### Order Config (per-strategy)
+- Order types: `MARKET` / `LIMIT` (dropdown)
+- Product types: `MIS` (intraday), `CNC` (delivery), `NRML` (F&O)
+- Risk params (qty, daily_loss_limit, max_trades) stored per strategy, not globally
+
+### Infrastructure
+- Runs **locally only** (machine on during market hours) — NOT on Render
+- Symbols: `data/algo_watchlist.json` (default)
+- Paper/Live mode toggle per run
+
+---
+
 ## 🧠 Preventative Mindset
 - Whenever a mistake occurs: Ask "How can we ensure this never happens again?"
 - Update `CLAUDE.md` or automation scripts to bake in the fix.

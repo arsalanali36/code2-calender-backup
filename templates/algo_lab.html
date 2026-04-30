@@ -15,7 +15,7 @@
 <!-- Top Bar -->
 <div class="algo-topbar">
   <h1>⚡ Algo Lab</h1>
-  <span class="badge paper">PAPER TRADING</span>
+  <span class="badge paper" id="mode-badge">PAPER TRADING</span>
   <div class="tick-info">
     <span class="last-tick" id="last-tick-time">Last tick: --</span>
     <span>|</span>
@@ -47,14 +47,88 @@
         <button class="btn btn-primary btn-sm" onclick="saveConfig()">Save</button>
       </div>
       <div class="card-body">
+
+        <!-- Broker -->
         <div class="form-row">
-          <label>EMA Fast</label>
-          <input type="number" id="cfg-ema-fast" value="9" min="1" max="200">
+          <label>Broker</label>
+          <select id="cfg-broker">
+            <option value="dhan">Dhan</option>
+            <option value="zerodha" disabled>Zerodha (soon)</option>
+            <option value="angel" disabled>Angel One (soon)</option>
+          </select>
         </div>
+
+        <!-- Strategy -->
         <div class="form-row">
-          <label>EMA Slow</label>
-          <input type="number" id="cfg-ema-slow" value="20" min="1" max="200">
+          <label>Strategy</label>
+          <select id="cfg-strategy" onchange="onStrategyChange()">
+            <option value="EMA Crossover">EMA Crossover</option>
+            <option value="Arsalan X2">Arsalan X2</option>
+          </select>
         </div>
+
+        <!-- Mode toggle -->
+        <div class="form-row">
+          <label>Mode</label>
+          <select id="cfg-mode" onchange="onModeChange()">
+            <option value="paper">Paper Trading</option>
+            <option value="live">🔴 LIVE Trading</option>
+          </select>
+        </div>
+
+        <!-- Order type -->
+        <div class="form-row">
+          <label>Order Type</label>
+          <select id="cfg-order-type">
+            <option value="MARKET">Market</option>
+            <option value="LIMIT">Limit</option>
+          </select>
+        </div>
+
+        <!-- Product type -->
+        <div class="form-row">
+          <label>Product Type</label>
+          <select id="cfg-product-type">
+            <option value="INTRADAY">Intraday (MIS)</option>
+            <option value="DELIVERY">Delivery (CNC)</option>
+            <option value="MARGIN">Margin</option>
+          </select>
+        </div>
+
+        <div class="cfg-divider"></div>
+
+        <!-- EMA params (visible for EMA Crossover strategy) -->
+        <div id="ema-params-section">
+          <div class="form-row">
+            <label>EMA Fast</label>
+            <input type="number" id="cfg-ema-fast" value="9" min="1" max="200">
+          </div>
+          <div class="form-row">
+            <label>EMA Slow</label>
+            <input type="number" id="cfg-ema-slow" value="20" min="1" max="200">
+          </div>
+        </div>
+
+        <!-- X2 params (visible for Arsalan X2 strategy) -->
+        <div id="x2-params-section" style="display:none">
+          <div class="form-row">
+            <label>Hawa Me Zone</label>
+            <select id="cfg-x2-hawa">
+              <option value="false">Off</option>
+              <option value="true">On</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Use Fresh Zone</label>
+            <select id="cfg-x2-fresh">
+              <option value="true">On</option>
+              <option value="false">Off</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cfg-divider"></div>
+
         <div class="form-row">
           <label>Timeframe (min)</label>
           <input type="number" id="cfg-tf" value="1" min="1" max="60">
@@ -156,7 +230,7 @@
 
     <!-- Order Book -->
     <div class="card">
-      <div class="card-header">Paper Order Book</div>
+      <div class="card-header" id="order-book-header">Paper Order Book</div>
       <div class="table-wrap">
         <table>
           <thead>
