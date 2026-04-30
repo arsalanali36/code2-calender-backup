@@ -11403,7 +11403,8 @@
     "2026-04-28": {
       "imageTags": {},
       "images": []
-    }
+    },
+    "2026-04-29": {}
   },
   "imgTypes": {},
   "importedPdfs": [],
@@ -31490,6 +31491,36 @@
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-29"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 108.45,
+      "Buy Time": "10:17:35",
+      "Day P&L": 5918.25,
+      "Gross P/L": 5918.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2650524000CE",
+      "Net P/L": 5823.36,
+      "Note": "",
+      "Other Charges": 54.89,
+      "Pt": 30.35,
+      "Qty": 195,
+      "Rs": 5918.25,
+      "Sell Price (Avg)": 138.8,
+      "Sell Time": "09:50:29",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 94.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-04-30",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-04-30"
     }
   ],
   "uiSettings": {},
