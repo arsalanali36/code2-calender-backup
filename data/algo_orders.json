@@ -21,11 +21,11 @@
     "entry_price": 939.65,
     "entry_time": "2026-04-30 14:53",
     "qty": 1,
-    "exit_price": null,
-    "exit_time": null,
-    "pnl": null,
-    "status": "OPEN",
-    "cmp": 939.0
+    "exit_price": 938.25,
+    "exit_time": "2026-04-30 15:01",
+    "pnl": -1.4,
+    "status": "CLOSED",
+    "cmp": 937.9
   },
   {
     "id": "92c53737",
@@ -39,7 +39,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 2398.9
+    "cmp": 2397.7
   },
   {
     "id": "7c8ca3b2",
@@ -53,7 +53,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 1805.5
+    "cmp": 1807.5
   },
   {
     "id": "d69b0245",
@@ -67,7 +67,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 299.7
+    "cmp": 300.1
   },
   {
     "id": "0fd7f4dc",
@@ -81,7 +81,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 4016.0
+    "cmp": 4004.4
   },
   {
     "id": "cdb6e2c6",
@@ -95,7 +95,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 1070.4
+    "cmp": 1067.0
   },
   {
     "id": "2d270b55",
@@ -109,7 +109,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 382.9
+    "cmp": 381.75
   },
   {
     "id": "97ef9408",
@@ -123,7 +123,7 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 318.1
+    "cmp": 318.0
   },
   {
     "id": "e39b5931",
@@ -137,6 +137,48 @@
     "exit_time": null,
     "pnl": null,
     "status": "OPEN",
-    "cmp": 2794.5
+    "cmp": 2793.8
+  },
+  {
+    "id": "04a35fe5",
+    "symbol": "ADANIPORTS",
+    "security_id": "15083",
+    "side": "BUY",
+    "entry_price": 1625.4,
+    "entry_time": "2026-04-30 15:00",
+    "qty": 1,
+    "exit_price": null,
+    "exit_time": null,
+    "pnl": null,
+    "status": "OPEN",
+    "cmp": 1649.6
+  },
+  {
+    "id": "dffe485e",
+    "symbol": "CIPLA",
+    "security_id": "694",
+    "side": "BUY",
+    "entry_price": 1314.2,
+    "entry_time": "2026-04-30 15:00",
+    "qty": 1,
+    "exit_price": 1312.7,
+    "exit_time": "2026-04-30 15:01",
+    "pnl": -1.5,
+    "status": "CLOSED",
+    "cmp": 1312.6
+  },
+  {
+    "id": "2396c934",
+    "symbol": "SBILIFE",
+    "security_id": "21808",
+    "side": "BUY",
+    "entry_price": 1821.9,
+    "entry_time": "2026-04-30 15:01",
+    "qty": 1,
+    "exit_price": 1821.4,
+    "exit_time": "2026-04-30 15:02",
+    "pnl": -0.5,
+    "status": "CLOSED",
+    "cmp": 1822.2
   }
 ]

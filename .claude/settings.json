@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python run_tests.py)",
+      "Bash(python Scripts/generate_context.py)",
+      "Bash(python app.py)",
+      "Bash(pip install *)",
+      "Bash(pip show *)",
+      "Bash(pip list)",
+      "Bash(curl -s -o /dev/null *)",
+      "Bash(netstat *)",
+      "Bash(tasklist *)",
+      "Bash(where *)"
+    ],
+    "deny": []
+  }
+}
