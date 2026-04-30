@@ -10,6 +10,17 @@ import traceback
 from datetime import datetime
 from config import AI_DEBUG_LOG
 
+def _rotate_log(path: str, max_lines: int = 200):
+    """Trim log to last max_lines if it exceeds that count."""
+    if not os.path.exists(path):
+        return
+    with open(path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    if len(lines) >= max_lines:
+        with open(path, 'w', encoding='utf-8') as f:
+            f.writelines(lines[-(max_lines - 1):])  # leave room for new entry
+
+
 def log_ai_event(event_type: str, message: str, data: dict = None):
     """
     Logs an event to ai_debug.log in JSONL format for easy parsing by AI.
@@ -25,6 +36,9 @@ def log_ai_event(event_type: str, message: str, data: dict = None):
         # Ensure directory exists
         os.makedirs(os.path.dirname(AI_DEBUG_LOG), exist_ok=True)
         
+        # Rotate: keep last 200 lines to prevent unbounded growth
+        _rotate_log(AI_DEBUG_LOG, max_lines=200)
+
         with open(AI_DEBUG_LOG, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry) + "\n")
             
