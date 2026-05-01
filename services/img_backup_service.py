@@ -47,8 +47,20 @@ def _get_backup_folder():
         return None
 
 
+def _parse_img(url):
+    """Return (filename, remote_url_or_None) for an image URL."""
+    if not url:
+        return None, None
+    fname = url.split('/')[-1].split('?')[0]
+    if not fname:
+        return None, None
+    remote = url if url.startswith('http') else None
+    return fname, remote
+
+
 def build_image_map():
-    """Return {filename: {'date': str, 'prefix': str}} for every image in trades data."""
+    """Return {filename: {'date', 'prefix', 'remote'}} for every image in trades data.
+    'remote' is the CDN URL if not stored locally, else None."""
     trades_file = find_best_trades_file()
     with open(trades_file, encoding='utf-8') as f:
         data = json.load(f)
@@ -66,23 +78,37 @@ def build_image_map():
     for date, ts in by_date.items():
         for i, t in enumerate(ts):
             for img in (t.get('images') or []):
-                fname = img.split('/')[-1] if '/' in img else img
+                fname, remote = _parse_img(img)
                 if fname:
-                    image_map[fname] = {'date': date, 'prefix': f'T{i + 1}'}
+                    image_map[fname] = {'date': date, 'prefix': f'T{i + 1}', 'remote': remote}
 
     for date, dd in day_data.items():
         if not date:
             continue
         for img in (dd.get('images') or []):
-            fname = img.split('/')[-1] if '/' in img else img
+            fname, remote = _parse_img(img)
             if fname and fname not in image_map:
-                image_map[fname] = {'date': date, 'prefix': 'DAY'}
+                image_map[fname] = {'date': date, 'prefix': 'DAY', 'remote': remote}
         for img in (dd.get('closeImages') or []):
-            fname = img.split('/')[-1] if '/' in img else img
+            fname, remote = _parse_img(img)
             if fname and fname not in image_map:
-                image_map[fname] = {'date': date, 'prefix': 'CLOSE'}
+                image_map[fname] = {'date': date, 'prefix': 'CLOSE', 'remote': remote}
 
     return image_map
+
+
+def _download_remote(url, dest_path):
+    """Download a remote image URL to dest_path. Returns True on success."""
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = resp.read()
+        with open(dest_path, 'wb') as f:
+            f.write(data)
+        return True
+    except Exception:
+        return False
 
 
 def _all_backup_files(base):
@@ -156,29 +182,45 @@ def sync_all_to_backup():
     errors = []
 
     for fname, info in image_map.items():
-        src = os.path.join(UPLOADS_DIR, fname)
-        if not os.path.exists(src):
-            missing += 1
-            continue
-
         date = info['date']
         prefix = info['prefix']
+        remote = info.get('remote')
+
+        local_src = os.path.join(UPLOADS_DIR, fname)
+
         dest_dir = _day_dir(base, date)
         os.makedirs(dest_dir, exist_ok=True)
-
         dest_name = f"{prefix}_{fname}"
         dest = os.path.join(dest_dir, dest_name)
 
-        _remove_stale(base, fname, dest)
-
-        if not os.path.exists(dest):
-            try:
-                shutil.copy2(src, dest)
-                copied += 1
-            except Exception as e:
-                errors.append(f"{fname}: {e}")
+        if os.path.exists(local_src):
+            _remove_stale(base, fname, dest)
+            if not os.path.exists(dest):
+                try:
+                    shutil.copy2(local_src, dest)
+                    copied += 1
+                except Exception as e:
+                    errors.append(f"{fname}: {e}")
+            else:
+                skipped += 1
+        elif remote:
+            # Remote CDN image — download directly to backup
+            _remove_stale(base, fname, dest)
+            if not os.path.exists(dest):
+                if _download_remote(remote, dest):
+                    copied += 1
+                    # Also save locally so app doesn't depend on CDN
+                    if not os.path.exists(local_src):
+                        try:
+                            shutil.copy2(dest, local_src)
+                        except Exception:
+                            pass
+                else:
+                    errors.append(f"Download failed: {remote[:60]}")
+            else:
+                skipped += 1
         else:
-            skipped += 1
+            missing += 1
 
     return {
         'ok': True,
@@ -202,20 +244,26 @@ def sync_date_to_backup(date):
             return
 
         for fname, info in date_images.items():
-            src = os.path.join(UPLOADS_DIR, fname)
-            if not os.path.exists(src):
-                continue
             prefix = info['prefix']
+            remote = info.get('remote')
+            local_src = os.path.join(UPLOADS_DIR, fname)
             dest_dir = _day_dir(base, date)
             os.makedirs(dest_dir, exist_ok=True)
             dest_name = f"{prefix}_{fname}"
             dest = os.path.join(dest_dir, dest_name)
             _remove_stale(base, fname, dest)
             if not os.path.exists(dest):
-                try:
-                    shutil.copy2(src, dest)
-                except Exception:
-                    pass
+                if os.path.exists(local_src):
+                    try:
+                        shutil.copy2(local_src, dest)
+                    except Exception:
+                        pass
+                elif remote:
+                    if _download_remote(remote, dest) and not os.path.exists(local_src):
+                        try:
+                            shutil.copy2(dest, local_src)
+                        except Exception:
+                            pass
     except Exception:
         pass
 
