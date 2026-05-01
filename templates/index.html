@@ -141,28 +141,19 @@
 
           <div class="profile-divider"></div>
 
-          <button class="profile-menu-item" id="profile-settings-btn">
-            <span class="pmi-icon">&#9881;</span> Settings
-          </button>
-
-          <button class="profile-menu-item" id="profile-quote-btn">
-            <span class="pmi-icon">&#10077;</span> Quote
-          </button>
-
-          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
-          <a href="/whatif" class="profile-menu-item" target="_blank">&#128200; What If</a>
+          <button class="profile-menu-item" id="profile-settings-btn">⚙️ Settings</button>
+          <button class="profile-menu-item" id="profile-quote-btn">💬 Quote</button>
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">📋 Dev Journal</a>
+          <a href="/whatif" class="profile-menu-item" target="_blank">📈 What If</a>
           <button class="profile-menu-item" id="fullscreen-btn">⛶ Fullscreen</button>
           <button class="profile-menu-item mobile-view-toggle-btn" id="mobile-view-toggle-btn">📱 Mobile View</button>
           <button class="profile-menu-item" id="mobile-gallery-btn" onclick="window.open('/mobile/?view=gallery', '_blank')">📷 Gallery</button>
-          <button class="profile-menu-item" id="profile-ohlc-btn">
-            <span class="pmi-icon">&#128202;</span> OHLC
-          </button>
+          <button class="profile-menu-item" id="profile-ohlc-btn">📊 OHLC</button>
 
           <!-- Broker inline dropdown -->
           <div class="profile-inline-group" id="profile-broker-group">
             <div class="profile-menu-item profile-inline-trigger" id="profile-broker-trigger">
-              <span class="pmi-icon">&#9632;</span>
-              <span>Broker</span>
+              🏦 Broker
               <span class="pmi-badge" id="profile-broker-badge">Zerodha</span>
               <span class="pmi-arrow" id="profile-broker-arrow">&#9660;</span>
             </div>
@@ -176,8 +167,7 @@
           <!-- View inline dropdown -->
           <div class="profile-inline-group" id="profile-view-group">
             <div class="profile-menu-item profile-inline-trigger" id="profile-view-trigger">
-              <span class="pmi-icon">&#9635;</span>
-              <span>View</span>
+              👁️ View
               <span class="pmi-badge" id="profile-view-badge">Consolidated</span>
               <span class="pmi-arrow" id="profile-view-arrow">&#9660;</span>
             </div>
@@ -188,9 +178,7 @@
           </div>
 
           <div class="profile-divider"></div>
-          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item profile-signout">
-            &#8617; Sign Out
-          </a>
+          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item profile-signout">↩ Sign Out</a>
         </div>
       </div>
       {% endif %}

@@ -66,7 +66,10 @@
   border-radius: var(--radius);
   min-width: 230px;
   box-shadow: var(--shadow);
-  z-index: 500; overflow: visible;
+  z-index: 500;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  overflow-x: visible;
 }
 .profile-dropdown.open { display: block; }
 
