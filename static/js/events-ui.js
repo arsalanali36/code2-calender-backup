@@ -101,18 +101,22 @@ function _bindUIEvents() {
   const profileDropdown = document.getElementById('profile-dropdown');
 
   function resetProfileDropdownPos() {
+    if (!profileDropdown) return;
     profileDropdown.style.position = '';
     profileDropdown.style.top = '';
     profileDropdown.style.right = '';
     profileDropdown.style.left = '';
+    profileDropdown.style.zIndex = '';
   }
 
   function openProfileDropdownAt(btn) {
+    if (!profileDropdown) return;
     const rect = btn.getBoundingClientRect();
     profileDropdown.style.position = 'fixed';
     profileDropdown.style.top = (rect.bottom + 8) + 'px';
     profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
     profileDropdown.style.left = '';
+    profileDropdown.style.zIndex = '1100';
     profileDropdown.classList.add('open');
   }
 
