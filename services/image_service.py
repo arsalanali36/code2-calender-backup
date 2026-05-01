@@ -83,6 +83,25 @@ def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
     }
 
 
+def _upload_to_imagekit_from_path(filepath: str, original_filename: str = '') -> dict:
+    """Upload an already-saved local file to ImageKit (secondary CDN step)."""
+    import io
+    safe_name = re.sub(r'[^\w.\-]', '_', os.path.basename(original_filename or filepath))
+    with open(filepath, 'rb') as fh:
+        file_bytes = fh.read()
+
+    from config import IMAGEKIT_URL_ENDPOINT
+    ik = _get_imagekit()
+    result = ik.files.upload(
+        file=io.BytesIO(file_bytes),
+        file_name=safe_name,
+        folder='/trading_journal/',
+        use_unique_file_name=True,
+    )
+    url = result.url or f"{IMAGEKIT_URL_ENDPOINT}{result.file_path}"
+    return {'url': url, 'filename': result.file_id, 'imagekit': True}
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float = None,
@@ -101,22 +120,12 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
     orig_name = original_filename or file_storage.filename or ''
     ext = _validate_extension(orig_name or file_storage.filename)
 
-    # ── ImageKit path ──────────────────────────────────────────────────────────
-    if USE_IMAGEKIT:
-        try:
-            return _upload_to_imagekit(file_storage, orig_name)
-        except Exception as e:
-            raise ValueError(f'ImageKit upload failed: {e}')
-
-    # ── Local disk path ────────────────────────────────────────────────────────
+    # ── ALWAYS save locally first (platform-independent safety) ───────────────
     filename = f'{uuid.uuid4()}{ext}'
     filepath = os.path.join(uploads_dir, filename)
     file_storage.save(filepath)
 
-    # Resolve original time: filename parse → lastModified → file mtime
     original_t = _parse_time_from_filename(orig_name) or last_modified_s or os.path.getmtime(filepath)
-
-    # Write sidecar .meta
     try:
         with open(filepath + '.meta', 'w') as f:
             json.dump({'t': original_t}, f)
@@ -124,6 +133,16 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
         pass
 
     _copy_to_backup(filepath, filename)
+
+    # ── ImageKit upload (optional, after local save) ───────────────────────────
+    # Local file is the source of truth; ImageKit is secondary CDN only.
+    if USE_IMAGEKIT:
+        try:
+            result = _upload_to_imagekit_from_path(filepath, orig_name or filename)
+            # Return CDN URL but local file stays as fallback
+            return result
+        except Exception:
+            pass  # CDN failed — local file is already saved, return local URL
 
     return {'url': f'/uploads/{filename}', 'filename': filename}
 

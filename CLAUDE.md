@@ -5,6 +5,16 @@
 - **Frontend**: Vanilla JS (split modules, global scope) + Jinja2 (`templates/index.html`)
 - **Storage**: `data/trades_1.json` (flat file, no DB). `trades.json` is legacy fallback only.
 - **Images**: `static/uploads/`
+
+## 🔒 Image Upload Rule — LOCAL FIRST, CDN SECOND (NEVER VIOLATE)
+> Lesson: ImageKit/Cloudinary CDN dependency caused images to be unrecoverable when CDN became inaccessible.
+
+**Every image MUST be saved to `static/uploads/` locally BEFORE any CDN upload.**
+- `save_uploaded_image()` in `services/image_service.py` — local save is always step 1
+- `_copy_to_backup()` is always called after local save (backup folder copy)
+- CDN (ImageKit) upload happens AFTER local save, as an optional secondary step
+- If CDN upload fails → still return local `/uploads/filename` URL — never fail the upload
+- **NEVER** write code that skips local save and goes straight to CDN
 - **CSS**: `style-base.css` / `style-gallery-a.css` / `style-gallery-b.css` / `style-misc.css`
 
 ## Running the app
