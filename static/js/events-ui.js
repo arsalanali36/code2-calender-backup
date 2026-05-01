@@ -168,6 +168,53 @@ function _bindUIEvents() {
     if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
 
+  // Profile: Backup Folder
+  (function () {
+    const btn = document.getElementById('profile-backup-folder-btn');
+    const overlay = document.getElementById('backup-folder-overlay');
+    if (!btn || !overlay) return;
+
+    function openBackupModal() {
+      fetch('/api/backup-folder').then(r => r.json()).then(d => {
+        document.getElementById('backup-folder-input').value = d.folder || '';
+        document.getElementById('backup-folder-status').textContent = '';
+      }).catch(() => {});
+      overlay.style.display = 'flex';
+      if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
+    }
+
+    btn.addEventListener('click', openBackupModal);
+
+    document.getElementById('backup-folder-close').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+
+    document.getElementById('backup-folder-save').addEventListener('click', () => {
+      const folder = document.getElementById('backup-folder-input').value.trim();
+      const status = document.getElementById('backup-folder-status');
+      status.style.color = '#94a3b8';
+      status.textContent = 'Saving…';
+      fetch('/api/backup-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder })
+      }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          status.style.color = '#4ade80';
+          status.textContent = folder ? '✓ Folder saved! Ab se images wahan copy hongi.' : '✓ Backup disabled.';
+        } else {
+          status.style.color = '#f87171';
+          status.textContent = 'Error: ' + (d.error || 'unknown');
+        }
+      }).catch(() => { status.style.color = '#f87171'; status.textContent = 'Network error'; });
+    });
+
+    document.getElementById('backup-folder-clear').addEventListener('click', () => {
+      document.getElementById('backup-folder-input').value = '';
+    });
+  })();
+
   const profileQuoteBtn = document.getElementById('profile-quote-btn');
   if (profileQuoteBtn) profileQuoteBtn.addEventListener('click', () => {
     if (typeof openQuoteModal === 'function') openQuoteModal();

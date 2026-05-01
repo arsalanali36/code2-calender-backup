@@ -40,6 +40,9 @@ ALGO_ORDERS_FILE    = os.path.join(BASE_DIR, 'data', 'algo_orders.json')
 ALGO_STATE_FILE     = os.path.join(BASE_DIR, 'data', 'algo_state.json')
 ALGO_OHLC_DIR       = os.path.join(BASE_DIR, 'data', 'algo_ohlc')
 
+# ── Backup folder ─────────────────────────────────────────────────────────────
+BACKUP_CONFIG_FILE  = os.path.join(BASE_DIR, 'data', 'backup_config.json')
+
 # ── App settings ──────────────────────────────────────────────────────────────
 TRASH_EXPIRY_DAYS   = 7
 MAX_CONTENT_LENGTH  = 100 * 1024 * 1024          # 100 MB upload limit
