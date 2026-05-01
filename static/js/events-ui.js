@@ -96,17 +96,6 @@ function _bindUIEvents() {
     navRangeRow.addEventListener('click', e => e.stopPropagation());
   }
 
-  // Navbar More menu
-  const navbarMoreBtn = document.getElementById('navbar-more-btn');
-  const navbarMoreMenu = document.getElementById('navbar-more-menu');
-  if (navbarMoreBtn && navbarMoreMenu) {
-    navbarMoreBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      navbarMoreMenu.classList.toggle('open');
-    });
-    navbarMoreMenu.addEventListener('click', e => e.stopPropagation());
-  }
-
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
@@ -116,6 +105,7 @@ function _bindUIEvents() {
       profileDropdown.classList.toggle('open');
     });
     profileDropdown.addEventListener('click', e => e.stopPropagation());
+    profileDropdown.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
   }
 
   // Profile: Settings

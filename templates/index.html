@@ -101,20 +101,34 @@
       <button class="btn btn-outline" id="mobile-gallery-btn" title="Open Mobile Gallery" onclick="window.open('/mobile/?view=gallery', '_blank')" style="margin-left:4px;">📷</button>
       <button class="btn btn-outline" id="fullscreen-btn" title="Fullscreen" style="margin-left:4px; font-size:1rem; padding:4px 8px;">⛶</button>
 
-      <!-- Navbar More Menu -->
-      <div class="dropdown-wrapper navbar-more-wrap" id="navbar-more-wrap" style="margin-left:8px;">
-        <button class="btn btn-outline" id="navbar-more-btn" title="More options">☰ Menu ▾</button>
-        <div class="dropdown-menu navbar-more-menu" id="navbar-more-menu">
-          <a href="/app-deck" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
-          <button class="dropdown-item" id="tt-manual-btn">🎯 Tracker</button>
-          <button class="dropdown-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
-          <a href="/algo-lab" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item" id="pdf-list-btn">🗂️ PDF List</button>
-          <button class="dropdown-item" id="quick-stats-btn">⚡ Quick Stats</button>
-          <div class="dropdown-divider"></div>
+
+      <!-- Hidden inputs kept for JS -->
+      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
+      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
+
+      {% if current_user.is_authenticated %}
+      <div class="profile-menu-wrapper" id="profile-menu-wrapper">
+        <button class="profile-avatar-btn" id="profile-avatar-btn">
+          <img src="/static/img/logo.png" class="profile-avatar-img" alt="avatar" />
+        </button>
+        <div class="profile-dropdown" id="profile-dropdown" oncontextmenu="return false">
+          <div class="profile-user-info">
+            <img src="/static/img/logo.png" class="profile-user-avatar" alt="avatar" />
+            <span class="profile-email">{{ current_user.email }}</span>
+          </div>
+          <div class="profile-divider"></div>
+
+          <a href="/app-deck" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
+          <button class="profile-menu-item" id="tt-manual-btn">🎯 Tracker</button>
+          <button class="profile-menu-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
+          <a href="/algo-lab" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
+
+          <div class="profile-divider"></div>
+
+          <button class="profile-menu-item" id="pdf-list-btn">🗂️ PDF List</button>
+          <button class="profile-menu-item" id="quick-stats-btn">⚡ Quick Stats</button>
           <div class="quote-random-wrap" id="quote-random-wrap">
-            <button class="dropdown-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
+            <button class="profile-menu-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
             <div class="quote-random-panel" id="quote-random-panel">
               <label class="quote-random-toggle">
                 <input type="checkbox" id="quote-random-enabled" />
@@ -127,23 +141,7 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Hidden inputs kept for JS -->
-      <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
-      <input type="file" id="pdf-import-input" accept=".pdf" style="display:none" />
-
-      {% if current_user.is_authenticated %}
-      <div class="profile-menu-wrapper" id="profile-menu-wrapper">
-        <button class="profile-avatar-btn" id="profile-avatar-btn">
-          <img src="/static/img/logo.png" class="profile-avatar-img" alt="avatar" />
-        </button>
-        <div class="profile-dropdown" id="profile-dropdown">
-          <div class="profile-user-info">
-            <img src="/static/img/logo.png" class="profile-user-avatar" alt="avatar" />
-            <span class="profile-email">{{ current_user.email }}</span>
-          </div>
           <div class="profile-divider"></div>
 
           <button class="profile-menu-item" id="profile-settings-btn">
@@ -154,7 +152,6 @@
             <span class="pmi-icon">&#10077;</span> Quote
           </button>
 
-          <a href="/app-deck" class="profile-menu-item" target="_blank" style="color:var(--blue); font-weight:700;">🚀 App Map</a>
           <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
           <a href="/whatif" class="profile-menu-item" target="_blank">&#128200; What If</a>
           <button class="profile-menu-item" id="profile-ohlc-btn">
