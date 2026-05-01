@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Historical Options Downloader</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; margin: 40px; color: #1e293b; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 20px; align-items: center; }
+        input[type="date"], input[type="file"] { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .upload-btn { background: #0f766e; }
+        .upload-btn:hover { background: #0f5c53; }
+        table { border-collapse: collapse; width: 100%; background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; margin-bottom: 50px; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #1e293b; color: white; }
+        .tag-z { background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+        .tag-d { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: bold; display: inline-block; position: relative; overflow: hidden; }
+        .pending { background: #f1f5f9; color: #64748b; }
+        .downloading { background: #fef3c7; color: #b45309; }
+        .done { background: #dcfce7; color: #15803d; }
+        .error { background: #fee2e2; color: #991b1b; }
+        
+        .progress-bar-bg { width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; margin-top: 6px; overflow: hidden; display: none; }
+        .progress-bar-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s; }
+        
+        a.chart-btn { background: #f3f4f6; color: #111827; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #d1d5db; display: inline-block; }
+        a.chart-btn:hover { background: #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Historical Options Downloader</h2>
+    </div>
+    
+    <div class="card">
+        <div>
+            <label style="font-weight: bold; margin-right: 10px;">1. Upload Zerodha Tradebook:</label>
+            <input type="file" id="tradebook_file" accept=".csv">
+        </div>
+        <button class="upload-btn" onclick="uploadTradebook()">Upload & Map to Dhan</button>
+    </div>
+
+    <div class="card">
+        <label style="font-weight: bold; margin-right: 10px;">2. Download Mapped Data:</label>
+        <div>
+            <label>From Date:</label>
+            <input type="date" id="start_date" value="2026-04-01">
+        </div>
+        <div>
+            <label>To Date:</label>
+            <input type="date" id="end_date" value="2026-04-30">
+        </div>
+        <button onclick="startDownload()">▶ Start Download</button>
+    </div>
+
+    <table>
+        <tr>
+            <th>Trade Date</th>
+            <th>Zerodha Instrument</th>
+            <th>Dhan Instrument</th>
+            <th style="width: 250px;">Status & Progress</th>
+            <th>Chart</th>
+        </tr>
+        {% for task in tasks %}
+        <tr>
+            <td><b>{{ task.trade_date }}</b></td>
+            <td><span class="tag-z">{{ task.zerodha_symbol }}</span></td>
+            <td><span class="tag-d">{{ task.dhan_name }}</span></td>
+            <td>
+                <span id="status-{{ task.html_id }}" class="status pending">⚪ Not Started</span>
+                <div id="pb-bg-{{ task.html_id }}" class="progress-bar-bg">
+                    <div id="pb-fill-{{ task.html_id }}" class="progress-bar-fill"></div>
+                </div>
+            </td>
+            <td id="chart-{{ task.html_id }}">-</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 30px; color: #64748b;">Please upload a Zerodha Tradebook CSV to view mapped instruments.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        function uploadTradebook() {
+            const fileInput = document.getElementById('tradebook_file');
+            if(fileInput.files.length === 0) {
+                alert("Please select a file first."); return;
+            }
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            
+            fetch('/upload_tradebook', {
+                method: 'POST', body: formData
+            }).then(res => res.json()).then(data => {
+                if(data.error) alert(data.error);
+                else {
+                    alert(data.message);
+                    location.reload(); // reload to show the new table
+                }
+            });
+        }
+
+        function startDownload() {
+            const start_date = document.getElementById('start_date').value;
+            const end_date = document.getElementById('end_date').value;
+            
+            fetch('/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ start_date, end_date })
+            }).then(res => res.json()).then(data => {
+                alert(data.message + " (" + data.count + " items in range)");
+            });
+        }
+
+        const source = new EventSource("/stream_status");
+        source.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const statusEl = document.getElementById("status-" + data.id);
+            const pbBg = document.getElementById("pb-bg-" + data.id);
+            const pbFill = document.getElementById("pb-fill-" + data.id);
+            
+            if (statusEl) {
+                statusEl.className = "status " + data.status;
+                statusEl.innerText = data.msg;
+                
+                if (data.percent !== undefined) {
+                    pbBg.style.display = "block";
+                    pbFill.style.width = data.percent + "%";
+                }
+                if (data.status === 'done' || data.status === 'error') {
+                    setTimeout(() => { pbBg.style.display = "none"; }, 1000);
+                }
+                
+                if (data.chart) {
+                    const chartEl = document.getElementById("chart-" + data.id);
+                    chartEl.innerHTML = `<a href="${data.chart}" target="_blank" class="chart-btn">📈 View Chart</a>`;
+                }
+            }
+        };
+    </script>
+</body>
+</html>

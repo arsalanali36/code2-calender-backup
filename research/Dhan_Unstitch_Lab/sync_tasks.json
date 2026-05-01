@@ -1,0 +1,666 @@
+{
+    "2026-04-01": [
+        {
+            "zerodha_symbol": "NIFTY2640722850CE",
+            "dhan_name": "NIFTY 07 APR 2640722850 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722850,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722900CE",
+            "dhan_name": "NIFTY 07 APR 2640722900 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722900,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640723000CE",
+            "dhan_name": "NIFTY 07 APR 2640723000 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640723000,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722800CE",
+            "dhan_name": "NIFTY 07 APR 2640722800 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722800,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722850PE",
+            "dhan_name": "NIFTY 07 APR 2640722850 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722850,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        }
+    ],
+    "2026-04-02": [
+        {
+            "zerodha_symbol": "NIFTY2640722250PE",
+            "dhan_name": "NIFTY 07 APR 2640722250 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722250,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722250CE",
+            "dhan_name": "NIFTY 07 APR 2640722250 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722250,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722200PE",
+            "dhan_name": "NIFTY 07 APR 2640722200 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722200,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722300CE",
+            "dhan_name": "NIFTY 07 APR 2640722300 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722300,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722300PE",
+            "dhan_name": "NIFTY 07 APR 2640722300 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722300,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722200CE",
+            "dhan_name": "NIFTY 07 APR 2640722200 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722200,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722150PE",
+            "dhan_name": "NIFTY 07 APR 2640722150 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722150,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722400CE",
+            "dhan_name": "NIFTY 07 APR 2640722400 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722400,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722100PE",
+            "dhan_name": "NIFTY 07 APR 2640722100 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722100,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722450CE",
+            "dhan_name": "NIFTY 07 APR 2640722450 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722450,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640721950PE",
+            "dhan_name": "NIFTY 07 APR 2640721950 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640721950,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722500CE",
+            "dhan_name": "NIFTY 07 APR 2640722500 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722500,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722650CE",
+            "dhan_name": "NIFTY 07 APR 2640722650 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722650,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        }
+    ],
+    "2026-04-06": [
+        {
+            "zerodha_symbol": "NIFTY2640722650CE",
+            "dhan_name": "NIFTY 07 APR 2640722650 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722650,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722700CE",
+            "dhan_name": "NIFTY 07 APR 2640722700 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722700,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722900CE",
+            "dhan_name": "NIFTY 07 APR 2640722900 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722900,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722550PE",
+            "dhan_name": "NIFTY 07 APR 2640722550 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722550,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722600CE",
+            "dhan_name": "NIFTY 07 APR 2640722600 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722600,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722550CE",
+            "dhan_name": "NIFTY 07 APR 2640722550 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722550,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722500CE",
+            "dhan_name": "NIFTY 07 APR 2640722500 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722500,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722450CE",
+            "dhan_name": "NIFTY 07 APR 2640722450 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722450,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        },
+        {
+            "zerodha_symbol": "NIFTY2640722700PE",
+            "dhan_name": "NIFTY 07 APR 2640722700 PUT",
+            "underlying": "NIFTY",
+            "strike": 2640722700,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-07"
+        }
+    ],
+    "2026-04-07": [
+        {
+            "zerodha_symbol": "NIFTY2640722750CE",
+            "dhan_name": "NIFTY 07 APR 2640722750 CALL",
+            "underlying": "NIFTY",
+            "strike": 2640722750,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-07"
+        }
+    ],
+    "2026-04-08": [
+        {
+            "zerodha_symbol": "NIFTY2641323900CE",
+            "dhan_name": "NIFTY 13 APR 2641323900 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323900,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323900PE",
+            "dhan_name": "NIFTY 13 APR 2641323900 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323900,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323950CE",
+            "dhan_name": "NIFTY 13 APR 2641323950 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323950,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323800CE",
+            "dhan_name": "NIFTY 13 APR 2641323800 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323800,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641324000CE",
+            "dhan_name": "NIFTY 13 APR 2641324000 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641324000,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        }
+    ],
+    "2026-04-09": [
+        {
+            "zerodha_symbol": "NIFTY2641323800PE",
+            "dhan_name": "NIFTY 13 APR 2641323800 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323800,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323800CE",
+            "dhan_name": "NIFTY 13 APR 2641323800 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323800,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323750PE",
+            "dhan_name": "NIFTY 13 APR 2641323750 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323750,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323850CE",
+            "dhan_name": "NIFTY 13 APR 2641323850 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323850,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323900PE",
+            "dhan_name": "NIFTY 13 APR 2641323900 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323900,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323900CE",
+            "dhan_name": "NIFTY 13 APR 2641323900 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323900,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323850PE",
+            "dhan_name": "NIFTY 13 APR 2641323850 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323850,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323750CE",
+            "dhan_name": "NIFTY 13 APR 2641323750 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323750,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323950PE",
+            "dhan_name": "NIFTY 13 APR 2641323950 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323950,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        }
+    ],
+    "2026-04-10": [
+        {
+            "zerodha_symbol": "NIFTY2641324000PE",
+            "dhan_name": "NIFTY 13 APR 2641324000 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641324000,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641324000CE",
+            "dhan_name": "NIFTY 13 APR 2641324000 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641324000,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323950CE",
+            "dhan_name": "NIFTY 13 APR 2641323950 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323950,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        }
+    ],
+    "2026-04-13": [
+        {
+            "zerodha_symbol": "NIFTY2641323600CE",
+            "dhan_name": "NIFTY 13 APR 2641323600 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323600,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323700PE",
+            "dhan_name": "NIFTY 13 APR 2641323700 PUT",
+            "underlying": "NIFTY",
+            "strike": 2641323700,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-13"
+        },
+        {
+            "zerodha_symbol": "NIFTY2641323650CE",
+            "dhan_name": "NIFTY 13 APR 2641323650 CALL",
+            "underlying": "NIFTY",
+            "strike": 2641323650,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-13"
+        }
+    ],
+    "2026-04-15": [
+        {
+            "zerodha_symbol": "NIFTY2642124200PE",
+            "dhan_name": "NIFTY 21 APR 2642124200 PUT",
+            "underlying": "NIFTY",
+            "strike": 2642124200,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124200CE",
+            "dhan_name": "NIFTY 21 APR 2642124200 CALL",
+            "underlying": "NIFTY",
+            "strike": 2642124200,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124150CE",
+            "dhan_name": "NIFTY 21 APR 2642124150 CALL",
+            "underlying": "NIFTY",
+            "strike": 2642124150,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-21"
+        }
+    ],
+    "2026-04-16": [
+        {
+            "zerodha_symbol": "BANKNIFTY26APR56700CE",
+            "dhan_name": "BANKNIFTY 28 APR 56700 CALL",
+            "underlying": "BANKNIFTY",
+            "strike": 56700,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124200PE",
+            "dhan_name": "NIFTY 21 APR 2642124200 PUT",
+            "underlying": "NIFTY",
+            "strike": 2642124200,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124150PE",
+            "dhan_name": "NIFTY 21 APR 2642124150 PUT",
+            "underlying": "NIFTY",
+            "strike": 2642124150,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "BANKNIFTY26APR56100PE",
+            "dhan_name": "BANKNIFTY 28 APR 56100 PUT",
+            "underlying": "BANKNIFTY",
+            "strike": 56100,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124100PE",
+            "dhan_name": "NIFTY 21 APR 2642124100 PUT",
+            "underlying": "NIFTY",
+            "strike": 2642124100,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-21"
+        }
+    ],
+    "2026-04-17": [
+        {
+            "zerodha_symbol": "NIFTY2642124200PE",
+            "dhan_name": "NIFTY 21 APR 2642124200 PUT",
+            "underlying": "NIFTY",
+            "strike": 2642124200,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124150PE",
+            "dhan_name": "NIFTY 21 APR 2642124150 PUT",
+            "underlying": "NIFTY",
+            "strike": 2642124150,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-21"
+        }
+    ],
+    "2026-04-20": [
+        {
+            "zerodha_symbol": "NIFTY2642124350CE",
+            "dhan_name": "NIFTY 21 APR 2642124350 CALL",
+            "underlying": "NIFTY",
+            "strike": 2642124350,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-21"
+        }
+    ],
+    "2026-04-21": [
+        {
+            "zerodha_symbol": "NIFTY2642124350CE",
+            "dhan_name": "NIFTY 21 APR 2642124350 CALL",
+            "underlying": "NIFTY",
+            "strike": 2642124350,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124400CE",
+            "dhan_name": "NIFTY 21 APR 2642124400 CALL",
+            "underlying": "NIFTY",
+            "strike": 2642124400,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "BANKNIFTY26APR57300CE",
+            "dhan_name": "BANKNIFTY 28 APR 57300 CALL",
+            "underlying": "BANKNIFTY",
+            "strike": 57300,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "BANKNIFTY26APR57300PE",
+            "dhan_name": "BANKNIFTY 28 APR 57300 PUT",
+            "underlying": "BANKNIFTY",
+            "strike": 57300,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY2642124450CE",
+            "dhan_name": "NIFTY 21 APR 2642124450 CALL",
+            "underlying": "NIFTY",
+            "strike": 2642124450,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-21"
+        },
+        {
+            "zerodha_symbol": "BANKNIFTY26APR57400CE",
+            "dhan_name": "BANKNIFTY 28 APR 57400 CALL",
+            "underlying": "BANKNIFTY",
+            "strike": 57400,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        }
+    ],
+    "2026-04-22": [
+        {
+            "zerodha_symbol": "BANKNIFTY26APR57400PE",
+            "dhan_name": "BANKNIFTY 28 APR 57400 PUT",
+            "underlying": "BANKNIFTY",
+            "strike": 57400,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY26APR24450PE",
+            "dhan_name": "NIFTY 28 APR 24450 PUT",
+            "underlying": "NIFTY",
+            "strike": 24450,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "BANKNIFTY26APR57400CE",
+            "dhan_name": "BANKNIFTY 28 APR 57400 CALL",
+            "underlying": "BANKNIFTY",
+            "strike": 57400,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY26APR24400PE",
+            "dhan_name": "NIFTY 28 APR 24400 PUT",
+            "underlying": "NIFTY",
+            "strike": 24400,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "BANKNIFTY26APR57500CE",
+            "dhan_name": "BANKNIFTY 28 APR 57500 CALL",
+            "underlying": "BANKNIFTY",
+            "strike": 57500,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        }
+    ],
+    "2026-04-23": [
+        {
+            "zerodha_symbol": "BANKNIFTY26APR56400PE",
+            "dhan_name": "BANKNIFTY 28 APR 56400 PUT",
+            "underlying": "BANKNIFTY",
+            "strike": 56400,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        }
+    ],
+    "2026-04-24": [
+        {
+            "zerodha_symbol": "NIFTY26APR24000PE",
+            "dhan_name": "NIFTY 28 APR 24000 PUT",
+            "underlying": "NIFTY",
+            "strike": 24000,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY26APR23900PE",
+            "dhan_name": "NIFTY 28 APR 23900 PUT",
+            "underlying": "NIFTY",
+            "strike": 23900,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        }
+    ],
+    "2026-04-27": [
+        {
+            "zerodha_symbol": "NIFTY26APR24000CE",
+            "dhan_name": "NIFTY 28 APR 24000 CALL",
+            "underlying": "NIFTY",
+            "strike": 24000,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        },
+        {
+            "zerodha_symbol": "NIFTY26APR24100CE",
+            "dhan_name": "NIFTY 28 APR 24100 CALL",
+            "underlying": "NIFTY",
+            "strike": 24100,
+            "option_type": "CALL",
+            "expiry_date": "2026-04-28"
+        }
+    ],
+    "2026-04-28": [
+        {
+            "zerodha_symbol": "NIFTY26APR24150PE",
+            "dhan_name": "NIFTY 28 APR 24150 PUT",
+            "underlying": "NIFTY",
+            "strike": 24150,
+            "option_type": "PUT",
+            "expiry_date": "2026-04-28"
+        }
+    ],
+    "2026-04-29": [
+        {
+            "zerodha_symbol": "NIFTY2650524100PE",
+            "dhan_name": "NIFTY 05 MAY 2650524100 PUT",
+            "underlying": "NIFTY",
+            "strike": 2650524100,
+            "option_type": "PUT",
+            "expiry_date": "2026-05-05"
+        }
+    ],
+    "2026-04-30": [
+        {
+            "zerodha_symbol": "NIFTY2650524000CE",
+            "dhan_name": "NIFTY 05 MAY 2650524000 CALL",
+            "underlying": "NIFTY",
+            "strike": 2650524000,
+            "option_type": "CALL",
+            "expiry_date": "2026-05-05"
+        }
+    ]
+}
