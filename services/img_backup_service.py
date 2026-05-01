@@ -385,22 +385,54 @@ def _load_scrip_map():
     return result
 
 
+def _last_thursday(year, month):
+    """Return YYYY-MM-DD of the last Thursday of the given month."""
+    import calendar
+    last_day = calendar.monthrange(year, month)[1]
+    from datetime import date
+    for day in range(last_day, last_day - 7, -1):
+        if date(year, month, day).weekday() == 3:  # Thursday
+            return f'{year:04d}-{month:02d}-{day:02d}'
+    return f'{year:04d}-{month:02d}-{last_day:02d}'
+
+
 def _parse_option_symbol(name):
     """
-    Parse a symbol-style filename prefix like BANKNIFTY26APR57500CE.
-    Returns (underlying, expiry_label, strike, opt_type) or None.
+    Parse NSE option symbol. Two formats:
+      Monthly: NIFTY26APR24100CE   → last Thursday of Apr 2026
+      Weekly:  NIFTY2640722900CE   → expiry 2026-04-07
+    Returns (underlying, expiry_date_str, strike, opt_type) or None.
     """
     import re
-    # Pattern: UNDERLYING + date(YYMONDD or similar) + STRIKE + CE/PE
-    m = re.match(r'^([A-Z]+)(\d{2})([A-Z]{3})(\d+)(CE|PE)$', name)
-    if not m:
-        return None
-    underlying, yy, mon, strike, opt_type = m.groups()
-    mon_map = {'JAN':'01','FEB':'02','MAR':'03','APR':'04','MAY':'05','JUN':'06',
-               'JUL':'07','AUG':'08','SEP':'09','OCT':'10','NOV':'11','DEC':'12'}
-    mm = mon_map.get(mon, '00')
-    expiry = f'20{yy}-{mm}'  # approximate month
-    return underlying, expiry, strike, opt_type
+    MON = {'JAN':'1','FEB':'2','MAR':'3','APR':'4','MAY':'5','JUN':'6',
+           'JUL':'7','AUG':'8','SEP':'9','OCT':'10','NOV':'11','DEC':'12'}
+
+    # Monthly: UNDERLYING + YY + MON(3 letters) + STRIKE + CE/PE
+    m = re.match(r'^([A-Z&]+)(\d{2})([A-Z]{3})(\d+)(CE|PE)$', name)
+    if m:
+        underlying, yy, mon, strike, opt_type = m.groups()
+        mm = int(MON.get(mon, 0))
+        if mm:
+            expiry = _last_thursday(2000 + int(yy), mm)
+        else:
+            expiry = f'20{yy}-00'
+        return underlying, expiry, strike, opt_type
+
+    # Weekly: UNDERLYING + YY + M (1 digit Jan-Sep) + DD + STRIKE + CE/PE
+    m = re.match(r'^([A-Z&]+)(\d{2})([1-9])(\d{2})(\d+)(CE|PE)$', name)
+    if m:
+        underlying, yy, mm, dd, strike, opt_type = m.groups()
+        expiry = f'20{yy}-{int(mm):02d}-{int(dd):02d}'
+        return underlying, expiry, strike, opt_type
+
+    # Weekly: UNDERLYING + YY + MM (2 digit Oct-Dec) + DD + STRIKE + CE/PE
+    m = re.match(r'^([A-Z&]+)(\d{2})(1[0-2])(\d{2})(\d+)(CE|PE)$', name)
+    if m:
+        underlying, yy, mm, dd, strike, opt_type = m.groups()
+        expiry = f'20{yy}-{int(mm):02d}-{int(dd):02d}'
+        return underlying, expiry, strike, opt_type
+
+    return None
 
 
 def sync_ohlc_options_to_backup():
