@@ -358,6 +358,16 @@ def backup_sync():
     return jsonify(result)
 
 
+@image_bp.route('/api/backup-migrate', methods=['POST'])
+def backup_migrate():
+    from services.img_backup_service import migrate_flat_to_month_folders, _get_backup_folder
+    folder = _get_backup_folder()
+    if not folder:
+        return jsonify({'ok': False, 'error': 'No backup folder configured'})
+    moved = migrate_flat_to_month_folders(folder)
+    return jsonify({'ok': True, 'moved': moved})
+
+
 @image_bp.route('/api/update-pdf-pages', methods=['POST'])
 def update_pdf_pages_route():
     """Update pages array for a PDF (delete/reorder individual pages)."""

@@ -3,6 +3,8 @@ services/img_backup_service.py
 -------------------------------
 Image backup: copies app images to a user-chosen folder with
 prefix naming (T1_, T2_, DAY_, CLOSE_) and date sub-folders.
+
+Structure: uploaded_imgs/02 - Feb/2026-02-03/T1_filename.jpg
 """
 import os
 import json
@@ -11,6 +13,26 @@ from collections import defaultdict
 
 from config import BACKUP_CONFIG_FILE, UPLOADS_DIR
 from processors.data_processors import find_best_trades_file
+
+_MONTH_NAMES = {
+    '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+    '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+    '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
+}
+
+
+def _month_folder(date_str):
+    """'2026-02-03' -> '02 - Feb'"""
+    parts = date_str.split('-')
+    if len(parts) < 2:
+        return 'Unknown'
+    mm = parts[1]
+    return f"{mm} - {_MONTH_NAMES.get(mm, mm)}"
+
+
+def _day_dir(base, date_str):
+    """Full path to the date sub-folder inside the month folder."""
+    return os.path.join(base, _month_folder(date_str), date_str)
 
 
 def _get_backup_folder():
@@ -35,7 +57,6 @@ def build_image_map():
     trades_list = data.get('trades', [])
     day_data = data.get('dayData', {})
 
-    # Group trades by date (preserve list order → T1, T2, ...)
     by_date = defaultdict(list)
     for t in trades_list:
         d = t.get('date', '')
@@ -64,19 +85,26 @@ def build_image_map():
     return image_map
 
 
-def _backed_filenames(base_dir):
-    """Set of original filenames (prefix stripped) already in the backup tree."""
-    backed = set()
-    if not os.path.exists(base_dir):
-        return backed
-    for date_dir in os.listdir(base_dir):
-        dpath = os.path.join(base_dir, date_dir)
-        if not os.path.isdir(dpath):
+def _all_backup_files(base):
+    """Yield (original_filename, full_path) for every file in the backup tree."""
+    if not os.path.exists(base):
+        return
+    for month_dir in os.listdir(base):
+        mpath = os.path.join(base, month_dir)
+        if not os.path.isdir(mpath):
             continue
-        for f in os.listdir(dpath):
-            idx = f.find('_')
-            backed.add(f[idx + 1:] if idx != -1 else f)
-    return backed
+        for date_dir in os.listdir(mpath):
+            dpath = os.path.join(mpath, date_dir)
+            if not os.path.isdir(dpath):
+                continue
+            for f in os.listdir(dpath):
+                idx = f.find('_')
+                orig = f[idx + 1:] if idx != -1 else f
+                yield orig, os.path.join(dpath, f)
+
+
+def _backed_filenames(base):
+    return {orig for orig, _ in _all_backup_files(base)}
 
 
 def get_backup_stats():
@@ -102,26 +130,18 @@ def get_backup_stats():
     }
 
 
-def _remove_stale(base, fname, correct_day_dir, correct_dest_name):
-    """Remove any stale copy of fname with wrong prefix or in wrong date folder."""
-    if not os.path.exists(base):
-        return
-    for date_dir in os.listdir(base):
-        dpath = os.path.join(base, date_dir)
-        if not os.path.isdir(dpath):
-            continue
-        for f in os.listdir(dpath):
-            if f.endswith(fname):
-                full = os.path.join(dpath, f)
-                if dpath != correct_day_dir or f != correct_dest_name:
-                    try:
-                        os.remove(full)
-                    except Exception:
-                        pass
+def _remove_stale(base, fname, correct_full_dest):
+    """Remove any stale copy of fname that isn't at correct_full_dest."""
+    for orig, full_path in list(_all_backup_files(base)):
+        if orig == fname and full_path != correct_full_dest:
+            try:
+                os.remove(full_path)
+            except Exception:
+                pass
 
 
 def sync_all_to_backup():
-    """Full sync: copy all app images to backup with correct prefix and date folder."""
+    """Full sync: copy all app images to backup with correct prefix and date/month folders."""
     folder = _get_backup_folder()
     if not folder:
         return {'ok': False, 'error': 'No backup folder configured'}
@@ -143,13 +163,13 @@ def sync_all_to_backup():
 
         date = info['date']
         prefix = info['prefix']
-        day_dir = os.path.join(base, date)
-        os.makedirs(day_dir, exist_ok=True)
+        dest_dir = _day_dir(base, date)
+        os.makedirs(dest_dir, exist_ok=True)
 
         dest_name = f"{prefix}_{fname}"
-        dest = os.path.join(day_dir, dest_name)
+        dest = os.path.join(dest_dir, dest_name)
 
-        _remove_stale(base, fname, day_dir, dest_name)
+        _remove_stale(base, fname, dest)
 
         if not os.path.exists(dest):
             try:
@@ -181,21 +201,62 @@ def sync_date_to_backup(date):
         if not date_images:
             return
 
-        day_dir = os.path.join(base, date)
-        os.makedirs(day_dir, exist_ok=True)
-
         for fname, info in date_images.items():
             src = os.path.join(UPLOADS_DIR, fname)
             if not os.path.exists(src):
                 continue
             prefix = info['prefix']
+            dest_dir = _day_dir(base, date)
+            os.makedirs(dest_dir, exist_ok=True)
             dest_name = f"{prefix}_{fname}"
-            dest = os.path.join(day_dir, dest_name)
-            _remove_stale(base, fname, day_dir, dest_name)
+            dest = os.path.join(dest_dir, dest_name)
+            _remove_stale(base, fname, dest)
             if not os.path.exists(dest):
                 try:
                     shutil.copy2(src, dest)
                 except Exception:
                     pass
     except Exception:
-        pass  # best-effort; never break the save flow
+        pass
+
+
+def migrate_flat_to_month_folders(folder):
+    """
+    One-time migration: move files from old flat structure
+    (uploaded_imgs/2026-02-03/file) to new month structure
+    (uploaded_imgs/02 - Feb/2026-02-03/file).
+    """
+    base = os.path.join(folder, 'uploaded_imgs')
+    if not os.path.exists(base):
+        return 0
+
+    moved = 0
+    for entry in os.listdir(base):
+        epath = os.path.join(base, entry)
+        # Old flat date folders look like YYYY-MM-DD
+        if not os.path.isdir(epath):
+            continue
+        parts = entry.split('-')
+        if len(parts) != 3 or len(parts[0]) != 4:
+            continue  # already a month folder or unknown
+
+        date_str = entry
+        new_dir = _day_dir(base, date_str)
+        if new_dir == epath:
+            continue  # already in right place (shouldn't happen)
+
+        os.makedirs(new_dir, exist_ok=True)
+        for f in os.listdir(epath):
+            src = os.path.join(epath, f)
+            dst = os.path.join(new_dir, f)
+            if not os.path.exists(dst):
+                shutil.move(src, dst)
+                moved += 1
+
+        # Remove old empty folder
+        try:
+            os.rmdir(epath)
+        except OSError:
+            pass
+
+    return moved
