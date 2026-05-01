@@ -427,25 +427,22 @@ def sync_ohlc_options_to_backup():
             continue
 
         ext = os.path.splitext(fname)[1]  # .csv or .meta
-        stem = os.path.splitext(fname)[0]  # e.g. 13_2026-04-15 or BANKNIFTY26APR57500CE_2026-04-15
+        stem = os.path.splitext(fname)[0]
 
         parts = stem.split('_', 1)
-        if len(parts) < 2:
-            continue
-        id_or_sym, fetch_date = parts[0], parts[1]
+        id_or_sym = parts[0]
+        fetch_date = parts[1] if len(parts) > 1 else 'unknown'
 
-        underlying = 'UNKNOWN'
+        underlying = id_or_sym  # fallback
         expiry_label = fetch_date
         dest_fname = fname
 
         if id_or_sym.isdigit():
             info = scrip_map.get(id_or_sym)
             if info:
-                underlying = info['underlying'] or 'UNKNOWN'
+                underlying = info['underlying'] or id_or_sym
                 expiry_label = f"{info['expiry']} Expiry" if info['expiry'] else fetch_date
-                strike = info['strike']
-                opt_type = info['type']
-                dest_fname = f"{strike}_{opt_type}{ext}"
+                dest_fname = f"{info['strike']}_{info['type']}{ext}"
         else:
             parsed = _parse_option_symbol(id_or_sym)
             if parsed:
@@ -754,14 +751,16 @@ def sync_all_data_stream():
         if len(parts) < 2:
             continue
         id_or_sym = parts[0]
-        underlying, expiry_label, dest_fname = 'UNKNOWN', stem, fname
+        underlying = id_or_sym
+        expiry_label = parts[1] if len(parts) > 1 else 'unknown'
+        dest_fname = fname
 
         if id_or_sym.isdigit():
             info = scrip_map.get(id_or_sym)
             if info:
-                underlying  = info['underlying'] or 'UNKNOWN'
+                underlying   = info['underlying'] or id_or_sym
                 expiry_label = f"{info['expiry']} Expiry" if info['expiry'] else parts[1]
-                dest_fname  = f"{info['strike']}_{info['type']}{ext}"
+                dest_fname   = f"{info['strike']}_{info['type']}{ext}"
         else:
             parsed = _parse_option_symbol(id_or_sym)
             if parsed:
@@ -811,14 +810,23 @@ def get_full_backup_stats():
 
     img_stats = get_backup_stats()
 
-    ohlc_eq_src  = len([f for f in os.listdir(os.path.join(BASE_DIR, 'data', 'algo_ohlc'))
-                         if f.endswith('.json')]) if os.path.exists(os.path.join(BASE_DIR, 'data', 'algo_ohlc')) else 0
-    opt_src_dir  = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')
-    ohlc_opt_src = len(os.listdir(opt_src_dir)) if os.path.exists(opt_src_dir) else 0
+    eq_src_dir = os.path.join(BASE_DIR, 'data', 'algo_ohlc')
+    ohlc_eq_src = len([f for f in os.listdir(eq_src_dir) if f.endswith('.json')]) if os.path.exists(eq_src_dir) else 0
+    opt_src_dir = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')
+    ohlc_opt_src = len([f for f in os.listdir(opt_src_dir) if f.endswith('.csv')]) if os.path.exists(opt_src_dir) else 0
 
-    bk_eq    = _count_dir(os.path.join(folder, 'ohlc_equity'))  if folder else 0
-    bk_opt   = _count_dir(os.path.join(folder, 'ohlc_options')) if folder else 0
-    bk_jdata = _count_dir(os.path.join(folder, 'journal_data')) if folder else 0
+    # Equity: count only .json files in backup (each source also produces a .csv — don't double-count)
+    def _count_json(path):
+        if not os.path.exists(path): return 0
+        return sum(1 for _, _, fs in os.walk(path) for f in fs if f.endswith('.json'))
+
+    def _count_csv(path):
+        if not os.path.exists(path): return 0
+        return sum(1 for _, _, fs in os.walk(path) for f in fs if f.endswith('.csv'))
+
+    bk_eq    = _count_json(os.path.join(folder, 'ohlc_equity'))  if folder else 0
+    bk_opt   = _count_csv(os.path.join(folder, 'ohlc_options'))  if folder else 0
+    bk_jdata = _count_dir(os.path.join(folder, 'journal_data'))  if folder else 0
 
     return {
         'images':       img_stats,
