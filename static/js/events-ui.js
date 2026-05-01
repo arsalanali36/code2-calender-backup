@@ -137,19 +137,21 @@ function _bindUIEvents() {
     });
   }
 
-  // Gallery avatar button → reuse same profile dropdown, repositioned
-  const gv2ProfileBtn = document.getElementById('gv2-profile-btn');
-  if (gv2ProfileBtn && profileDropdown) {
-    gv2ProfileBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (profileDropdown.classList.contains('open')) {
-        profileDropdown.classList.remove('open');
-        resetProfileDropdownPos();
-      } else {
-        openProfileDropdownAt(gv2ProfileBtn);
-      }
-    });
-  }
+  // Gallery avatar button — capture phase so gallery overlays can't block it
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('#gv2-profile-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const pd = document.getElementById('profile-dropdown');
+    if (!pd) return;
+    if (pd.classList.contains('open')) {
+      pd.classList.remove('open');
+      resetProfileDropdownPos();
+    } else {
+      openProfileDropdownAt(btn);
+    }
+  }, true);
 
   // Profile: Settings
   const profileSettingsBtn = document.getElementById('profile-settings-btn');
