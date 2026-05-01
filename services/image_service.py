@@ -148,9 +148,14 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
 
 
 def _copy_to_backup(src_path: str, filename: str):
-    """Copy a freshly-saved image to the user-configured backup folder (date sub-folder)."""
+    """Copy a freshly-saved image to the user-configured backup folder (month/date sub-folder)."""
     import shutil
     from datetime import date
+    _MONTH_NAMES = {
+        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
+    }
     try:
         from config import BACKUP_CONFIG_FILE
         if not os.path.exists(BACKUP_CONFIG_FILE):
@@ -160,7 +165,10 @@ def _copy_to_backup(src_path: str, filename: str):
         folder = cfg.get('folder', '').strip()
         if not folder:
             return
-        day_dir = os.path.join(folder, 'uploaded_imgs', str(date.today()))
+        date_str = str(date.today())           # e.g. 2026-05-01
+        mm = date_str[5:7]                     # '05'
+        month_folder = f"{mm} - {_MONTH_NAMES.get(mm, mm)}"  # '05 - May'
+        day_dir = os.path.join(folder, 'uploaded_imgs', month_folder, date_str)
         os.makedirs(day_dir, exist_ok=True)
         shutil.copy2(src_path, os.path.join(day_dir, filename))
     except Exception:
