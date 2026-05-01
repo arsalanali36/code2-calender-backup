@@ -266,20 +266,64 @@ function _bindUIEvents() {
     document.getElementById('backup-full-sync-btn').addEventListener('click', () => {
       const btn = document.getElementById('backup-full-sync-btn');
       btn.disabled = true;
-      btn.textContent = '⏳ Backing up everything…';
-      setStatus('Images + OHLC + Journal data sab backup ho rahi hai…', '#94a3b8');
-      fetch('/api/backup-full-sync', { method: 'POST' }).then(r => r.json()).then(d => {
-        const img = d.images || {};
-        const eq  = d.ohlc_equity || {};
-        const opt = d.ohlc_options || {};
-        const jd  = d.journal || {};
-        setStatus(
-          `✓ Done!  Images: ${img.copied||0} copied  |  Equity OHLC: ${eq.copied||0}  |  Options: ${opt.copied||0}  |  Journal: ${jd.copied||0}`,
-          '#4ade80'
-        );
-        loadStats();
-      }).catch(() => setStatus('Network error', '#f87171'))
-        .finally(() => { btn.disabled = false; btn.textContent = '🔄 Backup Everything'; });
+      btn.textContent = '⏳ Starting…';
+      setStatus('', '#94a3b8');
+
+      const phaseBarMap = {
+        images:       { bar: 'bk-progress-bar', done: 'bk-done', total: 'bk-total' },
+        ohlc_equity:  { bar: 'bk-eq-bar',       done: 'bk-eq-done', total: 'bk-eq-total' },
+        ohlc_options: { bar: 'bk-opt-bar',       done: 'bk-opt-done', total: 'bk-opt-total' },
+        journal:      { bar: 'bk-jdata-bar',     done: 'bk-jdata-done', total: 'bk-jdata-total' },
+      };
+      const phaseLabel = { images: 'Images', ohlc_equity: 'OHLC Equity', ohlc_options: 'OHLC Options', journal: 'Journal' };
+
+      const es = new EventSource('/api/backup-full-sync-stream');
+
+      es.onmessage = e => {
+        let d;
+        try { d = JSON.parse(e.data); } catch { return; }
+
+        if (d.phase === 'done') {
+          es.close();
+          const res = d.results || {};
+          const img = res.images || {}; const eq = res.ohlc_equity || {};
+          const opt = res.ohlc_options || {}; const jd = res.journal || {};
+          setStatus(
+            `✓ Done!  Images: ${img.copied||0}  |  Equity: ${eq.copied||0}  |  Options: ${opt.copied||0}  |  Journal: ${jd.copied||0}`,
+            '#4ade80'
+          );
+          btn.disabled = false;
+          btn.textContent = '🔄 Backup Everything';
+          loadStats();
+          return;
+        }
+
+        if (d.phase === 'error') {
+          es.close();
+          setStatus('Error: ' + (d.msg || 'unknown'), '#f87171');
+          btn.disabled = false;
+          btn.textContent = '🔄 Backup Everything';
+          return;
+        }
+
+        const ids = phaseBarMap[d.phase];
+        if (ids) {
+          const pct = d.pct || 0;
+          document.getElementById(ids.bar).style.width = pct + '%';
+          if (d.done !== undefined) document.getElementById(ids.done).textContent = d.done;
+          if (d.total !== undefined) document.getElementById(ids.total).textContent = d.total;
+        }
+        const label = phaseLabel[d.phase] || d.phase;
+        btn.textContent = `⏳ ${label} ${d.pct||0}%`;
+        setStatus(d.msg || '', '#94a3b8');
+      };
+
+      es.onerror = () => {
+        es.close();
+        setStatus('Connection error', '#f87171');
+        btn.disabled = false;
+        btn.textContent = '🔄 Backup Everything';
+      };
     });
   })();
 

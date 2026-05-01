@@ -381,6 +381,20 @@ def backup_full_sync():
     return jsonify(result)
 
 
+@image_bp.route('/api/backup-full-sync-stream', methods=['GET'])
+def backup_full_sync_stream():
+    from flask import Response, stream_with_context
+    from services.img_backup_service import sync_all_data_stream
+    return Response(
+        stream_with_context(sync_all_data_stream()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        }
+    )
+
+
 @image_bp.route('/api/update-pdf-pages', methods=['POST'])
 def update_pdf_pages_route():
     """Update pages array for a PDF (delete/reorder individual pages)."""

@@ -20983,9 +20983,9 @@ async function handleImageFiles(files) {
   updateProgress();
 
   // Upload all in parallel, replace blob URL with server URL as each finishes
-  let totalOrig = 0, totalComp = 0;
+  let totalOrig = 0, totalComp = 0, lastError = '';
   const isNewsUpload = (state.gallery?.selectedSeparator === 'NEWS');
-  
+
   await Promise.all(sorted.map(async (file, i) => {
     try {
       const q = isNewsUpload ? 0.25 : null;
@@ -21002,6 +21002,8 @@ async function handleImageFiles(files) {
       }
     } catch (e) {
       failed++;
+      lastError = e.message || String(e);
+      console.error('[Upload] Failed:', lastError);
       const idx = state.pendingFiles.indexOf(localUrls[i]);
       if (idx >= 0) state.pendingFiles.splice(idx, 1);
       URL.revokeObjectURL(localUrls[i]);
@@ -21021,7 +21023,7 @@ async function handleImageFiles(files) {
      }
   }
 
-  if (failed) showToast(`${failed} image(s) failed to upload`, 'error');
+  if (failed) showToast(`${failed} image(s) failed to upload${lastError ? ': ' + lastError : ''}`, 'error');
 }
 
 async function uploadImagesToRow(rowIdx, files) {
@@ -26768,39 +26770,241 @@ function _bindUIEvents() {
     navRangeRow.addEventListener('click', e => e.stopPropagation());
   }
 
-  // Navbar More menu
-  const navbarMoreBtn = document.getElementById('navbar-more-btn');
-  const navbarMoreMenu = document.getElementById('navbar-more-menu');
-  if (navbarMoreBtn && navbarMoreMenu) {
-    navbarMoreBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      navbarMoreMenu.classList.toggle('open');
-    });
-    navbarMoreMenu.addEventListener('click', e => e.stopPropagation());
-  }
-
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
+
+  const _profileDropdownOriginalParent = profileDropdown ? profileDropdown.parentNode : null;
+
+  function resetProfileDropdownPos() {
+    if (!profileDropdown) return;
+    // Restore to original parent if it was moved to body
+    if (_profileDropdownOriginalParent && profileDropdown.parentNode === document.body) {
+      _profileDropdownOriginalParent.appendChild(profileDropdown);
+    }
+    profileDropdown.style.position = '';
+    profileDropdown.style.top = '';
+    profileDropdown.style.right = '';
+    profileDropdown.style.left = '';
+    profileDropdown.style.zIndex = '';
+  }
+
+  function openProfileDropdownAt(btn) {
+    if (!profileDropdown) return;
+    const rect = btn.getBoundingClientRect();
+    // Move to body so no ancestor stacking context can clip it
+    document.body.appendChild(profileDropdown);
+    profileDropdown.style.position = 'fixed';
+    profileDropdown.style.top = (rect.bottom + 8) + 'px';
+    profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+    profileDropdown.style.left = '';
+    profileDropdown.style.zIndex = '99999';
+    profileDropdown.classList.add('open');
+  }
+
   if (profileAvatarBtn && profileDropdown) {
     profileAvatarBtn.addEventListener('click', e => {
       e.stopPropagation();
+      resetProfileDropdownPos();
       profileDropdown.classList.toggle('open');
     });
     profileDropdown.addEventListener('click', e => e.stopPropagation());
+    // Links: allow right-click (open in new tab) + middle-click naturally
+    // Buttons (modals): block right-click context menu + middle-click
+    profileDropdown.addEventListener('contextmenu', e => {
+      if (!e.target.closest('a[href]')) e.preventDefault();
+    });
+    profileDropdown.addEventListener('mousedown', e => {
+      if (e.button === 1 && !e.target.closest('a[href]')) e.preventDefault();
+    });
   }
+
+  // Gallery avatar button — capture phase so gallery overlays can't block it
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('#gv2-profile-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const pd = document.getElementById('profile-dropdown');
+    if (!pd) return;
+    if (pd.classList.contains('open')) {
+      pd.classList.remove('open');
+      resetProfileDropdownPos();
+    } else {
+      openProfileDropdownAt(btn);
+    }
+  }, true);
 
   // Profile: Settings
   const profileSettingsBtn = document.getElementById('profile-settings-btn');
   if (profileSettingsBtn) profileSettingsBtn.addEventListener('click', () => {
     document.getElementById('settings-overlay').classList.add('open');
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
+
+  // Profile: Backup Folder
+  (function () {
+    const btn = document.getElementById('profile-backup-folder-btn');
+    const overlay = document.getElementById('backup-folder-overlay');
+    if (!btn || !overlay) return;
+
+    function setStatus(msg, color) {
+      const el = document.getElementById('backup-folder-status');
+      el.style.color = color || '#94a3b8';
+      el.textContent = msg;
+    }
+
+    function setBar(barId, done, total) {
+      const el = document.getElementById(barId);
+      if (el) el.style.width = (total ? Math.round((done / total) * 100) : 0) + '%';
+    }
+
+    function loadStats() {
+      fetch('/api/backup-full-stats').then(r => r.json()).then(d => {
+        const img = d.images || {};
+        document.getElementById('bk-total').textContent   = img.total_app ?? '—';
+        document.getElementById('bk-done').textContent    = img.backed_up ?? '—';
+        setBar('bk-progress-bar', img.backed_up || 0, img.total_app || 1);
+
+        const eq = d.ohlc_equity || {};
+        document.getElementById('bk-eq-total').textContent = eq.total ?? '—';
+        document.getElementById('bk-eq-done').textContent  = eq.backed_up ?? '—';
+        setBar('bk-eq-bar', eq.backed_up || 0, eq.total || 1);
+
+        const opt = d.ohlc_options || {};
+        document.getElementById('bk-opt-total').textContent = opt.total ?? '—';
+        document.getElementById('bk-opt-done').textContent  = opt.backed_up ?? '—';
+        setBar('bk-opt-bar', opt.backed_up || 0, opt.total || 1);
+
+        const jd = d.journal || {};
+        document.getElementById('bk-jdata-total').textContent = jd.total ?? '—';
+        document.getElementById('bk-jdata-done').textContent  = jd.backed_up ?? '—';
+        setBar('bk-jdata-bar', jd.backed_up || 0, jd.total || 1);
+      }).catch(() => {});
+    }
+
+    function openBackupModal() {
+      fetch('/api/backup-folder').then(r => r.json()).then(d => {
+        document.getElementById('backup-folder-input').value = d.folder || '';
+        setStatus('');
+      }).catch(() => {});
+      loadStats();
+      overlay.style.display = 'flex';
+      if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
+    }
+
+    btn.addEventListener('click', openBackupModal);
+
+    document.getElementById('backup-folder-close').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+
+    document.getElementById('backup-folder-save').addEventListener('click', () => {
+      const folder = document.getElementById('backup-folder-input').value.trim();
+      setStatus('Saving…', '#94a3b8');
+      fetch('/api/backup-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder })
+      }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          setStatus(folder ? '✓ Saved. Ab "Sync All" chalao pichli sab images backup karne ke liye.' : '✓ Backup disabled.', '#4ade80');
+          loadStats();
+        } else {
+          setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
+        }
+      }).catch(() => setStatus('Network error', '#f87171'));
+    });
+
+    document.getElementById('backup-folder-clear').addEventListener('click', () => {
+      document.getElementById('backup-folder-input').value = '';
+    });
+
+    document.getElementById('backup-sync-btn').addEventListener('click', () => {
+      const syncBtn = document.getElementById('backup-sync-btn');
+      syncBtn.disabled = true;
+      syncBtn.textContent = '⏳…';
+      setStatus('Images sync ho rahi hain…', '#94a3b8');
+      fetch('/api/backup-sync', { method: 'POST' }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          setStatus(`✓ Images done! Copied: ${d.copied}, Skipped: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
+          loadStats();
+        } else {
+          setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
+        }
+      }).catch(() => setStatus('Network error', '#f87171'))
+        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🖼️ Imgs Only'; });
+    });
+
+    document.getElementById('backup-full-sync-btn').addEventListener('click', () => {
+      const btn = document.getElementById('backup-full-sync-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Starting…';
+      setStatus('', '#94a3b8');
+
+      const phaseBarMap = {
+        images:       { bar: 'bk-progress-bar', done: 'bk-done', total: 'bk-total' },
+        ohlc_equity:  { bar: 'bk-eq-bar',       done: 'bk-eq-done', total: 'bk-eq-total' },
+        ohlc_options: { bar: 'bk-opt-bar',       done: 'bk-opt-done', total: 'bk-opt-total' },
+        journal:      { bar: 'bk-jdata-bar',     done: 'bk-jdata-done', total: 'bk-jdata-total' },
+      };
+      const phaseLabel = { images: 'Images', ohlc_equity: 'OHLC Equity', ohlc_options: 'OHLC Options', journal: 'Journal' };
+
+      const es = new EventSource('/api/backup-full-sync-stream');
+
+      es.onmessage = e => {
+        let d;
+        try { d = JSON.parse(e.data); } catch { return; }
+
+        if (d.phase === 'done') {
+          es.close();
+          const res = d.results || {};
+          const img = res.images || {}; const eq = res.ohlc_equity || {};
+          const opt = res.ohlc_options || {}; const jd = res.journal || {};
+          setStatus(
+            `✓ Done!  Images: ${img.copied||0}  |  Equity: ${eq.copied||0}  |  Options: ${opt.copied||0}  |  Journal: ${jd.copied||0}`,
+            '#4ade80'
+          );
+          btn.disabled = false;
+          btn.textContent = '🔄 Backup Everything';
+          loadStats();
+          return;
+        }
+
+        if (d.phase === 'error') {
+          es.close();
+          setStatus('Error: ' + (d.msg || 'unknown'), '#f87171');
+          btn.disabled = false;
+          btn.textContent = '🔄 Backup Everything';
+          return;
+        }
+
+        const ids = phaseBarMap[d.phase];
+        if (ids) {
+          const pct = d.pct || 0;
+          document.getElementById(ids.bar).style.width = pct + '%';
+          if (d.done !== undefined) document.getElementById(ids.done).textContent = d.done;
+          if (d.total !== undefined) document.getElementById(ids.total).textContent = d.total;
+        }
+        const label = phaseLabel[d.phase] || d.phase;
+        btn.textContent = `⏳ ${label} ${d.pct||0}%`;
+        setStatus(d.msg || '', '#94a3b8');
+      };
+
+      es.onerror = () => {
+        es.close();
+        setStatus('Connection error', '#f87171');
+        btn.disabled = false;
+        btn.textContent = '🔄 Backup Everything';
+      };
+    });
+  })();
 
   const profileQuoteBtn = document.getElementById('profile-quote-btn');
   if (profileQuoteBtn) profileQuoteBtn.addEventListener('click', () => {
     if (typeof openQuoteModal === 'function') openQuoteModal();
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
 
   // Profile: Broker inline dropdown
@@ -26870,8 +27074,7 @@ function _bindUIEvents() {
   document.addEventListener('click', () => {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
-    if (profileDropdown) profileDropdown.classList.remove('open');
-    if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
     if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
     document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));
