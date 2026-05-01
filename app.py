@@ -53,11 +53,13 @@ from routes.whatif_routes  import whatif_bp
 from routes.strategy_routes import strategy_bp
 from routes.log_routes import log_bp
 from routes.algo_routes import algo_bp
+from routes.ohlc_routes import ohlc_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
 from services.local_backup_service import start_local_backup_service
 from services.algo_ohlc_fetcher import start_ohlc_fetcher
+from services.ohlc_scheduler import start_scheduler as start_ohlc_scheduler
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -247,6 +249,7 @@ threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
 start_local_backup_service()
 start_ohlc_fetcher()
+start_ohlc_scheduler()
 
 # ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
 if os.environ.get('USE_BUNDLE') == '1':
@@ -273,6 +276,7 @@ app.register_blueprint(whatif_bp)
 app.register_blueprint(strategy_bp)
 app.register_blueprint(log_bp)
 app.register_blueprint(algo_bp)
+app.register_blueprint(ohlc_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
