@@ -11409,13 +11409,14 @@
       "closeGlobalImages": [],
       "closeImages": [],
       "imageTags": {},
-      "images": [
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-04-28_13-34-32_5KFJq0UK_.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-04-28_13-42-07_Dn7rcMHq4.png"
-      ],
-      "newsImages": []
+      "images": [],
+      "newsImages": [],
+      "tradeRefCards": {}
     }
   },
+  "imgTypes": {},
+  "importedPdfs": [],
+  "pdfPageTags": {},
   "tagColumns": [
     "Tags"
   ],
@@ -11516,6 +11517,7 @@
       "massive Gap Down"
     ]
   },
+  "tagTemplates": {},
   "trades": [
     {
       "Broker": "zerodha",
@@ -31493,7 +31495,13 @@
       "Video": "",
       "date": "2026-04-29",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-29_093100_GHD53HCKL.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-29_093103_XF_wjs3kl.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-29_093613_kCX0vWI0v.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-29_094050_O0mhQezg4.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-29_095634_oaAWKoRgE.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-29"
@@ -31523,11 +31531,21 @@
       "Video": "",
       "date": "2026-04-30",
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_095201_Lch1K208x.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_095208_8xHwFDhDo.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_095211_5vPI23fSx.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_101748_UdGYsy7Ze8.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_101751_nm7GXaVAW.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_101759_CqBuyUOp6.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_101804_5k9umdNA3Z.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-04-30_101809_hOF1y-guMi.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-04-30"
     }
   ],
+  "uiSettings": {},
   "userColumns": []
 }
