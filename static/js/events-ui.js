@@ -174,11 +174,28 @@ function _bindUIEvents() {
     const overlay = document.getElementById('backup-folder-overlay');
     if (!btn || !overlay) return;
 
+    function setStatus(msg, color) {
+      const el = document.getElementById('backup-folder-status');
+      el.style.color = color || '#94a3b8';
+      el.textContent = msg;
+    }
+
+    function loadStats() {
+      fetch('/api/backup-status').then(r => r.json()).then(d => {
+        document.getElementById('bk-total').textContent = d.total_app ?? '—';
+        document.getElementById('bk-done').textContent = d.backed_up ?? '—';
+        document.getElementById('bk-missing').textContent = d.not_backed_up ?? '—';
+        const pct = d.total_app ? Math.round((d.backed_up / d.total_app) * 100) : 0;
+        document.getElementById('bk-progress-bar').style.width = pct + '%';
+      }).catch(() => {});
+    }
+
     function openBackupModal() {
       fetch('/api/backup-folder').then(r => r.json()).then(d => {
         document.getElementById('backup-folder-input').value = d.folder || '';
-        document.getElementById('backup-folder-status').textContent = '';
+        setStatus('');
       }).catch(() => {});
+      loadStats();
       overlay.style.display = 'flex';
       if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
     }
@@ -192,26 +209,39 @@ function _bindUIEvents() {
 
     document.getElementById('backup-folder-save').addEventListener('click', () => {
       const folder = document.getElementById('backup-folder-input').value.trim();
-      const status = document.getElementById('backup-folder-status');
-      status.style.color = '#94a3b8';
-      status.textContent = 'Saving…';
+      setStatus('Saving…', '#94a3b8');
       fetch('/api/backup-folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ folder })
       }).then(r => r.json()).then(d => {
         if (d.ok) {
-          status.style.color = '#4ade80';
-          status.textContent = folder ? '✓ Folder saved! Ab se images wahan copy hongi.' : '✓ Backup disabled.';
+          setStatus(folder ? '✓ Saved. Ab "Sync All" chalao pichli sab images backup karne ke liye.' : '✓ Backup disabled.', '#4ade80');
+          loadStats();
         } else {
-          status.style.color = '#f87171';
-          status.textContent = 'Error: ' + (d.error || 'unknown');
+          setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
         }
-      }).catch(() => { status.style.color = '#f87171'; status.textContent = 'Network error'; });
+      }).catch(() => setStatus('Network error', '#f87171'));
     });
 
     document.getElementById('backup-folder-clear').addEventListener('click', () => {
       document.getElementById('backup-folder-input').value = '';
+    });
+
+    document.getElementById('backup-sync-btn').addEventListener('click', () => {
+      const syncBtn = document.getElementById('backup-sync-btn');
+      syncBtn.disabled = true;
+      syncBtn.textContent = '⏳ Syncing…';
+      setStatus('Sab images backup ho rahi hain, thoda wait karein…', '#94a3b8');
+      fetch('/api/backup-sync', { method: 'POST' }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          setStatus(`✓ Done! Copied: ${d.copied}, Already backed: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
+          loadStats();
+        } else {
+          setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
+        }
+      }).catch(() => setStatus('Network error', '#f87171'))
+        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🔄 Sync All'; });
     });
   })();
 

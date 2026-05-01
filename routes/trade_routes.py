@@ -30,4 +30,22 @@ def post_trades():
         save_trades(data, user_id=_get_user_id())
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
+    # Resync backup for any date touched in this save (real-time prefix rename)
+    _trigger_backup_sync(data)
     return jsonify({'success': True})
+
+
+def _trigger_backup_sync(data):
+    """Fire-and-forget: resync backup for dates present in the saved payload."""
+    import threading
+    from services.img_backup_service import sync_date_to_backup
+    dates = set()
+    for t in (data.get('trades') or []):
+        d = t.get('date', '')
+        if d:
+            dates.add(d)
+    for d in (data.get('dayData') or {}).keys():
+        if d:
+            dates.add(d)
+    if dates:
+        threading.Thread(target=lambda: [sync_date_to_backup(d) for d in dates], daemon=True).start()

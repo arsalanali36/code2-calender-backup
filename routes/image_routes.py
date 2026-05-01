@@ -345,6 +345,19 @@ def set_backup_folder():
         return jsonify({'error': str(e)}), 500
 
 
+@image_bp.route('/api/backup-status', methods=['GET'])
+def backup_status():
+    from services.img_backup_service import get_backup_stats
+    return jsonify(get_backup_stats())
+
+
+@image_bp.route('/api/backup-sync', methods=['POST'])
+def backup_sync():
+    from services.img_backup_service import sync_all_to_backup
+    result = sync_all_to_backup()
+    return jsonify(result)
+
+
 @image_bp.route('/api/update-pdf-pages', methods=['POST'])
 def update_pdf_pages_route():
     """Update pages array for a PDF (delete/reorder individual pages)."""
