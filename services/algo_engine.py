@@ -43,6 +43,7 @@ def _store_cache(security_id, symbol, candles, ema_fast, ema_slow):
 def _save_ohlc_disk(security_id, symbol, candles, ema_fast, ema_slow):
     today = date.today().isoformat()
     cfg   = get_algo_config()
+    # Legacy JSON (kept for algo_lab chart backward compat)
     path  = os.path.join(ALGO_OHLC_DIR, f"{symbol}_{today}.json")
     with open(path, 'w') as f:
         json.dump({
@@ -57,6 +58,19 @@ def _save_ohlc_disk(security_id, symbol, candles, ema_fast, ema_slow):
             'saved_at':        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'candle_count':    len(candles),
         }, f)
+    # Unified CSV store
+    try:
+        import pandas as pd
+        import services.ohlc_service as _ohlc
+        rows = [{'datetime': f"{today} {c['time']}:00",
+                 'open': c['open'], 'high': c['high'],
+                 'low': c['low'], 'close': c['close'],
+                 'volume': c.get('vol', 0)}
+                for c in candles if c.get('time')]
+        if rows:
+            _ohlc._save(symbol, today, pd.DataFrame(rows))
+    except Exception:
+        pass  # never fail live tick for store errors
 
 
 def list_saved_ohlc():

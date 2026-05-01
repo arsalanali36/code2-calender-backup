@@ -211,10 +211,32 @@ def chart_data(security_id):
                 "source":          "cache",
             })
 
-        # Cache cold — fetch fresh via broker
+        # Cache cold — try unified ohlc store first (avoids extra API call)
+        today = _date.today().isoformat()
+        import services.ohlc_service as _ohlc
+        _df = _ohlc.load(item['symbol'], today)
+        if _df is not None and not _df.empty:
+            candles = [{'time': row['datetime'][11:16], 'open': row['open'],
+                        'high': row['high'], 'low': row['low'],
+                        'close': row['close'], 'vol': int(row.get('volume', 0))}
+                       for _, row in _df.iterrows()]
+            closes   = [c['close'] for c in candles]
+            ema_fast = _calc_ema(closes, cfg['ema_fast'])
+            ema_slow = _calc_ema(closes, cfg['ema_slow'])
+            return jsonify({
+                "symbol":          item['symbol'],
+                "date":            today,
+                "candles":         candles,
+                "ema_fast":        ema_fast,
+                "ema_slow":        ema_slow,
+                "ema_fast_period": cfg['ema_fast'],
+                "ema_slow_period": cfg['ema_slow'],
+                "source":          "ohlc_store",
+            })
+
+        # Ohlc store miss — fetch live from broker
         from services.brokers.broker_registry import get_broker
         broker  = get_broker(cfg.get('broker', 'dhan'))
-        today   = _date.today().isoformat()
         candles = broker.fetch_candles(
             item['security_id'], item.get('exchange_segment', 'NSE_EQ'),
             item.get('instrument', 'EQUITY'), today,

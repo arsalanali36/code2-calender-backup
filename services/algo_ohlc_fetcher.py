@@ -30,9 +30,9 @@ def _fetch_all():
     """Fetch OHLC for every symbol in the watchlist and save to disk."""
     try:
         from services.algo_engine import (
-            get_watchlist, _fetch_candles, _calc_ema,
-            _store_cache, get_algo_config,
+            get_watchlist, _calc_ema, _store_cache, get_algo_config,
         )
+        from services.brokers.broker_registry import get_broker
         from services.dhan_service_core import get_config as dhan_get_config
 
         dhan_cfg = dhan_get_config()
@@ -44,8 +44,9 @@ def _fetch_all():
         if not watchlist:
             return
 
-        cfg   = get_algo_config()
-        today = date.today().isoformat()
+        cfg    = get_algo_config()
+        broker = get_broker(cfg.get('broker', 'dhan'))
+        today  = date.today().isoformat()
         ok, fail = 0, 0
 
         for item in watchlist:
@@ -55,7 +56,7 @@ def _fetch_all():
             instr  = item.get('instrument', 'EQUITY')
             try:
                 time.sleep(_DELAY_PER_SYM)
-                candles = _fetch_candles(sid, seg, instr, today, dhan_cfg)
+                candles = broker.fetch_candles(sid, seg, instr, today)
                 if candles:
                     ef = _calc_ema([c['close'] for c in candles], cfg['ema_fast'])
                     es = _calc_ema([c['close'] for c in candles], cfg['ema_slow'])
