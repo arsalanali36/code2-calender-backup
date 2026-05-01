@@ -101,6 +101,42 @@ def load(symbol: str, date: str) -> pd.DataFrame | None:
         return None
 
 
+# ── Load range (multi-date) ───────────────────────────────────────────────────
+
+def load_range(symbol: str, start_date: str, end_date: str) -> pd.DataFrame | None:
+    """Load and concatenate 1-min OHLC for all weekdays in [start_date, end_date].
+    Returns None if no data found in new unified store."""
+    from datetime import date as _date
+    start = datetime.strptime(start_date, '%Y-%m-%d').date()
+    end   = datetime.strptime(end_date,   '%Y-%m-%d').date()
+    frames = []
+    d = start
+    while d <= end:
+        if d.weekday() < 5:
+            df = load(symbol, d.strftime('%Y-%m-%d'))
+            if df is not None and not df.empty:
+                frames.append(df)
+        d += timedelta(days=1)
+    if not frames:
+        return None
+    out = (pd.concat(frames, ignore_index=True)
+             .drop_duplicates('datetime')
+             .sort_values('datetime')
+             .reset_index(drop=True))
+    return out
+
+
+def available_dates(symbol: str) -> list:
+    """Return sorted list of dates that have data in the unified store."""
+    folder = os.path.dirname(ohlc_path(symbol, '2000-01-01'))
+    if not os.path.isdir(folder):
+        return []
+    return sorted(
+        f[:-4] for f in os.listdir(folder)
+        if f.endswith('.csv') and len(f) == 14
+    )
+
+
 # ── Resample ──────────────────────────────────────────────────────────────────
 
 def resample(df: pd.DataFrame, timeframe_min: int) -> pd.DataFrame:

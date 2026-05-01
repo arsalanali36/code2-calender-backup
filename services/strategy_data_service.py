@@ -35,6 +35,16 @@ try:
 except ImportError:
     def add_to_sync(inst, dt): pass
 
+import services.ohlc_service as _ohlc_svc
+
+# Map strategy-lab symbol names → ohlc_service canonical symbol
+_STRAT_TO_OHLC = {
+    'Nifty 50 (^NSEI)': 'NIFTY',
+    '^NSEI':            'NIFTY',
+    'BANKNIFTY':        'BANKNIFTY',
+    'FINNIFTY':         'FINNIFTY',
+}
+
 
 def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     url = "https://api.dhan.co/charts/intraday"
@@ -82,29 +92,47 @@ def get_nifty_data_cached(symbol, start_date, end_date, timeframe, start_time, e
     real_trades = get_real_trades(start_date, end_date, symbol, user_id=user_id)
     return df, zones, real_trades
 
+def _load_from_ohlc_store(symbol, start_date, end_date):
+    """Try unified ohlc store (new). Returns DataFrame with Datetime index or empty."""
+    ohlc_sym = _STRAT_TO_OHLC.get(symbol, symbol)
+    warmup_start = (pd.to_datetime(start_date) - timedelta(days=5)).strftime('%Y-%m-%d')
+    df_new = _ohlc_svc.load_range(ohlc_sym, warmup_start, end_date)
+    if df_new is None or df_new.empty:
+        return pd.DataFrame()
+    df_new = df_new.rename(columns={
+        'datetime': 'Datetime', 'open': 'Open', 'high': 'High',
+        'low': 'Low', 'close': 'Close', 'volume': 'Volume'
+    })
+    df_new['Datetime'] = pd.to_datetime(df_new['Datetime'])
+    return df_new.set_index('Datetime').loc[~df_new.set_index('Datetime').index.duplicated(keep='first')]
+
+
 def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', strategy_type='Arsalan Continuation', strategy_params=None):
     df = pd.DataFrame()
     today_str = datetime.now().strftime('%Y-%m-%d')
     if source == 'dhan_local':
-        if symbol == 'Nifty 50 (^NSEI)':
-            path = "data/Historical_OHLC/nifty_1m_dhan.csv"
-            if os.path.exists(path):
-                mtime = os.path.getmtime(path)
-                df_raw = _get_cached_raw_data(path, mtime)
-                warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
-                mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
-                df = df_raw.loc[mask].rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
-                df = df[~df.index.duplicated(keep='first')]
-        else:
-            path = f"data/Historical_OHLC/Options/{symbol}.csv"
-            if os.path.exists(path):
-                mtime = os.path.getmtime(path)
-                df_raw = _get_cached_raw_data(path, mtime)
-                warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
-                mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
-                df = df_raw.loc[mask].copy()
-                df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume','datetime'] else c for c in df.columns]
-                if 'Datetime' in df.columns: df = df.set_index('Datetime')
+        # Try unified ohlc store first; fall back to legacy consolidated CSV
+        df = _load_from_ohlc_store(symbol, start_date, end_date)
+        if df.empty:
+            if symbol == 'Nifty 50 (^NSEI)':
+                path = "data/Historical_OHLC/nifty_1m_dhan.csv"
+                if os.path.exists(path):
+                    mtime = os.path.getmtime(path)
+                    df_raw = _get_cached_raw_data(path, mtime)
+                    warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
+                    mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
+                    df = df_raw.loc[mask].rename(columns={'datetime': 'Datetime', 'open':'Open', 'high':'High', 'low':'Low', 'close':'Close'}).set_index('Datetime')
+                    df = df[~df.index.duplicated(keep='first')]
+            else:
+                path = f"data/Historical_OHLC/Options/{symbol}.csv"
+                if os.path.exists(path):
+                    mtime = os.path.getmtime(path)
+                    df_raw = _get_cached_raw_data(path, mtime)
+                    warmup_start = pd.to_datetime(start_date) - timedelta(days=5)
+                    mask = (df_raw['datetime'] >= warmup_start) & (df_raw['datetime'] <= pd.to_datetime(end_date) + timedelta(days=1))
+                    df = df_raw.loc[mask].copy()
+                    df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume','datetime'] else c for c in df.columns]
+                    if 'Datetime' in df.columns: df = df.set_index('Datetime')
 
     if source == 'yfinance' or (source == 'dhan_api' and start_date != today_str):
         yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -238,11 +266,25 @@ def get_real_trades(start_date, end_date, symbol=None, user_id=None):
 
 def get_archive_dates(user_id=None):
     base_path = "data/Historical_OHLC/nifty_1m_dhan.csv"
-    if not os.path.exists(base_path): return []
+    _new_nifty_dates = set(_ohlc_svc.available_dates('NIFTY'))
+    if not os.path.exists(base_path) and not _new_nifty_dates:
+        return []
     try:
-        df = pd.read_csv(base_path)
-        df['datetime'] = pd.to_datetime(df['datetime'])
-        df['date'] = df['datetime'].dt.strftime('%Y-%m-%d')
+        if os.path.exists(base_path):
+            df = pd.read_csv(base_path)
+            df['datetime'] = pd.to_datetime(df['datetime'])
+            df['date'] = df['datetime'].dt.strftime('%Y-%m-%d')
+            # Merge in any extra dates from the new unified store
+            if _new_nifty_dates:
+                _legacy_dates = set(df['date'].unique())
+                _extra = _new_nifty_dates - _legacy_dates
+                if _extra:
+                    _extra_rows = pd.DataFrame({'datetime': pd.to_datetime(list(_extra)), 'date': sorted(_extra)})
+                    df = pd.concat([df, _extra_rows], ignore_index=True)
+        else:
+            # Legacy file absent — build from new unified store dates only
+            _dates = sorted(_new_nifty_dates)
+            df = pd.DataFrame({'datetime': pd.to_datetime(_dates), 'date': _dates})
         
         trades_map = {}
         total_pl_map = {}
@@ -297,14 +339,17 @@ def get_archive_dates(user_id=None):
         if stale:
             for sym in all_unique_syms:
                 if not sym: continue
+                dates_found: set = set()
+                # Legacy path
                 csv_path = f"data/Historical_OHLC/Options/{sym}.csv"
                 if os.path.exists(csv_path) and os.path.getsize(csv_path) > 0:
                     try:
                         temp_df = pd.read_csv(csv_path, usecols=['datetime'], dtype={'datetime': str})
-                        dates = temp_df['datetime'].str.slice(0, 10).unique()
-                        sym_availability[sym] = set(dates)
-                    except: sym_availability[sym] = set()
-                else: sym_availability[sym] = set()
+                        dates_found.update(temp_df['datetime'].str.slice(0, 10).unique())
+                    except: pass
+                # New unified ohlc store
+                dates_found.update(_ohlc_svc.available_dates(sym))
+                sym_availability[sym] = dates_found
             try:
                 os.makedirs('data', exist_ok=True)
                 with open(INVENTORY_FILE, 'w') as f: json.dump({k: list(v) for k,v in sym_availability.items()}, f)
@@ -338,7 +383,8 @@ def get_archive_dates(user_id=None):
                     'symbol': sym, 'pl': round(t_raw['pl'], 2), 'qty': t_raw['qty'],
                     'entry_time': t_raw['entry_time'], 'exit_time': t_raw['exit_time'],
                     'duration': t_raw['duration'], 'pt': t_raw['pt'],
-                    'has_data': os.path.exists(f"data/Historical_OHLC/Options/{sym}.csv"),
+                    'has_data': (os.path.exists(f"data/Historical_OHLC/Options/{sym}.csv")
+                                or bool(_ohlc_svc.available_dates(sym))),
                     'weekly_history': weekly_history, 'weekly_dates': weekly_dates
                 })
             results.append({'date': date, 'resolution': res_str, 'trades': day_trades, 'total_pl': round(day_total_pl, 2)})
