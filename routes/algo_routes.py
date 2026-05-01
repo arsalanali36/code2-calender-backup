@@ -27,6 +27,11 @@ algo_bp = Blueprint('algo', __name__)
 def algo_lab_page():
     return render_template('algo_lab.html')
 
+@algo_bp.route('/algo-lab-v2')
+@login_required
+def algo_lab_v2_page():
+    return render_template('algo_lab_v2.html')
+
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
