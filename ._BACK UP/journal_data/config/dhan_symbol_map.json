@@ -1,0 +1,217 @@
+{
+  "NIFTY26FEB25450CE": {
+    "security_id": "72320",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25750PE": {
+    "security_id": "72372",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25700CE": {
+    "security_id": "72363",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25750CE": {
+    "security_id": "72371",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25450PE": {
+    "security_id": "72321",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225600CE": {
+    "security_id": "54598",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25600CE": {
+    "security_id": "72352",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25650PE": {
+    "security_id": "72360",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225600PE": {
+    "security_id": "54599",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25650CE": {
+    "security_id": "72358",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25850PE": {
+    "security_id": "72376",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25400CE": {
+    "security_id": "72318",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225650CE": {
+    "security_id": "54600",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25600PE": {
+    "security_id": "72356",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25350CE": {
+    "security_id": "72314",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY26FEB25700PE": {
+    "security_id": "72364",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225550PE": {
+    "security_id": "54597",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225550CE": {
+    "security_id": "54596",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY 24 FEB 25700 CALL": {
+    "security_id": "62791",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY 24 FEB 25750 PUT": {
+    "security_id": "62794",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY 24 FEB 25500 CALL": {
+    "security_id": "62765",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY 03 FEB 24850 PUT": {
+    "security_id": "54571",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225400PE": {
+    "security_id": "54591",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225350CE": {
+    "security_id": "54588",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2630225350PE": {
+    "security_id": "54589",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423650CE": {
+    "security_id": "62602",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423700PE": {
+    "security_id": "62606",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423600CE": {
+    "security_id": "62600",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423650PE": {
+    "security_id": "62604",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423250CE": {
+    "security_id": "62582",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423250PE": {
+    "security_id": "62587",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423300PE": {
+    "security_id": "62589",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423350CE": {
+    "security_id": "62590",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632423300CE": {
+    "security_id": "62588",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422750CE": {
+    "security_id": "62557",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422800PE": {
+    "security_id": "62563",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422600CE": {
+    "security_id": "62498",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422600PE": {
+    "security_id": "62499",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422550PE": {
+    "security_id": "62437",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422700PE": {
+    "security_id": "62556",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422700CE": {
+    "security_id": "62555",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422900CE": {
+    "security_id": "62566",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  },
+  "NIFTY2632422950CE": {
+    "security_id": "62568",
+    "exchange_segment": "NSE_FNO",
+    "instrument": "OPTIDX"
+  }
+}

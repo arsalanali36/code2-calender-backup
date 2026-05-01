@@ -1,0 +1,172 @@
+{
+  "categories": [
+    {
+      "id": "workflow-integrity",
+      "title": "Master Your Workflow",
+      "subtitle": "Efficiency & Integrity",
+      "solved_for": "Manual data entry fatigue and data corruption risks.",
+      "features": [
+        {
+          "id": "no-fake-data",
+          "name": "Zero-Manual Entry Integrity",
+          "details": "We don't do 'fake' data. Your journal is built directly from your actual broker history. Total transparency with zero manual bias.",
+          "icon": "🛡️",
+          "solved_for": "Data manipulation and manual logging errors.",
+          "media_type": "video",
+          "media_url": "/uploads/4bcbc8d9e81047b8a23768b729c8fa1c.webm"
+        },
+        {
+          "id": "trade-pill",
+          "name": "Precision Trade Pills",
+          "details": "Every trade is a story. Our Trade Pill UI gives you a 1-second readout of P&L, Points, and Quantity without cluttering your screen.",
+          "icon": "💊",
+          "solved_for": "Cognitive overload from spreadsheet-style data.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Precision+Trade+Pills"
+        },
+        {
+          "id": "shortcuts",
+          "name": "Pro Keyboard Shortcuts",
+          "details": "Navigate like a pro. High-speed shortcuts (Alt+R, Alt+T, Fullscreen) designed for rapid trade reviews and instant context switching.",
+          "icon": "⌨️",
+          "solved_for": "Wasted time on mouse clicks.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Keyboard+Shortcut+Map+Image"
+        },
+        {
+          "id": "tagging",
+          "name": "Tag-Based Filtering",
+          "details": "Categorize by Setup, Emotion, or Instrument. Create custom tag-filtered views and find your edge across months of data in seconds.",
+          "icon": "🏷️",
+          "solved_for": "Unorganized data chaos.",
+          "media_type": "video",
+          "media_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        }
+      ]
+    },
+    {
+      "id": "visual-engine",
+      "title": "Visual Analysis Engine",
+      "subtitle": "See the Market Clearly",
+      "solved_for": "Static images that lack depth and disconnected charting context.",
+      "features": [
+        {
+          "id": "mtm-curves",
+          "name": "Per-Trade MTM Curves",
+          "details": "Visualize your P&L evolution inside the trade. Spot early exits and missed opportunities with daily equity curves per trade.",
+          "icon": "📈",
+          "solved_for": "Lack of visibility into mid-trade drawdown and peak profit.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=MTM+Curves+Evolution"
+        },
+        {
+          "id": "av-notes",
+          "name": "Audio & Video Context",
+          "details": "Don't just write—speak. Capture screen recordings and voice notes that link directly to your candles and trade entries.",
+          "icon": "🎙️",
+          "solved_for": "Losing the 'feeling' and context of a trade hours later.",
+          "media_type": "video",
+          "media_url": "/uploads/4bcbc8d9e81047b8a23768b729c8fa1c.webm"
+        },
+        {
+          "id": "annotation-tools",
+          "name": "Built-in Annotation Suite",
+          "details": "Markup your charts directly within the app. Add arrows, boxes, and tactical notes with a high-performance drawing canvas.",
+          "icon": "🎨",
+          "solved_for": "Needing external tools (Goodnotes/PPT) for markups.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Annotation+Canvas+Demo"
+        }
+      ]
+    },
+    {
+      "id": "analytics-core",
+      "title": "Deep-Dive Analytics",
+      "subtitle": "Quant-Level Performance Tracking",
+      "solved_for": "Lack of clarity in equity curves and target alignment.",
+      "features": [
+        {
+          "id": "dashboard",
+          "name": "Drill-Down Dashboard",
+          "details": "Interactive tiles showing Volume, Duration, and Profit metrics. Filter by time, instrument, or tag to find your true edge.",
+          "icon": "🚀",
+          "solved_for": "Vague performance goals and hidden leaks.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Analytics+Dashboard+Preview"
+        },
+        {
+          "id": "target-tracker",
+          "name": "Cricket-Analogy Tracker",
+          "details": "Reach your milestones. Daily and Weekly targets with a cricket-style progress bar to keep you focused.",
+          "icon": "🎯",
+          "solved_for": "Goal drift and lack of consistency.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Target+Tracker+Experience"
+        },
+        {
+          "id": "strategy-lab",
+          "name": "Strategy Lab Cockpit",
+          "details": "Build and validate your 'Core, Reversal, & Range Based' setups. Compare your actual execution against the strategy edge.",
+          "icon": "🧪",
+          "solved_for": "Non-systematic trading behavior.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Strategy+Lab+Demo"
+        },
+        {
+          "id": "data-mapping",
+          "name": "Image-to-Chart Bridge",
+          "details": "The ultimate sync. Click any trade image to instantly jump to the actual Historical OHLC charts for that specific date.",
+          "icon": "🔗",
+          "solved_for": "Manual search for charts during reviews.",
+          "media_type": "video",
+          "media_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        }
+      ]
+    },
+    {
+      "id": "pro-ecosystem",
+      "title": "Professional Ecosystem",
+      "subtitle": "Your Data, Everywhere",
+      "solved_for": "Being tied to a desk and data portability issues.",
+      "features": [
+        {
+          "id": "img-manager",
+          "name": "Advanced Image Manager",
+          "details": "Organize your evidence like a pro. Batch move, group, and create Custom Folders with rename/delete capabilities.",
+          "icon": "📊",
+          "solved_for": "Chaotic screenshot management.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Image+Manager+Folders"
+        },
+        {
+          "id": "cross-platform",
+          "name": "Web, iPad & Mobile Friendly",
+          "details": "Your journal follows you. Fully responsive layouts customized for touch devices, tablets, and desktop screens.",
+          "icon": "📱",
+          "solved_for": "Device-locked analytical tools.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Responsive+Layouts"
+        },
+        {
+          "id": "backups",
+          "name": "Bulletproof Backups & PDF",
+          "details": "Full ZIP backups and professional PDF reporting. Total control over your persistence and data ownership.",
+          "icon": "💾",
+          "solved_for": "Data loss anxiety and report fragmentation.",
+          "media_type": "image",
+          "media_url": "https://placehold.co/1000x500/111827/ffffff?text=Backup+and+Export+UI"
+        }
+      ]
+    }
+  ],
+  "tagline": "Mastering the art of learning from the best.\nAmalgamating Instagram / Google Photos / PPT / Sheets / Calendar / Goodnotes —\nbuilt to help you become a consistently profitable trader.",
+  "hero_title": "Power of Code2-Calendar",
+  "hero_subtitle": "Zero-Manual intervention. 1-Click retrieval. Stop being a data-entry operator and start being a pattern-recognition machine.",
+  "offer": {
+    "title": "Join the Elite Tribe",
+    "subtitle": "Start your journey towards professional trading today.",
+    "cta": "Join for Free (1st Month)",
+    "highlight": "FREE for the first 30 days. Experience full power with pre-loaded dummy data.",
+    "link": "/register"
+  }
+}
