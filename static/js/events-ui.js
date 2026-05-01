@@ -234,7 +234,6 @@ function _bindUIEvents() {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
     if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
-    if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
     if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
     document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));
