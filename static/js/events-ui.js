@@ -99,9 +99,27 @@ function _bindUIEvents() {
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
+
+  function resetProfileDropdownPos() {
+    profileDropdown.style.position = '';
+    profileDropdown.style.top = '';
+    profileDropdown.style.right = '';
+    profileDropdown.style.left = '';
+  }
+
+  function openProfileDropdownAt(btn) {
+    const rect = btn.getBoundingClientRect();
+    profileDropdown.style.position = 'fixed';
+    profileDropdown.style.top = (rect.bottom + 8) + 'px';
+    profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+    profileDropdown.style.left = '';
+    profileDropdown.classList.add('open');
+  }
+
   if (profileAvatarBtn && profileDropdown) {
     profileAvatarBtn.addEventListener('click', e => {
       e.stopPropagation();
+      resetProfileDropdownPos();
       profileDropdown.classList.toggle('open');
     });
     profileDropdown.addEventListener('click', e => e.stopPropagation());
@@ -115,17 +133,31 @@ function _bindUIEvents() {
     });
   }
 
+  // Gallery avatar button → reuse same profile dropdown, repositioned
+  const gv2ProfileBtn = document.getElementById('gv2-profile-btn');
+  if (gv2ProfileBtn && profileDropdown) {
+    gv2ProfileBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (profileDropdown.classList.contains('open')) {
+        profileDropdown.classList.remove('open');
+        resetProfileDropdownPos();
+      } else {
+        openProfileDropdownAt(gv2ProfileBtn);
+      }
+    });
+  }
+
   // Profile: Settings
   const profileSettingsBtn = document.getElementById('profile-settings-btn');
   if (profileSettingsBtn) profileSettingsBtn.addEventListener('click', () => {
     document.getElementById('settings-overlay').classList.add('open');
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
 
   const profileQuoteBtn = document.getElementById('profile-quote-btn');
   if (profileQuoteBtn) profileQuoteBtn.addEventListener('click', () => {
     if (typeof openQuoteModal === 'function') openQuoteModal();
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
 
   // Profile: Broker inline dropdown
@@ -195,7 +227,7 @@ function _bindUIEvents() {
   document.addEventListener('click', () => {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
     if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
     if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
