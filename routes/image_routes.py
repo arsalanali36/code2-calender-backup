@@ -368,6 +368,19 @@ def backup_migrate():
     return jsonify({'ok': True, 'moved': moved})
 
 
+@image_bp.route('/api/backup-full-stats', methods=['GET'])
+def backup_full_stats():
+    from services.img_backup_service import get_full_backup_stats
+    return jsonify(get_full_backup_stats())
+
+
+@image_bp.route('/api/backup-full-sync', methods=['POST'])
+def backup_full_sync():
+    from services.img_backup_service import sync_all_data
+    result = sync_all_data()
+    return jsonify(result)
+
+
 @image_bp.route('/api/update-pdf-pages', methods=['POST'])
 def update_pdf_pages_route():
     """Update pages array for a PDF (delete/reorder individual pages)."""

@@ -180,13 +180,32 @@ function _bindUIEvents() {
       el.textContent = msg;
     }
 
+    function setBar(barId, done, total) {
+      const el = document.getElementById(barId);
+      if (el) el.style.width = (total ? Math.round((done / total) * 100) : 0) + '%';
+    }
+
     function loadStats() {
-      fetch('/api/backup-status').then(r => r.json()).then(d => {
-        document.getElementById('bk-total').textContent = d.total_app ?? '—';
-        document.getElementById('bk-done').textContent = d.backed_up ?? '—';
-        document.getElementById('bk-missing').textContent = d.not_backed_up ?? '—';
-        const pct = d.total_app ? Math.round((d.backed_up / d.total_app) * 100) : 0;
-        document.getElementById('bk-progress-bar').style.width = pct + '%';
+      fetch('/api/backup-full-stats').then(r => r.json()).then(d => {
+        const img = d.images || {};
+        document.getElementById('bk-total').textContent   = img.total_app ?? '—';
+        document.getElementById('bk-done').textContent    = img.backed_up ?? '—';
+        setBar('bk-progress-bar', img.backed_up || 0, img.total_app || 1);
+
+        const eq = d.ohlc_equity || {};
+        document.getElementById('bk-eq-total').textContent = eq.total ?? '—';
+        document.getElementById('bk-eq-done').textContent  = eq.backed_up ?? '—';
+        setBar('bk-eq-bar', eq.backed_up || 0, eq.total || 1);
+
+        const opt = d.ohlc_options || {};
+        document.getElementById('bk-opt-total').textContent = opt.total ?? '—';
+        document.getElementById('bk-opt-done').textContent  = opt.backed_up ?? '—';
+        setBar('bk-opt-bar', opt.backed_up || 0, opt.total || 1);
+
+        const jd = d.journal || {};
+        document.getElementById('bk-jdata-total').textContent = jd.total ?? '—';
+        document.getElementById('bk-jdata-done').textContent  = jd.backed_up ?? '—';
+        setBar('bk-jdata-bar', jd.backed_up || 0, jd.total || 1);
       }).catch(() => {});
     }
 
@@ -231,17 +250,36 @@ function _bindUIEvents() {
     document.getElementById('backup-sync-btn').addEventListener('click', () => {
       const syncBtn = document.getElementById('backup-sync-btn');
       syncBtn.disabled = true;
-      syncBtn.textContent = '⏳ Syncing…';
-      setStatus('Sab images backup ho rahi hain, thoda wait karein…', '#94a3b8');
+      syncBtn.textContent = '⏳…';
+      setStatus('Images sync ho rahi hain…', '#94a3b8');
       fetch('/api/backup-sync', { method: 'POST' }).then(r => r.json()).then(d => {
         if (d.ok) {
-          setStatus(`✓ Done! Copied: ${d.copied}, Already backed: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
+          setStatus(`✓ Images done! Copied: ${d.copied}, Skipped: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
           loadStats();
         } else {
           setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
         }
       }).catch(() => setStatus('Network error', '#f87171'))
-        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🔄 Sync All'; });
+        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🖼️ Imgs Only'; });
+    });
+
+    document.getElementById('backup-full-sync-btn').addEventListener('click', () => {
+      const btn = document.getElementById('backup-full-sync-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Backing up everything…';
+      setStatus('Images + OHLC + Journal data sab backup ho rahi hai…', '#94a3b8');
+      fetch('/api/backup-full-sync', { method: 'POST' }).then(r => r.json()).then(d => {
+        const img = d.images || {};
+        const eq  = d.ohlc_equity || {};
+        const opt = d.ohlc_options || {};
+        const jd  = d.journal || {};
+        setStatus(
+          `✓ Done!  Images: ${img.copied||0} copied  |  Equity OHLC: ${eq.copied||0}  |  Options: ${opt.copied||0}  |  Journal: ${jd.copied||0}`,
+          '#4ade80'
+        );
+        loadStats();
+      }).catch(() => setStatus('Network error', '#f87171'))
+        .finally(() => { btn.disabled = false; btn.textContent = '🔄 Backup Everything'; });
     });
   })();
 

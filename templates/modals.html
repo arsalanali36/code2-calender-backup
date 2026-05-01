@@ -6,36 +6,59 @@
       <button id="backup-folder-close" style="background:none; border:none; color:#94a3b8; font-size:1.2rem; cursor:pointer;">✕</button>
     </div>
 
-    <!-- Stats bar -->
-    <div id="backup-stats-box" style="background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:.82rem;">
-      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:8px;">
-        <span>App images</span><span id="bk-total" style="color:#e2e8f0; font-weight:600;">—</span>
+    <!-- Stats grid -->
+    <div id="backup-stats-box" style="background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:.82rem;">
+      <!-- Images row -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="color:#94a3b8; flex:1;">🖼️ Images</span>
+        <span id="bk-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-progress-bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:8px;">
-        <span>Backed up</span><span id="bk-done" style="color:#4ade80; font-weight:600;">—</span>
+      <!-- OHLC Equity -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="color:#94a3b8; flex:1;">📊 OHLC Equity</span>
+        <span id="bk-eq-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-eq-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-eq-bar" style="height:100%; background:linear-gradient(90deg,#f59e0b,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:10px;">
-        <span>Missing</span><span id="bk-missing" style="color:#f87171; font-weight:600;">—</span>
+      <!-- OHLC Options -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="color:#94a3b8; flex:1;">📈 OHLC Options</span>
+        <span id="bk-opt-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-opt-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-opt-bar" style="height:100%; background:linear-gradient(90deg,#a78bfa,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
-      <!-- Progress bar -->
-      <div style="background:#1e1e3a; border-radius:4px; height:6px; overflow:hidden;">
-        <div id="bk-progress-bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#4ade80); width:0%; transition:width .4s;"></div>
+      <!-- Journal JSON -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="color:#94a3b8; flex:1;">🗂️ Journal Data</span>
+        <span id="bk-jdata-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-jdata-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-jdata-bar" style="height:100%; background:linear-gradient(90deg,#38bdf8,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
     </div>
 
-    <p style="color:#94a3b8; font-size:.82rem; margin-bottom:12px; line-height:1.5;">
-      Images backup hoti hain: <code style="color:#a5f3fc;">uploaded_imgs/YYYY-MM-DD/T1_file.jpg</code><br>
-      Separator move karne ke baad auto-rename hota hai.
-    </p>
-
-    <label style="display:block; color:#94a3b8; font-size:.8rem; margin-bottom:6px;">Folder path (full path):</label>
-    <input id="backup-folder-input" type="text" placeholder="e.g. G:\My Drive\TradeBackup"
+    <label style="display:block; color:#94a3b8; font-size:.8rem; margin-bottom:6px;">Backup folder (full path):</label>
+    <input id="backup-folder-input" type="text" placeholder="e.g. D:\MyBackup  or  G:\My Drive\TradeBackup"
       style="width:100%; box-sizing:border-box; background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:10px 12px; color:#e2e8f0; font-size:.9rem; outline:none;" />
 
-    <div style="display:flex; gap:10px; margin-top:14px;">
-      <button id="backup-folder-save" style="flex:1; background:#6366f1; border:none; border-radius:8px; padding:10px; color:#fff; font-size:.9rem; font-weight:600; cursor:pointer;">💾 Save</button>
-      <button id="backup-sync-btn" style="flex:1; background:#0f4c75; border:1px solid #3b82f6; border-radius:8px; padding:10px; color:#93c5fd; font-size:.9rem; font-weight:600; cursor:pointer;">🔄 Sync All</button>
-      <button id="backup-folder-clear" style="background:#3b3b5c; border:none; border-radius:8px; padding:10px 14px; color:#94a3b8; font-size:.85rem; cursor:pointer;">✕</button>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="backup-folder-save" style="flex:1; background:#6366f1; border:none; border-radius:8px; padding:10px; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer;">💾 Save</button>
+      <button id="backup-full-sync-btn" style="flex:2; background:#0a3a2a; border:1px solid #22c55e; border-radius:8px; padding:10px; color:#4ade80; font-size:.85rem; font-weight:700; cursor:pointer;">🔄 Backup Everything</button>
+      <button id="backup-sync-btn" style="flex:1; background:#0f4c75; border:1px solid #3b82f6; border-radius:8px; padding:10px; color:#93c5fd; font-size:.82rem; cursor:pointer;">🖼️ Imgs Only</button>
+      <button id="backup-folder-clear" style="background:#3b3b5c; border:none; border-radius:8px; padding:10px 12px; color:#94a3b8; font-size:.85rem; cursor:pointer;">✕</button>
     </div>
     <div id="backup-folder-status" style="margin-top:10px; font-size:.8rem; min-height:18px;"></div>
   </div>

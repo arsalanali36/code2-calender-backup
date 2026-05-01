@@ -308,3 +308,270 @@ def migrate_flat_to_month_folders(folder):
             pass
 
     return moved
+
+
+# ── OHLC Equity Backup ────────────────────────────────────────────────────────
+
+def sync_ohlc_equity_to_backup():
+    """
+    Copy algo_ohlc/SYMBOL_DATE.json files to:
+    backup/ohlc_equity/SYMBOL/DATE.json
+    """
+    folder = _get_backup_folder()
+    if not folder:
+        return {'ok': False, 'error': 'No backup folder configured'}
+
+    from config import BASE_DIR
+    src_dir = os.path.join(BASE_DIR, 'data', 'algo_ohlc')
+    if not os.path.exists(src_dir):
+        return {'ok': True, 'copied': 0, 'skipped': 0, 'note': 'No algo_ohlc folder'}
+
+    base = os.path.join(folder, 'ohlc_equity')
+    copied = skipped = 0
+
+    for fname in os.listdir(src_dir):
+        if not fname.endswith('.json'):
+            continue
+        # SYMBOL_DATE.json  e.g. RELIANCE_2026-04-30.json
+        parts = fname.replace('.json', '').rsplit('_', 1)
+        if len(parts) != 2:
+            continue
+        symbol, date = parts
+        dest_dir = os.path.join(base, symbol)
+        os.makedirs(dest_dir, exist_ok=True)
+        dest = os.path.join(dest_dir, f'{date}.json')
+        src = os.path.join(src_dir, fname)
+        if not os.path.exists(dest):
+            try:
+                shutil.copy2(src, dest)
+                copied += 1
+            except Exception:
+                pass
+        else:
+            skipped += 1
+
+    return {'ok': True, 'copied': copied, 'skipped': skipped}
+
+
+# ── OHLC Options Backup ───────────────────────────────────────────────────────
+
+def _load_scrip_map():
+    """Return {security_id: {'underlying', 'expiry', 'strike', 'type'}} from CSV."""
+    import csv
+    from config import BASE_DIR
+    csv_path = os.path.join(BASE_DIR, 'data', 'dhan_scrip_master.csv')
+    result = {}
+    if not os.path.exists(csv_path):
+        return result
+    with open(csv_path, encoding='utf-8') as f:
+        for row in csv.DictReader(f):
+            sid = row.get('SEM_SMST_SECURITY_ID', '').strip()
+            sym = row.get('SM_SYMBOL_NAME', '') or row.get('SEM_TRADING_SYMBOL', '')
+            expiry = row.get('SEM_EXPIRY_DATE', '')[:10]  # YYYY-MM-DD
+            strike = row.get('SEM_STRIKE_PRICE', '').split('.')[0]
+            opt_type = row.get('SEM_OPTION_TYPE', '')
+            # Underlying: extract from trading symbol e.g. NIFTY-May2026-25650-PE
+            trading = row.get('SEM_TRADING_SYMBOL', '')
+            underlying = trading.split('-')[0] if '-' in trading else trading[:10]
+            if sid:
+                result[sid] = {
+                    'underlying': underlying,
+                    'expiry': expiry,
+                    'strike': strike,
+                    'type': opt_type,
+                }
+    return result
+
+
+def _parse_option_symbol(name):
+    """
+    Parse a symbol-style filename prefix like BANKNIFTY26APR57500CE.
+    Returns (underlying, expiry_label, strike, opt_type) or None.
+    """
+    import re
+    # Pattern: UNDERLYING + date(YYMONDD or similar) + STRIKE + CE/PE
+    m = re.match(r'^([A-Z]+)(\d{2})([A-Z]{3})(\d+)(CE|PE)$', name)
+    if not m:
+        return None
+    underlying, yy, mon, strike, opt_type = m.groups()
+    mon_map = {'JAN':'01','FEB':'02','MAR':'03','APR':'04','MAY':'05','JUN':'06',
+               'JUL':'07','AUG':'08','SEP':'09','OCT':'10','NOV':'11','DEC':'12'}
+    mm = mon_map.get(mon, '00')
+    expiry = f'20{yy}-{mm}'  # approximate month
+    return underlying, expiry, strike, opt_type
+
+
+def sync_ohlc_options_to_backup():
+    """
+    Copy Historical_OHLC/Options/ files to:
+    backup/ohlc_options/UNDERLYING/YYYY-MM-DD Expiry/STRIKE_TYPE.csv
+    """
+    folder = _get_backup_folder()
+    if not folder:
+        return {'ok': False, 'error': 'No backup folder configured'}
+
+    from config import BASE_DIR
+    src_dir = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')
+    if not os.path.exists(src_dir):
+        return {'ok': True, 'copied': 0, 'skipped': 0, 'note': 'No Options folder'}
+
+    scrip_map = _load_scrip_map()
+    base = os.path.join(folder, 'ohlc_options')
+    copied = skipped = 0
+
+    for fname in os.listdir(src_dir):
+        src = os.path.join(src_dir, fname)
+        if not os.path.isfile(src):
+            continue
+
+        ext = os.path.splitext(fname)[1]  # .csv or .meta
+        stem = os.path.splitext(fname)[0]  # e.g. 13_2026-04-15 or BANKNIFTY26APR57500CE_2026-04-15
+
+        parts = stem.split('_', 1)
+        if len(parts) < 2:
+            continue
+        id_or_sym, fetch_date = parts[0], parts[1]
+
+        underlying = 'UNKNOWN'
+        expiry_label = fetch_date
+        dest_fname = fname
+
+        if id_or_sym.isdigit():
+            info = scrip_map.get(id_or_sym)
+            if info:
+                underlying = info['underlying'] or 'UNKNOWN'
+                expiry_label = f"{info['expiry']} Expiry" if info['expiry'] else fetch_date
+                strike = info['strike']
+                opt_type = info['type']
+                dest_fname = f"{strike}_{opt_type}{ext}"
+        else:
+            parsed = _parse_option_symbol(id_or_sym)
+            if parsed:
+                underlying, expiry_month, strike, opt_type = parsed
+                expiry_label = f"{expiry_month} Expiry"
+                dest_fname = f"{strike}_{opt_type}{ext}"
+
+        dest_dir = os.path.join(base, underlying, expiry_label)
+        os.makedirs(dest_dir, exist_ok=True)
+        dest = os.path.join(dest_dir, dest_fname)
+
+        if not os.path.exists(dest):
+            try:
+                shutil.copy2(src, dest)
+                copied += 1
+            except Exception:
+                pass
+        else:
+            skipped += 1
+
+    return {'ok': True, 'copied': copied, 'skipped': skipped}
+
+
+# ── Journal JSON Backup ───────────────────────────────────────────────────────
+
+_JOURNAL_FILES = {
+    # (src relative to BASE_DIR, dest relative to journal_data/)
+    'data/trades_1.json':               'trades.json',
+    'data/algo_config.json':            'algo/algo_config.json',
+    'data/algo_watchlist.json':         'algo/algo_watchlist.json',
+    'data/algo_orders.json':            'algo/algo_orders.json',
+    'data/daily_pivot_levels.json':     'strategy/daily_pivot_levels.json',
+    'data/symbol_expiry_map.json':      'strategy/symbol_expiry_map.json',
+    'data/manual_pivots.json':          'strategy/manual_pivots.json',
+    'data/dhan_config.json':            'config/dhan_config.json',
+    'data/dhan_symbol_map.json':        'config/dhan_symbol_map.json',
+    'data/pdfs.json':                   'config/pdfs.json',
+    'data/features.json':               'config/features.json',
+    'data/log_schema.json':             'config/log_schema.json',
+}
+
+
+def sync_journal_data_to_backup():
+    """
+    Copy trades JSON and config files to backup/journal_data/.
+    Also extract tags/columns from trades into a separate tags.json.
+    """
+    folder = _get_backup_folder()
+    if not folder:
+        return {'ok': False, 'error': 'No backup folder configured'}
+
+    from config import BASE_DIR
+    base = os.path.join(folder, 'journal_data')
+    copied = skipped = 0
+
+    for src_rel, dest_rel in _JOURNAL_FILES.items():
+        src = os.path.join(BASE_DIR, src_rel)
+        if not os.path.exists(src):
+            continue
+        dest = os.path.join(base, dest_rel)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        # Always overwrite JSON data (it changes)
+        try:
+            shutil.copy2(src, dest)
+            copied += 1
+        except Exception:
+            pass
+
+    # Extract tags, columns, tag groups into readable tags.json
+    try:
+        trades_file = os.path.join(BASE_DIR, 'data', 'trades_1.json')
+        with open(trades_file, encoding='utf-8') as f:
+            data = json.load(f)
+        tags_snapshot = {
+            'allTags':      data.get('allTags', []),
+            'columns':      data.get('columns', []),
+            'tagColumns':   data.get('tagColumns', []),
+            'tagGroups':    data.get('tagGroups', {}),
+            'tagTemplates': data.get('tagTemplates', []),
+            'imgTypes':     data.get('imgTypes', []),
+        }
+        tags_dest = os.path.join(base, 'tags.json')
+        with open(tags_dest, 'w', encoding='utf-8') as f:
+            json.dump(tags_snapshot, f, ensure_ascii=False, indent=2)
+        copied += 1
+    except Exception:
+        pass
+
+    return {'ok': True, 'copied': copied, 'skipped': skipped}
+
+
+# ── Full Data Backup ──────────────────────────────────────────────────────────
+
+def sync_all_data():
+    """Run all backup operations: images + OHLC equity + options + journal JSON."""
+    results = {}
+    results['images']       = sync_all_to_backup()
+    results['ohlc_equity']  = sync_ohlc_equity_to_backup()
+    results['ohlc_options'] = sync_ohlc_options_to_backup()
+    results['journal']      = sync_journal_data_to_backup()
+    return results
+
+
+def get_full_backup_stats():
+    """Stats for all backup categories."""
+    folder = _get_backup_folder()
+    from config import BASE_DIR
+
+    def _count_dir(path):
+        if not os.path.exists(path):
+            return 0
+        return sum(len(fs) for _, _, fs in os.walk(path))
+
+    img_stats = get_backup_stats()
+
+    ohlc_eq_src   = len([f for f in os.listdir(os.path.join(BASE_DIR,'data','algo_ohlc'))
+                         if f.endswith('.json')]) if os.path.exists(os.path.join(BASE_DIR,'data','algo_ohlc')) else 0
+    opt_src_dir   = os.path.join(BASE_DIR,'data','Historical_OHLC','Options')
+    ohlc_opt_src  = len(os.listdir(opt_src_dir)) if os.path.exists(opt_src_dir) else 0
+
+    bk_eq    = _count_dir(os.path.join(folder,'ohlc_equity'))  if folder else 0
+    bk_opt   = _count_dir(os.path.join(folder,'ohlc_options')) if folder else 0
+    bk_jdata = _count_dir(os.path.join(folder,'journal_data')) if folder else 0
+
+    return {
+        'images':       img_stats,
+        'ohlc_equity':  {'total': ohlc_eq_src,  'backed_up': bk_eq},
+        'ohlc_options': {'total': ohlc_opt_src, 'backed_up': bk_opt},
+        'journal':      {'total': len(_JOURNAL_FILES) + 1, 'backed_up': bk_jdata},
+        'folder':       folder or '',
+    }
