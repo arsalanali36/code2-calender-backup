@@ -103,38 +103,7 @@ Consolidated code context for AI assistants.
       <!-- Hidden: settings-btn kept for JS that references it -->
       <button id="settings-btn" style="display:none"></button>
 
-      <button class="btn btn-outline mobile-view-toggle-btn" id="mobile-view-toggle-btn" title="Switch to Mobile View">📱</button>
-      <button class="btn btn-outline" id="mobile-gallery-btn" title="Open Mobile Gallery" onclick="window.open('/mobile/?view=gallery', '_blank')" style="margin-left:4px;">📷</button>
-      <button class="btn btn-outline" id="fullscreen-btn" title="Fullscreen" style="margin-left:4px; font-size:1rem; padding:4px 8px;">⛶</button>
 
-      <!-- Navbar More Menu -->
-      <div class="dropdown-wrapper navbar-more-wrap" id="navbar-more-wrap" style="margin-left:8px;">
-        <button class="btn btn-outline" id="navbar-more-btn" title="More options">☰ Menu ▾</button>
-        <div class="dropdown-menu navbar-more-menu" id="navbar-more-menu">
-          <a href="/app-deck" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
-          <button class="dropdown-item" id="tt-manual-btn">🎯 Tracker</button>
-          <button class="dropdown-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
-          <a href="/algo-lab" class="dropdown-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item" id="pdf-list-btn">🗂️ PDF List</button>
-          <button class="dropdown-item" id="quick-stats-btn">⚡ Quick Stats</button>
-          <div class="dropdown-divider"></div>
-          <div class="quote-random-wrap" id="quote-random-wrap">
-            <button class="dropdown-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
-            <div class="quote-random-panel" id="quote-random-panel">
-              <label class="quote-random-toggle">
-                <input type="checkbox" id="quote-random-enabled" />
-                Auto popup
-              </label>
-              <div class="quote-random-min-row">
-                <span>Min</span>
-                <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
-                <span>min</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Hidden inputs kept for JS -->
       <button class="btn btn-outline" id="pdf-import-btn" title="Import PDF Pages as Images" style="display:none;">📄 PDF Import</button>
@@ -152,26 +121,46 @@ Consolidated code context for AI assistants.
           </div>
           <div class="profile-divider"></div>
 
-          <button class="profile-menu-item" id="profile-settings-btn">
-            <span class="pmi-icon">&#9881;</span> Settings
-          </button>
+          <a href="/app-deck" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
+          <button class="profile-menu-item" id="tt-manual-btn">🎯 Tracker</button>
+          <button class="profile-menu-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
+          <a href="/algo-lab" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
 
-          <button class="profile-menu-item" id="profile-quote-btn">
-            <span class="pmi-icon">&#10077;</span> Quote
-          </button>
+          <div class="profile-divider"></div>
 
-          <a href="/app-deck" class="profile-menu-item" target="_blank" style="color:var(--blue); font-weight:700;">🚀 App Map</a>
-          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
-          <a href="/whatif" class="profile-menu-item" target="_blank">&#128200; What If</a>
-          <button class="profile-menu-item" id="profile-ohlc-btn">
-            <span class="pmi-icon">&#128202;</span> OHLC
-          </button>
+          <button class="profile-menu-item" id="pdf-list-btn">🗂️ PDF List</button>
+          <button class="profile-menu-item" id="quick-stats-btn">⚡ Quick Stats</button>
+          <div class="quote-random-wrap" id="quote-random-wrap">
+            <button class="profile-menu-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
+            <div class="quote-random-panel" id="quote-random-panel">
+              <label class="quote-random-toggle">
+                <input type="checkbox" id="quote-random-enabled" />
+                Auto popup
+              </label>
+              <div class="quote-random-min-row">
+                <span>Min</span>
+                <input type="number" id="quote-random-minutes" min="1" max="180" value="15" />
+                <span>min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-divider"></div>
+
+          <button class="profile-menu-item" id="profile-settings-btn">⚙️ Settings</button>
+          <button class="profile-menu-item" id="profile-backup-folder-btn">📁 Backup Folder</button>
+          <button class="profile-menu-item" id="profile-quote-btn">💬 Quote</button>
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📝 Dev Journal</a>
+          <a href="/whatif" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📈 What If</a>
+          <button class="profile-menu-item" id="fullscreen-btn">⛶ Fullscreen</button>
+          <button class="profile-menu-item mobile-view-toggle-btn" id="mobile-view-toggle-btn">📱 Mobile View</button>
+          <a href="/mobile/?view=gallery" id="mobile-gallery-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📷 Gallery</a>
+          <button class="profile-menu-item" id="profile-ohlc-btn">📊 OHLC</button>
 
           <!-- Broker inline dropdown -->
           <div class="profile-inline-group" id="profile-broker-group">
             <div class="profile-menu-item profile-inline-trigger" id="profile-broker-trigger">
-              <span class="pmi-icon">&#9632;</span>
-              <span>Broker</span>
+              🏦 Broker
               <span class="pmi-badge" id="profile-broker-badge">Zerodha</span>
               <span class="pmi-arrow" id="profile-broker-arrow">&#9660;</span>
             </div>
@@ -185,8 +174,7 @@ Consolidated code context for AI assistants.
           <!-- View inline dropdown -->
           <div class="profile-inline-group" id="profile-view-group">
             <div class="profile-menu-item profile-inline-trigger" id="profile-view-trigger">
-              <span class="pmi-icon">&#9635;</span>
-              <span>View</span>
+              👁️ View
               <span class="pmi-badge" id="profile-view-badge">Consolidated</span>
               <span class="pmi-arrow" id="profile-view-arrow">&#9660;</span>
             </div>
@@ -197,9 +185,7 @@ Consolidated code context for AI assistants.
           </div>
 
           <div class="profile-divider"></div>
-          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item profile-signout">
-            &#8617; Sign Out
-          </a>
+          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item profile-signout">↩ Sign Out</a>
         </div>
       </div>
       {% endif %}
@@ -487,6 +473,49 @@ Consolidated code context for AI assistants.
 
 ## File: `templates/modals.html`
 ```html
+<!-- ── BACKUP FOLDER MODAL ───────────────── -->
+<div class="modal-overlay" id="backup-folder-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#1e1e2e; border:1px solid #3b3b5c; border-radius:12px; padding:24px; width:460px; max-width:95vw; box-shadow:0 8px 32px rgba(0,0,0,.5);">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+      <span style="font-size:1rem; font-weight:700; color:#e2e8f0;">📁 Image Backup Folder</span>
+      <button id="backup-folder-close" style="background:none; border:none; color:#94a3b8; font-size:1.2rem; cursor:pointer;">✕</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div id="backup-stats-box" style="background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:.82rem;">
+      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:8px;">
+        <span>App images</span><span id="bk-total" style="color:#e2e8f0; font-weight:600;">—</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:8px;">
+        <span>Backed up</span><span id="bk-done" style="color:#4ade80; font-weight:600;">—</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:10px;">
+        <span>Missing</span><span id="bk-missing" style="color:#f87171; font-weight:600;">—</span>
+      </div>
+      <!-- Progress bar -->
+      <div style="background:#1e1e3a; border-radius:4px; height:6px; overflow:hidden;">
+        <div id="bk-progress-bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#4ade80); width:0%; transition:width .4s;"></div>
+      </div>
+    </div>
+
+    <p style="color:#94a3b8; font-size:.82rem; margin-bottom:12px; line-height:1.5;">
+      Images backup hoti hain: <code style="color:#a5f3fc;">uploaded_imgs/YYYY-MM-DD/T1_file.jpg</code><br>
+      Separator move karne ke baad auto-rename hota hai.
+    </p>
+
+    <label style="display:block; color:#94a3b8; font-size:.8rem; margin-bottom:6px;">Folder path (full path):</label>
+    <input id="backup-folder-input" type="text" placeholder="e.g. G:\My Drive\TradeBackup"
+      style="width:100%; box-sizing:border-box; background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:10px 12px; color:#e2e8f0; font-size:.9rem; outline:none;" />
+
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button id="backup-folder-save" style="flex:1; background:#6366f1; border:none; border-radius:8px; padding:10px; color:#fff; font-size:.9rem; font-weight:600; cursor:pointer;">💾 Save</button>
+      <button id="backup-sync-btn" style="flex:1; background:#0f4c75; border:1px solid #3b82f6; border-radius:8px; padding:10px; color:#93c5fd; font-size:.9rem; font-weight:600; cursor:pointer;">🔄 Sync All</button>
+      <button id="backup-folder-clear" style="background:#3b3b5c; border:none; border-radius:8px; padding:10px 14px; color:#94a3b8; font-size:.85rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="backup-folder-status" style="margin-top:10px; font-size:.8rem; min-height:18px;"></div>
+  </div>
+</div>
+
 <!-- ── SETTINGS PANEL ───────────────────── -->
 <div class="settings-overlay" id="settings-overlay">
   <div class="settings-panel">

@@ -903,39 +903,159 @@ function _bindUIEvents() {
     navRangeRow.addEventListener('click', e => e.stopPropagation());
   }
 
-  // Navbar More menu
-  const navbarMoreBtn = document.getElementById('navbar-more-btn');
-  const navbarMoreMenu = document.getElementById('navbar-more-menu');
-  if (navbarMoreBtn && navbarMoreMenu) {
-    navbarMoreBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      navbarMoreMenu.classList.toggle('open');
-    });
-    navbarMoreMenu.addEventListener('click', e => e.stopPropagation());
-  }
-
   // Profile avatar dropdown
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
+
+  const _profileDropdownOriginalParent = profileDropdown ? profileDropdown.parentNode : null;
+
+  function resetProfileDropdownPos() {
+    if (!profileDropdown) return;
+    // Restore to original parent if it was moved to body
+    if (_profileDropdownOriginalParent && profileDropdown.parentNode === document.body) {
+      _profileDropdownOriginalParent.appendChild(profileDropdown);
+    }
+    profileDropdown.style.position = '';
+    profileDropdown.style.top = '';
+    profileDropdown.style.right = '';
+    profileDropdown.style.left = '';
+    profileDropdown.style.zIndex = '';
+  }
+
+  function openProfileDropdownAt(btn) {
+    if (!profileDropdown) return;
+    const rect = btn.getBoundingClientRect();
+    // Move to body so no ancestor stacking context can clip it
+    document.body.appendChild(profileDropdown);
+    profileDropdown.style.position = 'fixed';
+    profileDropdown.style.top = (rect.bottom + 8) + 'px';
+    profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+    profileDropdown.style.left = '';
+    profileDropdown.style.zIndex = '99999';
+    profileDropdown.classList.add('open');
+  }
+
   if (profileAvatarBtn && profileDropdown) {
     profileAvatarBtn.addEventListener('click', e => {
       e.stopPropagation();
+      resetProfileDropdownPos();
       profileDropdown.classList.toggle('open');
     });
     profileDropdown.addEventListener('click', e => e.stopPropagation());
+    // Links: allow right-click (open in new tab) + middle-click naturally
+    // Buttons (modals): block right-click context menu + middle-click
+    profileDropdown.addEventListener('contextmenu', e => {
+      if (!e.target.closest('a[href]')) e.preventDefault();
+    });
+    profileDropdown.addEventListener('mousedown', e => {
+      if (e.button === 1 && !e.target.closest('a[href]')) e.preventDefault();
+    });
   }
+
+  // Gallery avatar button — capture phase so gallery overlays can't block it
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('#gv2-profile-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const pd = document.getElementById('profile-dropdown');
+    if (!pd) return;
+    if (pd.classList.contains('open')) {
+      pd.classList.remove('open');
+      resetProfileDropdownPos();
+    } else {
+      openProfileDropdownAt(btn);
+    }
+  }, true);
 
   // Profile: Settings
   const profileSettingsBtn = document.getElementById('profile-settings-btn');
   if (profileSettingsBtn) profileSettingsBtn.addEventListener('click', () => {
     document.getElementById('settings-overlay').classList.add('open');
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
+
+  // Profile: Backup Folder
+  (function () {
+    const btn = document.getElementById('profile-backup-folder-btn');
+    const overlay = document.getElementById('backup-folder-overlay');
+    if (!btn || !overlay) return;
+
+    function setStatus(msg, color) {
+      const el = document.getElementById('backup-folder-status');
+      el.style.color = color || '#94a3b8';
+      el.textContent = msg;
+    }
+
+    function loadStats() {
+      fetch('/api/backup-status').then(r => r.json()).then(d => {
+        document.getElementById('bk-total').textContent = d.total_app ?? '—';
+        document.getElementById('bk-done').textContent = d.backed_up ?? '—';
+        document.getElementById('bk-missing').textContent = d.not_backed_up ?? '—';
+        const pct = d.total_app ? Math.round((d.backed_up / d.total_app) * 100) : 0;
+        document.getElementById('bk-progress-bar').style.width = pct + '%';
+      }).catch(() => {});
+    }
+
+    function openBackupModal() {
+      fetch('/api/backup-folder').then(r => r.json()).then(d => {
+        document.getElementById('backup-folder-input').value = d.folder || '';
+        setStatus('');
+      }).catch(() => {});
+      loadStats();
+      overlay.style.display = 'flex';
+      if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
+    }
+
+    btn.addEventListener('click', openBackupModal);
+
+    document.getElementById('backup-folder-close').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+
+    document.getElementById('backup-folder-save').addEventListener('click', () => {
+      const folder = document.getElementById('backup-folder-input').value.trim();
+      setStatus('Saving…', '#94a3b8');
+      fetch('/api/backup-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder })
+      }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          setStatus(folder ? '✓ Saved. Ab "Sync All" chalao pichli sab images backup karne ke liye.' : '✓ Backup disabled.', '#4ade80');
+          loadStats();
+        } else {
+          setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
+        }
+      }).catch(() => setStatus('Network error', '#f87171'));
+    });
+
+    document.getElementById('backup-folder-clear').addEventListener('click', () => {
+      document.getElementById('backup-folder-input').value = '';
+    });
+
+    document.getElementById('backup-sync-btn').addEventListener('click', () => {
+      const syncBtn = document.getElementById('backup-sync-btn');
+      syncBtn.disabled = true;
+      syncBtn.textContent = '⏳ Syncing…';
+      setStatus('Sab images backup ho rahi hain, thoda wait karein…', '#94a3b8');
+      fetch('/api/backup-sync', { method: 'POST' }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          setStatus(`✓ Done! Copied: ${d.copied}, Already backed: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
+          loadStats();
+        } else {
+          setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
+        }
+      }).catch(() => setStatus('Network error', '#f87171'))
+        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🔄 Sync All'; });
+    });
+  })();
 
   const profileQuoteBtn = document.getElementById('profile-quote-btn');
   if (profileQuoteBtn) profileQuoteBtn.addEventListener('click', () => {
     if (typeof openQuoteModal === 'function') openQuoteModal();
-    if (profileDropdown) profileDropdown.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
   });
 
   // Profile: Broker inline dropdown
@@ -1005,8 +1125,7 @@ function _bindUIEvents() {
   document.addEventListener('click', () => {
     closeAllDropdowns('__none__');
     document.getElementById('show-heads-panel').classList.remove('open');
-    if (profileDropdown) profileDropdown.classList.remove('open');
-    if (navbarMoreMenu) navbarMoreMenu.classList.remove('open');
+    if (profileDropdown) { profileDropdown.classList.remove('open'); resetProfileDropdownPos(); }
     if (navPeriodPanel) navPeriodPanel.classList.remove('open');
     document.querySelectorAll('.profile-inline-group').forEach(g => g.classList.remove('open'));
     document.querySelectorAll('.tbl-sub-popup.open').forEach(p => p.classList.remove('open'));

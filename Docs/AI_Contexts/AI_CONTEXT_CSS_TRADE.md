@@ -1794,7 +1794,10 @@ input:checked+.tl-slider:after {
   border-radius: var(--radius);
   min-width: 230px;
   box-shadow: var(--shadow);
-  z-index: 500; overflow: visible;
+  z-index: 500;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  overflow-x: visible;
 }
 .profile-dropdown.open { display: block; }
 
@@ -1888,8 +1891,9 @@ input:checked+.tl-slider:after {
   gap: 10px;
 }
 
-/* Inside navbar dropdown: panel flows inline, no absolute pop-out */
-.navbar-more-menu .quote-random-panel {
+/* Inside dropdown menus: panel flows inline, no absolute pop-out */
+.navbar-more-menu .quote-random-panel,
+.profile-dropdown .quote-random-panel {
   position: static;
   width: auto;
   border-radius: 0;
@@ -1899,7 +1903,8 @@ input:checked+.tl-slider:after {
   background: var(--surface2);
   padding: 10px 14px;
 }
-.navbar-more-menu .quote-random-wrap {
+.navbar-more-menu .quote-random-wrap,
+.profile-dropdown .quote-random-wrap {
   position: static;
 }
 

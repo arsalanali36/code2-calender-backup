@@ -1203,6 +1203,32 @@ Consolidated code context for AI assistants.
   color: #fff;
 }
 
+/* ── Gallery avatar/menu button ── */
+.gv2-profile-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.gv2-profile-menu-btn:hover {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.15);
+}
+.gv2-profile-menu-btn img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 /* ── Gallery Settings Modal ── */
 .gv2-settings-overlay {
   display: none;

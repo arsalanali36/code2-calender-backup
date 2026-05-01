@@ -101,6 +101,9 @@ Consolidated code context for AI assistants.
       <button class="gv2-tray-close-btn" id="gv2-exit-btn" title="Close Gallery (Esc)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 4L4 12M4 4l8 8"/></svg>
       </button>
+      <button class="gv2-profile-menu-btn" id="gv2-profile-btn" title="Menu">
+        <img src="/static/img/logo.png" alt="menu" />
+      </button>
     </div>
 
   </div>

@@ -138,7 +138,25 @@ def post_trades():
         save_trades(data, user_id=_get_user_id())
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
+    # Resync backup for any date touched in this save (real-time prefix rename)
+    _trigger_backup_sync(data)
     return jsonify({'success': True})
+
+
+def _trigger_backup_sync(data):
+    """Fire-and-forget: resync backup for dates present in the saved payload."""
+    import threading
+    from services.img_backup_service import sync_date_to_backup
+    dates = set()
+    for t in (data.get('trades') or []):
+        d = t.get('date', '')
+        if d:
+            dates.add(d)
+    for d in (data.get('dayData') or {}).keys():
+        if d:
+            dates.add(d)
+    if dates:
+        threading.Thread(target=lambda: [sync_date_to_backup(d) for d in dates], daemon=True).start()
 
 ```
 
@@ -163,7 +181,7 @@ from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
     save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT, BACKUP_CONFIG_FILE
 
 image_bp = Blueprint('image', __name__)
 
@@ -464,6 +482,44 @@ def delete_pdf():
         return jsonify({'error': 'Invalid filename'}), 400
     delete_uploaded_pdf(filename, PDF_DIR, PDF_META_FILE)
     return jsonify({'success': True})
+
+
+@image_bp.route('/api/backup-folder', methods=['GET'])
+def get_backup_folder():
+    import json as _json
+    if not os.path.exists(BACKUP_CONFIG_FILE):
+        return jsonify({'folder': ''})
+    try:
+        with open(BACKUP_CONFIG_FILE) as f:
+            return jsonify(_json.load(f))
+    except Exception:
+        return jsonify({'folder': ''})
+
+
+@image_bp.route('/api/backup-folder', methods=['POST'])
+def set_backup_folder():
+    import json as _json
+    data = request.json or {}
+    folder = data.get('folder', '').strip()
+    try:
+        with open(BACKUP_CONFIG_FILE, 'w') as f:
+            _json.dump({'folder': folder}, f)
+        return jsonify({'ok': True, 'folder': folder})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@image_bp.route('/api/backup-status', methods=['GET'])
+def backup_status():
+    from services.img_backup_service import get_backup_stats
+    return jsonify(get_backup_stats())
+
+
+@image_bp.route('/api/backup-sync', methods=['POST'])
+def backup_sync():
+    from services.img_backup_service import sync_all_to_backup
+    result = sync_all_to_backup()
+    return jsonify(result)
 
 
 @image_bp.route('/api/update-pdf-pages', methods=['POST'])

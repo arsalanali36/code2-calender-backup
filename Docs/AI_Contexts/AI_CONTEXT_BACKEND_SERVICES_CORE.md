@@ -889,7 +889,29 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
     except OSError:
         pass
 
+    _copy_to_backup(filepath, filename)
+
     return {'url': f'/uploads/{filename}', 'filename': filename}
+
+
+def _copy_to_backup(src_path: str, filename: str):
+    """Copy a freshly-saved image to the user-configured backup folder (date sub-folder)."""
+    import shutil
+    from datetime import date
+    try:
+        from config import BACKUP_CONFIG_FILE
+        if not os.path.exists(BACKUP_CONFIG_FILE):
+            return
+        with open(BACKUP_CONFIG_FILE) as f:
+            cfg = json.load(f)
+        folder = cfg.get('folder', '').strip()
+        if not folder:
+            return
+        day_dir = os.path.join(folder, 'uploaded_imgs', str(date.today()))
+        os.makedirs(day_dir, exist_ok=True)
+        shutil.copy2(src_path, os.path.join(day_dir, filename))
+    except Exception:
+        pass  # backup is best-effort; never break the upload flow
 
 
 def move_to_trash(filename: str, uploads_dir: str, trash_dir: str) -> bool:

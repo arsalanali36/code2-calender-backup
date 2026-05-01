@@ -25,7 +25,11 @@ LOG_DATA_FILE             = os.path.join(BASE_DIR, 'data', 'trade_log.json')
 LOG_SCHEMA_FILE           = os.path.join(BASE_DIR, 'data', 'log_schema.json')
 
 
-# ── What-If / Dhan data ───────────────────────────────────────────────────────
+# ── Unified OHLC store (single source of truth) ───────────────────────────────
+OHLC_DIR             = os.path.join(BASE_DIR, 'data', 'ohlc')
+OHLC_WATCHLIST_FILE  = os.path.join(BASE_DIR, 'data', 'ohlc_watchlist.json')
+
+# ── What-If / Dhan data (legacy — being replaced by OHLC_DIR) ─────────────────
 OHLC_CACHE_DIR       = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')
 DHAN_CONFIG_FILE     = os.path.join(BASE_DIR, 'data', 'dhan_config.json')
 DHAN_SYMBOL_MAP_FILE = os.path.join(BASE_DIR, 'data', 'dhan_symbol_map.json')
