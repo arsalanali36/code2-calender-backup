@@ -105,7 +105,14 @@ function _bindUIEvents() {
       profileDropdown.classList.toggle('open');
     });
     profileDropdown.addEventListener('click', e => e.stopPropagation());
-    profileDropdown.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
+    // Links: allow right-click (open in new tab) + middle-click naturally
+    // Buttons (modals): block right-click context menu + middle-click
+    profileDropdown.addEventListener('contextmenu', e => {
+      if (!e.target.closest('a[href]')) e.preventDefault();
+    });
+    profileDropdown.addEventListener('mousedown', e => {
+      if (e.button === 1 && !e.target.closest('a[href]')) e.preventDefault();
+    });
   }
 
   // Profile: Settings

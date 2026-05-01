@@ -108,7 +108,7 @@
         <button class="profile-avatar-btn" id="profile-avatar-btn">
           <img src="/static/img/logo.png" class="profile-avatar-img" alt="avatar" />
         </button>
-        <div class="profile-dropdown" id="profile-dropdown" oncontextmenu="return false">
+        <div class="profile-dropdown" id="profile-dropdown">
           <div class="profile-user-info">
             <img src="/static/img/logo.png" class="profile-user-avatar" alt="avatar" />
             <span class="profile-email">{{ current_user.email }}</span>
@@ -143,11 +143,11 @@
 
           <button class="profile-menu-item" id="profile-settings-btn">⚙️ Settings</button>
           <button class="profile-menu-item" id="profile-quote-btn">💬 Quote</button>
-          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">📋 Dev Journal</a>
-          <a href="/whatif" class="profile-menu-item" target="_blank">📈 What If</a>
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📝 Dev Journal</a>
+          <a href="/whatif" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📈 What If</a>
           <button class="profile-menu-item" id="fullscreen-btn">⛶ Fullscreen</button>
           <button class="profile-menu-item mobile-view-toggle-btn" id="mobile-view-toggle-btn">📱 Mobile View</button>
-          <button class="profile-menu-item" id="mobile-gallery-btn" onclick="window.open('/mobile/?view=gallery', '_blank')">📷 Gallery</button>
+          <a href="/mobile/?view=gallery" id="mobile-gallery-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📷 Gallery</a>
           <button class="profile-menu-item" id="profile-ohlc-btn">📊 OHLC</button>
 
           <!-- Broker inline dropdown -->
