@@ -313,18 +313,21 @@ def _download_equity_index(symbol: str, date: str, config: dict,
 # ── Fetch: options ────────────────────────────────────────────────────────────
 
 def _parse_option_symbol(symbol: str) -> dict | None:
-    """Parse e.g. NIFTY26MAR22500CE → dict with underlying, strike, option_type."""
-    m = re.match(r'^([A-Z&-]+?)(\d{2})([A-Z]{3})(\d{2,4})(\d+)(CE|PE)$', symbol.upper())
-    if not m:
-        return None
-    yr = m.group(4)
-    if len(yr) == 2:
-        yr = '20' + yr
-    return {
-        'underlying':  m.group(1),
-        'strike':      float(m.group(5)),
-        'option_type': m.group(6),
-    }
+    """Parse option symbols — both monthly and weekly NSE formats.
+
+    Monthly: NIFTY26MAR22500CE  (3-letter month)
+    Weekly:  NIFTY2640722800CE  (single-char month 1-9/O/N/D + 2-digit day)
+    """
+    s = symbol.upper()
+    # Monthly format: SYMBOL + YY + MON(3alpha) + STRIKE + TYPE
+    m = re.match(r'^([A-Z&-]+?)(\d{2})([A-Z]{3})(\d+)(CE|PE)$', s)
+    if m:
+        return {'underlying': m.group(1), 'strike': float(m.group(4)), 'option_type': m.group(5)}
+    # Weekly format: SYMBOL + YY + M(1 char: 1-9 or O/N/D) + DD(2 digits) + STRIKE + TYPE
+    m = re.match(r'^([A-Z&-]+?)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$', s)
+    if m:
+        return {'underlying': m.group(1), 'strike': float(m.group(5)), 'option_type': m.group(6)}
+    return None
 
 
 def _download_option(symbol: str, date: str, config: dict, entry_time: str = None) -> pd.DataFrame:
