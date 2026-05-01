@@ -100,8 +100,14 @@ function _bindUIEvents() {
   const profileAvatarBtn = document.getElementById('profile-avatar-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
 
+  const _profileDropdownOriginalParent = profileDropdown ? profileDropdown.parentNode : null;
+
   function resetProfileDropdownPos() {
     if (!profileDropdown) return;
+    // Restore to original parent if it was moved to body
+    if (_profileDropdownOriginalParent && profileDropdown.parentNode === document.body) {
+      _profileDropdownOriginalParent.appendChild(profileDropdown);
+    }
     profileDropdown.style.position = '';
     profileDropdown.style.top = '';
     profileDropdown.style.right = '';
@@ -112,11 +118,13 @@ function _bindUIEvents() {
   function openProfileDropdownAt(btn) {
     if (!profileDropdown) return;
     const rect = btn.getBoundingClientRect();
+    // Move to body so no ancestor stacking context can clip it
+    document.body.appendChild(profileDropdown);
     profileDropdown.style.position = 'fixed';
     profileDropdown.style.top = (rect.bottom + 8) + 'px';
     profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
     profileDropdown.style.left = '';
-    profileDropdown.style.zIndex = '1100';
+    profileDropdown.style.zIndex = '99999';
     profileDropdown.classList.add('open');
   }
 
