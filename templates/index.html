@@ -97,9 +97,6 @@
       <!-- Hidden: settings-btn kept for JS that references it -->
       <button id="settings-btn" style="display:none"></button>
 
-      <button class="btn btn-outline mobile-view-toggle-btn" id="mobile-view-toggle-btn" title="Switch to Mobile View">📱</button>
-      <button class="btn btn-outline" id="mobile-gallery-btn" title="Open Mobile Gallery" onclick="window.open('/mobile/?view=gallery', '_blank')" style="margin-left:4px;">📷</button>
-      <button class="btn btn-outline" id="fullscreen-btn" title="Fullscreen" style="margin-left:4px; font-size:1rem; padding:4px 8px;">⛶</button>
 
 
       <!-- Hidden inputs kept for JS -->
@@ -154,6 +151,9 @@
 
           <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank">Dev Journal</a>
           <a href="/whatif" class="profile-menu-item" target="_blank">&#128200; What If</a>
+          <button class="profile-menu-item" id="fullscreen-btn">⛶ Fullscreen</button>
+          <button class="profile-menu-item mobile-view-toggle-btn" id="mobile-view-toggle-btn">📱 Mobile View</button>
+          <button class="profile-menu-item" id="mobile-gallery-btn" onclick="window.open('/mobile/?view=gallery', '_blank')">📷 Gallery</button>
           <button class="profile-menu-item" id="profile-ohlc-btn">
             <span class="pmi-icon">&#128202;</span> OHLC
           </button>
