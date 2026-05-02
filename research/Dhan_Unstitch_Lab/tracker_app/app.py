@@ -261,124 +261,126 @@ def run_downloader(task, start_date, end_date):
         if curr.weekday() < 5: dates.append(curr.strftime("%Y-%m-%d"))
         curr += datetime.timedelta(days=1)
         
-    all_clean_rows = []
     sec_id = "13" if underlying == "NIFTY" else "25" if underlying == "BANKNIFTY" else "27" if underlying == "FINNIFTY" else "13"
+    pe_ce  = 'ce' if opt_type == 'CALL' else 'pe'
     is_monthly = re.search(r'[A-Z]{3,4}\d{2}[A-Z]{3}\d+', html_id) is not None
-    
+    days_downloaded = 0
+
+    # ── PHASE 1: Download each day (1 API call per day) ──────────────────────
     for idx, TRADE_DATE in enumerate(dates):
         if STOP_DOWNLOADS:
             status_updates.append({"id": html_id, "status": "error", "msg": "🛑 Stopped by user", "percent": 0})
             return False, ""
+
+        pct = int((idx / len(dates)) * 100)
         day_csv = os.path.join(target_dir, f"{dhan_name.replace(' ', '_')}_{TRADE_DATE}.csv")
+
         if os.path.exists(day_csv):
-            status_updates.append({"id": html_id, "status": "downloading", "msg": f"⏩ Skipping {TRADE_DATE} (Exists)...", "percent": int((idx/len(dates))*100)})
-            try:
-                exist_df = pd.read_csv(day_csv)
-                for _, r in exist_df.iterrows():
-                    all_clean_rows.append({'Datetime': r['Datetime'], 'Open': r['Open'], 'High': r['High'], 'Low': r['Low'], 'Close': r['Close'], 'Volume': r['Volume']})
-            except: pass
+            status_updates.append({"id": html_id, "status": "downloading", "msg": f"⏩ {TRADE_DATE} exists", "percent": pct})
+            days_downloaded += 1
             continue
 
-        status_updates.append({"id": html_id, "status": "downloading", "msg": f"⏳ Fetching {TRADE_DATE}... ({int((idx/len(dates))*100)}%)", "percent": int((idx/len(dates))*100)})
+        status_updates.append({"id": html_id, "status": "downloading", "msg": f"⏳ {TRADE_DATE} ({pct}%)", "percent": pct})
         NEXT_DATE = (datetime.datetime.strptime(TRADE_DATE, "%Y-%m-%d") + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        
-        # 1. Fetch Spot data for this specific TRADE_DATE
-        spot_data = dhan_request("https://api.dhan.co/v2/charts/intraday", {"securityId": sec_id, "exchangeSegment": "IDX_I", "instrument": "INDEX", "interval": "1", "fromDate": TRADE_DATE, "toDate": TRADE_DATE})
-        spot_series = {}
-        if spot_data and 'close' in spot_data and spot_data['close']:
-            closes = spot_data['close']
-            timestamps = spot_data['timestamp']
-            for i in range(len(closes)):
-                try:
-                    dt = datetime.datetime.fromtimestamp(timestamps[i])
-                    spot_series[dt.strftime("%H:%M:%S")] = closes[i]
-                except: pass
-        
-        if not spot_series: 
-            with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f: f.write(f"[{TRADE_DATE}] No spot data found. Skipping.\n")
+
+        # Spot timestamps (for alignment)
+        spot_data = dhan_request("https://api.dhan.co/v2/charts/intraday", {
+            "securityId": sec_id, "exchangeSegment": "IDX_I", "instrument": "INDEX",
+            "interval": "1", "fromDate": TRADE_DATE, "toDate": TRADE_DATE
+        })
+        timestamps = []
+        if spot_data and spot_data.get('timestamp'):
+            timestamps = [datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S") for ts in spot_data['timestamp']]
+        if not timestamps:
+            with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f:
+                f.write(f"[{TRADE_DATE}] No spot timestamps. Skipping.\n")
             continue
-        
-        spot_closes = list(spot_series.values())
 
-
-        # Smart Expiry Discovery
-        td_obj, exp_obj = datetime.datetime.strptime(TRADE_DATE, "%Y-%m-%d"), datetime.datetime.strptime(target_expiry, "%Y-%m-%d")
-        candidates = ([('MONTH', 1), ('MONTH', 2)] + [('WEEK', i) for i in range(1, 6)]) if is_monthly else ([('WEEK', (exp_obj-td_obj).days//7 + 1), ('WEEK', (exp_obj-td_obj).days//7 + 2), ('WEEK', (exp_obj-td_obj).days//7), ('MONTH', 1)])
+        # Find valid expiry code (up to 4 quick probes)
+        td_obj  = datetime.datetime.strptime(TRADE_DATE, "%Y-%m-%d")
+        exp_obj = datetime.datetime.strptime(target_expiry, "%Y-%m-%d")
+        candidates = ([('MONTH', 1), ('MONTH', 2)] + [('WEEK', i) for i in range(1, 6)]) if is_monthly \
+                     else ([('WEEK', (exp_obj - td_obj).days // 7 + 1),
+                            ('WEEK', (exp_obj - td_obj).days // 7 + 2),
+                            ('WEEK', (exp_obj - td_obj).days // 7),
+                            ('MONTH', 1)])
         candidates = [c for c in candidates if c[1] >= 1]
 
         valid_exp_type, valid_exp_code = None, None
         for exp_type, exp_code in candidates:
-            # We check with target strike directly if possible, or ATM
-            r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {"securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1, "expiryCode": exp_code, "expiryFlag": exp_type, "strike": "ATM", "drvOptionType": opt_type, "requiredData": ["close"], "fromDate": TRADE_DATE, "toDate": NEXT_DATE})
-            _key = 'ce' if opt_type == 'CALL' else 'pe'
-            if r_json and 'data' in r_json and _key in r_json['data'] and r_json['data'][_key] and len(r_json['data'][_key].get('close', [])) > 0:
+            r = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {
+                "securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX",
+                "interval": 1, "expiryCode": exp_code, "expiryFlag": exp_type,
+                "strike": "ATM", "drvOptionType": opt_type, "requiredData": ["close"],
+                "fromDate": TRADE_DATE, "toDate": NEXT_DATE
+            })
+            if r and 'data' in r and pe_ce in r['data'] and r['data'][pe_ce] and r['data'][pe_ce].get('close'):
                 valid_exp_type, valid_exp_code = exp_type, exp_code
                 break
             time.sleep(0.05)
-        if not valid_exp_type: continue
+        if not valid_exp_type:
+            continue
 
-        step = 50 if underlying != "BANKNIFTY" else 100
-        # Determine offset range for stitching fallback
-        min_offset, max_offset = int((target_strike - round(max(spot_closes)/step)*step)/step), int((target_strike - round(min(spot_closes)/step)*step)/step)
-        # We don't skip the day anymore even if offset is > 20, because we have the Absolute Strike fetch.
-
-        rolling_data = {}
-        pe_ce = 'ce' if opt_type == 'CALL' else 'pe'
-        spot_count = len(spot_series)
-
-        # 1. Always try fetching the Absolute Strike directly (Bypasses +/- 20 offset limit)
-        r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {
-            "securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1,
-            "expiryCode": valid_exp_code, "expiryFlag": valid_exp_type, "strike": str(target_strike),
-            "drvOptionType": opt_type, "requiredData": ["open", "high", "low", "close", "volume"],
+        # Fetch absolute strike OHLCV (single call — no stitching loop)
+        r = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {
+            "securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX",
+            "interval": 1, "expiryCode": valid_exp_code, "expiryFlag": valid_exp_type,
+            "strike": str(target_strike), "drvOptionType": opt_type,
+            "requiredData": ["open", "high", "low", "close", "volume"],
             "fromDate": TRADE_DATE, "toDate": NEXT_DATE
         })
-        if r_json and 'data' in r_json and pe_ce in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
-            rolling_data['TARGET'] = r_json['data'][pe_ce]
         time.sleep(0.15)
 
-        # 2. Stitching only needed if TARGET data is incomplete (covers <80% of trading day)
-        target_count = len(rolling_data.get('TARGET', {}).get('close', []))
-        if target_count < spot_count * 0.8:
-            for offset in range(min_offset, max_offset + 1):
-                if offset < -20 or offset > 20: continue
-                strike_str = 'ATM' if offset == 0 else (f'ATM+{offset}' if offset > 0 else f'ATM{offset}')
-                r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {"securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1, "expiryCode": valid_exp_code, "expiryFlag": valid_exp_type, "strike": strike_str, "drvOptionType": opt_type, "requiredData": ["open", "high", "low", "close", "volume"], "fromDate": TRADE_DATE, "toDate": NEXT_DATE})
-                if r_json and 'data' in r_json and pe_ce in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
-                    rolling_data[offset] = r_json['data'][pe_ce]
-                time.sleep(0.15)
-        
-        for i, t in enumerate(spot_series.keys()):
-            # Preference 1: Direct Target Strike Data
-            if 'TARGET' in rolling_data and i < len(rolling_data['TARGET']['close']):
-                all_clean_rows.append({'Datetime': f"{TRADE_DATE} {t}", 'Open': rolling_data['TARGET']['open'][i], 'High': rolling_data['TARGET']['high'][i], 'Low': rolling_data['TARGET']['low'][i], 'Close': rolling_data['TARGET']['close'][i], 'Volume': rolling_data['TARGET']['volume'][i]})
-            else:
-                # Preference 2: Stitching logic (as fallback)
-                atm_s = round(spot_series[t]/step)*step
-                required_offset = int((target_strike - atm_s)/step)
-                if required_offset in rolling_data and i < len(rolling_data[required_offset]['close']):
-                    all_clean_rows.append({'Datetime': f"{TRADE_DATE} {t}", 'Open': rolling_data[required_offset]['open'][i], 'High': rolling_data[required_offset]['high'][i], 'Low': rolling_data[required_offset]['low'][i], 'Close': rolling_data[required_offset]['close'][i], 'Volume': rolling_data[required_offset]['volume'][i]})
+        if not (r and 'data' in r and pe_ce in r['data'] and r['data'][pe_ce] and r['data'][pe_ce].get('close')):
+            with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f:
+                f.write(f"[{TRADE_DATE}] No strike data returned.\n")
+            continue
 
-        with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f:
-            day_collected = len([r for r in all_clean_rows if r['Datetime'].startswith(TRADE_DATE)])
-            f.write(f"[{TRADE_DATE}] valid_exp={valid_exp_type} {valid_exp_code}, min_offset={min_offset}, max_offset={max_offset}, collected={day_collected}\n")
-        
-        # Save day-wise file immediately
-        day_rows = [r for r in all_clean_rows if r['Datetime'].startswith(TRADE_DATE)]
-        if day_rows:
-            day_df = pd.DataFrame(day_rows)
-            day_df.set_index('Datetime', inplace=True)
+        raw = r['data'][pe_ce]
+        rows = []
+        for i, ts in enumerate(timestamps):
+            if i < len(raw.get('close', [])):
+                rows.append({
+                    'Datetime': f"{TRADE_DATE} {ts}",
+                    'Open':   raw['open'][i],
+                    'High':   raw['high'][i],
+                    'Low':    raw['low'][i],
+                    'Close':  raw['close'][i],
+                    'Volume': raw.get('volume', [0]*len(raw['close']))[i]
+                })
+
+        if rows:
+            day_df = pd.DataFrame(rows).set_index('Datetime')
             day_df.to_csv(day_csv)
+            days_downloaded += 1
+            with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f:
+                f.write(f"[{TRADE_DATE}] Saved {len(rows)} rows.\n")
 
-    if all_clean_rows:
-        df = pd.DataFrame(all_clean_rows); df['Datetime'] = pd.to_datetime(df['Datetime']); df.set_index('Datetime', inplace=True)
-        # Save full data to recreate chart
-        df_plot = df.resample('5min', closed='left', label='left').agg({'Open':'first', 'High':'max', 'Low':'min', 'Close':'last', 'Volume':'sum'}).dropna()
+    # ── PHASE 2: Local stitch — read all day CSVs, concat, generate chart ────
+    status_updates.append({"id": html_id, "status": "downloading", "msg": "📎 Stitching locally...", "percent": 98})
+    all_dfs = []
+    for TRADE_DATE in dates:
+        day_csv = os.path.join(target_dir, f"{dhan_name.replace(' ', '_')}_{TRADE_DATE}.csv")
+        if os.path.exists(day_csv):
+            try:
+                all_dfs.append(pd.read_csv(day_csv))
+            except: pass
+
+    if all_dfs:
+        df = pd.concat(all_dfs, ignore_index=True)
+        df['Datetime'] = pd.to_datetime(df['Datetime'])
+        df = df.set_index('Datetime').sort_index()
+        df_plot = df.resample('5min', closed='left', label='left').agg(
+            {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}
+        ).dropna()
         if not df_plot.empty:
             try:
-                mpf.plot(df_plot, type='candle', style='yahoo', title=f'{dhan_name} (5-Min)', savefig=dict(fname=chart_path, dpi=100, bbox_inches='tight'), figratio=(10,4), figscale=0.8)
+                mpf.plot(df_plot, type='candle', style='yahoo', title=f'{dhan_name} (5-Min)',
+                         savefig=dict(fname=chart_path, dpi=100, bbox_inches='tight'),
+                         figratio=(10, 4), figscale=0.8)
             except Exception as e:
-                with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f: f.write(f"Chart Error: {str(e)}\n")
+                with open(os.path.join(DOWNLOADS_DIR, f"debug_{html_id}.txt"), "a") as f:
+                    f.write(f"Chart Error: {str(e)}\n")
             return True, f"/static/charts/{html_id}.png"
     return False, ""
 
