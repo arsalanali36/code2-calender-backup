@@ -396,11 +396,16 @@
                 statusEl.className = "status " + data.status;
                 statusEl.innerText = data.msg;
                 if (data.percent !== undefined && pbWrap) {
-                    pbWrap.style.display = "block";
-                    pbFill.style.width = data.percent + "%";
-                    pbPct.innerText = data.percent + "%";
-                    if (data.status === 'done')  { pbFill.style.background = "#22c55e"; pbPct.style.color = "#15803d"; }
-                    if (data.status === 'error') { pbFill.style.background = "#ef4444"; pbPct.style.color = "#dc2626"; }
+                    const pct = data.percent;
+                    const show = (data.status === 'downloading') || (data.status === 'done') || (data.status === 'error' && pct > 0);
+                    pbWrap.style.display = show ? "block" : "none";
+                    if (show) {
+                        pbFill.style.width = pct + "%";
+                        pbPct.innerText = pct + "%";
+                        if (data.status === 'done')  { pbFill.style.background = "#22c55e"; pbPct.style.color = "#15803d"; }
+                        else if (data.status === 'error') { pbFill.style.background = "#ef4444"; pbPct.style.color = "#dc2626"; }
+                        else { pbFill.style.background = "#2563eb"; pbPct.style.color = "#2563eb"; }
+                    }
                 }
                 if (data.status === 'done') {
                     if (data.chart) {
