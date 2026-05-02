@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+static/charts/*.png
+Downloaded_Data/
+uploads/
+*.csv
+verify_fix.py
+verify_chart_56400PE.png
