@@ -7,11 +7,13 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; margin: 40px; color: #1e293b; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 20px; align-items: center; }
-        input[type="date"], input[type="file"] { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+        input[type="date"], input[type="file"], textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit; }
         button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background: #1d4ed8; }
         .upload-btn { background: #0f766e; }
         .upload-btn:hover { background: #0f5c53; }
+        .clear-btn { background: #ef4444; padding: 4px 8px; font-size: 11px; margin-left: 10px; }
+        .clear-btn:hover { background: #dc2626; }
         table { border-collapse: collapse; width: 100%; background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; margin-bottom: 50px; }
         th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background-color: #1e293b; color: white; }
@@ -22,12 +24,27 @@
         .downloading { background: #fef3c7; color: #b45309; }
         .done { background: #dcfce7; color: #15803d; }
         .error { background: #fee2e2; color: #991b1b; }
-        
         .progress-bar-bg { width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; margin-top: 6px; overflow: hidden; display: none; }
         .progress-bar-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s; }
-        
         a.chart-btn { background: #f3f4f6; color: #111827; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #d1d5db; display: inline-block; }
         a.chart-btn:hover { background: #e5e7eb; }
+        
+        /* Calendar Grid */
+        .calendar-grid { display: flex; flex-wrap: wrap; gap: 3px; max-width: 250px; margin-bottom: 5px; }
+        .cal-day { width: 14px; height: 14px; border-radius: 2px; background: #e2e8f0; position: relative; }
+        .cal-day.done { background: #22c55e; cursor: pointer; }
+        .cal-day.done:hover { background: #16a34a; transform: scale(1.2); }
+        .cal-day.holiday { background: #fef08a; cursor: not-allowed; border: 1px solid #fde047; }
+        .cal-day:hover::after { content: attr(title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 10; }
+        
+        /* Tabs styling */
+        .tab-container { margin-top: 20px; }
+        .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+        .tab { padding: 12px 24px; cursor: pointer; border: none; background: none; font-size: 16px; font-weight: bold; color: #64748b; transition: all 0.2s; border-radius: 0; }
+        .tab:hover { color: #1e293b; background: #f1f5f9; }
+        .tab.active { color: #2563eb; border-bottom: 3px solid #2563eb; margin-bottom: -2px; background: none; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
@@ -35,113 +52,396 @@
         <h2>Historical Options Downloader</h2>
     </div>
     
+    <!-- GLOBAL DOWNLOAD RANGE -->
     <div class="card">
+        <label style="font-weight: bold; margin-right: 10px;">Download Data Range:</label>
         <div>
-            <label style="font-weight: bold; margin-right: 10px;">1. Upload Zerodha Tradebook:</label>
-            <input type="file" id="tradebook_file" accept=".csv">
-        </div>
-        <button class="upload-btn" onclick="uploadTradebook()">Upload & Map to Dhan</button>
-    </div>
-
-    <div class="card">
-        <label style="font-weight: bold; margin-right: 10px;">2. Download Mapped Data:</label>
-        <div>
-            <label>From Date:</label>
+            <label>From:</label>
             <input type="date" id="start_date" value="2026-04-01">
         </div>
         <div>
-            <label>To Date:</label>
+            <label>To:</label>
             <input type="date" id="end_date" value="2026-04-30">
         </div>
         <button onclick="startDownload()">▶ Start Download</button>
     </div>
 
-    <table>
-        <tr>
-            <th>Trade Date</th>
-            <th>Zerodha Instrument</th>
-            <th>Dhan Instrument</th>
-            <th style="width: 250px;">Status & Progress</th>
-            <th>Chart</th>
-        </tr>
-        {% for task in tasks %}
-        <tr>
-            <td><b>{{ task.trade_date }}</b></td>
-            <td><span class="tag-z">{{ task.zerodha_symbol }}</span></td>
-            <td><span class="tag-d">{{ task.dhan_name }}</span></td>
-            <td>
-                <span id="status-{{ task.html_id }}" class="status pending">⚪ Not Started</span>
-                <div id="pb-bg-{{ task.html_id }}" class="progress-bar-bg">
-                    <div id="pb-fill-{{ task.html_id }}" class="progress-bar-fill"></div>
+    <!-- TABS -->
+    <div class="tab-container">
+        <div class="tabs">
+            <button class="tab active" onclick="openTab(event, 'premium')">Premium (Options)</button>
+            <button class="tab" onclick="openTab(event, 'index')">Index</button>
+            <button class="tab" onclick="openTab(event, 'equity')">Equity</button>
+        </div>
+
+        <!-- PREMIUM TAB CONTENT -->
+        <div id="premium" class="tab-content active">
+            <div class="card" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div>
+                        <label style="font-weight: bold; margin-right: 10px;">Upload Tradebook:</label>
+                        <input type="file" id="tradebook_file">
+                    </div>
+                    <button class="upload-btn" onclick="uploadTradebook()">Upload & Parse</button>
                 </div>
-            </td>
-            <td id="chart-{{ task.html_id }}">-</td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="5" style="text-align: center; padding: 30px; color: #64748b;">Please upload a Zerodha Tradebook CSV to view mapped instruments.</td>
-        </tr>
-        {% endfor %}
-    </table>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div>
+                        <label style="font-weight: bold; margin-right: 5px;">Filter:</label>
+                        <select id="underlying_filter" style="padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1;" onchange="filterPremiumTable()">
+                            <option value="ALL">All Instruments</option>
+                            <option value="NIFTY">NIFTY</option>
+                            <option value="BANKNIFTY">BANKNIFTY</option>
+                            <option value="FINNIFTY">FINNIFTY</option>
+                            <option value="MIDCPNIFTY">MIDCPNIFTY</option>
+                        </select>
+                    </div>
+                    <button class="download-btn" onclick="startDownload()" style="margin-left: auto;">🚀 Download Filtered Premium</button>
+            <button class="clear-btn" onclick="stopAllDownloads()" style="margin-left: 10px; background: #ef4444;">🛑 Stop All</button>
+                </div>
+            </div>
+
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Zerodha</th>
+                    <th>Dhan Instrument</th>
+                    <th style="width: 250px;">Status</th>
+                    <th>Actions</th>
+                </tr>
+                {% for task in tasks %}
+                <tr class="premium-row" data-underlying="{{ task.underlying }}">
+                    <td><b>{{ task.trade_date }}</b></td>
+                    <td><span class="tag-z">{{ task.zerodha_symbol }}</span></td>
+                    <td><span class="tag-d">{{ task.dhan_name }}</span></td>
+                    <td>
+                        <div id="cal-p-{{ loop.index }}" class="calendar-grid premium-cal" data-symbol="{{ task.zerodha_symbol }}" data-dhan="{{ task.dhan_name }}"></div>
+                        <span id="status-{{ task.html_id }}" class="status {{ 'done' if task.is_downloaded else 'pending' }}">
+                            {{ '✅ Downloaded' if task.is_downloaded else '⚪ Not Started' }}
+                        </span>
+                        <div id="pb-bg-{{ task.html_id }}" class="progress-bar-bg">
+                            <div id="pb-fill-{{ task.html_id }}" class="progress-bar-fill"></div>
+                        </div>
+                    </td>
+                    <td id="chart-{{ task.html_id }}">
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            {% if task.is_downloaded %}
+                                <a href="{{ task.chart_url }}" target="_blank" class="chart-btn">📈 View Chart</a>
+                            {% endif %}
+                            <button class="clear-btn" onclick="clearData('{{ task.html_id }}', '{{ task.dhan_name }}')">🗑️ Clear</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- INDEX TAB CONTENT -->
+        <div id="index" class="tab-content">
+            <div class="card" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <label style="font-weight: bold;">Enter Index Watchlist (comma separated or one per line):</label>
+                <textarea id="index_watchlist" rows="4" style="width: 100%;" placeholder="e.g. NIFTY, BANKNIFTY, FINNIFTY"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="upload-btn" onclick="updateWatchlist('index')">Update Watchlist</button>
+                    <button class="clear-btn" style="background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;" onclick="loadExisting('index')">Load Existing</button>
+                </div>
+            </div>
+            
+            <table id="index_table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th style="width: 250px;">Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="index_tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- EQUITY TAB CONTENT -->
+        <div id="equity" class="tab-content">
+            <div class="card" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <label style="font-weight: bold;">Enter Equity Watchlist (comma separated or one per line):</label>
+                <textarea id="equity_watchlist" rows="4" style="width: 100%;" placeholder="e.g. RELIANCE, HDFC, INFY"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="upload-btn" onclick="updateWatchlist('equity')">Update Watchlist</button>
+                    <button class="clear-btn" style="background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;" onclick="loadExisting('equity')">Load Existing</button>
+                </div>
+            </div>
+            
+            <table id="equity_table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th style="width: 250px;">Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="equity_tbody"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
-        function uploadTradebook() {
-            const fileInput = document.getElementById('tradebook_file');
-            if(fileInput.files.length === 0) {
-                alert("Please select a file first."); return;
-            }
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-            
-            fetch('/upload_tradebook', {
-                method: 'POST', body: formData
-            }).then(res => res.json()).then(data => {
-                if(data.error) alert(data.error);
-                else {
-                    alert(data.message);
-                    location.reload(); // reload to show the new table
+        // Tab logic
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Watchlist logic for both Index and Equity
+        function loadExisting(type) {
+            fetch('/get_existing_instruments', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ download_type: type }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.instruments && data.instruments.length > 0) {
+                    document.getElementById(type + '_watchlist').value = data.instruments.join(', ');
+                    updateWatchlist(type);
+                } else {
+                    alert("No existing data found for " + type);
                 }
             });
         }
 
-        function startDownload() {
+        function updateWatchlist(type) {
+            const txt = document.getElementById(type + '_watchlist').value;
+            const instruments = txt.split(/[\n,]+/).map(i => i.trim()).filter(i => i);
+            const tbody = document.getElementById(type + '_tbody');
+            tbody.innerHTML = '';
+            if (instruments.length > 0) {
+                document.getElementById(type + '_table').style.display = 'table';
+                instruments.forEach((inst, idx) => {
+                    const html_id = type + '_' + inst.replace(/[^a-zA-Z0-9]/g, '');
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="tag-d">${inst}</span></td>
+                        <td style="width: 300px;">
+                            <div id="cal-${html_id}" class="calendar-grid"></div>
+                            <span id="status-${html_id}" class="status pending">⚪ Not Started</span>
+                            <div id="pb-bg-${html_id}" class="progress-bar-bg"><div id="pb-fill-${html_id}" class="progress-bar-fill"></div></div>
+                        </td>
+                        <td id="chart-${html_id}">
+                            <button class="clear-btn" onclick="this.closest('tr').remove(); if(tbody.children.length === 0) document.getElementById('${type}_table').style.display = 'none';">🗑️ Remove</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                const instruments = txt.split(/[\n,]+/).map(i => i.trim()).filter(i => i);
+                const items = instruments.map(inst => ({ symbol: inst, dhan_name: inst }));
+                fetchStatus(type, items);
+            } else {
+                document.getElementById(type + '_table').style.display = 'none';
+            }
+        }
+
+        function fetchStatus(type, instruments) {
             const start_date = document.getElementById('start_date').value;
             const end_date = document.getElementById('end_date').value;
-            
-            fetch('/download', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ start_date, end_date })
+            fetch('/check_status', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ items: instruments, start_date, end_date, download_type: type })
             }).then(res => res.json()).then(data => {
-                alert(data.message + " (" + data.count + " items in range)");
+                console.log("Status Data received:", data);
+                Object.keys(data).forEach(inst => {
+                    try {
+                        // Find the container by its data-symbol attribute
+                        const calContainer = document.querySelector(`.premium-cal[data-symbol="${inst}"]`);
+                        if (!calContainer) return;
+
+                        calContainer.innerHTML = '';
+                        let total = 0; let done = 0;
+                        
+                        if (data[inst] && Array.isArray(data[inst])) {
+                            data[inst].forEach(day => {
+                                if (!day.is_holiday) {
+                                    total++;
+                                    if(day.downloaded) done++;
+                                }
+                                const div = document.createElement('div');
+                                if (day.is_holiday) {
+                                    div.className = 'cal-day holiday';
+                                    div.title = day.date + " - " + day.holiday_name;
+                                } else {
+                                    div.className = 'cal-day' + (day.downloaded ? ' done' : '');
+                                    div.title = day.date + (day.downloaded ? ' (Click to view)' : '');
+                                    if (day.downloaded) {
+                                        div.onclick = (e) => {
+                                            e.stopPropagation();
+                                            const dhan_name = calContainer.getAttribute('data-dhan');
+                                            window.open(`/view_day_chart?symbol=${inst}&dhan_name=${encodeURIComponent(dhan_name)}&date=${day.date}&type=${type}`, '_blank');
+                                        };
+                                    }
+                                }
+                                calContainer.appendChild(div);
+                            });
+                            
+                            const statusEl = calContainer.nextElementSibling;
+                            if (statusEl && statusEl.classList.contains('status')) {
+                                if (done === total && total > 0) {
+                                    statusEl.className = 'status done';
+                                    statusEl.innerText = `✅ ${done}/${total} Days Done`;
+                                } else if (done > 0) {
+                                    statusEl.className = 'status pending';
+                                    statusEl.innerText = `🟡 ${done}/${total} Days Done`;
+                                } else if (total > 0) {
+                                    statusEl.className = 'status pending';
+                                    statusEl.innerText = `⚪ 0/${total} Days Done`;
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error processing instrument:", inst, err);
+                    }
+                });
             });
         }
 
+        // Premium logic
+        function uploadTradebook() {
+            const fileInput = document.getElementById('tradebook_file');
+            if(fileInput.files.length === 0) return alert("Select file");
+            const formData = new FormData(); formData.append("file", fileInput.files[0]);
+            fetch('/upload_tradebook', { method: 'POST', body: formData }).then(res => res.json()).then(data => { alert(data.message); location.reload(); });
+        }
+        function clearData(html_id, dhan_name) {
+            fetch('/delete_task_data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html_id, dhan_name }) }).then(() => location.reload());
+        }
+        function startDownload() {
+            const start_date = document.getElementById('start_date').value;
+            const end_date = document.getElementById('end_date').value;
+            const activeTab = document.querySelector('.tab-content.active').id;
+            
+            let instruments = [];
+            if (activeTab === 'index' || activeTab === 'equity') {
+                const txt = document.getElementById(activeTab + '_watchlist').value;
+                instruments = txt.split(/[\n,]+/).map(i => i.trim()).filter(i => i);
+                if (instruments.length === 0) return alert("Please add instruments to the watchlist first.");
+            } else if (activeTab === 'premium') {
+                // Only download visible (filtered) rows
+                document.querySelectorAll('.premium-row').forEach(row => {
+                    if (row.style.display !== 'none') {
+                        // Get the zerodha symbol from the second cell (index 1)
+                        const symbol = row.cells[1].innerText.trim();
+                        instruments.push(symbol);
+                    }
+                });
+                if (instruments.length === 0) return alert("No instruments found in current filter.");
+            }
+
+            fetch('/download', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ 
+                    start_date, 
+                    end_date, 
+                    download_type: activeTab,
+                    instruments: instruments
+                }) 
+            }).then(res => res.json()).then(data => alert(data.message));
+        }
+
+        function filterPremiumTable() {
+            const filter = document.getElementById('underlying_filter').value;
+            document.querySelectorAll('.premium-row').forEach(row => {
+                const underlying = row.getAttribute('data-underlying');
+                if (filter === 'ALL' || underlying === filter) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function stopAllDownloads() {
+            if(confirm("Are you sure you want to stop all active downloads?")) {
+                fetch('/stop_downloads', { method: 'POST' }).then(res => res.json()).then(data => alert(data.message));
+            }
+        }
+
+        // SSE Updates
         const source = new EventSource("/stream_status");
         source.onmessage = function(event) {
             const data = JSON.parse(event.data);
             const statusEl = document.getElementById("status-" + data.id);
             const pbBg = document.getElementById("pb-bg-" + data.id);
             const pbFill = document.getElementById("pb-fill-" + data.id);
-            
+            const chartEl = document.getElementById("chart-" + data.id);
             if (statusEl) {
                 statusEl.className = "status " + data.status;
                 statusEl.innerText = data.msg;
-                
-                if (data.percent !== undefined) {
-                    pbBg.style.display = "block";
-                    pbFill.style.width = data.percent + "%";
-                }
-                if (data.status === 'done' || data.status === 'error') {
-                    setTimeout(() => { pbBg.style.display = "none"; }, 1000);
-                }
-                
-                if (data.chart) {
-                    const chartEl = document.getElementById("chart-" + data.id);
-                    chartEl.innerHTML = `<a href="${data.chart}" target="_blank" class="chart-btn">📈 View Chart</a>`;
+                if (data.percent !== undefined) { pbBg.style.display = "block"; pbFill.style.width = data.percent + "%"; }
+                if (data.status === 'done' || data.status === 'error') { setTimeout(() => { pbBg.style.display = "none"; }, 1000); }
+                if (data.status === 'done') {
+                    if (data.chart) {
+                        const statusSpan = document.querySelector('span[id="status-' + data.id + '"]');
+                        const dhanName = statusSpan && statusSpan.closest('tr').children[2] ? statusSpan.closest('tr').children[2].innerText.trim() : data.id;
+                        chartEl.innerHTML = `<div style="display: flex; gap: 5px; align-items: center;"><a href="${data.chart}" target="_blank" class="chart-btn">📈 View Chart</a><button class="clear-btn" onclick="clearData('${data.id}', '${dhanName}')">🗑️ Clear</button></div>`;
+                    }
+                    
+                    // Refresh calendar status for this instrument if it's index/equity
+                    const activeTab = document.querySelector('.tab-content.active').id;
+                    if (activeTab === 'index' || activeTab === 'equity') {
+                        const instName = data.id.replace(activeTab + '_', '');
+                        fetchStatus(activeTab, [{ symbol: instName, dhan_name: instName }]);
+                    } else if (activeTab === 'premium') {
+                        const dhanName = getDhanNameForSymbol(data.id);
+                        fetchStatus('premium', [{ symbol: data.id, dhan_name: dhanName }]);
+                    }
                 }
             }
         };
+        // Initialize calendars for Premium tasks on load
+        window.addEventListener('load', () => {
+            refreshAllStatuses();
+            // Periodic refresh every 10 seconds to keep dots updated
+            setInterval(refreshAllStatuses, 10000);
+        });
+        
+        function refreshAllStatuses() {
+            const premiumItems = [];
+            document.querySelectorAll('.premium-cal').forEach(cal => {
+                const symbol = cal.getAttribute('data-symbol');
+                const dhan_name = cal.getAttribute('data-dhan');
+                premiumItems.push({ symbol, dhan_name });
+                
+                if (cal.children.length === 0) {
+                    for(let i=0; i<20; i++) {
+                        const d = document.createElement('div');
+                        d.className = 'cal-day';
+                        cal.appendChild(d);
+                    }
+                }
+            });
+            if (premiumItems.length > 0) fetchStatus('premium', premiumItems);
+            
+            // Also refresh Index and Equity if they are visible
+            const activeTab = document.querySelector('.tab-content.active').id;
+            if (activeTab === 'index' || activeTab === 'equity') {
+                const txt = document.getElementById(activeTab + '_watchlist').value;
+                const instruments = txt.split(/[\n,]+/).map(i => i.trim()).filter(i => i);
+                if (instruments.length > 0) fetchStatus(activeTab, instruments.map(inst => ({ symbol: inst, dhan_name: inst })));
+            }
+        }
+
+        // Add helper to find Dhan name from a row given its symbol ID
+        function getDhanNameForSymbol(symbolId) {
+            const row = document.querySelector(`.premium-row[data-underlying]`); // This is not specific enough
+            // Better: loop through rows
+            let name = "";
+            document.querySelectorAll('.premium-row').forEach(r => {
+                if (r.cells[1].innerText.trim() === symbolId) {
+                    name = r.cells[2].innerText.trim();
+                }
+            });
+            return name;
+        }
     </script>
 </body>
 </html>
