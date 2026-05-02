@@ -454,7 +454,11 @@ def download_range():
         all_tasks = load_tradebook_tasks()
         # If UI sent a specific list of symbols, filter by them. Otherwise use all pending.
         if instruments:
-            tasks = [t for t in all_tasks if t['zerodha_symbol'] in instruments]
+            # Filter by both symbol list AND date relevance:
+            # instrument must have been traded before/on end_date AND not expired before start_date
+            tasks = [t for t in all_tasks if t['zerodha_symbol'] in instruments
+                     and t['trade_date'] <= e_date
+                     and t['expiry_date'] >= s_date]
         else:
             tasks = [t for t in all_tasks if s_date <= t['trade_date'] <= e_date and not t['is_downloaded']]
             
