@@ -553,10 +553,13 @@ def check_status():
             # Case-insensitive matching
             task = next((t for t in all_tasks if t['zerodha_symbol'].strip().upper() == symbol.strip().upper()), None)
             if task:
-                exp_dt   = datetime.datetime.strptime(task['expiry_date'], "%Y-%m-%d")
-                trade_dt = datetime.datetime.strptime(task['trade_date'],  "%Y-%m-%d")
-                # Start from first day of the trade month so cross-month weeklies (e.g. May-5 expiry traded in April) show April data
-                inst_s_dt = trade_dt.replace(day=1)
+                exp_dt = datetime.datetime.strptime(task['expiry_date'], "%Y-%m-%d")
+                if task.get('expiry_type') == 'Weekly':
+                    # Show only the expiry week (~5 trading days)
+                    inst_s_dt = exp_dt - datetime.timedelta(days=6)
+                else:
+                    # Monthly: show full expiry month
+                    inst_s_dt = exp_dt.replace(day=1)
                 inst_e_dt = exp_dt
             else:
                 print(f"[DEBUG] NO TASK FOUND for {symbol} in all_tasks!", flush=True)
