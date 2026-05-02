@@ -221,7 +221,9 @@ def download_instrument(inst, start_date, end_date, idx, total):
         pct = int((day_idx + 1) / len(missing) * 100)
         log(f"[{idx:>3}/{total}]    {TRADE_DATE}  {pct:3d}%  {name}")
 
-    log(f"[{idx:>3}/{total}] {'✅ DONE' if fetched else '❌ FAIL'}  {name}  ({fetched}/{len(missing)} days saved)")
+    status = "✅ DONE" if fetched == len(missing) else ("⚠  PART" if fetched > 0 else "❌ FAIL")
+    log(f"[{idx:>3}/{total}] {status}  {name}  ({fetched}/{len(missing)} days saved)")
+    return {"name": name, "fetched": fetched, "missing": len(missing), "status": status}
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
@@ -235,18 +237,25 @@ def main():
     total = len(instruments)
     print(f"\n{'='*60}")
     print(f"  Bulk Downloader — {total} instruments")
-    print(f"  Range : {args.start}  →  {args.end}")
-    print(f"  Workers: {args.workers}")
+    print(f"  Range   : {args.start}  to  {args.end}")
+    print(f"  Workers : {args.workers}  (parallel downloads)")
     print(f"{'='*60}\n")
 
-    sem = threading.Semaphore(args.workers)
+    sem     = threading.Semaphore(args.workers)
+    results = {}
+    r_lock  = threading.Lock()
 
     def worker(inst, idx):
         with sem:
             try:
-                download_instrument(inst, args.start, args.end, idx, total)
+                res = download_instrument(inst, args.start, args.end, idx, total)
+                if res:
+                    with r_lock:
+                        results[inst["dhan_name"]] = res
             except Exception as e:
                 log(f"[{idx:>3}/{total}] ERROR {inst['dhan_name']}: {e}")
+                with r_lock:
+                    results[inst["dhan_name"]] = {"name": inst["dhan_name"], "fetched": 0, "missing": 0, "status": "❌ FAIL"}
 
     threads = []
     for i, inst in enumerate(instruments, 1):
@@ -257,8 +266,32 @@ def main():
     for t in threads:
         t.join()
 
+    # ── Final Status Report ───────────────────────────────────────────────────
+    done  = [r for r in results.values() if "DONE" in r["status"]]
+    part  = [r for r in results.values() if "PART" in r["status"]]
+    fail  = [r for r in results.values() if "FAIL" in r["status"]]
+    skip  = total - len(results)
+
     print(f"\n{'='*60}")
-    print("  All downloads complete!")
+    print(f"  FINAL REPORT")
+    print(f"{'='*60}")
+    print(f"  Total instruments : {total}")
+    print(f"  ✅ Fully done     : {len(done)}")
+    print(f"  ⚠  Partial        : {len(part)}")
+    print(f"  ❌ Failed (0 days): {len(fail)}")
+    print(f"  ⏩ Skipped (exist) : {skip}")
+
+    if part:
+        print(f"\n  --- Partial (some days missing) ---")
+        for r in part:
+            print(f"    {r['name']}  ({r['fetched']}/{r['missing']} days)")
+
+    if fail:
+        print(f"\n  --- Failed (no data from Dhan) ---")
+        for r in fail:
+            print(f"    {r['name']}")
+
+    print(f"\n  Refresh dashboard to see updated green dots.")
     print(f"{'='*60}\n")
 
 if __name__ == "__main__":
