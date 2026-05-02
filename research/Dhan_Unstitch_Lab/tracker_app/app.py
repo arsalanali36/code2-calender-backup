@@ -310,7 +310,8 @@ def run_downloader(task, start_date, end_date):
         for exp_type, exp_code in candidates:
             # We check with target strike directly if possible, or ATM
             r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {"securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1, "expiryCode": exp_code, "expiryFlag": exp_type, "strike": "ATM", "drvOptionType": opt_type, "requiredData": ["close"], "fromDate": TRADE_DATE, "toDate": NEXT_DATE})
-            if r_json and 'data' in r_json and (pe_ce := ('ce' if opt_type == 'CALL' else 'pe')) in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
+            _key = 'ce' if opt_type == 'CALL' else 'pe'
+            if r_json and 'data' in r_json and _key in r_json['data'] and r_json['data'][_key] and len(r_json['data'][_key].get('close', [])) > 0:
                 valid_exp_type, valid_exp_code = exp_type, exp_code
                 break
             time.sleep(0.05)
@@ -322,6 +323,9 @@ def run_downloader(task, start_date, end_date):
         # We don't skip the day anymore even if offset is > 20, because we have the Absolute Strike fetch.
 
         rolling_data = {}
+        pe_ce = 'ce' if opt_type == 'CALL' else 'pe'
+        spot_count = len(spot_series)
+
         # 1. Always try fetching the Absolute Strike directly (Bypasses +/- 20 offset limit)
         r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {
             "securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1,
@@ -329,18 +333,20 @@ def run_downloader(task, start_date, end_date):
             "drvOptionType": opt_type, "requiredData": ["open", "high", "low", "close", "volume"],
             "fromDate": TRADE_DATE, "toDate": NEXT_DATE
         })
-        if r_json and 'data' in r_json and (pe_ce := ('ce' if opt_type == 'CALL' else 'pe')) in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
+        if r_json and 'data' in r_json and pe_ce in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
             rolling_data['TARGET'] = r_json['data'][pe_ce]
-        time.sleep(0.3)
+        time.sleep(0.15)
 
-        # 2. Try Offsets for stitching (if target strike data is partial or missing)
-        for offset in range(min_offset, max_offset + 1):
-            if offset < -20 or offset > 20: continue # Dhan offset limit
-            strike_str = 'ATM' if offset == 0 else (f'ATM+{offset}' if offset > 0 else f'ATM{offset}')
-            r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {"securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1, "expiryCode": valid_exp_code, "expiryFlag": valid_exp_type, "strike": strike_str, "drvOptionType": opt_type, "requiredData": ["open", "high", "low", "close", "volume"], "fromDate": TRADE_DATE, "toDate": NEXT_DATE})
-            if r_json and 'data' in r_json and (pe_ce := ('ce' if opt_type == 'CALL' else 'pe')) in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
-                rolling_data[offset] = r_json['data'][pe_ce]
-            time.sleep(0.3)
+        # 2. Stitching only needed if TARGET data is incomplete (covers <80% of trading day)
+        target_count = len(rolling_data.get('TARGET', {}).get('close', []))
+        if target_count < spot_count * 0.8:
+            for offset in range(min_offset, max_offset + 1):
+                if offset < -20 or offset > 20: continue
+                strike_str = 'ATM' if offset == 0 else (f'ATM+{offset}' if offset > 0 else f'ATM{offset}')
+                r_json = dhan_request('https://api.dhan.co/v2/charts/rollingoption', {"securityId": sec_id, "exchangeSegment": "NSE_FNO", "instrument": "OPTIDX", "interval": 1, "expiryCode": valid_exp_code, "expiryFlag": valid_exp_type, "strike": strike_str, "drvOptionType": opt_type, "requiredData": ["open", "high", "low", "close", "volume"], "fromDate": TRADE_DATE, "toDate": NEXT_DATE})
+                if r_json and 'data' in r_json and pe_ce in r_json['data'] and r_json['data'][pe_ce] and len(r_json['data'][pe_ce].get('close', [])) > 0:
+                    rolling_data[offset] = r_json['data'][pe_ce]
+                time.sleep(0.15)
         
         for i, t in enumerate(spot_series.keys()):
             # Preference 1: Direct Target Strike Data
