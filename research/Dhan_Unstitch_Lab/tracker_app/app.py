@@ -105,12 +105,13 @@ def load_tradebook_tasks():
                 opt_type = match.group(5)
                 
                 if expiry_part.isdigit():
-                    # Format: 210 (Feb 10) or 217 (Feb 17)
+                    # Format: 210 (Feb 10) or 505 (May 5)
                     month_digit = int(expiry_part[0])
                     day_digit = int(expiry_part[1:])
                     expiry_month_str = datetime.date(2026, month_digit, 1).strftime('%b').upper()
                     expiry_date = f"2026-{month_digit:02d}-{day_digit:02d}"
-                    expected_dhan = f"{underlying} {day_digit} {expiry_month_str} {strike} {'CALL' if opt_type=='CE' else 'PUT'}"
+                    # Zero-pad day so folder names are consistent: NIFTY_05_MAY_... not NIFTY_5_MAY_...
+                    expected_dhan = f"{underlying} {day_digit:02d} {expiry_month_str} {strike} {'CALL' if opt_type=='CE' else 'PUT'}"
                 else:
                     # Format: APR (Monthly/Weekly with month letters)
                     expiry_month_str = expiry_part.upper()
@@ -148,6 +149,7 @@ def load_tradebook_tasks():
                     "strike": strike,
                     "option_type": opt_type,
                     "expiry_date": expiry_date,
+                    "expiry_type": "Weekly" if expiry_part.isdigit() else "Monthly",
                     "html_id": symbol,
                     "is_downloaded": exists,
                     "chart_url": f"/static/charts/{symbol}.png"
@@ -551,10 +553,11 @@ def check_status():
             # Case-insensitive matching
             task = next((t for t in all_tasks if t['zerodha_symbol'].strip().upper() == symbol.strip().upper()), None)
             if task:
-                exp_dt = datetime.datetime.strptime(task['expiry_date'], "%Y-%m-%d")
-                inst_s_dt = exp_dt.replace(day=1)
+                exp_dt   = datetime.datetime.strptime(task['expiry_date'], "%Y-%m-%d")
+                trade_dt = datetime.datetime.strptime(task['trade_date'],  "%Y-%m-%d")
+                # Start from first day of the trade month so cross-month weeklies (e.g. May-5 expiry traded in April) show April data
+                inst_s_dt = trade_dt.replace(day=1)
                 inst_e_dt = exp_dt
-                print(f"[DEBUG] Found task for {symbol}, range: {inst_s_dt.date()} to {inst_e_dt.date()}", flush=True)
             else:
                 print(f"[DEBUG] NO TASK FOUND for {symbol} in all_tasks!", flush=True)
                 inst_s_dt, inst_e_dt = s_dt, e_dt

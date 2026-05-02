@@ -105,6 +105,7 @@
                     <th>Date</th>
                     <th>Zerodha</th>
                     <th>Dhan Instrument</th>
+                    <th>Type</th>
                     <th style="width: 250px;">Status</th>
                     <th>Actions</th>
                 </tr>
@@ -113,6 +114,10 @@
                     <td><b>{{ task.trade_date }}</b></td>
                     <td><span class="tag-z">{{ task.zerodha_symbol }}</span></td>
                     <td><span class="tag-d">{{ task.dhan_name }}</span></td>
+                    <td><span style="font-size:12px; padding:3px 7px; border-radius:4px; font-weight:bold;
+                        {% if task.expiry_type == 'Weekly' %}background:#f0fdf4;color:#15803d;border:1px solid #86efac;
+                        {% else %}background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;{% endif %}">
+                        {{ task.expiry_type }}</span></td>
                     <td>
                         <div id="cal-p-{{ loop.index }}" class="calendar-grid premium-cal" data-symbol="{{ task.zerodha_symbol }}" data-dhan="{{ task.dhan_name }}"></div>
                         <span id="status-{{ task.html_id }}" class="status {{ 'done' if task.is_downloaded else 'pending' }}">
