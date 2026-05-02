@@ -24,8 +24,11 @@
         .downloading { background: #fef3c7; color: #b45309; }
         .done { background: #dcfce7; color: #15803d; }
         .error { background: #fee2e2; color: #991b1b; }
-        .progress-bar-bg { width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; margin-top: 6px; overflow: hidden; display: none; }
-        .progress-bar-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s; }
+        .progress-bar-wrap { display: none; margin-top: 5px; }
+        .progress-bar-row { display: flex; align-items: center; gap: 6px; }
+        .progress-bar-bg { flex: 1; background: #e2e8f0; border-radius: 4px; height: 10px; overflow: hidden; }
+        .progress-bar-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.4s ease; }
+        .progress-bar-pct { font-size: 12px; font-weight: bold; color: #2563eb; min-width: 36px; text-align: right; }
         a.chart-btn { background: #f3f4f6; color: #111827; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #d1d5db; display: inline-block; }
         a.chart-btn:hover { background: #e5e7eb; }
         
@@ -123,8 +126,13 @@
                         <span id="status-{{ task.html_id }}" class="status {{ 'done' if task.is_downloaded else 'pending' }}">
                             {{ '✅ Downloaded' if task.is_downloaded else '⚪ Not Started' }}
                         </span>
-                        <div id="pb-bg-{{ task.html_id }}" class="progress-bar-bg">
-                            <div id="pb-fill-{{ task.html_id }}" class="progress-bar-fill"></div>
+                        <div id="pb-wrap-{{ task.html_id }}" class="progress-bar-wrap">
+                            <div class="progress-bar-row">
+                                <div class="progress-bar-bg">
+                                    <div id="pb-fill-{{ task.html_id }}" class="progress-bar-fill"></div>
+                                </div>
+                                <span id="pb-pct-{{ task.html_id }}" class="progress-bar-pct">0%</span>
+                            </div>
                         </div>
                     </td>
                     <td id="chart-{{ task.html_id }}">
@@ -229,7 +237,12 @@
                         <td style="width: 300px;">
                             <div id="cal-${html_id}" class="calendar-grid"></div>
                             <span id="status-${html_id}" class="status pending">⚪ Not Started</span>
-                            <div id="pb-bg-${html_id}" class="progress-bar-bg"><div id="pb-fill-${html_id}" class="progress-bar-fill"></div></div>
+                            <div id="pb-wrap-${html_id}" class="progress-bar-wrap">
+                                <div class="progress-bar-row">
+                                    <div class="progress-bar-bg"><div id="pb-fill-${html_id}" class="progress-bar-fill"></div></div>
+                                    <span id="pb-pct-${html_id}" class="progress-bar-pct">0%</span>
+                                </div>
+                            </div>
                         </td>
                         <td id="chart-${html_id}">
                             <button class="clear-btn" onclick="this.closest('tr').remove(); if(tbody.children.length === 0) document.getElementById('${type}_table').style.display = 'none';">🗑️ Remove</button>
@@ -375,14 +388,20 @@
         source.onmessage = function(event) {
             const data = JSON.parse(event.data);
             const statusEl = document.getElementById("status-" + data.id);
-            const pbBg = document.getElementById("pb-bg-" + data.id);
+            const pbWrap = document.getElementById("pb-wrap-" + data.id);
             const pbFill = document.getElementById("pb-fill-" + data.id);
+            const pbPct  = document.getElementById("pb-pct-"  + data.id);
             const chartEl = document.getElementById("chart-" + data.id);
             if (statusEl) {
                 statusEl.className = "status " + data.status;
                 statusEl.innerText = data.msg;
-                if (data.percent !== undefined) { pbBg.style.display = "block"; pbFill.style.width = data.percent + "%"; }
-                if (data.status === 'done' || data.status === 'error') { setTimeout(() => { pbBg.style.display = "none"; }, 1000); }
+                if (data.percent !== undefined && pbWrap) {
+                    pbWrap.style.display = "block";
+                    pbFill.style.width = data.percent + "%";
+                    pbPct.innerText = data.percent + "%";
+                    if (data.status === 'done')  { pbFill.style.background = "#22c55e"; pbPct.style.color = "#15803d"; }
+                    if (data.status === 'error') { pbFill.style.background = "#ef4444"; pbPct.style.color = "#dc2626"; }
+                }
                 if (data.status === 'done') {
                     if (data.chart) {
                         const statusSpan = document.querySelector('span[id="status-' + data.id + '"]');
