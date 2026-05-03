@@ -24,6 +24,19 @@
         <div class="visual-dash-grid" id="vd-charts-grid"
           style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px;">
 
+          <!-- Advanced MTM Analytics -->
+          <div class="col-span-12" id="adv-mtm-wrapper" style="grid-column: span 6;">
+            <div class="adv-mtm-container">
+              <div class="adv-mtm-main">
+                <div id="adv-mtm-controls-container"></div>
+                <div id="adv-mtm-chart-area"></div>
+              </div>
+              <div class="adv-mtm-heads-panel" id="adv-mtm-heads-panel">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
           <!-- Daily MTM Curves (Thumbnails) -->
           <div class="dash-card" data-vd-stat="mtm_thumbs" data-vd-default-width="6" style="padding: 15px; min-height: 200px;">
             <div class="dash-label vd-drag-handle"

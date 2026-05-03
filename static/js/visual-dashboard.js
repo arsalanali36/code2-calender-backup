@@ -102,6 +102,16 @@ function renderVisualDashboard() {
     updateVdRangeLabel();
 
     const trades = getVdTrades();
+    
+    // Advanced MTM Chart Integration
+    if (typeof updateAdvMtmChart === 'function') {
+        if (!document.getElementById('adv-mtm-controls-container').innerHTML) {
+            initAdvancedMtmChart();
+        } else {
+            updateAdvMtmChart();
+        }
+    }
+
     renderVdMtmThumbs(trades);
 
     // Basic metrics
