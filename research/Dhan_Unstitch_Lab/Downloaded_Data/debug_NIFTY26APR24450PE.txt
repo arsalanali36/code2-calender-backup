@@ -1,0 +1,9 @@
+[2026-04-22] valid_exp=MONTH 1, min_offset=-1, max_offset=2, collected=375
+[2026-04-23] valid_exp=MONTH 1, min_offset=3, max_offset=6, collected=376
+[2026-04-24] valid_exp=MONTH 1, min_offset=6, max_offset=13, collected=141
+[2026-04-27] valid_exp=MONTH 1, min_offset=6, max_offset=9, collected=375
+[2026-04-28] valid_exp=MONTH 1, min_offset=5, max_offset=10, collected=385
+[2026-04-29] valid_exp=MONTH 1, min_offset=2, max_offset=8, collected=375
+[2026-04-30] valid_exp=MONTH 1, min_offset=7, max_offset=13, collected=167
+[2026-04-22] valid_exp=MONTH 1, min_offset=-1, max_offset=2, collected=375
+[2026-04-22] valid_exp=MONTH 1, min_offset=-1, max_offset=2, collected=375

@@ -1,0 +1,1 @@
+[2026-04-24] valid_exp=MONTH 1, min_offset=-3, max_offset=4, collected=375

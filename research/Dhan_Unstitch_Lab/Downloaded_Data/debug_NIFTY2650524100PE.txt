@@ -1,0 +1,4 @@
+[2026-04-27] valid_exp=WEEK 2, min_offset=-1, max_offset=2, collected=375
+[2026-04-28] valid_exp=WEEK 2, min_offset=-2, max_offset=3, collected=385
+[2026-04-29] valid_exp=WEEK 1, min_offset=-5, max_offset=1, collected=375
+[2026-04-30] valid_exp=WEEK 1, min_offset=0, max_offset=6, collected=375
