@@ -217,3 +217,39 @@ ALL Bash/shell commands in this project are pre-authorized:
 - Whenever a mistake occurs: Ask "How can we ensure this never happens again?"
 - Update `CLAUDE.md` or automation scripts to bake in the fix.
 - **Root Cause Analysis**: Verify root cause, don't just treat symptoms.
+
+## ♻️ Smart Service Rule (MANDATORY — follow without being told)
+
+Before writing ANY new feature, silently ask these 3 questions:
+
+**Q1: Kya ye cheez pehle se kisi service mein hai?**
+→ Agar haan → import karo, dobara mat likho.
+
+**Q2: Kya ye cheez 2+ jagah lagegi, ya future mein lag sakti hai?**
+→ Agar haan → pehle `services/` mein likho, phir wahan se import karo.
+Examples of "will be reused":
+- API calls (Dhan, broker, ImageKit)
+- Image save/backup operations
+- File read/write operations
+- Credential/token access
+- Data transforms used in multiple routes
+
+**Q3: Kya main route mein business logic likh raha hoon?**
+→ Agar haan → rok jao, service mein shift karo.
+```python
+# Wrong: route ke andar 30 lines ka logic
+# Right: route mein sirf yeh
+result = some_service.do_work(params)
+return jsonify(result)
+```
+
+**Auto-decision rule (no user permission needed):**
+| Situation | Action |
+|-----------|--------|
+| New API call anywhere | → `services/` mein add karo |
+| New file read/write | → relevant `services/` ya `processors/` mein |
+| Same logic 2nd baar | → Extract to service, replace both usages |
+| New external integration | → Naya `services/xyz_service.py` banao |
+| Data transform / calculation | → `processors/` mein |
+
+**Outcome:** User ko bata do: "X ko service mein daala — ab Y aur Z dono use kar sakte hain."
