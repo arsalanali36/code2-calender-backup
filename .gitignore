@@ -54,3 +54,7 @@ data/*_backup
 data/*_backup_*
 data/*_pre_*
 static/js/bundle.js.bak
+
+# Market data (auto-downloaded, large files)
+data/algo_ohlc/
+data/ohlc/
