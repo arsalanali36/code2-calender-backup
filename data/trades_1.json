@@ -11381,7 +11381,8 @@
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1777356177/trading_journal/057dda92-46bc-4a2b-94ea-1412938dd71f.jpg"
       ],
       "imageTags": {},
-      "images": []
+      "images": [],
+      "tradeRefCards": {}
     },
     "2026-04-27": {
       "closeGlobalImages": [
@@ -11449,22 +11450,23 @@
       "tradeRefCards": {}
     },
     "2026-05-07": {
+      "closeGlobalImages": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-05-07_15-31-39_l3MIKPDqa.png"
+      ],
+      "imageTags": {},
+      "images": [],
+      "tradeRefCards": {}
+    },
+    "2026-05-08": {
+      "imageTags": {},
       "images": [
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-05-07_15-31-39_l3MIKPDqa.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093404_m9YccpJU2.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093417_C_-AFMnjS.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093420_U9ddyrlnX.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093926_BzjAuHNhE.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094017_DGJlah3t3J.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094136_p58f5PE7cf.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094140_W97229lWE.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094302_4zbySkTUh.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094307_spp9Ea0P-.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094515_odbZXtLRA.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094630_4QFJJjaa7I.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_095356_SqIiQGtQg.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_095511_Q7D82H7n16.png",
-        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_095516_QM-CeuaGYJ.png"
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_092944_OlaHHpVsjU.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_092949_YCylJzOnZS.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_093334_NJgNQeSAjZ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_093346_WtsYcqMa7.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_094646_3LQWR-Mxj.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_094650_SBCmQ9uHY.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_094657_FUz7sYnXV.png"
       ]
     }
   },
@@ -31879,7 +31881,12 @@
       "date": "2026-05-07",
       "fill_count": 5,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093404_m9YccpJU2.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093417_C_-AFMnjS.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093420_U9ddyrlnX.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_093926_BzjAuHNhE.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-05-07"
@@ -31910,12 +31917,82 @@
       "date": "2026-05-07",
       "fill_count": 6,
       "imageTags": {},
-      "images": [],
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094017_DGJlah3t3J.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094136_p58f5PE7cf.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094140_W97229lWE.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094302_4zbySkTUh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094307_spp9Ea0P-.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094515_odbZXtLRA.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_094630_4QFJJjaa7I.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_095356_SqIiQGtQg.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_095511_Q7D82H7n16.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-07_095516_QM-CeuaGYJ.png"
+      ],
       "observation": "",
       "tags": [],
       "trade_date": "2026-05-07"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 94.1,
+      "Buy Time": "09:46:35",
+      "Day P&L": 4914,
+      "Gross P/L": 4914,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651224350CE",
+      "Net P/L": 4814.37,
+      "Note": "",
+      "Other Charges": 59.63,
+      "Pt": 18.9,
+      "Qty": 260,
+      "Rs": 4914,
+      "Sell Price (Avg)": 113,
+      "Sell Time": "09:33:25",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 99.63,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-08",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-08"
     }
   ],
-  "uiSettings": {},
+  "uiSettings": {
+    "vdStats": {
+      "avg_buy_price": true,
+      "cumulative": true,
+      "daily": true,
+      "daily_fc": false,
+      "daily_qty": false,
+      "distribution": false,
+      "long_short": false,
+      "mtm_thumbs": true,
+      "pat_sum": false,
+      "points_per_trade": true,
+      "points_sum": false,
+      "profitability": false
+    },
+    "vdStatsOrder": [
+      "cumulative",
+      "mtm_thumbs",
+      "daily",
+      "points_per_trade",
+      "avg_buy_price",
+      "distribution",
+      "profitability",
+      "long_short",
+      "daily_qty",
+      "pat_sum",
+      "points_sum",
+      "daily_fc"
+    ]
+  },
   "userColumns": []
 }
