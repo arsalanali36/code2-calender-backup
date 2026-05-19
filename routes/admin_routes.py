@@ -1,8 +1,8 @@
 import os
 import json
-import glob
-from datetime import datetime, timezone
-from flask import Blueprint, render_template, abort
+import shutil
+from datetime import datetime
+from flask import Blueprint, render_template, abort, redirect, url_for, jsonify, request
 from flask_login import current_user
 from models import db, User
 from config import BASE_DIR, UPLOADS_DIR
@@ -69,3 +69,27 @@ def admin_panel():
         })
 
     return render_template('admin.html', users=rows, total=len(rows))
+
+
+@admin_bp.route('/admin/delete-user/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if not current_user.is_authenticated or current_user.id != 1:
+        abort(403)
+    if user_id == 1:
+        return jsonify({'error': 'Cannot delete admin'}), 400
+
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+
+    # Remove user's trades file
+    trades_file = os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
+    if os.path.exists(trades_file):
+        os.remove(trades_file)
+
+    # Remove user's uploads folder
+    user_uploads = os.path.join(UPLOADS_DIR, f'user_{user_id}')
+    if os.path.isdir(user_uploads):
+        shutil.rmtree(user_uploads)
+
+    return jsonify({'success': True})

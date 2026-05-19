@@ -113,6 +113,12 @@
         .dot-offline { background: #484f58; }
         .num { color: #fff; font-weight: 500; }
         .muted { color: #8b949e; }
+        .btn-del {
+            background: none; border: 1px solid #f8514933;
+            color: #f85149; font-size: 12px; padding: 4px 10px;
+            border-radius: 5px; cursor: pointer;
+        }
+        .btn-del:hover { background: #f8514922; }
     </style>
 </head>
 <body>
@@ -150,6 +156,7 @@
                     <th>Last Active</th>
                     <th>Trades</th>
                     <th>Images</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -171,10 +178,26 @@
                     </td>
                     <td><span class="num">{{ u.trades }}</span></td>
                     <td><span class="num">{{ u.images }}</span></td>
+                    <td>
+                        {% if not u.is_admin %}
+                        <button class="btn-del" onclick="deleteUser({{ u.id }}, '{{ u.email }}')">Remove</button>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+<script>
+function deleteUser(id, email) {
+    if (!confirm('Remove ' + email + '? This will delete their trades and images.')) return;
+    fetch('/admin/delete-user/' + id, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) location.reload();
+            else alert(d.error || 'Error');
+        });
+}
+</script>
 </body>
 </html>
