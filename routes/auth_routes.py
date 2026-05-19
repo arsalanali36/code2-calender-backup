@@ -53,7 +53,14 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        
+
+        # Admin email — non-blocking, never fails registration
+        try:
+            from services.email_service import notify_new_user
+            notify_new_user(email)
+        except Exception:
+            pass
+
         migrate_default_data_for_first_user(new_user.id)
 
         login_user(new_user, remember=True)

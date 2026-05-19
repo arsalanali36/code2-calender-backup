@@ -11,13 +11,14 @@ import json
 import threading
 
 from flask import Blueprint, request, jsonify, send_from_directory, Response
+from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
     save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT, BACKUP_CONFIG_FILE
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT, BACKUP_CONFIG_FILE, get_uploads_dir, get_trash_dir
 
 image_bp = Blueprint('image', __name__)
 
@@ -37,7 +38,11 @@ def upload_image():
         last_modified_ms = request.form.get('last_modified_ms')
         last_modified_s = float(last_modified_ms) / 1000.0 if last_modified_ms else None
         original_filename = secure_filename(request.form.get('original_filename', ''))
-        result = save_uploaded_image(file, UPLOADS_DIR, last_modified_s, original_filename)
+        uid = current_user.id if current_user.is_authenticated else None
+        user_uploads = get_uploads_dir(uid)
+        os.makedirs(user_uploads, exist_ok=True)
+        os.makedirs(get_trash_dir(uid), exist_ok=True)
+        result = save_uploaded_image(file, user_uploads, last_modified_s, original_filename)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)
@@ -67,14 +72,16 @@ def delete_image():
     filename = data.get('filename', '')
     if not filename:
         return jsonify({'error': 'No filename'}), 400
-    moved = move_to_trash(filename, UPLOADS_DIR, TRASH_DIR)
+    uid = current_user.id if current_user.is_authenticated else None
+    moved = move_to_trash(filename, get_uploads_dir(uid), get_trash_dir(uid))
     return jsonify({'success': moved})
 
 
 @image_bp.route('/api/image-times', methods=['POST'])
 def image_times():
     urls = (request.json or {}).get('urls', [])
-    return jsonify(get_image_times(urls, UPLOADS_DIR))
+    uid = current_user.id if current_user.is_authenticated else None
+    return jsonify(get_image_times(urls, get_uploads_dir(uid)))
 
 
 @image_bp.route('/api/upload-audio', methods=['POST'])

@@ -14,6 +14,18 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE          = os.getenv('DATA_FILE',   os.path.join(BASE_DIR, 'data', 'trades.json'))
 UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
 TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
+
+
+def get_uploads_dir(user_id=None) -> str:
+    """Return per-user uploads directory. user_id=None → base UPLOADS_DIR."""
+    if user_id is None:
+        return UPLOADS_DIR
+    return os.path.join(UPLOADS_DIR, f"user_{user_id}")
+
+
+def get_trash_dir(user_id=None) -> str:
+    """Return per-user trash directory."""
+    return os.path.join(get_uploads_dir(user_id), "_trash")
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
 VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
 PDF_DIR            = os.path.join(UPLOADS_DIR, 'pdfs')

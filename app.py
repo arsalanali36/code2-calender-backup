@@ -215,6 +215,100 @@ def _bootstrap_persistent_storage():
         pass
 
 
+def _migrate_user1_images():
+    """
+    One-time: move flat uploads/*.{png,jpg,...} → uploads/user_1/
+    Idempotent — no-ops if no flat images exist.
+    """
+    IMG_EXTS = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}
+    user1_dir = os.path.join(UPLOADS_DIR, 'user_1')
+    trash1    = os.path.join(user1_dir, '_trash')
+
+    flat_images = [
+        f for f in os.listdir(UPLOADS_DIR)
+        if os.path.isfile(os.path.join(UPLOADS_DIR, f))
+        and os.path.splitext(f)[1].lower() in IMG_EXTS
+    ]
+    if not flat_images:
+        return
+
+    os.makedirs(user1_dir, exist_ok=True)
+    os.makedirs(trash1, exist_ok=True)
+    moved = 0
+    for fname in flat_images:
+        src = os.path.join(UPLOADS_DIR, fname)
+        dst = os.path.join(user1_dir, fname)
+        if not os.path.exists(dst):
+            shutil.move(src, dst)
+            moved += 1
+            meta = src + '.meta'
+            if os.path.exists(meta):
+                shutil.move(meta, dst + '.meta')
+
+    # Migrate existing _trash files for user 1
+    if os.path.isdir(TRASH_DIR):
+        for fname in os.listdir(TRASH_DIR):
+            src = os.path.join(TRASH_DIR, fname)
+            dst = os.path.join(trash1, fname)
+            if os.path.isfile(src) and not os.path.exists(dst):
+                shutil.move(src, dst)
+
+    if moved:
+        print(f"[startup] Migrated {moved} images → uploads/user_1/")
+
+
+def _migrate_user1_image_urls():
+    """
+    One-time: rewrite /uploads/filename → /uploads/user_1/filename in trades_1.json.
+    Writes a marker file so it never re-runs.
+    """
+    import json as _json
+    data_dir    = os.path.join(BASE_DIR, 'data')
+    marker      = os.path.join(data_dir, '.user1_img_migrated')
+    trades_file = os.path.join(data_dir, 'trades_1.json')
+    user1_dir   = os.path.join(UPLOADS_DIR, 'user_1')
+
+    if os.path.exists(marker):
+        return
+    if not os.path.isdir(user1_dir) or not os.path.exists(trades_file):
+        open(marker, 'w').close()
+        return
+
+    def _fix(url):
+        if not isinstance(url, str):
+            return url
+        if url.startswith('/uploads/') and not url.startswith('/uploads/user_'):
+            fname = url.rsplit('/', 1)[-1]
+            if os.path.exists(os.path.join(user1_dir, fname)):
+                return f'/uploads/user_1/{fname}'
+        return url
+
+    try:
+        with open(trades_file, 'r', encoding='utf-8') as f:
+            data = _json.load(f)
+
+        for t in data.get('trades', []):
+            t['images'] = [_fix(u) for u in (t.get('images') or [])]
+            if t.get('heroImage'):   t['heroImage']  = _fix(t['heroImage'])
+            if t.get('thumbnail'):   t['thumbnail']  = _fix(t['thumbnail'])
+            if t.get('imageTags'):
+                t['imageTags'] = {_fix(k): v for k, v in t['imageTags'].items()}
+        for dd in data.get('dayData', {}).values():
+            dd['images'] = [_fix(u) for u in (dd.get('images') or [])]
+            if dd.get('closeImages'):
+                dd['closeImages'] = [_fix(u) for u in dd['closeImages']]
+            if dd.get('imageTags'):
+                dd['imageTags'] = {_fix(k): v for k, v in dd['imageTags'].items()}
+
+        with open(trades_file, 'w', encoding='utf-8') as f:
+            _json.dump(data, f, indent=2, ensure_ascii=False)
+        print("[startup] Rewrote image URLs in trades_1.json → /uploads/user_1/")
+    except Exception as e:
+        print(f"[startup] WARNING: URL rewrite failed (non-fatal): {e}")
+
+    open(marker, 'w').close()
+
+
 def _cleanup_trash():
     """Delete files from _trash older than TRASH_EXPIRY_DAYS. Runs daily in background."""
     import logging
@@ -233,6 +327,8 @@ def _cleanup_trash():
 
 
 _bootstrap_persistent_storage()
+_migrate_user1_images()
+_migrate_user1_image_urls()
 
 # ── Google Drive startup sync ─────────────────────────────────────────────────
 # On live server (Render), restore data from Drive if it's newer than the local
