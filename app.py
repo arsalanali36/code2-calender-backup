@@ -54,6 +54,7 @@ from routes.strategy_routes import strategy_bp
 from routes.log_routes import log_bp
 from routes.algo_routes import algo_bp
 from routes.ohlc_routes import ohlc_bp
+from routes.admin_routes import admin_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
@@ -123,6 +124,17 @@ def add_cors(response):
     if request.path.startswith('/static/') and request.args.get('v'):
         response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     return response
+
+@app.before_request
+def update_last_seen():
+    from flask_login import current_user
+    from datetime import datetime
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
 @app.before_request
 def require_login():
@@ -373,6 +385,7 @@ app.register_blueprint(strategy_bp)
 app.register_blueprint(log_bp)
 app.register_blueprint(algo_bp)
 app.register_blueprint(ohlc_bp)
+app.register_blueprint(admin_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────

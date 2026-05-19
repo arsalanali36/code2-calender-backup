@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Trading Journal</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 32px 24px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+        .header h1 { font-size: 22px; color: #fff; font-weight: 600; }
+        .header a {
+            font-size: 13px;
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px 24px;
+            flex: 1;
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .table-wrap {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table-title {
+            padding: 16px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            border-bottom: 1px solid #30363d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        thead th {
+            text-align: left;
+            padding: 12px 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8b949e;
+            background: #0d1117;
+            border-bottom: 1px solid #21262d;
+        }
+        tbody tr {
+            border-bottom: 1px solid #21262d;
+            transition: background 0.15s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #1c2128; }
+        tbody td { padding: 14px 20px; vertical-align: middle; }
+        .email-cell { display: flex; align-items: center; gap: 10px; }
+        .avatar {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: #238636;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: #fff;
+            flex-shrink: 0;
+        }
+        .avatar.admin-avatar { background: #1f6feb; }
+        .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 20px;
+            margin-left: 6px;
+        }
+        .badge-admin { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb55; }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .dot-online { background: #3fb950; }
+        .dot-offline { background: #484f58; }
+        .num { color: #fff; font-weight: 500; }
+        .muted { color: #8b949e; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Admin Panel</h1>
+        <a href="/">← Back to Journal</a>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="label">Total Users</div>
+            <div class="value">{{ total }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Online Now</div>
+            <div class="value">{{ users | selectattr('is_online') | list | length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total Trades</div>
+            <div class="value">{{ users | sum(attribute='trades') }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total Images</div>
+            <div class="value">{{ users | sum(attribute='images') }}</div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <div class="table-title">Users</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Joined</th>
+                    <th>Last Active</th>
+                    <th>Trades</th>
+                    <th>Images</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="email-cell">
+                            <div class="avatar {% if u.is_admin %}admin-avatar{% endif %}">
+                                {{ u.email[0].upper() }}
+                            </div>
+                            <span>{{ u.email }}</span>
+                            {% if u.is_admin %}<span class="badge badge-admin">Admin</span>{% endif %}
+                        </div>
+                    </td>
+                    <td class="muted">{{ u.created }}</td>
+                    <td>
+                        <span class="dot {% if u.is_online %}dot-online{% else %}dot-offline{% endif %}"></span>
+                        <span class="{% if u.is_online %}num{% else %}muted{% endif %}">{{ u.last_seen }}</span>
+                    </td>
+                    <td><span class="num">{{ u.trades }}</span></td>
+                    <td><span class="num">{{ u.images }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
