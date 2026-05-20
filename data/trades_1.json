@@ -79,7 +79,8 @@
     "massive Gap Down",
     "massive gap up",
     "missing",
-    "Blue Line level"
+    "Blue Line level",
+    "Note"
   ],
   "columns": [
     "trade_date",
@@ -517,7 +518,7 @@
       ],
       "closeImages": [],
       "imageTags": {
-        "/uploads/user_1/3944e489-b11c-41da-9b65-819c0efadc0c.png": [
+        "/uploads/3944e489-b11c-41da-9b65-819c0efadc0c.png": [
           "Panicyy",
           "Random",
           "Manual"
@@ -772,7 +773,7 @@
       ],
       "closeImages": [],
       "imageTags": {
-        "/uploads/user_1/ca3831d2-cb3a-4341-992a-52375af9bc60.png": [
+        "/uploads/ca3831d2-cb3a-4341-992a-52375af9bc60.png": [
           "Panicyy"
         ]
       },
@@ -947,7 +948,7 @@
         "/uploads/15f65a14-cd4a-4562-b624-c6fb4eae49a8.png": [
           "Panicyy"
         ],
-        "/uploads/user_1/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": [
+        "/uploads/703d7333-9ee8-4ef7-88a0-4bef78c4deca.png": [
           "Panicyy"
         ]
       },
@@ -997,7 +998,7 @@
       "audios": {},
       "closeImages": [],
       "imageTags": {
-        "/uploads/user_1/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
+        "/uploads/a39dd9e2-aa31-45a6-9b2a-61da4fa30e92.png": [
           "Panicyy",
           "Partial Exit"
         ]
@@ -9837,18 +9838,18 @@
       ],
       "closeImages": [
         "/uploads/cdf8b2bf-e0ae-4e34-9911-00776952d317.png",
-        "/uploads/user_1/c654edb3-2f32-4794-a090-b51ce5b63287.png",
-        "/uploads/user_1/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png"
+        "/uploads/c654edb3-2f32-4794-a090-b51ce5b63287.png",
+        "/uploads/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png"
       ],
       "imageTags": {
-        "/uploads/user_1/7fa61dec-5be6-4c19-bee5-68c15462add9.png": [
+        "/uploads/7fa61dec-5be6-4c19-bee5-68c15462add9.png": [
           "Day Open"
         ],
-        "/uploads/user_1/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png": [
+        "/uploads/8c30bf4c-ba69-4e7f-9bee-0d8bab6acaa9.png": [
           "Day Close",
           "Clean"
         ],
-        "/uploads/user_1/c654edb3-2f32-4794-a090-b51ce5b63287.png": [
+        "/uploads/c654edb3-2f32-4794-a090-b51ce5b63287.png": [
           "Day Close"
         ],
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1776359757/trading_journal/18d56951-b390-4356-bfb9-c125e6e5d9db.png": [
@@ -9859,7 +9860,7 @@
         ]
       },
       "images": [
-        "/uploads/user_1/7fa61dec-5be6-4c19-bee5-68c15462add9.png"
+        "/uploads/7fa61dec-5be6-4c19-bee5-68c15462add9.png"
       ],
       "tradeRefCards": {}
     },
@@ -11405,9 +11406,7 @@
       "imageTags": {},
       "images": []
     },
-    "2026-04-29": {
-      "images": []
-    },
+    "2026-04-29": {},
     "2026-04-30": {
       "closeGlobalImages": [],
       "closeImages": [],
@@ -11469,6 +11468,186 @@
         "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_094646_3LQWR-Mxj.png",
         "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_094650_SBCmQ9uHY.png",
         "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-08_094657_FUz7sYnXV.png"
+      ]
+    },
+    "2026-05-11": {
+      "closeGlobalImages": [],
+      "imageTags": {},
+      "images": [],
+      "tradeRefCards": {}
+    },
+    "2026-05-12": {
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_093917_sqqlNlGaRw.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_093920_gzjWqZpqs.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_094242_NdlYYTjukk.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_094756_0i1e3y2Ue9.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_094801_HATs2SwqPv.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_100341_EFtgyySYY.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_100721_MunPGin1K7.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_101442_oOedRlP_V.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_101444_X0jd6F0L8.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_101448_6e3RnshAO.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_102140_gzqx7kBKg.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_102146_q94-K5yxL.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_102151_Oj7NoSEHI.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_102203_E1aioTpXda.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_102214_BG4WQ3RYHp.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-12_102221_ia7lxyNPZ.png"
+      ]
+    },
+    "2026-05-13": {
+      "closeGlobalImages": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-05-14_08-42-03_t_JDkbz3n1.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-05-14_08-42-22_dlj5z431y.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY260519C23400_2026-05-14_09-01-18_2FtiH1D9J.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY260519P23300_2026-05-14_09-01-24_pOerJ6TIi.png"
+      ],
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_091424_0MG_WhdXCC.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_091432_vdTZWSmsCM.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_092647_4xxN78rLNX.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_093432_JG42T8iY_.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_093436_fP0gACqXm.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_093925_jaVaZBwGG.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_093927_LPZdr86n2.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_095135_-bxp4WRhFO.png"
+      ],
+      "tradeRefCards": {}
+    },
+    "2026-05-14": {
+      "closeGlobalImages": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-05-15_08-10-36_rRSFNXsqa.png"
+      ],
+      "closeImages": [],
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_093753_9e4eoN1hBv.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094318_0g7dKANp5f.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094325_nypmlsd5Rc.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094436_1vhP5QpBT.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094818_Kot__G7Ad.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_093753_9e4eoN1hBv.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_093757_XmCDY7vKdh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_093804_W8d5ip9Z-r.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094216_GWc4lx9Ti.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094318_0g7dKANp5f.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094325_nypmlsd5Rc.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094436_1vhP5QpBT.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094818_Kot__G7Ad.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_095412_s1sJA5Wuvu.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_095419_EVokNZ2mk.png"
+      ],
+      "newsImages": [],
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_093753_9e4eoN1hBv.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp51rf5qpg64",
+            "note": "<div>index&nbsp;</div><div>me key resistance pe tha, darr lag raha thaki bahut fast tod dega</div><div>Call</div>yahan red zone bana tha,<br>red resistance bhi mark kiya tha, both index aur premium me&nbsp;<div><br></div><div>Pe&nbsp;</div><div>side me bhi zone bana tha fir bhi nahi liya!!!!<br><br><br></div>",
+            "tag": "Note",
+            "x": 19.2,
+            "y": 90.7
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094318_0g7dKANp5f.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp51u0lho36h",
+            "note": "yahan ye upar zone break kiya fir us tak aa gaya, aur fast move!!",
+            "tag": "Note",
+            "x": 76.7,
+            "y": 25
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094325_nypmlsd5Rc.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp52kpe0fj4w",
+            "note": "trade 3 tak bahut confusion ho raha tha ki fib ki line kaise banaye<div>1 -ki 61 % 50% ke upar ho ki neeche!!&nbsp;</div><div>2- reverse ko on rakhe ki off&nbsp;</div><div>is me hi itna confuse!!</div><div>fir amine -<span style=\"font-size: 1rem;\">trend line usme gayab kar di</span></div><div><br></div><div><br></div>",
+            "tag": "Note",
+            "x": 36,
+            "y": 35.9
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094436_1vhP5QpBT.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp51uk1el6dk",
+            "note": "andha ho gaya tha mai, ki itni saari wick rejection 5 min pe wo tak nahi dekha&nbsp;<div><br></div><div>ki khel kar raha tha ki thoda aur upar aaye ga, fir limit ka order lagayange!!!</div>",
+            "tag": "Note",
+            "x": 75.6,
+            "y": 26.6
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_094818_Kot__G7Ad.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp51vx1pf5ht",
+            "note": "yahan pe itna hammer ka rejection tab himmat nahi ki itna low aa gaya hai !!<div><br></div><div><br></div>",
+            "tag": "Note",
+            "x": 84.4,
+            "y": 50.5
+          }
+        ]
+      },
+      "tradeRefCards": {}
+    },
+    "2026-05-15": {
+      "closeGlobalImages": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY_2026-05-18_08-07-22_cewwwm5ml.png"
+      ],
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_091208_lRRiMrJHmZ.png"
+      ],
+      "tradeRefCards": {}
+    },
+    "2026-05-18": {
+      "closeGlobalImages": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY260519C23400_2026-05-19_08-13-29_dd7AR6NdUQ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/NIFTY260519P23350_2026-05-19_08-13-36_MjnFnKZbB.png"
+      ],
+      "closeImages": [],
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_090057_Y6Iw9yb_Cs.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_090109_Uf8S9G2snh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_092827_upxivVsS4F.png"
+      ],
+      "newsImages": [],
+      "tradeRefCards": {}
+    },
+    "2026-05-19": {
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_090712_wEHEEvtWeB.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093637_2fsQWgnwcO.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093719_zDgu6ywDs.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093727_bVvUoyayM.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093738_HXHlqKzL6I.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093754_M65LbkXWja.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093813_L32qweiQE.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093842_YFzNSArwR.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093847_Jz051dlX5T.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093849_xjL_F3mUJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093934_IhSB2LZqIw.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093942_FI5iBsKZS.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093953_EOQbet_cI.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-19_093957_3BcN0znXO.png"
       ]
     }
   },
@@ -11552,6 +11731,9 @@
     ],
     "NEWS": [
       "War"
+    ],
+    "Observation": [
+      "Note"
     ],
     "Rule": [
       "RuleBased",
@@ -14467,7 +14649,7 @@
       "audios": {},
       "date": "2026-02-26",
       "imageTags": {
-        "/uploads/user_1/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [
+        "/uploads/1a10e2e5-c0ce-45ef-b3fa-2ee1c8b4e4bc.png": [
           "Panicyy"
         ]
       },
@@ -14720,10 +14902,10 @@
       "date": "2026-02-03",
       "fill_count": 2,
       "imageTags": {
-        "/uploads/user_1/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [
+        "/uploads/2ed0c11e-4431-41cb-8288-9058a3b7cd89.png": [
           "panic"
         ],
-        "/uploads/user_1/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
+        "/uploads/f7290fa5-8479-4551-ae3f-45c3c0a3ef98.png": [
           "Distracted"
         ]
       },
@@ -15211,14 +15393,14 @@
       "csvlog": {},
       "date": "2026-02-27",
       "imageTags": {
-        "/uploads/user_1/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
+        "/uploads/07436cf6-97c0-4cbc-9172-63d25702e72e.png": [
           "Panicyy",
           "panic"
         ],
-        "/uploads/user_1/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
+        "/uploads/9bc945b2-17ce-4751-865d-70a2ee2550af.png": [
           "Panicyy"
         ],
-        "/uploads/user_1/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
+        "/uploads/a2efdab9-0f40-45eb-bb9f-2d63283edb10.png": [
           "Panicyy",
           "panic"
         ]
@@ -23262,7 +23444,7 @@
         }
       },
       "imageTags": {
-        "/uploads/user_1/9b130ae4-0a9c-4d1a-8d34-a5249ad298c7.png": [
+        "/uploads/9b130ae4-0a9c-4d1a-8d34-a5249ad298c7.png": [
           "nafsPeKabu"
         ]
       },
@@ -23338,7 +23520,7 @@
         }
       },
       "imageTags": {
-        "/uploads/user_1/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": [
+        "/uploads/aedc55b5-820f-4cb5-a670-d24fc1fcf9cb.png": [
           "news+",
           "news"
         ]
@@ -23775,7 +23957,7 @@
         "/uploads/190b5618-078b-46bb-b5e5-babcdf08ca5a.png": "T2 POST",
         "/uploads/d99c2cd1-e3c2-4be3-9cb0-7a940366d514.png": "T2"
       },
-      "heroImage": "/uploads/user_1/eb751bd6-4f0f-442a-8cbf-5b551628839f.png",
+      "heroImage": "/uploads/eb751bd6-4f0f-442a-8cbf-5b551628839f.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773497368/trading_journal/15eafeb0-9bf2-4a28-ae5a-73de04cfb5bd.png",
@@ -23946,7 +24128,7 @@
       "groupNames": {
         "/uploads/4784e327-e106-4b5f-aa7e-7a7360017631.png": "PRE"
       },
-      "heroImage": "/uploads/user_1/35d38bbd-94a5-44ba-a1c6-02936f5639d4.png",
+      "heroImage": "/uploads/35d38bbd-94a5-44ba-a1c6-02936f5639d4.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773497378/trading_journal/2f978843-08c9-45f5-9849-e0685ca4bb7c.png",
@@ -24045,7 +24227,7 @@
       "Video": "",
       "audios": {},
       "date": "2026-03-06",
-      "heroImage": "/uploads/user_1/3c8ae8c0-db78-445a-a093-0cff7cf3fad5.png",
+      "heroImage": "/uploads/3c8ae8c0-db78-445a-a093-0cff7cf3fad5.png",
       "imageTags": {},
       "images": [],
       "observation": "",
@@ -24134,7 +24316,7 @@
       "Video": "",
       "audios": {},
       "date": "2026-03-06",
-      "heroImage": "/uploads/user_1/4f472354-77e7-4942-a00f-ff9a976cd1fa.png",
+      "heroImage": "/uploads/4f472354-77e7-4942-a00f-ff9a976cd1fa.png",
       "imageTags": {},
       "images": [],
       "observation": "",
@@ -24202,7 +24384,7 @@
       "groupNames": {
         "/uploads/9d07b54f-1507-40e2-8a4e-5eac34fe72d7.png": "T6"
       },
-      "heroImage": "/uploads/user_1/ad477f03-85aa-489d-8e05-6a7649af576e.png",
+      "heroImage": "/uploads/ad477f03-85aa-489d-8e05-6a7649af576e.png",
       "imageTags": {},
       "images": [],
       "observation": "",
@@ -24554,7 +24736,7 @@
         "zone": {}
       },
       "date": "2026-03-10",
-      "heroImage": "/uploads/user_1/7ace3c69-c8d4-4915-9e4e-45f029179949.png",
+      "heroImage": "/uploads/7ace3c69-c8d4-4915-9e4e-45f029179949.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381975/trading_journal/4be4d0c4-3d45-40bb-942a-ecd5eeede35b.png",
@@ -24640,7 +24822,7 @@
         "zone": {}
       },
       "date": "2026-03-10",
-      "heroImage": "/uploads/user_1/2fe6c451-4b0a-406e-84a4-0edf2ae9677e.png",
+      "heroImage": "/uploads/2fe6c451-4b0a-406e-84a4-0edf2ae9677e.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773381984/trading_journal/bea964fb-db55-4557-af82-479db955a950.png",
@@ -24725,7 +24907,7 @@
         }
       },
       "date": "2026-03-11",
-      "heroImage": "/uploads/user_1/57f4ea13-4c71-4140-a271-866b2afbb409.png",
+      "heroImage": "/uploads/57f4ea13-4c71-4140-a271-866b2afbb409.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773382018/trading_journal/2509983a-a40d-496f-872d-b1058eae06b9.png",
@@ -24782,7 +24964,7 @@
         }
       },
       "date": "2026-03-11",
-      "heroImage": "/uploads/user_1/ddbf0ee9-6994-4872-b534-f73b6dfb8cc1.png",
+      "heroImage": "/uploads/ddbf0ee9-6994-4872-b534-f73b6dfb8cc1.png",
       "imageTags": {},
       "images": [
         "https://res.cloudinary.com/duw7qd8zm/image/upload/v1773382023/trading_journal/21307c90-df8a-4cad-bb9a-a863ec120cf1.png",
@@ -25223,19 +25405,19 @@
       "date": "2026-03-13",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/49d11cc1-ab17-467d-9d1b-d7b73a4fa02b.png",
-        "/uploads/user_1/ea32881d-c58a-4580-95ed-b7e13beb6861.png",
-        "/uploads/user_1/b65c2e26-5750-44cb-9c63-03fc5ce1b052.png",
-        "/uploads/user_1/930c2bf8-ad59-4d8d-a19c-640c7fcc4f39.png",
-        "/uploads/user_1/5de61108-865e-4068-9894-afc04fc69899.png",
-        "/uploads/user_1/6409b72f-dd47-4da2-9f96-e64f67f0840a.png",
-        "/uploads/user_1/f9f6238f-e9a2-4e32-bbf3-5295a939e128.png",
-        "/uploads/user_1/e5fde177-4b43-41ad-b9f1-c359a8b1dddb.png",
-        "/uploads/user_1/fae68bfd-b0c2-4236-aedd-c2a5c896153b.png",
-        "/uploads/user_1/b1e92eac-dad6-46ed-b010-40eaed8c4b30.png",
-        "/uploads/user_1/b38c79d4-8b69-40f7-8962-c1d744926a77.png",
-        "/uploads/user_1/6381c44e-4261-4e5e-b5e0-e128244bad48.png",
-        "/uploads/user_1/debb918a-80c7-4da9-8150-b12a2d9a0181.png"
+        "/uploads/49d11cc1-ab17-467d-9d1b-d7b73a4fa02b.png",
+        "/uploads/ea32881d-c58a-4580-95ed-b7e13beb6861.png",
+        "/uploads/b65c2e26-5750-44cb-9c63-03fc5ce1b052.png",
+        "/uploads/930c2bf8-ad59-4d8d-a19c-640c7fcc4f39.png",
+        "/uploads/5de61108-865e-4068-9894-afc04fc69899.png",
+        "/uploads/6409b72f-dd47-4da2-9f96-e64f67f0840a.png",
+        "/uploads/f9f6238f-e9a2-4e32-bbf3-5295a939e128.png",
+        "/uploads/e5fde177-4b43-41ad-b9f1-c359a8b1dddb.png",
+        "/uploads/fae68bfd-b0c2-4236-aedd-c2a5c896153b.png",
+        "/uploads/b1e92eac-dad6-46ed-b010-40eaed8c4b30.png",
+        "/uploads/b38c79d4-8b69-40f7-8962-c1d744926a77.png",
+        "/uploads/6381c44e-4261-4e5e-b5e0-e128244bad48.png",
+        "/uploads/debb918a-80c7-4da9-8150-b12a2d9a0181.png"
       ],
       "note": "sooc kar baitha tha, friday hai, gadbard nahi karene, jab zone bane ga tab hi lenge , aur fir baithey reh gaye!!",
       "tags": [],
@@ -26875,20 +27057,20 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/7424c48a-06f9-4819-b96b-7fe3501e384e.png",
-        "/uploads/user_1/9aa84867-ef5e-4a38-8a35-db984eacd420.png",
-        "/uploads/user_1/f304c0bf-ee1a-49f5-bd3b-253e7c978bff.png",
-        "/uploads/user_1/c8b0b788-c6a4-4e79-ae3a-226b36c443b8.png",
-        "/uploads/user_1/a30f27c5-e62f-46bf-a4b3-6edc007a0ea6.png",
-        "/uploads/user_1/39a45347-63da-493f-a4b2-f9be651db5e4.png",
-        "/uploads/user_1/2d07cad0-60ed-4a47-9d10-1e44379f1fea.png",
-        "/uploads/user_1/18324934-7dc9-41a3-bc42-795f2d29d235.png",
-        "/uploads/user_1/12d68d63-c27d-4e18-8189-b724b0099546.png",
-        "/uploads/user_1/cb4fe8f0-d6eb-44ea-a753-90f4573dbef5.png",
-        "/uploads/user_1/78ee2456-265c-4236-936f-3758347828f7.png",
-        "/uploads/user_1/cd012a56-339e-4ea4-b803-a0f857b2a064.png",
-        "/uploads/user_1/074c029f-2bb6-4c67-903c-3edfece74e39.png",
-        "/uploads/user_1/7f30a6f3-c84b-496c-8a6c-d204d4272845.png"
+        "/uploads/7424c48a-06f9-4819-b96b-7fe3501e384e.png",
+        "/uploads/9aa84867-ef5e-4a38-8a35-db984eacd420.png",
+        "/uploads/f304c0bf-ee1a-49f5-bd3b-253e7c978bff.png",
+        "/uploads/c8b0b788-c6a4-4e79-ae3a-226b36c443b8.png",
+        "/uploads/a30f27c5-e62f-46bf-a4b3-6edc007a0ea6.png",
+        "/uploads/39a45347-63da-493f-a4b2-f9be651db5e4.png",
+        "/uploads/2d07cad0-60ed-4a47-9d10-1e44379f1fea.png",
+        "/uploads/18324934-7dc9-41a3-bc42-795f2d29d235.png",
+        "/uploads/12d68d63-c27d-4e18-8189-b724b0099546.png",
+        "/uploads/cb4fe8f0-d6eb-44ea-a753-90f4573dbef5.png",
+        "/uploads/78ee2456-265c-4236-936f-3758347828f7.png",
+        "/uploads/cd012a56-339e-4ea4-b803-a0f857b2a064.png",
+        "/uploads/074c029f-2bb6-4c67-903c-3edfece74e39.png",
+        "/uploads/7f30a6f3-c84b-496c-8a6c-d204d4272845.png"
       ],
       "observation": "",
       "subImages": {
@@ -26928,17 +27110,17 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/6bff6609-99f4-4827-8d09-e3ae9985031a.png",
-        "/uploads/user_1/13cba616-648d-4856-9eda-d96c03946e16.png",
-        "/uploads/user_1/3eb17e1e-a341-461b-9dfb-c779ae754a42.png",
-        "/uploads/user_1/dcaa07f5-e6fb-40d5-8a04-dd5048494bfe.png",
-        "/uploads/user_1/740e982a-1eab-4422-bd24-5a92fde09c8f.png",
-        "/uploads/user_1/a10d2435-d162-4657-8b8e-5f613977528d.png",
-        "/uploads/user_1/1de4c64d-abb9-4180-aae7-c5a08803177d.png",
-        "/uploads/user_1/5f8d5658-e379-48b4-82ca-7881f48bab95.png",
-        "/uploads/user_1/cb9f4c62-7a76-486b-a13f-67c36a540f5c.png",
-        "/uploads/user_1/7e719298-d845-4ab1-9a99-cf1ee5410302.png",
-        "/uploads/user_1/b6247755-9aa3-43f3-ad86-f60631633545.png"
+        "/uploads/6bff6609-99f4-4827-8d09-e3ae9985031a.png",
+        "/uploads/13cba616-648d-4856-9eda-d96c03946e16.png",
+        "/uploads/3eb17e1e-a341-461b-9dfb-c779ae754a42.png",
+        "/uploads/dcaa07f5-e6fb-40d5-8a04-dd5048494bfe.png",
+        "/uploads/740e982a-1eab-4422-bd24-5a92fde09c8f.png",
+        "/uploads/a10d2435-d162-4657-8b8e-5f613977528d.png",
+        "/uploads/1de4c64d-abb9-4180-aae7-c5a08803177d.png",
+        "/uploads/5f8d5658-e379-48b4-82ca-7881f48bab95.png",
+        "/uploads/cb9f4c62-7a76-486b-a13f-67c36a540f5c.png",
+        "/uploads/7e719298-d845-4ab1-9a99-cf1ee5410302.png",
+        "/uploads/b6247755-9aa3-43f3-ad86-f60631633545.png"
       ],
       "observation": "",
       "subImages": {
@@ -26993,25 +27175,25 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/5a8d676a-34bc-4e48-90de-ccd9e86b0165.png",
-        "/uploads/user_1/513da87c-9b73-4eed-9318-d396e996f892.png",
-        "/uploads/user_1/854f1f7e-b63b-4d61-889a-b0b8472fc623.png",
-        "/uploads/user_1/b319d53e-4ea1-4c48-87ff-be815b01cff1.png",
-        "/uploads/user_1/3d873683-0b1f-4108-88eb-213d6c7d993b.png",
-        "/uploads/user_1/7b42a626-a0e6-4b29-aedb-c61164f6f972.png",
-        "/uploads/user_1/35f23bc7-15da-4c35-bccb-6634cee3b246.png",
-        "/uploads/user_1/e9f4a237-a9c7-4e08-9045-9bf1adff2585.png",
-        "/uploads/user_1/df2058d4-f138-484f-b3fd-3b683325afb9.png",
-        "/uploads/user_1/03f977cc-6415-423f-a4bb-1aa4efc6a648.png",
-        "/uploads/user_1/5d0a55f1-f243-46ae-aaae-6ad9d41e27a8.png",
-        "/uploads/user_1/fa1deb78-df37-4d0e-854a-5d775af3ef8d.png",
-        "/uploads/user_1/d79bc56d-34a5-4275-969a-ddc2107cf1e2.png",
-        "/uploads/user_1/19c3bb92-fd20-4ee4-85b5-74aa61c7a6aa.png",
-        "/uploads/user_1/ea7b596b-39bf-4e2c-b9e4-d2ee2e7d4811.png",
-        "/uploads/user_1/faf17c77-61e1-42f8-9a96-723e99b1176c.png",
-        "/uploads/user_1/ef93cf01-02a7-4e85-a0e4-2e7ecab04715.png",
-        "/uploads/user_1/82c6f69f-c6a6-4e9f-b53d-64b8c89e337e.png",
-        "/uploads/user_1/f386c5b1-605f-43bd-ac45-2532c0b438ef.png"
+        "/uploads/5a8d676a-34bc-4e48-90de-ccd9e86b0165.png",
+        "/uploads/513da87c-9b73-4eed-9318-d396e996f892.png",
+        "/uploads/854f1f7e-b63b-4d61-889a-b0b8472fc623.png",
+        "/uploads/b319d53e-4ea1-4c48-87ff-be815b01cff1.png",
+        "/uploads/3d873683-0b1f-4108-88eb-213d6c7d993b.png",
+        "/uploads/7b42a626-a0e6-4b29-aedb-c61164f6f972.png",
+        "/uploads/35f23bc7-15da-4c35-bccb-6634cee3b246.png",
+        "/uploads/e9f4a237-a9c7-4e08-9045-9bf1adff2585.png",
+        "/uploads/df2058d4-f138-484f-b3fd-3b683325afb9.png",
+        "/uploads/03f977cc-6415-423f-a4bb-1aa4efc6a648.png",
+        "/uploads/5d0a55f1-f243-46ae-aaae-6ad9d41e27a8.png",
+        "/uploads/fa1deb78-df37-4d0e-854a-5d775af3ef8d.png",
+        "/uploads/d79bc56d-34a5-4275-969a-ddc2107cf1e2.png",
+        "/uploads/19c3bb92-fd20-4ee4-85b5-74aa61c7a6aa.png",
+        "/uploads/ea7b596b-39bf-4e2c-b9e4-d2ee2e7d4811.png",
+        "/uploads/faf17c77-61e1-42f8-9a96-723e99b1176c.png",
+        "/uploads/ef93cf01-02a7-4e85-a0e4-2e7ecab04715.png",
+        "/uploads/82c6f69f-c6a6-4e9f-b53d-64b8c89e337e.png",
+        "/uploads/f386c5b1-605f-43bd-ac45-2532c0b438ef.png"
       ],
       "observation": "",
       "tags": [],
@@ -27043,13 +27225,13 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/0e2cab94-24e2-4371-95e6-94be1fec1e70.png",
-        "/uploads/user_1/f8e79ecc-a952-4905-8e21-d802e4c76c83.png",
-        "/uploads/user_1/f947b9ae-6af8-4d12-bdef-22abddfc1422.png",
-        "/uploads/user_1/1d5d0483-eeb5-4404-bbb6-9cbb352b97e5.png",
-        "/uploads/user_1/9b597e31-a615-407b-a4cc-cf2ec13b39a6.png",
-        "/uploads/user_1/c0bde264-c4da-499d-badc-dc482164bff9.png",
-        "/uploads/user_1/24c1e0c9-4d56-4cd9-9928-f2b3fd9346b1.png"
+        "/uploads/0e2cab94-24e2-4371-95e6-94be1fec1e70.png",
+        "/uploads/f8e79ecc-a952-4905-8e21-d802e4c76c83.png",
+        "/uploads/f947b9ae-6af8-4d12-bdef-22abddfc1422.png",
+        "/uploads/1d5d0483-eeb5-4404-bbb6-9cbb352b97e5.png",
+        "/uploads/9b597e31-a615-407b-a4cc-cf2ec13b39a6.png",
+        "/uploads/c0bde264-c4da-499d-badc-dc482164bff9.png",
+        "/uploads/24c1e0c9-4d56-4cd9-9928-f2b3fd9346b1.png"
       ],
       "observation": "",
       "tags": [],
@@ -27081,11 +27263,11 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/1e40867f-f1ae-4776-af97-8d9c51caaf27.png",
-        "/uploads/user_1/2a76eaae-41ed-416e-997a-8fa26a3a4e73.png",
-        "/uploads/user_1/7e9e08c0-458e-4667-a6c9-63340696a943.png",
-        "/uploads/user_1/165a030c-405d-4b09-9999-ac63d2c8e614.png",
-        "/uploads/user_1/847aafdd-1d3c-4e9c-bece-17226ce7a353.png"
+        "/uploads/1e40867f-f1ae-4776-af97-8d9c51caaf27.png",
+        "/uploads/2a76eaae-41ed-416e-997a-8fa26a3a4e73.png",
+        "/uploads/7e9e08c0-458e-4667-a6c9-63340696a943.png",
+        "/uploads/165a030c-405d-4b09-9999-ac63d2c8e614.png",
+        "/uploads/847aafdd-1d3c-4e9c-bece-17226ce7a353.png"
       ],
       "observation": "",
       "tags": [],
@@ -27117,17 +27299,17 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/49b377c0-ce90-419e-9bad-161619ddc566.png",
-        "/uploads/user_1/11affae9-ae07-400a-9bd1-0effce047fd9.png",
-        "/uploads/user_1/129603c0-e083-4a2d-954d-fd57edbd60f4.png",
-        "/uploads/user_1/9756e970-4a90-4383-8c9f-ade0ef794cd5.png",
-        "/uploads/user_1/eea871ff-e7cf-457f-9545-b62e7d6c4664.png",
-        "/uploads/user_1/06877793-23f0-4292-af2b-39ff4ebeb6b9.png",
-        "/uploads/user_1/63fc6ae2-73e3-4124-be30-c42f50befb33.png",
-        "/uploads/user_1/4f9075f0-ef40-4555-a401-034e68c41a44.png",
-        "/uploads/user_1/801a9180-ee86-49ff-bf70-2d127006d892.png",
-        "/uploads/user_1/56774885-cb4c-43d3-a436-6274757e92c5.png",
-        "/uploads/user_1/2e15c03b-dfc8-4b7a-baca-cbf76df83543.png"
+        "/uploads/49b377c0-ce90-419e-9bad-161619ddc566.png",
+        "/uploads/11affae9-ae07-400a-9bd1-0effce047fd9.png",
+        "/uploads/129603c0-e083-4a2d-954d-fd57edbd60f4.png",
+        "/uploads/9756e970-4a90-4383-8c9f-ade0ef794cd5.png",
+        "/uploads/eea871ff-e7cf-457f-9545-b62e7d6c4664.png",
+        "/uploads/06877793-23f0-4292-af2b-39ff4ebeb6b9.png",
+        "/uploads/63fc6ae2-73e3-4124-be30-c42f50befb33.png",
+        "/uploads/4f9075f0-ef40-4555-a401-034e68c41a44.png",
+        "/uploads/801a9180-ee86-49ff-bf70-2d127006d892.png",
+        "/uploads/56774885-cb4c-43d3-a436-6274757e92c5.png",
+        "/uploads/2e15c03b-dfc8-4b7a-baca-cbf76df83543.png"
       ],
       "observation": "",
       "tags": [],
@@ -27159,18 +27341,18 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/6d57c816-7408-41fd-abca-8b7a7ac48bec.png",
-        "/uploads/user_1/0409677e-0d69-4f2f-9ab3-d67aa6bc11a5.png",
-        "/uploads/user_1/aa062ebe-30dc-4359-8563-e519d92f76d0.png",
-        "/uploads/user_1/c48c6f79-df54-4350-bc2f-bf339bda892e.png",
-        "/uploads/user_1/c1c8e80f-dc62-4c5e-a6f1-0edb5d001b3b.png",
-        "/uploads/user_1/d80e23b2-11d4-47de-9aee-7069124f93b4.png",
-        "/uploads/user_1/f2944e69-a7a4-43ba-91df-4bb8b3541acb.png",
-        "/uploads/user_1/261e802c-ac58-4113-9e98-b08f85cd7365.png",
-        "/uploads/user_1/b27dac49-526f-456c-8b13-d0ebd6f2df8c.png",
-        "/uploads/user_1/c48aa3c3-856c-4abd-8b17-b4b16796d41a.png",
-        "/uploads/user_1/192f13a3-023a-4b31-86e8-647149781420.png",
-        "/uploads/user_1/035b3a3f-894b-49f8-ac3c-099f9f86e8f3.png"
+        "/uploads/6d57c816-7408-41fd-abca-8b7a7ac48bec.png",
+        "/uploads/0409677e-0d69-4f2f-9ab3-d67aa6bc11a5.png",
+        "/uploads/aa062ebe-30dc-4359-8563-e519d92f76d0.png",
+        "/uploads/c48c6f79-df54-4350-bc2f-bf339bda892e.png",
+        "/uploads/c1c8e80f-dc62-4c5e-a6f1-0edb5d001b3b.png",
+        "/uploads/d80e23b2-11d4-47de-9aee-7069124f93b4.png",
+        "/uploads/f2944e69-a7a4-43ba-91df-4bb8b3541acb.png",
+        "/uploads/261e802c-ac58-4113-9e98-b08f85cd7365.png",
+        "/uploads/b27dac49-526f-456c-8b13-d0ebd6f2df8c.png",
+        "/uploads/c48aa3c3-856c-4abd-8b17-b4b16796d41a.png",
+        "/uploads/192f13a3-023a-4b31-86e8-647149781420.png",
+        "/uploads/035b3a3f-894b-49f8-ac3c-099f9f86e8f3.png"
       ],
       "observation": "",
       "tags": [],
@@ -27202,19 +27384,19 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/13c6b0ea-817d-4948-b798-73297bb5223f.png",
-        "/uploads/user_1/13762fe8-68f8-4318-b5ba-3a05a07a291d.png",
-        "/uploads/user_1/61a31464-1f26-40da-b7b4-829a6a453e61.png",
-        "/uploads/user_1/8025da2f-776d-4831-9205-d3fd6a2de59a.png",
-        "/uploads/user_1/77288264-1650-4a26-8d3f-235250af23f9.png",
-        "/uploads/user_1/a02849d2-c5b7-4989-a286-d2ac8c7be504.png",
-        "/uploads/user_1/e5d58903-f25b-4c0b-bc5a-8cddf91e3187.png",
-        "/uploads/user_1/4b91b40d-a2d2-4992-b2a6-79b7909af237.png",
-        "/uploads/user_1/b82c259d-4637-4982-a9bd-e63164c283f0.png",
-        "/uploads/user_1/545a4a91-8080-48a8-ae39-21c3e1434fff.png",
-        "/uploads/user_1/58762256-b688-4963-9f13-4959ab4bf655.png",
-        "/uploads/user_1/d1564498-a102-43f8-a664-f197f91c1722.png",
-        "/uploads/user_1/0758aa03-364c-45f8-b359-0e3b3e253e0e.png"
+        "/uploads/13c6b0ea-817d-4948-b798-73297bb5223f.png",
+        "/uploads/13762fe8-68f8-4318-b5ba-3a05a07a291d.png",
+        "/uploads/61a31464-1f26-40da-b7b4-829a6a453e61.png",
+        "/uploads/8025da2f-776d-4831-9205-d3fd6a2de59a.png",
+        "/uploads/77288264-1650-4a26-8d3f-235250af23f9.png",
+        "/uploads/a02849d2-c5b7-4989-a286-d2ac8c7be504.png",
+        "/uploads/e5d58903-f25b-4c0b-bc5a-8cddf91e3187.png",
+        "/uploads/4b91b40d-a2d2-4992-b2a6-79b7909af237.png",
+        "/uploads/b82c259d-4637-4982-a9bd-e63164c283f0.png",
+        "/uploads/545a4a91-8080-48a8-ae39-21c3e1434fff.png",
+        "/uploads/58762256-b688-4963-9f13-4959ab4bf655.png",
+        "/uploads/d1564498-a102-43f8-a664-f197f91c1722.png",
+        "/uploads/0758aa03-364c-45f8-b359-0e3b3e253e0e.png"
       ],
       "observation": "",
       "tags": [],
@@ -27246,16 +27428,16 @@
       "date": "2026-03-25",
       "imageTags": {},
       "images": [
-        "/uploads/user_1/2be725a6-a6d6-45ad-9a47-60c878e5144e.png",
-        "/uploads/user_1/fc37ccac-83c0-461a-8d2e-df32beb1ecc2.png",
-        "/uploads/user_1/4dbb467d-e5c0-4f24-8d58-eb1fd81480e6.png",
-        "/uploads/user_1/1339e119-f6a0-4f8f-9676-77148954f7ea.png",
-        "/uploads/user_1/fb7caa72-4ba5-4cb1-b017-a446e850a6c4.png",
-        "/uploads/user_1/c0f0d032-3596-40bd-ad15-a009df1adaae.png",
-        "/uploads/user_1/ba42f94f-74b1-457c-8621-81cda1a5be08.png",
-        "/uploads/user_1/0e3d6c55-dc6b-4278-b3fd-2e2ca0758b75.png",
-        "/uploads/user_1/eed6d7fb-aef8-4a98-b672-b0337de1d187.png",
-        "/uploads/user_1/88d56d96-1167-4d49-bf8d-c0e85cde9112.png"
+        "/uploads/2be725a6-a6d6-45ad-9a47-60c878e5144e.png",
+        "/uploads/fc37ccac-83c0-461a-8d2e-df32beb1ecc2.png",
+        "/uploads/4dbb467d-e5c0-4f24-8d58-eb1fd81480e6.png",
+        "/uploads/1339e119-f6a0-4f8f-9676-77148954f7ea.png",
+        "/uploads/fb7caa72-4ba5-4cb1-b017-a446e850a6c4.png",
+        "/uploads/c0f0d032-3596-40bd-ad15-a009df1adaae.png",
+        "/uploads/ba42f94f-74b1-457c-8621-81cda1a5be08.png",
+        "/uploads/0e3d6c55-dc6b-4278-b3fd-2e2ca0758b75.png",
+        "/uploads/eed6d7fb-aef8-4a98-b672-b0337de1d187.png",
+        "/uploads/88d56d96-1167-4d49-bf8d-c0e85cde9112.png"
       ],
       "observation": "",
       "tags": [],
@@ -31964,37 +32146,869 @@
       "observation": "",
       "tags": [],
       "trade_date": "2026-05-08"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 104.25,
+      "Buy Time": "09:40:06",
+      "Day P&L": 4160,
+      "Gross P/L": 4160,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651223950CE",
+      "Net P/L": 4056.53,
+      "Note": "",
+      "Other Charges": 63.47,
+      "Pt": 16,
+      "Qty": 260,
+      "Rs": 4160,
+      "Sell Price (Avg)": 120.25,
+      "Sell Time": "09:34:09",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 103.47,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-11",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_091127_rdfS0GMDXL.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_093434_w7yzynL3D.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_093446_DMl5RVrbF.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_093450_snHRk5i9R.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_094011_XMu66VVuV.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_094014_0jLaGB0iS5.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_094035_hgqn8GqdJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-11_094043_xNnrwRQD7.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-11"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 71.45,
+      "Buy Time": "10:21:29",
+      "Day P&L": 5980,
+      "Gross P/L": 5980,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651223700PE",
+      "Net P/L": 5889.81,
+      "Note": "",
+      "Other Charges": 50.19,
+      "Pt": 23,
+      "Qty": 260,
+      "Rs": 5980,
+      "Sell Price (Avg)": 94.45,
+      "Sell Time": "10:07:15",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 90.19,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-12",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-12"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 215.9125,
+      "Buy Time": "10:04:07",
+      "Day P&L": -1680.25,
+      "Gross P/L": -1680.25,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923350PE",
+      "Net P/L": -1829.44,
+      "Note": "",
+      "Other Charges": 109.19,
+      "Pt": -6.4625,
+      "Qty": 260,
+      "Rs": -1680.25,
+      "Sell Price (Avg)": 209.45,
+      "Sell Time": "10:01:47",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 149.19,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-13",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_100151_FHzhTA3Uh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_100158_VuTVmgbBKX.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_100457_u468975sz.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-13"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 325.3,
+      "Buy Time": "10:45:19",
+      "Day P&L": -1238.25,
+      "Gross P/L": 442,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923350CE",
+      "Net P/L": 236.94,
+      "Note": "",
+      "Other Charges": 165.06,
+      "Pt": 1.7,
+      "Qty": 260,
+      "Rs": 442,
+      "Sell Price (Avg)": 327,
+      "Sell Time": "10:37:20",
+      "Sequence": "t2",
+      "Tags": [],
+      "Total Fees": 205.06,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-13",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_103732_nYhYZYUL0p.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_103744_PLbaAOkjMK.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_104023_YHRsEjdV9.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_104535_MNq1ZmX02.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_104539_9eLH-DJCO.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_104541_fVZfxuOFd.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_104543_7aULIPliPH.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-13"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 252.25,
+      "Buy Time": "10:58:49",
+      "Day P&L": 2934.75,
+      "Gross P/L": 4173,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923400CE",
+      "Net P/L": 4058.93,
+      "Note": "",
+      "Other Charges": 74.07,
+      "Pt": 32.1,
+      "Qty": 130,
+      "Rs": 4173,
+      "Sell Price (Avg)": 284.35,
+      "Sell Time": "10:51:12",
+      "Sequence": "t3",
+      "Tags": [],
+      "Total Fees": 114.07,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-13",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105118_MQJIlHxhR9.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105131_NS9QkHbAC.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105157_bTCStki5K.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105202_-ysR5S7Zc.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105719_fSih7GDPH5.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105722_Bz9wZOpLd.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105729_7rjBdojBW.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105851_dDvZnZBQx.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105854_pNNdiOtsJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_105858_x7b_NNBsu.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-13_110014_DokoTDpm_a.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-13"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 198.8,
+      "Buy Time": "10:09:46",
+      "Day P&L": -988,
+      "Gross P/L": -988,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923500CE",
+      "Net P/L": -1129.89,
+      "Note": "",
+      "Other Charges": 101.89,
+      "Pt": -3.8,
+      "Qty": 260,
+      "Rs": -988,
+      "Sell Price (Avg)": 195,
+      "Sell Time": "10:09:27",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 141.89,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-14",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100931_feEhlCR-lX.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100906_WtxUr4G5z.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100931_feEhlCR-lX.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100940_wOW7xBUuJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_101139_4eHtU8xKm.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100931_feEhlCR-lX.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp528yqv38a4",
+            "note": "ye 2 in 1 trade hai, pehle galti kar di, ki call short pe laga diya, fir ye wick realise hui to turant position change ,&nbsp;<div><br></div><div>par utne me nuksaan to hua hi, -4 point -1800 rs, fir jaldi se sahi trade liya usme 3 point mile + 700</div>",
+            "tag": "Note",
+            "x": 63.5,
+            "y": 46.8
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-14"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 192.8,
+      "Buy Time": "10:21:01",
+      "Day P&L": -143,
+      "Gross P/L": 845,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923500PE",
+      "Net P/L": 703.41,
+      "Note": "",
+      "Other Charges": 101.59,
+      "Pt": 3.25,
+      "Qty": 260,
+      "Rs": 845,
+      "Sell Price (Avg)": 196.05,
+      "Sell Time": "10:09:52",
+      "Sequence": "t2",
+      "Tags": [],
+      "Total Fees": 141.59,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-14",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR1_KrbFjbP13.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR3_cnwRkL5Lf.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR3_cnwRkL5Lf.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR_49P3HfUvSm.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR1_KrbFjbP13.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR2_k0z_Akf_L.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR1_KrbFjbP13.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp52gm2m9hpl",
+            "note": "4 hazar tak gaya, ntezaar kiya, par fir bahut fast reversal me palat gaya!!",
+            "tag": "Note",
+            "x": 58.3,
+            "y": 44.9
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/May_14_THUR3_cnwRkL5Lf.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp52imn1pmbl",
+            "note": "23% se rejection<div>ce me multipel zone&nbsp;</div><div>index me bhi 23% se rejeciton</div>",
+            "tag": "Note",
+            "x": 75.9,
+            "y": 37.4
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-14"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 207.4,
+      "Buy Time": "10:33:36",
+      "Day P&L": -2938,
+      "Gross P/L": -2795,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923500CE",
+      "Net P/L": -2938.49,
+      "Note": "",
+      "Other Charges": 103.49,
+      "Pt": -10.75,
+      "Qty": 260,
+      "Rs": -2795,
+      "Sell Price (Avg)": 196.65,
+      "Sell Time": "10:21:15",
+      "Sequence": "t3",
+      "Tags": [],
+      "Total Fees": 143.49,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-14",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100931_feEhlCR-lX.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_102103_a-4Nzpehc.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_102103_a-4Nzpehc.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_102107_TRqkU6PXRD.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_102139_h3mGeUtpZ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_103336_rHG6BLILJ.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_100931_feEhlCR-lX.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp51xnrh0cxk",
+            "note": "T1&nbsp;<div>put side wahi major rejection ho raha&nbsp;</div>",
+            "tag": "Note",
+            "x": 84.7,
+            "y": 44.3
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_102103_a-4Nzpehc.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp525p0ojaf8",
+            "note": "bhaut hi ghatiya trade ki bhagte hue liya tha<div><br></div><div>pehle ke 2 limit ke chakkar me miss&nbsp; to isme aise hi le liya&nbsp;</div><div><br></div><div>fir dhoka de diya ki 78% se palat gaya!!</div>",
+            "tag": "Note",
+            "x": 51.5,
+            "y": 44.2
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-14"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 153.25,
+      "Buy Time": "10:48:17",
+      "Day P&L": 1313,
+      "Gross P/L": 4251,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923550CE",
+      "Net P/L": 4160.75,
+      "Note": "",
+      "Other Charges": 50.25,
+      "Pt": 32.7,
+      "Qty": 130,
+      "Rs": 4251,
+      "Sell Price (Avg)": 185.95,
+      "Sell Time": "10:38:10",
+      "Sequence": "t4",
+      "Tags": [],
+      "Total Fees": 90.25,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-14",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_103726_d0tBOTcPq.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104621_quB_BpCjY.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_103726_d0tBOTcPq.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_103745_99HDPbfjU.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104617_DrHhPwNC0.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104621_quB_BpCjY.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104625_-C0MhS8hI.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104723_9NZ71Fjdnh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104733_uFu2WbAZm.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104853_U-5YLMzB25.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104925_uK1Nh5DChM.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_103726_d0tBOTcPq.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp522ssttqv1",
+            "note": "bhaut darte hue daal diya tha, 2 qty ke saath<div><br><div>ki sl chota hai, aur red reversal ke paas hai, though index me<b> entry t</b>ha par usko over ride kiya ht&nbsp;</div></div>",
+            "tag": "Note",
+            "x": 48.6,
+            "y": 43.9
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-14_104621_quB_BpCjY.png": [
+          {
+            "color": "#e67e22",
+            "id": "mp52463pyp52",
+            "tag": "Note",
+            "x": 81.1,
+            "y": 38.1
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-14"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 172.05,
+      "Buy Time": "09:34:51",
+      "Day P&L": 286,
+      "Gross P/L": 286,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923750PE",
+      "Net P/L": 155.23,
+      "Note": "",
+      "Other Charges": 90.77,
+      "Pt": 1.1,
+      "Qty": 260,
+      "Rs": 286,
+      "Sell Price (Avg)": 173.15,
+      "Sell Time": "09:26:08",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 130.77,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-15",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_092646_nJltqfgyOz.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_092652_N0yYYCeao.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_092708_Bj9C3nPY7.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_092727_c3upmAcvwZ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_092819_piN9P59V6w.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_092824_p0WGXIPDDx.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_093208_zHp_KY0i1.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_093216_Qd-pm2y9Is.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-15"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 185.9,
+      "Buy Time": "09:39:30",
+      "Day P&L": -1924,
+      "Gross P/L": -2210,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923750CE",
+      "Net P/L": -2343.93,
+      "Note": "",
+      "Other Charges": 93.93,
+      "Pt": -8.5,
+      "Qty": 260,
+      "Rs": -2210,
+      "Sell Price (Avg)": 177.4,
+      "Sell Time": "09:35:20",
+      "Sequence": "t2",
+      "Tags": [],
+      "Total Fees": 133.93,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-15",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_093606_wEEcz8p3xf.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_093710_7qStFwfyQW.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-15"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 134.7,
+      "Buy Time": "09:55:04",
+      "Day P&L": 4433,
+      "Gross P/L": 6357,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923750PE",
+      "Net P/L": 6235.7,
+      "Note": "",
+      "Other Charges": 81.3,
+      "Pt": 24.45,
+      "Qty": 260,
+      "Rs": 6357,
+      "Sell Price (Avg)": 159.15,
+      "Sell Time": "09:39:49",
+      "Sequence": "t3",
+      "Tags": [],
+      "Total Fees": 121.3,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-15",
+      "imageTags": {},
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_093958_2NSg062d6.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_094044_23c0a32R6.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_094209_MPCpWzvGO.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_094217_oghuaA5cw.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_103622_FU9yJdXylh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_103630_YXjCwATYP.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-15_103635_X1bc18pDf.png"
+      ],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-15"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 206,
+      "Buy Time": "09:38:04",
+      "Day P&L": -2522,
+      "Gross P/L": -2522,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923500PE",
+      "Net P/L": -2665.2,
+      "Note": "",
+      "Other Charges": 103.2,
+      "Pt": -9.7,
+      "Qty": 260,
+      "Rs": -2522,
+      "Sell Price (Avg)": 196.3,
+      "Sell Time": "09:35:49",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 143.2,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-18",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_092935_i1lwJX_--.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_094403_390Xq2cAPF.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_092906_c4zeCuHlpH.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_092935_i1lwJX_--.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_094403_390Xq2cAPF.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_092935_i1lwJX_--.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawlnyn735i",
+            "note": "yahan pe wahi zone bana le liya ki 78% bhi hai, major green bhi hai, sahi hai!!<div><br></div><div>zone break out ka intezaaer nahi kiya</div>",
+            "tag": "Note",
+            "x": 53.2,
+            "y": 48.2
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_094403_390Xq2cAPF.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawmnreeb1j",
+            "note": "<div>ishi cheez pe sabse zyada kaam karna hai</div><div><br></div>yahi obsere kar raha tha, fib low ko tod kar aur major red fir usko toda kar red!!!<div><br></div><div>ye fial to mai s3 ka intezaar kar raha tha</div>",
+            "tag": "Note",
+            "x": 54.6,
+            "y": 35.5
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-18"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 117.25,
+      "Buy Time": "10:30:52",
+      "Day P&L": 728,
+      "Gross P/L": 3250,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923350PE",
+      "Net P/L": 3141.53,
+      "Note": "",
+      "Other Charges": 68.47,
+      "Pt": 12.5,
+      "Qty": 260,
+      "Rs": 3250,
+      "Sell Price (Avg)": 129.75,
+      "Sell Time": "10:00:26",
+      "Sequence": "t2",
+      "Tags": [],
+      "Total Fees": 108.47,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-18",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095336_MMx5LIIz6S.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100810_sFuboWwPZ.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_101108_2q1GO2PRD_.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095244_dnWHW6uzf.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095336_MMx5LIIz6S.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095340_nH2tdhof9.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095456_E1l1xmKjZO.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095500_oHOyi8RVt.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100114_TdxLGUTHUJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100752_ouxJezLGRv.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100755_1qeud5Z7z.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100810_sFuboWwPZ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100903_7MzDJNDeur.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_101108_2q1GO2PRD_.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_095336_MMx5LIIz6S.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawnzdsx42u",
+            "note": "chota sl 14 point par isko aur kam karna tha",
+            "tag": "Note",
+            "x": 70.6,
+            "y": 32.1
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_100810_sFuboWwPZ.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawp9tg0lyq",
+            "note": "ye candle yahan kuch nahi lagti,par jab jhelna padta hai, tab samajh aata hai!!",
+            "tag": "Note",
+            "x": 67.3,
+            "y": 32.1
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_101108_2q1GO2PRD_.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawpz7aok7b",
+            "note": "expected ki tod kar nikle ga, par fir agar atka to yahi se, <br>1 - 78% 1hr micro swing&nbsp;<div>2 - 68%</div><div>3 - LL bhi hai&nbsp;&nbsp;</div>",
+            "tag": "Note",
+            "x": 56.8,
+            "y": 40.4
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-18"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 115.6,
+      "Buy Time": "10:34:06",
+      "Day P&L": -1586,
+      "Gross P/L": -2314,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923400CE",
+      "Net P/L": -2413.8,
+      "Note": "",
+      "Other Charges": 59.8,
+      "Pt": -8.9,
+      "Qty": 260,
+      "Rs": -2314,
+      "Sell Price (Avg)": 106.7,
+      "Sell Time": "10:31:03",
+      "Sequence": "t3",
+      "Tags": [],
+      "Total Fees": 99.8,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-18",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102330_QBnroLQ1W.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102644_8cUXwzZagT.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102330_QBnroLQ1W.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102526_6M_J_6fvTh.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102529_Dow6OUYpf.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102644_8cUXwzZagT.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102330_QBnroLQ1W.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawr0h96n14",
+            "note": "ye galat trade kud kar liya tha!!",
+            "tag": "Note",
+            "x": 63.9,
+            "y": 38.8
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102644_8cUXwzZagT.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawrpiqblse",
+            "note": "bahut tagda fasa liya , turant cut aur turant dusre me !!!!",
+            "tag": "Note",
+            "x": 47,
+            "y": 39.7
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-18"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 80.8,
+      "Buy Time": "11:00:26",
+      "Day P&L": 5798,
+      "Gross P/L": 7384,
+      "Image Tags": "Note",
+      "Instrument": "NIFTY2651923350PE",
+      "Net P/L": 7287.3,
+      "Note": "",
+      "Other Charges": 56.7,
+      "Pt": 28.4,
+      "Qty": 260,
+      "Rs": 7384,
+      "Sell Price (Avg)": 109.2,
+      "Sell Time": "10:34:14",
+      "Sequence": "t4",
+      "Tags": [],
+      "Total Fees": 96.7,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-18",
+      "imageTags": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102701_zoQHzg8BeU.png": [
+          "Note"
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104111_chwcDi-Kv.png": [
+          "Note"
+        ]
+      },
+      "images": [
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102701_zoQHzg8BeU.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102706_xf5-gJ056.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102931_jdgkfrQyXd.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103133_jEBZSdeChT.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103136_mR9BFe-I9.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103140_FQpe0s8bJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103246_SltVKjA0Ow.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103257_qTiaH3ScJ.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103754_B0Kp520_M.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_103757_ja5lvD8mSD.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104111_chwcDi-Kv.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104503_WyRkh61RY.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104505_H56fNUkNl.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104624_-1u8Aca1c.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104803_SWM4Q2asu.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104808_YA3UIOVyG.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104825_L9xnaTocI.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_105244_2oIEuvbnY.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_105340_odddJdZvuE.png",
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_105536_UYl8SXDBf.png"
+      ],
+      "observation": "",
+      "tagPins": {
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_102701_zoQHzg8BeU.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawsf77d9l4",
+            "note": "kud kar entry!!&nbsp;<div>same strike price pe&nbsp;</div>",
+            "tag": "Note",
+            "x": 56.3,
+            "y": 32.8
+          }
+        ],
+        "https://ik.imagekit.io/j3yawq0sst/trading_journal/Screenshot_2026-05-18_104111_chwcDi-Kv.png": [
+          {
+            "color": "#e67e22",
+            "id": "mpawt5hhxd75",
+            "note": "3000 ka profit dekh kar wapis negative pe aa gaye!!!&nbsp;<div>halat kharab ho jaati par fir mai 50%+61% ko bahut solid se tod diya tha wo dekh raha tha<br><div><br></div><div>yahan aaj 8000 tak dekh raha tha!!!</div></div>",
+            "tag": "Note",
+            "x": 38.2,
+            "y": 42.2
+          }
+        ]
+      },
+      "tags": [],
+      "trade_date": "2026-05-18"
+    },
+    {
+      "Broker": "zerodha",
+      "Brokerage": 40,
+      "Buy Price (Avg)": 80.65,
+      "Buy Time": "09:40:56",
+      "Day P&L": 8034,
+      "Gross P/L": 8034,
+      "Image Tags": "",
+      "Instrument": "NIFTY2651923750PE",
+      "Net P/L": 7936.45,
+      "Note": "",
+      "Other Charges": 57.55,
+      "Pt": 30.9,
+      "Qty": 260,
+      "Rs": 8034,
+      "Sell Price (Avg)": 111.55,
+      "Sell Time": "09:38:50",
+      "Sequence": "t1",
+      "Tags": [],
+      "Total Fees": 97.55,
+      "Total Trades": "",
+      "TradeType": "sell",
+      "Video": "",
+      "date": "2026-05-19",
+      "imageTags": {},
+      "images": [],
+      "observation": "",
+      "tags": [],
+      "trade_date": "2026-05-19"
     }
   ],
-  "uiSettings": {
-    "vdStats": {
-      "avg_buy_price": true,
-      "cumulative": true,
-      "daily": true,
-      "daily_fc": false,
-      "daily_qty": false,
-      "distribution": false,
-      "long_short": false,
-      "mtm_thumbs": true,
-      "pat_sum": false,
-      "points_per_trade": true,
-      "points_sum": false,
-      "profitability": false
-    },
-    "vdStatsOrder": [
-      "cumulative",
-      "mtm_thumbs",
-      "daily",
-      "points_per_trade",
-      "avg_buy_price",
-      "distribution",
-      "profitability",
-      "long_short",
-      "daily_qty",
-      "pat_sum",
-      "points_sum",
-      "daily_fc"
-    ]
-  },
+  "uiSettings": {},
   "userColumns": []
 }

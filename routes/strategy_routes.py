@@ -107,6 +107,8 @@ def test_dhan_token():
             body = _json.loads(resp.read().decode())
             from services.dhan_service_core import save_config
             save_config(cid, token)
+            from services.ohlc_scheduler import mark_token_refreshed
+            mark_token_refreshed()
             return jsonify({'ok': True, 'balance': body.get('availabelBalance', body.get('availableBalance'))})
     except urllib.error.HTTPError as e:
         err_body = e.read().decode(errors='replace')

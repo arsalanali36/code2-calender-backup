@@ -21,6 +21,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import services.ohlc_service as ohlc
+from services.dhan_service_core import get_config as _get_dhan_config
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +40,18 @@ _state_lock   = threading.Lock()
 _trigger      = threading.Event()
 _started      = False
 _started_lock = threading.Lock()
+
+# Token-expired flag: set True when Dhan returns 401, cleared when user saves new token
+_token_expired = False
+_token_lock    = threading.Lock()
+
+
+def mark_token_refreshed():
+    """Call this after user saves a new Dhan token to resume the scheduler."""
+    global _token_expired
+    with _token_lock:
+        _token_expired = False
+    _trigger.set()
 
 
 # ── Time helpers ──────────────────────────────────────────────────────────────
@@ -124,6 +137,7 @@ def _collect_symbols(for_date: str) -> list:
 # ── Download cycle ────────────────────────────────────────────────────────────
 
 def _run_cycle(for_date: str, phase: str):
+    global _token_expired
     symbols = _collect_symbols(for_date)
     _set(phase=phase, ok=0, skipped=0, failed=0)
     _log(f"{phase.upper()} cycle — {for_date} — {len(symbols)} symbols")
@@ -143,6 +157,12 @@ def _run_cycle(for_date: str, phase: str):
                 failed += 1
                 _log(f"  FAIL {sym}: empty response")
         except Exception as exc:
+            err_str = str(exc)
+            if '401' in err_str or 'Invalid_Authentication' in err_str or 'DH-901' in err_str:
+                with _token_lock:
+                    _token_expired = True
+                _log(f"  Dhan token expired — stopping cycle. Enter new token in Algo Lab settings.")
+                break
             failed += 1
             _log(f"  FAIL {sym}: {exc}")
         time.sleep(INTER_CALL_DELAY)
@@ -160,6 +180,21 @@ def _worker():
 
     while True:
         today = _today_str()
+
+        cfg = _get_dhan_config()
+        if not cfg or not str(cfg.get('access_token', '')).strip():
+            _set(phase='idle', current=None)
+            _trigger.clear()
+            _trigger.wait(timeout=300)
+            continue
+
+        with _token_lock:
+            expired = _token_expired
+        if expired:
+            _set(phase='idle', current=None)
+            _trigger.clear()
+            _trigger.wait(timeout=300)
+            continue
 
         if _is_market_open():
             _run_cycle(today, 'live')
