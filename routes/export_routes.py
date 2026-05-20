@@ -17,7 +17,8 @@ from services.export_service import (
     export_simple_excel, export_structured_csv,
     export_logger_excel, build_backup_zip,
 )
-from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG
+from flask_login import current_user
+from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG, BASE_DIR
 from processors.data_processors import find_best_trades_file
 
 export_bp = Blueprint('export', __name__)
@@ -32,7 +33,10 @@ def backup():
     safe_name = re.sub(r'[^A-Za-z0-9_\ -]+', '', requested_name).strip()
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     base_name = safe_name if safe_name else f'trading_journal_{timestamp_str}'
-    zip_bytes, _ = build_backup_zip(active_file, UPLOADS_DIR)
+    # Only zip current user's uploads folder, not all users'
+    uid = current_user.id if current_user.is_authenticated else None
+    user_uploads = os.path.join(BASE_DIR, 'static', 'uploads', f'user_{uid}') if uid else UPLOADS_DIR
+    zip_bytes, _ = build_backup_zip(active_file, user_uploads)
     return send_file(
         io.BytesIO(zip_bytes),
         as_attachment=True,
