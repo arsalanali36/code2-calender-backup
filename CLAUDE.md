@@ -6,6 +6,75 @@
 - **Storage**: `data/trades_1.json` (flat file, no DB). `trades.json` is legacy fallback only.
 - **Images**: `static/uploads/`
 
+## 🚀 Server Migration Guide (Hostinger → Hetzner or any new VPS)
+
+### Why migrations break things (root causes we fixed)
+| Problem | Root Cause | Fix Applied |
+|---------|-----------|-------------|
+| Images 404 on live server | `require_login` hook blocked `/uploads/` for unauthenticated browsers | `image.uploaded_file` added to `allowed_endpoints` in `app.py` |
+| Images 404 (wrong folder) | JSON stores flat `/uploads/file.png` but files are in `uploads/user_1/` | `user_1` fallback added to `uploaded_file()` route in `image_routes.py` |
+| Pull/Push sync broken | `ADMIN_API_KEY` not set on new server | Must set in server `.env` |
+| Pull/Push pointing to old server | `LIVE_SERVER_URL` hardcoded to old URL | Must update local `.env` |
+| `no such column: user.created_at` | `db.create_all()` doesn't add columns to existing tables | Auto ALTER TABLE migration in `app.py` on startup |
+| Dhan API 401 spam | Scheduler retried every 5 min even with expired token | `_token_expired` flag added to `ohlc_scheduler.py` |
+
+### Allowed endpoints (public, no login required) — NEVER REMOVE THESE
+In `app.py` → `require_login()` → `allowed_endpoints` list:
+```python
+'image.uploaded_file'   # /uploads/* — images, audio, video must be public
+'page.mobile'           # /mobile — PWA entry point
+'page.mobile_assets'    # /mobile/assets/* — PWA JS/CSS
+```
+If you add a new route that serves files/media, add its endpoint here.
+
+### Step-by-step migration checklist
+
+**Step 1 — On new server, set up `.env`:**
+```
+ADMIN_API_KEY=khazana2026
+LIVE_SERVER_URL=http://<NEW_SERVER_IP>
+FLASK_DEBUG=false
+UPLOADS_DIR=/app/data/uploads
+```
+
+**Step 2 — Update local `.env`:**
+```
+LIVE_SERVER_URL=http://<NEW_SERVER_IP>   ← change this to new IP
+ADMIN_API_KEY=khazana2026
+```
+
+**Step 3 — Migrate data (do this BEFORE switching DNS/IP):**
+```bash
+# Files that MUST be copied to new server:
+data/trades_1.json          # all trade data
+data/users.db               # user accounts (WITHOUT this, all users must re-register)
+static/uploads/user_1/      # all images (large — use rsync or SFTP)
+data/pdfs.json              # PDF metadata
+data/dhan_config.json       # Dhan credentials
+```
+
+**Step 4 — Verify after deploy:**
+```bash
+# Test image serving (should return image/png, NOT text/html)
+curl -I http://<NEW_IP>/uploads/<any-filename>.png
+
+# Test admin sync
+curl -H "X-Api-Key: khazana2026" http://<NEW_IP>/api/admin/data-version
+
+# Test pull from localhost
+# Open localhost:5000 → File menu → Pull from Live
+```
+
+**Step 5 — Docker restart after `.env` changes:**
+```bash
+docker restart code2
+```
+
+### What users DON'T need to do
+Users only use the live server URL. They register/login and use the app. No config, no migration steps, no `.env`. Everything above is developer (Arsalan) work only.
+
+---
+
 ## 🔒 Image Upload Rule — LOCAL FIRST, CDN SECOND (NEVER VIOLATE)
 > Lesson: ImageKit/Cloudinary CDN dependency caused images to be unrecoverable when CDN became inaccessible.
 

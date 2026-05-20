@@ -57,9 +57,9 @@ def uploaded_file(filename):
     # Try exact path first
     if _os.path.exists(_os.path.join(UPLOADS_DIR, filename)):
         return send_from_directory(UPLOADS_DIR, filename)
-    # Fallback: if it's a bare filename (no subfolder), check video/ and audio/
+    # Fallback: if it's a bare filename (no subfolder), check user_1/, video/, audio/
     if '/' not in filename:
-        for sub in ('video', 'audio'):
+        for sub in ('user_1', 'video', 'audio'):
             alt = _os.path.join(UPLOADS_DIR, sub, filename)
             if _os.path.exists(alt):
                 return send_from_directory(_os.path.join(UPLOADS_DIR, sub), filename)

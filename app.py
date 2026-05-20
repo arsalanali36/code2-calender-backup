@@ -139,7 +139,7 @@ def update_last_seen():
 @app.before_request
 def require_login():
     from flask_login import current_user
-    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler', 'import.admin_push_data', 'export.admin_get_data', 'export.admin_data_version']
+    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'image.uploaded_file', 'page.mobile', 'page.mobile_assets', 'options_handler', 'import.admin_push_data', 'export.admin_get_data', 'export.admin_data_version']
     if request.endpoint and request.endpoint not in allowed_endpoints:
         if not current_user.is_authenticated:
             if request.path.startswith('/api/'):
