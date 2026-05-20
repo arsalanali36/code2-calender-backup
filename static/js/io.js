@@ -557,12 +557,47 @@ async function pullFromLive() {
   if (!confirm('Pull latest data from live server?\n\nThis will OVERWRITE your local trades.json with the live version.\nA backup will be created first.')) return;
   showToast('Pulling from live server...', '');
   try {
-    const res = await fetch('/api/pull-from-live', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+    let res = await fetch('/api/pull-from-live', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
     });
-    const data = await res.json();
+    let data = await res.json();
+
+    // API key mismatch — ask for login credentials
+    if (data.needs_credentials) {
+      const creds = await new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+        overlay.innerHTML = `
+          <div style="background:#1e1e2e;border:1px solid #444;border-radius:10px;padding:28px 32px;min-width:320px;color:#e0e0e0;font-family:monospace">
+            <div style="font-size:15px;margin-bottom:16px;font-weight:600">🔐 Live Server Login</div>
+            <div style="font-size:12px;color:#aaa;margin-bottom:14px">Live server ka email aur password enter karein</div>
+            <input id="_pull_email2" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+            <input id="_pull_pass2" type="password" placeholder="Password" style="width:100%;padding:8px 10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+            <div style="display:flex;gap:10px;margin-top:18px">
+              <button id="_pull_ok2" style="flex:1;padding:9px;background:#238636;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Pull Data</button>
+              <button id="_pull_cancel2" style="flex:1;padding:9px;background:#333;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Cancel</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#_pull_ok2').onclick = () => {
+          const e = overlay.querySelector('#_pull_email2').value.trim();
+          const p = overlay.querySelector('#_pull_pass2').value;
+          document.body.removeChild(overlay);
+          resolve(e && p ? { email: e, password: p } : null);
+        };
+        overlay.querySelector('#_pull_cancel2').onclick = () => { document.body.removeChild(overlay); resolve(null); };
+        overlay.querySelector('#_pull_pass2').addEventListener('keydown', ev => { if (ev.key === 'Enter') overlay.querySelector('#_pull_ok2').click(); });
+        setTimeout(() => overlay.querySelector('#_pull_email2').focus(), 50);
+      });
+      if (!creds) { showToast('Pull cancelled', ''); return; }
+      showToast('Logging in and pulling...', '');
+      res = await fetch('/api/pull-from-live', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(creds)
+      });
+      data = await res.json();
+    }
+
     if (!res.ok || !data.ok) throw new Error(data.error || 'Pull failed');
     showToast(`${data.message} — reloading...`, 'success');
     setTimeout(() => location.reload(), 1500);

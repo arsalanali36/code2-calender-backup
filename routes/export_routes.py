@@ -184,25 +184,67 @@ def _backup_local(prefix):
     return backup_path
 
 
+def _pull_with_credentials(email, password):
+    """Login to live server with credentials, fetch /api/my-data."""
+    import urllib.request, urllib.parse, http.cookiejar
+    jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+
+    # Step 1: login
+    login_data = urllib.parse.urlencode({'email': email, 'password': password}).encode()
+    login_req = urllib.request.Request(f'{LIVE_URL}/auth/login', data=login_data,
+                                       headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    with opener.open(login_req, timeout=30) as r:
+        body = r.read().decode('utf-8', errors='replace')
+        if 'invalid' in body.lower() or 'incorrect' in body.lower():
+            raise RuntimeError('Login failed — wrong email or password')
+
+    # Step 2: fetch data
+    with opener.open(f'{LIVE_URL}/api/my-data', timeout=90) as r:
+        return json.loads(r.read().decode('utf-8'))
+
+
 @export_bp.route('/api/pull-from-live', methods=['POST'])
 def pull_from_live():
-    """Localhost-only: pull trades data from the live server and save locally."""
+    """Localhost-only: pull trades data from the live server and save locally.
+    Tries ADMIN_API_KEY first; falls back to email/password credentials."""
     if not DEBUG:
         return jsonify({'error': 'Only available in development mode'}), 403
-    if not ADMIN_API_KEY:
-        return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
 
     import urllib.request
-    endpoint = f'{LIVE_URL}/api/admin/get-data'
-    try:
-        req = urllib.request.Request(endpoint, headers={'X-Api-Key': ADMIN_API_KEY})
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            raw = json.loads(resp.read().decode('utf-8'))
-    except Exception as e:
-        return jsonify({'error': f'Failed to fetch from live: {str(e)}'}), 502
+    body = request.get_json(silent=True) or {}
+    email    = body.get('email', '').strip()
+    password = body.get('password', '').strip()
+
+    raw = None
+
+    # ── Attempt 1: ADMIN_API_KEY ──────────────────────────────────────────────
+    if ADMIN_API_KEY:
+        try:
+            req = urllib.request.Request(
+                f'{LIVE_URL}/api/admin/get-data',
+                headers={'X-Api-Key': ADMIN_API_KEY}
+            )
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                raw = json.loads(resp.read().decode('utf-8'))
+        except Exception:
+            raw = None
+
+    # ── Attempt 2: email + password (session login) ───────────────────────────
+    if (not raw or not raw.get('ok')) and email and password:
+        try:
+            raw = _pull_with_credentials(email, password)
+        except Exception as e:
+            return jsonify({'error': f'Credential login failed: {str(e)}'}), 502
+
+    if not raw:
+        return jsonify({
+            'error': 'ADMIN_API_KEY mismatch. Provide email+password to pull via login.',
+            'needs_credentials': True
+        }), 401
 
     if not raw.get('ok') or 'data' not in raw:
-        return jsonify({'error': 'Live server returned unexpected response'}), 502
+        return jsonify({'error': f'Live server error: {raw.get("error", "unexpected response")}'}), 502
 
     _backup_local('pre_pull')
     target = _find_best_trades_file()
@@ -260,3 +302,35 @@ def push_to_live():
 
     trade_count = len(local_data.get('trades', []))
     return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pushed {trade_count} trades to live'})
+
+
+@export_bp.route('/api/my-data', methods=['GET'])
+def my_data():
+    """Session-authenticated: returns the logged-in user's full trades JSON.
+    Used by pull_from_live as a fallback when ADMIN_API_KEY doesn't match."""
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Login required'}), 401
+    try:
+        data_file = find_best_trades_file()
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify({'ok': True, 'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@export_bp.route('/api/my-data/version', methods=['GET'])
+def my_data_version():
+    """Session-authenticated: returns file mtime + trade count."""
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Login required'}), 401
+    try:
+        data_file = find_best_trades_file()
+        mtime = os.path.getmtime(data_file) if os.path.exists(data_file) else 0
+        with open(data_file, 'r', encoding='utf-8') as f:
+            trades = len(json.load(f).get('trades', []))
+        return jsonify({'ok': True, 'updated_at': mtime, 'trades': trades})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

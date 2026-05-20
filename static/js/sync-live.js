@@ -63,13 +63,47 @@
     return res.json();
   }
 
-  async function _doPull() {
+  async function _doPull(email, password) {
+    const body = (email && password) ? JSON.stringify({ email, password }) : '{}';
     const res = await fetch('/api/pull-from-live', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}',
+      body,
     });
     return res.json();
+  }
+
+  function _promptCredentials() {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+      overlay.innerHTML = `
+        <div style="background:#1e1e2e;border:1px solid #444;border-radius:10px;padding:28px 32px;min-width:320px;color:#e0e0e0;font-family:monospace">
+          <div style="font-size:15px;margin-bottom:16px;font-weight:600">🔐 Live Server Login</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:14px">API key mismatch — apna live server login use karein</div>
+          <input id="_pull_email" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+          <input id="_pull_pass" type="password" placeholder="Password" style="width:100%;padding:8px 10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+          <div style="display:flex;gap:10px;margin-top:18px">
+            <button id="_pull_ok" style="flex:1;padding:9px;background:#238636;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Pull Data</button>
+            <button id="_pull_cancel" style="flex:1;padding:9px;background:#333;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Cancel</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#_pull_ok').onclick = () => {
+        const e = overlay.querySelector('#_pull_email').value.trim();
+        const p = overlay.querySelector('#_pull_pass').value;
+        document.body.removeChild(overlay);
+        resolve(e && p ? { email: e, password: p } : null);
+      };
+      overlay.querySelector('#_pull_cancel').onclick = () => {
+        document.body.removeChild(overlay);
+        resolve(null);
+      };
+      overlay.querySelector('#_pull_pass').addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') overlay.querySelector('#_pull_ok').click();
+      });
+      setTimeout(() => overlay.querySelector('#_pull_email').focus(), 50);
+    });
   }
 
   async function _doPush() {
@@ -94,14 +128,22 @@
 
       if (status.direction === 'pull') {
         setStatus('pulling');
-        if (typeof showToast === 'function') showToast('Live data is newer — auto-pulling…', '');
-        const result = await _doPull();
+        if (typeof showToast === 'function') showToast('Live data is newer — pulling…', '');
+        let result = await _doPull();
+        if (result.needs_credentials) {
+          setStatus('idle');
+          const creds = await _promptCredentials();
+          if (!creds) { setStatus('idle'); return; }
+          setStatus('pulling');
+          result = await _doPull(creds.email, creds.password);
+        }
         if (result.ok) {
           setStatus('synced');
-          if (typeof showToast === 'function') showToast(`Auto-pulled from live (${result.trades} trades) — reloading…`, 'success');
+          if (typeof showToast === 'function') showToast(`Pulled from live (${result.trades} trades) — reloading…`, 'success');
           setTimeout(() => location.reload(), 1400);
         } else {
           setStatus('error');
+          if (typeof showToast === 'function') showToast(`Pull failed: ${result.error}`, 'error');
           console.error('[sync-live] pull failed:', result.error);
         }
       } else if (status.direction === 'safe_skip') {
