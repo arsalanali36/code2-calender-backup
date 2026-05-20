@@ -19,7 +19,23 @@ def _get_user_id():
 
 @trade_bp.route('/api/trades', methods=['GET'])
 def get_trades():
-    return jsonify(get_all_trades(user_id=_get_user_id()))
+    uid = _get_user_id()
+    _ensure_demo_data(uid)
+    return jsonify(get_all_trades(user_id=uid))
+
+
+def _ensure_demo_data(uid):
+    """Generate demo data on first load if user has no data file yet (belt-and-suspenders fallback)."""
+    if uid is None or uid == 1:
+        return
+    from config import BASE_DIR
+    dest = os.path.join(BASE_DIR, 'data', f'trades_{uid}.json')
+    if not os.path.exists(dest):
+        try:
+            from services.demo_service import generate_demo_data_for_user
+            generate_demo_data_for_user(uid)
+        except Exception:
+            pass
 
 
 @trade_bp.route('/api/trades', methods=['POST'])
