@@ -29,6 +29,9 @@ def index():
     ua = request.headers.get('User-Agent', '')
     if any(k in ua for k in MOBILE_KEYWORDS):
         return redirect('/mobile/')
+    # Unauthenticated visitors land on the public pitch deck, not the login wall
+    if not current_user.is_authenticated:
+        return redirect('/app-deck')
     # Embed trades data directly in HTML — eliminates the /api/trades round-trip on load
     # Must read the user-specific file so authenticated users see their own data
     try:
