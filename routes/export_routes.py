@@ -105,7 +105,7 @@ def admin_get_data():
         return jsonify({'error': str(e)}), 500
 
 
-LIVE_URL = 'https://code2-calender.onrender.com'
+LIVE_URL = os.getenv('LIVE_SERVER_URL', 'https://code2-calender.onrender.com').rstrip('/')
 
 
 @export_bp.route('/api/admin/data-version', methods=['GET'])

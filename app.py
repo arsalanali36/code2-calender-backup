@@ -371,6 +371,19 @@ else:
 
 with app.app_context():
     db.create_all()
+    # Auto-migrate: add columns that db.create_all() won't add to existing tables
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            for col, coltype in [('created_at', 'DATETIME'), ('last_seen', 'DATETIME')]:
+                try:
+                    conn.execute(text(f'ALTER TABLE user ADD COLUMN {col} {coltype}'))
+                    conn.commit()
+                    print(f'[migration] Added column user.{col}')
+                except Exception:
+                    pass  # column already exists
+    except Exception as e:
+        print(f'[migration] WARNING: {e}')
 
 # ── Blueprint registration ────────────────────────────────────────────────────
 app.register_blueprint(page_bp)
