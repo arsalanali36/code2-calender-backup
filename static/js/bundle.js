@@ -392,13 +392,17 @@ const exportService = (() => {
       return;
     }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
-    const fname = filename || `trading_journal_images_${_timestamp()}.pdf`;
+    if (!window.jspdf) {
+      if (typeof showToast === 'function') showToast('PDF library not loaded. Refresh and try again.', 'error');
+      return;
+    }
 
+    const fname = filename || `trading_journal_images_${_timestamp()}.pdf`;
     if (typeof showToast === 'function') showToast('Generating PDF... Please wait.', 'info');
 
     try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
       let newsOnCurrentPage = 0; // 0=none, 1=left, 2=right
 
       for (let i = 0; i < metaList.length; i++) {
@@ -594,21 +598,33 @@ const exportService = (() => {
 
   function _getImageDataUrl(url) {
     return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      const tryLoad = (withCors) => {
+        const img = new Image();
+        if (withCors) img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } catch (e) {
+            if (withCors) {
+              // canvas tainted — retry without crossOrigin
+              tryLoad(false);
+            } else {
+              console.warn('Canvas export failed for:', url, e);
+              resolve(null);
+            }
+          }
+        };
+        img.onerror = () => {
+          if (withCors) { tryLoad(false); } else { resolve(null); }
+        };
+        img.src = url + (withCors ? '' : (url.includes('?') ? '&_nocors=1' : '?_nocors=1'));
       };
-      img.onerror = (e) => {
-        console.warn("Failed to load image for PDF:", url, e);
-        resolve(null);
-      };
-      img.src = url;
+      tryLoad(true);
     });
   }
 
@@ -1585,35 +1601,37 @@ function _openGalleryFromUrlParamsOnce() {
 }
 
 function populateSelects() {
-  const ms = document.getElementById('glob-month');
   const vs = document.getElementById('glob-view');
-
-  if (ms) {
-    MONTHS.forEach((m, i) => {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = m.slice(0, 3); if (i === state.month) o.selected = true;
-      ms.appendChild(o);
-    });
-  }
   if (vs) vs.value = state.calendarView;
+  repopulateYearSelect();
 }
 
 function repopulateYearSelect() {
-  const ys = document.getElementById('glob-year');
-  if (!ys) return;
-  const years = new Set();
+  const sel = document.getElementById('glob-month-year');
+  if (!sel) return;
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const seen = new Set();
   const MIN_YEAR = 2010;
   state.trades.forEach(t => {
-    const d = t.date;
-    if (d) { const y = new Date(d).getFullYear(); if (!isNaN(y) && y >= MIN_YEAR) years.add(y); }
+    if (t.date) {
+      const d = new Date(t.date);
+      if (!isNaN(d) && d.getFullYear() >= MIN_YEAR)
+        seen.add(`${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`);
+    }
   });
-  years.add(new Date().getFullYear());
-  const sorted = [...years].sort((a, b) => a - b);
-  ys.innerHTML = '';
-  sorted.forEach(y => {
+  // always include current month
+  const now = new Date();
+  seen.add(`${now.getFullYear()}-${String(now.getMonth()).padStart(2,'0')}`);
+  const sorted = [...seen].sort();
+  const current = `${state.year}-${String(state.month).padStart(2,'0')}`;
+  sel.innerHTML = '';
+  sorted.forEach(key => {
+    const [y, m] = key.split('-');
     const o = document.createElement('option');
-    o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
-    ys.appendChild(o);
+    o.value = key;
+    o.textContent = `${MN[parseInt(m)]} ${y}`;
+    if (key === current) o.selected = true;
+    sel.appendChild(o);
   });
 }
 
@@ -21453,12 +21471,47 @@ async function pullFromLive() {
   if (!confirm('Pull latest data from live server?\n\nThis will OVERWRITE your local trades.json with the live version.\nA backup will be created first.')) return;
   showToast('Pulling from live server...', '');
   try {
-    const res = await fetch('/api/pull-from-live', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+    let res = await fetch('/api/pull-from-live', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
     });
-    const data = await res.json();
+    let data = await res.json();
+
+    // API key mismatch — ask for login credentials
+    if (data.needs_credentials) {
+      const creds = await new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+        overlay.innerHTML = `
+          <div style="background:#1e1e2e;border:1px solid #444;border-radius:10px;padding:28px 32px;min-width:320px;color:#e0e0e0;font-family:monospace">
+            <div style="font-size:15px;margin-bottom:16px;font-weight:600">🔐 Live Server Login</div>
+            <div style="font-size:12px;color:#aaa;margin-bottom:14px">Live server ka email aur password enter karein</div>
+            <input id="_pull_email2" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+            <input id="_pull_pass2" type="password" placeholder="Password" style="width:100%;padding:8px 10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+            <div style="display:flex;gap:10px;margin-top:18px">
+              <button id="_pull_ok2" style="flex:1;padding:9px;background:#238636;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Pull Data</button>
+              <button id="_pull_cancel2" style="flex:1;padding:9px;background:#333;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Cancel</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#_pull_ok2').onclick = () => {
+          const e = overlay.querySelector('#_pull_email2').value.trim();
+          const p = overlay.querySelector('#_pull_pass2').value;
+          document.body.removeChild(overlay);
+          resolve(e && p ? { email: e, password: p } : null);
+        };
+        overlay.querySelector('#_pull_cancel2').onclick = () => { document.body.removeChild(overlay); resolve(null); };
+        overlay.querySelector('#_pull_pass2').addEventListener('keydown', ev => { if (ev.key === 'Enter') overlay.querySelector('#_pull_ok2').click(); });
+        setTimeout(() => overlay.querySelector('#_pull_email2').focus(), 50);
+      });
+      if (!creds) { showToast('Pull cancelled', ''); return; }
+      showToast('Logging in and pulling...', '');
+      res = await fetch('/api/pull-from-live', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(creds)
+      });
+      data = await res.json();
+    }
+
     if (!res.ok || !data.ok) throw new Error(data.error || 'Pull failed');
     showToast(`${data.message} — reloading...`, 'success');
     setTimeout(() => location.reload(), 1500);
@@ -25160,10 +25213,11 @@ function _clChartsPopupEscape(value) {
     const modal = document.getElementById('ohlc-mgr-modal');
     if (!modal) return;
     modal.classList.add('open');
-    // Close profile dropdown
     const pd = document.getElementById('profile-dropdown');
     if (pd) pd.classList.remove('open');
     loadCredentials();
+    loadWatchlist();
+    loadSchedulerStatus();
   }
 
   function closeOhlcManager() {
@@ -25237,6 +25291,83 @@ function _clChartsPopupEscape(value) {
       }
     } catch (e) {
       showToast('Save failed: ' + e.message, 'error');
+    }
+  }
+
+  // ── Scheduler Status ─────────────────────────────────────────────────────────
+
+  async function loadSchedulerStatus() {
+    try {
+      const r = await fetch('/api/ohlc/status');
+      const d = await r.json();
+      const phase   = document.getElementById('ohlc-sched-phase');
+      const last    = document.getElementById('ohlc-sched-last');
+      const counts  = document.getElementById('ohlc-sched-counts');
+      const current = document.getElementById('ohlc-sched-current');
+      if (phase)   phase.textContent   = 'Phase: ' + (d.phase || 'idle');
+      if (last)    last.textContent    = d.last_run ? 'Last: ' + d.last_run.slice(11, 19) : 'Not run yet';
+      if (counts)  counts.textContent  = d.last_run ? `ok=${d.ok} skip=${d.skipped} fail=${d.failed}` : '';
+      if (current) current.textContent = d.current ? 'Downloading: ' + d.current : '';
+    } catch (_) {}
+  }
+
+  async function triggerScheduler() {
+    const btn = document.getElementById('ohlc-sched-trigger-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Triggering...'; }
+    try {
+      const r = await fetch('/api/ohlc/trigger', { method: 'POST' });
+      const d = await r.json();
+      if (d.ok) {
+        showToast('Download cycle triggered');
+        appendLog('Manual trigger sent — cycle starting...');
+        setTimeout(loadSchedulerStatus, 2000);
+      }
+    } catch (e) {
+      showToast('Trigger failed: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Trigger Now'; }
+    }
+  }
+
+  // ── Watchlist ─────────────────────────────────────────────────────────────────
+
+  async function loadWatchlist() {
+    try {
+      const r    = await fetch('/api/ohlc/watchlist');
+      const syms = await r.json();
+      const inp  = document.getElementById('ohlc-watchlist-input');
+      const cnt  = document.getElementById('ohlc-watchlist-count');
+      if (inp) inp.value = syms.join(', ');
+      if (cnt) cnt.textContent = syms.length + ' symbol' + (syms.length !== 1 ? 's' : '');
+    } catch (_) {}
+  }
+
+  async function saveWatchlist() {
+    const inp = document.getElementById('ohlc-watchlist-input');
+    const btn = document.getElementById('ohlc-watchlist-save-btn');
+    if (!inp) return;
+    const symbols = inp.value.split(',').map(s => s.trim()).filter(Boolean);
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    try {
+      const r = await fetch('/api/ohlc/watchlist', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ symbols }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        const cnt = document.getElementById('ohlc-watchlist-count');
+        if (cnt) cnt.textContent = d.saved.length + ' symbol' + (d.saved.length !== 1 ? 's' : '');
+        if (inp) inp.value = d.saved.join(', ');
+        showToast('Watchlist saved (' + d.saved.length + ' symbols)');
+        appendLog('Watchlist saved: ' + (d.saved.join(', ') || '(empty)'));
+      } else {
+        showToast(d.error || 'Save failed', 'error');
+      }
+    } catch (e) {
+      showToast('Save failed: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Watchlist'; }
     }
   }
 
@@ -25432,9 +25563,12 @@ function _clChartsPopupEscape(value) {
     document.getElementById('ohlc-cred-cancel').onclick   = () => {
       document.getElementById('ohlc-cred-form').style.display = 'none';
     };
-    document.getElementById('ohlc-status-refresh-btn').onclick = loadStatus;
-    document.getElementById('ohlc-scrip-dl-btn').onclick        = downloadScripMaster;
-    document.getElementById('ohlc-sync-all-btn').onclick        = startSyncAll;
+    document.getElementById('ohlc-status-refresh-btn').onclick  = loadStatus;
+    document.getElementById('ohlc-scrip-dl-btn').onclick         = downloadScripMaster;
+    document.getElementById('ohlc-sync-all-btn').onclick         = startSyncAll;
+    document.getElementById('ohlc-sched-refresh-btn').onclick    = loadSchedulerStatus;
+    document.getElementById('ohlc-sched-trigger-btn').onclick    = triggerScheduler;
+    document.getElementById('ohlc-watchlist-save-btn').onclick   = saveWatchlist;
     document.getElementById('ohlc-log-clear-btn').onclick       = () => {
       document.getElementById('ohlc-sync-log').innerHTML = '';
     };
@@ -26684,19 +26818,16 @@ function _bindKeyboardEvents() {
 // events-ui.js — Calendar, table, column ops, date range event bindings
 
 function _bindUIEvents() {
-  const gm = document.getElementById('glob-month');
-  if (gm) gm.addEventListener('change', e => {
-    state.month = parseInt(e.target.value);
+  const gmy = document.getElementById('glob-month-year');
+  if (gmy) gmy.addEventListener('change', e => {
+    const [y, m] = e.target.value.split('-');
+    state.year = parseInt(y);
+    state.month = parseInt(m);
     render();
   });
   const gv = document.getElementById('glob-view');
   if (gv) gv.addEventListener('change', e => {
     state.calendarView = String(e.target.value || 'month');
-    render();
-  });
-  const gy = document.getElementById('glob-year');
-  if (gy) gy.addEventListener('change', e => {
-    state.year = parseInt(e.target.value);
     render();
   });
   const gp = document.getElementById('glob-prev');
@@ -26738,16 +26869,7 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
-  // Compact period picker toggle
-  const navPeriodBtn = document.getElementById('nav-period-btn');
-  const navPeriodPanel = document.getElementById('nav-period-panel');
-  if (navPeriodBtn && navPeriodPanel) {
-    navPeriodBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      navPeriodPanel.classList.toggle('open');
-    });
-    navPeriodPanel.addEventListener('click', e => e.stopPropagation());
-  }
+  // nav-period-btn is now a <select> — no toggle needed
 
   // Month / Year view toggle button
   const navViewToggle = document.getElementById('nav-view-toggle');
@@ -29503,21 +29625,10 @@ function bindEvents() {
 }
 
 function syncSelects() {
-  const m = document.getElementById('glob-month');
-  if (m) m.value = state.month;
-  const y = document.getElementById('glob-year');
-  if (y) y.value = state.year;
+  const gmy = document.getElementById('glob-month-year');
+  if (gmy) gmy.value = `${state.year}-${String(state.month).padStart(2,'0')}`;
   const v = document.getElementById('glob-view');
   if (v) v.value = state.calendarView;
-  if (m && v) m.disabled = state.calendarView === 'year';
-  // Update compact period button label
-  const periodBtn = document.getElementById('nav-period-btn');
-  if (periodBtn) {
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    periodBtn.textContent = state.calendarView === 'year'
-      ? state.year + ' ▾'
-      : MONTHS[state.month] + ' ' + state.year + ' ▾';
-  }
   // Update view toggle button label
   const viewToggle = document.getElementById('nav-view-toggle');
   if (viewToggle) {
@@ -29681,13 +29792,47 @@ function showGalleryExitConfirm() {
     return res.json();
   }
 
-  async function _doPull() {
+  async function _doPull(email, password) {
+    const body = (email && password) ? JSON.stringify({ email, password }) : '{}';
     const res = await fetch('/api/pull-from-live', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}',
+      body,
     });
     return res.json();
+  }
+
+  function _promptCredentials() {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+      overlay.innerHTML = `
+        <div style="background:#1e1e2e;border:1px solid #444;border-radius:10px;padding:28px 32px;min-width:320px;color:#e0e0e0;font-family:monospace">
+          <div style="font-size:15px;margin-bottom:16px;font-weight:600">🔐 Live Server Login</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:14px">API key mismatch — apna live server login use karein</div>
+          <input id="_pull_email" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+          <input id="_pull_pass" type="password" placeholder="Password" style="width:100%;padding:8px 10px;background:#111;border:1px solid #555;border-radius:6px;color:#fff;box-sizing:border-box;font-size:13px">
+          <div style="display:flex;gap:10px;margin-top:18px">
+            <button id="_pull_ok" style="flex:1;padding:9px;background:#238636;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Pull Data</button>
+            <button id="_pull_cancel" style="flex:1;padding:9px;background:#333;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px">Cancel</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#_pull_ok').onclick = () => {
+        const e = overlay.querySelector('#_pull_email').value.trim();
+        const p = overlay.querySelector('#_pull_pass').value;
+        document.body.removeChild(overlay);
+        resolve(e && p ? { email: e, password: p } : null);
+      };
+      overlay.querySelector('#_pull_cancel').onclick = () => {
+        document.body.removeChild(overlay);
+        resolve(null);
+      };
+      overlay.querySelector('#_pull_pass').addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') overlay.querySelector('#_pull_ok').click();
+      });
+      setTimeout(() => overlay.querySelector('#_pull_email').focus(), 50);
+    });
   }
 
   async function _doPush() {
@@ -29712,14 +29857,22 @@ function showGalleryExitConfirm() {
 
       if (status.direction === 'pull') {
         setStatus('pulling');
-        if (typeof showToast === 'function') showToast('Live data is newer — auto-pulling…', '');
-        const result = await _doPull();
+        if (typeof showToast === 'function') showToast('Live data is newer — pulling…', '');
+        let result = await _doPull();
+        if (result.needs_credentials) {
+          setStatus('idle');
+          const creds = await _promptCredentials();
+          if (!creds) { setStatus('idle'); return; }
+          setStatus('pulling');
+          result = await _doPull(creds.email, creds.password);
+        }
         if (result.ok) {
           setStatus('synced');
-          if (typeof showToast === 'function') showToast(`Auto-pulled from live (${result.trades} trades) — reloading…`, 'success');
+          if (typeof showToast === 'function') showToast(`Pulled from live (${result.trades} trades) — reloading…`, 'success');
           setTimeout(() => location.reload(), 1400);
         } else {
           setStatus('error');
+          if (typeof showToast === 'function') showToast(`Pull failed: ${result.error}`, 'error');
           console.error('[sync-live] pull failed:', result.error);
         }
       } else if (status.direction === 'safe_skip') {
@@ -31361,6 +31514,16 @@ function renderVisualDashboard() {
     updateVdRangeLabel();
 
     const trades = getVdTrades();
+    
+    // Advanced MTM Chart Integration
+    if (typeof updateAdvMtmChart === 'function') {
+        if (!document.getElementById('adv-mtm-controls-container').innerHTML) {
+            initAdvancedMtmChart();
+        } else {
+            updateAdvMtmChart();
+        }
+    }
+
     renderVdMtmThumbs(trades);
 
     // Basic metrics
@@ -35916,31 +36079,22 @@ if (document.readyState === 'loading') {
           const target = tab.getAttribute('data-tab');
           const vGrid = document.getElementById('vd-charts-grid');
           const qContent = document.getElementById('quick-stats-tab-content');
-          const pBento = document.getElementById('premium-bento-tab-content');
           const qFilters = document.getElementById('quick-stats-filters');
           const vStatsBtn = document.getElementById('vd-stats-btn');
 
           if (target === 'visual') {
             if (vGrid) vGrid.style.display = 'grid';
             if (qContent) qContent.style.display = 'none';
-            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'none';
             if (vStatsBtn) vStatsBtn.style.display = 'inline-block';
             window.dispatchEvent(new Event('resize'));
           } else if (target === 'quick') {
             if (vGrid) vGrid.style.display = 'none';
             if (qContent) qContent.style.display = 'block';
-            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'flex';
             if (vStatsBtn) vStatsBtn.style.display = 'none';
             openQuickStats();
             setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-          } else if (target === 'premium_bento') {
-            if (vGrid) vGrid.style.display = 'none';
-            if (qContent) qContent.style.display = 'none';
-            if (pBento) pBento.style.display = 'block';
-            if (qFilters) qFilters.style.display = 'none';
-            if (vStatsBtn) vStatsBtn.style.display = 'none';
           }
         });
       });
@@ -36001,3 +36155,329 @@ if (document.readyState === 'loading') {
   else initQuickStats();
 
 })();
+
+
+/* ── /static/js/advanced-mtm-chart.js ── */
+/**
+ * @fileoverview advanced-mtm-chart.js
+ * @description Advanced MTM Analytics with Month/Week toggles, Avg/Total aggregation, and multi-series Heads panel.
+ */
+
+const AdvMtmState = {
+    timeframe: 'day', // 'month' | 'week' | 'day'
+    viewType: 'bar',    // 'line' | 'bar' | 'pie'
+    aggType: 'total',   // 'total' | 'avg'
+    visibleHeads: {
+        amt: true,
+        pt: true,
+        brokerage: false,
+        tax: false,
+        total_charges: false,
+        trades: false
+    },
+    chart: null
+};
+
+/**
+ * Initialize the Advanced MTM Chart
+ */
+function initAdvancedMtmChart() {
+    renderAdvMtmToolbar();
+    updateAdvMtmChart();
+}
+
+/**
+ * Render the toolbar and sidebar controls
+ */
+function renderAdvMtmToolbar() {
+    const container = document.getElementById('adv-mtm-controls-container');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="adv-mtm-toolbar">
+            <div class="adv-mtm-group">
+                <button class="adv-btn ${AdvMtmState.aggType === 'total' ? 'active' : ''}" onclick="setAdvMtmAgg('total')">Net</button>
+                <button class="adv-btn ${AdvMtmState.aggType === 'avg' ? 'active' : ''}" onclick="setAdvMtmAgg('avg')">Avg</button>
+            </div>
+            
+            <div class="adv-mtm-group">
+                <button class="adv-btn ${AdvMtmState.viewType === 'line' ? 'active' : ''}" onclick="setAdvMtmView('line')">Line</button>
+                <button class="adv-btn ${AdvMtmState.viewType === 'bar' ? 'active' : ''}" onclick="setAdvMtmView('bar')">Bar</button>
+                <button class="adv-btn ${AdvMtmState.viewType === 'pie' ? 'active' : ''}" onclick="setAdvMtmView('pie')">Pie</button>
+            </div>
+
+            <div class="adv-mtm-group">
+                <button class="adv-btn ${AdvMtmState.timeframe === 'month' ? 'active' : ''}" onclick="setAdvMtmTimeframe('month')">Month</button>
+                <button class="adv-btn ${AdvMtmState.timeframe === 'week' ? 'active' : ''}" onclick="setAdvMtmTimeframe('week')">Week</button>
+                <button class="adv-btn ${AdvMtmState.timeframe === 'day' ? 'active' : ''}" onclick="setAdvMtmTimeframe('day')">Day</button>
+            </div>
+
+            <button class="adv-btn-icon" onclick="toggleAdvMtmHeadsPanel()" title="Toggle Heads Sidebar">
+                ⚙️
+            </button>
+        </div>
+    `;
+}
+
+function toggleAdvMtmHeadsPanel() {
+    const panel = document.getElementById('adv-mtm-heads-panel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+}
+
+function setAdvMtmAgg(val) { AdvMtmState.aggType = val; renderAdvMtmToolbar(); updateAdvMtmChart(); }
+function setAdvMtmView(val) { AdvMtmState.viewType = val; renderAdvMtmToolbar(); updateAdvMtmChart(); }
+function setAdvMtmTimeframe(val) { AdvMtmState.timeframe = val; renderAdvMtmToolbar(); updateAdvMtmChart(); }
+
+function toggleAdvMtmHead(head) {
+    AdvMtmState.visibleHeads[head] = !AdvMtmState.visibleHeads[head];
+    renderAdvMtmHeadsPanel();
+    updateAdvMtmChart();
+}
+
+function renderAdvMtmHeadsPanel(seriesTotals = {}) {
+    const panel = document.getElementById('adv-mtm-heads-panel');
+    if (!panel) return;
+
+    const heads = [
+        { id: 'pt', label: 'Pt' },
+        { id: 'amt', label: 'Amt' },
+        { id: 'brokerage', label: 'Brokerage' },
+        { id: 'tax', label: 'Charges' },
+        { id: 'total_charges', label: 'Total Fees' },
+        { id: 'trades', label: 'Trades' }
+    ];
+
+    panel.innerHTML = heads.map(h => {
+        const isActive = AdvMtmState.visibleHeads[h.id];
+        const total = seriesTotals[h.id] || 0;
+        const totalStr = h.id === 'trades' ? Math.round(total) : 
+                        '₹' + Math.round(total).toLocaleString('en-IN');
+        
+        return `
+            <div class="head-item ${isActive ? 'active' : ''}" onclick="toggleAdvMtmHead('${h.id}')">
+                <span class="head-dot" style="background: ${getHeadColor(h.id)}"></span>
+                <div class="head-info">
+                    <span class="head-label">${h.label}</span>
+                    <span class="head-total">${totalStr}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getHeadColor(id) {
+    const colors = {
+        amt: '#3fb950',
+        pt: '#58a6ff',
+        brokerage: '#f0883e',
+        tax: '#f85149',
+        total_charges: '#ff7b72',
+        trades: '#bc8cff'
+    };
+    return colors[id] || '#8b949e';
+}
+
+/**
+ * Process data for the chart
+ */
+function getAdvMtmChartData() {
+    const trades = typeof getVdTrades === 'function' ? getVdTrades() : [];
+    if (!trades.length) return { categories: [], series: [] };
+
+    // Grouping
+    const groups = {};
+    trades.forEach(t => {
+        const dateStr = typeof extractDateFromTrade === 'function' ? extractDateFromTrade(t) : (t.date || t.Date || '');
+        if (!dateStr) return;
+        
+        const date = new Date(dateStr + 'T00:00:00');
+        if (isNaN(date)) return;
+        
+        let key = '';
+        
+        if (AdvMtmState.timeframe === 'month') {
+            key = date.toLocaleString('default', { month: 'short' });
+        } else if (AdvMtmState.timeframe === 'week') {
+            // Week grouping (approximate week of month)
+            const weekOfMonth = Math.ceil(date.getDate() / 7);
+            const monthName = date.toLocaleString('default', { month: 'short' });
+            key = `${monthName} W${weekOfMonth}`;
+        } else {
+            // Day grouping
+            key = date.toLocaleString('default', { month: 'short', day: 'numeric' });
+        }
+
+        if (!groups[key]) groups[key] = { trades: [], amt: 0, pt: 0, brok: 0, tax: 0, total_charges: 0, count: 0 };
+        
+        groups[key].trades.push(t);
+        groups[key].amt += (typeof getTradePnl === 'function' ? getTradePnl(t) : (t.net_pnl || t.Net_PL || t.net_pl || 0));
+        groups[key].pt += parseFloat(t.Pt || t.Points || t.pt || 0);
+        
+        // Charges breakdown matching dashboard.js logic
+        const brKeys = ['Brokerage', 'brokerage', 'Brokerage Charges', 'Brokerage (Total)'];
+        const ocKeys = ['Other Charges', 'Charges', 'Charge', 'charges', 'charge', 'Transaction Charges', 'Charges (Total)', 'Total Charges'];
+        const tfKeys = ['Total Fees', 'total_fees', 'Total Fees (Total)'];
+
+        const getVal = (keys) => {
+            for (const k of keys) {
+                const v = parseFloat(t[k]);
+                if (!isNaN(v)) return v;
+            }
+            return 0;
+        };
+
+        const br = getVal(brKeys);
+        const oc = getVal(ocKeys);
+        let tf = getVal(tfKeys);
+        if (tf === 0) tf = br + oc;
+        
+        groups[key].brok += br;
+        groups[key].tax += oc;
+        groups[key].total_charges += tf;
+
+        groups[key].count += 1;
+    });
+
+    const categories = Object.keys(groups);
+    const series = [];
+    const seriesTotals = { pt: 0, amt: 0, brokerage: 0, tax: 0, total_charges: 0, trades: 0 };
+
+    const heads = [
+        { id: 'amt', label: 'Amt (P/L)', key: 'amt' },
+        { id: 'pt', label: 'Points', key: 'pt' },
+        { id: 'brokerage', label: 'Brokerage', key: 'brok' },
+        { id: 'tax', label: 'Tax/Charges', key: 'tax' },
+        { id: 'total_charges', label: 'Total Charges', key: 'total_charges' },
+        { id: 'trades', label: 'Trades', key: 'count' }
+    ];
+
+    heads.forEach(h => {
+        // Always calculate totals for the sidebar even if hidden
+        categories.forEach(cat => {
+            seriesTotals[h.id] += groups[cat][h.key];
+        });
+
+        if (AdvMtmState.visibleHeads[h.id]) {
+            const data = categories.map(cat => {
+                const val = groups[cat][h.key];
+                return AdvMtmState.aggType === 'avg' ? val / groups[cat].count : val;
+            });
+            
+            series.push({ 
+                name: h.label, 
+                data: data.map(v => ({
+                    x: categories[data.indexOf(v)], // Ensure X is set
+                    y: Math.abs(v),
+                    originalY: v,
+                    fillColor: v >= 0 ? (h.id === 'amt' ? '#3fb950' : getHeadColor(h.id)) : '#f85149'
+                })), 
+                color: getHeadColor(h.id),
+                type: AdvMtmState.viewType === 'pie' ? 'donut' : AdvMtmState.viewType
+            });
+        }
+    });
+
+    return { categories, series, seriesTotals };
+}
+
+/**
+ * Update/Render the ApexChart
+ */
+function updateAdvMtmChart() {
+    const { categories, series, seriesTotals } = getAdvMtmChartData();
+    const chartCont = document.getElementById('adv-mtm-chart-area');
+    if (!chartCont) return;
+
+    renderAdvMtmHeadsPanel(seriesTotals);
+
+    const options = {
+        series: series,
+        chart: {
+            type: AdvMtmState.viewType === 'pie' ? 'donut' : AdvMtmState.viewType,
+            height: 350,
+            background: 'transparent',
+            foreColor: '#8b949e',
+            toolbar: { show: false },
+            zoom: { enabled: false }
+        },
+        plotOptions: {
+            bar: { 
+                borderRadius: 4, 
+                columnWidth: '60%',
+                distributed: false
+            },
+            pie: { donut: { size: '70%' } }
+        },
+        dataLabels: { enabled: false },
+        stroke: {
+            curve: 'smooth',
+            width: AdvMtmState.viewType === 'line' ? 4 : 0,
+            lineCap: 'round'
+        },
+        markers: {
+            size: AdvMtmState.viewType === 'line' ? 5 : 0,
+            strokeWidth: 2,
+            strokeColors: '#fff',
+            hover: { size: 7 }
+        },
+        xaxis: {
+            categories: categories,
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: {
+                rotate: -45,
+                rotateAlways: categories.length > 10,
+                hideOverlappingLabels: true,
+                style: { fontSize: '10px', colors: '#8b949e' }
+            }
+        },
+        yaxis: {
+            labels: {
+                formatter: (val) => Math.abs(val) >= 1000 ? (val/1000).toFixed(1) + 'k' : val.toFixed(0),
+                style: { colors: '#8b949e' }
+            }
+        },
+        grid: {
+            borderColor: 'rgba(255,255,255,0.05)',
+            strokeDashArray: 4,
+            padding: {
+                left: 20,
+                right: 20,
+                bottom: 10
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            y: {
+                formatter: function(val, { series, seriesIndex, dataPointIndex, w }) {
+                    const dataObj = w.config.series[seriesIndex].data[dataPointIndex];
+                    if (!dataObj || dataObj.originalY === undefined) return val;
+                    const orig = dataObj.originalY;
+                    const isCurrency = !w.config.series[seriesIndex].name.toLowerCase().includes('trades') && !w.config.series[seriesIndex].name.toLowerCase().includes('pts');
+                    const sign = orig < 0 ? '-' : '';
+                    const absVal = Math.abs(orig);
+                    const formatted = absVal >= 1000 ? (absVal/1000).toFixed(1) + 'k' : Math.round(absVal);
+                    return sign + (isCurrency ? '₹' : '') + formatted;
+                }
+            }
+        },
+        legend: { show: false }
+    };
+
+    if (AdvMtmState.viewType === 'pie') {
+        // Pie chart logic: simplified for absolute values
+        const activeHeadKey = Object.keys(AdvMtmState.visibleHeads).find(k => AdvMtmState.visibleHeads[k]);
+        if (series.length > 0) {
+            options.series = series[0].data.map(d => d.y);
+            options.labels = categories;
+        }
+    }
+
+    if (AdvMtmState.chart) {
+        AdvMtmState.chart.updateOptions(options);
+    } else {
+        AdvMtmState.chart = new ApexCharts(chartCont, options);
+        AdvMtmState.chart.render();
+    }
+}
