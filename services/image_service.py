@@ -144,9 +144,9 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
         except Exception:
             pass  # CDN failed — local file is already saved, return local URL
 
-    from config import BASE_DIR as _BASE_DIR
-    rel = os.path.relpath(filepath, os.path.join(_BASE_DIR, 'static')).replace(os.sep, '/')
-    return {'url': f'/{rel}', 'filename': filename}
+    from config import UPLOADS_DIR as _UPLOADS_DIR
+    rel = os.path.relpath(filepath, _UPLOADS_DIR).replace(os.sep, '/')
+    return {'url': f'/uploads/{rel}', 'filename': filename}
 
 
 def _copy_to_backup(src_path: str, filename: str):
