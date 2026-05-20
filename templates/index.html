@@ -60,16 +60,11 @@
     <div class="calendar-nav global-date-nav">
       <!-- Compact period picker: click to expand month/year selects -->
       <div class="nav-period-wrap" id="nav-period-wrap">
-        <button class="nav-period-btn" id="nav-period-btn" title="Select month / year">Apr 2026 ▾</button>
-        <div class="nav-period-panel" id="nav-period-panel">
-          <select id="glob-month" class="select-box"></select>
-          <select id="glob-year" class="select-box"></select>
-          <!-- hidden view select kept for JS compatibility -->
-          <select id="glob-view" style="display:none">
-            <option value="month" selected>Month</option>
-            <option value="year">Year</option>
-          </select>
-        </div>
+        <select id="glob-month-year" class="nav-period-btn" title="Select month / year"></select>
+        <select id="glob-view" style="display:none">
+          <option value="month" selected>Month</option>
+          <option value="year">Year</option>
+        </select>
       </div>
 
       <!-- Month / Year view toggle -->
@@ -118,13 +113,11 @@
 
           <a href="/app-deck" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
           <button class="profile-menu-item" id="tt-manual-btn">🎯 Tracker</button>
-          <button class="profile-menu-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
-          <a href="/algo-lab" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
-          <a href="/algo-lab-v2" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(59,130,246,.15) 0%,rgba(168,85,247,.15) 100%); font-weight:700;">⚡ Algo Lab V2</a>
+          <!-- archived: strategy-lab-btn, algo-lab, algo-lab-v2 -->
 
           <div class="profile-divider"></div>
 
-          <button class="profile-menu-item" id="pdf-list-btn">🗂️ PDF List</button>
+          <!-- archived: pdf-list-btn -->
           <button class="profile-menu-item" id="quick-stats-btn">⚡ Quick Stats</button>
           <div class="quote-random-wrap" id="quote-random-wrap">
             <button class="profile-menu-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
@@ -144,14 +137,14 @@
           <div class="profile-divider"></div>
 
           <button class="profile-menu-item" id="profile-settings-btn">⚙️ Settings</button>
-          <button class="profile-menu-item" id="profile-backup-folder-btn">💾 Data Backup</button>
+          <!-- archived: profile-backup-folder-btn -->
           <button class="profile-menu-item" id="profile-quote-btn">💬 Quote</button>
-          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📝 Dev Journal</a>
-          <a href="/whatif" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📈 What If</a>
-          <button class="profile-menu-item" id="fullscreen-btn">⛶ Fullscreen</button>
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank" style="text-decoration:none;">📝 Dev Journal</a>
+          <!-- archived: whatif -->
+          <!-- archived: fullscreen-btn -->
           <button class="profile-menu-item mobile-view-toggle-btn" id="mobile-view-toggle-btn">📱 Mobile View</button>
-          <a href="/mobile/?view=gallery" id="mobile-gallery-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📷 Gallery</a>
-          <button class="profile-menu-item" id="profile-ohlc-btn">📊 OHLC</button>
+          <!-- archived: mobile-gallery-btn -->
+          <!-- archived: profile-ohlc-btn -->
 
           <!-- Broker inline dropdown -->
           <div class="profile-inline-group" id="profile-broker-group">
@@ -229,10 +222,7 @@
 
           <a href="/log" target="_blank" class="btn btn-outline" id="log-plus-btn" title="Trade Log+ — spreadsheet view with manual annotations" style="text-decoration:none">📋 Log+</a>
 
-          <button class="btn btn-outline" id="csvlog-toolbar-btn" title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
-          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn" title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
-          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
-          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
+          <!-- archived: csvlog-toolbar-btn, csvlog-charts-toolbar-btn, trade-review-toolbar-btn, trade-logger-toolbar-btn -->
 
           <!-- Options dropdown: Note / Columns / Views / Tags / Filter / +Add -->
           <div class="dropdown-wrapper" id="table-options-wrapper">

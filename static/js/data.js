@@ -146,35 +146,37 @@ function _openGalleryFromUrlParamsOnce() {
 }
 
 function populateSelects() {
-  const ms = document.getElementById('glob-month');
   const vs = document.getElementById('glob-view');
-
-  if (ms) {
-    MONTHS.forEach((m, i) => {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = m.slice(0, 3); if (i === state.month) o.selected = true;
-      ms.appendChild(o);
-    });
-  }
   if (vs) vs.value = state.calendarView;
+  repopulateYearSelect();
 }
 
 function repopulateYearSelect() {
-  const ys = document.getElementById('glob-year');
-  if (!ys) return;
-  const years = new Set();
+  const sel = document.getElementById('glob-month-year');
+  if (!sel) return;
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const seen = new Set();
   const MIN_YEAR = 2010;
   state.trades.forEach(t => {
-    const d = t.date;
-    if (d) { const y = new Date(d).getFullYear(); if (!isNaN(y) && y >= MIN_YEAR) years.add(y); }
+    if (t.date) {
+      const d = new Date(t.date);
+      if (!isNaN(d) && d.getFullYear() >= MIN_YEAR)
+        seen.add(`${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`);
+    }
   });
-  years.add(new Date().getFullYear());
-  const sorted = [...years].sort((a, b) => a - b);
-  ys.innerHTML = '';
-  sorted.forEach(y => {
+  // always include current month
+  const now = new Date();
+  seen.add(`${now.getFullYear()}-${String(now.getMonth()).padStart(2,'0')}`);
+  const sorted = [...seen].sort();
+  const current = `${state.year}-${String(state.month).padStart(2,'0')}`;
+  sel.innerHTML = '';
+  sorted.forEach(key => {
+    const [y, m] = key.split('-');
     const o = document.createElement('option');
-    o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
-    ys.appendChild(o);
+    o.value = key;
+    o.textContent = `${MN[parseInt(m)]} ${y}`;
+    if (key === current) o.selected = true;
+    sel.appendChild(o);
   });
 }
 

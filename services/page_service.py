@@ -13,7 +13,10 @@ def load_blog_entries(blog_path: str) -> list:
     if not os.path.exists(blog_path):
         return []
     with open(blog_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        content = f.read().strip()
+        if not content:
+            return []
+        return json.loads(content)
 
 
 def get_blog_entries_for_template(blog_path: str) -> list:

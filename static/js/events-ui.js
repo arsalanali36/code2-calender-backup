@@ -10,19 +10,16 @@
 // events-ui.js — Calendar, table, column ops, date range event bindings
 
 function _bindUIEvents() {
-  const gm = document.getElementById('glob-month');
-  if (gm) gm.addEventListener('change', e => {
-    state.month = parseInt(e.target.value);
+  const gmy = document.getElementById('glob-month-year');
+  if (gmy) gmy.addEventListener('change', e => {
+    const [y, m] = e.target.value.split('-');
+    state.year = parseInt(y);
+    state.month = parseInt(m);
     render();
   });
   const gv = document.getElementById('glob-view');
   if (gv) gv.addEventListener('change', e => {
     state.calendarView = String(e.target.value || 'month');
-    render();
-  });
-  const gy = document.getElementById('glob-year');
-  if (gy) gy.addEventListener('change', e => {
-    state.year = parseInt(e.target.value);
     render();
   });
   const gp = document.getElementById('glob-prev');
@@ -64,16 +61,7 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
-  // Compact period picker toggle
-  const navPeriodBtn = document.getElementById('nav-period-btn');
-  const navPeriodPanel = document.getElementById('nav-period-panel');
-  if (navPeriodBtn && navPeriodPanel) {
-    navPeriodBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      navPeriodPanel.classList.toggle('open');
-    });
-    navPeriodPanel.addEventListener('click', e => e.stopPropagation());
-  }
+  // nav-period-btn is now a <select> — no toggle needed
 
   // Month / Year view toggle button
   const navViewToggle = document.getElementById('nav-view-toggle');

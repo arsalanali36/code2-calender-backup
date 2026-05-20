@@ -463,31 +463,22 @@
           const target = tab.getAttribute('data-tab');
           const vGrid = document.getElementById('vd-charts-grid');
           const qContent = document.getElementById('quick-stats-tab-content');
-          const pBento = document.getElementById('premium-bento-tab-content');
           const qFilters = document.getElementById('quick-stats-filters');
           const vStatsBtn = document.getElementById('vd-stats-btn');
 
           if (target === 'visual') {
             if (vGrid) vGrid.style.display = 'grid';
             if (qContent) qContent.style.display = 'none';
-            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'none';
             if (vStatsBtn) vStatsBtn.style.display = 'inline-block';
             window.dispatchEvent(new Event('resize'));
           } else if (target === 'quick') {
             if (vGrid) vGrid.style.display = 'none';
             if (qContent) qContent.style.display = 'block';
-            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'flex';
             if (vStatsBtn) vStatsBtn.style.display = 'none';
             openQuickStats();
             setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-          } else if (target === 'premium_bento') {
-            if (vGrid) vGrid.style.display = 'none';
-            if (qContent) qContent.style.display = 'none';
-            if (pBento) pBento.style.display = 'block';
-            if (qFilters) qFilters.style.display = 'none';
-            if (vStatsBtn) vStatsBtn.style.display = 'none';
           }
         });
       });
