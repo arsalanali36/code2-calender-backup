@@ -73,6 +73,18 @@ def mobile_assets(filename):
     return send_from_directory(os.path.join(MOBILE_DIST, 'assets'), filename)
 
 
+_DECK_DEFAULTS = {
+    "offer": {
+        "highlight": "Free 30-Day Trial",
+        "cta": "Start Free Trial"
+    },
+    "hero_title": "Your Trading Edge Starts Here",
+    "hero_subtitle": "The most powerful trading journal built for serious traders. Track, review, and improve every single trade.",
+    "tagline": "Har trade ka hisaab. Ab code se.",
+    "categories": []
+}
+
+
 @page_bp.route('/app-deck')
 def app_deck():
     features_path = os.path.join(BASE_DIR, 'data', 'features.json')
@@ -84,6 +96,16 @@ def app_deck():
             deck_data = {}
     except Exception:
         deck_data = {}
+
+    # Deep-merge defaults so missing keys never crash the template
+    for key, val in _DECK_DEFAULTS.items():
+        if key not in deck_data:
+            deck_data[key] = val
+        elif isinstance(val, dict) and isinstance(deck_data.get(key), dict):
+            for subkey, subval in val.items():
+                if subkey not in deck_data[key]:
+                    deck_data[key][subkey] = subval
+
     return render_template('app_deck.html', deck=deck_data, cache_bust=int(time.time()))
 
 
