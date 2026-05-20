@@ -356,7 +356,8 @@ function _updateDemoUI() {
     if (hdr) banner.style.top = hdr.offsetHeight + 'px';
   }
   if (hdrBtn) {
-    hdrBtn.style.display = '';   // always visible in profile menu
+    hdrBtn.style.display = '';
+    hdrBtn.disabled = false;
     if (state.demoMode) {
       hdrBtn.textContent = '🎭 Clear Demo Data';
       hdrBtn.style.color = '#fbbf24';
@@ -386,6 +387,69 @@ async function _demoAction(endpoint, loadingText, successMsg, errorMsg) {
   }
 }
 
+function _showDemoRestoreConfirm() {
+  const existing = document.getElementById('demo-restore-confirm-overlay');
+  if (existing) existing.remove();
+
+  // Defer so current click event fully completes before overlay appears
+  setTimeout(() => {
+    const overlay = document.createElement('div');
+    overlay.id = 'demo-restore-confirm-overlay';
+    Object.assign(overlay.style, {
+      position: 'fixed', top: '0', left: '0', right: '0', bottom: '0',
+      background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: '999999'
+    });
+    overlay.innerHTML = `
+      <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:28px 30px;max-width:350px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.55);">
+        <div style="font-size:2rem;margin-bottom:10px;">&#9888;&#65039;</div>
+        <div style="font-size:1rem;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Apna Data Bachayein?</div>
+        <div style="font-size:0.83rem;color:#94a3b8;margin-bottom:22px;line-height:1.55;">
+          Demo restore karne se aapka current data replace ho jaayega.<br>
+          Pehle <strong style="color:#e2e8f0">Backup (Data + Images)</strong> save karna chahenge?
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <button id="drc-backup-btn" style="padding:10px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;">
+            &#128190; Pehle Backup, Phir Restore
+          </button>
+          <button id="drc-skip-btn" style="padding:10px 16px;background:transparent;color:#f87171;border:1px solid rgba(248,113,113,.5);border-radius:8px;font-size:0.88rem;cursor:pointer;">
+            Backup Nahi &mdash; Seedha Restore
+          </button>
+          <button id="drc-cancel-btn" style="padding:8px 16px;background:transparent;color:#64748b;border:1px solid #334155;border-radius:8px;font-size:0.82rem;cursor:pointer;margin-top:2px;">
+            Cancel
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    // Stop all clicks inside overlay from reaching global document handlers
+    overlay.addEventListener('click', e => {
+      e.stopPropagation();
+      if (e.target === overlay) overlay.remove();
+    });
+
+    document.getElementById('drc-cancel-btn').addEventListener('click', () => overlay.remove());
+
+    document.getElementById('drc-skip-btn').addEventListener('click', () => {
+      overlay.remove();
+      _demoAction('/api/trades/restore-demo', 'Restoring…',
+        'Demo data restored! 🎭', 'Failed to restore demo data');
+    });
+
+    document.getElementById('drc-backup-btn').addEventListener('click', async () => {
+      overlay.remove();
+      try {
+        if (typeof handleBackupWithProgress === 'function') {
+          await handleBackupWithProgress('pre-demo-restore');
+        }
+      } catch (_) {}
+      _demoAction('/api/trades/restore-demo', 'Restoring…',
+        'Demo data restored! 🎭', 'Failed to restore demo data');
+    });
+  }, 0);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Clear demo button (banner)
   const clearBtn = document.getElementById('demo-clear-btn');
@@ -398,13 +462,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // Header toggle button (profile dropdown)
   const hdrBtn = document.getElementById('demo-mode-toggle-btn');
   if (hdrBtn) {
-    hdrBtn.addEventListener('click', () => {
+    hdrBtn.addEventListener('click', e => {
+      e.stopPropagation();
       if (state.demoMode) {
         _demoAction('/api/trades/clear-demo', 'Clearing…',
           'Demo cleared — add your first trade! 🚀', 'Failed to clear demo data');
       } else {
-        _demoAction('/api/trades/restore-demo', 'Restoring…',
-          'Demo data restored! 🎭', 'Failed to restore demo data');
+        _showDemoRestoreConfirm();
       }
     });
   }
