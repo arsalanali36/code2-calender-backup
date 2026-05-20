@@ -19,18 +19,19 @@ _INTERVAL = 300  # seconds between auto-backups (5 minutes)
 _MAX_BACKUPS = 30
 
 
-def auto_backup(data_file: str, user_id=None) -> None:
+def auto_backup(data_file: str, user_id=None, force: bool = False) -> str | None:
     """
-    If at least _INTERVAL seconds have passed since the last backup,
-    copy data_file to the backups/ subdirectory next to it.
-    Thread-safe via a module-level lock.
+    Copy data_file to a timestamped backup in the backups/ subdirectory.
+    Returns the backup file path on success, None on skip or error.
+
+    force=True bypasses the 5-minute interval check (use for pre-destructive operations).
     """
     global _last_backup_time
     now = time.time()
 
     with _lock:
-        if now - _last_backup_time < _INTERVAL:
-            return
+        if not force and now - _last_backup_time < _INTERVAL:
+            return None
         _last_backup_time = now
 
     try:
@@ -52,5 +53,8 @@ def auto_backup(data_file: str, user_id=None) -> None:
         for old in all_backups[:-_MAX_BACKUPS]:
             os.remove(old)
 
+        return backup_file
+
     except Exception:
         logger.exception('Auto-backup failed for %s', data_file)
+        return None

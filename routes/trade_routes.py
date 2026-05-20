@@ -3,6 +3,7 @@ routes/trade_routes.py
 ----------------------
 API routes for reading and writing the trades payload.
 """
+import os
 from flask import Blueprint, request, jsonify
 from flask_login import current_user
 
@@ -62,7 +63,34 @@ def restore_demo():
         return jsonify({'error': 'Unauthorized'}), 401
     try:
         from services.demo_service import restore_demo_data_for_user
-        restore_demo_data_for_user(uid)
+        had_backup = restore_demo_data_for_user(uid)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    return jsonify({'success': True, 'has_backup': had_backup})
+
+
+@trade_bp.route('/api/trades/undo-demo-restore', methods=['POST'])
+def undo_demo_restore():
+    """Restore the most recent pre-demo backup for the current user."""
+    uid = _get_user_id()
+    if uid is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    import shutil
+    from config import BASE_DIR
+    backup_dir = os.path.join(BASE_DIR, 'data', 'backups')
+    prefix = f'trades_backup_user_{uid}_'
+    try:
+        files = sorted(
+            f for f in os.listdir(backup_dir) if f.startswith(prefix)
+        )
+    except FileNotFoundError:
+        return jsonify({'error': 'No backup found'}), 404
+    if not files:
+        return jsonify({'error': 'No backup found'}), 404
+    latest = os.path.join(backup_dir, files[-1])
+    dest = os.path.join(BASE_DIR, 'data', f'trades_{uid}.json')
+    try:
+        shutil.copy2(latest, dest)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     return jsonify({'success': True})

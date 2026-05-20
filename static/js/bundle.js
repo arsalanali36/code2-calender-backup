@@ -1854,12 +1854,53 @@ async function _demoAction(endpoint, loadingText, successMsg, errorMsg) {
   try {
     const res = await fetch(endpoint, { method: 'POST' });
     if (!res.ok) throw new Error('server error');
-    await loadTrades();   // reloads data → sets state.demoMode → calls _updateDemoUI
-    if (typeof showToast === 'function') showToast(successMsg, 'success');
+    const json = await res.json().catch(() => ({}));
+    await loadTrades();
+    if (endpoint === '/api/trades/restore-demo' && json.has_backup) {
+      _showUndoToast();
+    } else if (typeof showToast === 'function') {
+      showToast(successMsg, 'success');
+    }
   } catch (_e) {
     _updateDemoUI();
     if (typeof showToast === 'function') showToast(errorMsg, 'error');
   }
+}
+
+function _showUndoToast() {
+  const existing = document.getElementById('demo-restore-undo-toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.id = 'demo-restore-undo-toast';
+  Object.assign(t.style, {
+    position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+    background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+    padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
+    zIndex: '999999', boxShadow: '0 8px 32px rgba(0,0,0,.5)',
+    fontSize: '0.875rem', color: '#f1f5f9', whiteSpace: 'nowrap'
+  });
+  t.innerHTML = `
+    <span>&#10003; Demo restore ho gaya.</span>
+    <button id="dru-undo-btn" style="padding:5px 12px;background:#f59e0b;color:#000;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:0.82rem;">&#8617; Undo — Data Wapas Lao</button>
+    <button id="dru-close-btn" style="background:transparent;border:none;color:#64748b;cursor:pointer;font-size:1.1rem;line-height:1;">&#x2715;</button>`;
+  document.body.appendChild(t);
+
+  document.getElementById('dru-close-btn').addEventListener('click', () => t.remove());
+
+  document.getElementById('dru-undo-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('dru-undo-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Restoring…'; }
+    try {
+      const res = await fetch('/api/trades/undo-demo-restore', { method: 'POST' });
+      if (!res.ok) throw new Error();
+      t.remove();
+      await loadTrades();
+      if (typeof showToast === 'function') showToast('Data recover ho gaya! ✅', 'success');
+    } catch (_) {
+      if (typeof showToast === 'function') showToast('Recovery fail ho gayi — backup se try karein', 'error');
+      _updateDemoUI();
+    }
+  });
 }
 
 function _showDemoRestoreConfirm() {

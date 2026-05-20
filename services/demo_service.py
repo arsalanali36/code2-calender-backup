@@ -135,16 +135,21 @@ def generate_demo_data_for_user(user_id: int) -> None:
         logger.exception('[demo] failed to write demo file for user %s', user_id)
 
 
-def restore_demo_data_for_user(user_id: int) -> None:
+def restore_demo_data_for_user(user_id: int) -> bool:
     """
-    Delete the user's current trades file and regenerate demo data.
-    Used when a user wants to bring back the demo after clearing it.
+    Backup the user's current file, delete it, then regenerate demo data.
+    Returns True if a pre-restore backup was created (i.e. user had real data).
     """
+    from services.backup_service import auto_backup
     dest = os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
-    try:
-        if os.path.exists(dest):
+    had_backup = False
+    if os.path.exists(dest):
+        backup_path = auto_backup(dest, user_id=user_id, force=True)
+        had_backup = backup_path is not None
+        try:
             os.remove(dest)
-    except Exception:
-        logger.exception('[demo] failed to delete file before restore for user %s', user_id)
-        return
+        except Exception:
+            logger.exception('[demo] failed to delete file before restore for user %s', user_id)
+            return had_backup
     generate_demo_data_for_user(user_id)
+    return had_backup
