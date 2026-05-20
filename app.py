@@ -144,6 +144,8 @@ def require_login():
         if not current_user.is_authenticated:
             if request.path.startswith('/api/'):
                 return {'error': 'Unauthorized'}, 401
+            if request.path == '/':
+                return redirect(url_for('page.app_deck'))
             return redirect(url_for('auth.login'))
 
 @app.route('/api/<path:path>', methods=['OPTIONS'])
