@@ -61,7 +61,7 @@
       <button class="gv2-sb-btn" id="gv2-tray-mtm-btn" title="Day Equity Curve" onclick="document.getElementById('gv2-mtm-btn')?.click()">📈</button>
       <button class="gv2-sb-btn" id="gv2-tray-imgmgr-btn" title="Image Manager" onclick="document.getElementById('gv2-img-manager-btn')?.click()">📊</button>
       <button class="gv2-sb-btn" id="gv2-tray-pdf-btn" title="PDF Library" onclick="document.getElementById('gv2-pdf-library-btn')?.click()">📄</button>
-      <button class="gv2-sb-btn" id="gv2-tray-pin-btn" title="Pin Options" onclick="document.getElementById('tag-pin-options-btn')?.click()">📍</button>
+      <button class="gv2-sb-btn" id="gv2-tray-pin-btn" title="Pin Options" onclick="_gv2SidebarPinClick(event,this)">📍</button>
       <div class="gv2-sb-sep"></div>
       <!-- Recording Dropdown -->
       <div class="gv2-tray-record-container dropdown-wrap">
@@ -260,3 +260,18 @@
       </div>
 
     </div>
+
+<script>
+function _gv2SidebarPinClick(e, btn) {
+  e.stopPropagation();
+  const list = document.getElementById('tag-pin-options-list');
+  if (!list) return;
+  const isOpen = list.style.display === 'block';
+  document.querySelectorAll('.dropdown-menu').forEach(d => d.style.display = 'none');
+  if (!isOpen) {
+    const r = btn.getBoundingClientRect();
+    list.style.cssText = list.style.cssText +
+      ';display:block;position:fixed;top:' + r.top + 'px;right:50px;left:auto;z-index:99999;';
+  }
+}
+</script>
