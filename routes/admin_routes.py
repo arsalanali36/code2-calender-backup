@@ -71,6 +71,26 @@ def admin_panel():
     return render_template('admin.html', users=rows, total=len(rows))
 
 
+@admin_bp.route('/admin/deploy', methods=['POST'])
+def deploy():
+    """Admin-only: git pull + docker restart. Triggered via POST from localhost."""
+    if not current_user.is_authenticated or current_user.id != 1:
+        abort(403)
+    import subprocess, threading
+
+    def _run():
+        try:
+            subprocess.run(['git', 'pull', 'origin', 'master'],
+                           cwd=BASE_DIR, capture_output=True, timeout=60)
+            subprocess.run(['docker', 'restart', 'code2'],
+                           capture_output=True, timeout=30)
+        except Exception:
+            pass
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({'status': 'deploying — wait 15s then reload'})
+
+
 @admin_bp.route('/admin/delete-user/<int:user_id>', methods=['POST'])
 def delete_user(user_id):
     if not current_user.is_authenticated or current_user.id != 1:
