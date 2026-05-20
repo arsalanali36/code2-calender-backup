@@ -55,6 +55,14 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
       </button>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-video-url-btn" title="Video URLs" style="display:none !important; font-size:0.65rem; font-weight:600;">Vid</button>
+      <!-- Tray duplicates of top-toolbar buttons (originals hidden later) -->
+      <div class="gv2-sb-sep"></div>
+      <button class="gv2-sb-btn" id="gv2-tray-target-btn" title="Target Tracker" onclick="document.getElementById('gv2-target-pill')?.click()">🎯</button>
+      <button class="gv2-sb-btn" id="gv2-tray-mtm-btn" title="Day Equity Curve" onclick="document.getElementById('gv2-mtm-btn')?.click()">📈</button>
+      <button class="gv2-sb-btn" id="gv2-tray-imgmgr-btn" title="Image Manager" onclick="document.getElementById('gv2-img-manager-btn')?.click()">📊</button>
+      <button class="gv2-sb-btn" id="gv2-tray-pdf-btn" title="PDF Library" onclick="document.getElementById('gv2-pdf-library-btn')?.click()">📄</button>
+      <button class="gv2-sb-btn" id="gv2-tray-pin-btn" title="Pin Options" onclick="document.getElementById('tag-pin-options-btn')?.click()">📍</button>
+      <div class="gv2-sb-sep"></div>
       <!-- Recording Dropdown -->
       <div class="gv2-tray-record-container dropdown-wrap">
         <button id="gv2-record-toggle-btn" class="gv2-sb-btn gv2-record-trigger" title="Record Tools">
