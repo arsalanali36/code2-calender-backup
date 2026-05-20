@@ -71,13 +71,17 @@ const exportService = (() => {
       return;
     }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
-    const fname = filename || `trading_journal_images_${_timestamp()}.pdf`;
+    if (!window.jspdf) {
+      if (typeof showToast === 'function') showToast('PDF library not loaded. Refresh and try again.', 'error');
+      return;
+    }
 
+    const fname = filename || `trading_journal_images_${_timestamp()}.pdf`;
     if (typeof showToast === 'function') showToast('Generating PDF... Please wait.', 'info');
 
     try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
       let newsOnCurrentPage = 0; // 0=none, 1=left, 2=right
 
       for (let i = 0; i < metaList.length; i++) {
@@ -273,21 +277,33 @@ const exportService = (() => {
 
   function _getImageDataUrl(url) {
     return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      const tryLoad = (withCors) => {
+        const img = new Image();
+        if (withCors) img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } catch (e) {
+            if (withCors) {
+              // canvas tainted — retry without crossOrigin
+              tryLoad(false);
+            } else {
+              console.warn('Canvas export failed for:', url, e);
+              resolve(null);
+            }
+          }
+        };
+        img.onerror = () => {
+          if (withCors) { tryLoad(false); } else { resolve(null); }
+        };
+        img.src = url + (withCors ? '' : (url.includes('?') ? '&_nocors=1' : '?_nocors=1'));
       };
-      img.onerror = (e) => {
-        console.warn("Failed to load image for PDF:", url, e);
-        resolve(null);
-      };
-      img.src = url;
+      tryLoad(true);
     });
   }
 
