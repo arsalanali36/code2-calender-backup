@@ -35,6 +35,25 @@ def post_trades():
     return jsonify({'success': True})
 
 
+@trade_bp.route('/api/trades/clear-demo', methods=['POST'])
+def clear_demo():
+    """Reset a demo-mode user's data to an empty journal."""
+    uid = _get_user_id()
+    if uid is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    empty = {
+        'trades': [], 'columns': ['Date', 'Profit', 'Trade'],
+        'allTags': [], 'tagColumns': [], 'userColumns': [],
+        'dayData': {}, 'tagGroups': {}, 'pdfPageTags': {},
+        'importedPdfs': [], 'tagTemplates': {}, 'imgTypes': {}, 'uiSettings': {},
+    }
+    try:
+        save_trades(empty, user_id=uid)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    return jsonify({'success': True})
+
+
 def _trigger_backup_sync(data):
     """Fire-and-forget: resync backup for dates present in the saved payload."""
     import threading

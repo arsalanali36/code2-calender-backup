@@ -19,6 +19,13 @@ def migrate_default_data_for_first_user(user_id: int) -> None:
     No-op if trades_1.json already exists or trades.json is missing.
     """
     if user_id != 1:
+        # New users get randomised demo data so they can explore the app
+        # without starting from a blank slate.
+        try:
+            from services.demo_service import generate_demo_data_for_user
+            generate_demo_data_for_user(user_id)
+        except Exception:
+            logger.exception('Failed to generate demo data for user %s', user_id)
         return
     user_trades = os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
     if os.path.exists(DATA_FILE) and not os.path.exists(user_trades):

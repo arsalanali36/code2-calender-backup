@@ -203,6 +203,7 @@ async function loadTrades() {
     state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
     state.uiSettings = (data.uiSettings && typeof data.uiSettings === 'object') ? data.uiSettings : {};
+    state.demoMode = !!data.demo_mode;
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -219,6 +220,8 @@ async function loadTrades() {
     repopulateYearSelect();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
+    const _db = document.getElementById('demo-banner');
+    if (_db) _db.style.display = state.demoMode ? 'flex' : 'none';
     _dismissLoadingOverlay();
   } catch (e) {
     console.error('[loadTrades] error:', e);
@@ -340,4 +343,27 @@ async function syncFromServerIfChanged(force = false) {
 }
 
 // syncTagColumnRegistry and all utility/normalization functions are in data-utils.js
+
+// ── Demo mode: clear button ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('demo-clear-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async function () {
+    btn.disabled = true;
+    btn.textContent = 'Clearing…';
+    try {
+      const res = await fetch('/api/trades/clear-demo', { method: 'POST' });
+      if (!res.ok) throw new Error('server error');
+      state.demoMode = false;
+      const banner = document.getElementById('demo-banner');
+      if (banner) banner.style.display = 'none';
+      await loadTrades();
+      if (typeof showToast === 'function') showToast('Demo cleared — add your first trade!', 'success');
+    } catch (_e) {
+      btn.disabled = false;
+      btn.textContent = 'Clear & Start Fresh →';
+      if (typeof showToast === 'function') showToast('Failed to clear demo data', 'error');
+    }
+  });
+});
 
