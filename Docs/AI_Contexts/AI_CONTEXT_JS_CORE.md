@@ -431,35 +431,37 @@ function _openGalleryFromUrlParamsOnce() {
 }
 
 function populateSelects() {
-  const ms = document.getElementById('glob-month');
   const vs = document.getElementById('glob-view');
-
-  if (ms) {
-    MONTHS.forEach((m, i) => {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = m.slice(0, 3); if (i === state.month) o.selected = true;
-      ms.appendChild(o);
-    });
-  }
   if (vs) vs.value = state.calendarView;
+  repopulateYearSelect();
 }
 
 function repopulateYearSelect() {
-  const ys = document.getElementById('glob-year');
-  if (!ys) return;
-  const years = new Set();
+  const sel = document.getElementById('glob-month-year');
+  if (!sel) return;
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const seen = new Set();
   const MIN_YEAR = 2010;
   state.trades.forEach(t => {
-    const d = t.date;
-    if (d) { const y = new Date(d).getFullYear(); if (!isNaN(y) && y >= MIN_YEAR) years.add(y); }
+    if (t.date) {
+      const d = new Date(t.date);
+      if (!isNaN(d) && d.getFullYear() >= MIN_YEAR)
+        seen.add(`${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`);
+    }
   });
-  years.add(new Date().getFullYear());
-  const sorted = [...years].sort((a, b) => a - b);
-  ys.innerHTML = '';
-  sorted.forEach(y => {
+  // always include current month
+  const now = new Date();
+  seen.add(`${now.getFullYear()}-${String(now.getMonth()).padStart(2,'0')}`);
+  const sorted = [...seen].sort();
+  const current = `${state.year}-${String(state.month).padStart(2,'0')}`;
+  sel.innerHTML = '';
+  sorted.forEach(key => {
+    const [y, m] = key.split('-');
     const o = document.createElement('option');
-    o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
-    ys.appendChild(o);
+    o.value = key;
+    o.textContent = `${MN[parseInt(m)]} ${y}`;
+    if (key === current) o.selected = true;
+    sel.appendChild(o);
   });
 }
 
@@ -486,6 +488,7 @@ async function loadTrades() {
     state.tagTemplates = (data.tagTemplates && typeof data.tagTemplates === 'object') ? data.tagTemplates : (state.tagTemplates || {});
     state.imgTypes  = (data.imgTypes && typeof data.imgTypes === 'object') ? data.imgTypes : {};
     state.uiSettings = (data.uiSettings && typeof data.uiSettings === 'object') ? data.uiSettings : {};
+    state.demoMode = !!data.demo_mode;
     const ensuredChanged = ensurePermanentColumns();
     normalizeStructuredDateColumns();
     syncTagColumnRegistry();
@@ -502,6 +505,7 @@ async function loadTrades() {
     repopulateYearSelect();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
+    _updateDemoUI();
     _dismissLoadingOverlay();
   } catch (e) {
     console.error('[loadTrades] error:', e);
@@ -623,6 +627,131 @@ async function syncFromServerIfChanged(force = false) {
 }
 
 // syncTagColumnRegistry and all utility/normalization functions are in data-utils.js
+
+// ── Demo mode UI helpers ──────────────────────────────────────────────────
+function _updateDemoUI() {
+  const banner  = document.getElementById('demo-banner');
+  const hdrBtn  = document.getElementById('demo-mode-toggle-btn');
+  const clearBtn = document.getElementById('demo-clear-btn');
+
+  if (banner) {
+    banner.style.display = state.demoMode ? 'flex' : 'none';
+    // Sticky: sit right below the sticky header
+    const hdr = document.querySelector('.app-header');
+    if (hdr) banner.style.top = hdr.offsetHeight + 'px';
+  }
+  if (hdrBtn) {
+    hdrBtn.style.display = '';
+    hdrBtn.disabled = false;
+    if (state.demoMode) {
+      hdrBtn.textContent = '🎭 Clear Demo Data';
+      hdrBtn.style.color = '#fbbf24';
+    } else {
+      hdrBtn.textContent = '🎭 Restore Demo Data';
+      hdrBtn.style.color = '';
+    }
+  }
+  if (clearBtn) {
+    clearBtn.disabled = false;
+    clearBtn.textContent = 'Clear & Start Fresh →';
+  }
+}
+
+async function _demoAction(endpoint, loadingText, successMsg, errorMsg) {
+  const clearBtn = document.getElementById('demo-clear-btn');
+  const hdrBtn   = document.getElementById('demo-mode-toggle-btn');
+  [clearBtn, hdrBtn].forEach(b => { if (b) { b.disabled = true; b.textContent = loadingText; } });
+  try {
+    const res = await fetch(endpoint, { method: 'POST' });
+    if (!res.ok) throw new Error('server error');
+    await loadTrades();   // reloads data → sets state.demoMode → calls _updateDemoUI
+    if (typeof showToast === 'function') showToast(successMsg, 'success');
+  } catch (_e) {
+    _updateDemoUI();
+    if (typeof showToast === 'function') showToast(errorMsg, 'error');
+  }
+}
+
+function _showDemoRestoreConfirm() {
+  const existing = document.getElementById('demo-restore-confirm-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'demo-restore-confirm-overlay';
+  Object.assign(overlay.style, {
+    position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.72)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: '99999'
+  });
+  overlay.innerHTML = `
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:28px 30px;max-width:350px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.55);">
+      <div style="font-size:2rem;margin-bottom:10px;">⚠️</div>
+      <div style="font-size:1rem;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Apna Data Bachayein?</div>
+      <div style="font-size:0.83rem;color:#94a3b8;margin-bottom:22px;line-height:1.55;">
+        Demo restore karne se aapka current data replace ho jaayega.<br>
+        Pehle <strong style="color:#e2e8f0">Backup (Data + Images)</strong> save karna chahenge?
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <button id="drc-backup-btn" style="padding:10px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;">
+          💾 Pehle Backup, Phir Restore
+        </button>
+        <button id="drc-skip-btn" style="padding:10px 16px;background:transparent;color:#f87171;border:1px solid rgba(248,113,113,.5);border-radius:8px;font-size:0.88rem;cursor:pointer;">
+          Backup Nahi — Seedha Restore
+        </button>
+        <button id="drc-cancel-btn" style="padding:8px 16px;background:transparent;color:#64748b;border:1px solid #334155;border-radius:8px;font-size:0.82rem;cursor:pointer;margin-top:2px;">
+          Cancel
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  document.getElementById('drc-cancel-btn').addEventListener('click', close);
+
+  document.getElementById('drc-skip-btn').addEventListener('click', () => {
+    close();
+    _demoAction('/api/trades/restore-demo', 'Restoring…',
+      'Demo data restored! 🎭', 'Failed to restore demo data');
+  });
+
+  document.getElementById('drc-backup-btn').addEventListener('click', async () => {
+    close();
+    try {
+      if (typeof handleBackupWithProgress === 'function') {
+        await handleBackupWithProgress('pre-demo-restore');
+      }
+    } catch (_) {}
+    _demoAction('/api/trades/restore-demo', 'Restoring…',
+      'Demo data restored! 🎭', 'Failed to restore demo data');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Clear demo button (banner)
+  const clearBtn = document.getElementById('demo-clear-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () =>
+      _demoAction('/api/trades/clear-demo', 'Clearing…',
+        'Demo cleared — add your first trade! 🚀', 'Failed to clear demo data'));
+  }
+
+  // Header toggle button (profile dropdown)
+  const hdrBtn = document.getElementById('demo-mode-toggle-btn');
+  if (hdrBtn) {
+    hdrBtn.addEventListener('click', () => {
+      if (state.demoMode) {
+        _demoAction('/api/trades/clear-demo', 'Clearing…',
+          'Demo cleared — add your first trade! 🚀', 'Failed to clear demo data');
+      } else if (state.trades && state.trades.length > 0) {
+        _showDemoRestoreConfirm();
+      } else {
+        _demoAction('/api/trades/restore-demo', 'Restoring…',
+          'Demo data restored! 🎭', 'Failed to restore demo data');
+      }
+    });
+  }
+});
 
 
 ```

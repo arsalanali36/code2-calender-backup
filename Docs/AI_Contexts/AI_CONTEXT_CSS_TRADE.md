@@ -2768,6 +2768,37 @@ input:checked+.tl-slider:after {
 #vd-dd-table .pnl-loss { color: #f85149; font-weight: 700; }
 
 
+/* ── Demo mode banner ───────────────────────── */
+.demo-banner {
+  width: 100%;
+  background: #92400e;
+  color: #fef3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;          /* JS will set this to header height after load */
+  z-index: 95;
+}
+.demo-banner-btn {
+  background: #fbbf24;
+  color: #1c1917;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.demo-banner-btn:hover { background: #f59e0b; }
+
 ```
 
 ## File: `static/css/style-misc-tags.css`

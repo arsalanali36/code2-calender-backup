@@ -59,7 +59,14 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        
+
+        # Admin email — non-blocking, never fails registration
+        try:
+            from services.email_service import notify_new_user
+            notify_new_user(email)
+        except Exception:
+            pass
+
         migrate_default_data_for_first_user(new_user.id)
 
         login_user(new_user, remember=True)
@@ -299,6 +306,8 @@ def test_dhan_token():
             body = _json.loads(resp.read().decode())
             from services.dhan_service_core import save_config
             save_config(cid, token)
+            from services.ohlc_scheduler import mark_token_refreshed
+            mark_token_refreshed()
             return jsonify({'ok': True, 'balance': body.get('availabelBalance', body.get('availableBalance'))})
     except urllib.error.HTTPError as e:
         err_body = e.read().decode(errors='replace')

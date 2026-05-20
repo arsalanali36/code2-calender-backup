@@ -47,6 +47,38 @@ Consolidated code context for AI assistants.
         </div>
       </div>
 
+      <!-- ── Scheduler Status ── -->
+      <div class="ohlc-mgr-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
+          <div class="ohlc-mgr-section-title" style="margin:0">&#9654; Unified OHLC Scheduler</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm" id="ohlc-sched-refresh-btn">Refresh</button>
+            <button class="btn btn-primary btn-sm" id="ohlc-sched-trigger-btn">Trigger Now</button>
+          </div>
+        </div>
+        <div id="ohlc-sched-status" style="font-size:0.82rem;display:flex;gap:14px;flex-wrap:wrap;opacity:0.7;">
+          <span id="ohlc-sched-phase">—</span>
+          <span id="ohlc-sched-last">—</span>
+          <span id="ohlc-sched-counts">—</span>
+        </div>
+        <div id="ohlc-sched-current" style="font-size:0.78rem;opacity:0.5;margin-top:4px;min-height:14px;"></div>
+      </div>
+
+      <!-- ── Watchlist ── -->
+      <div class="ohlc-mgr-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;">
+          <div class="ohlc-mgr-section-title" style="margin:0">Watchlist</div>
+          <span class="ohlc-mgr-hint">Extra symbols downloaded every day (beyond your trades)</span>
+        </div>
+        <textarea id="ohlc-watchlist-input" rows="2"
+          style="width:100%;resize:vertical;background:var(--input-bg,#1a1a2e);color:inherit;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;"
+          placeholder="e.g. NIFTY, BANKNIFTY, RELIANCE, HDFCBANK"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+          <span id="ohlc-watchlist-count" style="font-size:0.78rem;opacity:0.45;">0 symbols</span>
+          <button class="btn btn-primary btn-sm" id="ohlc-watchlist-save-btn">Save Watchlist</button>
+        </div>
+      </div>
+
       <!-- ── Tradebook CSV Upload ── -->
       <div class="ohlc-mgr-section">
         <div class="ohlc-mgr-section-title">

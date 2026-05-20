@@ -469,31 +469,22 @@ Consolidated code context for AI assistants.
           const target = tab.getAttribute('data-tab');
           const vGrid = document.getElementById('vd-charts-grid');
           const qContent = document.getElementById('quick-stats-tab-content');
-          const pBento = document.getElementById('premium-bento-tab-content');
           const qFilters = document.getElementById('quick-stats-filters');
           const vStatsBtn = document.getElementById('vd-stats-btn');
 
           if (target === 'visual') {
             if (vGrid) vGrid.style.display = 'grid';
             if (qContent) qContent.style.display = 'none';
-            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'none';
             if (vStatsBtn) vStatsBtn.style.display = 'inline-block';
             window.dispatchEvent(new Event('resize'));
           } else if (target === 'quick') {
             if (vGrid) vGrid.style.display = 'none';
             if (qContent) qContent.style.display = 'block';
-            if (pBento) pBento.style.display = 'none';
             if (qFilters) qFilters.style.display = 'flex';
             if (vStatsBtn) vStatsBtn.style.display = 'none';
             openQuickStats();
             setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-          } else if (target === 'premium_bento') {
-            if (vGrid) vGrid.style.display = 'none';
-            if (qContent) qContent.style.display = 'none';
-            if (pBento) pBento.style.display = 'block';
-            if (qFilters) qFilters.style.display = 'none';
-            if (vStatsBtn) vStatsBtn.style.display = 'none';
           }
         });
       });
@@ -1088,10 +1079,11 @@ initializeQuotesFeature();
     const modal = document.getElementById('ohlc-mgr-modal');
     if (!modal) return;
     modal.classList.add('open');
-    // Close profile dropdown
     const pd = document.getElementById('profile-dropdown');
     if (pd) pd.classList.remove('open');
     loadCredentials();
+    loadWatchlist();
+    loadSchedulerStatus();
   }
 
   function closeOhlcManager() {
@@ -1165,6 +1157,83 @@ initializeQuotesFeature();
       }
     } catch (e) {
       showToast('Save failed: ' + e.message, 'error');
+    }
+  }
+
+  // ── Scheduler Status ─────────────────────────────────────────────────────────
+
+  async function loadSchedulerStatus() {
+    try {
+      const r = await fetch('/api/ohlc/status');
+      const d = await r.json();
+      const phase   = document.getElementById('ohlc-sched-phase');
+      const last    = document.getElementById('ohlc-sched-last');
+      const counts  = document.getElementById('ohlc-sched-counts');
+      const current = document.getElementById('ohlc-sched-current');
+      if (phase)   phase.textContent   = 'Phase: ' + (d.phase || 'idle');
+      if (last)    last.textContent    = d.last_run ? 'Last: ' + d.last_run.slice(11, 19) : 'Not run yet';
+      if (counts)  counts.textContent  = d.last_run ? `ok=${d.ok} skip=${d.skipped} fail=${d.failed}` : '';
+      if (current) current.textContent = d.current ? 'Downloading: ' + d.current : '';
+    } catch (_) {}
+  }
+
+  async function triggerScheduler() {
+    const btn = document.getElementById('ohlc-sched-trigger-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Triggering...'; }
+    try {
+      const r = await fetch('/api/ohlc/trigger', { method: 'POST' });
+      const d = await r.json();
+      if (d.ok) {
+        showToast('Download cycle triggered');
+        appendLog('Manual trigger sent — cycle starting...');
+        setTimeout(loadSchedulerStatus, 2000);
+      }
+    } catch (e) {
+      showToast('Trigger failed: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Trigger Now'; }
+    }
+  }
+
+  // ── Watchlist ─────────────────────────────────────────────────────────────────
+
+  async function loadWatchlist() {
+    try {
+      const r    = await fetch('/api/ohlc/watchlist');
+      const syms = await r.json();
+      const inp  = document.getElementById('ohlc-watchlist-input');
+      const cnt  = document.getElementById('ohlc-watchlist-count');
+      if (inp) inp.value = syms.join(', ');
+      if (cnt) cnt.textContent = syms.length + ' symbol' + (syms.length !== 1 ? 's' : '');
+    } catch (_) {}
+  }
+
+  async function saveWatchlist() {
+    const inp = document.getElementById('ohlc-watchlist-input');
+    const btn = document.getElementById('ohlc-watchlist-save-btn');
+    if (!inp) return;
+    const symbols = inp.value.split(',').map(s => s.trim()).filter(Boolean);
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    try {
+      const r = await fetch('/api/ohlc/watchlist', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ symbols }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        const cnt = document.getElementById('ohlc-watchlist-count');
+        if (cnt) cnt.textContent = d.saved.length + ' symbol' + (d.saved.length !== 1 ? 's' : '');
+        if (inp) inp.value = d.saved.join(', ');
+        showToast('Watchlist saved (' + d.saved.length + ' symbols)');
+        appendLog('Watchlist saved: ' + (d.saved.join(', ') || '(empty)'));
+      } else {
+        showToast(d.error || 'Save failed', 'error');
+      }
+    } catch (e) {
+      showToast('Save failed: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Watchlist'; }
     }
   }
 
@@ -1360,9 +1429,12 @@ initializeQuotesFeature();
     document.getElementById('ohlc-cred-cancel').onclick   = () => {
       document.getElementById('ohlc-cred-form').style.display = 'none';
     };
-    document.getElementById('ohlc-status-refresh-btn').onclick = loadStatus;
-    document.getElementById('ohlc-scrip-dl-btn').onclick        = downloadScripMaster;
-    document.getElementById('ohlc-sync-all-btn').onclick        = startSyncAll;
+    document.getElementById('ohlc-status-refresh-btn').onclick  = loadStatus;
+    document.getElementById('ohlc-scrip-dl-btn').onclick         = downloadScripMaster;
+    document.getElementById('ohlc-sync-all-btn').onclick         = startSyncAll;
+    document.getElementById('ohlc-sched-refresh-btn').onclick    = loadSchedulerStatus;
+    document.getElementById('ohlc-sched-trigger-btn').onclick    = triggerScheduler;
+    document.getElementById('ohlc-watchlist-save-btn').onclick   = saveWatchlist;
     document.getElementById('ohlc-log-clear-btn').onclick       = () => {
       document.getElementById('ohlc-sync-log').innerHTML = '';
     };

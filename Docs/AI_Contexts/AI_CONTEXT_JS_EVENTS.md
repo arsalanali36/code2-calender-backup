@@ -170,21 +170,10 @@ function bindEvents() {
 }
 
 function syncSelects() {
-  const m = document.getElementById('glob-month');
-  if (m) m.value = state.month;
-  const y = document.getElementById('glob-year');
-  if (y) y.value = state.year;
+  const gmy = document.getElementById('glob-month-year');
+  if (gmy) gmy.value = `${state.year}-${String(state.month).padStart(2,'0')}`;
   const v = document.getElementById('glob-view');
   if (v) v.value = state.calendarView;
-  if (m && v) m.disabled = state.calendarView === 'year';
-  // Update compact period button label
-  const periodBtn = document.getElementById('nav-period-btn');
-  if (periodBtn) {
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    periodBtn.textContent = state.calendarView === 'year'
-      ? state.year + ' ▾'
-      : MONTHS[state.month] + ' ' + state.year + ' ▾';
-  }
   // Update view toggle button label
   const viewToggle = document.getElementById('nav-view-toggle');
   if (viewToggle) {
@@ -817,19 +806,16 @@ function _bindKeyboardEvents() {
 // events-ui.js — Calendar, table, column ops, date range event bindings
 
 function _bindUIEvents() {
-  const gm = document.getElementById('glob-month');
-  if (gm) gm.addEventListener('change', e => {
-    state.month = parseInt(e.target.value);
+  const gmy = document.getElementById('glob-month-year');
+  if (gmy) gmy.addEventListener('change', e => {
+    const [y, m] = e.target.value.split('-');
+    state.year = parseInt(y);
+    state.month = parseInt(m);
     render();
   });
   const gv = document.getElementById('glob-view');
   if (gv) gv.addEventListener('change', e => {
     state.calendarView = String(e.target.value || 'month');
-    render();
-  });
-  const gy = document.getElementById('glob-year');
-  if (gy) gy.addEventListener('change', e => {
-    state.year = parseInt(e.target.value);
     render();
   });
   const gp = document.getElementById('glob-prev');
@@ -871,16 +857,7 @@ function _bindUIEvents() {
     if (typeof renderVisualDashboard === 'function') renderVisualDashboard();
   });
 
-  // Compact period picker toggle
-  const navPeriodBtn = document.getElementById('nav-period-btn');
-  const navPeriodPanel = document.getElementById('nav-period-panel');
-  if (navPeriodBtn && navPeriodPanel) {
-    navPeriodBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      navPeriodPanel.classList.toggle('open');
-    });
-    navPeriodPanel.addEventListener('click', e => e.stopPropagation());
-  }
+  // nav-period-btn is now a <select> — no toggle needed
 
   // Month / Year view toggle button
   const navViewToggle = document.getElementById('nav-view-toggle');
@@ -987,13 +964,32 @@ function _bindUIEvents() {
       el.textContent = msg;
     }
 
+    function setBar(barId, done, total) {
+      const el = document.getElementById(barId);
+      if (el) el.style.width = (total ? Math.round((done / total) * 100) : 0) + '%';
+    }
+
     function loadStats() {
-      fetch('/api/backup-status').then(r => r.json()).then(d => {
-        document.getElementById('bk-total').textContent = d.total_app ?? '—';
-        document.getElementById('bk-done').textContent = d.backed_up ?? '—';
-        document.getElementById('bk-missing').textContent = d.not_backed_up ?? '—';
-        const pct = d.total_app ? Math.round((d.backed_up / d.total_app) * 100) : 0;
-        document.getElementById('bk-progress-bar').style.width = pct + '%';
+      fetch('/api/backup-full-stats').then(r => r.json()).then(d => {
+        const img = d.images || {};
+        document.getElementById('bk-total').textContent   = img.total_app ?? '—';
+        document.getElementById('bk-done').textContent    = img.backed_up ?? '—';
+        setBar('bk-progress-bar', img.backed_up || 0, img.total_app || 1);
+
+        const eq = d.ohlc_equity || {};
+        document.getElementById('bk-eq-total').textContent = eq.total ?? '—';
+        document.getElementById('bk-eq-done').textContent  = eq.backed_up ?? '—';
+        setBar('bk-eq-bar', eq.backed_up || 0, eq.total || 1);
+
+        const opt = d.ohlc_options || {};
+        document.getElementById('bk-opt-total').textContent = opt.total ?? '—';
+        document.getElementById('bk-opt-done').textContent  = opt.backed_up ?? '—';
+        setBar('bk-opt-bar', opt.backed_up || 0, opt.total || 1);
+
+        const jd = d.journal || {};
+        document.getElementById('bk-jdata-total').textContent = jd.total ?? '—';
+        document.getElementById('bk-jdata-done').textContent  = jd.backed_up ?? '—';
+        setBar('bk-jdata-bar', jd.backed_up || 0, jd.total || 1);
       }).catch(() => {});
     }
 
@@ -1038,17 +1034,80 @@ function _bindUIEvents() {
     document.getElementById('backup-sync-btn').addEventListener('click', () => {
       const syncBtn = document.getElementById('backup-sync-btn');
       syncBtn.disabled = true;
-      syncBtn.textContent = '⏳ Syncing…';
-      setStatus('Sab images backup ho rahi hain, thoda wait karein…', '#94a3b8');
+      syncBtn.textContent = '⏳…';
+      setStatus('Images sync ho rahi hain…', '#94a3b8');
       fetch('/api/backup-sync', { method: 'POST' }).then(r => r.json()).then(d => {
         if (d.ok) {
-          setStatus(`✓ Done! Copied: ${d.copied}, Already backed: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
+          setStatus(`✓ Images done! Copied: ${d.copied}, Skipped: ${d.skipped}, Missing: ${d.missing}`, '#4ade80');
           loadStats();
         } else {
           setStatus('Error: ' + (d.error || 'unknown'), '#f87171');
         }
       }).catch(() => setStatus('Network error', '#f87171'))
-        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🔄 Sync All'; });
+        .finally(() => { syncBtn.disabled = false; syncBtn.textContent = '🖼️ Imgs Only'; });
+    });
+
+    document.getElementById('backup-full-sync-btn').addEventListener('click', () => {
+      const btn = document.getElementById('backup-full-sync-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Starting…';
+      setStatus('', '#94a3b8');
+
+      const phaseBarMap = {
+        images:       { bar: 'bk-progress-bar', done: 'bk-done', total: 'bk-total' },
+        ohlc_equity:  { bar: 'bk-eq-bar',       done: 'bk-eq-done', total: 'bk-eq-total' },
+        ohlc_options: { bar: 'bk-opt-bar',       done: 'bk-opt-done', total: 'bk-opt-total' },
+        journal:      { bar: 'bk-jdata-bar',     done: 'bk-jdata-done', total: 'bk-jdata-total' },
+      };
+      const phaseLabel = { images: 'Images', ohlc_equity: 'OHLC Equity', ohlc_options: 'OHLC Options', journal: 'Journal' };
+
+      const es = new EventSource('/api/backup-full-sync-stream');
+
+      es.onmessage = e => {
+        let d;
+        try { d = JSON.parse(e.data); } catch { return; }
+
+        if (d.phase === 'done') {
+          es.close();
+          const res = d.results || {};
+          const img = res.images || {}; const eq = res.ohlc_equity || {};
+          const opt = res.ohlc_options || {}; const jd = res.journal || {};
+          setStatus(
+            `✓ Done!  Images: ${img.copied||0}  |  Equity: ${eq.copied||0}  |  Options: ${opt.copied||0}  |  Journal: ${jd.copied||0}`,
+            '#4ade80'
+          );
+          btn.disabled = false;
+          btn.textContent = '🔄 Backup Everything';
+          loadStats();
+          return;
+        }
+
+        if (d.phase === 'error') {
+          es.close();
+          setStatus('Error: ' + (d.msg || 'unknown'), '#f87171');
+          btn.disabled = false;
+          btn.textContent = '🔄 Backup Everything';
+          return;
+        }
+
+        const ids = phaseBarMap[d.phase];
+        if (ids) {
+          const pct = d.pct || 0;
+          document.getElementById(ids.bar).style.width = pct + '%';
+          if (d.done !== undefined) document.getElementById(ids.done).textContent = d.done;
+          if (d.total !== undefined) document.getElementById(ids.total).textContent = d.total;
+        }
+        const label = phaseLabel[d.phase] || d.phase;
+        btn.textContent = `⏳ ${label} ${d.pct||0}%`;
+        setStatus(d.msg || '', '#94a3b8');
+      };
+
+      es.onerror = () => {
+        es.close();
+        setStatus('Connection error', '#f87171');
+        btn.disabled = false;
+        btn.textContent = '🔄 Backup Everything';
+      };
     });
   })();
 

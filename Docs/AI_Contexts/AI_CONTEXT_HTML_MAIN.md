@@ -40,6 +40,7 @@ Consolidated code context for AI assistants.
   <link rel="stylesheet" href="/static/css/style-mobile.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-fullscreen.css?v={{ cache_bust }}" />
   <link rel="stylesheet" href="/static/css/style-trade-sidebar.css?v={{ cache_bust }}" />
+  <link rel="stylesheet" href="/static/css/style-adv-mtm.css?v={{ cache_bust }}" />
 </head>
 
 <body>
@@ -65,16 +66,11 @@ Consolidated code context for AI assistants.
     <div class="calendar-nav global-date-nav">
       <!-- Compact period picker: click to expand month/year selects -->
       <div class="nav-period-wrap" id="nav-period-wrap">
-        <button class="nav-period-btn" id="nav-period-btn" title="Select month / year">Apr 2026 ▾</button>
-        <div class="nav-period-panel" id="nav-period-panel">
-          <select id="glob-month" class="select-box"></select>
-          <select id="glob-year" class="select-box"></select>
-          <!-- hidden view select kept for JS compatibility -->
-          <select id="glob-view" style="display:none">
-            <option value="month" selected>Month</option>
-            <option value="year">Year</option>
-          </select>
-        </div>
+        <select id="glob-month-year" class="nav-period-btn" title="Select month / year"></select>
+        <select id="glob-view" style="display:none">
+          <option value="month" selected>Month</option>
+          <option value="year">Year</option>
+        </select>
       </div>
 
       <!-- Month / Year view toggle -->
@@ -123,12 +119,12 @@ Consolidated code context for AI assistants.
 
           <a href="/app-deck" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(168,85,247,.15) 100%);">✨ Features</a>
           <button class="profile-menu-item" id="tt-manual-btn">🎯 Tracker</button>
-          <button class="profile-menu-item" id="strategy-lab-btn">🧪 Strategy Lab</button>
-          <a href="/algo-lab" class="profile-menu-item" style="text-decoration:none; color:inherit; background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(99,102,241,.15) 100%); font-weight:700;">⚡ Algo Lab</a>
+          <button class="profile-menu-item" id="demo-mode-toggle-btn" style="display:none;">🎭 Demo Mode</button>
+          <!-- archived: strategy-lab-btn, algo-lab, algo-lab-v2 -->
 
           <div class="profile-divider"></div>
 
-          <button class="profile-menu-item" id="pdf-list-btn">🗂️ PDF List</button>
+          <!-- archived: pdf-list-btn -->
           <button class="profile-menu-item" id="quick-stats-btn">⚡ Quick Stats</button>
           <div class="quote-random-wrap" id="quote-random-wrap">
             <button class="profile-menu-item quote-random-launch-btn" id="quote-random-launch-btn" title="Random quote popup" style="width:100%;">💬 Quote Pop</button>
@@ -148,14 +144,14 @@ Consolidated code context for AI assistants.
           <div class="profile-divider"></div>
 
           <button class="profile-menu-item" id="profile-settings-btn">⚙️ Settings</button>
-          <button class="profile-menu-item" id="profile-backup-folder-btn">📁 Backup Folder</button>
+          <!-- archived: profile-backup-folder-btn -->
           <button class="profile-menu-item" id="profile-quote-btn">💬 Quote</button>
-          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📝 Dev Journal</a>
-          <a href="/whatif" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📈 What If</a>
-          <button class="profile-menu-item" id="fullscreen-btn">⛶ Fullscreen</button>
+          <a href="/updates" id="dev-log-btn" class="profile-menu-item" target="_blank" style="text-decoration:none;">📝 Dev Journal</a>
+          <!-- archived: whatif -->
+          <!-- archived: fullscreen-btn -->
           <button class="profile-menu-item mobile-view-toggle-btn" id="mobile-view-toggle-btn">📱 Mobile View</button>
-          <a href="/mobile/?view=gallery" id="mobile-gallery-btn" class="profile-menu-item" target="_blank" style="text-decoration:none; color:inherit;">📷 Gallery</a>
-          <button class="profile-menu-item" id="profile-ohlc-btn">📊 OHLC</button>
+          <!-- archived: mobile-gallery-btn -->
+          <!-- archived: profile-ohlc-btn -->
 
           <!-- Broker inline dropdown -->
           <div class="profile-inline-group" id="profile-broker-group">
@@ -191,6 +187,12 @@ Consolidated code context for AI assistants.
       {% endif %}
     </div>
   </header>
+
+  <!-- Demo mode banner — shown by JS when state.demoMode is true -->
+  <div id="demo-banner" class="demo-banner" style="display:none;">
+    <span>You're exploring with demo data. Tap around — everything is real except the numbers. 🎯</span>
+    <button id="demo-clear-btn" class="demo-banner-btn">Clear &amp; Start Fresh &rarr;</button>
+  </div>
 
   <main class="app-main">
 
@@ -233,10 +235,7 @@ Consolidated code context for AI assistants.
 
           <a href="/log" target="_blank" class="btn btn-outline" id="log-plus-btn" title="Trade Log+ — spreadsheet view with manual annotations" style="text-decoration:none">📋 Log+</a>
 
-          <button class="btn btn-outline" id="csvlog-toolbar-btn" title="CSVLog — checklist form for current date">&#128202; CSVLog</button>
-          <button class="btn btn-outline" id="csvlog-charts-toolbar-btn" title="Logger charts from CSVLog data">&#128200; Logger Charts</button>
-          <button class="btn btn-outline" id="trade-review-toolbar-btn" title="Trade Review for current date">&#128202; Review</button>
-          <button class="btn btn-outline" id="trade-logger-toolbar-btn" title="Trade Logger for current date">&#128221; Logger</button>
+          <!-- archived: csvlog-toolbar-btn, csvlog-charts-toolbar-btn, trade-review-toolbar-btn, trade-logger-toolbar-btn -->
 
           <!-- Options dropdown: Note / Columns / Views / Tags / Filter / +Add -->
           <div class="dropdown-wrapper" id="table-options-wrapper">
@@ -464,6 +463,7 @@ Consolidated code context for AI assistants.
   <script defer src="/static/js/target-tracker-init.js?v={{ cache_bust }}"></script>
   <script defer src="/static/js/pdf-handler.js?v={{ cache_bust }}"></script>
   <script defer src="/static/js/quick-stats.js?v={{ cache_bust }}"></script>
+  <script defer src="/static/js/advanced-mtm-chart.js?v={{ cache_bust }}"></script>
   {% endif %}
 </body>
 
@@ -477,40 +477,63 @@ Consolidated code context for AI assistants.
 <div class="modal-overlay" id="backup-folder-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:#1e1e2e; border:1px solid #3b3b5c; border-radius:12px; padding:24px; width:460px; max-width:95vw; box-shadow:0 8px 32px rgba(0,0,0,.5);">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-      <span style="font-size:1rem; font-weight:700; color:#e2e8f0;">📁 Image Backup Folder</span>
+      <span style="font-size:1rem; font-weight:700; color:#e2e8f0;">💾 Data Backup</span>
       <button id="backup-folder-close" style="background:none; border:none; color:#94a3b8; font-size:1.2rem; cursor:pointer;">✕</button>
     </div>
 
-    <!-- Stats bar -->
-    <div id="backup-stats-box" style="background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:.82rem;">
-      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:8px;">
-        <span>App images</span><span id="bk-total" style="color:#e2e8f0; font-weight:600;">—</span>
+    <!-- Stats grid -->
+    <div id="backup-stats-box" style="background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:.82rem;">
+      <!-- Images row -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="color:#94a3b8; flex:1;">🖼️ Images</span>
+        <span id="bk-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-progress-bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:8px;">
-        <span>Backed up</span><span id="bk-done" style="color:#4ade80; font-weight:600;">—</span>
+      <!-- OHLC Equity -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="color:#94a3b8; flex:1;">📊 OHLC Equity</span>
+        <span id="bk-eq-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-eq-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-eq-bar" style="height:100%; background:linear-gradient(90deg,#f59e0b,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:10px;">
-        <span>Missing</span><span id="bk-missing" style="color:#f87171; font-weight:600;">—</span>
+      <!-- OHLC Options -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="color:#94a3b8; flex:1;">📈 OHLC Options</span>
+        <span id="bk-opt-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-opt-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-opt-bar" style="height:100%; background:linear-gradient(90deg,#a78bfa,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
-      <!-- Progress bar -->
-      <div style="background:#1e1e3a; border-radius:4px; height:6px; overflow:hidden;">
-        <div id="bk-progress-bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#4ade80); width:0%; transition:width .4s;"></div>
+      <!-- Journal JSON -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="color:#94a3b8; flex:1;">🗂️ Journal Data</span>
+        <span id="bk-jdata-done" style="color:#4ade80; font-weight:600; min-width:28px; text-align:right;">—</span>
+        <span style="color:#3b3b5c;">/</span>
+        <span id="bk-jdata-total" style="color:#e2e8f0; font-weight:600; min-width:28px;">—</span>
+        <div style="flex:2; background:#1e1e3a; border-radius:3px; height:5px; overflow:hidden;">
+          <div id="bk-jdata-bar" style="height:100%; background:linear-gradient(90deg,#38bdf8,#4ade80); width:0%; transition:width .4s;"></div>
+        </div>
       </div>
     </div>
 
-    <p style="color:#94a3b8; font-size:.82rem; margin-bottom:12px; line-height:1.5;">
-      Images backup hoti hain: <code style="color:#a5f3fc;">uploaded_imgs/YYYY-MM-DD/T1_file.jpg</code><br>
-      Separator move karne ke baad auto-rename hota hai.
-    </p>
-
-    <label style="display:block; color:#94a3b8; font-size:.8rem; margin-bottom:6px;">Folder path (full path):</label>
-    <input id="backup-folder-input" type="text" placeholder="e.g. G:\My Drive\TradeBackup"
+    <label style="display:block; color:#94a3b8; font-size:.8rem; margin-bottom:6px;">Backup folder (full path):</label>
+    <input id="backup-folder-input" type="text" placeholder="e.g. D:\MyBackup  or  G:\My Drive\TradeBackup"
       style="width:100%; box-sizing:border-box; background:#0f0f1a; border:1px solid #3b3b5c; border-radius:8px; padding:10px 12px; color:#e2e8f0; font-size:.9rem; outline:none;" />
 
-    <div style="display:flex; gap:10px; margin-top:14px;">
-      <button id="backup-folder-save" style="flex:1; background:#6366f1; border:none; border-radius:8px; padding:10px; color:#fff; font-size:.9rem; font-weight:600; cursor:pointer;">💾 Save</button>
-      <button id="backup-sync-btn" style="flex:1; background:#0f4c75; border:1px solid #3b82f6; border-radius:8px; padding:10px; color:#93c5fd; font-size:.9rem; font-weight:600; cursor:pointer;">🔄 Sync All</button>
-      <button id="backup-folder-clear" style="background:#3b3b5c; border:none; border-radius:8px; padding:10px 14px; color:#94a3b8; font-size:.85rem; cursor:pointer;">✕</button>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="backup-folder-save" style="flex:1; background:#6366f1; border:none; border-radius:8px; padding:10px; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer;">💾 Save</button>
+      <button id="backup-full-sync-btn" style="flex:2; background:#0a3a2a; border:1px solid #22c55e; border-radius:8px; padding:10px; color:#4ade80; font-size:.85rem; font-weight:700; cursor:pointer;">🔄 Backup Everything</button>
+      <button id="backup-sync-btn" style="flex:1; background:#0f4c75; border:1px solid #3b82f6; border-radius:8px; padding:10px; color:#93c5fd; font-size:.82rem; cursor:pointer;">🖼️ Imgs Only</button>
+      <button id="backup-folder-clear" style="background:#3b3b5c; border:none; border-radius:8px; padding:10px 12px; color:#94a3b8; font-size:.85rem; cursor:pointer;">✕</button>
     </div>
     <div id="backup-folder-status" style="margin-top:10px; font-size:.8rem; min-height:18px;"></div>
   </div>

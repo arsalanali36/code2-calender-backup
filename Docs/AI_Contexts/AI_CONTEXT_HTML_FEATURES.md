@@ -297,7 +297,7 @@ Consolidated code context for AI assistants.
         <div class="dashboard-tabs" style="display: flex; align-items: flex-end; gap: 5px;">
           <div class="main-dash-tab active" data-tab="visual" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 700; cursor: pointer; background: var(--surface, #161b22); border: 1px solid var(--border2, #30363d); border-bottom: none; border-radius: 8px 8px 0 0; color: #fff; position: relative; bottom: -1px; z-index: 2;">Performance Analytics (Visual Dashboard)</div>
           <div class="main-dash-tab" data-tab="quick" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 700; cursor: pointer; background: transparent; border: 1px solid transparent; border-bottom: 1px solid var(--border2, #30363d); border-radius: 8px 8px 0 0; color: #8b949e; position: relative; bottom: 0; z-index: 1;">Summary &amp; Quick Stats 📈</div>
-          <div class="main-dash-tab" data-tab="premium_bento" style="padding: 12px 20px; font-size: 1.15rem; font-weight: 800; cursor: pointer; background: transparent; border: 1px solid transparent; border-bottom: 1px solid var(--border2, #30363d); border-radius: 8px 8px 0 0; color: #bc8cff; position: relative; bottom: 0; z-index: 1; display:flex; align-items:center; gap:8px;">New ✨</div>
+          <!-- archived: New ✨ premium_bento tab -->
           <div class="dashboard-subtitle" style="margin: 0 0 12px 10px;">Sample Data</div>
         </div>
 
@@ -316,6 +316,19 @@ Consolidated code context for AI assistants.
         <!-- Charts Grid -->
         <div class="visual-dash-grid" id="vd-charts-grid"
           style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px;">
+
+          <!-- Advanced MTM Analytics -->
+          <div class="col-span-12" id="adv-mtm-wrapper" style="grid-column: span 6;">
+            <div class="adv-mtm-container">
+              <div class="adv-mtm-main">
+                <div id="adv-mtm-controls-container"></div>
+                <div id="adv-mtm-chart-area"></div>
+              </div>
+              <div class="adv-mtm-heads-panel" id="adv-mtm-heads-panel">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
 
           <!-- Daily MTM Curves (Thumbnails) -->
           <div class="dash-card" data-vd-stat="mtm_thumbs" data-vd-default-width="6" style="padding: 15px; min-height: 200px;">

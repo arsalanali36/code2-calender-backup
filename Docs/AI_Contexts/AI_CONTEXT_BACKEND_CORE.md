@@ -59,11 +59,14 @@ from routes.whatif_routes  import whatif_bp
 from routes.strategy_routes import strategy_bp
 from routes.log_routes import log_bp
 from routes.algo_routes import algo_bp
+from routes.ohlc_routes import ohlc_bp
+from routes.admin_routes import admin_bp
 from models import db, User
 from flask_login import LoginManager
 from services.auto_sync_service import start_background_sync
 from services.local_backup_service import start_local_backup_service
 from services.algo_ohlc_fetcher import start_ohlc_fetcher
+from services.ohlc_scheduler import start_scheduler as start_ohlc_scheduler
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -129,13 +132,26 @@ def add_cors(response):
     return response
 
 @app.before_request
+def update_last_seen():
+    from flask_login import current_user
+    from datetime import datetime
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+@app.before_request
 def require_login():
     from flask_login import current_user
-    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'options_handler', 'import.admin_push_data', 'export.admin_get_data', 'export.admin_data_version']
+    allowed_endpoints = ['auth.login', 'auth.register', 'auth.reset_password', 'static', 'image.uploaded_file', 'page.mobile', 'page.mobile_assets', 'page.app_deck', 'options_handler', 'import.admin_push_data', 'export.admin_get_data', 'export.admin_data_version']
     if request.endpoint and request.endpoint not in allowed_endpoints:
         if not current_user.is_authenticated:
             if request.path.startswith('/api/'):
                 return {'error': 'Unauthorized'}, 401
+            if request.path == '/':
+                return redirect(url_for('page.app_deck'))
             return redirect(url_for('auth.login'))
 
 @app.route('/api/<path:path>', methods=['OPTIONS'])
@@ -219,6 +235,100 @@ def _bootstrap_persistent_storage():
         pass
 
 
+def _migrate_user1_images():
+    """
+    One-time: move flat uploads/*.{png,jpg,...} → uploads/user_1/
+    Idempotent — no-ops if no flat images exist.
+    """
+    IMG_EXTS = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}
+    user1_dir = os.path.join(UPLOADS_DIR, 'user_1')
+    trash1    = os.path.join(user1_dir, '_trash')
+
+    flat_images = [
+        f for f in os.listdir(UPLOADS_DIR)
+        if os.path.isfile(os.path.join(UPLOADS_DIR, f))
+        and os.path.splitext(f)[1].lower() in IMG_EXTS
+    ]
+    if not flat_images:
+        return
+
+    os.makedirs(user1_dir, exist_ok=True)
+    os.makedirs(trash1, exist_ok=True)
+    moved = 0
+    for fname in flat_images:
+        src = os.path.join(UPLOADS_DIR, fname)
+        dst = os.path.join(user1_dir, fname)
+        if not os.path.exists(dst):
+            shutil.move(src, dst)
+            moved += 1
+            meta = src + '.meta'
+            if os.path.exists(meta):
+                shutil.move(meta, dst + '.meta')
+
+    # Migrate existing _trash files for user 1
+    if os.path.isdir(TRASH_DIR):
+        for fname in os.listdir(TRASH_DIR):
+            src = os.path.join(TRASH_DIR, fname)
+            dst = os.path.join(trash1, fname)
+            if os.path.isfile(src) and not os.path.exists(dst):
+                shutil.move(src, dst)
+
+    if moved:
+        print(f"[startup] Migrated {moved} images → uploads/user_1/")
+
+
+def _migrate_user1_image_urls():
+    """
+    One-time: rewrite /uploads/filename → /uploads/user_1/filename in trades_1.json.
+    Writes a marker file so it never re-runs.
+    """
+    import json as _json
+    data_dir    = os.path.join(BASE_DIR, 'data')
+    marker      = os.path.join(data_dir, '.user1_img_migrated')
+    trades_file = os.path.join(data_dir, 'trades_1.json')
+    user1_dir   = os.path.join(UPLOADS_DIR, 'user_1')
+
+    if os.path.exists(marker):
+        return
+    if not os.path.isdir(user1_dir) or not os.path.exists(trades_file):
+        open(marker, 'w').close()
+        return
+
+    def _fix(url):
+        if not isinstance(url, str):
+            return url
+        if url.startswith('/uploads/') and not url.startswith('/uploads/user_'):
+            fname = url.rsplit('/', 1)[-1]
+            if os.path.exists(os.path.join(user1_dir, fname)):
+                return f'/uploads/user_1/{fname}'
+        return url
+
+    try:
+        with open(trades_file, 'r', encoding='utf-8') as f:
+            data = _json.load(f)
+
+        for t in data.get('trades', []):
+            t['images'] = [_fix(u) for u in (t.get('images') or [])]
+            if t.get('heroImage'):   t['heroImage']  = _fix(t['heroImage'])
+            if t.get('thumbnail'):   t['thumbnail']  = _fix(t['thumbnail'])
+            if t.get('imageTags'):
+                t['imageTags'] = {_fix(k): v for k, v in t['imageTags'].items()}
+        for dd in data.get('dayData', {}).values():
+            dd['images'] = [_fix(u) for u in (dd.get('images') or [])]
+            if dd.get('closeImages'):
+                dd['closeImages'] = [_fix(u) for u in dd['closeImages']]
+            if dd.get('imageTags'):
+                dd['imageTags'] = {_fix(k): v for k, v in dd['imageTags'].items()}
+
+        with open(trades_file, 'w', encoding='utf-8') as f:
+            _json.dump(data, f, indent=2, ensure_ascii=False)
+        print("[startup] Rewrote image URLs in trades_1.json → /uploads/user_1/")
+    except Exception as e:
+        print(f"[startup] WARNING: URL rewrite failed (non-fatal): {e}")
+
+    open(marker, 'w').close()
+
+
 def _cleanup_trash():
     """Delete files from _trash older than TRASH_EXPIRY_DAYS. Runs daily in background."""
     import logging
@@ -237,6 +347,8 @@ def _cleanup_trash():
 
 
 _bootstrap_persistent_storage()
+_migrate_user1_images()
+_migrate_user1_image_urls()
 
 # ── Google Drive startup sync ─────────────────────────────────────────────────
 # On live server (Render), restore data from Drive if it's newer than the local
@@ -253,6 +365,7 @@ threading.Thread(target=_cleanup_trash, daemon=True).start()
 start_background_sync()
 start_local_backup_service()
 start_ohlc_fetcher()
+start_ohlc_scheduler()
 
 # ── JS bundle (only built when USE_BUNDLE=1 — skipped in local dev) ───────────
 if os.environ.get('USE_BUNDLE') == '1':
@@ -266,6 +379,19 @@ else:
 
 with app.app_context():
     db.create_all()
+    # Auto-migrate: add columns that db.create_all() won't add to existing tables
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            for col, coltype in [('created_at', 'DATETIME'), ('last_seen', 'DATETIME')]:
+                try:
+                    conn.execute(text(f'ALTER TABLE user ADD COLUMN {col} {coltype}'))
+                    conn.commit()
+                    print(f'[migration] Added column user.{col}')
+                except Exception:
+                    pass  # column already exists
+    except Exception as e:
+        print(f'[migration] WARNING: {e}')
 
 # ── Blueprint registration ────────────────────────────────────────────────────
 app.register_blueprint(page_bp)
@@ -279,6 +405,8 @@ app.register_blueprint(whatif_bp)
 app.register_blueprint(strategy_bp)
 app.register_blueprint(log_bp)
 app.register_blueprint(algo_bp)
+app.register_blueprint(ohlc_bp)
+app.register_blueprint(admin_bp)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -357,6 +485,18 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE          = os.getenv('DATA_FILE',   os.path.join(BASE_DIR, 'data', 'trades.json'))
 UPLOADS_DIR        = os.getenv('UPLOADS_DIR', os.path.join(BASE_DIR, 'static', 'uploads'))
 TRASH_DIR          = os.path.join(UPLOADS_DIR, '_trash')
+
+
+def get_uploads_dir(user_id=None) -> str:
+    """Return per-user uploads directory. user_id=None → base UPLOADS_DIR."""
+    if user_id is None:
+        return UPLOADS_DIR
+    return os.path.join(UPLOADS_DIR, f"user_{user_id}")
+
+
+def get_trash_dir(user_id=None) -> str:
+    """Return per-user trash directory."""
+    return os.path.join(get_uploads_dir(user_id), "_trash")
 AUDIO_DIR          = os.path.join(UPLOADS_DIR, 'audio')
 VIDEO_DIR          = os.path.join(UPLOADS_DIR, 'video')
 PDF_DIR            = os.path.join(UPLOADS_DIR, 'pdfs')
@@ -368,7 +508,11 @@ LOG_DATA_FILE             = os.path.join(BASE_DIR, 'data', 'trade_log.json')
 LOG_SCHEMA_FILE           = os.path.join(BASE_DIR, 'data', 'log_schema.json')
 
 
-# ── What-If / Dhan data ───────────────────────────────────────────────────────
+# ── Unified OHLC store (single source of truth) ───────────────────────────────
+OHLC_DIR             = os.path.join(BASE_DIR, 'data', 'ohlc')
+OHLC_WATCHLIST_FILE  = os.path.join(BASE_DIR, 'data', 'ohlc_watchlist.json')
+
+# ── What-If / Dhan data (legacy — being replaced by OHLC_DIR) ─────────────────
 OHLC_CACHE_DIR       = os.path.join(BASE_DIR, 'data', 'Historical_OHLC', 'Options')
 DHAN_CONFIG_FILE     = os.path.join(BASE_DIR, 'data', 'dhan_config.json')
 DHAN_SYMBOL_MAP_FILE = os.path.join(BASE_DIR, 'data', 'dhan_symbol_map.json')
@@ -455,6 +599,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -462,6 +607,8 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

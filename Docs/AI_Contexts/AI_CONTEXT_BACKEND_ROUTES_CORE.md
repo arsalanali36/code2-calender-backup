@@ -35,6 +35,9 @@ def index():
     ua = request.headers.get('User-Agent', '')
     if any(k in ua for k in MOBILE_KEYWORDS):
         return redirect('/mobile/')
+    # Unauthenticated visitors land on the public pitch deck, not the login wall
+    if not current_user.is_authenticated:
+        return redirect('/app-deck')
     # Embed trades data directly in HTML — eliminates the /api/trades round-trip on load
     # Must read the user-specific file so authenticated users see their own data
     try:
@@ -79,6 +82,18 @@ def mobile_assets(filename):
     return send_from_directory(os.path.join(MOBILE_DIST, 'assets'), filename)
 
 
+_DECK_DEFAULTS = {
+    "offer": {
+        "highlight": "Free 30-Day Trial",
+        "cta": "Start Free Trial"
+    },
+    "hero_title": "Your Trading Edge Starts Here",
+    "hero_subtitle": "The most powerful trading journal built for serious traders. Track, review, and improve every single trade.",
+    "tagline": "Har trade ka hisaab. Ab code se.",
+    "categories": []
+}
+
+
 @page_bp.route('/app-deck')
 def app_deck():
     features_path = os.path.join(BASE_DIR, 'data', 'features.json')
@@ -90,6 +105,16 @@ def app_deck():
             deck_data = {}
     except Exception:
         deck_data = {}
+
+    # Deep-merge defaults so missing keys never crash the template
+    for key, val in _DECK_DEFAULTS.items():
+        if key not in deck_data:
+            deck_data[key] = val
+        elif isinstance(val, dict) and isinstance(deck_data.get(key), dict):
+            for subkey, subval in val.items():
+                if subkey not in deck_data[key]:
+                    deck_data[key][subkey] = subval
+
     return render_template('app_deck.html', deck=deck_data, cache_bust=int(time.time()))
 
 
@@ -143,6 +168,39 @@ def post_trades():
     return jsonify({'success': True})
 
 
+@trade_bp.route('/api/trades/clear-demo', methods=['POST'])
+def clear_demo():
+    """Reset a demo-mode user's data to an empty journal."""
+    uid = _get_user_id()
+    if uid is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    empty = {
+        'trades': [], 'columns': ['Date', 'Profit', 'Trade'],
+        'allTags': [], 'tagColumns': [], 'userColumns': [],
+        'dayData': {}, 'tagGroups': {}, 'pdfPageTags': {},
+        'importedPdfs': [], 'tagTemplates': {}, 'imgTypes': {}, 'uiSettings': {},
+    }
+    try:
+        save_trades(empty, user_id=uid)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    return jsonify({'success': True})
+
+
+@trade_bp.route('/api/trades/restore-demo', methods=['POST'])
+def restore_demo():
+    """Restore demo data for the current user (re-generates from source)."""
+    uid = _get_user_id()
+    if uid is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        from services.demo_service import restore_demo_data_for_user
+        restore_demo_data_for_user(uid)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    return jsonify({'success': True})
+
+
 def _trigger_backup_sync(data):
     """Fire-and-forget: resync backup for dates present in the saved payload."""
     import threading
@@ -175,13 +233,14 @@ import json
 import threading
 
 from flask import Blueprint, request, jsonify, send_from_directory, Response
+from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 from services.image_service import (
     save_uploaded_image, move_to_trash, get_image_times, copy_image_to_clipboard,
     save_uploaded_pdf, save_pdf_bytes, list_uploaded_pdfs, delete_uploaded_pdf, update_pdf_pages,
 )
-from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT, BACKUP_CONFIG_FILE
+from config import UPLOADS_DIR, TRASH_DIR, AUDIO_DIR, VIDEO_DIR, PDF_DIR, PDF_META_FILE, USE_IMAGEKIT, BACKUP_CONFIG_FILE, get_uploads_dir, get_trash_dir
 
 image_bp = Blueprint('image', __name__)
 
@@ -201,7 +260,11 @@ def upload_image():
         last_modified_ms = request.form.get('last_modified_ms')
         last_modified_s = float(last_modified_ms) / 1000.0 if last_modified_ms else None
         original_filename = secure_filename(request.form.get('original_filename', ''))
-        result = save_uploaded_image(file, UPLOADS_DIR, last_modified_s, original_filename)
+        uid = current_user.id if current_user.is_authenticated else None
+        user_uploads = get_uploads_dir(uid)
+        os.makedirs(user_uploads, exist_ok=True)
+        os.makedirs(get_trash_dir(uid), exist_ok=True)
+        result = save_uploaded_image(file, user_uploads, last_modified_s, original_filename)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(result)
@@ -216,9 +279,9 @@ def uploaded_file(filename):
     # Try exact path first
     if _os.path.exists(_os.path.join(UPLOADS_DIR, filename)):
         return send_from_directory(UPLOADS_DIR, filename)
-    # Fallback: if it's a bare filename (no subfolder), check video/ and audio/
+    # Fallback: if it's a bare filename (no subfolder), check user_1/, video/, audio/
     if '/' not in filename:
-        for sub in ('video', 'audio'):
+        for sub in ('user_1', 'video', 'audio'):
             alt = _os.path.join(UPLOADS_DIR, sub, filename)
             if _os.path.exists(alt):
                 return send_from_directory(_os.path.join(UPLOADS_DIR, sub), filename)
@@ -231,14 +294,16 @@ def delete_image():
     filename = data.get('filename', '')
     if not filename:
         return jsonify({'error': 'No filename'}), 400
-    moved = move_to_trash(filename, UPLOADS_DIR, TRASH_DIR)
+    uid = current_user.id if current_user.is_authenticated else None
+    moved = move_to_trash(filename, get_uploads_dir(uid), get_trash_dir(uid))
     return jsonify({'success': moved})
 
 
 @image_bp.route('/api/image-times', methods=['POST'])
 def image_times():
     urls = (request.json or {}).get('urls', [])
-    return jsonify(get_image_times(urls, UPLOADS_DIR))
+    uid = current_user.id if current_user.is_authenticated else None
+    return jsonify(get_image_times(urls, get_uploads_dir(uid)))
 
 
 @image_bp.route('/api/upload-audio', methods=['POST'])
@@ -522,6 +587,43 @@ def backup_sync():
     return jsonify(result)
 
 
+@image_bp.route('/api/backup-migrate', methods=['POST'])
+def backup_migrate():
+    from services.img_backup_service import migrate_flat_to_month_folders, _get_backup_folder
+    folder = _get_backup_folder()
+    if not folder:
+        return jsonify({'ok': False, 'error': 'No backup folder configured'})
+    moved = migrate_flat_to_month_folders(folder)
+    return jsonify({'ok': True, 'moved': moved})
+
+
+@image_bp.route('/api/backup-full-stats', methods=['GET'])
+def backup_full_stats():
+    from services.img_backup_service import get_full_backup_stats
+    return jsonify(get_full_backup_stats())
+
+
+@image_bp.route('/api/backup-full-sync', methods=['POST'])
+def backup_full_sync():
+    from services.img_backup_service import sync_all_data
+    result = sync_all_data()
+    return jsonify(result)
+
+
+@image_bp.route('/api/backup-full-sync-stream', methods=['GET'])
+def backup_full_sync_stream():
+    from flask import Response, stream_with_context
+    from services.img_backup_service import sync_all_data_stream
+    return Response(
+        stream_with_context(sync_all_data_stream()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        }
+    )
+
+
 @image_bp.route('/api/update-pdf-pages', methods=['POST'])
 def update_pdf_pages_route():
     """Update pages array for a PDF (delete/reorder individual pages)."""
@@ -785,7 +887,7 @@ def admin_get_data():
         return jsonify({'error': str(e)}), 500
 
 
-LIVE_URL = 'https://code2-calender.onrender.com'
+LIVE_URL = os.getenv('LIVE_SERVER_URL', 'https://code2-calender.onrender.com').rstrip('/')
 
 
 @export_bp.route('/api/admin/data-version', methods=['GET'])
@@ -864,25 +966,67 @@ def _backup_local(prefix):
     return backup_path
 
 
+def _pull_with_credentials(email, password):
+    """Login to live server with credentials, fetch /api/my-data."""
+    import urllib.request, urllib.parse, http.cookiejar
+    jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+
+    # Step 1: login
+    login_data = urllib.parse.urlencode({'email': email, 'password': password}).encode()
+    login_req = urllib.request.Request(f'{LIVE_URL}/auth/login', data=login_data,
+                                       headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    with opener.open(login_req, timeout=30) as r:
+        body = r.read().decode('utf-8', errors='replace')
+        if 'invalid' in body.lower() or 'incorrect' in body.lower():
+            raise RuntimeError('Login failed — wrong email or password')
+
+    # Step 2: fetch data
+    with opener.open(f'{LIVE_URL}/api/my-data', timeout=90) as r:
+        return json.loads(r.read().decode('utf-8'))
+
+
 @export_bp.route('/api/pull-from-live', methods=['POST'])
 def pull_from_live():
-    """Localhost-only: pull trades data from the live server and save locally."""
+    """Localhost-only: pull trades data from the live server and save locally.
+    Tries ADMIN_API_KEY first; falls back to email/password credentials."""
     if not DEBUG:
         return jsonify({'error': 'Only available in development mode'}), 403
-    if not ADMIN_API_KEY:
-        return jsonify({'error': 'ADMIN_API_KEY not configured'}), 500
 
     import urllib.request
-    endpoint = f'{LIVE_URL}/api/admin/get-data'
-    try:
-        req = urllib.request.Request(endpoint, headers={'X-Api-Key': ADMIN_API_KEY})
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            raw = json.loads(resp.read().decode('utf-8'))
-    except Exception as e:
-        return jsonify({'error': f'Failed to fetch from live: {str(e)}'}), 502
+    body = request.get_json(silent=True) or {}
+    email    = body.get('email', '').strip()
+    password = body.get('password', '').strip()
+
+    raw = None
+
+    # ── Attempt 1: ADMIN_API_KEY ──────────────────────────────────────────────
+    if ADMIN_API_KEY:
+        try:
+            req = urllib.request.Request(
+                f'{LIVE_URL}/api/admin/get-data',
+                headers={'X-Api-Key': ADMIN_API_KEY}
+            )
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                raw = json.loads(resp.read().decode('utf-8'))
+        except Exception:
+            raw = None
+
+    # ── Attempt 2: email + password (session login) ───────────────────────────
+    if (not raw or not raw.get('ok')) and email and password:
+        try:
+            raw = _pull_with_credentials(email, password)
+        except Exception as e:
+            return jsonify({'error': f'Credential login failed: {str(e)}'}), 502
+
+    if not raw:
+        return jsonify({
+            'error': 'ADMIN_API_KEY mismatch. Provide email+password to pull via login.',
+            'needs_credentials': True
+        }), 401
 
     if not raw.get('ok') or 'data' not in raw:
-        return jsonify({'error': 'Live server returned unexpected response'}), 502
+        return jsonify({'error': f'Live server error: {raw.get("error", "unexpected response")}'}), 502
 
     _backup_local('pre_pull')
     target = _find_best_trades_file()
@@ -940,5 +1084,37 @@ def push_to_live():
 
     trade_count = len(local_data.get('trades', []))
     return jsonify({'ok': True, 'trades': trade_count, 'message': f'Pushed {trade_count} trades to live'})
+
+
+@export_bp.route('/api/my-data', methods=['GET'])
+def my_data():
+    """Session-authenticated: returns the logged-in user's full trades JSON.
+    Used by pull_from_live as a fallback when ADMIN_API_KEY doesn't match."""
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Login required'}), 401
+    try:
+        data_file = find_best_trades_file()
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify({'ok': True, 'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@export_bp.route('/api/my-data/version', methods=['GET'])
+def my_data_version():
+    """Session-authenticated: returns file mtime + trade count."""
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Login required'}), 401
+    try:
+        data_file = find_best_trades_file()
+        mtime = os.path.getmtime(data_file) if os.path.exists(data_file) else 0
+        with open(data_file, 'r', encoding='utf-8') as f:
+            trades = len(json.load(f).get('trades', []))
+        return jsonify({'ok': True, 'updated_at': mtime, 'trades': trades})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 ```

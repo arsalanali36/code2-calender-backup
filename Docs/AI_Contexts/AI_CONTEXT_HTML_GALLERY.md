@@ -56,22 +56,22 @@ Consolidated code context for AI assistants.
 
     <!-- Col 4: Icon buttons — centered -->
     <div class="gv2-tc4">
-      <div class="gv2-target-btn-wrap" id="gv2-target-btn-wrap" style="position:relative;">
+      <div class="gv2-target-btn-wrap" id="gv2-target-btn-wrap" style="position:relative;display:none !important">
         <button class="gv2-target-pill" id="gv2-target-pill" title="Open Target Tracker" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1);">&#127919;</button>
       </div>
-      <div class="gv2-target-btn-wrap" id="gv2-mtm-btn-wrap" style="position:relative;">
+      <div class="gv2-target-btn-wrap" id="gv2-mtm-btn-wrap" style="position:relative;display:none !important">
         <button class="gv2-target-pill" id="gv2-mtm-btn" title="Show Day Equity Curve" style="background:rgba(192,132,252,0.15); border-color:rgba(192,132,252,0.4); color:#c084fc;">&#128200;</button>
         <div id="gv2-mtm-panel" style="display:none; position:fixed; width:600px; height:400px; padding:20px; border-radius:12px; overflow:hidden; z-index:9999; background:rgba(15,15,20,0.97); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.8); backdrop-filter:blur(20px);"></div>
       </div>
-      <div class="gv2-target-btn-wrap" id="gv2-img-manager-btn-wrap" style="position:relative;">
+      <div class="gv2-target-btn-wrap" id="gv2-img-manager-btn-wrap" style="position:relative;display:none !important">
         <button class="gv2-target-pill" id="gv2-img-manager-btn" title="Open Image Manager" style="background:rgba(59,130,246,0.15); border-color:rgba(59,130,246,0.4); color:#60a5fa;">📊</button>
       </div>
-      <div class="gv2-target-btn-wrap" id="gv2-pdf-library-btn-wrap" style="position:relative;">
+      <div class="gv2-target-btn-wrap" id="gv2-pdf-library-btn-wrap" style="position:relative;display:none !important">
         <button class="gv2-target-pill" id="gv2-pdf-library-btn" title="Open PDF Library" style="background:rgba(192,132,252,0.15); border-color:rgba(192,132,252,0.4); color:#c084fc;">📄</button>
       </div>
       <!-- Tag Pin Options Dropdown -->
       <div class="gv2-target-btn-wrap" style="position:relative;">
-        <button class="gv2-target-pill" id="tag-pin-options-btn" title="Pin Options" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); font-size:0.9rem;">📍</button>
+        <button class="gv2-target-pill" id="tag-pin-options-btn" title="Pin Options" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); font-size:0.9rem;display:none !important">📍</button>
         <div class="gv2-pnl-dropdown dropdown-menu" id="tag-pin-options-list" style="position:absolute; top:calc(100% + 8px); right:0; width:220px; padding:6px; background:rgba(30,35,48,0.98); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.12);">
           <div class="gv2-dp-item" id="tag-pin-vis-toggle" style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:6px; cursor:pointer; color:var(--text2);">
              <span id="pin-vis-indicator" style="width:8px;height:8px;border-radius:50%;background:#444;"></span>
@@ -1381,40 +1381,40 @@ Consolidated code context for AI assistants.
 ```html
     <!-- Right Sidebar Strip -->
     <div class="gv2-sidebar-strip" id="gv2-sidebar-strip">
-      <button class="gv2-sb-btn gv2-sidebar-toggle" id="gv2-sidebar-toggle-btn" title="Toggle sidebar" onclick="toggleGv2Sidebar()">
+      <button class="gv2-sb-btn gv2-sidebar-toggle" id="gv2-sidebar-toggle-btn" title="Toggle sidebar" onclick="toggleGv2Sidebar()" style="display:none">
         <svg id="gv2-sidebar-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M10 4l-4 4 4 4"/></svg>
       </button>
-      <div class="gv2-sb-sep gv2-sidebar-collapsible"></div>
-      <button class="gv2-sb-btn gv2-sidebar-collapsible" id="gv2-fullscreen-btn" title="Fullscreen">
+      <div class="gv2-sb-sep gv2-sidebar-collapsible" style="display:none"></div>
+      <button class="gv2-sb-btn gv2-sidebar-collapsible" id="gv2-fullscreen-btn" title="Fullscreen" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
       </button>
-      <button class="gv2-sb-btn" id="gv2-popout-btn" title="Popout (New Window)">
+      <button class="gv2-sb-btn" id="gv2-popout-btn" title="Popout (New Window)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
           <path d="M9 1L15 1V7M15 1L8 8M5 1H2V14H15V11"/>
         </svg>
       </button>
-      <div class="gv2-sb-sep"></div>
+      <div class="gv2-sb-sep" style="display:none"></div>
       <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-tags-btn" title="Tags (T)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M7.5 1.5L2 7l4.5 4.5 5.5-5.5V1.5h-4.5z"/><circle cx="9.5" cy="3.5" r="1" fill="currentColor" stroke="none"/></svg>
       </button>
       <button class="gv2-sb-btn gv2-thumb-toggle-btn" id="gv2-thumb-toggle-btn" title="Thumbnails (G)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
       </button>
-      <button class="gv2-sb-btn" id="gv2-grid-btn" title="Grid View (All Images)">
+      <button class="gv2-sb-btn" id="gv2-grid-btn" title="Grid View (All Images)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
           <rect x="1" y="1" width="3.2" height="3.2" rx="0.5"/><rect x="6.4" y="1" width="3.2" height="3.2" rx="0.5"/><rect x="11.8" y="1" width="3.2" height="3.2" rx="0.5"/>
           <rect x="1" y="6.4" width="3.2" height="3.2" rx="0.5"/><rect x="6.4" y="6.4" width="3.2" height="3.2" rx="0.5"/><rect x="11.8" y="6.4" width="3.2" height="3.2" rx="0.5"/>
           <rect x="1" y="11.8" width="3.2" height="3.2" rx="0.5"/><rect x="6.4" y="11.8" width="3.2" height="3.2" rx="0.5"/><rect x="11.8" y="11.8" width="3.2" height="3.2" rx="0.5"/>
         </svg>
       </button>
-      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers (L)">
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-layer-btn" title="Layers (L)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2 11l6 3 6-3M2 7l6 3 6-3M8 2L2 5l6 3 6-3-6-3z"/></svg>
       </button>
-      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-trades-panel-btn" title="All Trades (Sorted)">
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-trades-panel-btn" title="All Trades (Sorted)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="4" x2="13" y2="4"/><line x1="3" y1="8" x2="13" y2="8"/><line x1="3" y1="12" x2="13" y2="12"/></svg>
       </button>
       <!-- Sync All OHLC charts -->
-      <button class="gv2-sb-btn" id="gc-sync-open-btn" onclick="gcOpenSyncPanel()" title="Download All OHLC Charts">
+      <button class="gv2-sb-btn" id="gc-sync-open-btn" onclick="gcOpenSyncPanel()" title="Download All OHLC Charts" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
           <polyline points="1 4 1 1 15 1 15 4"/><line x1="8" y1="1" x2="8" y2="11"/>
           <polyline points="5 8 8 11 11 8"/>
@@ -1425,17 +1425,25 @@ Consolidated code context for AI assistants.
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M8 12V2m0 0l-3 3m3-3l3 3M2 14h12"/></svg>
       </button>
       <!-- Show Heads dropdown -->
-      <div class="dropdown-wrapper">
+      <div class="dropdown-wrapper" style="display:none">
         <button class="gv2-sb-btn" id="gallery-show-heads-btn" title="Show Heads">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M1 8s3-5.5 7-5.5 7 5.5 7 5.5-3 5.5-7 5.5-7-5.5-7-5.5z"/><circle cx="8" cy="8" r="2.5"/></svg>
         </button>
         <div class="dropdown-menu show-heads-panel" id="gallery-show-heads-panel"
           style="right:0;left:auto;min-width:220px;max-height:400px;overflow-y:auto;z-index:9999;"></div>
       </div>
-      <button class="gv2-sb-btn gv2-toggle-btn" id="gallery-img-tag-filter-btn" title="Filter Tags (F)">
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gallery-img-tag-filter-btn" title="Filter Tags (F)" style="display:none">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M2.5 3h11l-4.5 5.5v5l-2-2v-3L2.5 3z"/></svg>
       </button>
-      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-video-url-btn" title="Video URLs" style="display:none; font-size:0.65rem; font-weight:600;">Vid</button>
+      <button class="gv2-sb-btn gv2-toggle-btn" id="gv2-video-url-btn" title="Video URLs" style="display:none !important; font-size:0.65rem; font-weight:600;">Vid</button>
+      <!-- Tray duplicates of top-toolbar buttons (originals hidden later) -->
+      <div class="gv2-sb-sep"></div>
+      <button class="gv2-sb-btn" id="gv2-tray-target-btn" title="Target Tracker" onclick="document.getElementById('gv2-target-pill')?.click()">🎯</button>
+      <button class="gv2-sb-btn" id="gv2-tray-mtm-btn" title="Day Equity Curve" onclick="document.getElementById('gv2-mtm-btn')?.click()">📈</button>
+      <button class="gv2-sb-btn" id="gv2-tray-imgmgr-btn" title="Image Manager" onclick="document.getElementById('gv2-img-manager-btn')?.click()">📊</button>
+      <button class="gv2-sb-btn" id="gv2-tray-pdf-btn" title="PDF Library" onclick="document.getElementById('gv2-pdf-library-btn')?.click()" style="display:none !important">📄</button>
+      <button class="gv2-sb-btn" id="gv2-tray-pin-btn" title="Pin Options" onclick="_gv2SidebarPinClick(event,this)">📍</button>
+      <div class="gv2-sb-sep"></div>
       <!-- Recording Dropdown -->
       <div class="gv2-tray-record-container dropdown-wrap">
         <button id="gv2-record-toggle-btn" class="gv2-sb-btn gv2-record-trigger" title="Record Tools">
@@ -1464,7 +1472,7 @@ Consolidated code context for AI assistants.
       </div>
 
       <!-- Image Type Filter Dropdown -->
-      <div class="gv2-filter-dropdown-wrap dropdown-wrap">
+      <div class="gv2-filter-dropdown-wrap dropdown-wrap" style="display:none">
         <button class="gv2-sb-btn gv2-filter-trigger" id="gv2-filter-type-trigger" title="Filter Image Type (Both/Index/Premium)">
           <svg class="gv2-tray-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -1502,18 +1510,18 @@ Consolidated code context for AI assistants.
           <button class="dropdown-item" id="gv2-share-link-btn">
             <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4v4m0-4L6 10"/><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/></svg></span>Share Link
           </button>
-          <button class="dropdown-item" id="gv2-mark-review-btn">
+          <button class="dropdown-item" id="gv2-mark-review-btn" style="display:none !important">
             <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10l-2 4 2 4H3V2z"/><line x1="3" y1="14" x2="3" y2="2"/></svg></span>Mark for Review
           </button>
-          <div class="dropdown-divider"></div>
+          <div class="dropdown-divider" style="display:none !important"></div>
           <!-- Tools -->
-          <button class="dropdown-item gv2-toggle-btn" id="gv2-marquee-btn">
+          <button class="dropdown-item gv2-toggle-btn" id="gv2-marquee-btn" style="display:none !important">
             <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2"><rect x="2" y="2" width="12" height="12" rx="1"/></svg></span>Marquee
           </button>
-          <button class="dropdown-item gv2-toggle-btn" id="gv2-time-btn">
+          <button class="dropdown-item gv2-toggle-btn" id="gv2-time-btn" style="display:none !important">
             <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2.5 1.5"/></svg></span>Time
           </button>
-          <button class="dropdown-item" id="gallery-tag-btn">
+          <button class="dropdown-item" id="gallery-tag-btn" style="display:none !important">
             <span class="gv2-di-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2h6l6 6-6 6-6-6V2z"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor" stroke="none"/></svg></span>Img Tag
           </button>
           <button class="dropdown-item" id="gv2-obs-btn">
@@ -1542,7 +1550,7 @@ Consolidated code context for AI assistants.
           <button class="gv2-tt-sz-btn" id="gv2-tag-sz-plus" title="Tag size badhao">A+</button>
           <button class="gv2-tt-sz-btn" id="gv2-tag-view-btn" title="Toggle Grouped / Flat view">Grp</button>
           <button class="gv2-tt-add-grp" id="gv2-add-tag-btn">+ Tag</button>
-          <button class="gv2-tt-add-grp" id="gv2-add-grp-btn" title="Add new group">+ Group</button>
+          <button class="gv2-tt-add-grp" id="gv2-add-grp-btn" title="Add new group" style="display:none !important">+ Group</button>
           <button class="gv2-tt-del-tag" id="gv2-del-tag-btn" title="Delete mode">Del</button>
         </div>
       </div>
@@ -1633,5 +1641,20 @@ Consolidated code context for AI assistants.
       </div>
 
     </div>
+
+<script>
+function _gv2SidebarPinClick(e, btn) {
+  e.stopPropagation();
+  const list = document.getElementById('tag-pin-options-list');
+  if (!list) return;
+  const isOpen = list.style.display === 'block';
+  document.querySelectorAll('.dropdown-menu').forEach(d => d.style.display = 'none');
+  if (!isOpen) {
+    const r = btn.getBoundingClientRect();
+    list.style.cssText = list.style.cssText +
+      ';display:block;position:fixed;top:' + r.top + 'px;right:50px;left:auto;z-index:99999;';
+  }
+}
+</script>
 
 ```

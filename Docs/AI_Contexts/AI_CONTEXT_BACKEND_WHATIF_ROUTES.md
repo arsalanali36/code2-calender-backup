@@ -87,6 +87,8 @@ def save_dhan_config():
     if not client_id or not access_token:
         return jsonify({'error': 'client_id and access_token are required'}), 400
     dhan_service.save_config(client_id, access_token)
+    from services.ohlc_scheduler import mark_token_refreshed
+    mark_token_refreshed()
     return jsonify({'ok': True})
 
 

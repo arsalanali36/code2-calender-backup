@@ -849,6 +849,25 @@ def _upload_to_imagekit(file_storage, original_filename: str = '') -> dict:
     }
 
 
+def _upload_to_imagekit_from_path(filepath: str, original_filename: str = '') -> dict:
+    """Upload an already-saved local file to ImageKit (secondary CDN step)."""
+    import io
+    safe_name = re.sub(r'[^\w.\-]', '_', os.path.basename(original_filename or filepath))
+    with open(filepath, 'rb') as fh:
+        file_bytes = fh.read()
+
+    from config import IMAGEKIT_URL_ENDPOINT
+    ik = _get_imagekit()
+    result = ik.files.upload(
+        file=io.BytesIO(file_bytes),
+        file_name=safe_name,
+        folder='/trading_journal/',
+        use_unique_file_name=True,
+    )
+    url = result.url or f"{IMAGEKIT_URL_ENDPOINT}{result.file_path}"
+    return {'url': url, 'filename': result.file_id, 'imagekit': True}
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float = None,
@@ -867,22 +886,12 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
     orig_name = original_filename or file_storage.filename or ''
     ext = _validate_extension(orig_name or file_storage.filename)
 
-    # ── ImageKit path ──────────────────────────────────────────────────────────
-    if USE_IMAGEKIT:
-        try:
-            return _upload_to_imagekit(file_storage, orig_name)
-        except Exception as e:
-            raise ValueError(f'ImageKit upload failed: {e}')
-
-    # ── Local disk path ────────────────────────────────────────────────────────
+    # ── ALWAYS save locally first (platform-independent safety) ───────────────
     filename = f'{uuid.uuid4()}{ext}'
     filepath = os.path.join(uploads_dir, filename)
     file_storage.save(filepath)
 
-    # Resolve original time: filename parse → lastModified → file mtime
     original_t = _parse_time_from_filename(orig_name) or last_modified_s or os.path.getmtime(filepath)
-
-    # Write sidecar .meta
     try:
         with open(filepath + '.meta', 'w') as f:
             json.dump({'t': original_t}, f)
@@ -891,13 +900,30 @@ def save_uploaded_image(file_storage, uploads_dir: str, last_modified_s: float =
 
     _copy_to_backup(filepath, filename)
 
-    return {'url': f'/uploads/{filename}', 'filename': filename}
+    # ── ImageKit upload (optional, after local save) ───────────────────────────
+    # Local file is the source of truth; ImageKit is secondary CDN only.
+    if USE_IMAGEKIT:
+        try:
+            result = _upload_to_imagekit_from_path(filepath, orig_name or filename)
+            # Return CDN URL but local file stays as fallback
+            return result
+        except Exception:
+            pass  # CDN failed — local file is already saved, return local URL
+
+    from config import UPLOADS_DIR as _UPLOADS_DIR
+    rel = os.path.relpath(filepath, _UPLOADS_DIR).replace(os.sep, '/')
+    return {'url': f'/uploads/{rel}', 'filename': filename}
 
 
 def _copy_to_backup(src_path: str, filename: str):
-    """Copy a freshly-saved image to the user-configured backup folder (date sub-folder)."""
+    """Copy a freshly-saved image to the user-configured backup folder (month/date sub-folder)."""
     import shutil
     from datetime import date
+    _MONTH_NAMES = {
+        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
+    }
     try:
         from config import BACKUP_CONFIG_FILE
         if not os.path.exists(BACKUP_CONFIG_FILE):
@@ -907,7 +933,10 @@ def _copy_to_backup(src_path: str, filename: str):
         folder = cfg.get('folder', '').strip()
         if not folder:
             return
-        day_dir = os.path.join(folder, 'uploaded_imgs', str(date.today()))
+        date_str = str(date.today())           # e.g. 2026-05-01
+        mm = date_str[5:7]                     # '05'
+        month_folder = f"{mm} - {_MONTH_NAMES.get(mm, mm)}"  # '05 - May'
+        day_dir = os.path.join(folder, 'uploaded_imgs', month_folder, date_str)
         os.makedirs(day_dir, exist_ok=True)
         shutil.copy2(src_path, os.path.join(day_dir, filename))
     except Exception:
@@ -1292,7 +1321,10 @@ def load_blog_entries(blog_path: str) -> list:
     if not os.path.exists(blog_path):
         return []
     with open(blog_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        content = f.read().strip()
+        if not content:
+            return []
+        return json.loads(content)
 
 
 def get_blog_entries_for_template(blog_path: str) -> list:
@@ -1342,6 +1374,13 @@ def migrate_default_data_for_first_user(user_id: int) -> None:
     No-op if trades_1.json already exists or trades.json is missing.
     """
     if user_id != 1:
+        # New users get randomised demo data so they can explore the app
+        # without starting from a blank slate.
+        try:
+            from services.demo_service import generate_demo_data_for_user
+            generate_demo_data_for_user(user_id)
+        except Exception:
+            logger.exception('Failed to generate demo data for user %s', user_id)
         return
     user_trades = os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
     if os.path.exists(DATA_FILE) and not os.path.exists(user_trades):

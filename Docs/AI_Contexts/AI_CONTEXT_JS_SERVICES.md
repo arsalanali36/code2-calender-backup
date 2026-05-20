@@ -401,20 +401,41 @@ const exportService = (() => {
       return;
     }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+    if (!window.jspdf) {
+      if (typeof showToast === 'function') showToast('PDF library not loaded. Refresh and try again.', 'error');
+      return;
+    }
+
     const fname = filename || `trading_journal_images_${_timestamp()}.pdf`;
 
-    if (typeof showToast === 'function') showToast('Generating PDF... Please wait.', 'info');
+    // ── Progress overlay ────────────────────────────────────────────────────
+    const _overlay = document.createElement('div');
+    _overlay.id = '_pdf-export-overlay';
+    _overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999999;display:flex;align-items:center;justify-content:center;';
+    _overlay.innerHTML = `
+      <div style="background:#1a1d27;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:32px 40px;min-width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+        <div id="_pdf-spinner" style="width:42px;height:42px;border:3px solid rgba(255,255,255,0.12);border-top-color:#58a6ff;border-radius:50%;animation:_pdf-spin 0.8s linear infinite;margin:0 auto 18px;"></div>
+        <div style="color:#fff;font-size:1rem;font-weight:600;margin-bottom:8px;">Generating PDF</div>
+        <div id="_pdf-progress" style="color:#8b949e;font-size:0.85rem;">Preparing...</div>
+      </div>
+      <style>@keyframes _pdf-spin{to{transform:rotate(360deg);}}</style>`;
+    document.body.appendChild(_overlay);
+    const _setProgress = (txt) => { const el = document.getElementById('_pdf-progress'); if (el) el.textContent = txt; };
+    const _closeOverlay = () => { const el = document.getElementById('_pdf-export-overlay'); if (el) el.remove(); };
+    // ───────────────────────────────────────────────────────────────────────
 
     try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
       let newsOnCurrentPage = 0; // 0=none, 1=left, 2=right
+      const total = metaList.length;
 
       for (let i = 0; i < metaList.length; i++) {
         const item = metaList[i];
         const url = (typeof item === 'string') ? item : (item.url || '');
         if (!url) continue;
 
+        _setProgress(`Image ${i + 1} of ${total}...`);
         const urlForExport = (typeof resolveImageUrl === 'function') ? resolveImageUrl(url) : url;
         if (typeof isVideoUrl === 'function' && isVideoUrl(urlForExport)) continue;
 
@@ -593,31 +614,46 @@ const exportService = (() => {
         }
       }
 
+      _setProgress('Saving file...');
       doc.save(fname);
+      _closeOverlay();
       if (typeof showToast === 'function') showToast('PDF Exported!', 'success');
     } catch (err) {
+      _closeOverlay();
       console.error("PDF Export failed:", err);
-      if (typeof showToast === 'function') showToast('PDF Export failed.', 'error');
+      if (typeof showToast === 'function') showToast(`PDF Export failed: ${err.message || err}`, 'error');
     }
   }
 
   function _getImageDataUrl(url) {
     return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      const tryLoad = (withCors) => {
+        const img = new Image();
+        if (withCors) img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } catch (e) {
+            if (withCors) {
+              // canvas tainted — retry without crossOrigin
+              tryLoad(false);
+            } else {
+              console.warn('Canvas export failed for:', url, e);
+              resolve(null);
+            }
+          }
+        };
+        img.onerror = () => {
+          if (withCors) { tryLoad(false); } else { resolve(null); }
+        };
+        img.src = url + (withCors ? '' : (url.includes('?') ? '&_nocors=1' : '?_nocors=1'));
       };
-      img.onerror = (e) => {
-        console.warn("Failed to load image for PDF:", url, e);
-        resolve(null);
-      };
-      img.src = url;
+      tryLoad(true);
     });
   }
 
