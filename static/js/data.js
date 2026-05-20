@@ -220,8 +220,7 @@ async function loadTrades() {
     repopulateYearSelect();
     // Render errors (e.g. table/calendar JS bug) should not mask a successful data load
     try { render(); } catch (re) { console.error('[render] error after loadTrades:', re); }
-    const _db = document.getElementById('demo-banner');
-    if (_db) _db.style.display = state.demoMode ? 'flex' : 'none';
+    _updateDemoUI();
     _dismissLoadingOverlay();
   } catch (e) {
     console.error('[loadTrades] error:', e);
@@ -344,26 +343,70 @@ async function syncFromServerIfChanged(force = false) {
 
 // syncTagColumnRegistry and all utility/normalization functions are in data-utils.js
 
-// ── Demo mode: clear button ───────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
-  const btn = document.getElementById('demo-clear-btn');
-  if (!btn) return;
-  btn.addEventListener('click', async function () {
-    btn.disabled = true;
-    btn.textContent = 'Clearing…';
-    try {
-      const res = await fetch('/api/trades/clear-demo', { method: 'POST' });
-      if (!res.ok) throw new Error('server error');
-      state.demoMode = false;
-      const banner = document.getElementById('demo-banner');
-      if (banner) banner.style.display = 'none';
-      await loadTrades();
-      if (typeof showToast === 'function') showToast('Demo cleared — add your first trade!', 'success');
-    } catch (_e) {
-      btn.disabled = false;
-      btn.textContent = 'Clear & Start Fresh →';
-      if (typeof showToast === 'function') showToast('Failed to clear demo data', 'error');
+// ── Demo mode UI helpers ──────────────────────────────────────────────────
+function _updateDemoUI() {
+  const banner  = document.getElementById('demo-banner');
+  const hdrBtn  = document.getElementById('demo-mode-toggle-btn');
+  const clearBtn = document.getElementById('demo-clear-btn');
+
+  if (banner) {
+    banner.style.display = state.demoMode ? 'flex' : 'none';
+    // Sticky: sit right below the sticky header
+    const hdr = document.querySelector('.app-header');
+    if (hdr) banner.style.top = hdr.offsetHeight + 'px';
+  }
+  if (hdrBtn) {
+    hdrBtn.style.display = '';   // always visible in profile menu
+    if (state.demoMode) {
+      hdrBtn.textContent = '🎭 Clear Demo Data';
+      hdrBtn.style.color = '#fbbf24';
+    } else {
+      hdrBtn.textContent = '🎭 Restore Demo Data';
+      hdrBtn.style.color = '';
     }
-  });
+  }
+  if (clearBtn) {
+    clearBtn.disabled = false;
+    clearBtn.textContent = 'Clear & Start Fresh →';
+  }
+}
+
+async function _demoAction(endpoint, loadingText, successMsg, errorMsg) {
+  const clearBtn = document.getElementById('demo-clear-btn');
+  const hdrBtn   = document.getElementById('demo-mode-toggle-btn');
+  [clearBtn, hdrBtn].forEach(b => { if (b) { b.disabled = true; b.textContent = loadingText; } });
+  try {
+    const res = await fetch(endpoint, { method: 'POST' });
+    if (!res.ok) throw new Error('server error');
+    await loadTrades();   // reloads data → sets state.demoMode → calls _updateDemoUI
+    if (typeof showToast === 'function') showToast(successMsg, 'success');
+  } catch (_e) {
+    _updateDemoUI();
+    if (typeof showToast === 'function') showToast(errorMsg, 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Clear demo button (banner)
+  const clearBtn = document.getElementById('demo-clear-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () =>
+      _demoAction('/api/trades/clear-demo', 'Clearing…',
+        'Demo cleared — add your first trade! 🚀', 'Failed to clear demo data'));
+  }
+
+  // Header toggle button (profile dropdown)
+  const hdrBtn = document.getElementById('demo-mode-toggle-btn');
+  if (hdrBtn) {
+    hdrBtn.addEventListener('click', () => {
+      if (state.demoMode) {
+        _demoAction('/api/trades/clear-demo', 'Clearing…',
+          'Demo cleared — add your first trade! 🚀', 'Failed to clear demo data');
+      } else {
+        _demoAction('/api/trades/restore-demo', 'Restoring…',
+          'Demo data restored! 🎭', 'Failed to restore demo data');
+      }
+    });
+  }
 });
 

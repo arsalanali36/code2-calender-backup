@@ -133,3 +133,18 @@ def generate_demo_data_for_user(user_id: int) -> None:
         logger.info('[demo] wrote demo data for user %s → %s', user_id, dest)
     except Exception:
         logger.exception('[demo] failed to write demo file for user %s', user_id)
+
+
+def restore_demo_data_for_user(user_id: int) -> None:
+    """
+    Delete the user's current trades file and regenerate demo data.
+    Used when a user wants to bring back the demo after clearing it.
+    """
+    dest = os.path.join(BASE_DIR, 'data', f'trades_{user_id}.json')
+    try:
+        if os.path.exists(dest):
+            os.remove(dest)
+    except Exception:
+        logger.exception('[demo] failed to delete file before restore for user %s', user_id)
+        return
+    generate_demo_data_for_user(user_id)

@@ -54,6 +54,20 @@ def clear_demo():
     return jsonify({'success': True})
 
 
+@trade_bp.route('/api/trades/restore-demo', methods=['POST'])
+def restore_demo():
+    """Restore demo data for the current user (re-generates from source)."""
+    uid = _get_user_id()
+    if uid is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        from services.demo_service import restore_demo_data_for_user
+        restore_demo_data_for_user(uid)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    return jsonify({'success': True})
+
+
 def _trigger_backup_sync(data):
     """Fire-and-forget: resync backup for dates present in the saved payload."""
     import threading

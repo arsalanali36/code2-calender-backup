@@ -1053,7 +1053,9 @@
   font-size: 0.85rem;
   font-weight: 500;
   flex-wrap: wrap;
-  z-index: 90;
+  position: sticky;
+  top: 0;          /* JS will set this to header height after load */
+  z-index: 95;
 }
 .demo-banner-btn {
   background: #fbbf24;
