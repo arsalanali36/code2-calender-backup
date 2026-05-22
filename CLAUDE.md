@@ -322,3 +322,24 @@ return jsonify(result)
 | Data transform / calculation | → `processors/` mein |
 
 **Outcome:** User ko bata do: "X ko service mein daala — ab Y aur Z dono use kar sakte hain."
+
+---
+
+## VPS Management Scripts
+
+VPS ke liye utility scripts alag folder mein hain:
+
+```
+D:\KHAZANA\KHAZANA\PYTHON\_VPS_TOOLS\
+├── deploy_vps.py          ← App deploy karo VPS pe
+├── deploy_admin.py        ← Admin panel deploy
+├── debug_vps.py           ← SSH debug
+├── check_users.py         ← docker code2 users list
+├── check_imgs.py          ← VPS pe images check
+├── fix_uploads.py         ← Upload issues fix
+├── test_email.py          ← Email config test
+├── upload_data.py         ← Data files upload
+└── sync_render_to_vps.py  ← Render.com backup → VPS sync
+```
+
+**VPS:** `72.61.173.32` | Docker container: `code2`
