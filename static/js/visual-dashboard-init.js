@@ -5,7 +5,31 @@
  * @exports initVisualDashboard, bindVdEvents, syncVdSelects, updateVdRangeLabel
  */
 
+// Cache for video player stamp data (keyed by date "YYYY-MM-DD" → array of image stamps)
+window._vpImgCache = null;
+
+function _fetchVpImgData() {
+    fetch('http://localhost:5001/api/data')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (!data || !data.dates) return;
+            const cache = {};
+            data.dates.forEach(d => {
+                (d.videos || []).forEach(v => {
+                    (v.stamps || []).filter(s => s.result === 'image' && s.imageId).forEach(s => {
+                        const key = d.label; // "YYYY-MM-DD"
+                        if (!cache[key]) cache[key] = [];
+                        cache[key].push({ imageId: s.imageId, from: s.from, label: s.label || '' });
+                    });
+                });
+            });
+            window._vpImgCache = cache;
+        })
+        .catch(() => {}); // video player may not be running — silent fail
+}
+
 function initVisualDashboard() {
+    _fetchVpImgData(); // pre-load video player screenshot data
     bindVdEvents();
     renderVisualDashboard();
 }
