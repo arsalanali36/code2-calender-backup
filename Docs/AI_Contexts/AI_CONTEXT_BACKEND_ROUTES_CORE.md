@@ -136,6 +136,7 @@ routes/trade_routes.py
 ----------------------
 API routes for reading and writing the trades payload.
 """
+import os
 from flask import Blueprint, request, jsonify
 from flask_login import current_user
 
@@ -151,7 +152,23 @@ def _get_user_id():
 
 @trade_bp.route('/api/trades', methods=['GET'])
 def get_trades():
-    return jsonify(get_all_trades(user_id=_get_user_id()))
+    uid = _get_user_id()
+    _ensure_demo_data(uid)
+    return jsonify(get_all_trades(user_id=uid))
+
+
+def _ensure_demo_data(uid):
+    """Generate demo data on first load if user has no data file yet (belt-and-suspenders fallback)."""
+    if uid is None or uid == 1:
+        return
+    from config import BASE_DIR
+    dest = os.path.join(BASE_DIR, 'data', f'trades_{uid}.json')
+    if not os.path.exists(dest):
+        try:
+            from services.demo_service import generate_demo_data_for_user
+            generate_demo_data_for_user(uid)
+        except Exception:
+            pass
 
 
 @trade_bp.route('/api/trades', methods=['POST'])
@@ -195,7 +212,34 @@ def restore_demo():
         return jsonify({'error': 'Unauthorized'}), 401
     try:
         from services.demo_service import restore_demo_data_for_user
-        restore_demo_data_for_user(uid)
+        had_backup = restore_demo_data_for_user(uid)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    return jsonify({'success': True, 'has_backup': had_backup})
+
+
+@trade_bp.route('/api/trades/undo-demo-restore', methods=['POST'])
+def undo_demo_restore():
+    """Restore the most recent pre-demo backup for the current user."""
+    uid = _get_user_id()
+    if uid is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    import shutil
+    from config import BASE_DIR
+    backup_dir = os.path.join(BASE_DIR, 'data', 'backups')
+    prefix = f'trades_backup_user_{uid}_'
+    try:
+        files = sorted(
+            f for f in os.listdir(backup_dir) if f.startswith(prefix)
+        )
+    except FileNotFoundError:
+        return jsonify({'error': 'No backup found'}), 404
+    if not files:
+        return jsonify({'error': 'No backup found'}), 404
+    latest = os.path.join(backup_dir, files[-1])
+    dest = os.path.join(BASE_DIR, 'data', f'trades_{uid}.json')
+    try:
+        shutil.copy2(latest, dest)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     return jsonify({'success': True})
@@ -799,7 +843,8 @@ from services.export_service import (
     export_simple_excel, export_structured_csv,
     export_logger_excel, build_backup_zip,
 )
-from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG
+from flask_login import current_user
+from config import DATA_FILE, UPLOADS_DIR, ADMIN_API_KEY, DEBUG, BASE_DIR
 from processors.data_processors import find_best_trades_file
 
 export_bp = Blueprint('export', __name__)
@@ -814,7 +859,10 @@ def backup():
     safe_name = re.sub(r'[^A-Za-z0-9_\ -]+', '', requested_name).strip()
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     base_name = safe_name if safe_name else f'trading_journal_{timestamp_str}'
-    zip_bytes, _ = build_backup_zip(active_file, UPLOADS_DIR)
+    # Only zip current user's uploads folder, not all users'
+    uid = current_user.id if current_user.is_authenticated else None
+    user_uploads = os.path.join(BASE_DIR, 'static', 'uploads', f'user_{uid}') if uid else UPLOADS_DIR
+    zip_bytes, _ = build_backup_zip(active_file, user_uploads)
     return send_file(
         io.BytesIO(zip_bytes),
         as_attachment=True,

@@ -425,14 +425,14 @@ def consolidate_zerodha_historical_csv(raw_df):
                         sell_price = entry_avg
                         buy_time = cycle['exit_time_last']
                         buy_price = exit_avg
-                        pt = sell_price - buy_price
                     else:                              # long
                         buy_time = cycle['entry_time_first']
                         buy_price = entry_avg
                         sell_time = cycle['exit_time_last']
                         sell_price = exit_avg
-                        # As requested in prompt
-                        pt = buy_price - sell_price
+
+                    # P&L hamesha sell - buy (long ho ya short) — pehle long me ulta tha
+                    pt = sell_price - buy_price
 
                     rs = pt * qty
 

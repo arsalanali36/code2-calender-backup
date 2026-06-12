@@ -664,67 +664,58 @@ async function _demoAction(endpoint, loadingText, successMsg, errorMsg) {
   try {
     const res = await fetch(endpoint, { method: 'POST' });
     if (!res.ok) throw new Error('server error');
-    await loadTrades();   // reloads data → sets state.demoMode → calls _updateDemoUI
-    if (typeof showToast === 'function') showToast(successMsg, 'success');
+    const json = await res.json().catch(() => ({}));
+    await loadTrades();
+    if (endpoint === '/api/trades/restore-demo' && json.has_backup) {
+      _showUndoToast();
+    } else if (typeof showToast === 'function') {
+      showToast(successMsg, 'success');
+    }
   } catch (_e) {
     _updateDemoUI();
     if (typeof showToast === 'function') showToast(errorMsg, 'error');
   }
 }
 
-function _showDemoRestoreConfirm() {
-  const existing = document.getElementById('demo-restore-confirm-overlay');
+function _showUndoToast() {
+  const existing = document.getElementById('demo-restore-undo-toast');
   if (existing) existing.remove();
-
-  const overlay = document.createElement('div');
-  overlay.id = 'demo-restore-confirm-overlay';
-  Object.assign(overlay.style, {
-    position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.72)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    zIndex: '99999'
+  const t = document.createElement('div');
+  t.id = 'demo-restore-undo-toast';
+  Object.assign(t.style, {
+    position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+    background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+    padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
+    zIndex: '999999', boxShadow: '0 8px 32px rgba(0,0,0,.5)',
+    fontSize: '0.875rem', color: '#f1f5f9', whiteSpace: 'nowrap'
   });
-  overlay.innerHTML = `
-    <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:28px 30px;max-width:350px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.55);">
-      <div style="font-size:2rem;margin-bottom:10px;">⚠️</div>
-      <div style="font-size:1rem;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Apna Data Bachayein?</div>
-      <div style="font-size:0.83rem;color:#94a3b8;margin-bottom:22px;line-height:1.55;">
-        Demo restore karne se aapka current data replace ho jaayega.<br>
-        Pehle <strong style="color:#e2e8f0">Backup (Data + Images)</strong> save karna chahenge?
-      </div>
-      <div style="display:flex;flex-direction:column;gap:9px;">
-        <button id="drc-backup-btn" style="padding:10px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;">
-          💾 Pehle Backup, Phir Restore
-        </button>
-        <button id="drc-skip-btn" style="padding:10px 16px;background:transparent;color:#f87171;border:1px solid rgba(248,113,113,.5);border-radius:8px;font-size:0.88rem;cursor:pointer;">
-          Backup Nahi — Seedha Restore
-        </button>
-        <button id="drc-cancel-btn" style="padding:8px 16px;background:transparent;color:#64748b;border:1px solid #334155;border-radius:8px;font-size:0.82rem;cursor:pointer;margin-top:2px;">
-          Cancel
-        </button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
+  t.innerHTML = `
+    <span>&#10003; Demo restore ho gaya.</span>
+    <button id="dru-undo-btn" style="padding:5px 12px;background:#f59e0b;color:#000;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:0.82rem;">&#8617; Undo — Data Wapas Lao</button>
+    <button id="dru-close-btn" style="background:transparent;border:none;color:#64748b;cursor:pointer;font-size:1.1rem;line-height:1;">&#x2715;</button>`;
+  document.body.appendChild(t);
 
-  const close = () => overlay.remove();
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-  document.getElementById('drc-cancel-btn').addEventListener('click', close);
+  document.getElementById('dru-close-btn').addEventListener('click', () => t.remove());
 
-  document.getElementById('drc-skip-btn').addEventListener('click', () => {
-    close();
-    _demoAction('/api/trades/restore-demo', 'Restoring…',
-      'Demo data restored! 🎭', 'Failed to restore demo data');
-  });
-
-  document.getElementById('drc-backup-btn').addEventListener('click', async () => {
-    close();
+  document.getElementById('dru-undo-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('dru-undo-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Restoring…'; }
     try {
-      if (typeof handleBackupWithProgress === 'function') {
-        await handleBackupWithProgress('pre-demo-restore');
-      }
-    } catch (_) {}
-    _demoAction('/api/trades/restore-demo', 'Restoring…',
-      'Demo data restored! 🎭', 'Failed to restore demo data');
+      const res = await fetch('/api/trades/undo-demo-restore', { method: 'POST' });
+      if (!res.ok) throw new Error();
+      t.remove();
+      await loadTrades();
+      if (typeof showToast === 'function') showToast('Data recover ho gaya! ✅', 'success');
+    } catch (_) {
+      if (typeof showToast === 'function') showToast('Recovery fail ho gayi — backup se try karein', 'error');
+      _updateDemoUI();
+    }
   });
+}
+
+function _showDemoRestoreConfirm() {
+  const overlay = document.getElementById('demo-restore-confirm-overlay');
+  if (overlay) overlay.style.display = 'flex';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -739,16 +730,44 @@ document.addEventListener('DOMContentLoaded', function () {
   // Header toggle button (profile dropdown)
   const hdrBtn = document.getElementById('demo-mode-toggle-btn');
   if (hdrBtn) {
-    hdrBtn.addEventListener('click', () => {
+    hdrBtn.addEventListener('click', e => {
+      e.stopPropagation();
       if (state.demoMode) {
         _demoAction('/api/trades/clear-demo', 'Clearing…',
           'Demo cleared — add your first trade! 🚀', 'Failed to clear demo data');
-      } else if (state.trades && state.trades.length > 0) {
-        _showDemoRestoreConfirm();
       } else {
-        _demoAction('/api/trades/restore-demo', 'Restoring…',
-          'Demo data restored! 🎭', 'Failed to restore demo data');
+        _showDemoRestoreConfirm();
       }
+    });
+  }
+
+  // Demo restore confirm modal buttons (static HTML in index.html)
+  const drcOverlay = document.getElementById('demo-restore-confirm-overlay');
+  if (drcOverlay) {
+    const hide = () => { drcOverlay.style.display = 'none'; };
+
+    drcOverlay.addEventListener('click', e => {
+      e.stopPropagation();
+      if (e.target === drcOverlay) hide();
+    });
+
+    document.getElementById('drc-cancel-btn').addEventListener('click', hide);
+
+    document.getElementById('drc-skip-btn').addEventListener('click', () => {
+      hide();
+      _demoAction('/api/trades/restore-demo', 'Restoring…',
+        'Demo data restored! 🎭', 'Failed to restore demo data');
+    });
+
+    document.getElementById('drc-backup-btn').addEventListener('click', async () => {
+      hide();
+      try {
+        if (typeof handleBackupWithProgress === 'function') {
+          await handleBackupWithProgress('pre-demo-restore');
+        }
+      } catch (_) {}
+      _demoAction('/api/trades/restore-demo', 'Restoring…',
+        'Demo data restored! 🎭', 'Failed to restore demo data');
     });
   }
 });

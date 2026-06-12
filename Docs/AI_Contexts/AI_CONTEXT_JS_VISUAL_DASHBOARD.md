@@ -622,17 +622,79 @@ function renderVisualDashboard() {
             custom: function ({ series, seriesIndex, dataPointIndex, w }) {
                 const data = pptFiltered[dataPointIndex];
                 if (!data) return '';
-                const dobj = data.date && data.date !== 'Unknown' ? new Date(data.date + 'T00:00:00') : null;
-                const dateLbl = dobj && !isNaN(dobj)
-                    ? `${dobj.toLocaleString('default', { month: 'short' })} ${dobj.getDate()}, ${dobj.toLocaleString('default', { weekday: 'short' })}`
-                    : data.date;
+                const t = data.trade || {};
+                const isLoss = data.amt < 0;
+                const resultColor = isLoss ? '#f85149' : '#3fb950';
+                const resultLabel = isLoss ? 'LOSS' : 'WIN';
+                const datePart = (data.date || '').slice(5); // MM-DD
+                const pt = data.y;
+                const ptStr = (pt >= 0 ? '' : '') + Number(pt).toFixed(2);
+                const ptColor = pt >= 0 ? '#3fb950' : '#f85149';
+                const amtAbs = Math.abs(Math.round(data.amt)).toLocaleString('en-IN');
+                const amtStr = (data.amt < 0 ? '-' : '') + '₹' + amtAbs;
+
+                const instrument = t['Instrument'] || t['instrument'] || t['Symbol'] || t['symbol'] || '';
+                const observation = t['Notes'] || t['notes'] || t['Observation'] || t['observation'] || t['label'] || '';
+
+                // Tags
+                let tagsHtml = '';
+                if (typeof getTradeTagsForColumn === 'function' && typeof state !== 'undefined' && state.tagColumns && state.tagColumns.length > 0) {
+                    const tags = state.tagColumns.flatMap(col => getTradeTagsForColumn(t, col));
+                    if (tags.length) {
+                        tagsHtml = `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;">${
+                            tags.map(tag => `<span style="background:rgba(99,102,241,.25);color:#a5b4fc;border:1px solid rgba(99,102,241,.4);border-radius:4px;padding:1px 6px;font-size:10px;">${tag}</span>`).join('')
+                        }</div>`;
+                    }
+                }
+
+                // Images: prefer trade.images; fallback → video player stamps matched by date + observation timestamp
+                const images = Array.isArray(t.images) ? t.images.map(u => typeof resolveImageUrl === 'function' ? resolveImageUrl(u) : u).filter(Boolean) : [];
+                let vpImgUrls = [];
+                if (!images.length && window._vpImgCache && data.date && data.date !== 'Unknown') {
+                    const dayStamps = window._vpImgCache[data.date] || [];
+                    // Parse [MM:SS] or [H:MM:SS] timestamps from observation text
+                    const tsMatches = observation.match(/\[(\d{1,2}:\d{2}(?::\d{2})?)\]/g) || [];
+                    const targetSecs = tsMatches.map(m => {
+                        const parts = m.replace(/[\[\]]/g, '').split(':').map(Number);
+                        return parts.length === 3 ? parts[0]*3600+parts[1]*60+parts[2] : parts[0]*60+parts[1];
+                    });
+                    if (targetSecs.length) {
+                        // Match stamps within ±60s of any referenced timestamp
+                        vpImgUrls = dayStamps
+                            .filter(s => targetSecs.some(ts => Math.abs(s.from - ts) <= 60))
+                            .map(s => `http://localhost:5001/screenshot/${s.imageId}`);
+                    }
+                    // If no timestamp in observation, show all image stamps for that date (max 3)
+                    if (!vpImgUrls.length && dayStamps.length) {
+                        vpImgUrls = dayStamps.slice(0, 3).map(s => `http://localhost:5001/screenshot/${s.imageId}`);
+                    }
+                }
+                const allImgs = images.length ? images : vpImgUrls;
+                let imgsHtml = '';
+                if (allImgs.length) {
+                    imgsHtml = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">${
+                        allImgs.map(url => `<img src="${url}" style="width:110px;height:70px;object-fit:cover;border-radius:4px;border:1px solid #30363d;">`).join('')
+                    }</div>`;
+                }
+
+                const obsHtml = observation
+                    ? `<div style="margin-top:5px;font-size:11px;color:#8b949e;line-height:1.5;max-width:220px;">${observation.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+                    : '';
+
                 return `
-                  <div style="padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;line-height:1.8;">
-                    <div><strong>Date:</strong> ${dateLbl}</div>
-                    <div><strong>Trade:</strong> ${data.x}</div>
-                    <div><strong>PT:</strong> ${Math.round(data.y)}</div>
-                    <div><strong>Amt:</strong> ₹${Math.round(data.amt).toLocaleString('en-IN')}</div>
-                    <div><strong>Lot:</strong> ${data.lot}</div>
+                  <div style="padding:10px 12px;background:#161b22;border:1px solid #30363d;border-radius:8px;font-family:var(--font-mono,'JetBrains Mono',monospace);min-width:200px;max-width:260px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                      <span style="font-weight:700;font-size:12px;color:#e6edf3;">${data.x} · ${datePart}</span>
+                      <span style="font-size:10px;font-weight:700;color:${resultColor};background:${resultColor}22;border:1px solid ${resultColor}55;border-radius:4px;padding:1px 6px;">${resultLabel}</span>
+                    </div>
+                    <div style="display:flex;gap:16px;margin-bottom:2px;">
+                      <div><div style="font-size:9px;color:#8b949e;">POINTS</div><div style="font-size:13px;font-weight:700;color:${ptColor};">${ptStr}</div></div>
+                      <div><div style="font-size:9px;color:#8b949e;">AMT</div><div style="font-size:13px;font-weight:700;color:${ptColor};">${amtStr}</div></div>
+                    </div>
+                    ${instrument ? `<div style="font-size:10px;color:#8b949e;margin-top:2px;">${instrument}</div>` : ''}
+                    ${tagsHtml}
+                    ${imgsHtml}
+                    ${obsHtml}
                   </div>
                 `;
             }
@@ -706,7 +768,31 @@ function renderVisualDashboard() {
  * @exports initVisualDashboard, bindVdEvents, syncVdSelects, updateVdRangeLabel
  */
 
+// Cache for video player stamp data (keyed by date "YYYY-MM-DD" → array of image stamps)
+window._vpImgCache = null;
+
+function _fetchVpImgData() {
+    fetch('http://localhost:5001/api/data')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (!data || !data.dates) return;
+            const cache = {};
+            data.dates.forEach(d => {
+                (d.videos || []).forEach(v => {
+                    (v.stamps || []).filter(s => s.result === 'image' && s.imageId).forEach(s => {
+                        const key = d.label; // "YYYY-MM-DD"
+                        if (!cache[key]) cache[key] = [];
+                        cache[key].push({ imageId: s.imageId, from: s.from, label: s.label || '' });
+                    });
+                });
+            });
+            window._vpImgCache = cache;
+        })
+        .catch(() => {}); // video player may not be running — silent fail
+}
+
 function initVisualDashboard() {
+    _fetchVpImgData(); // pre-load video player screenshot data
     bindVdEvents();
     renderVisualDashboard();
 }

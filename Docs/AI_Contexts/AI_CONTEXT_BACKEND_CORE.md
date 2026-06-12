@@ -564,8 +564,12 @@ CLOUDINARY_URL_VALUE = os.getenv('CLOUDINARY_URL', '')
 USE_CLOUDINARY = False  # Migrated to ImageKit
 
 # ── Server settings ───────────────────────────────────────────────────────────
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '_KHAZANA_COMMONS'))
+from khazana.ports import CODE2_TRADING_JOURNAL as _DEFAULT_PORT
+
 HOST  = os.getenv('HOST', '0.0.0.0')
-PORT  = int(os.getenv('PORT', '5000'))
+PORT  = int(os.getenv('PORT', str(_DEFAULT_PORT)))
 DEBUG = str(os.getenv('FLASK_DEBUG', 'true')).strip().lower() in ('1', 'true', 'yes')
 
 _secret_key_default = 'your-secret-key-for-dev-fallback'
