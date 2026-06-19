@@ -1,9 +1,5 @@
 import pandas as pd
 import numpy as np
-try:
-    import yfinance as yf
-except ImportError:
-    yf = None
 import json
 import os
 import pytz

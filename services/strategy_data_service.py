@@ -1,15 +1,11 @@
 """
 services/strategy_data_service.py
 ----------------------------------
-Data-fetching layer for Strategy Lab: Dhan API, yfinance, archive dates.
+Data-fetching layer for Strategy Lab: Dhan API, archive dates.
 Strategy logic (EMA, candle patterns, run_* functions) lives in strategy_service.py.
 """
 import pandas as pd
 import numpy as np
-try:
-    import yfinance as yf
-except ImportError:
-    yf = None
 import json
 import os
 import functools
@@ -67,7 +63,7 @@ def fetch_dhan_api_data(from_date, to_date, token=DHAN_ACCESS_TOKEN):
     if not all_data: return pd.DataFrame()
     return pd.DataFrame(all_data).set_index('Datetime')
 
-def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', dhan_token='', dhan_cid='', strategy_type='Arsalan Continuation', strategy_params=None, user_id=None):
+def get_nifty_data(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='dhan_api', dhan_token='', dhan_cid='', strategy_type='Arsalan Continuation', strategy_params=None, user_id=None):
     st = time.time()
     pivot_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'daily_pivot_levels.json')
     pivot_mtime = os.path.getmtime(pivot_path) if os.path.exists(pivot_path) else 0
@@ -107,7 +103,7 @@ def _load_from_ohlc_store(symbol, start_date, end_date):
     return df_new.set_index('Datetime').loc[~df_new.set_index('Datetime').index.duplicated(keep='first')]
 
 
-def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='yfinance', strategy_type='Arsalan Continuation', strategy_params=None):
+def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_time='09:15', end_time='15:30', source='dhan_api', strategy_type='Arsalan Continuation', strategy_params=None):
     df = pd.DataFrame()
     today_str = datetime.now().strftime('%Y-%m-%d')
     if source == 'dhan_local':
@@ -134,20 +130,12 @@ def _get_nifty_data_impl(symbol, start_date, end_date, timeframe='5m', start_tim
                     df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume','datetime'] else c for c in df.columns]
                     if 'Datetime' in df.columns: df = df.set_index('Datetime')
 
-    if source == 'yfinance' or (source == 'dhan_api' and start_date != today_str):
-        yf_end = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
-        yf_interval = '1m' if timeframe == '3m' else timeframe
-        try:
-            if yf is None:
-                raise ImportError("yfinance not installed")
-            df = yf.download("^NSEI", start=start_date, end=yf_end, interval=yf_interval)
-            if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
-            if not df.empty: df = df[df.index >= pd.to_datetime(start_date)]
-        except: df = pd.DataFrame()
+    if source == 'dhan_api' and start_date != today_str:
+        pass  # Dhan historical already attempted above via fetch_dhan_api_data
 
     if df.empty: return pd.DataFrame(), []
     df.columns = [c.capitalize() if c.lower() in ['open','high','low','close','volume'] else c for c in df.columns]
-    if source != 'yfinance' or timeframe == '3m': df = resample_ohlc(df, timeframe)
+    df = resample_ohlc(df, timeframe)
     df = df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     if df.index.tz is not None: df.index = df.index.tz_convert('Asia/Kolkata').tz_localize(None)
 

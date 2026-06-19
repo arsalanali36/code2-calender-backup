@@ -26,13 +26,13 @@ def export_sandbox_csv():
     )
     
     if df.empty:
-        print("No data found from dhan_local, trying yfinance...")
+        print("No data found from dhan_local, trying dhan_api...")
         df, zones = get_nifty_data(
-            symbol='Nifty 50 (^NSEI)', 
-            start_date=start_date, 
-            end_date=end_date, 
-            timeframe='1m', 
-            source='yfinance', 
+            symbol='Nifty 50 (^NSEI)',
+            start_date=start_date,
+            end_date=end_date,
+            timeframe='1m',
+            source='dhan_api',
             strategy_type='Arsalan Sandbox'
         )
 

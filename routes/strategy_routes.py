@@ -17,7 +17,7 @@ def nifty_data():
     timeframe = request.args.get('timeframe', '5m')
     start_time = request.args.get('start_time', '09:15')
     end_time = request.args.get('end_time', '15:30')
-    source = request.args.get('source', 'yfinance')
+    source = request.args.get('source', 'dhan_api')
     dhan_token = request.args.get('dhan_token', '')
     dhan_cid = request.args.get('dhan_cid', '')
     symbol = request.args.get('symbol', 'Nifty 50 (^NSEI)')
